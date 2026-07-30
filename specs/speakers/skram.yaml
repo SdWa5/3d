@@ -17,9 +17,10 @@ clone_of:
 provenance: plans
 
 geometry:
-  # Block-level outer box; the internal horn path is not modelled.
+  # Only a fallback now: `mesh_override` below replaces this with the real CAD, which does model the
+  # vent array and the horn path. The box stays declared because the spec still owns the dimensions.
   shape: box
-  dimensions_m: { width: 0.610, height: 0.813, depth: 0.914 }
+  dimensions_m: { width: 0.610, height: 0.914, depth: 0.813 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -40,20 +41,26 @@ audio:
     - { size_in: 21, type: woofer, count: 1 }
 
 # Josh Ricci's own CAD, from the SKRAM DIY Package (STEP Files/SKRAM 3D.step), converted with
-# `ddev mesh-convert`. It measures 619.6 x 812.8 x 924.4 mm: the height matches 32" exactly, but
-# width and depth are each 10 mm over the published 24" and 36". The nominal figures are kept here
-# because the cut list corroborates them; the tolerance allows the CAD until somebody measures the
-# built cabinet and settles which is right.
+# `ddev mesh-convert`. Native orientation is already ours except for a 180 deg turn: the Fusion files
+# are named "CAM", so the assembly is laid out for machining, and the vents ended up facing away.
+# Turned round, the front shows the vent array with the 21" cone visible through it.
+#
+# The CAD measures 619.6 x 812.8 x 924.4 mm, so it is ~10 mm over the published 24" width and 36"
+# height. The published figures are kept here and the tolerance admits the CAD; measuring the built
+# cabinet will settle which is right.
 mesh_override:
   path: meshes/skram.stl
   units: mm
-  rotate_deg: [90, 0, 0]
+  rotate_deg: [0, 0, 180]
   tolerance_m: 0.011
 
 notes: |
   Newest addition. 21" driver: Eighteensound 21NLW9601 (1800 W AES, 98 dB, 25 Hz Fs) — third in
   SKRAM Driver.xlsx by efficiency per euro, and consistent with the 18Sound drivers already in the
   Flexys. 1800 W continuous.
-  Cut list: 22 panel sizes, 18 mm for the structure and 12 mm for the horn flare pieces.
+  Cut list: 22 panel sizes, 18 mm for the structure and 12 mm for the horn flare pieces. Its largest
+  panel is 914 x 813 mm, which fits sides of 914 high x 813 deep — the orientation used here. Note
+  that PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx lists height 0.813 and depth 0.914, i.e.
+  the other way round; a tape measure on the real cabinet settles it.
   Not to be confused with SKHORN / GHORN / OTHORN, which were evaluated in the same spreadsheet
   but are not owned.

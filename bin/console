@@ -13,7 +13,7 @@ use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('sdwa5-3d', '0.9.0');
+$app = new Application('sdwa5-3d', '0.9.1');
 $app->addCommands([
         new SpecsValidateCommand(),
         new ModelsBuildCommand(),

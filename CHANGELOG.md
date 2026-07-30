@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-07-30
+
+### Fixed
+
+- **SKRAM orientation.** Its CAD is authored for machining (the Fusion files are named "CAM"), so it
+  arrived lying on its back with the vents pointing away. `rotate_deg: [0, 0, 180]` stands it up and
+  turns it round: the front now shows the vent array with the 21″ cone visible through it, and the
+  small recessed rectangles are handles on the top and sides — not vents, as first assumed
+- **SKRAM height and depth were the wrong way round**: 0.914 m high × 0.813 m deep, not the reverse.
+  The cut list supports it — its largest panel is 914 × 813, which fits sides of 914 high by 813 deep.
+  `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx` says the opposite, and is noted in the spec as
+  contradicting it; a tape measure settles it. **This changes stacking heights**, so it matters
+
 ## [0.9.0] - 2026-07-30
 
 ### Added
