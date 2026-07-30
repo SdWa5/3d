@@ -1,5 +1,6 @@
-# Built from Eighteen Sound's published "15 inch 2 Ways Kit" application note. Dimensions read
-# off its FRONT VIEW and SIDE VIEW drawings. See docs/sources.md.
+# Built from Eighteen Sound's published "15 inch 2 Ways Kit". Outer dimensions come from the FreeCAD
+# model in Drive, converted with `ddev mesh-convert` — NOT from the drawings' 420/800/335, which are
+# partial dimensions measured inside the overhanging top and bottom panels. See docs/sources.md.
 id: eighteensound-2way-15
 name: "Eighteensound 2-Way 15\""
 category: speaker
@@ -11,17 +12,20 @@ build: clone
 clone_of:
   manufacturer: "Eighteen Sound"
   model: "15\" 2 Ways Kit"
-  reference: plans
+  reference: cad
   url: null
 
 provenance:
-  # Dimensions come from the kit drawings; the weight is a calculation, not a source.
+  # Dimensions come from the design's own CAD; the weight is a calculation, not a source.
   dimensions: plans
   weight: estimated
+deviations: |
+  The FreeCAD model uses 18 mm panels, while Eighteen Sound's note specifies 15 mm Baltic birch — so
+  this build is heavier and slightly larger than the published kit.
 
 geometry:
   shape: box
-  dimensions_m: { width: 0.420, height: 0.800, depth: 0.335 }
+  dimensions_m: { width: 0.4656, height: 0.836, depth: 0.4268 }
   origin: bottom-center
   chamfer_m: 0.010
 
@@ -32,11 +36,11 @@ appearance:
     color: "#0a0a0a"
 
 physical:
-  # ESTIMATE, calculated not guessed: ~1.42 m2 of 15 mm Baltic birch at ~680 kg/m3 = 14.4 kg,
-  # plus ~3 kg internal braces, plus drivers (15W700 8.6 kg + ND1460 1.0 kg + XT1464 horn ~1.5 kg),
-  # plus ~2 kg grille and hardware. Eighteen Sound publishes no finished-cabinet weight — it is a
-  # DIY kit, so the weight depends on the builder. Not weighed; see docs/measuring.md.
-  weight_kg: 30.0
+  # ESTIMATE, calculated not guessed: ~1.89 m2 of 18 mm ply at ~680 kg/m3 = 23.1 kg, plus ~5 kg
+  # internal baffles and braces, plus drivers (15W700 8.6 kg + ND1460 1.0 kg + XT1464 horn ~1.5 kg),
+  # plus ~2 kg hardware. Recomputed for the CAD's larger box and 18 mm panels. Eighteen Sound
+  # publishes no finished-cabinet weight — it is a DIY kit. Not weighed; see docs/measuring.md.
+  weight_kg: 41.0
   handles: [left, right]
 
 rigging:
@@ -48,10 +52,17 @@ audio:
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: compression-driver, count: 1 }
 
-mesh_override: null
+mesh_override:
+  path: meshes/eighteensound-2way-15.stl
+  units: mm
+  rotate_deg: [0, 0, 0]
 
 notes: |
   15W700 woofer plus ND1460 compression driver on an XT1464 horn, crossover around 1.5 kHz.
-  Enclosure is 15 mm Baltic birch plywood with two 96 mm internal-diameter vent pipes.
   Hardware Overview lists 60 - 20000 Hz and 550 W continuous.
-  weight_kg is the only estimated value here — the dimensions come from the kit drawings.
+  The override mesh carries the real baffle: octagonal horn cut-out, the DIA 353 mm driver hole and
+  two DIA 100 mm ports, all matching the drawings' own callouts.
+  Earlier versions of this spec used 0.420 x 0.800 x 0.335 m, read straight off the drawings. Those
+  are partial dimensions: 420 is the baffle width and 800 the side-panel height, both measured inside
+  the overhanging top and bottom panels (parts F and E), and 335 stops short of the back. The CAD's
+  outer box is 46 mm wider, 36 mm taller and ~92 mm deeper.

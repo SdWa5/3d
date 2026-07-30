@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-30
+
+### Added
+
+- **`achenbach-18` and `eighteensound-2way-15` now use their own CAD**, converted from the FreeCAD
+  models in Drive with `ddev mesh-convert`. Four of six devices carry real geometry now: the Achenbach
+  contributes its driver cut-out and corner braces, the 18sound its octagonal horn cut-out, Ø353 mm
+  driver hole and two Ø100 mm ports
+- The Achenbach's CAD measures 600 × 700 × 600 mm, matching the spec **exactly** — a third independent
+  confirmation after the panel geometry and lsv-achenbach.de's published panel sizes
+
+### Fixed
+
+- **`eighteensound-2way-15` outer dimensions were wrong: 0.4656 × 0.836 × 0.4268 m, not
+  0.420 × 0.800 × 0.335.** The published drawing's numbers are *partial*: its dimension lines sit
+  inside the overhanging top and bottom panels (parts F and E), so 420 is the baffle width, 800 the
+  side-panel height, and 335 a depth that stops short of the back. The CAD agrees with the drawings
+  wherever they measure the same feature — its baffle is 418.3 mm and its side panels exactly 800 mm —
+  and is 46 mm wider, 36 mm taller and ~92 mm deeper overall
+- The same spec's weight estimate recomputed for the larger box and the CAD's 18 mm panels (the note
+  specifies 15 mm Baltic birch, so this build deviates): **41 kg**, up from 30. Library total is now
+  1856 kg
+
+### Notes
+
+- `mesh-convert` finished the Achenbach in seconds this time, having timed out past ten minutes before
+  the solids filter was added in 0.9.0 — it was meshing datum planes and intermediate features
+
 ## [0.10.0] - 2026-07-30
 
 ### Added

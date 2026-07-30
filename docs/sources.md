@@ -30,6 +30,18 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `achenbach-18` | Achenbach 18 | `cad` | `Achenbach 18/Achenbach 18.FCStd` | Panel geometry: 600 × 700 × 18 top/bottom, 18 × 700 × 564 sides → 0.600 × 0.600 × 0.700 m |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 4, owner, driver B&C 18TBW100, 35–1000 Hz, 1000 W |
 
+### The 18sound drawings are partial dimensions
+
+`18sound_15 2ways.pdf` prints 420 mm, 800 mm and 335 mm, and those were used as the outer box until the
+CAD contradicted them. Reading the drawings again: the dimension lines sit **inside** the overhanging
+top and bottom panels (parts F and E). 420 is the baffle width, 800 the side-panel height, and 335 a
+partial depth that stops short of the back. The CAD's 465.6 × 836 × 426.8 mm is the true external size,
+and it agrees with the drawings where they do measure the same thing — its baffle is 418.3 mm wide and
+its side panels are exactly 800 mm.
+
+The CAD also uses 18 mm panels where the note specifies 15 mm Baltic birch, so this build is both
+larger and heavier than the published kit. The weight estimate was recomputed accordingly: 41 kg.
+
 ### Still unsourced
 
 Three weights are **estimates**, not measurements or published figures:
@@ -83,8 +95,8 @@ everything, and what it is good for.
 |--------|--------------------|--------|
 | `flexy-folded-horn-hybrid` | **yes** — four folded-horn mouths | `Merch/CAD/3D Print Smoking paper rolls case - 3381901/files/flexy.stl`: 1:10, watertight, 2817 faces. `units: cm`, `rotate_deg: [90, 0, 90]`, 3 mm narrower than the spec |
 | | (rejected alternative) | `…/MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj`: has the horn but is a non-watertight shell and 18 mm narrow |
-| `achenbach-18` | no — needs one export | `Achenbach 18.FCStd` (in both CAD folders). Blender cannot read FreeCAD |
-| `eighteensound-2way-15` | no — needs one export | `Eighteensound 2 Way Point Source 15.FCStd`, plus `18sound_15 2ways.pdf` with dimensioned front/side/top/back views, sections and an exploded view — enough to model the baffle by hand: Ø353 mm driver cut-out, 2× Ø100 mm ports, 215 × 260 mm horn mouth |
+| `achenbach-18` | **yes** — driver cut-out and corner braces | `Achenbach 18.FCStd`, converted with `ddev mesh-convert`. Its 600 × 700 × 600 mm matches the spec exactly — a third confirmation after the panel geometry and lsv-achenbach.de's published panel sizes |
+| `eighteensound-2way-15` | **yes** — octagonal horn cut-out, Ø353 driver hole, 2× Ø100 ports | `Eighteensound 2 Way Point Source 15.FCStd`, converted with `ddev mesh-convert`. **Its outer box is the authority, not the drawings** — see below |
 | `skram` | **yes** — Josh Ricci's own CAD | The [SKRAM DIY Package](https://www.jwsound.live/designs/riccis-skram-subwoofer) contains `STEP Files/SKRAM 3D.step` (full assembly, 52 solids) plus individual panel STEPs, 29 DXFs, Fusion `.f3d`, SolidWorks parts and a cut sheet. Converted with `ddev mesh-convert`; measures 619.6 × 812.8 × 924.4 mm — height exactly 32″, width and depth each 10 mm over the published 24″/36″ |
 | `tecnare-m2122`, `-clone` | **no source anywhere** | Two photos and the L2122LT datasheet's line drawings. Nothing modellable |
 

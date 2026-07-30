@@ -45,7 +45,13 @@ audio:
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 
-mesh_override: null
+mesh_override:
+  # Converted from the FreeCAD model with `ddev mesh-convert`; its 600 x 700 x 600 mm matches this
+  # spec exactly, which is a third confirmation of the dimensions after the panel geometry and
+  # lsv-achenbach.de's own published panel sizes.
+  path: meshes/achenbach-18.stl
+  units: mm
+  rotate_deg: [0, 0, 0]
 
 notes: |
   Driver: B&C 18TBW100 (18", 1000 W, 8 Ohm, 35 - 1000 Hz), one per cabinet.

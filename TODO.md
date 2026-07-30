@@ -17,14 +17,13 @@
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
 4. detailed geometry for the remaining cabinets — currently only the Flexy has real internals
    ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
-    1. export `Achenbach 18.FCStd` and `Eighteensound 2 Way Point Source 15.FCStd` from FreeCAD to
-       `.obj`/`.glb`, drop them in `meshes/`, add `mesh_override`. FreeCAD is installed nowhere here,
-       so this needs a machine that has it
+    1. only the three Tecnare tops are still generated blocks — the Flexy, SKRAM, Achenbach and
+       18sound all carry their own CAD now
     2. confirm the SKRAM mesh's orientation — its dimensions verify, but which face carries the mouth
        has not been checked against the real cabinet. `rotate_deg: [90, 0, 0]` currently puts the open
        chambers upwards; `[90, 0, 180]` and `[-90, 0, 0]` are the other candidates
-    3. Tecnare M2122 has no 3D source either; the datasheet has only outline views. Would have to be
-       modelled from measurements
+    3. Tecnare M2122 has no 3D source anywhere; the datasheet has only outline views. Measure and model
+       by hand, or cover it with the parametric baffle features below
     4. alternatively extend the generator to cut baffle features — driver cut-outs, ports, horn mouths
        — from spec data. The 18sound drawings already give exact numbers (Ø353 mm driver, 2× Ø100 mm
        ports, 215 × 260 mm horn mouth), and this would improve every cabinet at once rather than one
