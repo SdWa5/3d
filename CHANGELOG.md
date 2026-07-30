@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-30
+
+### Added
+
+- **`ddev mesh-convert <file>`** — meshes `.FCStd`, `.step` and `.iges` into something Blender can
+  read, which was the bottleneck for every remaining cabinet. FreeCAD runs in a throwaway container;
+  the command is a ddev **host** command because `bin/console` runs in the web container, which has no
+  docker, and baking FreeCAD into the ddev image would add over a gigabyte for a rarely-used step
+- `tools/freecad-export.py` — exports **solids only** (a FreeCAD document is full of datum planes and
+  axes, and meshing those inflates the bounding box until the dimension check fails for no real
+  reason), prefers a finished `PartDesign::Body` over its intermediate pads, and prints the bounding
+  box in millimetres so `units` and `rotate_deg` can be chosen without guessing
+- **SKRAM now uses Josh Ricci's own CAD.** The SKRAM DIY Package's `STEP Files/SKRAM 3D.step` — a
+  52-solid full assembly — converted and wired up: recessed hatches with bolt holes, handle grooves
+  and internal bracing instead of a block
+- `scenes/skram-detail.yaml`
+
+### Changed
+
+- `docs/sources.md`: SKRAM moves from "no source anywhere" to Ricci's CAD, with what the package
+  actually contains (full and per-panel STEP, 29 DXF, Fusion, SolidWorks, cut sheet)
+- SKRAM's `mesh_override` carries `tolerance_m: 0.011`: the CAD measures 619.6 × 812.8 × 924.4 mm —
+  height exactly 32″, but width and depth each 10 mm over the published 24″ and 36″. The nominal
+  figures stay in the spec because the cut list corroborates them, and the tolerance admits the CAD
+  until somebody measures the built cabinet
+
+### Known issue
+
+- The SKRAM mesh's **orientation is unconfirmed**. Its dimensions verify, but which face carries the
+  horn mouth has not been checked against a real cabinet — `rotate_deg: [90, 0, 0]` currently puts the
+  open chambers upwards, which is probably wrong. Tracked in `TODO.md` item 4.2
+
+### Notes
+
+- Tecnare's own downloads were checked directly: data sheets, manuals, rigging guides and firmware
+  only — no CAD, DWG, DXF, STEP, EASE or GLL for any product, discontinued ones included. The M2122
+  can only be measured
+- `Achenbach 18` identified as an [LSV Achenbach](http://lsv-achenbach.de/plaene/plan_sub18.htm)
+  design: bassreflex, RCF L18P300/L18P200, 155 l net. Its published panel sizes (564 × 700 sides,
+  564 × 564 front/back) match what was extracted from the FreeCAD file, independently confirming
+  0.600 × 0.600 × 0.700 m. Plans are PDF only
+- Eighteen Sound offers only a PDF for the 15″ 2-way — most of their kits ship a blueprint archive,
+  this one does not
+
 ## [0.8.0] - 2026-07-30
 
 ### Added

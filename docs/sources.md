@@ -85,7 +85,7 @@ everything, and what it is good for.
 | | (rejected alternative) | `…/MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj`: has the horn but is a non-watertight shell and 18 mm narrow |
 | `achenbach-18` | no — needs one export | `Achenbach 18.FCStd` (in both CAD folders). Blender cannot read FreeCAD |
 | `eighteensound-2way-15` | no — needs one export | `Eighteensound 2 Way Point Source 15.FCStd`, plus `18sound_15 2ways.pdf` with dimensioned front/side/top/back views, sections and an exploded view — enough to model the baffle by hand: Ø353 mm driver cut-out, 2× Ø100 mm ports, 215 × 260 mm horn mouth |
-| `skram` | **no source anywhere** | Only `Skram Panel List.csv`. Plans are sold by [JW Sound](https://www.jwsound.live/designs/riccis-skram-subwoofer); the sibling SKHORN is distributed with STEP and DXF, so SKRAM CAD may exist on request |
+| `skram` | **yes** — Josh Ricci's own CAD | The [SKRAM DIY Package](https://www.jwsound.live/designs/riccis-skram-subwoofer) contains `STEP Files/SKRAM 3D.step` (full assembly, 52 solids) plus individual panel STEPs, 29 DXFs, Fusion `.f3d`, SolidWorks parts and a cut sheet. Converted with `ddev mesh-convert`; measures 619.6 × 812.8 × 924.4 mm — height exactly 32″, width and depth each 10 mm over the published 24″/36″ |
 | `tecnare-m2122`, `-clone` | **no source anywhere** | Two photos and the L2122LT datasheet's line drawings. Nothing modellable |
 
 Not owned, but present in Drive if ever needed: `Selenium PAS1MA1 full.obj`, twelve DWG + twelve DXF

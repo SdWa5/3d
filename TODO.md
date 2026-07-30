@@ -20,8 +20,9 @@
     1. export `Achenbach 18.FCStd` and `Eighteensound 2 Way Point Source 15.FCStd` from FreeCAD to
        `.obj`/`.glb`, drop them in `meshes/`, add `mesh_override`. FreeCAD is installed nowhere here,
        so this needs a machine that has it
-    2. SKRAM has no 3D source at all — ask JW Sound whether CAD exists (the sibling SKHORN ships with
-       STEP and DXF), or model the horn from `Skram Panel List.csv`, which is a complete cut list
+    2. confirm the SKRAM mesh's orientation — its dimensions verify, but which face carries the mouth
+       has not been checked against the real cabinet. `rotate_deg: [90, 0, 0]` currently puts the open
+       chambers upwards; `[90, 0, 180]` and `[-90, 0, 0]` are the other candidates
     3. Tecnare M2122 has no 3D source either; the datasheet has only outline views. Would have to be
        modelled from measurements
     4. alternatively extend the generator to cut baffle features — driver cut-outs, ports, horn mouths

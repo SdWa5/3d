@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+## Description: Convert a FreeCAD or STEP file to a mesh for mesh_override
+## Usage: mesh-convert <input.FCStd|.step> [output.stl]
+## Example: "ddev mesh-convert meshes/skram.step" or "ddev mesh-convert 'src/Achenbach 18.FCStd' meshes/achenbach-18.stl"
+## ExecRaw: false
+
+# Runs on the HOST, not in the web container: FreeCAD lives in a throwaway docker image and the
+# web container has no docker. Blender cannot read .FCStd or .step at all, so this is the bridge
+# between the CAD in Google Drive and `mesh_override`.
+
+set -euo pipefail
+
+IMAGE="${MESH_CONVERT_IMAGE:-amrit3701/freecad-cli:latest}"
+
+if [ $# -lt 1 ]; then
+    echo "usage: ddev mesh-convert <input.FCStd|.step> [output.stl]" >&2
+    exit 1
+fi
+
+INPUT="$1"
+if [ ! -f "$INPUT" ]; then
+    echo "mesh-convert: no such file: $INPUT" >&2
+    exit 1
+fi
+
+if [ $# -ge 2 ]; then
+    OUTPUT="$2"
+else
+    # Default: same basename, .stl, into meshes/ where mesh_override expects it.
+    base="$(basename "$INPUT")"
+    OUTPUT="meshes/${base%.*}.stl"
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+    echo "mesh-convert: docker is required (FreeCAD runs in a container)" >&2
+    exit 1
+fi
+
+mkdir -p "$(dirname "$OUTPUT")"
+
+PROJECT_ROOT="$(pwd)"
+echo "mesh-convert: $INPUT → $OUTPUT (FreeCAD in $IMAGE)"
+
+# Root inside the container on purpose: FreeCAD resolves HOME via getpwuid and dies with
+# "Getting HOME path from system failed!" for a uid that has no passwd entry. The output is
+# chowned back afterwards so it does not land in the project owned by root.
+docker run --rm \
+    -v "$PROJECT_ROOT":/project \
+    -w /project \
+    -e SDWA5_UG="$(id -u):$(id -g)" \
+    -e SDWA5_OUT="$OUTPUT" \
+    --entrypoint sh \
+    "$IMAGE" \
+    -c 'python3 tools/freecad-export.py "$0" "$SDWA5_OUT" && chown "$SDWA5_UG" "$SDWA5_OUT"' \
+    "$INPUT"
+
+echo
+echo "mesh-convert: done. Next:"
+echo "  1. add a mesh_override block to the spec, with units and rotate_deg matching the bounding box above"
+echo "  2. ddev exec bin/console models:build --id=<id> -f"
+echo "     the builder refuses the mesh if it disagrees with the spec's dimensions — see docs/spec-format.md"

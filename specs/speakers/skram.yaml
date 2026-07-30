@@ -39,7 +39,16 @@ audio:
   drivers:
     - { size_in: 21, type: woofer, count: 1 }
 
-mesh_override: null
+# Josh Ricci's own CAD, from the SKRAM DIY Package (STEP Files/SKRAM 3D.step), converted with
+# `ddev mesh-convert`. It measures 619.6 x 812.8 x 924.4 mm: the height matches 32" exactly, but
+# width and depth are each 10 mm over the published 24" and 36". The nominal figures are kept here
+# because the cut list corroborates them; the tolerance allows the CAD until somebody measures the
+# built cabinet and settles which is right.
+mesh_override:
+  path: meshes/skram.stl
+  units: mm
+  rotate_deg: [90, 0, 0]
+  tolerance_m: 0.011
 
 notes: |
   Newest addition. 21" driver: Eighteensound 21NLW9601 (1800 W AES, 98 dB, 25 Hz Fs) — third in
