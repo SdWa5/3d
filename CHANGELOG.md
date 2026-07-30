@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.17.1] - 2026-07-30
+
+### Changed
+
+- **The Tecnare's mid horn is 0.12 m deep rather than 0.18 m.** At 0.18 it read as a tunnel beside the two
+  LF horns rather than as a horn mouth
+- **The two 1" HF phase plugs now share the mid horn's 2.25 : 1 mouth** — 0.135 x 0.06 instead of square,
+  which is the same proportion as the mid's 0.45 x 0.20 at the same mouth area the plugs had before, so
+  only their shape changed and not how much of the 12" cone behind them they cover
+- `TODO.md`: two items still named `tecnare-m2122-clone`, a spec deleted in 0.14.0, and quoted the
+  18sound's superseded 30 kg. Both now describe what is actually open — weighing the two estimates, and
+  confirming the self-built Tecnare against the factory pair the merged spec speaks for
+
+
 ## [0.17.0] - 2026-07-30
 
 ### Added

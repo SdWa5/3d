@@ -64,19 +64,24 @@ audio:
     # SIZES are still estimated: every mouth size, centre height, throat size, depth and flare law below is
     # derived from the outer dimensions and the driver sizes, which is why this layout's provenance stays
     # `estimated`. Exponential because no real compression-driver horn is straight-walled; the HF plugs are
-    # left linear because at 90 mm across the law makes no visible difference.
+    # left linear because at this size the law makes no visible difference.
+    #
+    # All three compression-driver horns share the mid horn's 2.25 : 1 mouth — 0.45 x 0.20 for the mid and
+    # 0.135 x 0.06 for the two HF plugs, which is the same proportion at the same mouth area the plugs had
+    # when they were square. The mid horn is 0.12 deep rather than 0.18: at 0.18 it read as a tunnel next
+    # to the two LF horns beside it.
     provenance: estimated
     inset_m: 0.018
     features:
-      - { id: mid,   kind: horn, at_m: [0.0,  0.355], mouth_m: [0.45, 0.20], throat_in: 2.0, depth_m: 0.18,
+      - { id: mid,   kind: horn, at_m: [0.0,  0.355], mouth_m: [0.45, 0.20], throat_in: 2.0, depth_m: 0.12,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
       - { id: lf-up, kind: horn, at_m: [0.0,  0.103], mouth_m: [0.45, 0.28], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [0.09, 0.09], throat_in: 1.0, depth_m: 0.05,
+      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [0.135, 0.06], throat_in: 1.0, depth_m: 0.05,
           profile: pyramid, sides: 4, throat_profile: elliptical }
       - { id: lf-lo, kind: horn, at_m: [0.0, -0.189], mouth_m: [0.45, 0.28], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [0.09, 0.09], throat_in: 1.0, depth_m: 0.05,
+      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [0.135, 0.06], throat_in: 1.0, depth_m: 0.05,
           profile: pyramid, sides: 4, throat_profile: elliptical }
 
 mesh_override: null
