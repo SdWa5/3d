@@ -39,6 +39,9 @@ Then in Blender: **Preferences → File Paths → Asset Libraries → +**, point
 and drag devices into a scene. Every device is one collection asset at true scale, already sitting on the floor.
 See [docs/blender.md](docs/blender.md).
 
+Tops can be placed as a **group on an arc** — `arc: {mode: convex, count: 3}` fans them out at the tightest
+angle the cabinets allow, which for a tapered top is its own taper ([docs/scenes.md](docs/scenes.md#arcs--a-group-on-one-placement)).
+
 Or write the setup down instead of dragging it: `scenes/full-rig.yaml` is the whole PA — a 14-cabinet sub wall in two
 stacked rows plus three tops — in about twenty lines. `scene:build` reports its weight, height and footprint before
 Blender is involved, and `scene:render` turns it into a preview image in about 8 seconds without you placing a single

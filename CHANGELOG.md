@@ -6,6 +6,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-07-30
+
+### Added
+
+- **`arc` on a placement — a group of cabinets seated on a circular arc**, which is what a cluster of tops
+  actually is. Until now the only way to make copies was `repeat`, a linear step vector that leaves every
+  cabinet pointing the same way, so the three tops in every rig scene were three hand-written placements.
+  `arc: {mode: convex, count: 3}` needs nothing else: **a tapered top's taper is its splay angle**, since
+  that is the one angle at which two of them sit side by side with their side faces fully in contact. For
+  an M2122 that is 17.35° and a 1.65 m radius, both derived from the cabinet
+- `mode` is `convex` (fronts fanning outward, centre of curvature behind, **back** edges touching) or
+  `concave` (fronts inward, centre in front, **front** edges touching). It has no default — an arc bent
+  the wrong way is a quiet, serious mistake
+- `splay_deg` or `radius_m` open the arc up from the tightest; `radius_m` is the arc the front faces sit
+  on, the same physical thing in both modes. Counter-intuitively a *larger* convex radius is a *flatter*
+  fan, so it is bounded above rather than below
+- An arc combines with `aim: focus`: **the arc owns the yaw, the focus owns the down-tilt**, resolved per
+  cabinet. `Orientation::pitchTowards()` is new for that, and it measures the tilt along the cabinet's own
+  axis rather than the straight line to the target — the outer boxes of a three-wide arc need 4.75° rather
+  than 4.48°, and a five-wide cluster splayed 30° needs **2.28×** the tilt
+- `scenes/full-rig-arc.yaml`, and `src/Scene/{Arc,ArcMode,PlacementCopy}.php`. `ArrayReader::unknownKeys()`
+  makes `arc` the one block that rejects an unknown key, because `step` instead of `splay_deg` would
+  otherwise fall back to the default angle and silently move every cabinet in the group
+
+### Changed
+
+- **Contact is solved on the plan-view outline of the *tilted* cabinet, including its grille frame**, not
+  on the nominal trapezoid. Both terms matter and neither is cosmetic: the frame is a full-width slab
+  across the front, so the taper only runs over `depth − inset` and at the bare trapezoid's 16.95° the
+  built meshes overlap by 3.5 mm; and tilt swings the front-top edge forward, so a concave cluster solved
+  flat drives its cabinets **20 mm into each other** at 4.4°. Tilt still breaks full-face contact — the
+  seam opens into a V, ~22 mm at the top of an M2122 — which is expected and left alone
+- **The rig's front face now accounts for every rotation that does not depend on the focus**, arc yaw
+  included. A concave arc's outer cabinets stand well in front of its middle one, and measuring them as
+  unrotated boxes put the front face 62 mm too far back, landing the focus that much further out than the
+  scene asked for. No shipped scene's aiming figures move — verified against `scene:build --dry-run`
+  before and after
+- Expansion happens in one place. `repeat` and `arc` both produce `PlacementCopy` objects, so the
+  placement loop and the front-face walk no longer carry a copy of the arithmetic each
+
+### Fixed
+
+- **`PlacedDevice::box()` treated every trapezoid as a full-width box**, against this class's promise of an
+  exact rotated footprint. A concave arc came out 9% too wide, and `aimed-close`'s reported footprint drops
+  from 4.36 m to 4.26 m now that its toed-in tops are measured on their real taper
+- **`aimedAt()` inverted the down-tilt of a cabinet rolled 180°**, aiming it nose-*up* by exactly the angle
+  it should have been nose-down. No committed scene triggered it — the mirrored sub rows are not aimed —
+  but an arc plus roll would have
+- A yaw of `-0.0` serialised as `-0` into the build plan, so a concave arc's middle cabinet would have
+  shown up as a diff every time a scene was rebuilt
+
 ## [0.16.0] - 2026-07-30
 
 ### Added

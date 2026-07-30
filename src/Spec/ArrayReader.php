@@ -25,6 +25,22 @@ final class ArrayReader
         return array_key_exists($key, $this->data) && $this->data[$key] !== null;
     }
 
+    /**
+     * Keys present here that the caller does not know about.
+     *
+     * Unknown keys are accepted everywhere else in this reader on purpose — it keeps old spec files
+     * readable and new fields optional. But a block whose every field changes the geometry cannot afford
+     * it: `arc: {step: 10}` instead of `step_deg` would silently fall back to the default angle and move
+     * every cabinet, with nothing to see in the output.
+     *
+     * @param list<string> $known
+     * @return list<string>
+     */
+    public function unknownKeys(array $known): array
+    {
+        return array_values(array_diff(array_keys($this->data), $known));
+    }
+
     public function requireString(string $key): string
     {
         $value = $this->data[$key] ?? null;

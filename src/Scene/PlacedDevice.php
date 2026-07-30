@@ -34,22 +34,14 @@ final class PlacedDevice
      */
     public function box(): array
     {
-        $dimensions = $this->device->dimensions;
-        $halfWidth = $dimensions->width / 2;
-        $halfDepth = $dimensions->depth / 2;
-
         $min = [INF, INF, INF];
         $max = [-INF, -INF, -INF];
 
-        foreach ([-$halfWidth, $halfWidth] as $x) {
-            foreach ([-$halfDepth, $halfDepth] as $y) {
-                foreach ([0.0, $dimensions->height] as $z) {
-                    $corner = $this->orientation->apply([$x, $y, $z]);
-                    for ($axis = 0; $axis < 3; ++$axis) {
-                        $min[$axis] = min($min[$axis], $corner[$axis]);
-                        $max[$axis] = max($max[$axis], $corner[$axis]);
-                    }
-                }
+        foreach ($this->corners() as $corner) {
+            $rotated = $this->orientation->apply($corner);
+            for ($axis = 0; $axis < 3; ++$axis) {
+                $min[$axis] = min($min[$axis], $rotated[$axis]);
+                $max[$axis] = max($max[$axis], $rotated[$axis]);
             }
         }
 
@@ -69,18 +61,40 @@ final class PlacedDevice
      */
     public function zLift(): float
     {
-        $dimensions = $this->device->dimensions;
         $lowest = 0.0;
+        foreach ($this->corners() as $corner) {
+            $lowest = min($lowest, $this->orientation->apply($corner)[2]);
+        }
 
-        foreach ([-$dimensions->width / 2, $dimensions->width / 2] as $x) {
-            foreach ([-$dimensions->depth / 2, $dimensions->depth / 2] as $y) {
-                foreach ([0.0, $dimensions->height] as $z) {
-                    $lowest = min($lowest, $this->orientation->apply([$x, $y, $z])[2]);
+        return -$lowest;
+    }
+
+    /**
+     * The cabinet's eight corners in its own frame.
+     *
+     * The taper is real geometry, not decoration: treating a trapezoid as a full-width box overstates a
+     * concave arc's width by 9%, and the footprint this class reports is meant to be the exact rotated
+     * one. A wedge's front corners are likewise only as tall as its front.
+     *
+     * @return list<array{float, float, float}>
+     */
+    private function corners(): array
+    {
+        $dimensions = $this->device->dimensions;
+        $halfDepth = $dimensions->depth / 2;
+        $frontHeight = $this->device->frontHeight ?? $dimensions->height;
+        $halfBack = ($this->device->backWidth ?? $dimensions->width) / 2;
+
+        $corners = [];
+        foreach ([[$dimensions->width / 2, -$halfDepth, $frontHeight], [$halfBack, $halfDepth, $dimensions->height]] as [$halfWidth, $y, $top]) {
+            foreach ([-$halfWidth, $halfWidth] as $x) {
+                foreach ([0.0, $top] as $z) {
+                    $corners[] = [$x, $y, $z];
                 }
             }
         }
 
-        return -$lowest;
+        return $corners;
     }
 
     /**

@@ -1,0 +1,50 @@
+# The three tops as one group on an arc, instead of three placements that happen to point the same way.
+#
+# `arc` with no size is the tightest the cabinets can be grouped: the M2122's own taper *is* its splay
+# angle, because that is the one angle at which two of them sit side by side with their side faces fully
+# in contact. Nothing here states an angle or a radius — 17.35° and 1.65 m fall out of the cabinet.
+#
+# The arc owns the yaw, the focus owns the down-tilt. `at` is the middle of the fan, so this is the same
+# point the single `top-centre` stood on in full-rig-mirrored.yaml.
+id: full-rig-arc
+name: "Full rig — tops in a convex arc"
+
+focus:
+  distance_m: 10.0
+  height_m: 1.8
+
+placements:
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [-2.135, 0.0]
+    roll_deg: 180
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [-2.135, 0.0]
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  # Fronts fanning outward, back edges meeting. `mode` has no default on purpose: an arc bent the wrong
+  # way is a quiet mistake, and `concave` would wrap these three around the crowd instead.
+  - id: tops
+    device: tecnare-m2122
+    on: sub-row-top
+    at: [-0.302, 0.0]
+    aim: focus
+    arc:
+      mode: convex
+      count: 3
+
+notes: |
+  Compare full-rig-aimed.yaml, which is the same three tops written out one at a time and all pointing at
+  the focus. There the cabinets stay parallel and only turn towards one spot; here they form a fan, which
+  is what a point-source cluster is.
+  `splay_deg: 25` opens the fan and keeps the back edges touching, with the fronts opening out. A
+  `radius_m` states the arc the front faces sit on instead — and note that for a convex arc a *larger*
+  radius is a *flatter* fan, so it is bounded above rather than below.

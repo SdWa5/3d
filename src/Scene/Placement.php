@@ -23,6 +23,11 @@ use App\Spec\ArrayReader;
  * `on` and `repeat` are what make a scene file worth writing instead of dragging cabinets around by
  * hand. A 14-cabinet sub wall is two lines, and a stack does not have to be re-measured every time
  * a spec's height changes — the compiler works the heights out from the specs.
+ *
+ * `arc` is the other way to make copies: a group seated on a circular arc, which is what a cluster of
+ * tops actually is. Where `repeat` steps along a vector and leaves the cabinets pointing the same way,
+ * an arc works out each cabinet's own yaw, so the two are alternatives rather than companions. An arc
+ * combines with `aim: focus` — the arc owns the yaw, the focus owns the down-tilt. See {@see Arc}.
  */
 final class Placement
 {
@@ -43,6 +48,7 @@ final class Placement
         public readonly ?string $on,
         public readonly int $repeatCount,
         public readonly ?array $repeatStep,
+        public readonly ?Arc $arc = null,
     ) {
     }
 
@@ -62,7 +68,17 @@ final class Placement
             on: $reader->optionalString('on'),
             repeatCount: $repeat?->optionalInt('count', 1) ?? 1,
             repeatStep: $repeat !== null && $repeat->has('step') ? $repeat->requireVector3('step') : null,
+            arc: ($arc = $reader->optionalSection('arc')) === null ? null : Arc::fromReader($arc),
         );
+    }
+
+    /**
+     * How many cabinets this placement produces, so the rule that only a group gets numbered ids lives
+     * in one place.
+     */
+    public function copyCount(): int
+    {
+        return $this->arc?->count ?? $this->repeatCount;
     }
 
     /**

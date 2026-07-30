@@ -30,6 +30,18 @@ final class SceneCompilerTest extends TestCase
                 'geometry' => ['dimensions_m' => ['width' => 0.5, 'height' => 0.9, 'depth' => 0.5]],
                 'physical' => ['weight_kg' => 30.0],
             ]),
+            // Tapered, so it can form an arc on its own taper the way a real top does. No grille, to
+            // keep the angles the same round numbers ArcTest uses.
+            'top-taper' => SpecFactory::spec([
+                'id' => 'top-taper',
+                'geometry' => [
+                    'shape' => 'trapezoid',
+                    'dimensions_m' => ['width' => 0.5, 'height' => 0.9, 'depth' => 0.5],
+                    'back_width_m' => 0.35,
+                ],
+                'appearance' => ['color' => '#111111', 'grille' => null],
+                'physical' => ['weight_kg' => 30.0],
+            ]),
         ];
     }
 
@@ -218,11 +230,201 @@ final class SceneCompilerTest extends TestCase
         self::assertSame(30.0, $placed[0]->yawDeg());
     }
 
+    public function testSwappingASingleTopForAnArcLeavesTheMiddleCabinetWhereItWas(): void
+    {
+        // The property that makes an arc a drop-in replacement for one placement.
+        $single = $this->compile([['id' => 'solo', 'device' => 'top-taper', 'at' => [1.0, 2.0]]]);
+        $arc = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [1.0, 2.0], 'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+
+        self::assertCount(3, $arc);
+        self::assertSame($single[0]->position, $arc[1]->position);
+        self::assertSame(0.0, $arc[1]->yawDeg());
+    }
+
+    public function testAnArcNumbersItsCabinetsTheWayARepeatDoes(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+
+        self::assertSame(['tops-1', 'tops-2', 'tops-3'], array_map(static fn ($p) => $p->placementId, $placed));
+    }
+
+    public function testAnArcFansOutwardsInConvexAndInwardsInConcave(): void
+    {
+        $convex = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+        $concave = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0],
+                'arc' => ['mode' => 'concave', 'count' => 3, 'splay_deg' => 20.0]],
+        ]);
+
+        // Symmetric either way, and the outer cabinets turn opposite ways between the two modes.
+        self::assertEqualsWithDelta(-$convex[2]->yawDeg(), $convex[0]->yawDeg(), 1e-9);
+        self::assertLessThan(0.0, $convex[0]->yawDeg());
+        self::assertGreaterThan(0.0, $concave[0]->yawDeg());
+        // Convex ends sit behind the middle cabinet, concave ends in front of it.
+        self::assertGreaterThan(0.0, $convex[0]->position[1]);
+        self::assertLessThan(0.0, $concave[0]->position[1]);
+    }
+
+    public function testAnArcTakesYawFromTheGeometryAndPitchFromTheFocus(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'aim' => 'focus',
+                'arc' => ['mode' => 'convex', 'count' => 3]],
+        ], ['distance_m' => 10.0, 'height_m' => 1.8]);
+
+        // Yaw is the arc's, untouched by the aim: aimed without an arc these three would all be within a
+        // degree of straight ahead, so this is what proves the focus did not flatten the fan. The
+        // expected angle comes from the fixture's own taper — 2·atan(half the taper / the depth it runs
+        // over) — foreshortened by the tilt, not from anything the compiler worked out.
+        $taper = (0.5 - 0.35) / 2;
+        $splay = rad2deg(2 * atan($taper / (0.5 * cos(deg2rad($placed[1]->pitchDeg())))));
+
+        self::assertEqualsWithDelta(-$splay, $placed[0]->yawDeg(), 1e-9);
+        self::assertSame(0.0, $placed[1]->yawDeg());
+        self::assertEqualsWithDelta($splay, $placed[2]->yawDeg(), 1e-9);
+        self::assertGreaterThan(17.0, $splay);
+
+        // Every cabinet is still tilted towards the focus, symmetrically. These stand on the floor and
+        // the focus is at ear height above them, so the tilt is upward — the sign follows the geometry
+        // rather than an assumption that a top always aims down.
+        foreach ($placed as $entry) {
+            self::assertLessThan(0.0, $entry->pitchDeg());
+        }
+        self::assertEqualsWithDelta($placed[2]->pitchDeg(), $placed[0]->pitchDeg(), 1e-9);
+        // And the outer cabinets need *more* of it than the middle one, because the focus sits off their
+        // own axis — the correction a plain aim would miss.
+        self::assertGreaterThan(abs($placed[1]->pitchDeg()), abs($placed[0]->pitchDeg()));
+    }
+
+    public function testAnArcWithoutAnAimStandsLevel(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+
+        foreach ($placed as $entry) {
+            self::assertSame(0.0, $entry->pitchDeg());
+        }
+    }
+
+    public function testAnArcStacksOnARowAndTakesItsHeightFromBelow(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'subs', 'device' => 'sub', 'at' => [0.0, 0.0], 'repeat' => ['count' => 3, 'step' => [0.6, 0, 0]]],
+            ['id' => 'tops', 'device' => 'top-taper', 'on' => 'subs', 'at' => [0.6, 0.0],
+                'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+
+        foreach (array_slice($placed, 3) as $entry) {
+            self::assertSame(0.6, $entry->position[2]);
+        }
+    }
+
+    public function testOnAnArcInheritsItsMiddleCabinet(): void
+    {
+        // The middle cabinet is the one standing on `at`, so it is the only sensible anchor — an outer
+        // one would drag whatever is stacked on it sideways and out of the fan.
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [1.0, 2.0], 'arc' => ['mode' => 'convex', 'count' => 3]],
+            ['id' => 'above', 'device' => 'top', 'on' => 'tops'],
+        ]);
+
+        self::assertSame([1.0, 2.0], [$placed[3]->position[0], $placed[3]->position[1]]);
+        self::assertSame(0.9, $placed[3]->position[2]);
+    }
+
+    public function testTheFocusAccountsForAnArcsRotatedFootprint(): void
+    {
+        // A concave arc's outer cabinets stand well in front of its middle one. Measuring the rig's front
+        // face on unrotated boxes would put the focus 6 cm further out than the scene asked for.
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'aim' => 'focus',
+                'arc' => ['mode' => 'concave', 'count' => 3, 'splay_deg' => 20.0]],
+        ], ['distance_m' => 10.0, 'height_m' => 1.8]);
+
+        $frontmost = min(array_map(static fn ($p) => $p->worldBox()['min'][1], $placed));
+        self::assertLessThan(-0.3, $frontmost, 'the outer cabinets reach well past the middle one');
+
+        // Read the front face back out of the tilt the middle cabinet was given: the focus sits 10 m
+        // ahead of it, and the drop to ear height is fixed, so the tilt says where the compiler thought
+        // the rig's front face was.
+        $drop = 1.8 - 0.9 / 2;
+        $impliedFront = 10.0 - abs($drop / tan(deg2rad($placed[1]->pitchDeg())));
+
+        // Measured on unrotated boxes it would have been the middle cabinet's own front face, −0.25.
+        self::assertLessThan(-0.3, $impliedFront, 'the focus was measured from the arc, not from a box');
+        self::assertEqualsWithDelta($frontmost, $impliedFront, 0.03, 'and from very nearly the real one');
+    }
+
+    public function testRollStillTurnsAnArcedCabinetOverWithoutChangingWhereItPoints(): void
+    {
+        $upright = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+        $rolled = $this->compile([
+            ['id' => 'tops', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'roll_deg' => 180.0,
+                'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+
+        self::assertEqualsWithDelta($upright[0]->position, $rolled[0]->position, 1e-12);
+        self::assertEqualsWithDelta(
+            $upright[0]->frontDirection(),
+            $rolled[0]->frontDirection(),
+            1e-12,
+        );
+        self::assertEqualsWithDelta(0.9, $rolled[0]->zLift(), 1e-12);
+    }
+
+    public function testASingleCabinetArcIsJustOneCabinet(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'sub', 'at' => [1.0, 2.0], 'arc' => ['mode' => 'concave', 'count' => 1]],
+        ]);
+
+        self::assertCount(1, $placed);
+        self::assertSame('tops', $placed[0]->placementId);
+        self::assertSame([1.0, 2.0, 0.0], $placed[0]->position);
+    }
+
     /**
      * @return iterable<string, array{list<array<string, mixed>>, string}>
      */
     public static function rejectionCases(): iterable
     {
+        yield 'arc and repeat together' => [
+            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0],
+                'repeat' => ['count' => 2, 'step' => [1, 0, 0]], 'arc' => ['mode' => 'convex', 'count' => 3]]],
+            'use either `repeat` or `arc`, not both',
+        ];
+        yield 'arc with an explicit yaw' => [
+            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'yaw_deg' => 10.0,
+                'arc' => ['mode' => 'convex', 'count' => 3]]],
+            'the arc already sets yaw — remove yaw_deg',
+        ];
+        yield 'arc on a cabinet rolled onto its side' => [
+            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'roll_deg' => 90.0,
+                'arc' => ['mode' => 'convex', 'count' => 3]]],
+            'puts its width on the vertical',
+        ];
+        yield 'arc of untapered boxes without an angle' => [
+            [['id' => 'a', 'device' => 'sub', 'at' => [0, 0], 'arc' => ['mode' => 'convex', 'count' => 3]]],
+            'so a convex arc needs an explicit arc.splay_deg or arc.radius_m',
+        ];
+        yield 'concave arc without an angle' => [
+            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'arc' => ['mode' => 'concave', 'count' => 3]]],
+            'a concave arc has no tightest angle',
+        ];
+        yield 'arc wrapping past a full circle' => [
+            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0],
+                'arc' => ['mode' => 'convex', 'count' => 5, 'splay_deg' => 90.0]]],
+            'wrap past a full circle',
+        ];
         yield 'unknown device' => [
             [['id' => 'a', 'device' => 'nope', 'at' => [0, 0]]],
             "references unknown device 'nope'",
@@ -277,11 +479,12 @@ final class SceneCompilerTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $placements
+     * @param array<string, mixed>|null $focus
      * @return list<\App\Scene\PlacedDevice>
      */
-    private function compile(array $placements): array
+    private function compile(array $placements, ?array $focus = null): array
     {
-        $result = (new SceneCompiler($this->devices))->compile($this->scene($placements));
+        $result = (new SceneCompiler($this->devices))->compile($this->scene($placements, $focus));
 
         self::assertSame([], array_map(static fn ($v): string => $v->message, $result['violations']));
 
@@ -290,12 +493,15 @@ final class SceneCompilerTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $placements
+     * @param array<string, mixed>|null $focus
      */
-    private function scene(array $placements): SceneSpec
+    private function scene(array $placements, ?array $focus = null): SceneSpec
     {
-        return SceneSpec::fromArray(
-            ['id' => 'test', 'name' => 'Test scene', 'placements' => $placements],
-            '/scenes/test.yaml',
-        );
+        $data = ['id' => 'test', 'name' => 'Test scene', 'placements' => $placements];
+        if ($focus !== null) {
+            $data['focus'] = $focus;
+        }
+
+        return SceneSpec::fromArray($data, '/scenes/test.yaml');
     }
 }

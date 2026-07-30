@@ -41,13 +41,14 @@ placements:
 | `placements[].device` | a device `id` from [`specs/`](../specs) |
 | `placements[].at` | ground position `[x, y]` in metres |
 | `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs |
-| `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses |
+| `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses. An `arc` supplies this instead |
 | `placements[].pitch_deg` | down-tilt. Positive is nose-down, for aiming into an audience rather than over it |
 | `placements[].roll_deg` | rotation about the front-to-back axis — 180 turns a cabinet upside down while it keeps facing forward |
 | `placements[].aim` | `focus` — turn towards the scene's focus point; the compiler works out yaw *and* down-tilt |
 | `placements[].aim_at` | `[x, y]` or `[x, y, z]` — aim at a named point instead |
 | `focus` *(scene level)* | `{ distance_m, height_m, x_m }` — where "aim: focus" points. Defaults: 10 m out, 1.8 m high, rig centre |
 | `placements[].repeat` | `{ count, step: [x, y, z] }` — repeat along a vector |
+| `placements[].arc` | `{ mode, count, splay_deg, radius_m }` — a group seated on an arc. Exclusive with `repeat`; see below |
 | `notes` | anything worth knowing |
 
 Coordinates follow [conventions.md](conventions.md): metres, X right, Y depth, Z up, cabinets face
@@ -167,6 +168,76 @@ Notes on how it behaves:
 * Combining `aim`/`aim_at` with `yaw_deg`/`pitch_deg` is rejected rather than silently resolved one way.
 * An angled cabinet is **lifted back onto its slot** and reports its **exact rotated footprint**, so
   stacking and the camera framing stay correct.
+* An **arc** keeps its own yaw and takes only the down-tilt from the aim — see below.
+
+## Arcs — a group on one placement
+
+`aim: focus` turns cabinets towards a point but leaves them side by side, parallel. A cluster of tops is
+not that: it is a fan, each cabinet turned relative to its neighbour. `arc` places that fan as one group.
+
+```yaml
+- id: tops
+  device: tecnare-m2122
+  on: sub-row-top
+  at: [-0.302, 0.0]      # the middle of the fan
+  aim: focus             # the arc owns the yaw, the focus owns the down-tilt
+  arc:
+    mode: convex         # required: convex | concave
+    count: 3
+    # splay_deg: 25      # optional ─┐ mutually exclusive. Omitted means the tightest
+    # radius_m: 1.5      # optional ─┘ the cabinets can be grouped
+```
+
+`scenes/full-rig-arc.yaml` resolves to:
+
+```
+  tops-1   x=-0.7167  y=+0.0633   yaw=-17.35°   pitch=+1.19°
+  tops-2   x=-0.3020  y= 0.0000   yaw=  0.00°   pitch=+1.13°
+  tops-3   x=+0.1127  y=+0.0633   yaw=+17.35°   pitch=+1.19°
+```
+
+**A tapered top's taper is its splay angle.** Nothing in that scene states an angle or a radius. The
+M2122 narrows from 500 mm to 345 mm over its depth, and 17.35° is the one angle at which two of them sit
+side by side with their side faces fully in contact — so it is both the tightest the group can be and the
+default. Twist the fan wider and only the back edges stay together.
+
+Which edges touch is a consequence of the shape, not a setting:
+
+| | centre of curvature | touching | behind |
+|---|---|---|---|
+| `convex` | behind the cabinets | back edges | closed |
+| `concave` | in front | front edges | wide open — 307 mm on an M2122 |
+
+* **`mode` has no default.** An arc bent the wrong way is a quiet, serious mistake and there is no
+  innocent guess.
+* **A concave arc must state its size.** Its front edges touch at *every* angle, so "as close as
+  possible" does not pin down an arc — there is nothing to derive. The error message suggests the
+  cabinet's own horizontal coverage, which is the angle that actually spaces the coverage out.
+* **`radius_m` is the arc the front faces sit on** — the radiating surface, and the same physical thing
+  in both modes. For a convex arc it is bounded **above**, not below: a larger radius is a *flatter* fan.
+* **`at` is the middle of the fan**, so a single top can be swapped for a group of three without the
+  middle one moving. With an even count nothing sits on `at` itself.
+* **`on:` an arc** stacks on its middle cabinet, the one standing on `at`.
+
+### Tilt, and what it does to the seam
+
+Tilting the group breaks full-face contact — the cabinets meet at a corner and the seam opens into a V,
+about 22 mm at the top of an M2122 at 4.4°. That is expected and not corrected.
+
+What *is* corrected is the arc's size. Tilting swings the front-top edge forward, and a concave arc solved
+flat would then drive its cabinets **20 mm into each other** — a modelling error that looks perfectly
+plausible in a render. So the arc is solved on the outline of the tilted cabinet, and it opens up by a few
+centimetres when a tilt is applied. Two smaller things follow from the same solve:
+
+* The **grille frame** counts. It is a full-width slab across the front, so the taper only runs over
+  `depth − inset` and an M2122's flush angle is 17.35° rather than the 16.95° its bare trapezoid gives.
+  At the bare angle the built meshes overlap by 3.5 mm.
+* A `mesh_override` cabinet's real shell may not match its declared box, so contact is only as true as
+  the spec's dimensions.
+
+Two things worth knowing before checking a render: `chamfer_m` sets each corner back a few millimetres,
+so a correct seam still shows a ~10 mm groove; and the whole group's contact is solved at one
+representative tilt, which leaves a few tens of microns of slack between neighbours.
 
 ## What it tells you before Blender opens
 
