@@ -30,6 +30,7 @@ ddev exec bin/console models:build        # build .glb + .blend for whatever cha
 ddev exec bin/console library:build       # assemble the Blender asset library
 ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
+ddev exec bin/console scene:render full-rig-aimed --aim-lines   # ...with laser lines showing the aim
 ddev exec bin/console catalog             # equipment table with weight/volume totals
 ddev exec bin/console list                # all commands
 ```
@@ -51,7 +52,8 @@ camera. See [docs/scenes.md](docs/scenes.md).
 | `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
-| `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--presets` lists them |
+| `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them |
+| `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device
@@ -71,8 +73,9 @@ specs/          one YAML file per device — the source of truth
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/
-tools/          check-glb.py — verifies an exported model matches its own metadata
+tools/          check-glb.py, freecad-export.py
 scenes/         setups as YAML — one file per event layout
+meshes/         override meshes — third-party CAD, gitignored
 build/          generated models, asset library, renders — gitignored
 docs/
 ```
@@ -82,16 +85,22 @@ stays text-only and diffable.
 
 ## Current state
 
-The whole PA is in the library — **6 specs, 25 cabinets, 1834 kg, 9.0 m³**:
+The whole PA is in the library — **6 specs, 25 cabinets, 1856 kg, 9.0 m³**:
 
-| Device                   | Owner | Qty | W × H × D (m)                               | kg each          |
-|--------------------------|-------|-----|---------------------------------------------|------------------|
-| Flexy Folded Horn Hybrid | sdwa5 | 14  | 0.591 × 0.763 × 0.964                       | 85               |
-| SKRAM                    | sdwa5 | 2   | 0.610 × 0.813 × 0.914                       | 90               |
-| Tecnare M2122            | sdwa5 | 2   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               |
-| Tecnare M2122 (clone)    | sdwa5 | 1   | same as above                               | 68 (placeholder) |
-| Eighteensound 2-Way 15″  | sepp  | 2   | 0.420 × 0.800 × 0.335                       | 30 (est.)        |
-| Achenbach 18             | sepp  | 4   | 0.600 × 0.600 × 0.700                       | 50 (est.)        |
+| Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |
+|--------------------------|-------|-----|---------------------------------------------|------------------|--------------------------|
+| Flexy Folded Horn Hybrid | sdwa5 | 14  | 0.591 × 0.763 × 0.964                       | 85               | CAD — four horn mouths   |
+| SKRAM                    | sdwa5 | 2   | 0.610 × 0.914 × 0.813                       | 90               | CAD — vent array         |
+| Tecnare M2122            | sdwa5 | 2   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated block          |
+| Tecnare M2122 (clone)    | sdwa5 | 1   | same as above                               | 68 (placeholder) | generated block          |
+| Eighteensound 2-Way 15″  | sepp  | 2   | 0.466 × 0.836 × 0.427                       | 41 (est.)        | CAD — horn, driver, ports |
+| Achenbach 18             | sepp  | 4   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD — driver cut-out     |
+
+**Four of six carry their own CAD** via `mesh_override`, so the models show the openings you actually see on a
+cabinet rather than a black box. Only the three Tecnare tops are still generated blocks: no CAD exists for them
+anywhere, so they would have to be measured and modelled. The meshes themselves are third-party files and are not
+committed — [`meshes/README.md`](meshes/README.md) has the one-line `rclone` command for each, and
+`ddev mesh-convert` turns FreeCAD or STEP into something Blender can read.
 
 The two factory Tecnare tops and the self-built third one are separate specs, because build, provenance and weight all
 differ and a setup should be able to tell them apart.

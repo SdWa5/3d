@@ -127,6 +127,43 @@ final class PlacedDevice
         return $this->worldBox()['max'][2];
     }
 
+    /**
+     * The slot position with the rotation lift applied — where the model actually sits.
+     *
+     * @return array{float, float, float}
+     */
+    public function liftedPosition(): array
+    {
+        return [$this->position[0], $this->position[1], $this->position[2] + $this->zLift()];
+    }
+
+    /**
+     * Centre of the cabinet's front face in world space — near enough to where it radiates from, and
+     * where an aim line should start.
+     *
+     * @return array{float, float, float}
+     */
+    public function frontFaceCentre(): array
+    {
+        $local = [0.0, -$this->device->dimensions->depth / 2, $this->device->dimensions->height / 2];
+        $rotated = $this->orientation->apply($local);
+        $origin = $this->liftedPosition();
+
+        return [$origin[0] + $rotated[0], $origin[1] + $rotated[1], $origin[2] + $rotated[2]];
+    }
+
+    /**
+     * Unit vector the cabinet points along. Cabinets face −Y before any rotation, so this is that
+     * vector turned — which means it reflects where the cabinet *ends up* aimed, not where it was
+     * asked to aim. A mistake in the aiming shows up rather than being drawn over.
+     *
+     * @return array{float, float, float}
+     */
+    public function frontDirection(): array
+    {
+        return $this->orientation->apply([0.0, -1.0, 0.0]);
+    }
+
     public function yawDeg(): float
     {
         return $this->orientation->yawDeg;

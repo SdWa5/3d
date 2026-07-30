@@ -20,6 +20,20 @@ final class RenderPlan
 
     public const DEFAULT_RESOLUTION = [1600, 900];
 
+    public const AIM_NONE = 'none';
+
+    public const AIM_TOPS = 'tops';
+
+    public const AIM_ALL = 'all';
+
+    /** Subtypes that are aimed at an audience; subs are omnidirectional enough not to bother. */
+    private const AIMED_SUBTYPES = ['top', 'monitor', 'line-array-element'];
+
+    /** How far a line runs when it never meets the floor, and the furthest it runs when it does. */
+    private const AIM_LENGTH_M = 12.0;
+
+    private const AIM_MAX_LENGTH_M = 40.0;
+
     /** Blender's sensor width in mm, which its default camera also uses. */
     private const SENSOR_MM = 36.0;
 
@@ -35,8 +49,21 @@ final class RenderPlan
         int $samples = self::DEFAULT_SAMPLES,
         array $resolution = self::DEFAULT_RESOLUTION,
         bool $ground = true,
+        string $aimLines = self::AIM_NONE,
     ): array {
         ['min' => $min, 'max' => $max] = self::bounds($placed);
+        $lines = self::aimLines($placed, $aimLines);
+
+        // Frame the rays too, otherwise the one thing they exist to show — where they converge and
+        // land — sits outside the picture.
+        foreach ($lines as $line) {
+            foreach (['start', 'end'] as $point) {
+                for ($axis = 0; $axis < 3; ++$axis) {
+                    $min[$axis] = min($min[$axis], $line[$point][$axis]);
+                    $max[$axis] = max($max[$axis], $line[$point][$axis]);
+                }
+            }
+        }
 
         $centre = [
             ($min[0] + $max[0]) / 2,
@@ -59,8 +86,54 @@ final class RenderPlan
                 'samples' => $samples,
                 'resolution' => [$resolution[0], $resolution[1]],
             ],
+            'aim_lines' => $lines,
             'scene_bounds' => ['min' => $min, 'max' => $max, 'radius' => $radius],
         ];
+    }
+
+    /**
+     * Rays showing where each cabinet points, from the centre of its front face along its own axis.
+     *
+     * A line stops where it meets the floor, which turns "these all aim at one point" from a claim
+     * into something visible: the rays either converge on that spot or they do not.
+     *
+     * @param list<PlacedDevice> $placed
+     * @return list<array{placement_id: string, device: string, start: array{float, float, float}, end: array{float, float, float}, hits_floor: bool}>
+     */
+    private static function aimLines(array $placed, string $mode): array
+    {
+        if ($mode === self::AIM_NONE) {
+            return [];
+        }
+
+        $lines = [];
+        foreach ($placed as $entry) {
+            if ($mode === self::AIM_TOPS && !in_array($entry->device->subtype, self::AIMED_SUBTYPES, true)) {
+                continue;
+            }
+
+            $start = $entry->frontFaceCentre();
+            $direction = $entry->frontDirection();
+
+            $hitsFloor = $direction[2] < -1e-6 && $start[2] > 0.0;
+            $length = $hitsFloor
+                ? min(self::AIM_MAX_LENGTH_M, $start[2] / -$direction[2])
+                : self::AIM_LENGTH_M;
+
+            $lines[] = [
+                'placement_id' => $entry->placementId,
+                'device' => $entry->device->id,
+                'start' => $start,
+                'end' => [
+                    $start[0] + $direction[0] * $length,
+                    $start[1] + $direction[1] * $length,
+                    $start[2] + $direction[2] * $length,
+                ],
+                'hits_floor' => $hitsFloor,
+            ];
+        }
+
+        return $lines;
     }
 
     /**

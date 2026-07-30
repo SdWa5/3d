@@ -1,0 +1,60 @@
+# The mirrored sub wall with the three tops aimed at one point in the crowd instead of firing straight
+# ahead. Each top works out its own yaw and down-tilt from where it actually stands, so the outer two
+# toe inwards and all three tilt down.
+#
+# The focus is stated the way the decision is actually made — how far out, and how high — rather than as
+# absolute coordinates. Distance is measured from the rig's front face.
+id: aimed-close
+name: "Full rig — focus 2 m out, 1 m high"
+
+focus:
+  distance_m: 2.0
+  height_m: 1.0
+
+placements:
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [-2.135, 0.0]
+    roll_deg: 180
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [-2.135, 0.0]
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  - id: top-left
+    device: tecnare-m2122
+    on: sub-row-top
+    at: [-2.135, 0.0]
+    aim: focus
+
+  - id: top-centre
+    device: tecnare-m2122-clone
+    on: sub-row-top
+    at: [-0.302, 0.0]
+    aim: focus
+
+  - id: top-right
+    device: tecnare-m2122
+    on: sub-row-top
+    at: [1.531, 0.0]
+    aim: focus
+
+notes: |
+  A deliberately extreme contrast to full-rig-aimed.yaml, kept because it shows how sensitive aiming is
+  to the focus: at 2 m out and 1 m high the tops tilt 18-22 deg and toe in +/-36 deg, against ~1 deg and
+  +/-10 deg at the 10 m / 1.8 m default.
+
+  It is not a setup anybody would build. At 22 deg these cabinets overhang the wall and are close to
+  toppling, and 36 deg of toe-in points the outer tops well across each other — which is the useful
+  thing to be able to see. A focus somewhere around 8-15 m is where the angles stay sane.
+
+  Note the model pivots a tilted cabinet about its bottom centre and then lifts it back onto its slot.
+  In reality you would shim under the back edge, pivoting about the front-bottom one, which sits the
+  cabinet slightly further back than shown.

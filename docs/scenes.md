@@ -242,7 +242,23 @@ nicely. A sun is left alone, since irradiance does not fall off.
 | `--samples` | 64 | Cycles samples; 16 is enough to check a layout, 200+ for something to show people |
 | `-r`, `--resolution` | `1600x900` | `WIDTHxHEIGHT` |
 | `--no-ground` | off | leave out the ground plane |
+| `-a`, `--aim-lines` | off | draw where cabinets point: `tops` (the default when the flag is given) or `all` |
 | `-o`, `--out` | `build/renders/<scene>-<camera>.png` | single scene only |
+
+### Aim lines
+
+```bash
+ddev exec bin/console scene:render full-rig-aimed --aim-lines          # tops only
+ddev exec bin/console scene:render full-rig-aimed --aim-lines=all      # subs too
+```
+
+Draws a thin glowing rod from the centre of each cabinet's front face along the direction it points,
+stopping where it meets the floor and leaving a marker there. Off by default.
+
+The rod follows the cabinet's **actual** front axis, not the point it was told to aim at. That is
+deliberate: it turns "these all aim at one place" from a claim into something visible, and a mistake in
+the aiming shows up instead of being drawn over. When the framing is switched on the camera widens to
+include the rays, since where they converge and land is the whole point of asking for them.
 
 Rigging markers and the orange "estimated" tag are render-invisible, so they never appear in an image.
 

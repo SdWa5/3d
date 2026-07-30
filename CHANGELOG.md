@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-30
+
+### Added
+
+- **`scene:render --aim-lines`** — draws a glowing rod from the centre of each cabinet's front face along
+  the direction it points, stopping where it meets the floor and leaving a marker there. `--aim-lines`
+  covers tops, `--aim-lines=all` includes the subs. Off by default
+- The rod follows each cabinet's **actual** front axis rather than the point it was told to aim at, so it
+  turns "these all aim at one place" from a claim into something visible — and a mistake in the aiming
+  shows up instead of being drawn over
+- Camera framing widens to include the rays when they are on, since where they converge and land is the
+  point of asking for them
+- `PlacedDevice::frontFaceCentre()` and `frontDirection()`; four new tests (suite now 143)
+- `scenes/aimed-close.yaml` — the same rig aimed at 2 m / 1 m instead of 10 m / 1.8 m: 18–22° of tilt and
+  ±36° of toe-in. Kept as a contrast case, with a note that it is not a setup anybody would build
+
+### Fixed
+
+- `README.md` was stale: total weight 1834 → **1856 kg**, the 18sound row still had the superseded
+  0.420 × 0.800 × 0.335 and 30 kg, and SKRAM's height and depth were the wrong way round. The current-state
+  table now also says **which devices have real CAD and which are still generated blocks**, which is the
+  question most often asked of this repo
+- `README.md` gained `ddev mesh-convert`, the `meshes/` directory and the `--aim-lines` flag; `docs/scenes.md`
+  documents aim lines; `docs/inventory.md` carries the 18sound's corrected 41 kg
+- `TODO.md`: splayed sub arcs no longer need schema work — `pitch_deg`, `roll_deg` and `aim: focus` cover it
+
 ## [0.12.0] - 2026-07-30
 
 ### Added

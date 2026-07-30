@@ -120,6 +120,42 @@ final class RenderPlanTest extends TestCase
         self::assertGreaterThanOrEqual($needed, $this->distance($plan));
     }
 
+    public function testAimLinesAreOffByDefaultAndFramedWhenOn(): void
+    {
+        $top = SpecFactory::spec([
+            'subtype' => 'top',
+            'geometry' => ['dimensions_m' => ['width' => 0.5, 'height' => 1.0, 'depth' => 0.5]],
+        ]);
+        // Tilted down, so the ray meets the floor a couple of metres out in front.
+        $placed = [new PlacedDevice('t', $top, [0.0, 0.0, 0.0], new Orientation(20.0))];
+
+        $off = RenderPlan::forScene($placed);
+        $on = RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_TOPS);
+
+        self::assertSame([], $off['aim_lines'], 'aim lines are opt-in');
+        self::assertCount(1, $on['aim_lines']);
+        self::assertTrue($on['aim_lines'][0]['hits_floor']);
+        self::assertEqualsWithDelta(0.0, $on['aim_lines'][0]['end'][2], 1e-6, 'the ray stops at the floor');
+        self::assertLessThan(
+            $off['scene_bounds']['min'][1],
+            $on['scene_bounds']['min'][1],
+            'switching lines on has to widen the framing to include where they land',
+        );
+    }
+
+    public function testAimLinesForTopsOnlySkipSubs(): void
+    {
+        $sub = SpecFactory::spec(['id' => 'sub', 'subtype' => 'sub']);
+        $top = SpecFactory::spec(['id' => 'top', 'subtype' => 'top']);
+        $placed = [
+            new PlacedDevice('s', $sub, [0.0, 0.0, 0.0], new Orientation()),
+            new PlacedDevice('t', $top, [2.0, 0.0, 0.0], new Orientation()),
+        ];
+
+        self::assertCount(1, RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_TOPS)['aim_lines']);
+        self::assertCount(2, RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_ALL)['aim_lines']);
+    }
+
     public function testEachCameraPresetSitsOnTheSideItsNameImplies(): void
     {
         $placed = [$this->at($this->cube(), [0.0, 0.0, 0.0])];

@@ -39,7 +39,7 @@ they are not in the library.
 1. **Every weight and dimension is still un-measured** — they describe designs and datasheets, not
    the cabinets we own. `catalog` lists them all as un-measured until somebody checks. See
    [measuring.md](measuring.md).
-2. **Three estimated weights** — `eighteensound-2way-15` (30 kg), `achenbach-18` (50 kg) and
+2. **Three estimated weights** — `eighteensound-2way-15` (41 kg), `achenbach-18` (50 kg) and
    `tecnare-m2122-clone` (68 kg, the factory figure as placeholder). Not in Drive, not published
    anywhere: all 1166 files in the Shared Drive were searched, and Eighteen Sound publishes no
    finished-cabinet weight for a DIY kit. **A hanging scale is the only source.** Possibly the

@@ -11,7 +11,8 @@
     2. report weight per flown point / per truss once anything is actually flown
     3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene
        files — they encode stack arrangements that already worked
-    4. angled stacks: `yaw_deg` covers aiming, but a splayed sub arc would want per-placement pitch
+    4. splayed sub arcs — `yaw_deg`, `pitch_deg`, `roll_deg` and `aim: focus` all exist now, so this is
+       a matter of writing the scene rather than extending the schema
 3. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
    shapes for truss segments and rack boxes
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000

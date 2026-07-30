@@ -70,6 +70,46 @@ def _add_lights(config):
         _aim(obj, light["target"])
 
 
+def _add_aim_lines(lines):
+    """Draw a thin glowing rod along each cabinet's aim, plus a marker where it lands.
+
+    These are the one thing in a render that is *not* physical, so they are unmistakably emissive
+    rather than trying to look like an object.
+    """
+    if not lines:
+        return
+
+    material = bpy.data.materials.new("sdwa5-aim")
+    material.use_nodes = True
+    bsdf = material.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (1.0, 0.10, 0.06, 1.0)
+    bsdf.inputs["Emission Color"].default_value = (1.0, 0.10, 0.06, 1.0)
+    bsdf.inputs["Emission Strength"].default_value = 12.0
+    material.diffuse_color = (1.0, 0.10, 0.06, 1.0)
+
+    for line in lines:
+        start = Vector(line["start"])
+        end = Vector(line["end"])
+        span = end - start
+        if span.length < 1e-6:
+            continue
+
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.008, depth=span.length,
+                                            location=tuple(start + span / 2))
+        rod = bpy.context.active_object
+        rod.name = "aim-%s" % line["placement_id"]
+        # A cylinder points along +Z; swing that onto the aim direction.
+        rod.rotation_euler = span.to_track_quat("Z", "Y").to_euler()
+        rod.data.materials.append(material)
+
+        if line.get("hits_floor"):
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.06, depth=0.004,
+                                                location=(end.x, end.y, 0.004))
+            spot = bpy.context.active_object
+            spot.name = "aim-spot-%s" % line["placement_id"]
+            spot.data.materials.append(material)
+
+
 def _set_world(config):
     scene = bpy.context.scene
     world = scene.world
@@ -90,6 +130,7 @@ def render(plan):
     _add_ground(plan["ground"])
     _add_camera(plan["camera"])
     _add_lights(plan["lighting"])
+    _add_aim_lines(plan.get("aim_lines") or [])
     _set_world(plan["world"])
 
     scene = bpy.context.scene
@@ -109,11 +150,12 @@ def render(plan):
 
     bpy.ops.render.render(write_still=True)
 
-    print("sdwa5-3d: rendered %s (%s camera, %s lighting, %d samples) → %s" % (
+    print("sdwa5-3d: rendered %s (%s camera, %s lighting, %d samples, %d aim line(s)) → %s" % (
         plan["scene_id"],
         plan["camera"]["preset"],
         plan["lighting"]["preset"],
         plan["render"]["samples"],
+        len(plan.get("aim_lines") or []),
         plan["output"],
     ))
 
