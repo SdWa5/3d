@@ -142,6 +142,20 @@ Worth reading the pitch figures honestly: ~1.1° is almost nothing, and that is 
 middle sits 2 m up, aiming at ear height 10 m away, drops only 20 cm over that distance. Bring the focus
 closer or lower and the tilt steepens; that is the trade-off aiming actually is.
 
+Raising the tops does the same thing. `scenes/full-rig-three-tier.yaml` puts a row of Achenbach 18s
+between the subs and the tops, which lifts the tops from 1.53 m to 2.15 m, and the same focus then
+resolves to:
+
+```
+  top-left     x=-1.852   yaw= +8.41°   pitch=+4.35°
+  top-centre   x=-0.302   yaw= +0.00°   pitch=+4.40°
+  top-right    x=+1.248   yaw= -8.41°   pitch=+4.35°
+```
+
+Four times the down-tilt for 62 cm of extra height, and slightly less toe-in because the narrower middle
+row pulls the outer tops inwards. Nothing in the scene states an angle: both changes fall out of `aim:
+focus` on its own.
+
 Notes on how it behaves:
 
 * **Distance is measured from the rig's front face**, not the world origin, so a deeper rig does not

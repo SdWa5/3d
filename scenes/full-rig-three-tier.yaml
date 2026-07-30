@@ -1,0 +1,74 @@
+# Three tiers: the mirrored Flexy sub wall, a row of six Achenbach 18s on top of it, and the three
+# M2122 tops above that, each aimed at one point in the crowd.
+#
+# This is full-rig-aimed.yaml with the Achenbach row inserted between the subs and the tops, which
+# lifts the tops from 1.53 m to 2.13 m and steepens their down-tilt accordingly.
+#
+# TWO THINGS TO KNOW BEFORE BUILDING THIS:
+#
+# * It calls for SIX Achenbachs and only FOUR exist (specs/speakers/achenbach-18.yaml, quantity: 4).
+#   Two would have to be borrowed or built. The row is written as six because that is what was asked
+#   for; drop `count` to 4 and re-centre `at` to make it a scene that can actually go up.
+# * The Achenbachs are Sepp's, so this mixes owners — `scene:build` says so, which is deliberate.
+id: full-rig-three-tier
+name: "Full rig — subs, Achenbach row, aimed tops"
+
+focus:
+  distance_m: 10.0    # out into the crowd, past the front rows
+  height_m: 1.8       # ear height for a standing audience
+
+placements:
+  # Bottom row, turned over so its mouths rise to the seam and meet the upper row's — the two rows
+  # face each other and work as one larger mouth. Rolling the *upper* row instead drives them apart.
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [-2.135, 0.0]
+    roll_deg: 180
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [-2.135, 0.0]
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  # Six Achenbach 18s across the middle, 20 mm apart like the subs. The row is 3.70 m wide against the
+  # sub wall's 4.26 m, so it is centred on the wall (x = -0.302) rather than started at its left edge.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-row-top
+    at: [-1.852, 0.0]
+    repeat:
+      count: 6
+      step: [0.62, 0.0, 0.0]
+
+  # The tops sit over the outer Achenbachs, not over the ends of the sub wall: the narrower middle row
+  # is what carries them now, and the old x positions would have left them overhanging its edges.
+  - id: top-left
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-1.852, 0.0]
+    aim: focus
+
+  - id: top-centre
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: focus
+
+  - id: top-right
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [1.248, 0.0]
+    aim: focus
+
+notes: |
+  Every tier is centred on depth (y = 0), which is the convention the other scenes use, so each one is
+  set a little further back from the front than the one below: the Flexy front face is at -0.482, the
+  Achenbachs at -0.350 and the tops at -0.260. If the stack should be front-aligned instead, give the
+  Achenbach row y = -0.132 and the tops y = -0.222.
+  Compare full-rig-aimed.yaml, which is the same rig without the Achenbach tier.

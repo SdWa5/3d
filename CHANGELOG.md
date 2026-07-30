@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-07-30
+
+### Added
+
+- **`scenes/full-rig-three-tier.yaml`** — the mirrored Flexy sub wall, a row of six Achenbach 18s on top
+  of it, and the three M2122 tops above that, each aimed at the crowd focus. The extra tier lifts the tops
+  from 1.53 m to 2.15 m, which takes their down-tilt from 1.1° to 4.4° and their toe-in from ±9.92° to
+  ±8.41° — both computed from `aim: focus`, with no angle written in the scene
+- The tops sit over the outer Achenbachs rather than over the ends of the sub wall, because the middle row
+  is 3.70 m against the wall's 4.26 m and the old positions would have left them overhanging its edges
+- `docs/scenes.md` uses the new scene to show what raising a rig does to its aiming, next to the existing
+  numbers for the same focus at 1.53 m
+
+### Notes
+
+- The scene calls for **six Achenbachs and only four exist**, so `scene:build` warns that it exceeds the
+  inventory. That is deliberate — it is the configuration that was asked for, and the file says in a
+  comment how to cut it back to four. It also depends on borrowed gear, which `scene:build` reports too
+
 ## [0.15.3] - 2026-07-30
 
 ### Changed
