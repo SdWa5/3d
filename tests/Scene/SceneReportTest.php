@@ -41,6 +41,20 @@ final class SceneReportTest extends TestCase
         self::assertEqualsWithDelta(1.0, $summary['footprint_m'][1], 1e-9);
     }
 
+    public function testFootprintUsesTheRolledExtent(): void
+    {
+        $device = SpecFactory::spec([
+            'geometry' => ['dimensions_m' => ['width' => 0.6, 'height' => 1.2, 'depth' => 1.0]],
+        ]);
+        $upright = new PlacedDevice('a', $device, [0.0, 0.0, 0.0], 0.0);
+        $sideways = new PlacedDevice('a', $device, [0.0, 0.0, 0.0], 0.0, 90.0);
+
+        $report = new SceneReport();
+
+        self::assertEqualsWithDelta(0.6, $report->summarise([$upright])['footprint_m'][0], 1e-9);
+        self::assertEqualsWithDelta(1.2, $report->summarise([$sideways])['footprint_m'][0], 1e-9);
+    }
+
     public function testFlagsUsingMoreCabinetsThanWeOwn(): void
     {
         // Cheap to catch here, expensive to discover on site.

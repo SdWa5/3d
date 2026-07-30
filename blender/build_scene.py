@@ -54,9 +54,14 @@ def build(plan):
         instance.instance_type = "COLLECTION"
         instance.instance_collection = collection
         instance.location = tuple(placement["position_m"])
-        # Yaw only: cabinets stand upright, and a scene that needs more than that wants a real
-        # transform in the spec rather than a guess here.
-        instance.rotation_euler = (0.0, 0.0, math.radians(placement["yaw_deg"]))
+        # Roll about Y (the front-to-back axis) then yaw about Z. Rolling about Y keeps the cabinet
+        # facing forward while turning it over, which is what mirrored horn pairs need; the PHP side
+        # already raised the position so a rolled cabinet still rests on its slot.
+        instance.rotation_euler = (
+            0.0,
+            math.radians(placement.get("roll_deg", 0.0)),
+            math.radians(placement["yaw_deg"]),
+        )
         instance["sdwa5_device"] = placement["device"]
         scene_collection.objects.link(instance)
 

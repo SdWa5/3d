@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-30
+
+### Added
+
+- **`roll_deg` on a placement** — turns a cabinet over about its own front-to-back axis, so 180 leaves
+  it facing forward but upside down. That is how horn-loaded subs are stacked in mirrored pairs, with
+  two mouths meeting to behave as one larger one
+- `scenes/full-rig-mirrored.yaml` — `full-rig.yaml` plus that one line, so the two can be compared
+- The compiler **lifts a rolled cabinet back onto its slot**: geometry runs z = 0 to height in a
+  cabinet's own frame, so turning it over would otherwise sink it through the floor. The lift is
+  computed from the rotated corners, so it is right for any angle, not just 180
+- `on` stacking, the scene report's footprint and the camera framing all use the **rolled** extent, so
+  a cabinet on its side counts as tall as it is wide and anything stacked on it still lands correctly
+- Four tests covering the lift, stacking onto a rolled cabinet, the swapped extent at 90°, and the
+  footprint. Suite is now 133
+
+### Notes
+
+- Which row to flip is not obvious: a Flexy's mouths sit in the *lower* part of its face, so the
+  **bottom** row is the one to turn over. Flipping the top row instead drives the mouths apart —
+  documented in `docs/scenes.md`, having been rendered wrong the first time
+
 ## [0.9.1] - 2026-07-30
 
 ### Fixed

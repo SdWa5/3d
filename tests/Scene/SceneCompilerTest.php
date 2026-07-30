@@ -100,6 +100,44 @@ final class SceneCompilerTest extends TestCase
         }
     }
 
+    public function testRollTurnsACabinetOverWithoutSinkingItThroughTheFloor(): void
+    {
+        // Geometry runs z = 0..height in a cabinet's own frame, so turning it over puts it below
+        // zero unless the placement lifts it back up by its height.
+        $placed = $this->compile([
+            ['id' => 'flipped', 'device' => 'sub', 'at' => [0.0, 0.0], 'roll_deg' => 180],
+        ]);
+
+        self::assertSame(180.0, $placed[0]->rollDeg);
+        self::assertSame(0.0, $placed[0]->position[2], 'the slot is still the floor');
+        self::assertEqualsWithDelta(0.6, $placed[0]->zLift(), 1e-9, 'lifted by its own height');
+        self::assertEqualsWithDelta(0.6, $placed[0]->toArray()['position_m'][2], 1e-9);
+        self::assertEqualsWithDelta(0.6, $placed[0]->topZ(), 1e-9, 'an upside-down cabinet is no taller');
+    }
+
+    public function testStackingOnARolledCabinetStillLandsOnTopOfIt(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'flipped', 'device' => 'sub', 'at' => [0.0, 0.0], 'roll_deg' => 180],
+            ['id' => 'above', 'device' => 'top', 'on' => 'flipped'],
+        ]);
+
+        self::assertEqualsWithDelta(0.6, $placed[1]->position[2], 1e-9);
+    }
+
+    public function testACabinetOnItsSideIsAsTallAsItIsWide(): void
+    {
+        // A 0.6 x 0.6 cube would hide this, so use the 0.5 wide x 0.9 high top.
+        $placed = $this->compile([
+            ['id' => 'sideways', 'device' => 'top', 'at' => [0.0, 0.0], 'roll_deg' => 90],
+        ]);
+
+        [$width, , $height] = $placed[0]->extent();
+        self::assertEqualsWithDelta(0.9, $width, 1e-9, 'the 0.9 m height now runs left to right');
+        self::assertEqualsWithDelta(0.5, $height, 1e-9, 'and the 0.5 m width is now the height');
+        self::assertEqualsWithDelta(0.5, $placed[0]->topZ(), 1e-9);
+    }
+
     public function testYawIsCarriedThrough(): void
     {
         $placed = $this->compile([

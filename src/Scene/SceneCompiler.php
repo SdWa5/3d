@@ -73,7 +73,7 @@ final class SceneCompiler
                     $base[0] + $step[0] * $index,
                     $base[1] + $step[1] * $index,
                     $base[2] + $step[2] * $index,
-                ], $placement->yawDeg);
+                ], $placement->yawDeg, $placement->rollDeg);
 
                 $placed[] = $entry;
                 // `on` refers to the placement as a whole; the last repeat is the useful anchor.

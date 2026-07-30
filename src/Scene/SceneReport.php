@@ -52,9 +52,10 @@ final class SceneReport
             $byOwner[$device->owner]['count']++;
             $byOwner[$device->owner]['weight_kg'] += $device->weightKg;
 
-            // Footprint from the cabinet's own extent, not just its centre.
-            $halfWidth = $device->dimensions->width / 2;
-            $halfDepth = $device->dimensions->depth / 2;
+            // Footprint from the cabinet's own rolled extent, not just its centre.
+            [$extentX, $extentY, ] = $entry->extent();
+            $halfWidth = $extentX / 2;
+            $halfDepth = $extentY / 2;
             $minX = min($minX, $entry->position[0] - $halfWidth);
             $maxX = max($maxX, $entry->position[0] + $halfWidth);
             $minY = min($minY, $entry->position[1] - $halfDepth);

@@ -1,0 +1,47 @@
+# The full rig with the upper sub row turned over, so each pair of Flexy horn mouths meets and works
+# as one larger mouth instead of two. Same 14 cabinets as full-rig.yaml — only the upper row's
+# `roll_deg` differs, which is the point of keeping setups as files.
+#
+# roll_deg turns a cabinet about its own front-to-back axis: 180 leaves it facing forward, just upside
+# down. Because a Flexy's mouths sit in the lower part of its face, turning the *bottom* row over is
+# what brings the two rows' mouths together at the seam — flipping the top row instead drives them
+# apart, which is worth knowing before you try it on site.
+id: full-rig-mirrored
+name: "Full rig — mirrored sub wall"
+
+placements:
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [-2.135, 0.0]
+    # The bottom row is the one turned over: unflipped, a Flexy's mouths sit low, so rolling the
+    # bottom row lifts its mouths to the seam where the upper row's mouths already are.
+    roll_deg: 180
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [-2.135, 0.0]
+    repeat:
+      count: 7
+      step: [0.611, 0.0, 0.0]
+
+  - id: top-left
+    device: tecnare-m2122
+    on: sub-row-top
+    at: [-2.135, 0.0]
+
+  - id: top-right
+    device: tecnare-m2122
+    on: sub-row-top
+    at: [1.531, 0.0]
+
+  - id: top-centre
+    device: tecnare-m2122-clone
+    on: sub-row-top
+    at: [-0.302, 0.0]
+
+notes: |
+  Compare against full-rig.yaml, which is the same wall with both rows the same way up.

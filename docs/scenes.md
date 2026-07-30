@@ -41,7 +41,8 @@ placements:
 | `placements[].device` | a device `id` from [`specs/`](../specs) |
 | `placements[].at` | ground position `[x, y]` in metres |
 | `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs |
-| `placements[].yaw_deg` | rotation about Z. 0 faces −Y, the convention every model uses |
+| `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses |
+| `placements[].roll_deg` | rotation about the front-to-back axis — 180 turns a cabinet upside down while it keeps facing forward |
 | `placements[].repeat` | `{ count, step: [x, y, z] }` — repeat along a vector |
 | `notes` | anything worth knowing |
 
@@ -60,6 +61,39 @@ unmaintainable; as two rows of seven it is obvious what the setup *is*.
 A repeated placement can be stacked on another repeated placement — the row above resolves against the
 row below. Give the upper row its own `at` so it starts where you want; without one it inherits the
 position of the last cabinet in the row below.
+
+## Mirrored horn pairs
+
+`roll_deg: 180` turns a cabinet over without turning it away, which is how horn-loaded subs get
+stacked in mirrored pairs so two mouths meet and behave as one larger mouth:
+
+```yaml
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [-2.135, 0.0]
+    roll_deg: 180            # turned over, so its mouths point up at the seam
+    repeat: { count: 7, step: [0.611, 0.0, 0.0] }
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [-2.135, 0.0]
+    repeat: { count: 7, step: [0.611, 0.0, 0.0] }
+```
+
+`scenes/full-rig-mirrored.yaml` is exactly `full-rig.yaml` with that one line added — which is the
+argument for keeping setups as files rather than as Blender scenes.
+
+Which row to flip is not obvious and depends on where the mouth sits on the cabinet's face. A Flexy's
+mouths are in the *lower* part of its front, so the **bottom** row is the one to turn over; flipping the
+top row instead drives the mouths apart. Cheaper to discover in a render than on site.
+
+Two things the compiler handles so this stays honest:
+
+* A rolled cabinet is **lifted back onto its slot**. Geometry runs from z = 0 to the cabinet's height
+  in its own frame, so turning it over would otherwise sink it through the floor.
+* `on` and the reports use the **rolled** extent, so a cabinet on its side is treated as tall as it is
+  wide and anything stacked on it still lands correctly.
 
 ## What it tells you before Blender opens
 

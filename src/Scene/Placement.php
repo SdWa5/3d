@@ -10,6 +10,10 @@ use App\Spec\ArrayReader;
  * One entry in a scene: a device put somewhere, optionally on top of another entry, optionally
  * repeated along a step vector.
  *
+ * `roll_deg` turns a cabinet over about its own front-to-back axis, which is how horn-loaded subs get
+ * stacked in mirrored pairs so two mouths meet and act as one larger one. 180 leaves it still facing
+ * forward, just upside down.
+ *
  * `on` and `repeat` are what make a scene file worth writing instead of dragging cabinets around by
  * hand. A 14-cabinet sub wall is two lines, and a stack does not have to be re-measured every time
  * a spec's height changes — the compiler works the heights out from the specs.
@@ -25,6 +29,7 @@ final class Placement
         public readonly string $deviceId,
         public readonly ?array $at,
         public readonly float $yawDeg,
+        public readonly float $rollDeg,
         public readonly ?string $on,
         public readonly int $repeatCount,
         public readonly ?array $repeatStep,
@@ -40,6 +45,7 @@ final class Placement
             deviceId: $reader->requireString('device'),
             at: $reader->has('at') ? self::readGround($reader) : null,
             yawDeg: $reader->optionalFloat('yaw_deg', 0.0) ?? 0.0,
+            rollDeg: $reader->optionalFloat('roll_deg', 0.0) ?? 0.0,
             on: $reader->optionalString('on'),
             repeatCount: $repeat?->optionalInt('count', 1) ?? 1,
             repeatStep: $repeat !== null && $repeat->has('step') ? $repeat->requireVector3('step') : null,

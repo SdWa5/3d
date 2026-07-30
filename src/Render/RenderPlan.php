@@ -83,9 +83,10 @@ final class RenderPlan
         $max = [-INF, -INF, -INF];
 
         foreach ($placed as $entry) {
-            $dimensions = $entry->device->dimensions;
-            $spread = ($entry->yawDeg === 0.0 ? $dimensions->width : max($dimensions->width, $dimensions->depth)) / 2;
-            $depth = ($entry->yawDeg === 0.0 ? $dimensions->depth : max($dimensions->width, $dimensions->depth)) / 2;
+            // The rolled extent, so a cabinet turned on its side is bounded as tall as it is wide.
+            [$extentX, $extentY, ] = $entry->extent();
+            $spread = ($entry->yawDeg === 0.0 ? $extentX : max($extentX, $extentY)) / 2;
+            $depth = ($entry->yawDeg === 0.0 ? $extentY : max($extentX, $extentY)) / 2;
 
             $min[0] = min($min[0], $entry->position[0] - $spread);
             $max[0] = max($max[0], $entry->position[0] + $spread);
