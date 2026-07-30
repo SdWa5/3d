@@ -5,13 +5,12 @@
        in any source — the whole Shared Drive was searched, and Eighteen Sound publishes no finished weight for a DIY
        kit
     2. verify `tecnare-m2122-clone` actually matches the factory cabinet's outer dimensions
-2. `scene:build` — declarative scene files in [scenes/](scenes)
-    1. scene YAML (device id, position, rotation, stacked-on) → assembled `.blend`
-    2. reproducible and diffable, unlike a hand-built scene; makes "try a different setup" a commit instead of a memory
-    3. a lighting + camera template so a preview render needs no manual setup
-    4. report total weight per flown point / per truss from the placed devices
-    5. reuse the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) as reference layouts for the first
-       scenes — they encode stack arrangements that already worked
+2. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
+    1. a lighting + camera template so a preview render needs no manual setup
+    2. report weight per flown point / per truss once anything is actually flown
+    3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene
+       files — they encode stack arrangements that already worked
+    4. angled stacks: `yaw_deg` covers aiming, but a splayed sub arc would want per-placement pitch
 3. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
    shapes for truss segments and rack boxes
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000

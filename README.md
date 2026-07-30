@@ -28,6 +28,7 @@ ddev composer install
 ddev exec bin/console specs:validate      # check every spec (no Blender needed)
 ddev exec bin/console models:build        # build .glb + .blend for whatever changed
 ddev exec bin/console library:build       # assemble the Blender asset library
+ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console catalog             # equipment table with weight/volume totals
 ddev exec bin/console list                # all commands
 ```
@@ -36,6 +37,10 @@ Then in Blender: **Preferences → File Paths → Asset Libraries → +**, point
 and drag devices into a scene. Every device is one collection asset at true scale, already sitting on the floor.
 See [docs/blender.md](docs/blender.md).
 
+Or write the setup down instead of dragging it: `scenes/full-rig.yaml` is the whole PA — a 14-cabinet sub wall in two
+stacked rows plus three tops — in about twenty lines, and `scene:build` reports its weight, height and footprint before
+Blender is involved. See [docs/scenes.md](docs/scenes.md).
+
 ## Commands
 
 | Command          | Does                                                                                                                             |
@@ -43,6 +48,7 @@ See [docs/blender.md](docs/blender.md).
 | `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too                                     |
 | `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
+| `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device
@@ -63,7 +69,7 @@ blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/
 tools/          check-glb.py — verifies an exported model matches its own metadata
-scenes/         scene definitions (from v0.2.0)
+scenes/         setups as YAML — one file per event layout
 build/          generated models, asset library, renders — gitignored
 docs/
 ```
@@ -105,6 +111,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Blender](docs/blender.md) — version pinning, asset library, building setups
 - [Measuring](docs/measuring.md) — checklist for turning a real cabinet into a spec
 - [Inventory](docs/inventory.md) — the gear list, and Drive access via rclone
+- [Scenes](docs/scenes.md) — writing a PA setup as a file, stacking and repetition
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 
 Org-level documentation lives in the parent repo's
@@ -115,6 +122,7 @@ Org-level documentation lives in the parent repo's
 ```bash
 ddev exec composer test                          # PHPUnit
 ddev exec bin/console specs:validate             # same check CI runs
+ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
 ```
 

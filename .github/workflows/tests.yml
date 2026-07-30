@@ -19,5 +19,7 @@ jobs:
 
       - run: composer test
 
-      # Specs are validated without Blender, so this runs in CI too.
+      # Specs and scenes are both checkable without Blender, so CI does it.
       - run: bin/console specs:validate
+
+      - run: bin/console scene:build --dry-run

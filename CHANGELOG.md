@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-30
+
+### Added
+
+- **`scene:build`** — a PA setup written as YAML in `scenes/` becomes `build/scenes/<id>.blend` with
+  every cabinet placed at true scale. A setup that worked is now a commit rather than somebody's
+  memory, and next year's variation is a diff
+- `scenes/full-rig.yaml` — the whole PA in about twenty lines: a 14-cabinet sub wall as two stacked
+  rows of seven, plus the three M2122 tops. 17 cabinets, 1394 kg, 2.486 m tall, 4.26 × 0.96 m footprint
+- **`on:` stacking** — a placement sits on an earlier one and its height is worked out from the specs,
+  so no z coordinate is ever written into a scene. When somebody finally measures the Flexys, every
+  stack in every scene corrects itself instead of quietly becoming wrong
+- **`repeat: { count, step }`** — a sub wall is two lines instead of fourteen entries. A repeated row
+  can be stacked on another repeated row
+- Scene report, printed before Blender runs: cabinet count, total weight, tallest stack, floor
+  footprint from cabinet extents, and per-device and per-owner breakdowns. Plus three warnings that
+  are cheap here and expensive on site — using **more cabinets than the inventory has**, depending on
+  **borrowed gear** (any device whose `owner` is not `sdwa5` — what that field was added for), and
+  positions resting on **un-measured** cabinets
+- `--dry-run` reports without touching Blender, which is how CI checks scenes
+- `src/Scene/` (`Placement`, `SceneSpec`, `SceneLoader`, `SceneCompiler`, `PlacedDevice`,
+  `SceneReport`) and `blender/build_scene.py`. All the arithmetic lives in PHP so stacking and
+  repetition are unit-testable without Blender
+- `docs/scenes.md`; `ArrayReader::numberList()`; 22 new tests (suite now 116)
+
+### Changed
+
+- Each device's collection is appended **once** and instanced per placement, so a 14-cabinet wall
+  costs one copy of the geometry — the shipped 17-cabinet scene is under 100 KB
+- `scene:build` refuses to assemble a scene from stale or missing models, and from invalid specs
+- CI now also runs `scene:build --dry-run`
+
 ## [0.5.0] - 2026-07-30
 
 ### Added

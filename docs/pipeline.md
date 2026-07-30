@@ -18,6 +18,12 @@ build/blend/top-a.blend            editable model, collection named `top-a`
         ▼
 build/library/sdwa5-3d.blend       asset library — every device as a draggable collection asset
 build/library/blender_assets.cats.txt
+
+scenes/full-rig.yaml               a setup written down: which devices, where, stacked on what
+        │
+        │  bin/console scene:build         blender --background --python blender/build_scene.py
+        ▼
+build/scenes/full-rig.blend        cabinets placed at true scale, geometry instanced once per device
 ```
 
 Nothing under `build/` is committed. It is all reproducible from the specs, and regenerating it is
@@ -33,6 +39,8 @@ ddev exec bin/console models:build        # build what changed
 ddev exec bin/console models:build -f     # rebuild everything
 ddev exec bin/console models:build --id=top-a --id=sub-a
 ddev exec bin/console library:build       # assemble the asset library
+ddev exec bin/console scene:build         # assemble every scene
+ddev exec bin/console scene:build full-rig --dry-run   # report a setup without Blender
 ddev exec bin/console catalog             # table + weight/volume totals
 ddev exec bin/console catalog --write     # also write docs/catalog.md
 ```

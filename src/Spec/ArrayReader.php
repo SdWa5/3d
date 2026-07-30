@@ -183,6 +183,32 @@ final class ArrayReader
     }
 
     /**
+     * A list of numbers of any length, e.g. a scene's `at: [x, y]`.
+     *
+     * @return list<float>
+     */
+    public function numberList(string $key): array
+    {
+        if (!$this->has($key)) {
+            return [];
+        }
+        $value = $this->data[$key];
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new InvalidSpecException("{$this->keyPath($key)}: expected a list of numbers");
+        }
+
+        $numbers = [];
+        foreach ($value as $index => $entry) {
+            if (!is_int($entry) && !is_float($entry)) {
+                throw new InvalidSpecException("{$this->keyPath($key)}[{$index}]: expected a number");
+            }
+            $numbers[] = (float)$entry;
+        }
+
+        return $numbers;
+    }
+
+    /**
      * Exactly three numbers, used for `position_m: [x, y, z]`.
      *
      * @return array{float, float, float}
