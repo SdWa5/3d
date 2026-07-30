@@ -1,0 +1,10 @@
+# One Tecnare on its own, for checking its baffle close up: the mid horn, the two LF horns with a 12"
+# cone at each throat, and the 1" phase plug inside each. The Tecnare has no CAD anywhere, so every
+# feature here is generated and this is the scene that shows whether that generation is right.
+id: tecnare-detail
+name: "Tecnare M2122 baffle detail"
+
+placements:
+  - id: tecnare
+    device: tecnare-m2122
+    at: [0.0, 0.0]

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Spec;
 
 /**
- * One driver complement of a cabinet. Sizes stay in inches because that is how the audio world
- * names them (a "15 inch" woofer), and the builder uses them only to size the grille cut-outs —
- * no internal components are modelled.
+ * One driver complement of a cabinet — what is fitted, for the catalog and the exported metadata.
+ *
+ * Sizes stay in inches because that is how the audio world names them (a "15 inch" woofer). Where the
+ * drivers and horns physically sit on the baffle is a separate matter, and a richer one: see
+ * BaffleLayout.
  */
 final class Driver
 {

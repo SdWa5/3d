@@ -85,31 +85,34 @@ stays text-only and diffable.
 
 ## Current state
 
-The whole PA is in the library — **6 specs, 25 cabinets, 1856 kg, 9.0 m³**:
+The whole PA is in the library — **5 specs, 25 cabinets, 1856 kg, 9.0 m³**:
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |
 |--------------------------|-------|-----|---------------------------------------------|------------------|--------------------------|
 | Flexy Folded Horn Hybrid | sdwa5 | 14  | 0.591 × 0.763 × 0.964                       | 85               | CAD — four horn mouths   |
 | SKRAM                    | sdwa5 | 2   | 0.610 × 0.914 × 0.813                       | 90               | CAD — vent array         |
-| Tecnare M2122            | sdwa5 | 2   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated block          |
-| Tecnare M2122 (clone)    | sdwa5 | 1   | same as above                               | 68 (placeholder) | generated block          |
-| Eighteensound 2-Way 15″  | sepp  | 2   | 0.466 × 0.836 × 0.427                       | 41 (est.)        | CAD — horn, driver, ports |
-| Achenbach 18             | sepp  | 4   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD — driver cut-out     |
+| Tecnare M2122            | sdwa5 | 3   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated + 3 horns, 2 cones (est.) |
+| Eighteensound 2-Way 15″  | sepp  | 2   | 0.466 × 0.836 × 0.427                       | 41 (est.)        | CAD + horn and cone      |
+| Achenbach 18             | sepp  | 4   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD + 18″ cone           |
 
-**Four of six carry their own CAD** via `mesh_override`, so the models show the openings you actually see on a
-cabinet rather than a black box. Only the three Tecnare tops are still generated blocks: no CAD exists for them
-anywhere, so they would have to be measured and modelled. The meshes themselves are third-party files and are not
-committed — [`meshes/README.md`](meshes/README.md) has the one-line `rclone` command for each, and
-`ddev mesh-convert` turns FreeCAD or STEP into something Blender can read.
+**Four of five carry their own CAD** via `mesh_override`, so the models show the openings you actually see on a
+cabinet rather than a black box. The meshes themselves are third-party files and are not committed —
+[`meshes/README.md`](meshes/README.md) has the one-line `rclone` command for each, and `ddev mesh-convert` turns
+FreeCAD or STEP into something Blender can read.
 
-The two factory Tecnare tops and the self-built third one are separate specs, because build, provenance and weight all
-differ and a setup should be able to tell them apart.
+Behind those openings there are now **drivers and horns**, from each spec's `audio.layout`: cones with a surround and
+a domed dust cap, and horn flares whose mouth shape and flare law come from the spec
+([docs/spec-format.md](docs/spec-format.md#baffle-layout)). The Tecnare has no CAD anywhere, so its whole baffle is
+generated and its numbers are estimated — the flares are carved into the shell rather than sitting behind a CAD hole.
+
+All three Tecnare tops share one spec at quantity 3. Two are factory cabinets and the third is a self-built copy, but
+the geometry is identical, so modelling it twice was wasted work; the distinction is recorded in the spec's notes.
 
 Most are DIY builds of commercial designs, so their dimensions come from the designs themselves — CAD meshes, cut lists,
 published build plans and one datasheet ([docs/sources.md](docs/sources.md)
 records which, per device). Amps, DSP, racks and truss are documented in Drive but not modelled yet.
 
-**Nothing has been measured yet** — dimensions 0 of 6, weights 0 of 6. Every number describes a design or a datasheet,
+**Nothing has been measured yet** — dimensions 0 of 5, weights 0 of 5. Every number describes a design or a datasheet,
 not the cabinet in the barn, and three weights are outright estimates. Dimensions and weights are tracked separately,
 because a hanging scale settles a weight in a minute while taping fourteen subs is an afternoon; `catalog` reports both
 counts on every run, so the gap between "we have models" and "we have accurate models" stays visible — see

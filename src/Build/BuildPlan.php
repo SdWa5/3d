@@ -67,6 +67,8 @@ final class BuildPlan
                 'coverage_deg' => $spec->coverage?->toArray(),
                 'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $spec->drivers),
             ],
+            // The baffle features, already reduced to metres so the bpy side does no unit maths.
+            'baffle_layout' => $spec->layout?->toArray(),
             // Absolute so the bpy side never has to know where the project root is. Null when the
             // spec names a mesh this checkout does not have — the builder then generates the block.
             'mesh_override' => ($spec->meshOverride === null || $meshOverridePath === null) ? null : [

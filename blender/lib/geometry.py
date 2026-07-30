@@ -160,6 +160,10 @@ def build_grille(plan, material_set, front_y, front_height):
     """Recessed grille panel plus the four frame bars around it.
 
     Returns a list of objects, empty when the spec declares no grille inset.
+
+    When the spec has a baffle layout, the panel is left out and only the frame is built: the horns and
+    drivers are the whole point of that layout, and a solid panel across the front would hide every one
+    of them.
     """
     inset = plan["appearance"]["grille"]["inset_m"] or 0.0
     if inset <= 0.0:
@@ -173,13 +177,14 @@ def build_grille(plan, material_set, front_y, front_height):
     thickness = min(_GRILLE_THICKNESS, inset / 2.0)
     objects = []
 
-    panel = _box(
-        "%s-grille" % plan["id"],
-        center=(0.0, front_y - thickness / 2.0, front_height / 2.0),
-        size=(width - 2.0 * margin, thickness, front_height - 2.0 * margin),
-        material=material_set[materials.GRILLE],
-    )
-    objects.append(panel)
+    if not plan.get("baffle_layout"):
+        panel = _box(
+            "%s-grille" % plan["id"],
+            center=(0.0, front_y - thickness / 2.0, front_height / 2.0),
+            size=(width - 2.0 * margin, thickness, front_height - 2.0 * margin),
+            material=material_set[materials.GRILLE],
+        )
+        objects.append(panel)
 
     # Frame bars fill the ring between the outer front plane and the shell's front plane.
     bar_depth = inset

@@ -1,19 +1,22 @@
-# The two factory cabinets. Dimensions and weight from the Tecnare L2122LT datasheet, which shares
-# this cabinet's geometry. The third, self-built one is tecnare-m2122-clone. See docs/sources.md.
+# All three M2122-shaped tops. Dimensions and weight from the Tecnare L2122LT datasheet, which shares
+# this cabinet's geometry. See docs/sources.md.
 id: tecnare-m2122
 name: "Tecnare M2122"
 category: speaker
 subtype: top
-quantity: 2
+quantity: 3
 owner: sdwa5
 build: original
 
 provenance: datasheet
 deviations: |
-  Re-fitted with different compression drivers than the factory L2122LT: the factory 2" is
-  replaced by an RCF ND650 (1.4"). The 2x 12" are Celestion, the 2x 1" are B&C DE25. Power
-  handling in the Hardware Overview (1200 W mid + 250 W high) reflects these drivers, not
-  Tecnare's original 1000 W + 300 W.
+  The 2x 12" are Celestion and the 2x 1" are B&C DE25 rather than Tecnare's own. Power handling in the
+  Hardware Overview (1200 W mid + 250 W high) reflects these drivers, not Tecnare's 1000 W + 300 W.
+
+  The mid driver is contradictory in the sources: the Hardware Overview lists an RCF ND650, which is a
+  1.4" unit, while the horn's throat is 2" as the owner describes and as the factory L2122LT specifies.
+  The driver list here follows the 2" throat. Either the Overview entry is wrong or an adapter is
+  fitted — worth checking against the cabinet.
 
 geometry:
   # Tapered cabinet: 500 mm across the front, 345 mm across the back.
@@ -42,14 +45,41 @@ audio:
   coverage_deg: { horizontal: 60, vertical: 40 }
   drivers:
     - { size_in: 12, type: woofer, count: 2 }
-    - { size_in: 1.4, type: compression-driver, count: 1 }
+    - { size_in: 2, type: compression-driver, count: 1 }
     - { size_in: 1, type: compression-driver, count: 2 }
+
+  # Front-baffle openings. Positions are in the baffle frame: origin at the centre of the 0.500 x 0.960
+  # front face, +X right, +Z up.
+  layout:
+    # ESTIMATED. Nobody has measured this baffle: the arrangement is as the owner describes it (mid horn
+    # on top, the two 12" LF horns stacked below, a 1" horn inside each as a phase plug), but every mouth
+    # size and centre height below is derived from the outer dimensions and the driver sizes. A tape
+    # measure on one horn mouth would promote this to `measured`.
+    #
+    # The flares are estimated along with everything else here: four-sided because the cabinet's mouths
+    # are rectangular, exponential because no real compression-driver horn is straight-walled. The 1"
+    # phase plugs are left linear — at 90 mm across, the law makes no visible difference.
+    provenance: estimated
+    inset_m: 0.018
+    features:
+      - { id: mid,   kind: horn, at_m: [0.0,  0.355], mouth_m: [0.45, 0.20], throat_in: 2.0, depth_m: 0.18,
+          profile: pyramid, sides: 4, flare: exponential }
+      - { id: lf-up, kind: horn, at_m: [0.0,  0.103], mouth_m: [0.45, 0.28], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
+          profile: pyramid, sides: 4, flare: exponential }
+      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [0.09, 0.09], throat_in: 1.0, depth_m: 0.05 }
+      - { id: lf-lo, kind: horn, at_m: [0.0, -0.189], mouth_m: [0.45, 0.28], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
+          profile: pyramid, sides: 4, flare: exponential }
+      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [0.09, 0.09], throat_in: 1.0, depth_m: 0.05 }
 
 mesh_override: null
 
 notes: |
   3-way mid-high top (two active sections plus one passive). 150 Hz - 20 kHz +/-4 dB.
   Impedance: mid 4 Ohm, high 8 Ohm. Crossover: active 185 Hz / 2.5 kHz, passive 6.5 kHz.
-  Three of these tops exist in total: these two are genuine Tecnare cabinets, the third is
-  self-built and lives in tecnare-m2122-clone.yaml. Hardware Overview.xlsx lists "2", which counts
-  only the factory pair.
+
+  Three of these exist: two genuine Tecnare cabinets and one self-built copy. They were separate specs
+  (tecnare-m2122 and tecnare-m2122-clone) until 0.14.0, when they were merged at quantity 3 because the
+  geometry is identical and modelling it twice was wasted work. The cost of merging is that `build` and
+  `provenance` can now only describe one of the two cases — the self-built one is recorded here in prose
+  rather than as data. Split the spec again if that distinction starts to matter.
+  Hardware Overview.xlsx lists "2", which counted only the factory pair.

@@ -52,6 +52,28 @@ audio:
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: compression-driver, count: 1 }
 
+  layout:
+    # From the kit drawings' FRONT VIEW, which dimension both openings and their spacing, so these are
+    # not guesses. The 800 mm baffle is centred in the 836 mm outer box, so baffle-frame z maps straight
+    # onto the cabinet's own frame.
+    #
+    #   octagonal horn cut-out  362 wide (100.7 + 160.6 + 100.7) x 285 high (84.5 + 116 + 84.5),
+    #                           centred 142.5 mm below the baffle top  ->  z = +0.2575
+    #   driver cut-out          DIA 353 mm, centred 502.5 mm below the baffle top  ->  z = -0.1025
+    #
+    # The cone is drawn at the 353 mm cut-out rather than the driver's nominal 15" (381 mm): the frame
+    # sits behind the panel and only the cone shows through, so the cut-out is what is visible.
+    #
+    # The horn's eight sides come from the drawing (the cut-out is dimensioned as 100.7 + 160.6 + 100.7,
+    # which is an octagon with its corners cut). The flare law is not in the drawing: an XT1464 is a
+    # flared horn, not a straight-walled one, so `exponential` is the closer of the two available laws.
+    provenance: plans
+    inset_m: 0.056
+    features:
+      - { id: horn,   kind: horn, at_m: [0.0,  0.2575], mouth_m: [0.362, 0.285], throat_in: 1.4, depth_m: 0.18,
+          profile: pyramid, sides: 8, flare: exponential }
+      - { id: woofer, kind: cone, at_m: [0.0, -0.1025], diameter_in: 13.9, depth_m: 0.10 }
+
 mesh_override:
   path: meshes/eighteensound-2way-15.stl
   units: mm

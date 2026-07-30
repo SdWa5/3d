@@ -39,7 +39,7 @@ placements:
     at: [1.531, 0.0]
 
   - id: top-centre
-    device: tecnare-m2122-clone
+    device: tecnare-m2122
     on: sub-row-top
     at: [-0.302, 0.0]
 

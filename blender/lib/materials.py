@@ -11,6 +11,8 @@ CABINET = "sdwa5-cabinet"
 GRILLE = "sdwa5-grille"
 HANDLE = "sdwa5-handle"
 RIGGING = "sdwa5-rigging"
+CONE = "sdwa5-cone"
+HORN = "sdwa5-horn"
 ESTIMATED = "sdwa5-estimated"
 
 
@@ -76,6 +78,12 @@ def build_set(appearance):
         # Perforated steel grille reads darker and slightly metallic.
         GRILLE: _principled(GRILLE, grille_color, roughness=0.45, metallic=0.6),
         HANDLE: _principled(HANDLE, hex_to_linear_rgba("#1a1a1a"), roughness=0.5, metallic=0.4),
+        # Driver cones are coated paper or fibre: very dark and almost entirely diffuse, which is what
+        # makes a cone read as a cone rather than as a shiny funnel.
+        CONE: _principled(CONE, hex_to_linear_rgba("#141414"), roughness=0.88),
+        # Horn flares are moulded plastic or painted ply — lighter than the cabinet so the mouth reads
+        # as an opening with something inside it.
+        HORN: _principled(HORN, hex_to_linear_rgba("#3a3a3c"), roughness=0.55),
         RIGGING: _principled(RIGGING, hex_to_linear_rgba("#9a9a9a"), roughness=0.35, metallic=0.9),
         # Estimated marker glows so a guessed cabinet is impossible to miss in the viewport.
         ESTIMATED: _principled(

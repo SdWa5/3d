@@ -45,6 +45,14 @@ audio:
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 
+  layout:
+    # ESTIMATED position: the CAD's driver cut-out looks central and the baffle is square, so the cone is
+    # placed at the centre. The diameter is the driver's nominal 18", not a measured cut-out.
+    provenance: estimated
+    inset_m: 0.018
+    features:
+      - { id: woofer, kind: cone, at_m: [0.0, 0.0], diameter_in: 18, depth_m: 0.11 }
+
 mesh_override:
   # Converted from the FreeCAD model with `ddev mesh-convert`; its 600 x 700 x 600 mm matches this
   # spec exactly, which is a third confirmation of the dimensions after the panel geometry and

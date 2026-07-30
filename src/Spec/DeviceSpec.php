@@ -52,6 +52,7 @@ final class DeviceSpec
         public readonly array $riggingPoints,
         public readonly ?Coverage $coverage,
         public readonly array $drivers,
+        public readonly ?BaffleLayout $layout,
         public readonly ?MeshOverride $meshOverride,
         public readonly ?string $notes,
     ) {
@@ -108,6 +109,7 @@ final class DeviceSpec
                 static fn (ArrayReader $driver): Driver => Driver::fromReader($driver),
                 $audio?->sectionList('drivers') ?? [],
             ),
+            layout: BaffleLayout::fromReader($audio?->optionalSection('layout')),
             meshOverride: MeshOverride::fromReader($reader, 'mesh_override'),
             notes: $reader->optionalString('notes'),
         );
@@ -184,6 +186,7 @@ final class DeviceSpec
             ),
             'coverage_deg' => $this->coverage?->toArray(),
             'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $this->drivers),
+            'baffle_layout' => $this->layout?->toArray(),
             // Only the basename: a local absolute path has no business travelling inside a .glb.
             // The tolerance travels so tools/check-glb.py can apply the same one the builder did.
             'mesh_override' => $this->meshOverride === null ? null : [

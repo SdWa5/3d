@@ -20,7 +20,7 @@ placements:
     device: tecnare-m2122
     at: [0.4, 0.0]
   - id: tecnare-clone
-    device: tecnare-m2122-clone
+    device: tecnare-m2122
     at: [1.2, 0.0]
   - id: eighteensound
     device: eighteensound-2way-15

@@ -15,7 +15,7 @@ import bpy
 # Blender does not put the script's directory on sys.path, so the shared helpers need help.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib import export, geometry, materials, mesh_import  # noqa: E402  (after the sys.path fix)
+from lib import drivers, export, geometry, materials, mesh_import  # noqa: E402  (after sys.path)
 
 
 def build(plan):
@@ -37,6 +37,11 @@ def build(plan):
                     bpy.context.scene.collection.objects.unlink(body)
                     break
         front_height = plan["geometry"]["dimensions_m"]["height"]
+        # An imported shell already has its baffle holes; the layout's own inset says how far back that
+        # baffle sits inside the outer box.
+        layout = plan.get("baffle_layout") or {}
+        baffle_y = -plan["geometry"]["dimensions_m"]["depth"] / 2 + layout.get("inset_m", 0.0)
+        carve_into = None
     else:
         body, front_y, front_height = geometry.build_body(plan, material_set)
         collection.objects.link(body)
@@ -47,6 +52,15 @@ def build(plan):
         geometry.add_chamfer(body, plan["geometry"]["chamfer_m"])
 
         extras += geometry.build_grille(plan, material_set, front_y, front_height)
+
+        # A generated shell is solid, so its openings have to be cut into it — and they are cut at the
+        # body's own front plane, not at the layout's inset, which only describes a CAD baffle.
+        baffle_y = front_y
+        carve_into = body
+
+    # Deliberately outside the branch above: an override supplies the shell and its baffle holes, but
+    # nothing behind them, so the drivers and horns are exactly what it is missing.
+    extras += drivers.build_features(plan, material_set, baffle_y, carve_into)
 
     extras += geometry.build_rigging_markers(plan, material_set)
     extras += geometry.build_estimated_marker(plan, material_set)

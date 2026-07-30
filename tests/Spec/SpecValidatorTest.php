@@ -161,10 +161,97 @@ final class SpecValidatorTest extends TestCase
             ['mesh_override' => 'Achenbach 18.FCStd'],
             'Blender cannot read FreeCAD',
         ];
+        yield 'baffle feature outside the baffle' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.38, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+            ])]],
+            "'horn': reaches past the baffle",
+        ];
+        yield 'baffle feature deeper than the cabinet' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.9],
+            ])]],
+            'is deeper than the cabinet',
+        ];
+        yield 'horn without a throat' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'depth_m' => 0.1],
+            ])]],
+            'a horn needs throat_in',
+        ];
+        yield 'cone without a diameter' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'w', 'kind' => 'cone', 'at_m' => [0.0, 0.0], 'depth_m' => 0.1],
+            ])]],
+            'a cone needs diameter_in',
+        ];
+        yield 'unknown feature kind' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'thing', 'kind' => 'port', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.1, 0.1],
+                    'depth_m' => 0.1],
+            ])]],
+            "unknown kind 'port'",
+        ];
+        yield 'nested feature naming one that comes later' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'plug', 'kind' => 'horn', 'inside' => 'horn', 'mouth_m' => [0.05, 0.05],
+                    'throat_in' => 1.0, 'depth_m' => 0.03],
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+            ])]],
+            '`inside: horn` must name an earlier feature',
+        ];
+        yield 'unknown mouth profile' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'profile' => 'conical'],
+            ])]],
+            "unknown profile 'conical'",
+        ];
+        yield 'unknown flare law' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'flare' => 'tractrix'],
+            ])]],
+            "unknown flare 'tractrix'",
+        ];
+        yield 'too few sides for a mouth' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'sides' => 2],
+            ])]],
+            'sides must be at least 3',
+        ];
+        yield 'sides on an elliptical mouth' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'profile' => 'elliptical', 'sides' => 8],
+            ])]],
+            'sides has no meaning on an elliptical mouth',
+        ];
+        yield 'sides on a driver cone' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'w', 'kind' => 'cone', 'at_m' => [0.0, 0.0], 'diameter_in' => 12,
+                    'depth_m' => 0.1, 'sides' => 6],
+            ])]],
+            'sides only applies to a horn',
+        ];
         yield 'mesh override with unknown units' => [
             ['mesh_override' => ['path' => 'meshes/sub.obj', 'units' => 'inches']],
             "mesh_override.units 'inches' is unknown",
         ];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $features
+     * @return array<string, mixed>
+     */
+    private static function layout(array $features): array
+    {
+        return ['provenance' => 'estimated', 'inset_m' => 0.012, 'features' => $features];
     }
 
     /**

@@ -98,7 +98,7 @@ everything, and what it is good for.
 | `achenbach-18` | **yes** — driver cut-out and corner braces | `Achenbach 18.FCStd`, converted with `ddev mesh-convert`. Its 600 × 700 × 600 mm matches the spec exactly — a third confirmation after the panel geometry and lsv-achenbach.de's published panel sizes |
 | `eighteensound-2way-15` | **yes** — octagonal horn cut-out, Ø353 driver hole, 2× Ø100 ports | `Eighteensound 2 Way Point Source 15.FCStd`, converted with `ddev mesh-convert`. **Its outer box is the authority, not the drawings** — see below |
 | `skram` | **yes** — Josh Ricci's own CAD | The [SKRAM DIY Package](https://www.jwsound.live/designs/riccis-skram-subwoofer) contains `STEP Files/SKRAM 3D.step` (full assembly, 52 solids) plus individual panel STEPs, 29 DXFs, Fusion `.f3d`, SolidWorks parts and a cut sheet. Converted with `ddev mesh-convert`; measures 619.6 × 812.8 × 924.4 mm — height exactly 32″, width and depth each 10 mm over the published 24″/36″ |
-| `tecnare-m2122`, `-clone` | **no source anywhere** | Two photos and the L2122LT datasheet's line drawings. Nothing modellable |
+| `tecnare-m2122` | **no source anywhere** | Two photos and the L2122LT datasheet's line drawings. Nothing modellable — its baffle is generated from estimates, see below |
 
 Not owned, but present in Drive if ever needed: `Selenium PAS1MA1 full.obj`, twelve DWG + twelve DXF
 sheets for `KIT S21HL` (also on Stefan's disk at `~/PhpstormProjects/Extension_Jonas/`), dimensioned
@@ -107,6 +107,20 @@ Inlow Sound PDFs, a 149-part `PAS4MA1 e HB1505D1.dae` driver-and-horn assembly, 
 
 FreeCAD is installed neither on Stefan's machine nor in the ddev container, so the two `.FCStd`
 devices need one manual export each — see [`../meshes/README.md`](../meshes/README.md).
+
+### Baffle layouts, per device
+
+`audio.layout` describes the openings on a cabinet's front. These numbers are the easiest in the whole
+repository to invent, so each layout carries its own `provenance` separate from the cabinet's.
+
+| Device | Layout provenance | Where the numbers come from |
+|--------|-------------------|------------------------------|
+| `eighteensound-2way-15` | `plans` | The kit drawings' front view dimensions both openings and their spacing: octagonal horn cut-out 362 × 285 mm centred 142.5 mm below the baffle top, Ø353 mm driver hole 502.5 mm below it. The 800 mm baffle is centred in the 836 mm outer box, so baffle-frame z maps straight onto the cabinet's frame. The horn's eight sides are in the drawing (100.7 + 160.6 + 100.7); its **flare law is not** — `exponential` was chosen because an XT1464 is a flared horn |
+| `achenbach-18` | `estimated` | The CAD's driver cut-out looks central on a square baffle, so the cone is placed at the centre. The diameter is the driver's nominal 18″, not a measured cut-out |
+| `tecnare-m2122` | `estimated` | **Nothing here is measured.** The arrangement is as the owner describes it — mid horn on top, two 12″ LF horns stacked below, a 1″ horn inside each as a phase plug — but every mouth size, centre height, throat and flare law is derived from the outer dimensions and the driver sizes. A tape measure on one horn mouth would promote this to `measured` |
+
+The Flexy and SKRAM have no layout: their drivers sit deep inside a folded horn path and are not visible
+from outside, so there is nothing to model.
 
 ## Original datasheets
 

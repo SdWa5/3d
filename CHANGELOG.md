@@ -6,6 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-30
+
+### Added
+
+- **`audio.layout` — the openings on a cabinet's front baffle.** Until now the CAD meshes cut the holes
+  and left nothing behind them, so any view that saw into a cabinet saw an empty box. A layout lists
+  driver cones and horn flares in the **baffle frame** (origin at the centre of the front face), each
+  with its own `depth_m`, and the whole layout carries its own `provenance` — these are the easiest
+  numbers in the repo to invent
+- **Driver cones** built as a lathed shell: frame lip, surround half-roll crested level with the baffle,
+  the cone proper, and a dust cap doming forward at its centre. The crest is what makes it read as a
+  driver rather than as a funnel
+- **Configurable horn mouths and flares.** `profile: pyramid` with any `sides` (4 for the usual
+  rectangular flare, 8 for an octagon) or `profile: elliptical`; `flare: linear` for a straight-walled
+  conical horn or `flare: exponential`, where the area grows exponentially with depth as most real horns
+  do. Both laws meet the declared mouth and throat exactly, so the choice changes the walls and never the
+  sizes, and the defaults (`pyramid`, 4 sides, `linear`) reproduce the previous geometry
+- `driver_in` on a horn puts a cone at its throat and bores the driver chamber through to it — what a
+  horn-loaded 12″ actually looks like
+- `inside: <id>` nests a feature at another horn's throat, facing forward, which is how "the HF horn sits
+  inside the LF horn as a phase plug" stays in the data instead of in two hand-matched sets of coordinates
+- Layouts for the three cabinets whose drivers are visible from outside: the Achenbach's 18″ cone
+  (`estimated`), the 18sound's octagonal horn and 15″ cone (`plans` — both openings are dimensioned in
+  the kit drawings), and the Tecnare's mid horn over two 12″ LF horns with a 1″ phase plug in each
+  (`estimated`, nothing measured). The Flexy and SKRAM get none: their drivers sit deep in a folded horn
+  path and are not visible
+- `sdwa5-cone` and `sdwa5-horn` materials
+- New validator rules for all of the above, and a `scenes/tecnare-detail.yaml` for inspecting the one
+  cabinet whose baffle is entirely generated
+
+### Changed
+
+- **The three Tecnare tops are one spec at quantity 3.** The two factory cabinets and the self-built copy
+  are geometrically identical, so modelling them twice was wasted work. `tecnare-m2122-clone` is gone and
+  the five scenes that placed it now place `tecnare-m2122`. The cost is that `build` and `provenance` can
+  only describe one of the two cases, so the self-built one is recorded in the spec's notes as prose
+  rather than as data — split the spec again if that starts to matter. Weights and totals are unchanged:
+  68 kg × 3 is what 68 × 2 plus the clone's 68 already was
+- A generated cabinet's baffle openings are **cut into the shell**, so a horn's flare is carved out of the
+  cabinet and its own material forms the walls — which is what a wooden horn is. A cabinet with a
+  `mesh_override` already has its holes, so nothing is cut and only the parts behind them are added
+- The generated grille panel is skipped when a spec has a layout: a solid panel across the front would
+  hide every horn. The frame bars stay
+
+### Fixed
+
+- **`models:build` reported success on a build that had crashed.** Blender can exit 0 after a Python
+  error, leaving the previous build's files in place, so checking that the outputs exist passed on stale
+  ones. They now have to be newer than the run that claimed to write them
+
 ## [0.13.1] - 2026-07-30
 
 ### Fixed

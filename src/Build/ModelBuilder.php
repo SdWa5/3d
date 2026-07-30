@@ -83,12 +83,24 @@ final class ModelBuilder
         $this->ensureDir(dirname($blend));
 
         $planFile = $this->writePlan($spec, $glb, $blend);
+
+        // Checking only that the outputs exist is not enough: a script error leaves the previous
+        // build's files in place, and Blender can still exit 0, so a crash looks exactly like a
+        // success. Requiring them to be rewritten is what actually catches it.
+        $startedAt = time();
         $this->blender->run($this->resolve(self::MODEL_SCRIPT), $planFile, $onOutput);
 
         foreach ([$glb, $blend] as $expected) {
             if (!is_file($expected)) {
                 throw new RuntimeException(sprintf(
                     'Blender reported success but did not write %s — see the build log above',
+                    $expected,
+                ));
+            }
+            if ((int)filemtime($expected) < $startedAt) {
+                throw new RuntimeException(sprintf(
+                    "Blender reported success but left %s untouched — the script failed part way.\n"
+                    .'Re-run with -v to see the traceback.',
                     $expected,
                 ));
             }

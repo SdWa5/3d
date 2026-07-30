@@ -38,7 +38,7 @@ placements:
 
   # The self-built third top fills the centre.
   - id: top-centre
-    device: tecnare-m2122-clone
+    device: tecnare-m2122
     on: sub-row-top
     at: [-0.302, 0.0]
 

@@ -84,8 +84,11 @@ Models are accurate on the outside and empty on the inside:
 * recessed grille panel behind a four-bar frame, when `appearance.grille.inset_m` is set
 * handle recesses cut into the sides listed in `physical.handles`
 * small markers at the rigging points
+* the openings on the front baffle, when the spec has an `audio.layout`: driver cones with a surround
+  roll and a domed dust cap, horn flares with a configurable mouth shape and flare law, and a driver
+  chamber bored through behind a horn-loaded throat
 
-No drivers, ports, bracing or wiring. Detail can be raised for a single device later — either by
+No ports, bracing or wiring, and nothing behind a baffle that you cannot see through it. Detail can be raised for a single device later — either by
 extending the builder or by pointing `mesh_override` at a hand-made mesh — without changing any
 dimension, because the spec stays the authority. A `mesh_override` replaces the generated shell
 outright, but only if the mesh agrees with the spec's declared dimensions — see
@@ -95,7 +98,8 @@ Two deliberate consequences:
 
 * The **outer bounding box always equals `width × depth × height`**. The grille frame is what
   fills the inset, so a grille never makes a cabinet deeper than declared; handle recesses cut
-  inward, so they never make one wider.
+  inward, so they never make one wider. Baffle features are recessed behind the baffle for the same
+  reason — a dust cap domes forward only as far as the cone is deep, never past the front face.
 * **Markers do not render.** Rigging markers and the estimated tag are set to render-invisible:
   they exist to snap to and to nag, not to turn up in a preview image handed to the crew.
 

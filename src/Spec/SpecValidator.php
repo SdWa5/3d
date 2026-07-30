@@ -131,6 +131,9 @@ final class SpecValidator
         foreach ($this->validateMeshOverride($spec) as $message) {
             $add($message);
         }
+        foreach ($this->validateLayout($spec) as $message) {
+            $add($message);
+        }
 
         return $violations;
     }
@@ -189,6 +192,230 @@ final class SpecValidator
         }
         if ($override->toleranceM < 0) {
             $messages[] = "mesh_override.tolerance_m must not be negative, got {$override->toleranceM}";
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Baffle features: the drivers and horns drawn on the front face.
+     *
+     * The rules here protect two things. A feature that reaches past the baffle would break the promise
+     * that a model's bounding box equals its declared dimensions — the one guarantee the library rests
+     * on. And a feature deeper than the cabinet, or a throat wider than its own mouth, is not a horn at
+     * all; it is a typo that would still render as something plausible-looking.
+     *
+     * @return list<string>
+     */
+    private function validateLayout(DeviceSpec $spec): array
+    {
+        $layout = $spec->layout;
+        if ($layout === null) {
+            return [];
+        }
+
+        $messages = [];
+        $dimensions = $spec->dimensions;
+        $frontHeight = $spec->frontHeight ?? $dimensions->height;
+
+        if ($layout->insetM < 0) {
+            $messages[] = "audio.layout.inset_m must not be negative, got {$layout->insetM}";
+        }
+
+        $seen = [];
+        foreach ($layout->features as $index => $feature) {
+            $label = "audio.layout.features[{$index}] '{$feature->id}'";
+
+            if (isset($seen[$feature->id])) {
+                $messages[] = "{$label}: duplicate feature id";
+            }
+
+            if (!in_array($feature->kind, BaffleFeature::KINDS, true)) {
+                $allowed = implode(', ', BaffleFeature::KINDS);
+                $messages[] = "{$label}: unknown kind '{$feature->kind}' (allowed: {$allowed})";
+                $seen[$feature->id] = true;
+                continue;
+            }
+
+            if ($feature->isHorn() && $feature->throatIn === null) {
+                $messages[] = "{$label}: a horn needs throat_in";
+            }
+            if ($feature->isCone() && $feature->diameterIn === null) {
+                $messages[] = "{$label}: a cone needs diameter_in";
+            }
+
+            foreach ($this->validateHornShape($feature, $label) as $message) {
+                $messages[] = $message;
+            }
+            if ($feature->depthM <= 0) {
+                $messages[] = "{$label}: depth_m must be greater than 0, got {$feature->depthM}";
+            } elseif ($feature->depthM > $dimensions->depth) {
+                $messages[] = sprintf(
+                    '%s: depth_m (%s) is deeper than the cabinet (%s)',
+                    $label,
+                    $feature->depthM,
+                    $dimensions->depth,
+                );
+            }
+
+            $opening = $feature->openingM();
+            if ($opening === null) {
+                $messages[] = "{$label}: needs mouth_m, or diameter_in on a cone";
+            } else {
+                foreach (['width' => $opening[0], 'height' => $opening[1]] as $axis => $value) {
+                    if ($value <= 0) {
+                        $messages[] = "{$label}: mouth {$axis} must be greater than 0, got {$value}";
+                    }
+                }
+
+                $throat = $feature->throatM();
+                if ($throat !== null && $throat >= min($opening[0], $opening[1])) {
+                    $messages[] = sprintf(
+                        '%s: throat (%s m) must be smaller than its mouth (%s x %s m)',
+                        $label,
+                        round($throat, 4),
+                        $opening[0],
+                        $opening[1],
+                    );
+                }
+            }
+
+            foreach ($this->validateFeaturePlacement($feature, $layout, $seen, $label, $dimensions->width, $frontHeight, $opening) as $message) {
+                $messages[] = $message;
+            }
+
+            $seen[$feature->id] = true;
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Where a feature sits: on the baffle at `at_m`, or nested in an earlier one via `inside`.
+     *
+     * @param array<string, bool> $seen features already declared, so `inside` can only look backwards
+     * @param array{float, float}|null $opening
+     * @return list<string>
+     */
+    /**
+     * A horn's mouth shape and flare law.
+     *
+     * These only mean something on a horn: a driver cone is round with a straight profile, so accepting
+     * the fields there and quietly ignoring them would leave a spec that reads as if it had been honoured.
+     *
+     * @return list<string>
+     */
+    private function validateHornShape(BaffleFeature $feature, string $label): array
+    {
+        $messages = [];
+
+        if (!$feature->isHorn()) {
+            if ($feature->sides !== null) {
+                $messages[] = "{$label}: sides only applies to a horn";
+            }
+
+            return $messages;
+        }
+
+        if (!in_array($feature->profile, BaffleFeature::PROFILES, true)) {
+            $messages[] = sprintf(
+                "%s: unknown profile '%s' (allowed: %s)",
+                $label,
+                $feature->profile,
+                implode(', ', BaffleFeature::PROFILES),
+            );
+        }
+        if (!in_array($feature->flare, BaffleFeature::FLARES, true)) {
+            $messages[] = sprintf(
+                "%s: unknown flare '%s' (allowed: %s)",
+                $label,
+                $feature->flare,
+                implode(', ', BaffleFeature::FLARES),
+            );
+        }
+        if ($feature->sides !== null) {
+            if (!$feature->isPyramid()) {
+                $messages[] = sprintf(
+                    "%s: sides has no meaning on an %s mouth",
+                    $label,
+                    BaffleFeature::ELLIPTICAL,
+                );
+            } elseif ($feature->sides < 3) {
+                $messages[] = "{$label}: sides must be at least 3, got {$feature->sides}";
+            }
+        }
+
+        return $messages;
+    }
+
+    private function validateFeaturePlacement(
+        BaffleFeature $feature,
+        BaffleLayout $layout,
+        array $seen,
+        string $label,
+        float $width,
+        float $height,
+        ?array $opening,
+    ): array {
+        $messages = [];
+
+        if ($feature->inside !== null) {
+            if ($feature->at !== null) {
+                $messages[] = "{$label}: `inside` already places it — remove at_m";
+            }
+            if (!isset($seen[$feature->inside])) {
+                $messages[] = sprintf(
+                    "%s: `inside: %s` must name an earlier feature",
+                    $label,
+                    $feature->inside,
+                );
+
+                return $messages;
+            }
+
+            $parent = $layout->feature($feature->inside);
+            if ($parent !== null && !$parent->isHorn()) {
+                $messages[] = "{$label}: `inside` only works within a horn, and '{$parent->id}' is a {$parent->kind}";
+            }
+            // A nested feature must fit its parent's throat region, or it would poke through the flare.
+            $parentOpening = $parent?->openingM();
+            if ($parentOpening !== null && $opening !== null) {
+                if ($opening[0] > $parentOpening[0] || $opening[1] > $parentOpening[1]) {
+                    $messages[] = "{$label}: its mouth is larger than the horn it sits inside";
+                }
+            }
+            if ($parent !== null && $feature->depthM > $parent->depthM) {
+                $messages[] = "{$label}: it is deeper than the horn it sits inside";
+            }
+
+            return $messages;
+        }
+
+        if ($feature->at === null) {
+            $messages[] = "{$label}: needs either at_m or inside";
+
+            return $messages;
+        }
+        if ($opening === null) {
+            return $messages;
+        }
+
+        // Staying within the baffle is what keeps the bounding box equal to the declared dimensions.
+        $limits = [
+            ['x', $feature->at[0], $opening[0] / 2, $width / 2],
+            ['z', $feature->at[1], $opening[1] / 2, $height / 2],
+        ];
+        foreach ($limits as [$axis, $centre, $half, $limit]) {
+            if (abs($centre) + $half > $limit + 1e-9) {
+                $messages[] = sprintf(
+                    '%s: reaches past the baffle on %s — %s +/- %s exceeds +/-%s',
+                    $label,
+                    $axis,
+                    $centre,
+                    $half,
+                    $limit,
+                );
+            }
         }
 
         return $messages;
