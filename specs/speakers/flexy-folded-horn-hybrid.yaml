@@ -48,7 +48,10 @@ audio:
 # The design's CAD mesh is available and correctly oriented with `units: mm` and
 # `rotate_deg: [90, 0, 90]`, but it measures 0.573 m across where this cabinet is 0.591 m, so the
 # builder rejects it. Reconcile the 18 mm first — see TODO.md item 1.3.
-mesh_override: null
+mesh_override:
+  path: meshes/flexy-1to10.stl
+  units: cm
+  rotate_deg: [90, 0, 90]
 
 notes: |
   The backbone of the PA — 14 cabinets, 1190 kg of sub on its own.

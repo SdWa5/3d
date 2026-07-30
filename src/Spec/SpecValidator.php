@@ -34,6 +34,9 @@ final class SpecValidator
             foreach ($this->validateOne($spec) as $violation) {
                 $violations[] = $violation;
             }
+            foreach ($this->warnAboutMissingMesh($spec) as $violation) {
+                $violations[] = $violation;
+            }
         }
         foreach ($this->validateUniqueIds($specs) as $violation) {
             $violations[] = $violation;
@@ -133,6 +136,30 @@ final class SpecValidator
     }
 
     /**
+     * A declared-but-absent override mesh is a warning, not an error. Override meshes are third-party
+     * CAD that this repository deliberately does not commit, so a spec naming a file the current
+     * checkout lacks is normal — the build falls back to the generated block and says so.
+     *
+     * @return list<Violation>
+     */
+    private function warnAboutMissingMesh(DeviceSpec $spec): array
+    {
+        $override = $spec->meshOverride;
+        if ($override === null || is_file($this->resolve($override->path))) {
+            return [];
+        }
+
+        return [new Violation(
+            $spec->sourcePath,
+            sprintf(
+                "mesh_override.path '%s' is not in this checkout — building the generated block instead (see meshes/README.md)",
+                $override->path,
+            ),
+            Violation::WARNING,
+        )];
+    }
+
+    /**
      * @return list<string>
      */
     private function validateMeshOverride(DeviceSpec $spec): array
@@ -144,9 +171,6 @@ final class SpecValidator
 
         $messages = [];
 
-        if (!is_file($this->resolve($override->path))) {
-            $messages[] = "mesh_override.path '{$override->path}' does not exist";
-        }
         if (!$override->isImportable()) {
             $allowed = implode(', ', MeshOverride::IMPORTABLE);
             $messages[] = sprintf(

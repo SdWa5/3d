@@ -15,9 +15,18 @@
 3. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
    shapes for truss segments and rack boxes
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
-4. reconcile the Flexy CAD mesh so `mesh_override` can be switched on for it — the mesh is 18 mm
-   narrower than the cabinet, confirmed twice. The Achenbach CAD is `.FCStd`, which Blender cannot
-   read; export it to `.obj` or `.glb` from FreeCAD first
+4. detailed geometry for the remaining cabinets — currently only the Flexy has real internals
+   ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
+    1. export `Achenbach 18.FCStd` and `Eighteensound 2 Way Point Source 15.FCStd` from FreeCAD to
+       `.obj`/`.glb`, drop them in `meshes/`, add `mesh_override`. FreeCAD is installed nowhere here,
+       so this needs a machine that has it
+    2. SKRAM has no 3D source at all — ask JW Sound whether CAD exists (the sibling SKHORN ships with
+       STEP and DXF), or model the horn from `Skram Panel List.csv`, which is a complete cut list
+    3. Tecnare M2122 has no 3D source either; the datasheet has only outline views. Would have to be
+       modelled from measurements
+    4. alternatively extend the generator to cut baffle features — driver cut-outs, ports, horn mouths
+       — from spec data. The 18sound drawings already give exact numbers (Ø353 mm driver, 2× Ø100 mm
+       ports, 215 × 260 mm horn mouth), and this would improve every cabinet at once rather than one
 5. coverage cones from `audio.coverage_deg` — optional geometry, render-invisible like the other markers, so a setup can
    answer coverage questions and not just look right
 6. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files

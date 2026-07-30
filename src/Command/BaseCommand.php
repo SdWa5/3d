@@ -78,16 +78,35 @@ abstract class BaseCommand extends Command
     {
         $byFile = [];
         foreach ($violations as $violation) {
-            $byFile[$violation->shortFile($this->projectDir())][] = $violation->message;
+            $byFile[$violation->shortFile($this->projectDir())][] = $violation;
         }
         ksort($byFile);
 
-        foreach ($byFile as $file => $messages) {
+        foreach ($byFile as $file => $entries) {
             $this->io->text("<comment>{$file}</comment>");
-            foreach ($messages as $message) {
-                $this->io->text("  <error>✗</error> {$message}");
+            foreach ($entries as $entry) {
+                $marker = $entry->isError() ? '<error>✗</error>' : '<comment>!</comment>';
+                $this->io->text("  {$marker} {$entry->message}");
             }
         }
+    }
+
+    /**
+     * Validates and separates the two, so a caller can refuse on errors while still surfacing
+     * warnings.
+     *
+     * @param list<DeviceSpec> $specs
+     * @return array{errors: list<Violation>, warnings: list<Violation>}
+     */
+    protected function checkSpecs(array $specs): array
+    {
+        $violations = $this->validator()->validate($specs);
+        $warnings = Violation::warningsIn($violations);
+        if ($warnings !== []) {
+            $this->reportViolations($warnings);
+        }
+
+        return ['errors' => Violation::errorsIn($violations), 'warnings' => $warnings];
     }
 
     protected function relative(string $path): string

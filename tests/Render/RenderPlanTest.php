@@ -73,6 +73,52 @@ final class RenderPlanTest extends TestCase
         self::assertGreaterThan($small['scene_bounds']['radius'], $large['scene_bounds']['radius']);
     }
 
+    public function testAWideShallowSceneIsFramedTighterThanItsBoundingSphere(): void
+    {
+        // The case that forced box-projection framing: a sub wall's bounding sphere is far larger
+        // than its silhouette, so fitting the sphere left the rig as a smudge in the frame's middle.
+        $wide = [];
+        for ($i = 0; $i < 8; ++$i) {
+            $wide[] = $this->at($this->cube(), [$i * 1.1, 0.0, 0.0]);
+        }
+
+        $plan = RenderPlan::forScene($wide, CameraPreset::Front, resolution: [1600, 900]);
+        $radius = $plan['scene_bounds']['radius'];
+
+        // What a bounding-sphere fit would have demanded, for comparison: the sphere has to fit the
+        // narrower field of view, which on a 16:9 frame is the vertical one.
+        $lens = 42.0;
+        $fovVertical = 2 * atan((36.0 * (900 / 1600)) / (2 * $lens));
+        $sphereFit = ($radius / sin($fovVertical / 2)) * 1.15;
+
+        self::assertLessThan(
+            $sphereFit * 0.75,
+            $this->distance($plan),
+            'box-projection framing must comfortably beat a sphere fit on a wide, shallow scene',
+        );
+    }
+
+    public function testATallSceneIsStillFullyFramed(): void
+    {
+        // The other direction: fitting width alone must not crop a stack.
+        $tall = [
+            $this->at($this->cube(), [0.0, 0.0, 0.0]),
+            $this->at($this->cube(), [0.0, 0.0, 1.0]),
+            $this->at($this->cube(), [0.0, 0.0, 2.0]),
+            $this->at($this->cube(), [0.0, 0.0, 3.0]),
+        ];
+
+        $plan = RenderPlan::forScene($tall, CameraPreset::Front, resolution: [1600, 900]);
+        $height = $plan['scene_bounds']['max'][2] - $plan['scene_bounds']['min'][2];
+
+        // Vertical half-angle at 42 mm on a 16:9 frame is ~13.6°, so 4 m of stack needs ~8 m back.
+        $lens = 42.0;
+        $fovVertical = 2 * atan((36.0 * (900 / 1600)) / (2 * $lens));
+        $needed = ($height / 2) / tan($fovVertical / 2);
+
+        self::assertGreaterThanOrEqual($needed, $this->distance($plan));
+    }
+
     public function testEachCameraPresetSitsOnTheSideItsNameImplies(): void
     {
         $placed = [$this->at($this->cube(), [0.0, 0.0, 0.0])];

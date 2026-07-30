@@ -1,0 +1,31 @@
+# One of every device in a row, for looking at the models themselves rather than at a setup.
+# Useful after changing the geometry builder or switching a mesh_override on: render it with
+# `-l flat` and every chamfer, grille inset and horn mouth is visible side by side.
+#
+# Spacing is generous and uniform rather than tight, because this scene is a contact sheet, not a rig.
+id: detail-check
+name: "Detail check — one of each"
+
+placements:
+  - id: flexy
+    device: flexy-folded-horn-hybrid
+    at: [-2.6, 0.0]
+  - id: skram
+    device: skram
+    at: [-1.6, 0.0]
+  - id: achenbach
+    device: achenbach-18
+    at: [-0.6, 0.0]
+  - id: tecnare
+    device: tecnare-m2122
+    at: [0.4, 0.0]
+  - id: tecnare-clone
+    device: tecnare-m2122-clone
+    at: [1.2, 0.0]
+  - id: eighteensound
+    device: eighteensound-2way-15
+    at: [2.0, 0.0]
+
+notes: |
+  Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is
+  expected here.

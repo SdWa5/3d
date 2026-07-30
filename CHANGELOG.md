@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-30
+
+### Added
+
+- **The Flexy has real geometry.** `flexy-folded-horn-hybrid` now uses the design's own CAD via
+  `mesh_override` — four folded-horn mouths and the throat flares instead of a black box. Found in a
+  second, previously unexamined CAD folder in Drive (`Medien/Bildbearbeitung/Merch/CAD/`) as a 1:10
+  print model: watertight, 2817 faces, and only 3 mm narrower than the spec, so it passes the default
+  tolerance untouched
+- `scenes/detail-check.yaml` — one of every device in a row. Render it with `-l flat` after touching
+  the geometry builder and every chamfer, grille and horn mouth is visible side by side
+- `meshes/README.md` — what override meshes are, why they are not committed, the exact `rclone`
+  command to fetch each one, and how to export a `.FCStd` from FreeCAD
+- `docs/sources.md` gained a per-device 3D-geometry table: the whole Shared Drive was swept for 3D
+  formats, so it records what exists, what is unusable and what has no source at all
+
+### Changed
+
+- **A declared-but-absent override mesh is now a warning, not an error.** Override meshes are
+  third-party CAD this repository deliberately does not commit, so a spec naming a file the current
+  checkout lacks is normal: `specs:validate` warns, and the build falls back to the generated block.
+  Previously this made the whole library invalid for anyone without the file
+- `Violation` carries a severity, and commands refuse on errors while still printing warnings
+- `tools/check-glb.py` honours the override's own `tolerance_m` instead of the tight default, and
+  reports the worst axis. It was failing every override that was not sub-0.1 mm exact, which made it
+  useless for exactly the models it most needed to check
+- **Framing fits the bounding box as the camera sees it, not the bounding sphere.** A sub wall is wide
+  and shallow, so its sphere is far larger than its silhouette and the old fit pushed the camera back
+  until the rig was a smudge in the middle of the frame. Every render is now noticeably tighter
+- glTF `extras` records the override's basename, units and tolerance — the basename only, because a
+  local absolute path has no business travelling inside a `.glb`
+
 ## [0.7.0] - 2026-07-30
 
 ### Added
@@ -14,9 +46,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   costs one command and no Blender knowledge; the 17-cabinet rig takes about 8 seconds on the
   container's CPU
 - **Camera presets** (`-c`): `three-quarter` (default), `front`, `side`, `top`, `crowd`. Each is a
-  *direction*, not a position — the distance is computed so the scene's own bounding sphere fits the
-  narrower field of view, whatever the aspect ratio. The same preset therefore frames a single floor
-  monitor and a fourteen-wide sub wall equally well, and no scene ever needs a camera placed by hand
+  *direction*, not a position — the distance is computed from the scene's own size, so the same preset
+  frames a single floor monitor and a fourteen-wide sub wall equally well, and no scene ever needs a
+  camera placed by hand. (This release fitted the bounding sphere; 0.8.0 replaced that with a box fit.)
 - **Lighting presets** (`-l`): `studio` (default), `stage` (warm key, coloured rims), `daylight` (sun
   and sky — where most SdWa5 events are), `flat` (even and shadowless, for inspecting a chamfer or a
   grille inset). Light positions are multiples of the scene radius and area-light power scales with its

@@ -10,10 +10,43 @@ namespace App\Spec;
  */
 final class Violation
 {
+    public const ERROR = 'error';
+
+    /**
+     * Something worth saying but not worth refusing over. The case that forced this to exist: an
+     * override mesh is third-party CAD that cannot be committed, so a spec may legitimately name a
+     * file this checkout does not have. That must not make the repository invalid for everyone else.
+     */
+    public const WARNING = 'warning';
+
     public function __construct(
         public readonly string $file,
         public readonly string $message,
+        public readonly string $severity = self::ERROR,
     ) {
+    }
+
+    public function isError(): bool
+    {
+        return $this->severity === self::ERROR;
+    }
+
+    /**
+     * @param list<self> $violations
+     * @return list<self>
+     */
+    public static function errorsIn(array $violations): array
+    {
+        return array_values(array_filter($violations, static fn (self $v): bool => $v->isError()));
+    }
+
+    /**
+     * @param list<self> $violations
+     * @return list<self>
+     */
+    public static function warningsIn(array $violations): array
+    {
+        return array_values(array_filter($violations, static fn (self $v): bool => !$v->isError()));
     }
 
     /**

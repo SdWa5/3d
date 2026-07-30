@@ -34,7 +34,8 @@ final class SceneBuildCommandTest extends TestCase
         $exit = $tester->execute(['scene' => 'nope', '--dry-run' => true]);
 
         self::assertSame(Command::FAILURE, $exit);
-        self::assertStringContainsString('Available: full-rig', $tester->getDisplay());
+        self::assertStringContainsString('Available:', $tester->getDisplay());
+        self::assertStringContainsString('full-rig', $tester->getDisplay());
     }
 
     public function testBuildingEveryScenePicksUpTheShippedOne(): void

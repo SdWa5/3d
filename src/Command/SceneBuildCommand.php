@@ -13,6 +13,7 @@ use App\Scene\SceneReport;
 use App\Spec\DeviceSpec;
 use App\Spec\InvalidSpecException;
 use JsonException;
+use App\Spec\Violation;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -49,8 +50,9 @@ final class SceneBuildCommand extends BaseCommand
         }
 
         $violations = $this->validator()->validate($specs);
+        $this->reportViolations($violations);
+        $violations = Violation::errorsIn($violations);
         if ($violations !== []) {
-            $this->reportViolations($violations);
             $this->io->error('Specs are invalid — refusing to build a scene from them');
 
             return self::FAILURE;

@@ -6,6 +6,7 @@ namespace App\Tests\Spec;
 
 use App\Spec\DeviceSpec;
 use App\Spec\SpecValidator;
+use App\Spec\Violation;
 use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -156,10 +157,6 @@ final class SpecValidatorTest extends TestCase
             ['geometry' => ['shape' => 'wedge']],
             "geometry.front_height_m is required for shape 'wedge'",
         ];
-        yield 'missing mesh override file' => [
-            ['mesh_override' => 'meshes/nope.glb'],
-            "mesh_override.path 'meshes/nope.glb' does not exist",
-        ];
         yield 'mesh override Blender cannot read' => [
             ['mesh_override' => 'Achenbach 18.FCStd'],
             'Blender cannot read FreeCAD',
@@ -183,6 +180,19 @@ final class SpecValidatorTest extends TestCase
             (bool)array_filter($messages, static fn (string $m): bool => str_contains($m, $expectedMessage)),
             sprintf("no violation contained %s\ngot: %s", var_export($expectedMessage, true), implode(' | ', $messages)),
         );
+    }
+
+    public function testAMissingOverrideMeshIsAWarningNotAnError(): void
+    {
+        // Override meshes are third-party CAD this repo does not commit, so a spec naming a file the
+        // current checkout lacks must not make the whole library invalid for everyone else.
+        $violations = $this->validator->validate([SpecFactory::spec(['mesh_override' => 'meshes/nope.glb'])]);
+
+        self::assertCount(1, $violations);
+        self::assertFalse($violations[0]->isError());
+        self::assertSame([], Violation::errorsIn($violations));
+        self::assertCount(1, Violation::warningsIn($violations));
+        self::assertStringContainsString('is not in this checkout', $violations[0]->message);
     }
 
     public function testFactoryGearMayCiteItsOwnDatasheetWithoutNamingAClone(): void

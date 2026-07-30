@@ -73,6 +73,29 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
   lives outside it and is referenced by path. A third-party licence question can therefore never
   become a question about this repo's history.
 
+## 3D geometry, per device
+
+Two CAD folders exist in Drive — `Hardware/Speaker Enclosures _ .../<design>/` and a second, richer
+`Medien/Bildbearbeitung/Merch/CAD/`. The whole Shared Drive was swept for 3D formats; this is
+everything, and what it is good for.
+
+| Device | Detailed geometry? | Source |
+|--------|--------------------|--------|
+| `flexy-folded-horn-hybrid` | **yes** — four folded-horn mouths | `Merch/CAD/3D Print Smoking paper rolls case - 3381901/files/flexy.stl`: 1:10, watertight, 2817 faces. `units: cm`, `rotate_deg: [90, 0, 90]`, 3 mm narrower than the spec |
+| | (rejected alternative) | `…/MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj`: has the horn but is a non-watertight shell and 18 mm narrow |
+| `achenbach-18` | no — needs one export | `Achenbach 18.FCStd` (in both CAD folders). Blender cannot read FreeCAD |
+| `eighteensound-2way-15` | no — needs one export | `Eighteensound 2 Way Point Source 15.FCStd`, plus `18sound_15 2ways.pdf` with dimensioned front/side/top/back views, sections and an exploded view — enough to model the baffle by hand: Ø353 mm driver cut-out, 2× Ø100 mm ports, 215 × 260 mm horn mouth |
+| `skram` | **no source anywhere** | Only `Skram Panel List.csv`. Plans are sold by [JW Sound](https://www.jwsound.live/designs/riccis-skram-subwoofer); the sibling SKHORN is distributed with STEP and DXF, so SKRAM CAD may exist on request |
+| `tecnare-m2122`, `-clone` | **no source anywhere** | Two photos and the L2122LT datasheet's line drawings. Nothing modellable |
+
+Not owned, but present in Drive if ever needed: `Selenium PAS1MA1 full.obj`, twelve DWG + twelve DXF
+sheets for `KIT S21HL` (also on Stefan's disk at `~/PhpstormProjects/Extension_Jonas/`), dimensioned
+Inlow Sound PDFs, a 149-part `PAS4MA1 e HB1505D1.dae` driver-and-horn assembly, and `horn.blend` — a
+22-part 2.3 m horn extension.
+
+FreeCAD is installed neither on Stefan's machine nor in the ddev container, so the two `.FCStd`
+devices need one manual export each — see [`../meshes/README.md`](../meshes/README.md).
+
 ## Original datasheets
 
 | Original | Datasheet | Retrieved |

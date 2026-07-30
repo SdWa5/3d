@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
 use App\Spec\DeviceSpec;
+use App\Spec\Violation;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -49,8 +50,9 @@ final class ModelsBuildCommand extends BaseCommand
         }
 
         $violations = $this->validator()->validate($specs);
+        $this->reportViolations($violations);
+        $violations = Violation::errorsIn($violations);
         if ($violations !== []) {
-            $this->reportViolations($violations);
             $this->io->error('Specs are invalid — refusing to build. Run `bin/console specs:validate`');
 
             return self::FAILURE;

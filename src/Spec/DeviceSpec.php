@@ -184,6 +184,13 @@ final class DeviceSpec
             ),
             'coverage_deg' => $this->coverage?->toArray(),
             'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $this->drivers),
+            // Only the basename: a local absolute path has no business travelling inside a .glb.
+            // The tolerance travels so tools/check-glb.py can apply the same one the builder did.
+            'mesh_override' => $this->meshOverride === null ? null : [
+                'file' => basename($this->meshOverride->path),
+                'units' => $this->meshOverride->units,
+                'tolerance_m' => $this->meshOverride->toleranceM,
+            ],
         ];
     }
 }

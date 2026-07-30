@@ -47,7 +47,7 @@ final class RenderPlan
 
         return [
             'plan_version' => 1,
-            'camera' => self::camera($camera, $centre, $radius, $resolution),
+            'camera' => self::camera($camera, $min, $max, $centre, $radius, $resolution),
             'lighting' => self::lighting($lighting, $centre, $radius),
             'ground' => [
                 'enabled' => $ground,
@@ -116,30 +116,48 @@ final class RenderPlan
     }
 
     /**
-     * Camera position and aim. The distance fits a sphere of the scene's radius into the narrower of
-     * the two fields of view, so nothing is cropped whatever the aspect ratio.
+     * Camera position and aim. The distance fits the bounding box as projected into the camera's own
+     * frame, so a wide shallow rig fills the frame instead of sitting in the middle of it.
      *
+     * @param array{float, float, float} $min
+     * @param array{float, float, float} $max
      * @param array{float, float, float} $centre
      * @param array{int, int} $resolution
      * @return array<string, mixed>
      */
-    private static function camera(CameraPreset $preset, array $centre, float $radius, array $resolution): array
+    private static function camera(
+        CameraPreset $preset,
+        array $min,
+        array $max,
+        array $centre,
+        float $radius,
+        array $resolution,
+    ): array
     {
         $lens = $preset->lensMm();
         $aspect = $resolution[1] / max(1, $resolution[0]);
 
-        $fovWide = 2 * atan(self::SENSOR_MM / (2 * $lens));
-        $fovNarrow = 2 * atan((self::SENSOR_MM * $aspect) / (2 * $lens));
-        $fov = min($fovWide, $fovNarrow);
-
-        $distance = ($radius / sin($fov / 2)) * $preset->margin();
+        $fovHorizontal = 2 * atan(self::SENSOR_MM / (2 * $lens));
+        $fovVertical = 2 * atan((self::SENSOR_MM * $aspect) / (2 * $lens));
 
         $direction = $preset->direction();
         $length = sqrt($direction[0] ** 2 + $direction[1] ** 2 + $direction[2] ** 2) ?: 1.0;
+        $unit = [$direction[0] / $length, $direction[1] / $length, $direction[2] / $length];
+
+        // Fit the bounding *box* as the camera actually sees it, not its bounding sphere. A sub wall
+        // is wide and shallow, so its sphere is far bigger than its silhouette — fitting the sphere
+        // pushed the camera back until the rig was a smudge in the middle of the frame.
+        $extent = self::projectedExtent($min, $max, $centre, $unit);
+        $distance = max(
+            $extent['right'] / tan($fovHorizontal / 2),
+            $extent['up'] / tan($fovVertical / 2),
+        ) * $preset->margin() + $extent['forward'];
+        $distance = max($distance, $radius * 0.6);
+
         $position = [
-            $centre[0] + $direction[0] / $length * $distance,
-            $centre[1] + $direction[1] / $length * $distance,
-            $centre[2] + $direction[2] / $length * $distance,
+            $centre[0] + $unit[0] * $distance,
+            $centre[1] + $unit[1] * $distance,
+            $centre[2] + $unit[2] * $distance,
         ];
 
         $target = $centre;
@@ -157,6 +175,79 @@ final class RenderPlan
             'lens_mm' => $lens,
             'preset' => $preset->value,
         ];
+    }
+
+    /**
+     * Half-extents of the bounding box in the camera's own frame: how far it reaches across the
+     * frame (right), up it (up), and towards the camera (forward).
+     *
+     * Projecting the eight corners onto the camera basis is what lets the framing be tight for a
+     * wide rig and still correct for a tall one, instead of settling for whatever a sphere allows.
+     *
+     * @param array{float, float, float} $min
+     * @param array{float, float, float} $max
+     * @param array{float, float, float} $centre
+     * @param array{float, float, float} $unit direction from the centre towards the camera
+     * @return array{right: float, up: float, forward: float}
+     */
+    private static function projectedExtent(array $min, array $max, array $centre, array $unit): array
+    {
+        // World up, unless we are looking almost straight down — then any horizontal axis will do.
+        $worldUp = abs($unit[2]) > 0.99 ? [0.0, 1.0, 0.0] : [0.0, 0.0, 1.0];
+
+        $right = self::normalise(self::cross($worldUp, $unit));
+        $up = self::normalise(self::cross($unit, $right));
+
+        $extent = ['right' => 0.0, 'up' => 0.0, 'forward' => 0.0];
+
+        for ($corner = 0; $corner < 8; ++$corner) {
+            $point = [
+                ($corner & 1) ? $max[0] : $min[0],
+                ($corner & 2) ? $max[1] : $min[1],
+                ($corner & 4) ? $max[2] : $min[2],
+            ];
+            $offset = [$point[0] - $centre[0], $point[1] - $centre[1], $point[2] - $centre[2]];
+
+            $extent['right'] = max($extent['right'], abs(self::dot($offset, $right)));
+            $extent['up'] = max($extent['up'], abs(self::dot($offset, $up)));
+            $extent['forward'] = max($extent['forward'], self::dot($offset, $unit));
+        }
+
+        return $extent;
+    }
+
+    /**
+     * @param array{float, float, float} $a
+     * @param array{float, float, float} $b
+     * @return array{float, float, float}
+     */
+    private static function cross(array $a, array $b): array
+    {
+        return [
+            $a[1] * $b[2] - $a[2] * $b[1],
+            $a[2] * $b[0] - $a[0] * $b[2],
+            $a[0] * $b[1] - $a[1] * $b[0],
+        ];
+    }
+
+    /**
+     * @param array{float, float, float} $v
+     * @return array{float, float, float}
+     */
+    private static function normalise(array $v): array
+    {
+        $length = sqrt($v[0] ** 2 + $v[1] ** 2 + $v[2] ** 2) ?: 1.0;
+
+        return [$v[0] / $length, $v[1] / $length, $v[2] / $length];
+    }
+
+    /**
+     * @param array{float, float, float} $a
+     * @param array{float, float, float} $b
+     */
+    private static function dot(array $a, array $b): float
+    {
+        return $a[0] * $b[0] + $a[1] * $b[1] + $a[2] * $b[2];
     }
 
     /**

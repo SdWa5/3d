@@ -80,16 +80,21 @@ def check(path):
     expected = [dims["width"], dims["height"], dims["depth"]]
     actual = [high[axis] - low[axis] for axis in range(3)]
 
+    # An override mesh is real CAD and is allowed to differ from the declared size by the tolerance
+    # the spec set; a generated model has no such excuse and is held to the tight default.
+    override = metadata.get("mesh_override") or {}
+    tolerance = float(override.get("tolerance_m", TOLERANCE_M)) if override else TOLERANCE_M
+
     problems = []
     for axis, label in enumerate(("width", "height", "depth")):
-        if abs(actual[axis] - expected[axis]) > TOLERANCE_M:
+        if abs(actual[axis] - expected[axis]) > tolerance:
             problems.append(
                 "%s is %.4f m but the spec says %.4f m" % (label, actual[axis], expected[axis])
             )
 
     # Only the default origin promises this; a cabinet with origin `rigging-point` hangs from its
     # hardware and a `geometric-center` one straddles zero on purpose.
-    if metadata.get("origin") == "bottom-center" and abs(low[1]) > TOLERANCE_M:
+    if metadata.get("origin") == "bottom-center" and abs(low[1]) > max(tolerance, TOLERANCE_M):
         problems.append("origin is bottom-center but the lowest point is at %.4f m" % low[1])
 
     # `provenance` is per field: the geometry is what this check is about.
@@ -97,8 +102,15 @@ def check(path):
     if isinstance(provenance, dict):
         provenance = provenance.get("dimensions", "?")
 
-    print("%s — %s, dims %s, %.4f × %.4f × %.4f m" % (
-        path, metadata["id"], provenance, actual[0], actual[1], actual[2]))
+    note = ""
+    if override:
+        deltas = [actual[i] - expected[i] for i in range(3)]
+        worst = max(deltas, key=abs)
+        note = "  [override %s, tolerance %.3f m, worst axis %+.4f m]" % (
+            override.get("file", "?"), tolerance, worst)
+
+    print("%s — %s, dims %s, %.4f × %.4f × %.4f m%s" % (
+        path, metadata["id"], provenance, actual[0], actual[1], actual[2], note))
     for problem in problems:
         print("    FAIL: %s" % problem)
 

@@ -67,10 +67,11 @@ final class BuildPlan
                 'coverage_deg' => $spec->coverage?->toArray(),
                 'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $spec->drivers),
             ],
-            // Absolute so the bpy side never has to know where the project root is.
-            'mesh_override' => $spec->meshOverride === null ? null : [
+            // Absolute so the bpy side never has to know where the project root is. Null when the
+            // spec names a mesh this checkout does not have — the builder then generates the block.
+            'mesh_override' => ($spec->meshOverride === null || $meshOverridePath === null) ? null : [
                 ...$spec->meshOverride->toArray(),
-                'path' => $meshOverridePath ?? $spec->meshOverride->path,
+                'path' => $meshOverridePath,
             ],
             'metadata' => $spec->toMetadataArray(),
             'outputs' => [

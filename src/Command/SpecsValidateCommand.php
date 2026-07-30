@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Spec\Violation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -28,13 +29,14 @@ final class SpecsValidateCommand extends BaseCommand
 
         ['specs' => $specs, 'errors' => $errors] = $this->loadSpecs();
         $violations = $this->validator()->validate($specs);
+        $failures = Violation::errorsIn($violations);
 
         if ($violations !== []) {
             $this->io->newLine();
             $this->reportViolations($violations);
         }
 
-        $problems = count($errors) + count($violations);
+        $problems = count($errors) + count($failures);
         if ($problems > 0) {
             $this->io->newLine();
             $this->io->error(sprintf(
@@ -54,7 +56,13 @@ final class SpecsValidateCommand extends BaseCommand
             return self::SUCCESS;
         }
 
-        $this->io->success(sprintf('%d spec%s valid', count($specs), count($specs) === 1 ? '' : 's'));
+        $warnings = Violation::warningsIn($violations);
+        $this->io->success(sprintf(
+            '%d spec%s valid%s',
+            count($specs),
+            count($specs) === 1 ? '' : 's',
+            $warnings === [] ? '' : sprintf(' (%d warning%s)', count($warnings), count($warnings) === 1 ? '' : 's'),
+        ));
 
         return self::SUCCESS;
     }

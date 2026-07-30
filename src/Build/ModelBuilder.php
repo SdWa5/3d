@@ -144,7 +144,13 @@ final class ModelBuilder
     private function writePlan(DeviceSpec $spec, string $glb, string $blend): string
     {
         $planFile = $this->buildDir().'/plans/'.$spec->id.'.json';
-        $overridePath = $spec->meshOverride === null ? null : $this->resolve($spec->meshOverride->path);
+        // A declared-but-absent override falls back to the generated block: the meshes are
+        // third-party CAD this repository does not commit, so not having them is normal.
+        $overridePath = null;
+        if ($spec->meshOverride !== null) {
+            $candidate = $this->resolve($spec->meshOverride->path);
+            $overridePath = is_file($candidate) ? $candidate : null;
+        }
         $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend, $overridePath));
 
         return $planFile;
