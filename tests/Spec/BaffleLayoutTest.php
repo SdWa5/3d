@@ -61,6 +61,41 @@ final class BaffleLayoutTest extends TestCase
         self::assertSame(4, $horn->wallCount());
     }
 
+    public function testTheThroatDefaultsToTheMouthsShape(): void
+    {
+        $horn = $this->layout()->feature('horn');
+
+        self::assertNull($horn->throatProfile);
+        self::assertSame(BaffleFeature::PYRAMID, $horn->throatProfileOrMouth());
+    }
+
+    public function testAStraightEdgedMouthCanHaveARoundThroat(): void
+    {
+        // What a compression-driver horn actually is: the throat is a round bolt flange, the mouth is not.
+        $horn = $this->layout([
+            ['id' => 'cd', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.45, 0.2],
+                'throat_in' => 2.0, 'depth_m' => 0.18,
+                'profile' => 'pyramid', 'throat_profile' => 'elliptical'],
+        ])->feature('cd');
+
+        self::assertSame(BaffleFeature::PYRAMID, $horn->profile);
+        self::assertSame(BaffleFeature::ELLIPTICAL, $horn->throatProfileOrMouth());
+        // Still four walls to count, because the mouth end has them.
+        self::assertSame(4, $horn->wallCount());
+        self::assertSame('elliptical', $horn->toArray()['throat_profile']);
+    }
+
+    public function testWallsAreCountedWhenOnlyTheThroatHasThem(): void
+    {
+        $horn = $this->layout([
+            ['id' => 'cd', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.45, 0.2],
+                'throat_in' => 2.0, 'depth_m' => 0.18,
+                'profile' => 'elliptical', 'throat_profile' => 'pyramid', 'sides' => 6],
+        ])->feature('cd');
+
+        self::assertSame(6, $horn->wallCount());
+    }
+
     public function testAnEllipticalMouthHasNoWallsToCount(): void
     {
         $layout = $this->layout([
@@ -68,6 +103,7 @@ final class BaffleLayoutTest extends TestCase
                 'throat_in' => 1.4, 'depth_m' => 0.1, 'profile' => 'elliptical'],
         ]);
 
+        // Elliptical at both ends, so there is nothing to count.
         self::assertNull($layout->feature('oval')->wallCount());
     }
 

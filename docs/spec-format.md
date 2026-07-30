@@ -71,7 +71,8 @@ audio:                        # optional, but worth filling in from the original
     inset_m: 0.056            # how far the baffle sits behind the outer front face
     features:
       - { id: horn, kind: horn, at_m: [0.0, 0.26], mouth_m: [0.36, 0.29], throat_in: 1.4,
-          depth_m: 0.18, profile: pyramid, sides: 8, flare: exponential }
+          depth_m: 0.18, profile: pyramid, sides: 4, throat_profile: elliptical,
+          flare: exponential }
       - { id: woofer, kind: cone, at_m: [0.0, -0.10], diameter_in: 13.9, depth_m: 0.10 }
 
 mesh_override: null           # a real mesh replacing the generated block; see below
@@ -104,13 +105,18 @@ the cabinet's `origin` does.
 | `driver_in` | horns | puts a driver cone at the throat and bores the chamber through to it, which is what a horn-loaded driver looks like |
 | `diameter_in` | cones | the cone's diameter — usually the baffle cut-out rather than the driver's nominal size, since the frame hides behind the panel |
 | `inside` | nested features | nests this feature at the named horn's throat, facing forward. This is how "the HF horn sits inside the LF horn as a phase plug" stays in the data instead of in two hand-matched sets of coordinates |
-| `profile` | horns | `pyramid` (default) or `elliptical` |
-| `sides` | pyramid horns | wall count, default 4. `8` gives the familiar octagon |
+| `profile` | horns | the **mouth's** cross-section: `pyramid` (default) or `elliptical` |
+| `throat_profile` | horns | the **throat's** cross-section, defaulting to the mouth's. `profile: pyramid` with `throat_profile: elliptical` is a horn with straight edges outside and a round throat, which is what a compression-driver horn is — the throat is a round bolt flange. The flare morphs between the two |
+| `sides` | pyramid ends | wall count, default 4. `8` gives the familiar octagon |
 | `flare` | horns | `linear` (default) — a straight-walled conical horn — or `exponential`, where the area grows exponentially with depth, as most real horns do |
 
 Both flare laws meet the declared `mouth_m` and `throat_in` exactly, so switching between them changes
-the walls and never the sizes. The defaults are chosen so a layout written without these three fields
-builds the same geometry it always did.
+the walls and never the sizes. The defaults are chosen so a layout written without these fields builds
+the same geometry it always did.
+
+A horn whose two ends differ is oversampled — the rings get enough vertices for the flat walls to bend
+into the round end — so a morphing flare costs more polygons than one with a single cross-section. Only
+horns that ask for it pay that.
 
 The features are a flat list with `inside` references rather than a nested tree: easier to validate, and
 it reads as a parts list.
@@ -199,6 +205,7 @@ narrower, so the builder rejects it. That is the mechanism doing its job.
   `at_m`, naming an unknown feature, naming one that comes later in the list, or naming something that
   is not a horn; a nested feature wider or deeper than the horn hosting it; a feature whose mouth
   reaches past the edge of the baffle
-* an unknown `profile` or `flare`; `sides` below 3, on an `elliptical` mouth, or on a driver cone
+* an unknown `profile`, `throat_profile` or `flare`; `sides` below 3, on a horn that is elliptical at
+  both ends, or on a driver cone; `throat_profile` on a driver cone
 * a `mesh_override` whose path does not exist, whose extension Blender cannot import
   (`.FCStd` being the common mistake), whose `units` are unknown, or whose tolerance is negative

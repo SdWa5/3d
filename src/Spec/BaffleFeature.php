@@ -24,9 +24,10 @@ final class BaffleFeature
     public const KINDS = [self::CONE, self::HORN];
 
     /**
-     * Mouth cross-section of a horn. A pyramid is `sides` flat walls — 4 for the usual rectangular
-     * flare, 8 for an octagonal one; elliptical is a smooth mouth using the declared width and height
-     * as its two axes.
+     * Cross-section of a horn. A pyramid is `sides` flat walls — 4 for the usual rectangular flare, 8 for
+     * an octagonal one; elliptical is a smooth outline using the declared width and height as its two
+     * axes. The mouth and the throat can differ: a compression-driver horn is round where the driver
+     * bolts on and straight-edged at the mouth, and the flare morphs between the two.
      */
     public const PYRAMID = 'pyramid';
 
@@ -64,6 +65,7 @@ final class BaffleFeature
         public readonly ?float $driverIn,
         public readonly ?string $inside,
         public readonly string $profile = self::PYRAMID,
+        public readonly ?string $throatProfile = null,
         public readonly ?int $sides = null,
         public readonly string $flare = self::LINEAR,
     ) {
@@ -92,18 +94,27 @@ final class BaffleFeature
             driverIn: $reader->optionalFloat('driver_in'),
             inside: $reader->optionalString('inside'),
             profile: $reader->optionalString('profile') ?? self::PYRAMID,
+            throatProfile: $reader->optionalString('throat_profile'),
             sides: $reader->optionalInt('sides'),
             flare: $reader->optionalString('flare') ?? self::LINEAR,
         );
     }
 
+    /**
+     * The throat's cross-section, which defaults to the mouth's — a horn with one shape throughout.
+     */
+    public function throatProfileOrMouth(): string
+    {
+        return $this->throatProfile ?? $this->profile;
+    }
+
     public function isPyramid(): bool
     {
-        return $this->profile === self::PYRAMID;
+        return $this->profile === self::PYRAMID || $this->throatProfileOrMouth() === self::PYRAMID;
     }
 
     /**
-     * Wall count for the geometry builder: null for an elliptical mouth, which has no walls to count.
+     * Wall count for the geometry builder: null only when neither end has walls to count.
      */
     public function wallCount(): ?int
     {
@@ -174,6 +185,7 @@ final class BaffleFeature
             'inside' => $this->inside,
             // Only a horn has walls to shape; a cone is round by construction.
             'profile' => $this->isHorn() ? $this->profile : null,
+            'throat_profile' => $this->isHorn() ? $this->throatProfileOrMouth() : null,
             'sides' => $this->isHorn() ? $this->wallCount() : null,
             'flare' => $this->isHorn() ? $this->flare : null,
         ];

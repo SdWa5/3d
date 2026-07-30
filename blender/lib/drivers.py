@@ -64,40 +64,61 @@ _SURROUND_PROFILE = (
 )
 
 
-def _ring(centre, half_w, half_h, y, sides):
+def _ring(centre, half_w, half_h, y, sides, roundness=1.0, count=None):
     """One cross-section at depth `y`, as a list of vertices.
 
-    `sides` None or 0 gives an ellipse; an integer gives an n-gon phased and scaled so it touches the
-    half_w/half_h bounds — 4 sides land exactly on the corners of the mouth rectangle, 8 give the
-    familiar octagon with the corners cut off. A zero-size ring collapses to a single vertex, which is
-    how both an apex and a flat cap are expressed.
+    `sides` None or 0 gives an ellipse. An integer gives an n-gon whose walls face the axes, sized so it
+    touches the half_w/half_h bounds — 4 sides land exactly on the corners of the mouth rectangle, 8 give
+    the familiar octagon with its corners cut off.
+
+    `roundness` blends between the two: 0 is the flat-walled polygon, 1 the ellipse through the same
+    bounds. Both are written as one radial function of the angle, which is what lets a single ring stack
+    morph from a straight-edged mouth to a round throat. `count` oversamples the ring so the intermediate
+    shapes have vertices to bend; it must be a multiple of `2 * sides` or the polygon's corners and wall
+    centres stop landing on sample points and the flat walls come out faceted.
+
+    A zero-size ring collapses to a single vertex, which is how both an apex and a flat cap are expressed.
     """
     cx, cz = centre
     if half_w <= 1e-9 and half_h <= 1e-9:
         return [(cx, y, cz)]
 
     if sides:
-        count = int(sides)
-        phase = math.pi / count
-        # Divide by cos(phase) so the polygon is circumscribed about the ellipse through the bounds
-        # rather than inscribed in it: with 4 sides that is the difference between the mouth rectangle
-        # the spec asked for and one 71% of its size.
-        norm = math.cos(phase)
+        # Walls face the axes, so the corners sit half a wedge round from them.
+        wedge = math.pi / int(sides)
+        count = count or int(sides)
     else:
-        count = _ELLIPSE_SEGMENTS
-        phase = 0.0
-        norm = 1.0
+        wedge = None
+        count = count or _ELLIPSE_SEGMENTS
 
     ring = []
     for index in range(count):
-        angle = phase + 2.0 * math.pi * index / count
+        angle = (wedge or 0.0) + 2.0 * math.pi * index / count
+        if wedge is None:
+            radius = 1.0
+        else:
+            # Distance out to a flat wall, as a multiple of the ellipse's radius in that direction: 1 at
+            # the middle of a wall, 1/cos(wedge) at a corner.
+            polygon = 1.0 / math.cos(math.remainder(angle, 2.0 * wedge))
+            radius = polygon + (1.0 - polygon) * roundness
         ring.append((
-            cx + half_w * math.cos(angle) / norm,
+            cx + half_w * radius * math.cos(angle),
             y,
-            cz + half_h * math.sin(angle) / norm,
+            cz + half_h * radius * math.sin(angle),
         ))
 
     return ring
+
+
+def _morph_count(sides):
+    """Vertices per ring for a flare that changes shape along its length.
+
+    A multiple of `2 * sides`, so both the polygon's corners and the middles of its walls land on sample
+    points; near `_ELLIPSE_SEGMENTS`, so the round end is as smooth as any other ellipse here.
+    """
+    period = 2 * int(sides)
+
+    return period * max(1, round(_ELLIPSE_SEGMENTS / period))
 
 
 def _shell_geometry(rings):
@@ -153,9 +174,15 @@ def _shell(name, rings, material):
 
 def _flare_rings(
     mouth, throat, front_y, depth, centre,
-    profile=PYRAMID, sides=4, flare=LINEAR, cap_throat=True, cap_mouth=False, bore_depth=0.0,
+    profile=PYRAMID, throat_profile=None, sides=4, flare=LINEAR,
+    cap_throat=True, cap_mouth=False, bore_depth=0.0,
 ):
     """Rings of a horn: `mouth` at the baffle, narrowing to `throat` at `depth`.
+
+    `profile` is the mouth's cross-section and `throat_profile` the throat's, so a horn can have straight
+    edges on the outside and be round where the driver bolts on — which is what a compression-driver horn
+    is, since the throat is a round bolt flange. When the two differ the ring stack morphs from one shape
+    to the other along the flare.
 
     The mouth is normally open — a horn is a hole you look into. The throat is closed off by default so
     you cannot see straight through the cabinet, but stays open when a driver sits behind it, which is
@@ -168,16 +195,30 @@ def _flare_rings(
     boolean solver discards that outright unless told otherwise. That is what silently left a wall across
     the throat of every driver-loaded horn.
     """
-    ring_sides = None if profile == ELLIPTICAL else (sides or 4)
+    throat_profile = throat_profile or profile
+    mouth_round = 1.0 if profile == ELLIPTICAL else 0.0
+    throat_round = 1.0 if throat_profile == ELLIPTICAL else 0.0
+
+    if profile == ELLIPTICAL and throat_profile == ELLIPTICAL:
+        ring_sides, count = None, None
+    else:
+        ring_sides = sides or 4
+        # Extra vertices only where a shape actually changes; a flare with one cross-section throughout
+        # stays at the minimum the shape needs.
+        count = _morph_count(ring_sides) if mouth_round != throat_round else None
+
     steps = 1 if flare == LINEAR else _FLARE_STEPS
 
     # Ratios rather than absolute sizes, so one interpolation covers both axes and both flare laws.
     ratio_w = throat[0] / mouth[0] if mouth[0] else 1.0
     ratio_h = throat[1] / mouth[1] if mouth[1] else 1.0
 
+    def ring(half_w, half_h, y, roundness):
+        return _ring(centre, half_w, half_h, y, ring_sides, roundness, count)
+
     rings = []
     if cap_mouth:
-        rings.append(_ring(centre, 0.0, 0.0, front_y, ring_sides))
+        rings.append(ring(0.0, 0.0, front_y, mouth_round))
 
     for step in range(steps + 1):
         t = step / steps
@@ -188,18 +229,19 @@ def _flare_rings(
             scale_w, scale_h = ratio_w ** t, ratio_h ** t
         else:
             scale_w, scale_h = 1.0 + (ratio_w - 1.0) * t, 1.0 + (ratio_h - 1.0) * t
-        rings.append(_ring(
-            centre, mouth[0] / 2.0 * scale_w, mouth[1] / 2.0 * scale_h, front_y + depth * t, ring_sides,
+        rings.append(ring(
+            mouth[0] / 2.0 * scale_w, mouth[1] / 2.0 * scale_h, front_y + depth * t,
+            mouth_round + (throat_round - mouth_round) * t,
         ))
 
     back_y = front_y + depth
     if bore_depth > 0.0:
         back_y += bore_depth
-        rings.append(_ring(centre, throat[0] / 2.0, throat[1] / 2.0, back_y, ring_sides))
+        rings.append(ring(throat[0] / 2.0, throat[1] / 2.0, back_y, throat_round))
 
     if cap_throat:
         # A ring of zero size at the same depth fans the far end shut flat, rather than pointing it.
-        rings.append(_ring(centre, 0.0, 0.0, back_y, ring_sides))
+        rings.append(ring(0.0, 0.0, back_y, throat_round))
 
     return rings
 
@@ -338,6 +380,7 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
             driver = feature.get("cone_diameter_m")
             shape = {
                 "profile": feature.get("profile") or PYRAMID,
+                "throat_profile": feature.get("throat_profile"),
                 "sides": feature.get("sides"),
                 "flare": feature.get("flare") or LINEAR,
             }

@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-07-30
+
+### Added
+
+- **`throat_profile`** — a horn's mouth and throat can now be different shapes, and the flare morphs
+  between them along its length. `profile: pyramid` with `throat_profile: elliptical` is a horn with
+  straight edges on the outside and a round throat, which is what a compression-driver horn is: the
+  throat is a round bolt flange, so it cannot be square. Defaults to the mouth's shape, so a horn with
+  one cross-section throughout is unchanged
+- Rings on a morphing flare are oversampled to a multiple of `2 × sides`, so the polygon's corners and
+  the middles of its walls both land on sample points — without that the flat end comes out faceted.
+  Only horns that ask for two shapes pay the extra polygons
+
+### Changed
+
+- **The 18sound's horn is elliptical**, not the octagon its baffle cut-out is — owner, against the
+  cabinet. The cut-out in the CAD is unchanged, so the model now shows a round horn behind an octagonal
+  hole, which is what the cabinet looks like
+- **The Tecnare's two LF horns are straight-edged at the mouth and round at the driver** — owner, against
+  the cabinet. The mid horn gets the same treatment by inference from its 2″ compression-driver throat,
+  which is recorded as inference rather than observation in the spec and in `docs/sources.md`
+
 ## [0.14.0] - 2026-07-30
 
 ### Added

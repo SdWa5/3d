@@ -225,12 +225,26 @@ final class SpecValidatorTest extends TestCase
             ])]],
             'sides must be at least 3',
         ];
+        yield 'unknown throat profile' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'throat_profile' => 'round'],
+            ])]],
+            "unknown throat_profile 'round'",
+        ];
+        yield 'throat profile on a driver cone' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'w', 'kind' => 'cone', 'at_m' => [0.0, 0.0], 'diameter_in' => 12,
+                    'depth_m' => 0.1, 'throat_profile' => 'elliptical'],
+            ])]],
+            'throat_profile only applies to a horn',
+        ];
         yield 'sides on an elliptical mouth' => [
             ['audio' => ['layout' => self::layout([
                 ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
                     'throat_in' => 1.4, 'depth_m' => 0.1, 'profile' => 'elliptical', 'sides' => 8],
             ])]],
-            'sides has no meaning on an elliptical mouth',
+            'sides has no meaning when neither the mouth nor the throat is a pyramid',
         ];
         yield 'sides on a driver cone' => [
             ['audio' => ['layout' => self::layout([

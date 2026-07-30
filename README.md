@@ -101,7 +101,7 @@ cabinet rather than a black box. The meshes themselves are third-party files and
 FreeCAD or STEP into something Blender can read.
 
 Behind those openings there are now **drivers and horns**, from each spec's `audio.layout`: cones with a surround and
-a domed dust cap, and horn flares whose mouth shape and flare law come from the spec
+a domed dust cap, and horn flares whose mouth shape, throat shape and flare law come from the spec
 ([docs/spec-format.md](docs/spec-format.md#baffle-layout)). The Tecnare has no CAD anywhere, so its whole baffle is
 generated and its numbers are estimated — the flares are carved into the shell rather than sitting behind a CAD hole.
 

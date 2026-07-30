@@ -313,17 +313,23 @@ final class SpecValidator
             if ($feature->sides !== null) {
                 $messages[] = "{$label}: sides only applies to a horn";
             }
+            if ($feature->throatProfile !== null) {
+                $messages[] = "{$label}: throat_profile only applies to a horn";
+            }
 
             return $messages;
         }
 
-        if (!in_array($feature->profile, BaffleFeature::PROFILES, true)) {
-            $messages[] = sprintf(
-                "%s: unknown profile '%s' (allowed: %s)",
-                $label,
-                $feature->profile,
-                implode(', ', BaffleFeature::PROFILES),
-            );
+        foreach (['profile' => $feature->profile, 'throat_profile' => $feature->throatProfile] as $field => $value) {
+            if ($value !== null && !in_array($value, BaffleFeature::PROFILES, true)) {
+                $messages[] = sprintf(
+                    "%s: unknown %s '%s' (allowed: %s)",
+                    $label,
+                    $field,
+                    $value,
+                    implode(', ', BaffleFeature::PROFILES),
+                );
+            }
         }
         if (!in_array($feature->flare, BaffleFeature::FLARES, true)) {
             $messages[] = sprintf(
@@ -336,9 +342,9 @@ final class SpecValidator
         if ($feature->sides !== null) {
             if (!$feature->isPyramid()) {
                 $messages[] = sprintf(
-                    "%s: sides has no meaning on an %s mouth",
+                    '%s: sides has no meaning when neither the mouth nor the throat is a %s',
                     $label,
-                    BaffleFeature::ELLIPTICAL,
+                    BaffleFeature::PYRAMID,
                 );
             } elseif ($feature->sides < 3) {
                 $messages[] = "{$label}: sides must be at least 3, got {$feature->sides}";
