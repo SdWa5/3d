@@ -153,11 +153,12 @@ about 8 seconds at the default 64 samples.
 | `top` | plan view, for checking the footprint | 32 mm |
 | `crowd` | eye height (1.65 m), aimed slightly low | 50 mm |
 
-**Nothing is hardcoded to a particular rig.** Each preset is a *direction*; the distance is computed
-so the scene's own bounding sphere fits the narrower field of view, whatever the aspect ratio. The same
-preset therefore frames a single floor monitor and a fourteen-wide sub wall equally well — which is the
-whole reason the maths lives in PHP (`src/Render/RenderPlan.php`) where it can be tested, instead of in
-the Blender script where camera framing quietly drifts.
+**Nothing is hardcoded to a particular rig.** Each preset is a *direction*; the distance is computed by
+fitting the scene's bounding box as the camera actually sees it, so a wide shallow sub wall fills the
+frame instead of sitting in the middle of it. The same preset therefore frames a single floor monitor
+and a fourteen-wide wall equally well — which is the whole reason the maths lives in PHP
+(`src/Render/RenderPlan.php`) where it can be tested, instead of in the Blender script where camera
+framing quietly drifts.
 
 `crowd` deliberately frames tighter than the others: standing in front of a 4 m sub wall it fills your
 view, and a shot that politely fits it all in undersells it.
