@@ -143,6 +143,23 @@ final class RenderPlanTest extends TestCase
         );
     }
 
+    public function testANearlyLevelAimLineDoesNotClaimToHitTheFloor(): void
+    {
+        // 1 degree of down-tilt from 2 m up meets the floor 115 m out — far past the cap. The ray is
+        // truncated, so it must not report a landing: otherwise the floor marker is drawn beneath a
+        // line that stopped in mid-air, which is exactly what shipped in 0.13.0.
+        $top = SpecFactory::spec([
+            'subtype' => 'top',
+            'geometry' => ['dimensions_m' => ['width' => 0.5, 'height' => 1.0, 'depth' => 0.5]],
+        ]);
+        $placed = [new PlacedDevice('t', $top, [0.0, 0.0, 1.5], new Orientation(1.0))];
+
+        $line = RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_TOPS)['aim_lines'][0];
+
+        self::assertFalse($line['hits_floor']);
+        self::assertGreaterThan(0.5, $line['end'][2], 'the truncated ray ends well above the floor');
+    }
+
     public function testAimLinesForTopsOnlySkipSubs(): void
     {
         $sub = SpecFactory::spec(['id' => 'sub', 'subtype' => 'sub']);

@@ -255,6 +255,10 @@ ddev exec bin/console scene:render full-rig-aimed --aim-lines=all      # subs to
 Draws a thin glowing rod from the centre of each cabinet's front face along the direction it points,
 stopping where it meets the floor and leaving a marker there. Off by default.
 
+A nearly level ray meets the floor a very long way out — 1° of down-tilt from 2 m up needs over 100 m —
+so beyond 40 m the ray is simply truncated and **no** floor marker is drawn. A marker therefore always
+means the ray genuinely lands there, which is the only way the picture stays trustworthy.
+
 The rod follows the cabinet's **actual** front axis, not the point it was told to aim at. That is
 deliberate: it turns "these all aim at one place" from a claim into something visible, and a mistake in
 the aiming shows up instead of being drawn over. When the framing is switched on the camera widens to

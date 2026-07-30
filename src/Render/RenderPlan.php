@@ -115,10 +115,15 @@ final class RenderPlan
             $start = $entry->frontFaceCentre();
             $direction = $entry->frontDirection();
 
-            $hitsFloor = $direction[2] < -1e-6 && $start[2] > 0.0;
-            $length = $hitsFloor
-                ? min(self::AIM_MAX_LENGTH_M, $start[2] / -$direction[2])
-                : self::AIM_LENGTH_M;
+            // A nearly level ray meets the floor a very long way out — 1° of tilt from 2 m up needs
+            // over 100 m. Past the cap the ray is simply truncated and must NOT claim to have landed,
+            // or the marker ends up on the floor below a line that stopped in mid-air.
+            $toFloor = $direction[2] < -1e-6 && $start[2] > 0.0
+                ? $start[2] / -$direction[2]
+                : INF;
+
+            $hitsFloor = $toFloor <= self::AIM_MAX_LENGTH_M;
+            $length = $hitsFloor ? $toFloor : min(self::AIM_MAX_LENGTH_M, max(self::AIM_LENGTH_M, 0.0));
 
             $lines[] = [
                 'placement_id' => $entry->placementId,

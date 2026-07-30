@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-07-30
+
+### Fixed
+
+- **Aim lines drew a floor marker under a ray that never reached the floor.** A nearly level ray meets
+  the floor a very long way out — the 10 m focus gives ~1.1° of tilt from 2 m up, which needs **103 m** —
+  so the 40 m cap truncated it in mid-air while `hits_floor` still said true, and the marker landed on
+  the floor beneath a line that stopped above it. Beyond the cap the ray is now truncated with no marker,
+  so a marker always means the ray genuinely lands there. Reported from the render, where the
+  disconnected dots were visible
+
 ## [0.13.0] - 2026-07-30
 
 ### Added
