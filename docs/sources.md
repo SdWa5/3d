@@ -39,6 +39,9 @@ partial depth that stops short of the back. The CAD's 465.6 × 836 × 426.8 mm i
 and it agrees with the drawings where they do measure the same thing — its baffle is 418.3 mm wide and
 its side panels are exactly 800 mm.
 
+The overhanging front lip is confirmed by the owner at about 56 mm, which is independent support for the
+CAD over the drawings on the depth axis specifically — see above.
+
 The CAD also uses 18 mm panels where the note specifies 15 mm Baltic birch, so this build is both
 larger and heavier than the published kit. The weight estimate was recomputed accordingly: 41 kg.
 
@@ -116,10 +119,13 @@ the horn and driver cut-outs is **55.8 mm behind the front-most point**. So the 
 sit visibly deeper than on any other in the library — its features are flush with its baffle, but the
 baffle itself is recessed behind a lip.
 
-That lip is also where this cabinet's disputed depth lives. The drawings say 335 mm; the CAD's bounding
-box says 426.8 mm; baffle-to-back is 371 mm. **Unconfirmed against the real cabinet** — if the front is
-actually flush, the CAD's top and bottom panels are too long and this spec's depth is ~56 mm too big. The
-features would not move either way: they belong on the baffle. See [`../TODO.md`](../TODO.md).
+**Confirmed against the real cabinet** — the owner reports the lip is there and about 56 mm deep. So the
+deep-set openings are a real feature of this cabinet rather than a modelling artifact, and nothing in the
+layout needs moving.
+
+That confirmation settles this cabinet's disputed depth as well. The drawings say 335 mm and the CAD's
+bounding box says 426.8 mm; the 56 mm lip is part of what accounts for the difference, so the CAD wins
+again — the same conclusion the panel dimensions reached below, now from a second direction.
 
 ### Baffle layouts, per device
 

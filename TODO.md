@@ -24,15 +24,9 @@
     2. confirm the SKRAM mesh's orientation — its dimensions verify, but which face carries the mouth
        has not been checked against the real cabinet. `rotate_deg: [90, 0, 0]` currently puts the open
        chambers upwards; `[90, 0, 180]` and `[-90, 0, 0]` are the other candidates
-    3. **confirm the 18sound's front step.** Its CAD recesses the baffle 55.8 mm behind the front-most
-       point, with the top and bottom panels projecting forward on a curved edge and the sides stopping
-       30–35 mm short. That makes its horn and driver sit far deeper than any other cabinet's. One
-       measurement settles it: front edge of the top panel to the baffle. If it is not ~56 mm, the CAD's
-       top and bottom panels are too long and this spec's depth (0.4268) is wrong by that much — which is
-       the same discrepancy as the drawings' 335 mm. The features stay on the baffle either way
-    4. ports are not modelled. The 18sound's two Ø100 mm holes come from its CAD, but nothing sits
+    3. ports are not modelled. The 18sound's two Ø100 mm holes come from its CAD, but nothing sits
        behind them, and a generated cabinet has no way to declare a port at all
-    5. the Flexy and SKRAM have no `audio.layout` — their drivers sit deep in a folded horn path. If a
+    4. the Flexy and SKRAM have no `audio.layout` — their drivers sit deep in a folded horn path. If a
        render ever looks into a mouth from close up, that changes
 5. coverage cones from `audio.coverage_deg` — optional geometry, render-invisible like the other markers, so a setup can
    answer coverage questions and not just look right

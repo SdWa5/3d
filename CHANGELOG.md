@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.15.2] - 2026-07-30
+
+### Changed
+
+- **The 18sound's 56 mm front lip is confirmed against the real cabinet** by the owner, so its deep-set
+  horn and driver are a real feature of that cabinet and not a modelling artifact. The open question in
+  `TODO.md` is closed, and the confirmation is independent support for the CAD's 426.8 mm depth over the
+  drawings' 335 mm — the same conclusion the panel dimensions already reached, now from a second direction.
+  `provenance.dimensions` stays `plans`: a confirmed lip is not a tape measure over the whole cabinet
+
 ## [0.15.1] - 2026-07-30
 
 ### Fixed
