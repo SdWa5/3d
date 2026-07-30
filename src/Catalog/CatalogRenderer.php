@@ -35,7 +35,7 @@ final class CatalogRenderer
                 $this->formatNumber($spec->weightKg),
                 $this->formatNumber($spec->totalWeightKg()),
                 $spec->originalLabel(),
-                $spec->provenance->value,
+                $spec->provenance->label(),
             ];
         }
 
@@ -60,7 +60,9 @@ final class CatalogRenderer
      *     by_category: array<string, int>,
      *     by_owner: array<string, array{units: int, weight_kg: float}>,
      *     unmeasured: int,
-     *     unmeasured_ids: list<string>
+     *     unmeasured_ids: list<string>,
+     *     dimensions_unmeasured_ids: list<string>,
+     *     weight_unmeasured_ids: list<string>
      * }
      */
     public function summary(array $specs): array
@@ -71,6 +73,8 @@ final class CatalogRenderer
         $byCategory = [];
         $byOwner = [];
         $unmeasuredIds = [];
+        $dimensionsUnmeasured = [];
+        $weightUnmeasured = [];
 
         foreach ($specs as $spec) {
             $units += $spec->quantity;
@@ -84,8 +88,14 @@ final class CatalogRenderer
                 'weight_kg' => $owner['weight_kg'] + $spec->totalWeightKg(),
             ];
 
-            if (!$spec->provenance->isMeasured()) {
+            if (!$spec->provenance->isFullyMeasured()) {
                 $unmeasuredIds[] = $spec->id;
+            }
+            if (!$spec->provenance->dimensions->isMeasured()) {
+                $dimensionsUnmeasured[] = $spec->id;
+            }
+            if (!$spec->provenance->weight->isMeasured()) {
+                $weightUnmeasured[] = $spec->id;
             }
         }
         ksort($byCategory);
@@ -100,6 +110,8 @@ final class CatalogRenderer
             'by_owner' => $byOwner,
             'unmeasured' => count($unmeasuredIds),
             'unmeasured_ids' => $unmeasuredIds,
+            'dimensions_unmeasured_ids' => $dimensionsUnmeasured,
+            'weight_unmeasured_ids' => $weightUnmeasured,
         ];
     }
 
@@ -150,10 +162,20 @@ final class CatalogRenderer
             );
         }
         $lines[] = sprintf(
-            '- Not yet measured: %d of %d (%s)',
-            $summary['unmeasured'],
+            '- Dimensions measured: %d of %d%s',
+            $summary['devices'] - count($summary['dimensions_unmeasured_ids']),
             $summary['devices'],
-            $summary['unmeasured'] === 0 ? 'none' : implode(', ', $summary['unmeasured_ids']),
+            $summary['dimensions_unmeasured_ids'] === []
+                ? ''
+                : ' — open: '.implode(', ', $summary['dimensions_unmeasured_ids']),
+        );
+        $lines[] = sprintf(
+            '- Weights measured: %d of %d%s',
+            $summary['devices'] - count($summary['weight_unmeasured_ids']),
+            $summary['devices'],
+            $summary['weight_unmeasured_ids'] === []
+                ? ''
+                : ' — open: '.implode(', ', $summary['weight_unmeasured_ids']),
         );
         $lines[] = '';
 
@@ -162,13 +184,13 @@ final class CatalogRenderer
 
     /**
      * @param list<DeviceSpec> $specs
-     * @return list<DeviceSpec> specs whose numbers still come from a datasheet, plans or a guess
+     * @return list<DeviceSpec> specs with anything still not measured on the actual cabinet
      */
     public function unmeasured(array $specs): array
     {
         return array_values(array_filter(
             $specs,
-            static fn (DeviceSpec $spec): bool => $spec->provenance !== Provenance::Measured,
+            static fn (DeviceSpec $spec): bool => !$spec->provenance->isFullyMeasured(),
         ));
     }
 

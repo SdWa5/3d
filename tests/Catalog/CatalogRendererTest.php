@@ -96,7 +96,8 @@ final class CatalogRendererTest extends TestCase
         self::assertStringContainsString('## Totals', $markdown);
         self::assertStringContainsString('- Devices: 1 (2 units)', $markdown);
         self::assertStringContainsString('- Total weight: 68 kg', $markdown);
-        self::assertStringContainsString('- Not yet measured: 1 of 1 (top-a)', $markdown);
+        self::assertStringContainsString('- Dimensions measured: 0 of 1 — open: top-a', $markdown);
+        self::assertStringContainsString('- Weights measured: 0 of 1 — open: top-a', $markdown);
     }
 
     public function testMarkdownSurvivesAnEmptyLibrary(): void

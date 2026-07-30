@@ -14,7 +14,11 @@ clone_of:
   reference: datasheet
   url: https://www.tecnare.co/wp-content/uploads/2020/01/l2122lt.pdf
 
-provenance: datasheet
+provenance:
+  # Geometry assumed identical to its originals; the weight is the factory figure standing in for
+  # a self-built cabinet, which is a guess however you look at it.
+  dimensions: datasheet
+  weight: estimated
 deviations: |
   Assumed to copy the factory cabinet's outer dimensions exactly — not verified against the built
   box. weight_kg is a plywood-and-driver estimate, not the factory figure and not weighed: a

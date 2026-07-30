@@ -51,7 +51,15 @@ Per cabinet:
 
 Then in the spec file:
 
-- [ ] set `provenance: measured`
+- [ ] set the provenance for **what you actually did**. Weighing alone is worth recording on its own:
+
+  ```yaml
+  provenance:
+    dimensions: plans      # unchanged
+    weight: measured       # you put it on the scale
+  ```
+
+  Once both are done, `provenance: measured` as a single value says the same thing more briefly.
 - [ ] note anything surprising under `deviations` — that is what tells the next person the numbers
       are not the original's
 - [ ] `ddev exec bin/console specs:validate && ddev exec bin/console models:build --id=<id>`
@@ -65,5 +73,6 @@ The validator catches impossible values, but not wrong ones. Two quick checks:
 * Run `ddev exec bin/console catalog`. A cabinet whose weight or volume looks out of line next to
   its neighbours usually means a unit slipped — centimetres written as metres is the classic.
 
-The orange tag in the viewport disappears once a spec is no longer `estimated`, and `catalog` stops
-listing the device as un-measured. Those two are the progress bar for this job.
+`catalog` is the progress bar for this job — it reports dimensions and weights measured as two
+separate counts, so an afternoon spent only with the hanging scale still shows up. The orange
+viewport tag disappears once a spec's *dimensions* are no longer `estimated`.

@@ -22,13 +22,17 @@ final class CatalogCommandTest extends TestCase
         self::assertStringContainsString('Devices:', $display);
     }
 
-    public function testWarnsAboutSpecsThatWereNeverMeasured(): void
+    public function testReportsMeasuringProgressSeparatelyForDimensionsAndWeights(): void
     {
-        // The shipped example specs are estimated off a photo, so the warning has to appear —
-        // silently presenting guesses as data is the failure mode this guards against.
+        // Nothing in the library has been measured yet, so both counts must be visible and the
+        // warning must fire — silently presenting design figures as data is the failure mode this
+        // guards against.
         $tester = new CommandTester(new CatalogCommand());
         $tester->execute([]);
+        $display = $tester->getDisplay();
 
-        self::assertStringContainsString('not measured yet', $tester->getDisplay());
+        self::assertStringContainsString('Dimensions measured:', $display);
+        self::assertStringContainsString('Weights measured:', $display);
+        self::assertStringContainsString('not fully measured', $display);
     }
 }

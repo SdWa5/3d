@@ -35,7 +35,7 @@ final class DeviceSpec
         public readonly string $owner,
         public readonly BuildKind $build,
         public readonly ?CloneOf $cloneOf,
-        public readonly Provenance $provenance,
+        public readonly ProvenanceSet $provenance,
         public readonly ?string $deviations,
         public readonly Shape $shape,
         public readonly Dimensions $dimensions,
@@ -85,7 +85,7 @@ final class DeviceSpec
             owner: $reader->optionalString('owner', self::DEFAULT_OWNER) ?? self::DEFAULT_OWNER,
             build: $build,
             cloneOf: $cloneOfSection !== null ? CloneOf::fromReader($cloneOfSection) : null,
-            provenance: $reader->requireEnum('provenance', Provenance::class),
+            provenance: ProvenanceSet::fromReader($reader, 'provenance'),
             deviations: $reader->optionalString('deviations'),
             shape: $geometry->optionalEnum('shape', Shape::class, Shape::Box),
             dimensions: Dimensions::fromReader($geometry->requireSection('dimensions_m')),
@@ -171,7 +171,7 @@ final class DeviceSpec
             'owner' => $this->owner,
             'build' => $this->build->value,
             'clone_of' => $this->cloneOf?->toArray(),
-            'provenance' => $this->provenance->value,
+            'provenance' => $this->provenance->toArray(),
             'dimensions_m' => $this->dimensions->toArray(),
             // Consumers need the origin to interpret the geometry — tools/check-glb.py uses it to
             // decide whether a cabinet is supposed to sit on the floor.

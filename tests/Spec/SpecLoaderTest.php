@@ -36,7 +36,8 @@ final class SpecLoaderTest extends TestCase
         self::assertSame(2, $spec->quantity);
         self::assertSame(0.8, $spec->dimensions->width);
         self::assertSame(34.0, $spec->weightKg);
-        self::assertSame(Provenance::Datasheet, $spec->provenance);
+        self::assertSame(Provenance::Datasheet, $spec->provenance->dimensions);
+        self::assertSame(Provenance::Datasheet, $spec->provenance->weight);
         self::assertSame('Acme X1', $spec->originalLabel());
         self::assertSame(['left', 'right'], $spec->handles);
         self::assertCount(1, $spec->drivers);

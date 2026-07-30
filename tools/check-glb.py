@@ -92,8 +92,13 @@ def check(path):
     if metadata.get("origin") == "bottom-center" and abs(low[1]) > TOLERANCE_M:
         problems.append("origin is bottom-center but the lowest point is at %.4f m" % low[1])
 
-    print("%s — %s, %s, %.4f × %.4f × %.4f m" % (
-        path, metadata["id"], metadata["provenance"], actual[0], actual[1], actual[2]))
+    # `provenance` is per field: the geometry is what this check is about.
+    provenance = metadata.get("provenance") or {}
+    if isinstance(provenance, dict):
+        provenance = provenance.get("dimensions", "?")
+
+    print("%s — %s, dims %s, %.4f × %.4f × %.4f m" % (
+        path, metadata["id"], provenance, actual[0], actual[1], actual[2]))
     for problem in problems:
         print("    FAIL: %s" % problem)
 

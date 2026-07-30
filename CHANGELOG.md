@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-30
+
+### Changed
+
+- **`provenance` is now tracked per field** — `provenance.dimensions` and `provenance.weight`, with a
+  single value still accepted as shorthand for both. They diverge in practice: a hanging scale
+  settles a cabinet's weight in a minute, while taping fourteen subs is an afternoon. With one field
+  for both, a weighed-but-unmeasured cabinet still reported `plans` and the easy half of the work
+  showed no progress at all
+- `catalog` reports "Dimensions measured: n of m" and "Weights measured: n of m" as separate counts,
+  and the Provenance column shows `plans/estimated` when the two differ
+- `eighteensound-2way-15`, `achenbach-18` and `tecnare-m2122-clone` now declare
+  `weight: estimated` against `dimensions: plans`/`datasheet`, which is what was true all along and
+  previously only visible in prose
+- Only an estimated **shape** gets the orange viewport tag; an estimated weight does not distort the
+  model, so it is reported by `catalog` rather than drawn
+- `SpecValidator` checks the clone/`clone_of` rule against each provenance field separately
+- `flexy-folded-horn-hybrid`: width refined to 0.591 m
+- Stale `tree/master` links updated to `tree/main` after the parent repo's branch rename
+
+### Added
+
+- `src/Spec/ProvenanceSet.php` with `weakest()`, `isFullyMeasured()` and a compact `label()`
+- `ArrayReader::isSection()` — needed for fields that accept either a scalar shorthand or an
+  expanded mapping
+- `tests/Spec/ProvenanceSetTest.php`; suite is now 92 tests
+
 ## [0.3.0] - 2026-07-30
 
 ### Added

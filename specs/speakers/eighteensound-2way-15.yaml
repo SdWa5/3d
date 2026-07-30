@@ -14,7 +14,10 @@ clone_of:
   reference: plans
   url: null
 
-provenance: plans
+provenance:
+  # Dimensions come from the kit drawings; the weight is a calculation, not a source.
+  dimensions: plans
+  weight: estimated
 
 geometry:
   shape: box

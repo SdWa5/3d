@@ -115,7 +115,7 @@ final class ModelBuilder
                 'name' => $spec->name,
                 'category' => $spec->category->value,
                 'subtype' => $spec->subtype,
-                'provenance' => $spec->provenance->value,
+                'provenance' => $spec->provenance->label(),
                 // Used to lay the devices out side by side in the library file.
                 'width_m' => $spec->dimensions->width,
                 'blend' => $this->blendPath($spec),

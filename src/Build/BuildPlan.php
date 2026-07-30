@@ -6,6 +6,7 @@ namespace App\Build;
 
 use App\Spec\DeviceSpec;
 use App\Spec\Driver;
+use App\Spec\Provenance;
 use App\Spec\RiggingPoint;
 
 /**
@@ -42,8 +43,9 @@ final class BuildPlan
                     'inset_m' => $spec->grilleInset,
                     'color' => $spec->grilleColor ?? $spec->color,
                 ],
-                // Estimated specs get a visible marker so nobody mistakes a guess for a measurement.
-                'mark_estimated' => $spec->provenance->value === 'estimated',
+                // A guessed *shape* gets the visible marker. An estimated weight does not distort
+                // the model, so it is reported by `catalog` instead of tagged in the viewport.
+                'mark_estimated' => $spec->provenance->dimensions === Provenance::Estimated,
             ],
             'physical' => [
                 'weight_kg' => $spec->weightKg,

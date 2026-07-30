@@ -60,7 +60,7 @@ final class DeviceSpecTest extends TestCase
         $metadata = $spec->toMetadataArray();
 
         self::assertSame('top-a', $metadata['id']);
-        self::assertSame('datasheet', $metadata['provenance']);
+        self::assertSame(['dimensions' => 'datasheet', 'weight' => 'datasheet'], $metadata['provenance']);
         self::assertSame(['manufacturer' => 'Acme', 'model' => 'X1', 'reference' => 'datasheet', 'url' => null], $metadata['clone_of']);
         self::assertTrue($metadata['flyable']);
         self::assertSame('M10', $metadata['rigging_points'][0]['thread']);

@@ -55,14 +55,28 @@ final class CatalogCommand extends BaseCommand
         }
         $this->io->text($lines);
 
+        $this->io->newLine();
+        $this->io->text([
+            sprintf(
+                'Dimensions measured: %d of %d',
+                $summary['devices'] - count($summary['dimensions_unmeasured_ids']),
+                $summary['devices'],
+            ),
+            sprintf(
+                'Weights measured:    %d of %d',
+                $summary['devices'] - count($summary['weight_unmeasured_ids']),
+                $summary['devices'],
+            ),
+        ]);
+
         if ($summary['unmeasured'] > 0) {
-            $this->io->newLine();
             $this->io->warning(sprintf(
-                "%d of %d device%s not measured yet: %s\nTheir numbers come from the cloned original or an estimate.",
+                "%d of %d device%s not fully measured.\nDimensions open: %s\nWeights open: %s",
                 $summary['unmeasured'],
                 $summary['devices'],
                 $summary['devices'] === 1 ? '' : 's',
-                implode(', ', $summary['unmeasured_ids']),
+                $summary['dimensions_unmeasured_ids'] === [] ? 'none' : implode(', ', $summary['dimensions_unmeasured_ids']),
+                $summary['weight_unmeasured_ids'] === [] ? 'none' : implode(', ', $summary['weight_unmeasured_ids']),
             ));
         }
 

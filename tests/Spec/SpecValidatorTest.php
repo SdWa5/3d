@@ -82,7 +82,15 @@ final class SpecValidatorTest extends TestCase
         ];
         yield 'clone with datasheet provenance but no original named' => [
             ['build' => 'clone', 'clone_of' => null, 'provenance' => 'datasheet'],
-            'no clone_of names where those numbers came from',
+            "provenance.dimensions is 'datasheet' but no clone_of names where that came from",
+        ];
+        yield 'clone whose weight cites plans with no original named' => [
+            [
+                'build' => 'clone',
+                'clone_of' => null,
+                'provenance' => ['dimensions' => 'measured', 'weight' => 'plans'],
+            ],
+            "provenance.weight is 'plans' but no clone_of names where that came from",
         ];
         yield 'owner with spaces' => [
             ['owner' => 'Wall Bass'],

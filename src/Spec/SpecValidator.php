@@ -197,12 +197,12 @@ final class SpecValidator
 
         // A clone's datasheet numbers must come from the original it copies, so that original has
         // to be named. Factory gear is exempt: the datasheet is its own, and there is no clone.
-        if (
-            $spec->isClone()
-            && in_array($spec->provenance, [Provenance::Datasheet, Provenance::Plans], true)
-            && $spec->cloneOf === null
-        ) {
-            $messages[] = "provenance is '{$spec->provenance->value}' but no clone_of names where those numbers came from";
+        if ($spec->isClone() && $spec->cloneOf === null) {
+            foreach (['dimensions' => $spec->provenance->dimensions, 'weight' => $spec->provenance->weight] as $field => $provenance) {
+                if (in_array($provenance, [Provenance::Datasheet, Provenance::Plans], true)) {
+                    $messages[] = "provenance.{$field} is '{$provenance->value}' but no clone_of names where that came from";
+                }
+            }
         }
 
         return $messages;

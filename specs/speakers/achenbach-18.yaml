@@ -15,7 +15,10 @@ clone_of:
   reference: cad
   url: null
 
-provenance: plans
+provenance:
+  # Dimensions derived from the FreeCAD panel model; the weight is a calculation, not a source.
+  dimensions: plans
+  weight: estimated
 
 geometry:
   shape: box

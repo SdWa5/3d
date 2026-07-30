@@ -1,12 +1,12 @@
 # SdWa5 3D
 
-3D models of SdWa5's speakers and stage equipment, for rendering event previews in Blender and for
-trying out different PA setups in 3D.
+3D models of SdWa5's speakers and stage equipment, for rendering event previews in Blender and for trying out different
+PA setups in 3D.
 
-Models are **generated from specs**, not collected. One text file per device declares its real
-dimensions, weight, rigging points and where those numbers came from; a Blender script builds the
-model from it. That is what makes the library usable: every piece shares one scale, one orientation
-and one origin convention, so cabinets from different specs actually stack and snap together.
+Models are **generated from specs**, not collected. One text file per device declares its real dimensions, weight,
+rigging points and where those numbers came from; a Blender script builds the model from it. That is what makes the
+library usable: every piece shares one scale, one orientation and one origin convention, so cabinets from different
+specs actually stack and snap together.
 
 ## Requirements
 
@@ -32,18 +32,18 @@ ddev exec bin/console catalog             # equipment table with weight/volume t
 ddev exec bin/console list                # all commands
 ```
 
-Then in Blender: **Preferences → File Paths → Asset Libraries → +**, point it at `build/library/`,
-open an Asset Browser and drag devices into a scene. Every device is one collection asset at true
-scale, already sitting on the floor. See [docs/blender.md](docs/blender.md).
+Then in Blender: **Preferences → File Paths → Asset Libraries → +**, point it at `build/library/`, open an Asset Browser
+and drag devices into a scene. Every device is one collection asset at true scale, already sitting on the floor.
+See [docs/blender.md](docs/blender.md).
 
 ## Commands
 
-| Command | Does |
-|---------|------|
-| `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too |
-| `models:build` | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow |
-| `library:build` | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset |
-| `catalog` | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
+| Command          | Does                                                                                                                             |
+|------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too                                     |
+| `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
+| `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
+| `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device
 
@@ -68,32 +68,33 @@ build/          generated models, asset library, renders — gitignored
 docs/
 ```
 
-Nothing generated is committed. `build/` is reproducible from the specs with one command, which is
-why the repository stays text-only and diffable.
+Nothing generated is committed. `build/` is reproducible from the specs with one command, which is why the repository
+stays text-only and diffable.
 
 ## Current state
 
 The whole PA is in the library — **6 specs, 25 cabinets, 1834 kg, 9.0 m³**:
 
-| Device | Owner | Qty | W × H × D (m) | kg each |
-|--------|-------|-----|---------------|---------|
-| Flexy Folded Horn Hybrid | sdwa5 | 14 | 0.590 × 0.763 × 0.964 | 85 |
-| SKRAM | sdwa5 | 2 | 0.610 × 0.813 × 0.914 | 90 |
-| Tecnare M2122 | sdwa5 | 2 | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68 |
-| Tecnare M2122 (clone) | sdwa5 | 1 | same as above | 68 (placeholder) |
-| Eighteensound 2-Way 15″ | sepp | 2 | 0.420 × 0.800 × 0.335 | 30 (est.) |
-| Achenbach 18 | sepp | 4 | 0.600 × 0.600 × 0.700 | 50 (est.) |
+| Device                   | Owner | Qty | W × H × D (m)                               | kg each          |
+|--------------------------|-------|-----|---------------------------------------------|------------------|
+| Flexy Folded Horn Hybrid | sdwa5 | 14  | 0.591 × 0.763 × 0.964                       | 85               |
+| SKRAM                    | sdwa5 | 2   | 0.610 × 0.813 × 0.914                       | 90               |
+| Tecnare M2122            | sdwa5 | 2   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               |
+| Tecnare M2122 (clone)    | sdwa5 | 1   | same as above                               | 68 (placeholder) |
+| Eighteensound 2-Way 15″  | sepp  | 2   | 0.420 × 0.800 × 0.335                       | 30 (est.)        |
+| Achenbach 18             | sepp  | 4   | 0.600 × 0.600 × 0.700                       | 50 (est.)        |
 
-The two factory Tecnare tops and the self-built third one are separate specs, because build,
-provenance and weight all differ and a setup should be able to tell them apart.
+The two factory Tecnare tops and the self-built third one are separate specs, because build, provenance and weight all
+differ and a setup should be able to tell them apart.
 
-Most are DIY builds of commercial designs, so their dimensions come from the designs themselves —
-CAD meshes, cut lists, published build plans and one datasheet ([docs/sources.md](docs/sources.md)
+Most are DIY builds of commercial designs, so their dimensions come from the designs themselves — CAD meshes, cut lists,
+published build plans and one datasheet ([docs/sources.md](docs/sources.md)
 records which, per device). Amps, DSP, racks and truss are documented in Drive but not modelled yet.
 
-**Nothing has been measured yet.** Every number describes a design or a datasheet, not the cabinet
-in the barn, and two weights are outright estimates. `catalog` reports the un-measured count on
-every run, so the gap between "we have models" and "we have accurate models" stays visible — see
+**Nothing has been measured yet** — dimensions 0 of 6, weights 0 of 6. Every number describes a design or a datasheet,
+not the cabinet in the barn, and three weights are outright estimates. Dimensions and weights are tracked separately,
+because a hanging scale settles a weight in a minute while taping fourteen subs is an afternoon; `catalog` reports both
+counts on every run, so the gap between "we have models" and "we have accurate models" stays visible — see
 [docs/measuring.md](docs/measuring.md) and [`TODO.md`](TODO.md).
 
 ## Documentation
@@ -107,7 +108,7 @@ every run, so the gap between "we have models" and "we have accurate models" sta
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 
 Org-level documentation lives in the parent repo's
-[`docs/`](https://github.com/bestcodename/sdwa5/tree/master/docs).
+[`docs/`](https://github.com/bestcodename/sdwa5/tree/main/docs).
 
 ## Development
 
@@ -117,6 +118,6 @@ ddev exec bin/console specs:validate             # same check CI runs
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
 ```
 
-Tests do not need Blender: the spec, catalog and orchestration layers are unit-tested, and the
-Blender invocation is tested through a fake process runner. PHP owns the specs, Python owns the
-geometry — see [docs/pipeline.md](docs/pipeline.md#why-php-and-python).
+Tests do not need Blender: the spec, catalog and orchestration layers are unit-tested, and the Blender invocation is
+tested through a fake process runner. PHP owns the specs, Python owns the geometry —
+see [docs/pipeline.md](docs/pipeline.md#why-php-and-python).

@@ -102,6 +102,15 @@ final class ArrayReader
     }
 
     /**
+     * Whether $key holds a nested mapping. Needed where a field accepts either a scalar shorthand
+     * or the expanded form, e.g. `provenance`.
+     */
+    public function isSection(string $key): bool
+    {
+        return $this->has($key) && is_array($this->data[$key]) && !array_is_list($this->data[$key]);
+    }
+
+    /**
      * Nested mapping as a reader of its own, so error messages keep the full key path.
      */
     public function requireSection(string $key): self

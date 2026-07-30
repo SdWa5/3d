@@ -24,7 +24,11 @@ clone_of:                     # required for build: clone, forbidden otherwise
                               # factory gear (build: original) omits this block entirely — its
                               # datasheet is its own, so there is no original to name
 
-provenance: datasheet         # measured | plans | datasheet | estimated
+provenance: datasheet         # shorthand: applies to dimensions and weight alike
+                              # or per field, when they differ:
+                              #   provenance:
+                              #     dimensions: plans
+                              #     weight: measured
 deviations: |                 # optional: how the build differs from the original
   Custom grille art, different corner hardware.
 
@@ -104,8 +108,8 @@ which is why the grille frame works the same way everywhere.
   used twice
 * a `subtype` that does not belong to its `category`
 * `build: clone` without `clone_of` — and `clone_of` on something that is not a clone
-* a **clone** with `provenance: datasheet`/`plans` but no `clone_of` to look them up in (factory
-  gear is exempt: its datasheet is its own)
+* a **clone** whose `provenance.dimensions` or `provenance.weight` is `datasheet`/`plans` but which
+  names no `clone_of` to look that up in (factory gear is exempt: its datasheet is its own)
 * an unknown `clone_of.reference`
 * `flyable` without points, points without `flyable`, `origin: rigging-point` without points
 * duplicate rigging point ids, and points outside the cabinet

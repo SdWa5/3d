@@ -112,11 +112,25 @@ different places and they are not equally trustworthy. `provenance` says which:
 
 For a **clone**, `datasheet` and `plans` require `clone_of` to name the original — otherwise there
 is nothing to look the numbers up in. Factory gear (`build: original`) is exempt: its datasheet is
-its own. `estimated` models are tagged in the viewport and listed by `catalog`.
+its own.
 
-Provenance describes the **geometry**. Where a single other value is weaker than the rest — a weight
-nobody has ever put on a scale, say — the spec says so in its `notes`, and it goes on the measuring
-list.
+### Dimensions and weight are tracked separately
+
+```yaml
+provenance:
+  dimensions: plans      # from the build plans
+  weight: measured       # hanging scale
+```
+
+Because the two diverge in practice. A hanging scale settles a cabinet's weight in a minute; taping
+fourteen subs is an afternoon. With one field for both, a weighed-but-unmeasured cabinet still read
+`plans` and the easy half of the work showed no progress at all. `catalog` now reports
+"Dimensions measured: n of m" and "Weights measured: n of m" separately.
+
+A single value is still accepted as shorthand for both, which is what a fresh spec usually wants.
+
+Only an estimated **shape** gets the orange viewport tag — an estimated weight does not distort the
+model, so it is reported by `catalog` rather than drawn.
 
 Measuring a cabinet promotes its spec to `measured` and changes nothing else. Weight and outer
 dimensions drift most between a DIY build and its original, so they are worth measuring first.

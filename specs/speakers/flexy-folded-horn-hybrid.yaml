@@ -16,7 +16,7 @@ clone_of:
 
 provenance: plans
 deviations: |
-  Width is 0.59 m — confirmed by the owner and by
+  Width is 0.591 m — confirmed by the owner and by
   PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx. The CAD mesh in Drive measures only 0.573 m
   across, so it is missing roughly 17 mm of the real cabinet (side cladding or a baffle the model
   leaves out). Height and depth are taken from that mesh, which agrees with the spreadsheet's
@@ -25,7 +25,7 @@ deviations: |
 geometry:
   # Block-level outer box. The cabinet is a folded horn internally; none of that is modelled.
   shape: box
-  dimensions_m: { width: 0.590, height: 0.763, depth: 0.964 }
+  dimensions_m: { width: 0.591, height: 0.763, depth: 0.964 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -35,11 +35,11 @@ appearance:
 physical:
   # 70 kg empty + 15 kg driver, per the comparison spreadsheet.
   weight_kg: 85.0
-  handles: [left, right]
+  handles: [ left, right ]
 
 rigging:
   flyable: false
-  points: []
+  points: [ ]
 
 audio:
   drivers:
