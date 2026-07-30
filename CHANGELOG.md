@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.15.3] - 2026-07-30
+
+### Changed
+
+- **All five Tecnare horns are square-mouthed and round-throated**, confirmed by the owner against the
+  cabinet — so the mid horn's round throat, added in 0.15.0 as an inference from its 2″ compression-driver
+  bolt flange, is now an observation, and the two 1″ HF phase plugs get the same treatment instead of
+  staying plain four-sided flares
+- `docs/sources.md` separates what is now known about this layout from what is not: the **shapes** are
+  confirmed, the **sizes** — every mouth, centre height, throat, depth and flare law — are still derived
+  from the outer dimensions and the driver sizes, which is why the layout's provenance stays `estimated`
+
 ## [0.15.2] - 2026-07-30
 
 ### Changed
