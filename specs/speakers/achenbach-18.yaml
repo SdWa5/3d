@@ -46,12 +46,15 @@ audio:
     - { size_in: 18, type: woofer, count: 1 }
 
   layout:
-    # ESTIMATED position: the CAD's driver cut-out looks central and the baffle is square, so the cone is
-    # placed at the centre. The diameter is the driver's nominal 18", not a measured cut-out.
-    provenance: estimated
-    inset_m: 0.018
+    # Measured out of the FreeCAD model's own mesh, not estimated: the baffle carrying the driver cut-out
+    # is the front-most panel of the cabinet, so inset_m is 0, and the cut-out is DIA 416 mm (16.38"),
+    # centred on the 600 x 600 baffle. 416 mm is the driver's cut-out, not its nominal 18" (457 mm) frame
+    # diameter — the frame sits behind the panel and only the cone shows through, so the cut-out is what
+    # is visible. Same reasoning as the 18sound's 353 mm.
+    provenance: plans
+    inset_m: 0.0
     features:
-      - { id: woofer, kind: cone, at_m: [0.0, 0.0], diameter_in: 18, depth_m: 0.11 }
+      - { id: woofer, kind: cone, at_m: [0.0, 0.0], diameter_in: 16.38, depth_m: 0.11 }
 
 mesh_override:
   # Converted from the FreeCAD model with `ddev mesh-convert`; its 600 x 700 x 600 mm matches this

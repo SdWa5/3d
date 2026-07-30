@@ -1,0 +1,9 @@
+# One 18sound on its own. Worth having as its own scene because its CAD recesses the baffle well behind
+# the front edges of the cabinet, which is only readable from the side or from close up.
+id: eighteensound-detail
+name: "Eighteensound 2-Way 15\" baffle detail"
+
+placements:
+  - id: eighteensound
+    device: eighteensound-2way-15
+    at: [0.0, 0.0]

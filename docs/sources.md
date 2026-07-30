@@ -108,6 +108,19 @@ Inlow Sound PDFs, a 149-part `PAS4MA1 e HB1505D1.dae` driver-and-horn assembly, 
 FreeCAD is installed neither on Stefan's machine nor in the ddev container, so the two `.FCStd`
 devices need one manual export each — see [`../meshes/README.md`](../meshes/README.md).
 
+### The 18sound's baffle sits 56 mm inside the cabinet
+
+Measured out of its mesh, this cabinet's front is stepped: the top and bottom panels project furthest
+forward with a curved front edge, the two side panels stop 30–35 mm behind them, and the baffle carrying
+the horn and driver cut-outs is **55.8 mm behind the front-most point**. So the openings on this cabinet
+sit visibly deeper than on any other in the library — its features are flush with its baffle, but the
+baffle itself is recessed behind a lip.
+
+That lip is also where this cabinet's disputed depth lives. The drawings say 335 mm; the CAD's bounding
+box says 426.8 mm; baffle-to-back is 371 mm. **Unconfirmed against the real cabinet** — if the front is
+actually flush, the CAD's top and bottom panels are too long and this spec's depth is ~56 mm too big. The
+features would not move either way: they belong on the baffle. See [`../TODO.md`](../TODO.md).
+
 ### Baffle layouts, per device
 
 `audio.layout` describes the openings on a cabinet's front. These numbers are the easiest in the whole
@@ -116,7 +129,7 @@ repository to invent, so each layout carries its own `provenance` separate from 
 | Device | Layout provenance | Where the numbers come from |
 |--------|-------------------|------------------------------|
 | `eighteensound-2way-15` | `plans` | The kit drawings' front view dimensions both openings and their spacing: octagonal horn cut-out 362 × 285 mm centred 142.5 mm below the baffle top, Ø353 mm driver hole 502.5 mm below it. The 800 mm baffle is centred in the 836 mm outer box, so baffle-frame z maps straight onto the cabinet's frame. The **horn itself is elliptical** even though the cut-out around it is the octagon the drawing dimensions (100.7 + 160.6 + 100.7) — owner, against the cabinet. Its **flare law is in no source** — `exponential` was chosen because an XT1464 is a flared horn |
-| `achenbach-18` | `estimated` | The CAD's driver cut-out looks central on a square baffle, so the cone is placed at the centre. The diameter is the driver's nominal 18″, not a measured cut-out |
+| `achenbach-18` | `plans` | Measured out of the FreeCAD mesh: the baffle carrying the cut-out is the cabinet's **front-most panel**, so its inset is 0, and the cut-out is Ø416 mm centred on the 600 × 600 baffle. 416 mm is the driver's cut-out, not its nominal 18″ (457 mm) frame — the frame sits behind the panel and only the cone shows through |
 | `tecnare-m2122` | `estimated` | **Nothing here is measured.** The arrangement is as the owner describes it — mid horn on top, two 12″ LF horns stacked below, a 1″ horn inside each as a phase plug — but every mouth size, centre height, throat and flare law is derived from the outer dimensions and the driver sizes. Two things are **not** estimates: the LF horns are straight-edged at the mouth and round at the driver (owner, against the cabinet), and the mid horn's throat is round because a compression driver's throat is a round bolt flange. A tape measure on one horn mouth would promote the rest to `measured` |
 
 The Flexy and SKRAM have no layout: their drivers sit deep inside a folded horn path and are not visible

@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-07-30
+
+### Fixed
+
+- **The Achenbach's cone sat 18 mm too deep and was 37 mm too wide.** Both numbers were guesses, and
+  measuring the FreeCAD mesh replaced them: the baffle carrying the cut-out is the cabinet's front-most
+  panel, so `inset_m` is 0, not one panel thickness; and the cut-out is Ø416 mm, not the driver's nominal
+  18″ (457 mm) frame diameter. The oversized cone had its rim buried in the baffle, so it read as a disc
+  set back in a hole instead of a driver filling one. Its layout provenance goes from `estimated` to
+  `plans`
+- The 18sound's `inset_m` is the measured 0.0558, not the rounded 0.056
+
+### Changed
+
+- `docs/sources.md` records what the 18sound's mesh actually says about its front: the baffle is 55.8 mm
+  behind the front-most point because the top and bottom panels project forward on a curved edge, which is
+  why its openings look deeper than every other cabinet's. Its features are flush with that baffle — the
+  baffle is what is deep. Whether the lip is real is now an open question in `TODO.md`, because it is also
+  where this cabinet's disputed depth lives
+- `scenes/eighteensound-detail.yaml`, since that step only reads from the side or up close
+
 ## [0.15.0] - 2026-07-30
 
 ### Added
