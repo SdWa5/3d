@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-07-30
+
+### Added
+
+- **`pitch_deg`** on a placement — down-tilt, so tops can be aimed into an audience instead of over it
+- **`aim: focus` and a scene-level `focus` block** — `{ distance_m: 10.0, height_m: 1.8, x_m: … }`. Every
+  cabinet that aims at the focus works out **its own yaw and down-tilt** from where it actually stands,
+  which is what "all the tops point at the middle of the dancefloor" means in practice. Stated as a
+  distance and a height rather than absolute coordinates, because that is how the decision is really made
+- **`aim_at: [x, y, z]`** for naming a point outright
+- `scenes/full-rig-aimed.yaml` — the mirrored wall with all three tops aimed at one point: symmetric
+  ±9.92° toe-in and ~1.1° down-tilt, resolved per cabinet
+- `src/Scene/Orientation.php` and `src/Scene/Focus.php`; 8 new tests (suite now 141)
+
+### Changed
+
+- **Rotation handling is now exact.** `PlacedDevice` rotates the cabinet's eight corners through pitch,
+  roll and yaw in Blender's own order, and everything derived from that — the lift back onto its slot,
+  the height for `on` stacking, the report's footprint and the camera framing — reads the same box. The
+  previous code approximated a yawed cabinet as `max(width, depth)` across and ignored pitch entirely
+- Distance to the focus is measured from the rig's **front face**, computed from ground positions and
+  unrotated depths only, so it cannot become circular with the aiming it feeds
+
+### Notes
+
+- ~1.1° of down-tilt at the default focus is correct, not a bug: a top whose middle is 2 m up, aiming at
+  1.8 m from 10 m away, drops 20 cm over that run. A nearer or lower focus steepens it
+
 ## [0.11.0] - 2026-07-30
 
 ### Added

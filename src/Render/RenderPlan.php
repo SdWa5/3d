@@ -66,9 +66,7 @@ final class RenderPlan
     /**
      * Bounding box of every cabinet, including its own extent rather than just its centre.
      *
-     * Yaw is ignored on purpose: accounting for it exactly would mean rotating four corners per
-     * cabinet for a result the framing margin absorbs anyway. A rotated cabinet is at most
-     * `max(w, d)` across, so using the larger of the two keeps the box generous rather than tight.
+     * Every rotation is accounted for exactly, since PlacedDevice already rotates the eight corners.
      *
      * @param list<PlacedDevice> $placed
      * @return array{min: array{float, float, float}, max: array{float, float, float}}
@@ -83,17 +81,13 @@ final class RenderPlan
         $max = [-INF, -INF, -INF];
 
         foreach ($placed as $entry) {
-            // The rolled extent, so a cabinet turned on its side is bounded as tall as it is wide.
-            [$extentX, $extentY, ] = $entry->extent();
-            $spread = ($entry->yawDeg === 0.0 ? $extentX : max($extentX, $extentY)) / 2;
-            $depth = ($entry->yawDeg === 0.0 ? $extentY : max($extentX, $extentY)) / 2;
-
-            $min[0] = min($min[0], $entry->position[0] - $spread);
-            $max[0] = max($max[0], $entry->position[0] + $spread);
-            $min[1] = min($min[1], $entry->position[1] - $depth);
-            $max[1] = max($max[1], $entry->position[1] + $depth);
-            $min[2] = min($min[2], $entry->position[2]);
-            $max[2] = max($max[2], $entry->topZ());
+            // The cabinet's exact rotated box, so an angled or turned-over one is bounded correctly
+            // rather than approximated.
+            $box = $entry->worldBox();
+            for ($axis = 0; $axis < 3; ++$axis) {
+                $min[$axis] = min($min[$axis], $box['min'][$axis]);
+                $max[$axis] = max($max[$axis], $box['max'][$axis]);
+            }
         }
 
         /** @var array{float, float, float} $min */

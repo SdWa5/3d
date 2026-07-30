@@ -7,60 +7,76 @@ namespace App\Scene;
 use App\Spec\DeviceSpec;
 
 /**
- * One cabinet resolved to an absolute world position — the output of the compiler and the input the
- * Blender script places.
+ * One cabinet resolved to an absolute world position and orientation — the output of the compiler and
+ * the input the Blender script places.
+ *
+ * Everything derived from the orientation goes through `box()`: where the cabinet has to be lifted to
+ * so it still rests on its slot, how tall it now stands, and how much floor it covers. One exact
+ * computation, so the compiler, the report and the camera framing cannot disagree.
  */
 final class PlacedDevice
 {
     /**
-     * @param array{float, float, float} $position bottom-center of the cabinet, in metres
+     * @param array{float, float, float} $position bottom-center of the cabinet's slot, in metres
      */
     public function __construct(
         public readonly string $placementId,
         public readonly DeviceSpec $device,
         public readonly array $position,
-        public readonly float $yawDeg,
-        public readonly float $rollDeg = 0.0,
+        public readonly Orientation $orientation,
     ) {
     }
 
     /**
-     * Extent along the cabinet's own left-right and up axes after rolling about its front-to-back
-     * axis. A cabinet turned on its side is as tall as it is wide, and the report and the camera
-     * framing both need to know that.
+     * The cabinet's extent relative to its slot, after rotation and after being lifted back onto it.
      *
-     * @return array{float, float, float} width, depth, height
+     * @return array{min: array{float, float, float}, max: array{float, float, float}}
      */
-    public function extent(): array
+    public function box(): array
     {
-        $radians = deg2rad($this->rollDeg);
-        $cos = abs(cos($radians));
-        $sin = abs(sin($radians));
-        $width = $this->device->dimensions->width;
-        $height = $this->device->dimensions->height;
+        $dimensions = $this->device->dimensions;
+        $halfWidth = $dimensions->width / 2;
+        $halfDepth = $dimensions->depth / 2;
 
-        return [
-            $width * $cos + $height * $sin,
-            $this->device->dimensions->depth,
-            $width * $sin + $height * $cos,
-        ];
+        $min = [INF, INF, INF];
+        $max = [-INF, -INF, -INF];
+
+        foreach ([-$halfWidth, $halfWidth] as $x) {
+            foreach ([-$halfDepth, $halfDepth] as $y) {
+                foreach ([0.0, $dimensions->height] as $z) {
+                    $corner = $this->orientation->apply([$x, $y, $z]);
+                    for ($axis = 0; $axis < 3; ++$axis) {
+                        $min[$axis] = min($min[$axis], $corner[$axis]);
+                        $max[$axis] = max($max[$axis], $corner[$axis]);
+                    }
+                }
+            }
+        }
+
+        // Rotating about the origin drops part of the cabinet below zero; put it back on its slot.
+        $lift = -$min[2];
+        $min[2] += $lift;
+        $max[2] += $lift;
+
+        /** @var array{float, float, float} $min */
+        /** @var array{float, float, float} $max */
+        return ['min' => $min, 'max' => $max];
     }
 
     /**
-     * How far the model has to be lifted so a rolled cabinet still rests on `position` instead of
-     * sinking through it. Geometry runs from z = 0 to the cabinet's height in its own frame, so any
-     * roll drops part of it below zero.
+     * How far the model has to be raised so an angled or upside-down cabinet still rests on its slot
+     * rather than sinking through it.
      */
     public function zLift(): float
     {
-        $radians = deg2rad($this->rollDeg);
-        $width = $this->device->dimensions->width;
-        $height = $this->device->dimensions->height;
-
+        $dimensions = $this->device->dimensions;
         $lowest = 0.0;
-        foreach ([-$width / 2, $width / 2] as $x) {
-            foreach ([0.0, $height] as $z) {
-                $lowest = min($lowest, -$x * sin($radians) + $z * cos($radians));
+
+        foreach ([-$dimensions->width / 2, $dimensions->width / 2] as $x) {
+            foreach ([-$dimensions->depth / 2, $dimensions->depth / 2] as $y) {
+                foreach ([0.0, $dimensions->height] as $z) {
+                    $lowest = min($lowest, $this->orientation->apply([$x, $y, $z])[2]);
+                }
             }
         }
 
@@ -68,11 +84,62 @@ final class PlacedDevice
     }
 
     /**
-     * Height of this cabinet's top surface — what anything stacked on it stands on.
+     * Width, depth and height the cabinet actually occupies once turned. A cabinet on its side is as
+     * tall as it is wide; a tilted one is both taller and deeper than it was.
+     *
+     * @return array{float, float, float}
+     */
+    public function extent(): array
+    {
+        ['min' => $min, 'max' => $max] = $this->box();
+
+        return [$max[0] - $min[0], $max[1] - $min[1], $max[2] - $min[2]];
+    }
+
+    /**
+     * Absolute bounding box in world space.
+     *
+     * @return array{min: array{float, float, float}, max: array{float, float, float}}
+     */
+    public function worldBox(): array
+    {
+        ['min' => $min, 'max' => $max] = $this->box();
+
+        return [
+            'min' => [
+                $this->position[0] + $min[0],
+                $this->position[1] + $min[1],
+                $this->position[2] + $min[2],
+            ],
+            'max' => [
+                $this->position[0] + $max[0],
+                $this->position[1] + $max[1],
+                $this->position[2] + $max[2],
+            ],
+        ];
+    }
+
+    /**
+     * Height of this cabinet's highest point — what anything stacked on it stands on.
      */
     public function topZ(): float
     {
-        return $this->position[2] + $this->extent()[2];
+        return $this->worldBox()['max'][2];
+    }
+
+    public function yawDeg(): float
+    {
+        return $this->orientation->yawDeg;
+    }
+
+    public function rollDeg(): float
+    {
+        return $this->orientation->rollDeg;
+    }
+
+    public function pitchDeg(): float
+    {
+        return $this->orientation->pitchDeg;
     }
 
     /**
@@ -83,10 +150,12 @@ final class PlacedDevice
         return [
             'placement_id' => $this->placementId,
             'device' => $this->device->id,
-            // The z the Blender side should use: the slot, plus whatever the roll costs.
-            'position_m' => [$this->position[0], $this->position[1], $this->position[2] + $this->zLift()],
-            'yaw_deg' => $this->yawDeg,
-            'roll_deg' => $this->rollDeg,
-        ];
+            // The z the Blender side should use: the slot, plus whatever the rotation costs.
+            'position_m' => [
+                $this->position[0],
+                $this->position[1],
+                $this->position[2] + $this->zLift(),
+            ],
+        ] + $this->orientation->toArray();
     }
 }

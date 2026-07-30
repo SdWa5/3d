@@ -54,11 +54,12 @@ def build(plan):
         instance.instance_type = "COLLECTION"
         instance.instance_collection = collection
         instance.location = tuple(placement["position_m"])
-        # Roll about Y (the front-to-back axis) then yaw about Z. Rolling about Y keeps the cabinet
-        # facing forward while turning it over, which is what mirrored horn pairs need; the PHP side
-        # already raised the position so a rolled cabinet still rests on its slot.
+        # Pitch about X (nose-down aiming), then roll about Y (turning a cabinet over for mirrored
+        # horn pairs), then yaw about Z (aiming left and right) — Blender's own XYZ order, which the
+        # PHP side matches. It has already raised the position so a rotated cabinet still rests on
+        # its slot.
         instance.rotation_euler = (
-            0.0,
+            math.radians(placement.get("pitch_deg", 0.0)),
             math.radians(placement.get("roll_deg", 0.0)),
             math.radians(placement["yaw_deg"]),
         )

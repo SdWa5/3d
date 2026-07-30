@@ -7,6 +7,7 @@ namespace App\Tests\Render;
 use App\Render\CameraPreset;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
+use App\Scene\Orientation;
 use App\Scene\PlacedDevice;
 use App\Spec\DeviceSpec;
 use App\Tests\Support\SpecFactory;
@@ -28,19 +29,19 @@ final class RenderPlanTest extends TestCase
         self::assertSame([2.5, 0.5, 2.0], $bounds['max']);
     }
 
-    public function testAYawedCabinetIsBoundedByItsLargerFootprint(): void
+    public function testAYawedCabinetIsBoundedExactly(): void
     {
-        // Rotating a 1.0 × 0.4 cabinet sweeps up to 1.0 in both directions; the box stays generous
-        // rather than tight so the framing margin can absorb the difference.
+        // A 1.0 x 0.4 cabinet turned 45 deg reaches (1.0 + 0.4) / 2 * cos(45 deg) = 0.4950 in both
+        // directions — the exact rotated box, not the old max(w, d) approximation.
         $device = SpecFactory::spec([
             'geometry' => ['dimensions_m' => ['width' => 1.0, 'height' => 1.0, 'depth' => 0.4]],
         ]);
 
-        $straight = RenderPlan::bounds([new PlacedDevice('a', $device, [0.0, 0.0, 0.0], 0.0)]);
-        $turned = RenderPlan::bounds([new PlacedDevice('a', $device, [0.0, 0.0, 0.0], 45.0)]);
+        $straight = RenderPlan::bounds([new PlacedDevice('a', $device, [0.0, 0.0, 0.0], new Orientation())]);
+        $turned = RenderPlan::bounds([new PlacedDevice('a', $device, [0.0, 0.0, 0.0], new Orientation(0.0, 0.0, 45.0))]);
 
-        self::assertSame(0.2, $straight['max'][1]);
-        self::assertSame(0.5, $turned['max'][1]);
+        self::assertEqualsWithDelta(0.2, $straight['max'][1], 1e-9);
+        self::assertEqualsWithDelta(0.4950, $turned['max'][1], 1e-4);
     }
 
     public function testCameraLooksAtTheSceneCentre(): void
@@ -241,6 +242,6 @@ final class RenderPlanTest extends TestCase
      */
     private function at(DeviceSpec $device, array $position): PlacedDevice
     {
-        return new PlacedDevice('p-'.$position[0].'-'.$position[2], $device, $position, 0.0);
+        return new PlacedDevice('p-'.$position[0].'-'.$position[2], $device, $position, new Orientation());
     }
 }

@@ -108,7 +108,7 @@ final class SceneCompilerTest extends TestCase
             ['id' => 'flipped', 'device' => 'sub', 'at' => [0.0, 0.0], 'roll_deg' => 180],
         ]);
 
-        self::assertSame(180.0, $placed[0]->rollDeg);
+        self::assertSame(180.0, $placed[0]->rollDeg());
         self::assertSame(0.0, $placed[0]->position[2], 'the slot is still the floor');
         self::assertEqualsWithDelta(0.6, $placed[0]->zLift(), 1e-9, 'lifted by its own height');
         self::assertEqualsWithDelta(0.6, $placed[0]->toArray()['position_m'][2], 1e-9);
@@ -138,13 +138,84 @@ final class SceneCompilerTest extends TestCase
         self::assertEqualsWithDelta(0.5, $placed[0]->topZ(), 1e-9);
     }
 
+    public function testAimingAtAPointResolvesYawAndTilt(): void
+    {
+        // The `top` fixture is 0.9 m high, so its mid-height — where aiming is measured from — is 0.45 m.
+        // A target 10 m in front, 2 m to the right and below that height: turn right, tilt down.
+        $down = $this->compile([
+            ['id' => 'aimed', 'device' => 'top', 'at' => [0.0, 0.0], 'aim_at' => [2.0, -10.0, 0.0]],
+        ]);
+
+        self::assertGreaterThan(0.0, $down[0]->yawDeg(), 'target is to the right, so yaw is positive');
+        self::assertEqualsWithDelta(rad2deg(atan2(2.0, 10.0)), $down[0]->yawDeg(), 1e-6);
+        self::assertGreaterThan(0.0, $down[0]->pitchDeg(), 'target below mid-height, so nose-down');
+
+        // And a target above it tilts the other way, which is what a floor-standing top under a
+        // balcony would need.
+        $up = $this->compile([
+            ['id' => 'aimed', 'device' => 'top', 'at' => [0.0, 0.0], 'aim_at' => [0.0, -10.0, 3.0]],
+        ]);
+
+        self::assertLessThan(0.0, $up[0]->pitchDeg(), 'target above mid-height, so nose-up');
+    }
+
+    public function testAimingIsMeasuredFromMidHeightNotTheBase(): void
+    {
+        // A target at exactly the cabinet's mid-height needs no tilt at all. Aiming from the base
+        // would produce a spurious upward tilt here.
+        $placed = $this->compile([
+            ['id' => 'level', 'device' => 'top', 'at' => [0.0, 0.0], 'aim_at' => [0.0, -10.0, 0.45]],
+        ]);
+
+        self::assertEqualsWithDelta(0.0, $placed[0]->pitchDeg(), 1e-9);
+    }
+
+    public function testARepeatedRowAimsEachCopySeparately(): void
+    {
+        $placed = $this->compile([
+            [
+                'id' => 'row', 'device' => 'top', 'at' => [-2.0, 0.0],
+                'aim_at' => [0.0, -10.0, 0.45],
+                'repeat' => ['count' => 3, 'step' => [2.0, 0.0, 0.0]],
+            ],
+        ]);
+
+        // Left of the target turns right, centred turns not at all, right of it turns left.
+        self::assertGreaterThan(0.0, $placed[0]->yawDeg());
+        self::assertEqualsWithDelta(0.0, $placed[1]->yawDeg(), 1e-9);
+        self::assertEqualsWithDelta(-$placed[0]->yawDeg(), $placed[2]->yawDeg(), 1e-9);
+    }
+
+    public function testPitchTiltsAndKeepsTheCabinetOnItsSlot(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tilted', 'device' => 'top', 'at' => [0.0, 0.0], 'pitch_deg' => 10.0],
+        ]);
+
+        self::assertSame(10.0, $placed[0]->pitchDeg());
+        self::assertGreaterThan(0.0, $placed[0]->zLift(), 'tilting drops a corner below the slot');
+        self::assertEqualsWithDelta(0.0, $placed[0]->worldBox()['min'][2], 1e-9, 'lowest point back on the slot');
+        self::assertGreaterThan(0.5, $placed[0]->extent()[1], 'a tilted cabinet reaches further front-to-back');
+    }
+
+    public function testAimingAndExplicitAnglesTogetherAreRejected(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+            ['id' => 'a', 'device' => 'top', 'at' => [0.0, 0.0], 'aim' => 'focus', 'yaw_deg' => 10.0],
+        ]));
+
+        $messages = array_map(static fn ($v): string => $v->message, $result['violations']);
+        self::assertNotSame([], $messages);
+        self::assertStringContainsString('aiming already sets yaw and pitch', $messages[0]);
+    }
+
     public function testYawIsCarriedThrough(): void
     {
         $placed = $this->compile([
             ['id' => 'angled', 'device' => 'top', 'at' => [0.0, 0.0], 'yaw_deg' => 30.0],
         ]);
 
-        self::assertSame(30.0, $placed[0]->yawDeg);
+        self::assertSame(30.0, $placed[0]->yawDeg());
     }
 
     /**

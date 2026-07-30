@@ -42,7 +42,11 @@ placements:
 | `placements[].at` | ground position `[x, y]` in metres |
 | `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs |
 | `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses |
+| `placements[].pitch_deg` | down-tilt. Positive is nose-down, for aiming into an audience rather than over it |
 | `placements[].roll_deg` | rotation about the front-to-back axis — 180 turns a cabinet upside down while it keeps facing forward |
+| `placements[].aim` | `focus` — turn towards the scene's focus point; the compiler works out yaw *and* down-tilt |
+| `placements[].aim_at` | `[x, y]` or `[x, y, z]` — aim at a named point instead |
+| `focus` *(scene level)* | `{ distance_m, height_m, x_m }` — where "aim: focus" points. Defaults: 10 m out, 1.8 m high, rig centre |
 | `placements[].repeat` | `{ count, step: [x, y, z] }` — repeat along a vector |
 | `notes` | anything worth knowing |
 
@@ -94,6 +98,61 @@ Two things the compiler handles so this stays honest:
   in its own frame, so turning it over would otherwise sink it through the floor.
 * `on` and the reports use the **rolled** extent, so a cabinet on its side is treated as tall as it is
   wide and anything stacked on it still lands correctly.
+
+## Aiming a cluster
+
+Tops usually need turning inwards and tilting down. Both can be stated per cabinet:
+
+```yaml
+  - id: top-left
+    device: tecnare-m2122
+    on: sub-row-top
+    yaw_deg: 10          # toe in
+    pitch_deg: 3         # nose down
+```
+
+…but for a cluster it is easier to name the point they should all cover, and let each cabinet work out
+its own angles from where it actually stands:
+
+```yaml
+focus:
+  distance_m: 10.0       # out from the rig's front face, into the crowd
+  height_m: 1.8          # ear height for a standing audience
+  # x_m: 0.0             # optional; defaults to the rig's own x centre
+
+placements:
+  - id: top-left
+    device: tecnare-m2122
+    on: sub-row-top
+    at: [-2.135, 0.0]
+    aim: focus
+```
+
+`scenes/full-rig-aimed.yaml` does exactly that, and resolves to:
+
+```
+  top-left     x=-2.135   yaw= +9.92°   pitch=+1.11°
+  top-centre   x=-0.302   yaw= +0.00°   pitch=+1.13°
+  top-right    x=+1.531   yaw= -9.92°   pitch=+1.11°
+```
+
+Symmetric toe-in, and the centre cabinet needs no turn because the default focus x *is* the rig's centre.
+
+Worth reading the pitch figures honestly: ~1.1° is almost nothing, and that is correct — a top whose
+middle sits 2 m up, aiming at ear height 10 m away, drops only 20 cm over that distance. Bring the focus
+closer or lower and the tilt steepens; that is the trade-off aiming actually is.
+
+Notes on how it behaves:
+
+* **Distance is measured from the rig's front face**, not the world origin, so a deeper rig does not
+  quietly pull the focus closer.
+* **Aim is resolved per copy**, so a `repeat`ed row of tops each turns towards the target rather than all
+  inheriting the first one's angle.
+* **Aim is measured from the cabinet's mid-height**, roughly where it radiates from — not from its base,
+  which would make a stacked top tilt as if it stood on the floor.
+* Combining `aim`/`aim_at` with `yaw_deg`/`pitch_deg` is rejected rather than silently resolved one way.
+* An angled cabinet is **lifted back onto its slot** and reports its **exact rotated footprint**, so
+  stacking and the camera framing stay correct.
 
 ## What it tells you before Blender opens
 

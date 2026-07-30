@@ -23,6 +23,7 @@ final class SceneSpec
         public readonly string $id,
         public readonly string $name,
         public readonly array $placements,
+        public readonly Focus $focus,
         public readonly ?string $notes,
     ) {
     }
@@ -44,6 +45,7 @@ final class SceneSpec
             id: $reader->requireString('id'),
             name: $reader->requireString('name'),
             placements: $placements,
+            focus: Focus::fromReader($reader->optionalSection('focus')),
             notes: $reader->optionalString('notes'),
         );
     }

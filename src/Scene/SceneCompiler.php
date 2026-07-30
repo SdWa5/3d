@@ -28,6 +28,11 @@ final class SceneCompiler
      */
     public function compile(SceneSpec $scene): array
     {
+        // Where the rig stands, worked out before any orientation exists. Aiming needs the focus
+        // point, the focus point needs the rig's front face, and the front face must not depend on
+        // aiming — otherwise the two would chase each other.
+        $focusPoint = $scene->focus->point($this->frontCentre($scene));
+
         $placed = [];
         $violations = [];
         /** @var array<string, PlacedDevice> $byId last repeat of each placement, for `on` */
@@ -58,6 +63,18 @@ final class SceneCompiler
                 continue;
             }
 
+            if ($placement->aimAt !== null && $placement->aimAtFocus) {
+                $add("placement '{$placement->id}': use either `aim: focus` or `aim_at`, not both");
+                continue;
+            }
+            if (
+                ($placement->aimAt !== null || $placement->aimAtFocus)
+                && ($placement->yawDeg !== 0.0 || $placement->pitchDeg !== 0.0)
+            ) {
+                $add("placement '{$placement->id}': aiming already sets yaw and pitch — remove yaw_deg/pitch_deg");
+                continue;
+            }
+
             $base = $this->resolveBase($placement, $device, $byId, $add);
             if ($base === null) {
                 continue;
@@ -69,11 +86,25 @@ final class SceneCompiler
                     ? sprintf('%s-%d', $placement->id, $index + 1)
                     : $placement->id;
 
-                $entry = new PlacedDevice($id, $device, [
+                $position = [
                     $base[0] + $step[0] * $index,
                     $base[1] + $step[1] * $index,
                     $base[2] + $step[2] * $index,
-                ], $placement->yawDeg, $placement->rollDeg);
+                ];
+
+                // Aim is resolved per copy, so a repeated row of tops each turns towards the target
+                // rather than all sharing the first one's angle.
+                $target = $placement->aimAt ?? ($placement->aimAtFocus ? $focusPoint : null);
+                $orientation = $target === null
+                    ? new Orientation($placement->pitchDeg, $placement->rollDeg, $placement->yawDeg)
+                    : Orientation::aimedAt(
+                        $position,
+                        $target,
+                        $device->dimensions->height,
+                        $placement->rollDeg,
+                    );
+
+                $entry = new PlacedDevice($id, $device, $position, $orientation);
 
                 $placed[] = $entry;
                 // `on` refers to the placement as a whole; the last repeat is the useful anchor.
@@ -82,6 +113,54 @@ final class SceneCompiler
         }
 
         return ['placed' => $placed, 'violations' => $violations];
+    }
+
+    /**
+     * The rig's x centre and the y of its front face, from ground positions and unrotated depths only.
+     *
+     * Deliberately independent of orientation: the focus point is derived from this, and aiming is
+     * derived from the focus point, so anything here that depended on aiming would be circular.
+     *
+     * @return array{float, float}
+     */
+    private function frontCentre(SceneSpec $scene): array
+    {
+        /** @var array<string, array{float, float}> $ground */
+        $ground = [];
+        $minX = $minY = INF;
+        $maxX = -INF;
+
+        foreach ($scene->placements as $placement) {
+            $device = $this->devicesById[$placement->deviceId] ?? null;
+            if ($device === null) {
+                continue;
+            }
+
+            $base = $placement->at;
+            if ($base === null && $placement->on !== null) {
+                $base = $ground[$placement->on] ?? null;
+            }
+            if ($base === null) {
+                continue;
+            }
+
+            $step = $placement->repeatStep ?? [0.0, 0.0, 0.0];
+            $copies = max(1, $placement->repeatCount);
+            for ($index = 0; $index < $copies; ++$index) {
+                $x = $base[0] + $step[0] * $index;
+                $y = $base[1] + $step[1] * $index;
+                $minX = min($minX, $x - $device->dimensions->width / 2);
+                $maxX = max($maxX, $x + $device->dimensions->width / 2);
+                $minY = min($minY, $y - $device->dimensions->depth / 2);
+                $ground[$placement->id] = [$x, $y];
+            }
+        }
+
+        if ($minX === INF) {
+            return [0.0, 0.0];
+        }
+
+        return [($minX + $maxX) / 2, $minY];
     }
 
     /**

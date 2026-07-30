@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Scene\Orientation;
 use App\Scene\PlacedDevice;
 use App\Scene\SceneReport;
 use App\Spec\DeviceSpec;
@@ -46,8 +47,8 @@ final class SceneReportTest extends TestCase
         $device = SpecFactory::spec([
             'geometry' => ['dimensions_m' => ['width' => 0.6, 'height' => 1.2, 'depth' => 1.0]],
         ]);
-        $upright = new PlacedDevice('a', $device, [0.0, 0.0, 0.0], 0.0);
-        $sideways = new PlacedDevice('a', $device, [0.0, 0.0, 0.0], 0.0, 90.0);
+        $upright = new PlacedDevice('a', $device, [0.0, 0.0, 0.0], new Orientation());
+        $sideways = new PlacedDevice('a', $device, [0.0, 0.0, 0.0], new Orientation(0.0, 90.0));
 
         $report = new SceneReport();
 
@@ -125,6 +126,6 @@ final class SceneReportTest extends TestCase
      */
     private function at(DeviceSpec $device, array $position): PlacedDevice
     {
-        return new PlacedDevice($device->id.'-'.$position[0].'-'.$position[2], $device, $position, 0.0);
+        return new PlacedDevice($device->id.'-'.$position[0].'-'.$position[2], $device, $position, new Orientation());
     }
 }
