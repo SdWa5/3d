@@ -99,9 +99,61 @@ one copy of the geometry — the shipped 17-cabinet scene is under 100 KB.
 
 ## Rendering
 
-The assembled `.blend` has no lighting or camera yet — add your own, or wait for the lighting template
-in [`../TODO.md`](../TODO.md). Rigging markers and the estimated tag are render-invisible, so they will
-not appear in an image.
+```bash
+ddev exec bin/console scene:render full-rig                       # three-quarter / studio, 1600x900
+ddev exec bin/console scene:render full-rig -c crowd -l stage     # eye height, event lighting
+ddev exec bin/console scene:render full-rig -c top -l daylight    # plan view on grass
+ddev exec bin/console scene:render --presets                      # list every preset
+```
+
+Output goes to `build/renders/<scene>-<camera>.png`. On the container's CPU a 17-cabinet scene takes
+about 8 seconds at the default 64 samples.
+
+### Camera presets (`-c`, `--camera`)
+
+| Preset | Looks from | Lens |
+|--------|-----------|------|
+| `three-quarter` *(default)* | front right, slightly above | 42 mm |
+| `front` | straight on, as the audience sees it | 42 mm |
+| `side` | stage right, showing cabinet depth | 42 mm |
+| `top` | plan view, for checking the footprint | 32 mm |
+| `crowd` | eye height (1.65 m), aimed slightly low | 50 mm |
+
+**Nothing is hardcoded to a particular rig.** Each preset is a *direction*; the distance is computed
+so the scene's own bounding sphere fits the narrower field of view, whatever the aspect ratio. The same
+preset therefore frames a single floor monitor and a fourteen-wide sub wall equally well — which is the
+whole reason the maths lives in PHP (`src/Render/RenderPlan.php`) where it can be tested, instead of in
+the Blender script where camera framing quietly drifts.
+
+`crowd` deliberately frames tighter than the others: standing in front of a 4 m sub wall it fills your
+view, and a shot that politely fits it all in undersells it.
+
+### Lighting presets (`-l`, `--lighting`)
+
+| Preset | For |
+|--------|-----|
+| `studio` *(default)* | neutral three-point — readable and honest |
+| `stage` | warm key with coloured rims, event-like |
+| `daylight` | sun and sky, for outdoor setups — which is most of them |
+| `flat` | even and shadowless, for inspecting geometry (a chamfer, a grille inset) |
+
+Light positions are multiples of the scene radius from its centre, and area-light power scales with the
+square of that radius — otherwise a big rig comes out dark at the settings that light one cabinet
+nicely. A sun is left alone, since irradiance does not fall off.
+
+### Other options
+
+| Option | Default | Notes |
+|--------|---------|-------|
+| `--samples` | 64 | Cycles samples; 16 is enough to check a layout, 200+ for something to show people |
+| `-r`, `--resolution` | `1600x900` | `WIDTHxHEIGHT` |
+| `--no-ground` | off | leave out the ground plane |
+| `-o`, `--out` | `build/renders/<scene>-<camera>.png` | single scene only |
+
+Rigging markers and the orange "estimated" tag are render-invisible, so they never appear in an image.
+
+Renders are gitignored along with the rest of `build/`. Cycles runs on the CPU because the container
+has no GPU — EEVEE Next needs one.
 
 Real reference layouts from past events live in Drive under
 `Hardware/Speaker Enclosures _ Lautsprecher-Gehäuse/setups/` as SVG — porting those into scene files is

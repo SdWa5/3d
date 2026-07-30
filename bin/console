@@ -9,15 +9,17 @@ use App\Command\CatalogCommand;
 use App\Command\LibraryBuildCommand;
 use App\Command\ModelsBuildCommand;
 use App\Command\SceneBuildCommand;
+use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('sdwa5-3d', '0.6.0');
+$app = new Application('sdwa5-3d', '0.7.0');
 $app->addCommands([
         new SpecsValidateCommand(),
         new ModelsBuildCommand(),
         new LibraryBuildCommand(),
         new SceneBuildCommand(),
+        new SceneRenderCommand(),
         new CatalogCommand(),
 ]);
 $app->run();

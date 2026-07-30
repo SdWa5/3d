@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-30
+
+### Added
+
+- **`scene:render`** — renders an assembled scene to `build/renders/<id>-<camera>.png`. A preview now
+  costs one command and no Blender knowledge; the 17-cabinet rig takes about 8 seconds on the
+  container's CPU
+- **Camera presets** (`-c`): `three-quarter` (default), `front`, `side`, `top`, `crowd`. Each is a
+  *direction*, not a position — the distance is computed so the scene's own bounding sphere fits the
+  narrower field of view, whatever the aspect ratio. The same preset therefore frames a single floor
+  monitor and a fourteen-wide sub wall equally well, and no scene ever needs a camera placed by hand
+- **Lighting presets** (`-l`): `studio` (default), `stage` (warm key, coloured rims), `daylight` (sun
+  and sky — where most SdWa5 events are), `flat` (even and shadowless, for inspecting a chamfer or a
+  grille inset). Light positions are multiples of the scene radius and area-light power scales with its
+  square, so a big rig is not dark at the settings that light one cabinet
+- `--samples`, `--resolution`, `--no-ground`, `--out`, and `--presets` to list what is available
+- `src/Render/` (`CameraPreset`, `LightingPreset`, `RenderPlan`) and `blender/render_scene.py`. The
+  framing maths lives in PHP so it is unit-testable — camera framing is exactly the kind of thing that
+  drifts silently when nobody can assert on it
+- `tests/Render/RenderPlanTest.php` — 12 tests covering bounds, framing distance scaling with scene
+  size, per-preset placement, eye-height handling and light power scaling. Suite is now 127 tests
+- `docs/scenes.md` gained a full Rendering section; `docs/blender.md` no longer says lighting has to be
+  set up by hand
+
+### Changed
+
+- The `crowd` preset frames deliberately tighter than 1:1 (margin 0.92): standing in front of a 4 m sub
+  wall it fills your view, and a shot that politely fits it all in undersells it
+
 ## [0.6.0] - 2026-07-30
 
 ### Added

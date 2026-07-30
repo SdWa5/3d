@@ -24,6 +24,10 @@ scenes/full-rig.yaml               a setup written down: which devices, where, s
         │  bin/console scene:build         blender --background --python blender/build_scene.py
         ▼
 build/scenes/full-rig.blend        cabinets placed at true scale, geometry instanced once per device
+        │
+        │  bin/console scene:render        blender --background --python blender/render_scene.py
+        ▼
+build/renders/full-rig-<camera>.png  preview image; camera and lights framed from the scene's own size
 ```
 
 Nothing under `build/` is committed. It is all reproducible from the specs, and regenerating it is
@@ -41,6 +45,8 @@ ddev exec bin/console models:build --id=top-a --id=sub-a
 ddev exec bin/console library:build       # assemble the asset library
 ddev exec bin/console scene:build         # assemble every scene
 ddev exec bin/console scene:build full-rig --dry-run   # report a setup without Blender
+ddev exec bin/console scene:render full-rig -c crowd -l stage   # preview image
+ddev exec bin/console scene:render --presets           # list camera and lighting presets
 ddev exec bin/console catalog             # table + weight/volume totals
 ddev exec bin/console catalog --write     # also write docs/catalog.md
 ```

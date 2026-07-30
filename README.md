@@ -29,6 +29,7 @@ ddev exec bin/console specs:validate      # check every spec (no Blender needed)
 ddev exec bin/console models:build        # build .glb + .blend for whatever changed
 ddev exec bin/console library:build       # assemble the Blender asset library
 ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
+ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
 ddev exec bin/console catalog             # equipment table with weight/volume totals
 ddev exec bin/console list                # all commands
 ```
@@ -38,8 +39,9 @@ and drag devices into a scene. Every device is one collection asset at true scal
 See [docs/blender.md](docs/blender.md).
 
 Or write the setup down instead of dragging it: `scenes/full-rig.yaml` is the whole PA — a 14-cabinet sub wall in two
-stacked rows plus three tops — in about twenty lines, and `scene:build` reports its weight, height and footprint before
-Blender is involved. See [docs/scenes.md](docs/scenes.md).
+stacked rows plus three tops — in about twenty lines. `scene:build` reports its weight, height and footprint before
+Blender is involved, and `scene:render` turns it into a preview image in about 8 seconds without you placing a single
+camera. See [docs/scenes.md](docs/scenes.md).
 
 ## Commands
 
@@ -49,6 +51,7 @@ Blender is involved. See [docs/scenes.md](docs/scenes.md).
 | `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
+| `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--presets` lists them |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device

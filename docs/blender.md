@@ -49,9 +49,9 @@ visual overview of the gear.
 
 ## Rendering a preview
 
-Nothing in this repo sets up lighting or cameras yet — that is what the scene work in
-[`../TODO.md`](../TODO.md) is for. For now, build a scene from the asset library, add your own
-lighting and render normally. Two things are already taken care of:
+`bin/console scene:render` does this for you with camera and lighting presets — see
+[scenes.md](scenes.md#rendering). To render by hand instead, build a scene from the asset library, add
+your own lighting and render normally. Two things are already taken care of:
 
 * Rigging markers and the orange "estimated" tag are **render-invisible**, so they will not show up
   in the image.

@@ -6,7 +6,8 @@
        kit
     2. verify `tecnare-m2122-clone` actually matches the factory cabinet's outer dimensions
 2. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
-    1. a lighting + camera template so a preview render needs no manual setup
+    1. more render polish: per-device colour so the sprayed grille art shows up, and a truss/stage
+       backdrop so a preview looks like a venue rather than a void
     2. report weight per flown point / per truss once anything is actually flown
     3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene
        files — they encode stack arrangements that already worked
