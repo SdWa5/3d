@@ -19,13 +19,17 @@ what is still missing.
 All five enclosures listed as owned, with dimensions from CAD, cut lists, published plans or a
 datasheet — see [sources.md](sources.md) for which is which:
 
-| Device | Owner | Qty |
-|--------|-------|-----|
-| Flexy Folded Horn Hybrid | sdwa5 | 14 |
-| SKRAM | sdwa5 | 2 |
-| Tecnare M2122 | sdwa5 | 2 |
-| Eighteensound 2-Way 15″ | sepp | 2 |
-| Achenbach 18 | sepp | 4 |
+| Device | Owner | Qty | Note |
+|--------|-------|-----|------|
+| Flexy Folded Horn Hybrid | sdwa5 | 14 | |
+| SKRAM | sdwa5 | 2 | |
+| Tecnare M2122 | sdwa5 | 2 | the two factory cabinets |
+| Tecnare M2122 (clone) | sdwa5 | 1 | self-built third top, separate spec |
+| Eighteensound 2-Way 15″ | sepp | 2 | |
+| Achenbach 18 | sepp | 4 | |
+
+25 cabinets, 1834 kg, 8.96 m³ in total. Note that `Hardware Overview.xlsx` lists 2 Tecnare, counting
+only the factory pair — the third, self-built one is not in the spreadsheet.
 
 SKHORN, GHORN and OTHORN appear in the comparison spreadsheet but were evaluated, not bought, so
 they are not in the library.
@@ -35,13 +39,13 @@ they are not in the library.
 1. **Every weight and dimension is still un-measured** — they describe designs and datasheets, not
    the cabinets we own. `catalog` lists them all as un-measured until somebody checks. See
    [measuring.md](measuring.md).
-2. **Two estimated weights** — `eighteensound-2way-15` (30 kg) and `achenbach-18` (50 kg) are not in
-   any source at all. Highest-value thing to weigh.
+2. **Three estimated weights** — `eighteensound-2way-15` (30 kg), `achenbach-18` (50 kg) and
+   `tecnare-m2122-clone` (68 kg, the factory figure as placeholder). Not in Drive, not published
+   anywhere: all 1166 files in the Shared Drive were searched, and Eighteen Sound publishes no
+   finished-cabinet weight for a DIY kit. **A hanging scale is the only source.** Possibly the
+   two-way tops were weighed at some point — if a number exists, it is not written down.
 3. **Amps, DSP, racks, truss, stands** — documented in Drive, not modelled. The schema already has
    `rack`, `truss` and `stand` categories; the geometry builder needs shapes for them.
-4. **Whether the Tecnare is factory or a clone** — recorded as `build: original` because the
-   Hardware Overview names Tecnare as the brand. If it is self-built from L2122LT dimensions, flip
-   `build` to `clone` and add a `clone_of` block.
 
 ## Drive access
 

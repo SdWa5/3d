@@ -29,8 +29,10 @@ appearance:
     color: "#0a0a0a"
 
 physical:
-  # ESTIMATE: 15 mm Baltic birch plywood over this shell plus internal baffles and the drivers
-  # (15W700 8.6 kg, ND1460 1 kg). Not weighed — see docs/measuring.md.
+  # ESTIMATE, calculated not guessed: ~1.42 m2 of 15 mm Baltic birch at ~680 kg/m3 = 14.4 kg,
+  # plus ~3 kg internal braces, plus drivers (15W700 8.6 kg + ND1460 1.0 kg + XT1464 horn ~1.5 kg),
+  # plus ~2 kg grille and hardware. Eighteen Sound publishes no finished-cabinet weight — it is a
+  # DIY kit, so the weight depends on the builder. Not weighed; see docs/measuring.md.
   weight_kg: 30.0
   handles: [left, right]
 

@@ -13,15 +13,17 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 
 | Device | Clones | Reference | Source | What came from it |
 |--------|--------|-----------|--------|-------------------|
-| `flexy-folded-horn-hybrid` | MrFlexySMP Folded Horn Hybrid | `cad` | `MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj` | Dimensions, measured off the mesh bounding box: 0.573 × 0.763 × 0.964 m |
-| | | | `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx` | Weight 85 kg (70 empty + 15 driver); lists width as 0.59 m — see the spec's `deviations` |
+| `flexy-folded-horn-hybrid` | MrFlexySMP Folded Horn Hybrid | `cad` | `MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj` | Height and depth off the mesh bounding box: 0.763 × 0.964 m. Its width reads 0.573 m and is **wrong** — see `deviations` |
+| | | | `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx`, confirmed by the owner | Width 0.59 m; weight 85 kg (70 empty + 15 driver) |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 14, 38–200 Hz, 1800 W, driver models |
 | `skram` | Josh Ricci SKRAM | `plans` | `Josh Ricci (SKRAM, OTHORN, GHORN, SKHORN)/Skram Panel List.csv` | Cut list: largest panel 914 × 813 mm at 18 mm, and 813 × 574 giving 574 + 2×18 = 610 mm width |
 | | | | Josh Ricci's published SKRAM design (24″ × 32″ × 36″) | Independent confirmation of the same 0.610 × 0.813 × 0.914 m |
 | | | | `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx` | Weight 90 kg (56 empty + 34 driver), 1800 W |
 | | | | `Josh Ricci (…)/SKRAM Driver.xlsx` | 21″ driver shortlist ranked by efficiency per euro |
 | `tecnare-m2122` | — (factory cabinet) | `datasheet` | [Tecnare L2122LT datasheet](https://www.tecnare.co/wp-content/uploads/2020/01/l2122lt.pdf) | 96 × 50 front / 34.5 rear × 52 cm, 68 kg, 60° × 40°, 150 Hz–20 kHz, crossover, impedance. Same cabinet geometry as the M2122 |
-| | | | `Hardware/Hardware Overview.xlsx` | Quantity 2, and the re-fitted driver complement (Celestion 12″, RCF ND650, B&C DE25) |
+| | | | `Hardware/Hardware Overview.xlsx` | The re-fitted driver complement (Celestion 12″, RCF ND650, B&C DE25). Its quantity of 2 counts only the factory pair |
+| `tecnare-m2122-clone` | Tecnare M2122 | `datasheet` | Same L2122LT datasheet, via its own originals | Geometry, assumed copied exactly. Weight is the factory figure used as a placeholder — a self-built cabinet rarely matches it |
+| | | | The owner | That three M2122-shaped tops exist: two factory, one self-built |
 | `eighteensound-2way-15` | Eighteen Sound 15″ 2 Ways Kit | `plans` | `18sound/18sound_15 2ways.pdf` — FRONT VIEW (p10) and SIDE VIEW (p12) | Dimensions read off the drawings: 420 × 800 × 335 mm; 15 mm Baltic birch; 96 mm vents |
 | | | | Same PDF, driver pages | 15W700 (8.6 kg) + ND1460 (1 kg) + XT1464 horn, crossover ≈ 1.5 kHz |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 2, owner, 60–20000 Hz, 550 W |
@@ -30,9 +32,18 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 
 ### Still unsourced
 
-Two weights are **estimates**, not measurements or published figures — `eighteensound-2way-15`
-(30 kg) and `achenbach-18` (50 kg). Neither appears in any spreadsheet or datasheet. Both are noted
-in their specs and belong on the measuring list in [measuring.md](measuring.md).
+Three weights are **estimates**, not measurements or published figures:
+
+| Device | kg | Basis |
+|--------|----|-------|
+| `eighteensound-2way-15` | 30 | Calculated: 1.42 m² of 15 mm birch ply at ~680 kg/m³ + braces + drivers + hardware |
+| `achenbach-18` | 50 | Calculated: 2.4 m² of 18 mm ply + internal horn panels + B&C 18TBW100 + hardware |
+| `tecnare-m2122-clone` | 68 | Placeholder: the factory figure, which a self-built cabinet rarely matches |
+
+The whole Shared Drive was searched for weight data — 1166 files, no hits in any spreadsheet,
+document or filename. Eighteen Sound publishes no finished-cabinet weight either, since the 15″
+2 Ways is a DIY kit whose weight depends on the builder. These three need the hanging scale; see
+[measuring.md](measuring.md).
 
 ### Not owned
 

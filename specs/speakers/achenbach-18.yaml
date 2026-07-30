@@ -27,8 +27,10 @@ appearance:
   color: "#111111"
 
 physical:
-  # ESTIMATE: 18 mm plywood over this shell plus internal horn panels and an 18" driver.
-  # Not weighed and not in any spreadsheet — see docs/measuring.md.
+  # ESTIMATE, calculated not guessed: ~2.4 m2 of 18 mm plywood at ~680 kg/m3 = 29.4 kg, plus ~8 kg
+  # of internal horn panels (the FreeCAD model has a 564x564 divider and several 268 mm pieces),
+  # plus ~12 kg for the B&C 18TBW100, plus ~2 kg hardware. Not weighed and in no spreadsheet —
+  # see docs/measuring.md.
   weight_kg: 50.0
   handles: [left, right]
 

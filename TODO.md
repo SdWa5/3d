@@ -1,9 +1,12 @@
 1. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a
    design or a datasheet, not our build; `catalog` lists what is still un-measured
-    1. weigh `eighteensound-2way-15` and `achenbach-18` first — those two weights are pure
-       estimates, in no source at all
-    2. check the Flexy width: the CAD mesh says 0.573 m, the comparison spreadsheet says 0.59 m
-    3. confirm whether the Tecnare M2122 is a factory cabinet or self-built from L2122LT dimensions
+    1. hanging-scale the three estimated weights first: `eighteensound-2way-15` (30 kg),
+       `achenbach-18` (50 kg) and `tecnare-m2122-clone` (68 kg, currently the factory figure).
+       None of the three exists in any source — the whole Shared Drive was searched, and Eighteen
+       Sound publishes no finished weight for a DIY kit
+    2. verify `tecnare-m2122-clone` actually matches the factory cabinet's outer dimensions
+    3. check the Flexy's own build against the design: the CAD mesh is 17 mm narrower than the
+       confirmed 0.59 m width, so the mesh omits something
 2. `scene:build` — declarative scene files in [scenes/](scenes)
     1. scene YAML (device id, position, rotation, stacked-on) → assembled `.blend`
     2. reproducible and diffable, unlike a hand-built scene; makes "try a different setup" a commit

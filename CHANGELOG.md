@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-30
+
+### Added
+
+- `specs/speakers/tecnare-m2122-clone.yaml` — three M2122-shaped tops exist, not two: two genuine
+  Tecnare cabinets plus one self-built. Kept as its own spec rather than raising the factory pair's
+  quantity, because build, provenance and weight all differ and a setup should be able to tell which
+  cabinet is which. `Hardware Overview.xlsx` counts only the factory pair
+- Inventory totals are now 6 specs, 25 cabinets, 1834 kg, 8.96 m³
+
+### Fixed
+
+- `flexy-folded-horn-hybrid`: width corrected to **0.590 m** (owner-confirmed, and what the
+  comparison spreadsheet said all along). The CAD mesh in Drive reads 0.573 m, so it omits ~17 mm of
+  the real cabinet; height and depth still come from the mesh, which agrees with the spreadsheet's
+  rounded figures while being more precise
+
+### Changed
+
+- The two remaining estimated weights are now **calculated rather than guessed**, with the working
+  written into the specs: plywood surface area × density, plus internal panels, drivers and hardware.
+  The whole Shared Drive (1166 files) was searched for weight data and has none, and Eighteen Sound
+  publishes no finished-cabinet weight for a DIY kit — a hanging scale is the only remaining source
+- `docs/sources.md`: per-device rows updated; the unsourced weights are now a table with their basis
+- `docs/inventory.md`, `README.md`, `TODO.md`: totals, the Tecnare split, and the measuring backlog
+
 ## [0.2.0] - 2026-07-30
 
 ### Added

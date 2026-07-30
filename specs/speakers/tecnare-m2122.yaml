@@ -1,5 +1,5 @@
-# Factory cabinet. Dimensions and weight from the Tecnare L2122LT datasheet, which shares this
-# cabinet's geometry. See docs/sources.md.
+# The two factory cabinets. Dimensions and weight from the Tecnare L2122LT datasheet, which shares
+# this cabinet's geometry. The third, self-built one is tecnare-m2122-clone. See docs/sources.md.
 id: tecnare-m2122
 name: "Tecnare M2122"
 category: speaker
@@ -50,6 +50,6 @@ mesh_override: null
 notes: |
   3-way mid-high top (two active sections plus one passive). 150 Hz - 20 kHz +/-4 dB.
   Impedance: mid 4 Ohm, high 8 Ohm. Crossover: active 185 Hz / 2.5 kHz, passive 6.5 kHz.
-  Assumed to be a genuine Tecnare cabinet rather than a DIY clone, since the Hardware Overview
-  names Tecnare as the brand — if it is actually self-built, change `build` to `clone` and add a
-  `clone_of` block naming the L2122LT.
+  Three of these tops exist in total: these two are genuine Tecnare cabinets, the third is
+  self-built and lives in tecnare-m2122-clone.yaml. Hardware Overview.xlsx lists "2", which counts
+  only the factory pair.

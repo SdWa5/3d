@@ -11,7 +11,7 @@ use App\Command\ModelsBuildCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('sdwa5-3d', '0.2.0');
+$app = new Application('sdwa5-3d', '0.3.0');
 $app->addCommands([
         new SpecsValidateCommand(),
         new ModelsBuildCommand(),

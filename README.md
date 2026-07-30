@@ -73,15 +73,19 @@ why the repository stays text-only and diffable.
 
 ## Current state
 
-The whole PA is in the library — **5 enclosures, 24 cabinets, 1766 kg, 8.5 m³**:
+The whole PA is in the library — **6 specs, 25 cabinets, 1834 kg, 9.0 m³**:
 
 | Device | Owner | Qty | W × H × D (m) | kg each |
 |--------|-------|-----|---------------|---------|
-| Flexy Folded Horn Hybrid | sdwa5 | 14 | 0.573 × 0.763 × 0.964 | 85 |
+| Flexy Folded Horn Hybrid | sdwa5 | 14 | 0.590 × 0.763 × 0.964 | 85 |
 | SKRAM | sdwa5 | 2 | 0.610 × 0.813 × 0.914 | 90 |
 | Tecnare M2122 | sdwa5 | 2 | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68 |
-| Eighteensound 2-Way 15″ | sepp | 2 | 0.420 × 0.800 × 0.335 | 30 |
-| Achenbach 18 | sepp | 4 | 0.600 × 0.600 × 0.700 | 50 |
+| Tecnare M2122 (clone) | sdwa5 | 1 | same as above | 68 (placeholder) |
+| Eighteensound 2-Way 15″ | sepp | 2 | 0.420 × 0.800 × 0.335 | 30 (est.) |
+| Achenbach 18 | sepp | 4 | 0.600 × 0.600 × 0.700 | 50 (est.) |
+
+The two factory Tecnare tops and the self-built third one are separate specs, because build,
+provenance and weight all differ and a setup should be able to tell them apart.
 
 Most are DIY builds of commercial designs, so their dimensions come from the designs themselves —
 CAD meshes, cut lists, published build plans and one datasheet ([docs/sources.md](docs/sources.md)

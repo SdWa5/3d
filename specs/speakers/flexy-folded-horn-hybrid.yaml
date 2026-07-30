@@ -16,13 +16,16 @@ clone_of:
 
 provenance: plans
 deviations: |
-  PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx lists the width as 0.59 m; the design's CAD
-  mesh measures 0.573 m. The CAD value is used here. 17 mm apart — worth a tape measure.
+  Width is 0.59 m — confirmed by the owner and by
+  PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx. The CAD mesh in Drive measures only 0.573 m
+  across, so it is missing roughly 17 mm of the real cabinet (side cladding or a baffle the model
+  leaves out). Height and depth are taken from that mesh, which agrees with the spreadsheet's
+  rounded 0.76 / 0.96 while being more precise.
 
 geometry:
   # Block-level outer box. The cabinet is a folded horn internally; none of that is modelled.
   shape: box
-  dimensions_m: { width: 0.573, height: 0.763, depth: 0.964 }
+  dimensions_m: { width: 0.590, height: 0.763, depth: 0.964 }
   origin: bottom-center
   chamfer_m: 0.012
 

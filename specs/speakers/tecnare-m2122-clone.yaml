@@ -1,0 +1,59 @@
+# The self-built third top, copying the two factory Tecnare M2122 cabinets. Geometry from the
+# Tecnare L2122LT datasheet, same as its originals. See docs/sources.md.
+id: tecnare-m2122-clone
+name: "Tecnare M2122 (clone)"
+category: speaker
+subtype: top
+quantity: 1
+owner: sdwa5
+build: clone
+
+clone_of:
+  manufacturer: Tecnare
+  model: M2122
+  reference: datasheet
+  url: https://www.tecnare.co/wp-content/uploads/2020/01/l2122lt.pdf
+
+provenance: datasheet
+deviations: |
+  Assumed to copy the factory cabinet's outer dimensions exactly — not verified against the built
+  box. weight_kg is a plywood-and-driver estimate, not the factory figure and not weighed: a
+  self-built cabinet rarely lands on the original's 68 kg. Both are on the measuring list.
+
+geometry:
+  shape: trapezoid
+  dimensions_m: { width: 0.500, height: 0.960, depth: 0.520 }
+  back_width_m: 0.345
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  color: "#141414"
+  grille:
+    inset_m: 0.012
+    color: "#0a0a0a"
+
+physical:
+  # ESTIMATE: taken as the factory weight for now; see deviations.
+  weight_kg: 68.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+audio:
+  coverage_deg: { horizontal: 60, vertical: 40 }
+  drivers:
+    - { size_in: 12, type: woofer, count: 2 }
+    - { size_in: 1.4, type: compression-driver, count: 1 }
+    - { size_in: 1, type: compression-driver, count: 2 }
+
+mesh_override: null
+
+notes: |
+  Third of three M2122-shaped tops; the other two (tecnare-m2122.yaml) are genuine Tecnare.
+  Kept as a separate spec rather than raising the factory pair's quantity to 3, because build,
+  provenance and weight all differ — and a setup should be able to tell which cabinet is which.
+  Driver complement assumed identical to the factory pair as re-fitted (Celestion 12", RCF ND650,
+  B&C DE25); confirm when measuring.
