@@ -1,0 +1,41 @@
+# Worked example — every number here is a guess off a photo, not a measurement.
+# See docs/measuring.md to promote this to `provenance: measured`, and docs/inventory.md
+# for filling in which original it clones.
+id: sub-a
+name: "Sub A"
+category: speaker
+subtype: sub
+quantity: 2
+build: clone
+
+clone_of:
+  manufacturer: unknown
+  model: unknown
+  reference: none
+  url: null
+
+provenance: estimated
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.65, height: 0.55, depth: 0.70 }
+  origin: bottom-center
+  chamfer_m: 0.01
+
+appearance:
+  color: "#0d0d0d"
+
+physical:
+  weight_kg: 55.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+mesh_override: null
+
+notes: |
+  Estimated from ~/Documents/SdWa5/2024-07-17_pa-lautsprecher-foto.jpeg — the plain black
+  cabinet on the grass. No grille visible, so no grille inset is declared. Quantity assumed
+  as a pair, unconfirmed.

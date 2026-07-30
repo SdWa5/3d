@@ -1,0 +1,19 @@
+name: sdwa5-3d
+type: php
+docroot: ""
+php_version: "8.3"
+webserver_type: nginx-fpm
+xdebug_enabled: false
+additional_hostnames: [ ]
+additional_fqdns: [ ]
+use_dns_when_possible: true
+composer_version: "2"
+web_environment: [ ]
+corepack_enable: false
+
+# CLI-only project — no database is needed.
+omit_containers: [ db ]
+
+hooks:
+  post-start:
+    - exec: "composer install --no-interaction --working-dir=/var/www/html"

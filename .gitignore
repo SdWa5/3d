@@ -1,0 +1,11 @@
+# Tooling caches and dependencies
+/.claude/
+/.phpunit.result.cache
+/vendor/
+
+# Generated models, asset library and renders — regenerate with `bin/console models:build`
+/build/
+
+# Blender leftovers
+*.blend1
+__pycache__/

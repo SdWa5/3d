@@ -1,0 +1,46 @@
+# Worked example — every number here is a guess off a photo, not a measurement.
+# See docs/measuring.md to promote this to `provenance: measured`, and docs/inventory.md
+# for filling in which original it clones.
+id: top-a
+name: "Top A"
+category: speaker
+subtype: top
+quantity: 2
+build: clone
+
+clone_of:
+  manufacturer: unknown
+  model: unknown
+  reference: none
+  url: null
+
+provenance: estimated
+deviations: |
+  Custom sprayed grille art, road-case corner hardware.
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.80, height: 0.58, depth: 0.45 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#111111"
+  grille:
+    inset_m: 0.014
+    color: "#0a0a0a"
+
+physical:
+  weight_kg: 35.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+mesh_override: null
+
+notes: |
+  Estimated from ~/Documents/SdWa5/2024-07-17_pa-lautsprecher-foto.jpeg — the cabinet on the
+  flight case. Quantity assumed as a stereo pair, unconfirmed. Driver complement not visible
+  behind the grille, so the audio section is left out rather than invented.

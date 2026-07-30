@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - run: composer install --prefer-dist --no-progress --no-interaction
+
+      - run: composer test
+
+      # Specs are validated without Blender, so this runs in CI too.
+      - run: bin/console specs:validate
