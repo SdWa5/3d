@@ -1,0 +1,50 @@
+# Dimensions cross-checked two ways: Josh Ricci's published SKRAM (24" x 32" x 36") and the
+# cut list in Drive (Skram Panel List.csv). Both agree. See docs/sources.md.
+id: skram
+name: SKRAM
+category: speaker
+subtype: sub
+quantity: 2
+owner: sdwa5
+build: clone
+
+clone_of:
+  manufacturer: "Josh Ricci"
+  model: SKRAM
+  reference: plans
+  url: null
+
+provenance: plans
+
+geometry:
+  # Block-level outer box; the internal horn path is not modelled.
+  shape: box
+  dimensions_m: { width: 0.610, height: 0.813, depth: 0.914 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#111111"
+
+physical:
+  # 56 kg empty + 34 kg driver, per the comparison spreadsheet.
+  weight_kg: 90.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+audio:
+  drivers:
+    - { size_in: 21, type: woofer, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Newest addition. 21" driver: Eighteensound 21NLW9601 (1800 W AES, 98 dB, 25 Hz Fs) — third in
+  SKRAM Driver.xlsx by efficiency per euro, and consistent with the 18Sound drivers already in the
+  Flexys. 1800 W continuous.
+  Cut list: 22 panel sizes, 18 mm for the structure and 12 mm for the horn flare pieces.
+  Not to be confused with SKHORN / GHORN / OTHORN, which were evaluated in the same spreadsheet
+  but are not owned.

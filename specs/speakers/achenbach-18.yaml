@@ -1,0 +1,50 @@
+# Dimensions derived from the panel geometry in the FreeCAD model in Drive
+# (Achenbach 18.FCStd): 600x700x18 top/bottom, 18x700x564 sides, so height = 564 + 2x18.
+# See docs/sources.md.
+id: achenbach-18
+name: "Achenbach 18"
+category: speaker
+subtype: sub
+quantity: 4
+owner: sepp
+build: clone
+
+clone_of:
+  manufacturer: Achenbach
+  model: "18"
+  reference: cad
+  url: null
+
+provenance: plans
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.600, height: 0.600, depth: 0.700 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#111111"
+
+physical:
+  # ESTIMATE: 18 mm plywood over this shell plus internal horn panels and an 18" driver.
+  # Not weighed and not in any spreadsheet — see docs/measuring.md.
+  weight_kg: 50.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+audio:
+  drivers:
+    - { size_in: 18, type: woofer, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Driver: B&C 18TBW100 (18", 1000 W, 8 Ohm, 35 - 1000 Hz), one per cabinet.
+  Hardware Overview lists 35 - 1000 Hz and 1000 W continuous.
+  weight_kg is an estimate; the dimensions are derived from the FreeCAD panel model, so they are
+  solid but describe the design rather than the built cabinets.
+  A FreeCAD model exists in Drive and could replace the generated block once mesh_override works.

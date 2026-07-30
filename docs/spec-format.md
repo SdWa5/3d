@@ -12,7 +12,8 @@ id: top-a                     # lowercase-dashes; must match the filename
 name: "Top A"                 # human label, shown in the catalog and asset browser
 category: speaker             # speaker | truss | rack | stand | other
 subtype: top                  # see the category table below
-quantity: 2                   # how many of these we own
+quantity: 2                   # how many of these exist
+owner: sdwa5                  # default sdwa5; lowercase-dashes. Borrowed gear names its owner
 build: clone                  # clone | own-design | original
 
 clone_of:                     # required for build: clone, forbidden otherwise
@@ -20,6 +21,8 @@ clone_of:                     # required for build: clone, forbidden otherwise
   model: X1
   reference: datasheet        # datasheet | plans | cad | none
   url: null                   # also recorded in docs/sources.md
+                              # factory gear (build: original) omits this block entirely — its
+                              # datasheet is its own, so there is no original to name
 
 provenance: datasheet         # measured | plans | datasheet | estimated
 deviations: |                 # optional: how the build differs from the original
@@ -97,10 +100,12 @@ which is why the grille frame works the same way everywhere.
 * dimensions that are zero or negative; a chamfer at or above half the smallest edge
 * a grille inset at or beyond half the depth; malformed `#rrggbb` colours
 * `weight_kg` of zero or less; `quantity` below 1
-* an `id` that is not lowercase-dashes, does not match its filename, or is used twice
+* an `id` or `owner` that is not lowercase-dashes; an `id` that does not match its filename or is
+  used twice
 * a `subtype` that does not belong to its `category`
 * `build: clone` without `clone_of` — and `clone_of` on something that is not a clone
-* `provenance: datasheet`/`plans` with no `clone_of` to look them up in
+* a **clone** with `provenance: datasheet`/`plans` but no `clone_of` to look them up in (factory
+  gear is exempt: its datasheet is its own)
 * an unknown `clone_of.reference`
 * `flyable` without points, points without `flyable`, `origin: rigging-point` without points
 * duplicate rigging point ids, and points outside the cabinet

@@ -50,6 +50,9 @@ final class CatalogCommand extends BaseCommand
         foreach ($summary['by_category'] as $category => $count) {
             $lines[] = sprintf('%-13s %d units', ucfirst($category).':', $count);
         }
+        foreach ($summary['by_owner'] as $owner => $totals) {
+            $lines[] = sprintf('%-13s %d units, %.1f kg', 'owner '.$owner.':', $totals['units'], $totals['weight_kg']);
+        }
         $this->io->text($lines);
 
         if ($summary['unmeasured'] > 0) {

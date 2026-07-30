@@ -23,6 +23,7 @@ final class SpecFactory
             'id' => 'top-a',
             'name' => 'Top A',
             'category' => 'speaker',
+            'owner' => 'sdwa5',
             'subtype' => 'top',
             'quantity' => 2,
             'build' => 'clone',

@@ -32,6 +32,28 @@ final class CatalogRendererTest extends TestCase
         self::assertSame(['speaker' => 6], $summary['by_category']);
     }
 
+    public function testSummarySplitsUnitsAndWeightByOwner(): void
+    {
+        // A setup that depends on borrowed cabinets should be able to say so.
+        $specs = [
+            SpecFactory::spec(['id' => 'top-a', 'quantity' => 2, 'physical' => ['weight_kg' => 35.0]]),
+            SpecFactory::spec([
+                'id' => 'sub-a',
+                'subtype' => 'sub',
+                'owner' => 'sepp',
+                'quantity' => 4,
+                'physical' => ['weight_kg' => 50.0],
+            ]),
+        ];
+
+        $summary = (new CatalogRenderer())->summary($specs);
+
+        self::assertSame(
+            ['sdwa5' => ['units' => 2, 'weight_kg' => 70.0], 'sepp' => ['units' => 4, 'weight_kg' => 200.0]],
+            $summary['by_owner'],
+        );
+    }
+
     public function testUnmeasuredCountsEverythingNotActuallyMeasured(): void
     {
         $specs = [
@@ -56,11 +78,12 @@ final class CatalogRendererTest extends TestCase
         self::assertSame('top-a', $rows[0][0]);
         self::assertSame('speaker/top', $rows[0][2]);
         self::assertSame('3', $rows[0][3]);
-        self::assertSame('0.8 × 0.6 × 0.45', $rows[0][4]);
-        self::assertSame('34', $rows[0][5], 'trailing zeros are noise in a table');
-        self::assertSame('102', $rows[0][6]);
-        self::assertSame('Acme X1', $rows[0][7]);
-        self::assertSame('datasheet', $rows[0][8]);
+        self::assertSame('sdwa5', $rows[0][4]);
+        self::assertSame('0.8 × 0.6 × 0.45', $rows[0][5]);
+        self::assertSame('34', $rows[0][6], 'trailing zeros are noise in a table');
+        self::assertSame('102', $rows[0][7]);
+        self::assertSame('Acme X1', $rows[0][8]);
+        self::assertSame('datasheet', $rows[0][9]);
     }
 
     public function testMarkdownHasATableAndTotals(): void

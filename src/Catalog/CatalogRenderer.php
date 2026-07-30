@@ -15,7 +15,7 @@ use App\Spec\Provenance;
  */
 final class CatalogRenderer
 {
-    private const HEADERS = ['ID', 'Name', 'Category', 'Qty', 'W×H×D (m)', 'kg', 'Σ kg', 'Clone of', 'Provenance'];
+    private const HEADERS = ['ID', 'Name', 'Category', 'Qty', 'Owner', 'W×H×D (m)', 'kg', 'Σ kg', 'Clone of', 'Provenance'];
 
     /**
      * @param list<DeviceSpec> $specs
@@ -30,6 +30,7 @@ final class CatalogRenderer
                 $spec->name,
                 $spec->category->value.'/'.$spec->subtype,
                 (string)$spec->quantity,
+                $spec->owner,
                 $this->formatDimensions($spec),
                 $this->formatNumber($spec->weightKg),
                 $this->formatNumber($spec->totalWeightKg()),
@@ -57,6 +58,7 @@ final class CatalogRenderer
      *     total_weight_kg: float,
      *     total_volume_m3: float,
      *     by_category: array<string, int>,
+     *     by_owner: array<string, array{units: int, weight_kg: float}>,
      *     unmeasured: int,
      *     unmeasured_ids: list<string>
      * }
@@ -67,6 +69,7 @@ final class CatalogRenderer
         $weight = 0.0;
         $volume = 0.0;
         $byCategory = [];
+        $byOwner = [];
         $unmeasuredIds = [];
 
         foreach ($specs as $spec) {
@@ -74,11 +77,19 @@ final class CatalogRenderer
             $weight += $spec->totalWeightKg();
             $volume += $spec->dimensions->volumeM3() * $spec->quantity;
             $byCategory[$spec->category->value] = ($byCategory[$spec->category->value] ?? 0) + $spec->quantity;
+
+            $owner = $byOwner[$spec->owner] ?? ['units' => 0, 'weight_kg' => 0.0];
+            $byOwner[$spec->owner] = [
+                'units' => $owner['units'] + $spec->quantity,
+                'weight_kg' => $owner['weight_kg'] + $spec->totalWeightKg(),
+            ];
+
             if (!$spec->provenance->isMeasured()) {
                 $unmeasuredIds[] = $spec->id;
             }
         }
         ksort($byCategory);
+        ksort($byOwner);
 
         return [
             'devices' => count($specs),
@@ -86,6 +97,7 @@ final class CatalogRenderer
             'total_weight_kg' => $weight,
             'total_volume_m3' => $volume,
             'by_category' => $byCategory,
+            'by_owner' => $byOwner,
             'unmeasured' => count($unmeasuredIds),
             'unmeasured_ids' => $unmeasuredIds,
         ];
@@ -128,6 +140,14 @@ final class CatalogRenderer
         $lines[] = sprintf('- Total volume: %s m³', $this->formatNumber($summary['total_volume_m3'], 3));
         foreach ($summary['by_category'] as $category => $count) {
             $lines[] = sprintf('- %s: %d units', ucfirst($category), $count);
+        }
+        foreach ($summary['by_owner'] as $owner => $totals) {
+            $lines[] = sprintf(
+                '- Owner %s: %d units, %s kg',
+                $owner,
+                $totals['units'],
+                $this->formatNumber($totals['weight_kg']),
+            );
         }
         $lines[] = sprintf(
             '- Not yet measured: %d of %d (%s)',

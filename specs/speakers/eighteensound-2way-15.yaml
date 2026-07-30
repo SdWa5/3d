@@ -1,0 +1,52 @@
+# Built from Eighteen Sound's published "15 inch 2 Ways Kit" application note. Dimensions read
+# off its FRONT VIEW and SIDE VIEW drawings. See docs/sources.md.
+id: eighteensound-2way-15
+name: "Eighteensound 2-Way 15\""
+category: speaker
+subtype: top
+quantity: 2
+owner: sepp
+build: clone
+
+clone_of:
+  manufacturer: "Eighteen Sound"
+  model: "15\" 2 Ways Kit"
+  reference: plans
+  url: null
+
+provenance: plans
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.420, height: 0.800, depth: 0.335 }
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  color: "#111111"
+  grille:
+    inset_m: 0.012
+    color: "#0a0a0a"
+
+physical:
+  # ESTIMATE: 15 mm Baltic birch plywood over this shell plus internal baffles and the drivers
+  # (15W700 8.6 kg, ND1460 1 kg). Not weighed — see docs/measuring.md.
+  weight_kg: 30.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+audio:
+  drivers:
+    - { size_in: 15, type: woofer, count: 1 }
+    - { size_in: 1.4, type: compression-driver, count: 1 }
+
+mesh_override: null
+
+notes: |
+  15W700 woofer plus ND1460 compression driver on an XT1464 horn, crossover around 1.5 kHz.
+  Enclosure is 15 mm Baltic birch plywood with two 96 mm internal-diameter vent pipes.
+  Hardware Overview lists 60 - 20000 Hz and 550 W continuous.
+  weight_kg is the only estimated value here — the dimensions come from the kit drawings.

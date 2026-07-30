@@ -64,6 +64,10 @@ final class SpecValidator
             $add("quantity must be at least 1, got {$spec->quantity}");
         }
 
+        if (preg_match(self::ID_PATTERN, $spec->owner) !== 1) {
+            $add("owner '{$spec->owner}' must be lowercase words separated by single dashes");
+        }
+
         $allowedSubtypes = $spec->category->allowedSubtypes();
         if ($allowedSubtypes !== null && !in_array($spec->subtype, $allowedSubtypes, true)) {
             $allowed = implode(', ', $allowedSubtypes);
@@ -191,8 +195,13 @@ final class SpecValidator
             }
         }
 
-        // Datasheet and plans values can only come from an original, so they need one named.
-        if (in_array($spec->provenance, [Provenance::Datasheet, Provenance::Plans], true) && $spec->cloneOf === null) {
+        // A clone's datasheet numbers must come from the original it copies, so that original has
+        // to be named. Factory gear is exempt: the datasheet is its own, and there is no clone.
+        if (
+            $spec->isClone()
+            && in_array($spec->provenance, [Provenance::Datasheet, Provenance::Plans], true)
+            && $spec->cloneOf === null
+        ) {
             $messages[] = "provenance is '{$spec->provenance->value}' but no clone_of names where those numbers came from";
         }
 

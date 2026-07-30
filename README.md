@@ -73,14 +73,24 @@ why the repository stays text-only and diffable.
 
 ## Current state
 
-The two specs in the repository are **worked examples estimated off a photo**, not an inventory.
-Most SdWa5 cabinets are DIY builds of commercial designs, so the fastest way to a real library is to
-identify which original each one clones and take the numbers from its datasheet — the gear list for
-that lives in the SdWa5 Shared Drive and is not imported yet. See
-[docs/inventory.md](docs/inventory.md) and [`TODO.md`](TODO.md).
+The whole PA is in the library — **5 enclosures, 24 cabinets, 1766 kg, 8.5 m³**:
 
-`catalog` always reports how many devices have never been measured, so the gap between "we have
-models" and "we have accurate models" stays visible.
+| Device | Owner | Qty | W × H × D (m) | kg each |
+|--------|-------|-----|---------------|---------|
+| Flexy Folded Horn Hybrid | sdwa5 | 14 | 0.573 × 0.763 × 0.964 | 85 |
+| SKRAM | sdwa5 | 2 | 0.610 × 0.813 × 0.914 | 90 |
+| Tecnare M2122 | sdwa5 | 2 | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68 |
+| Eighteensound 2-Way 15″ | sepp | 2 | 0.420 × 0.800 × 0.335 | 30 |
+| Achenbach 18 | sepp | 4 | 0.600 × 0.600 × 0.700 | 50 |
+
+Most are DIY builds of commercial designs, so their dimensions come from the designs themselves —
+CAD meshes, cut lists, published build plans and one datasheet ([docs/sources.md](docs/sources.md)
+records which, per device). Amps, DSP, racks and truss are documented in Drive but not modelled yet.
+
+**Nothing has been measured yet.** Every number describes a design or a datasheet, not the cabinet
+in the barn, and two weights are outright estimates. `catalog` reports the un-measured count on
+every run, so the gap between "we have models" and "we have accurate models" stays visible — see
+[docs/measuring.md](docs/measuring.md) and [`TODO.md`](TODO.md).
 
 ## Documentation
 

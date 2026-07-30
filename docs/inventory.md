@@ -1,82 +1,87 @@
 # Inventory
 
-The list of gear SdWa5 actually owns lives in the **SdWa5 Shared Drive** (Geteilte Ablage), not in
-this repo. Until it is imported, the specs under [`specs/`](../specs) are two worked examples
-estimated off a photo — placeholders, not an inventory.
+The gear list lives in the **SdWa5** Shared Drive (Geteilte Ablage), under `Hardware/`. It has been
+read and turned into the specs in [`specs/`](../specs) — this page records where it came from and
+what is still missing.
 
-## What is needed from the list
+## What is in Drive
 
-In order of value:
+| Path | Contents |
+|------|----------|
+| `Hardware/Hardware Overview.xlsx` | The inventory proper: enclosure models, brands, **quantities owned** ("Anzahl in Besitz"), frequency ranges, power handling, per-channel driver counts, and every driver with model, brand, quantity, impedance and diameter |
+| `Hardware/Speaker Enclosures _ Lautsprecher-Gehäuse/PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx` | Dimensions, empty/driver/total weights and RMS power for Flexy, SKRAM, SKHORN and GHORN, with efficiency-per-kg and per-m³ columns |
+| `…/<design>/` | Per-design folders with build plans, cut lists, CAD (`.FCStd`, `.obj`), DWG/DXF, datasheets and photos — see [sources.md](sources.md) |
+| `…/setups/` | ~13 event stack layouts as SVG/PNG (PSL, Staudham, Kraut, Unite Parade, Ballonfabrik, NND, Poltek, Sirius, Houbatik, WHG, Rotek, Mark, Scheiterhaufen) |
+| `Hardware/Amps _ Verstärker _ DSP/` | Gisen MM14K (settings + photos), Behringer Europower 4000, t.amp Proline 3000 |
 
-1. **Which original each cabinet clones** — brand *and* model. This is the unlock: with those names,
-   dimensions, weight, driver complement and coverage angles can be filled in from the originals'
-   datasheets, which is faster *and* more accurate than measuring, and gets the whole library to
-   `provenance: datasheet` in one pass. Measuring then becomes a per-box correction job
-   (see [measuring.md](measuring.md)) instead of the only way in.
-2. **Quantities** — how many of each we own. Drives the weight and volume totals in `catalog`.
-3. Anything already recorded about dimensions or weight.
+## What is in the specs
 
-A cabinet whose original nobody has written down yet is still recorded as
-`build: clone` with `clone_of.manufacturer: unknown` — that keeps the gap visible instead of
-pretending it is an own design. `catalog` shows those as `unknown`.
+All five enclosures listed as owned, with dimensions from CAD, cut lists, published plans or a
+datasheet — see [sources.md](sources.md) for which is which:
 
-## Getting at the Drive
+| Device | Owner | Qty |
+|--------|-------|-----|
+| Flexy Folded Horn Hybrid | sdwa5 | 14 |
+| SKRAM | sdwa5 | 2 |
+| Tecnare M2122 | sdwa5 | 2 |
+| Eighteensound 2-Way 15″ | sepp | 2 |
+| Achenbach 18 | sepp | 4 |
 
-`rclone` is the org's Drive convention already — the VPS backup uses a remote called `SdWa5`
-(see [`sdwa5-vps/docs/backup.md`](https://github.com/bestcodename/sdwa5-vps/blob/main/docs/backup.md)).
+SKHORN, GHORN and OTHORN appear in the comparison spreadsheet but were evaluated, not bought, so
+they are not in the library.
 
-### Preferred: a read-only service account
+## What is still missing
 
-No browser OAuth, independently revocable, and it never touches a personal account's tokens.
+1. **Every weight and dimension is still un-measured** — they describe designs and datasheets, not
+   the cabinets we own. `catalog` lists them all as un-measured until somebody checks. See
+   [measuring.md](measuring.md).
+2. **Two estimated weights** — `eighteensound-2way-15` (30 kg) and `achenbach-18` (50 kg) are not in
+   any source at all. Highest-value thing to weigh.
+3. **Amps, DSP, racks, truss, stands** — documented in Drive, not modelled. The schema already has
+   `rack`, `truss` and `stand` categories; the geometry builder needs shapes for them.
+4. **Whether the Tecnare is factory or a clone** — recorded as `build: original` because the
+   Hardware Overview names Tecnare as the brand. If it is self-built from L2122LT dimensions, flip
+   `build` to `clone` and add a `clone_of` block.
 
-1. In a Google Cloud project on the `sdwa5.org` Workspace: enable the **Drive API**, create a
-   **service account**, create a **JSON key**.
-2. In Drive, add the service account's e-mail as **Viewer** on the Shared Drive `SdWa5` — or on just
-   the folder holding the gear list.
-3. Store the key **outside this repo**: `~/.config/rclone/sdwa5-drive-sa.json`, `chmod 600`, with a
-   copy in Vaultwarden. It must never be committed.
-4. Configure the remote:
+## Drive access
 
-   ```ini
-   [sdwa5-drive]
-   type = drive
-   scope = drive.readonly
-   service_account_file = /home/<user>/.config/rclone/sdwa5-drive-sa.json
-   team_drive = <shared drive id>
-   ```
+`rclone` is the org's Drive convention — the VPS backup uses the same tool (see
+[`sdwa5-vps/docs/backup.md`](https://github.com/bestcodename/sdwa5-vps/blob/main/docs/backup.md)).
 
-5. Check it:
+A read-only remote named `SdWa5` is configured on Stefan's workstation:
 
-   ```bash
-   rclone lsd sdwa5-drive:
-   rclone ls sdwa5-drive: | grep -iE 'material|inventar|technik|equipment|liste'
-   ```
+```ini
+[SdWa5]
+type = drive
+scope = drive.readonly
+team_drive = 0AFDifygC0zQZUk9PVA    # the SdWa5 Shared Drive
+```
 
-### Fallback: reuse the VPS remote
+Created with `rclone config` — note it needs a real terminal, since it is an interactive menu.
+Useful calls:
 
-The VPS already has a working `SdWa5` OAuth remote at `/opt/docker/rclone-config/rclone.conf`, which
-could be copied to a workstation. Faster, but it is a read-write backup token living somewhere it
-does not need to — the service account is the better hygiene.
+```bash
+rclone lsd SdWa5:                                   # top-level folders
+rclone lsf SdWa5:Hardware -R                        # everything under Hardware
+rclone copy "SdWa5:Hardware/Hardware Overview.xlsx" .
+rclone cat --drive-export-formats csv SdWa5:path/to/sheet   # Google Sheets as CSV
+```
 
-Either way, the credential stays out of this repository. Nothing here reads Drive on its own.
+The OAuth token lives in `~/.config/rclone/rclone.conf` and **is not in this repository**. For a
+headless or shared setup, prefer a service account instead: enable the Drive API, create a service
+account and JSON key, add its address as **Viewer** on the Shared Drive, and point the remote at the
+key with `service_account_file`. That avoids a personal token entirely and is revocable on its own.
 
 ## Importing
 
-Not implemented yet — it is the first item in [`../TODO.md`](../TODO.md) that depends on access.
-The intended shape:
-
-```bash
-ddev exec bin/console inventory:import ~/Downloads/gear-list.csv
-```
-
-It should create or update one spec per row, fill `clone_of`, `quantity` and whatever dimensions the
-list already carries, set `provenance` according to where each number came from, and leave every
-field it has no source for absent rather than guessed.
+`inventory:import` is not implemented — the first import was done by hand, because the source is
+several spreadsheets and CAD files rather than one list, and each number needed a provenance
+decision. It stays on [`../TODO.md`](../TODO.md) for the next time the gear list grows.
 
 ## Related data elsewhere
 
 * **Dolibarr** (`https://erp.sdwa5.org`) has product/stock modules but is used for accounting; no
-  gear inventory is recorded there today.
+  gear inventory is recorded there.
 * The merch catalogue in
   [`sdwa5-vps/docs/shopware/merch.md`](https://github.com/bestcodename/sdwa5-vps/blob/main/docs/shopware/merch.md)
   is shop products, not equipment — its "Mini Speaker" is a €5 novelty item.

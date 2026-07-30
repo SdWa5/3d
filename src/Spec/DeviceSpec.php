@@ -14,6 +14,13 @@ namespace App\Spec;
 final class DeviceSpec
 {
     /**
+     * Whose gear it is. Some cabinets at an SdWa5 event are lent by a member, and a setup that
+     * quietly depends on borrowed boxes is a setup that can fall apart — so ownership is recorded
+     * rather than pooled.
+     */
+    public const DEFAULT_OWNER = 'sdwa5';
+
+    /**
      * @param list<string> $handles
      * @param list<RiggingPoint> $riggingPoints
      * @param list<Driver> $drivers
@@ -25,6 +32,7 @@ final class DeviceSpec
         public readonly Category $category,
         public readonly string $subtype,
         public readonly int $quantity,
+        public readonly string $owner,
         public readonly BuildKind $build,
         public readonly ?CloneOf $cloneOf,
         public readonly Provenance $provenance,
@@ -74,6 +82,7 @@ final class DeviceSpec
             category: $reader->requireEnum('category', Category::class),
             subtype: $reader->requireString('subtype'),
             quantity: $reader->optionalInt('quantity', 1) ?? 1,
+            owner: $reader->optionalString('owner', self::DEFAULT_OWNER) ?? self::DEFAULT_OWNER,
             build: $build,
             cloneOf: $cloneOfSection !== null ? CloneOf::fromReader($cloneOfSection) : null,
             provenance: $reader->requireEnum('provenance', Provenance::class),
@@ -159,6 +168,7 @@ final class DeviceSpec
             'category' => $this->category->value,
             'subtype' => $this->subtype,
             'quantity' => $this->quantity,
+            'owner' => $this->owner,
             'build' => $this->build->value,
             'clone_of' => $this->cloneOf?->toArray(),
             'provenance' => $this->provenance->value,

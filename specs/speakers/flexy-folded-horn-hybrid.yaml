@@ -1,0 +1,51 @@
+# Dimensions from the design's own CAD mesh (3d models/subwoofer v28.obj in the Drive folder).
+# See docs/sources.md.
+id: flexy-folded-horn-hybrid
+name: "Flexy Folded Horn Hybrid"
+category: speaker
+subtype: sub
+quantity: 14
+owner: sdwa5
+build: clone
+
+clone_of:
+  manufacturer: MrFlexySMP
+  model: "Folded Horn Hybrid"
+  reference: cad
+  url: null
+
+provenance: plans
+deviations: |
+  PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx lists the width as 0.59 m; the design's CAD
+  mesh measures 0.573 m. The CAD value is used here. 17 mm apart — worth a tape measure.
+
+geometry:
+  # Block-level outer box. The cabinet is a folded horn internally; none of that is modelled.
+  shape: box
+  dimensions_m: { width: 0.573, height: 0.763, depth: 0.964 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#111111"
+
+physical:
+  # 70 kg empty + 15 kg driver, per the comparison spreadsheet.
+  weight_kg: 85.0
+  handles: [left, right]
+
+rigging:
+  flyable: false
+  points: []
+
+audio:
+  drivers:
+    - { size_in: 18, type: woofer, count: 1 }
+
+mesh_override: null
+
+notes: |
+  The backbone of the PA — 14 cabinets, 1190 kg of sub on its own.
+  Drivers across the 14: 6x Eighteensound 18NLW9601 and 8x 18NLW9600 (both 18", 1800 W, 8 Ohm).
+  38-200 Hz, 1800 W continuous per cabinet.
+  A CAD mesh exists in Drive and could replace the generated block once mesh_override is wired up.

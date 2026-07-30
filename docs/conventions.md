@@ -110,8 +110,13 @@ different places and they are not equally trustworthy. `provenance` says which:
 | `datasheet` | taken from the original's datasheet | good enough to design with |
 | `estimated` | guessed, e.g. off a photo | placeholder |
 
-`datasheet` and `plans` require `clone_of` to name the original — otherwise there is nothing to
-look the numbers up in. `estimated` models are tagged in the viewport and listed by `catalog`.
+For a **clone**, `datasheet` and `plans` require `clone_of` to name the original — otherwise there
+is nothing to look the numbers up in. Factory gear (`build: original`) is exempt: its datasheet is
+its own. `estimated` models are tagged in the viewport and listed by `catalog`.
+
+Provenance describes the **geometry**. Where a single other value is weaker than the rest — a weight
+nobody has ever put on a scale, say — the spec says so in its `notes`, and it goes on the measuring
+list.
 
 Measuring a cabinet promotes its spec to `measured` and changes nothing else. Weight and outer
 dimensions drift most between a DIY build and its original, so they are worth measuring first.

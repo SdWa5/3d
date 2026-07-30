@@ -1,31 +1,34 @@
-1. import the real gear list — [docs/inventory.md](docs/inventory.md)
-    1. get read-only Drive access (service account + rclone remote, steps are in the doc)
-    2. find the gear list in the SdWa5 Shared Drive
-    3. `inventory:import <file>` — one spec per row, filling `clone_of`, `quantity` and whatever
-       dimensions the list already carries; leave every field without a source absent rather than
-       guessed
-    4. identify which original each cabinet clones, then fill dimensions/weight/drivers/coverage
-       from the originals' datasheets and record them in [docs/sources.md](docs/sources.md) — this
-       is what gets the whole library from `estimated` to `datasheet` in one pass
+1. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a
+   design or a datasheet, not our build; `catalog` lists what is still un-measured
+    1. weigh `eighteensound-2way-15` and `achenbach-18` first — those two weights are pure
+       estimates, in no source at all
+    2. check the Flexy width: the CAD mesh says 0.573 m, the comparison spreadsheet says 0.59 m
+    3. confirm whether the Tecnare M2122 is a factory cabinet or self-built from L2122LT dimensions
 2. `scene:build` — declarative scene files in [scenes/](scenes)
     1. scene YAML (device id, position, rotation, stacked-on) → assembled `.blend`
     2. reproducible and diffable, unlike a hand-built scene; makes "try a different setup" a commit
        instead of a memory
     3. a lighting + camera template so a preview render needs no manual setup
     4. report total weight per flown point / per truss from the placed devices
-3. measure the cabinets — [docs/measuring.md](docs/measuring.md); `catalog` lists what is still
-   un-measured
-4. coverage cones from `audio.coverage_deg` — optional geometry, render-invisible like the other
+    5. reuse the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) as reference
+       layouts for the first scenes — they encode stack arrangements that already worked
+3. more categories: truss, amp racks, stands. The schema and validator already accept them; the
+   geometry builder needs shapes for truss segments and rack boxes
+    1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower
+       4000, t.amp Proline 3000
+4. `mesh_override` is validated and reaches the build plan, but the geometry builder ignores it —
+   wire it up so a hand-made or downloaded mesh can replace a generated block while the spec keeps
+   owning the dimensions. Drive already has usable CAD for the Flexy (`subwoofer v28.obj`) and the
+   Achenbach (`.FCStd`)
+5. coverage cones from `audio.coverage_deg` — optional geometry, render-invisible like the other
    markers, so a setup can answer coverage questions and not just look right
-5. more categories: truss, amp racks, stands. The schema and validator already accept them; the
-   geometry builder needs shapes for truss segments
-6. handle recesses are currently a plain rectangular cut — a rounded dish would read better
-7. asset previews are blank because they cannot be rendered in background mode. Either generate them
+6. `inventory:import` — the first import was done by hand because the source is several spreadsheets
+   and CAD files rather than one list, and every number needed a provenance decision. Worth building
+   when the gear list next grows; see [docs/inventory.md](docs/inventory.md)
+7. handle recesses are currently a plain rectangular cut — a rounded dish would read better
+8. asset previews are blank because they cannot be rendered in background mode. Either generate them
    in the GUI once, or find a way to render thumbnails headless
-8. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that
+9. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that
    only runs when `blender/` or `specs/` changed
-9. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is
-   what GDTF embeds, so this should mostly be packaging and metadata mapping
-10. `mesh_override` is validated and passed through the build plan but the geometry builder still
-    ignores it — wire it up so a hand-made or downloaded mesh can replace a generated one while the
-    spec keeps owning the dimensions
+10. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is
+    what GDTF embeds, so this should mostly be packaging and metadata mapping

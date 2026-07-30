@@ -80,9 +80,13 @@ final class SpecValidatorTest extends TestCase
             ['build' => 'own-design', 'provenance' => 'measured'],
             "clone_of is set but build is 'own-design'",
         ];
-        yield 'datasheet provenance without an original' => [
-            ['build' => 'own-design', 'clone_of' => null, 'provenance' => 'datasheet'],
+        yield 'clone with datasheet provenance but no original named' => [
+            ['build' => 'clone', 'clone_of' => null, 'provenance' => 'datasheet'],
             'no clone_of names where those numbers came from',
+        ];
+        yield 'owner with spaces' => [
+            ['owner' => 'Wall Bass'],
+            "owner 'Wall Bass' must be lowercase words separated by single dashes",
         ];
         yield 'unknown clone reference' => [
             ['clone_of' => ['manufacturer' => 'Acme', 'model' => 'X1', 'reference' => 'hearsay']],
@@ -163,6 +167,19 @@ final class SpecValidatorTest extends TestCase
             (bool)array_filter($messages, static fn (string $m): bool => str_contains($m, $expectedMessage)),
             sprintf("no violation contained %s\ngot: %s", var_export($expectedMessage, true), implode(' | ', $messages)),
         );
+    }
+
+    public function testFactoryGearMayCiteItsOwnDatasheetWithoutNamingAClone(): void
+    {
+        // A bought cabinet's datasheet is its own — requiring a `clone_of` here would force a
+        // fiction. Only a clone has to name the original its numbers were copied from.
+        $spec = SpecFactory::spec([
+            'build' => 'original',
+            'clone_of' => null,
+            'provenance' => 'datasheet',
+        ]);
+
+        self::assertSame([], $this->validate($spec));
     }
 
     public function testAnImpossibleDimensionDoesNotAlsoReportEveryRiggingPoint(): void
