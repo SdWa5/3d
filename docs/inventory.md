@@ -28,7 +28,7 @@ datasheet — see [sources.md](sources.md) for which is which:
 | Eighteensound 2-Way 15″ | sepp | 2 | |
 | Achenbach 18 | sepp | 4 | |
 
-25 cabinets, 1834 kg, 8.96 m³ in total. Note that `Hardware Overview.xlsx` lists 2 Tecnare, counting
+25 cabinets, 1856 kg, 8.97 m³ in total. Note that `Hardware Overview.xlsx` lists 2 Tecnare, counting
 only the factory pair — the third, self-built one is not in the spreadsheet.
 
 SKHORN, GHORN and OTHORN appear in the comparison spreadsheet but were evaluated, not bought, so
