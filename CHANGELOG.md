@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-30
+
+### Added
+
+- **`mesh_override` now works.** A spec can point at a real mesh and it replaces the generated shell
+  outright — grille and handle recesses included, since real CAD models those better than the builder
+  can. `blender/lib/mesh_import.py` imports `.obj`, `.glb`, `.gltf`, `.stl`, `.ply` and `.blend`
+- `mesh_override` accepts a bare path, or an expanded form with `units` (m/cm/mm), `rotate_deg` and
+  `tolerance_m`. Real CAD arrives in whatever units and orientation its author used, so the spec has
+  to say which rather than the builder guessing
+- **The spec stays the authority:** after importing, scaling and rotating, the builder measures the
+  mesh and fails the build if any axis is off by more than the tolerance, printing all three numbers.
+  A silently mis-scaled cabinet still looks like a cabinet and would quietly poison every setup built
+  from it
+- `src/Spec/MeshOverride.php`; `SpecValidator` rejects a missing path, a format Blender cannot import
+  (naming `.FCStd` explicitly, since that is the likely mistake here), unknown units and a negative
+  tolerance
+- `/meshes/` added to `.gitignore` — override meshes are third-party files and stay out of git
+
+### Changed
+
+- The Flexy's CAD mesh was tested against this: it imports correctly with `units: mm` and
+  `rotate_deg: [90, 0, 90]`, and its depth and height match the spec exactly, but it is **18 mm
+  narrower** than the cabinet — a second, independent confirmation that the mesh omits something.
+  Its `mesh_override` therefore stays `null` until that is reconciled, and the finding is recorded in
+  the spec and in `TODO.md`
+- `docs/spec-format.md` gained a "Mesh overrides" section; `docs/conventions.md` no longer describes
+  `mesh_override` as unimplemented
+
 ## [0.4.0] - 2026-07-30
 
 ### Changed

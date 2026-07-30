@@ -158,7 +158,15 @@ final class SpecValidatorTest extends TestCase
         ];
         yield 'missing mesh override file' => [
             ['mesh_override' => 'meshes/nope.glb'],
-            "mesh_override 'meshes/nope.glb' does not exist",
+            "mesh_override.path 'meshes/nope.glb' does not exist",
+        ];
+        yield 'mesh override Blender cannot read' => [
+            ['mesh_override' => 'Achenbach 18.FCStd'],
+            'Blender cannot read FreeCAD',
+        ];
+        yield 'mesh override with unknown units' => [
+            ['mesh_override' => ['path' => 'meshes/sub.obj', 'units' => 'inches']],
+            "mesh_override.units 'inches' is unknown",
         ];
     }
 

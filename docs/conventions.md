@@ -87,8 +87,9 @@ Models are accurate on the outside and empty on the inside:
 
 No drivers, ports, bracing or wiring. Detail can be raised for a single device later — either by
 extending the builder or by pointing `mesh_override` at a hand-made mesh — without changing any
-dimension, because the spec stays the authority. (`mesh_override` is validated and reaches the build
-plan, but the geometry builder does not act on it yet: [`../TODO.md`](../TODO.md) item 10.)
+dimension, because the spec stays the authority. A `mesh_override` replaces the generated shell
+outright, but only if the mesh agrees with the spec's declared dimensions — see
+[spec-format.md](spec-format.md#mesh-overrides).
 
 Two deliberate consequences:
 
@@ -132,8 +133,8 @@ A single value is still accepted as shorthand for both, which is what a fresh sp
 Only an estimated **shape** gets the orange viewport tag — an estimated weight does not distort the
 model, so it is reported by `catalog` rather than drawn.
 
-Measuring a cabinet promotes its spec to `measured` and changes nothing else. Weight and outer
-dimensions drift most between a DIY build and its original, so they are worth measuring first.
+Measuring promotes the field you measured and changes nothing else. Weight and outer dimensions
+drift most between a DIY build and its original, so they are worth doing first.
 
 ## Metadata travels with the model
 

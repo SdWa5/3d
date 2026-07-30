@@ -9,3 +9,6 @@
 # Blender leftovers
 *.blend1
 __pycache__/
+
+# Override meshes referenced by mesh_override — third-party CAD, kept out of git
+/meshes/

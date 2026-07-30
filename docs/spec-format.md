@@ -66,7 +66,7 @@ audio:                        # optional, but worth filling in from the original
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: horn, count: 1 }
 
-mesh_override: null           # NOT YET APPLIED by the builder — see TODO.md item 10
+mesh_override: null           # a real mesh replacing the generated block; see below
 
 notes: |
   Anything worth knowing. Where the numbers came from, what is still unconfirmed.
@@ -97,6 +97,37 @@ from a ratio would invent a measurement, which is exactly what `provenance` exis
 The front face stays a full `width × height` (or `width × front_height_m`) rectangle in all three,
 which is why the grille frame works the same way everywhere.
 
+## Mesh overrides
+
+A spec can point at a real mesh instead of letting the builder generate a block. The mesh then
+replaces the shell entirely, including the grille and handle recesses — real CAD already models
+those better than the builder could.
+
+```yaml
+mesh_override: meshes/sub.glb          # shorthand: already in metres, already oriented our way
+
+mesh_override:                         # or spelled out
+  path: meshes/sub.obj
+  units: mm                            # m (default) | cm | mm
+  rotate_deg: [90, 0, 90]              # applied X, then Y, then Z, to reach our axes
+  tolerance_m: 0.005                   # how far the mesh may differ from the declared size
+```
+
+Importable: `.obj`, `.glb`, `.gltf`, `.stl`, `.ply`, `.blend`. **Not `.FCStd`** — Blender cannot read
+FreeCAD, so export from FreeCAD first.
+
+**The spec stays the authority.** After importing, scaling and rotating, the builder measures the
+mesh and **fails the build** if any axis differs from `geometry.dimensions_m` by more than the
+tolerance, printing all three numbers. A silently mis-scaled cabinet still looks like a cabinet and
+would quietly poison every setup built from it — so a mismatch has to be reconciled, not ignored.
+
+Override meshes are third-party files and are **not committed**: `/meshes/` is gitignored. Keep them
+there (or anywhere) and record their origin and licence in [sources.md](sources.md).
+
+Worked example: the Flexy's CAD mesh imports correctly with `units: mm` and
+`rotate_deg: [90, 0, 90]`, and its depth and height match the spec exactly — but it is 18 mm
+narrower, so the builder rejects it. That is the mechanism doing its job.
+
 ## What the validator checks
 
 `specs:validate` runs without Blender, so CI runs it too. It rejects:
@@ -116,4 +147,5 @@ which is why the grille frame works the same way everywhere.
 * a taper field missing for its shape, present on the wrong shape, or larger than the dimension it
   tapers from
 * coverage angles outside 0–360; drivers with no size or a count below 1
-* a `mesh_override` that does not exist
+* a `mesh_override` whose path does not exist, whose extension Blender cannot import
+  (`.FCStd` being the common mistake), whose `units` are unknown, or whose tolerance is negative

@@ -45,10 +45,15 @@ audio:
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 
+# The design's CAD mesh is available and correctly oriented with `units: mm` and
+# `rotate_deg: [90, 0, 90]`, but it measures 0.573 m across where this cabinet is 0.591 m, so the
+# builder rejects it. Reconcile the 18 mm first — see TODO.md item 1.3.
 mesh_override: null
 
 notes: |
   The backbone of the PA — 14 cabinets, 1190 kg of sub on its own.
   Drivers across the 14: 6x Eighteensound 18NLW9601 and 8x 18NLW9600 (both 18", 1800 W, 8 Ohm).
   38-200 Hz, 1800 W continuous per cabinet.
-  A CAD mesh exists in Drive and could replace the generated block once mesh_override is wired up.
+  A CAD mesh exists in Drive. It imports cleanly with `units: mm` and `rotate_deg: [90, 0, 90]`,
+  and its depth and height match this spec exactly — but it is 18 mm narrower, so the builder
+  rejects it. That is two independent confirmations that the mesh omits something.

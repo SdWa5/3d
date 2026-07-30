@@ -52,7 +52,7 @@ final class DeviceSpec
         public readonly array $riggingPoints,
         public readonly ?Coverage $coverage,
         public readonly array $drivers,
-        public readonly ?string $meshOverride,
+        public readonly ?MeshOverride $meshOverride,
         public readonly ?string $notes,
     ) {
     }
@@ -108,7 +108,7 @@ final class DeviceSpec
                 static fn (ArrayReader $driver): Driver => Driver::fromReader($driver),
                 $audio?->sectionList('drivers') ?? [],
             ),
-            meshOverride: $reader->optionalString('mesh_override'),
+            meshOverride: MeshOverride::fromReader($reader, 'mesh_override'),
             notes: $reader->optionalString('notes'),
         );
     }

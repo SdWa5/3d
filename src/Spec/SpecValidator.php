@@ -125,14 +125,49 @@ final class SpecValidator
             $add($message);
         }
 
-        if ($spec->meshOverride !== null) {
-            $path = $this->resolve($spec->meshOverride);
-            if (!is_file($path)) {
-                $add("mesh_override '{$spec->meshOverride}' does not exist");
-            }
+        foreach ($this->validateMeshOverride($spec) as $message) {
+            $add($message);
         }
 
         return $violations;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function validateMeshOverride(DeviceSpec $spec): array
+    {
+        $override = $spec->meshOverride;
+        if ($override === null) {
+            return [];
+        }
+
+        $messages = [];
+
+        if (!is_file($this->resolve($override->path))) {
+            $messages[] = "mesh_override.path '{$override->path}' does not exist";
+        }
+        if (!$override->isImportable()) {
+            $allowed = implode(', ', MeshOverride::IMPORTABLE);
+            $messages[] = sprintf(
+                "mesh_override.path '%s' has no importable extension (allowed: %s)%s",
+                $override->path,
+                $allowed,
+                $override->extension() === 'fcstd' ? ' — Blender cannot read FreeCAD; export to .obj or .glb first' : '',
+            );
+        }
+        if ($override->unitScale() === null) {
+            $messages[] = sprintf(
+                "mesh_override.units '%s' is unknown (allowed: %s)",
+                $override->units,
+                implode(', ', array_keys(MeshOverride::UNITS)),
+            );
+        }
+        if ($override->toleranceM < 0) {
+            $messages[] = "mesh_override.tolerance_m must not be negative, got {$override->toleranceM}";
+        }
+
+        return $messages;
     }
 
     /**

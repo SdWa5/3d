@@ -17,10 +17,15 @@ use App\Spec\RiggingPoint;
 final class BuildPlan
 {
     /**
+     * @param string|null $meshOverridePath absolute path to the override mesh, resolved by the caller
      * @return array<string, mixed>
      */
-    public static function forSpec(DeviceSpec $spec, string $glbPath, string $blendPath): array
-    {
+    public static function forSpec(
+        DeviceSpec $spec,
+        string $glbPath,
+        string $blendPath,
+        ?string $meshOverridePath = null,
+    ): array {
         return [
             // Bumped when the plan's shape changes in a way the bpy side must react to.
             'plan_version' => 1,
@@ -62,7 +67,11 @@ final class BuildPlan
                 'coverage_deg' => $spec->coverage?->toArray(),
                 'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $spec->drivers),
             ],
-            'mesh_override' => $spec->meshOverride,
+            // Absolute so the bpy side never has to know where the project root is.
+            'mesh_override' => $spec->meshOverride === null ? null : [
+                ...$spec->meshOverride->toArray(),
+                'path' => $meshOverridePath ?? $spec->meshOverride->path,
+            ],
             'metadata' => $spec->toMetadataArray(),
             'outputs' => [
                 'glb' => $glbPath,

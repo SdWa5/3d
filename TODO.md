@@ -15,9 +15,9 @@
 3. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
    shapes for truss segments and rack boxes
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
-4. `mesh_override` is validated and reaches the build plan, but the geometry builder ignores it — wire it up so a
-   hand-made or downloaded mesh can replace a generated block while the spec keeps owning the dimensions. Drive already
-   has usable CAD for the Flexy (`subwoofer v28.obj`) and the Achenbach (`.FCStd`)
+4. reconcile the Flexy CAD mesh so `mesh_override` can be switched on for it — the mesh is 18 mm
+   narrower than the cabinet, confirmed twice. The Achenbach CAD is `.FCStd`, which Blender cannot
+   read; export it to `.obj` or `.glb` from FreeCAD first
 5. coverage cones from `audio.coverage_deg` — optional geometry, render-invisible like the other markers, so a setup can
    answer coverage questions and not just look right
 6. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files

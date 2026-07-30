@@ -56,7 +56,7 @@ final class ModelBuilder
         $outputTime = min((int)filemtime($glb), (int)filemtime($blend));
         $inputs = [$spec->sourcePath, ...$this->modelInputScripts()];
         if ($spec->meshOverride !== null) {
-            $inputs[] = $this->resolve($spec->meshOverride);
+            $inputs[] = $this->resolve($spec->meshOverride->path);
         }
 
         foreach ($inputs as $input) {
@@ -144,7 +144,8 @@ final class ModelBuilder
     private function writePlan(DeviceSpec $spec, string $glb, string $blend): string
     {
         $planFile = $this->buildDir().'/plans/'.$spec->id.'.json';
-        $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend));
+        $overridePath = $spec->meshOverride === null ? null : $this->resolve($spec->meshOverride->path);
+        $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend, $overridePath));
 
         return $planFile;
     }
