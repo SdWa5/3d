@@ -1,5 +1,32 @@
 1. alignments of speakers and object groups
-    1. sort rows low frequency to high frequency + "tetris" fill from the bottom to the top
+    1. **tetris stacking** — sort rows low frequency to high frequency and fill from the bottom up, instead of
+       writing out a tier per placement by hand. Every `full-rig*` scene is this done manually: subs low,
+       18" above them, tops on top
+        1. it is driven by a **constraint**, not by a tier list, and there are two ways to state one. Either
+           is enough on its own; both together is a solve that can fail and has to say so:
+            1. `max_width_m` — how wide the stage or the truss lets the rig be. The wall grows upward until
+               the row no longer fits, which is how `full-rig`'s 12 Flexys became 2 × 6 at 3.646 m
+            2. a **height at the sub/top interface** — stack subs until the tops' bottom edge (equivalently
+               the sub stack's top face) clears a stated height, so the tops fire over the crowd rather than
+               into it. Above head height is the point of it; the number is configurable and needs deciding,
+               ~2.0 m is the candidate. Worked against what we own: 2 Flexy tiers reach 1.526 m and miss,
+               2 Flexy tiers plus an Achenbach row reach **2.126 m** and clear — which is exactly what
+               `full-rig-three-tier` arrived at by hand, so the constraint reproduces a stack we already
+               trust
+            3. `min_width_m` and `max_height_m` as the other two bounds — a minimum width is how you ask for
+               a wide short wall rather than a tall narrow one out of the same cabinets, and a maximum height
+               is a ceiling or a rigging limit
+        2. **there is no common module to lean on**, which is the real work. Our five cabinets have five
+           different widths (0.4656 / 0.500 / 0.591 / 0.600 / 0.610 m) and five different heights (0.600 /
+           0.763 / 0.836 / 0.914 / 0.960 m), no two of them multiples of anything. A fill that assumes a grid
+           will look right on the Flexys alone and fall apart the moment an Achenbach or a SKRAM is in the
+           same stack
+        3. test it twice over the whole inventory, because the second case is the one that breaks a grid
+           assumption:
+            1. **all speakers except the two SKRAM** — 21 cabinets: 12 Flexy, 4 Achenbach, 3 Tecnare,
+               2 18sound. Two sub widths (0.591 / 0.600 m) and two top widths (0.500 / 0.4656 m)
+            2. **all speakers including the two SKRAM** — all 23. The SKRAM is the widest cabinet we own at
+               0.610 m and the second tallest at 0.914 m, so it is what a tier boundary has to bend around
     2. **named layouts on top of the tetris stacking**, the way text has alignment. The stacking decides *what*
        goes in each tier; a layout decides *how it is distributed across the width*. Wanted, borrowing the
        text vocabulary:
@@ -43,14 +70,8 @@
 4. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
    shapes for truss segments and rack boxes
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
-5. `tools/check-glb.py` fails on `tecnare-m2122`: its exported box is 0.4997 x 0.5209 against a declared 0.500 x 0.520,
-   so something protrudes 0.9 mm past the front and the width falls 0.3 mm short. Pre-existing and unrelated to the
-   coverage cone — it reproduces with the cone disabled — and it appeared when `appearance.grille` was removed from that
-   spec: with no full-width frame filling the inset, the chamfer bevels the front edges and a carved flare reaches past
-   the baffle plane. Either restore the grille or recess the flares; the bounding-box guarantee in
-   [docs/conventions.md](docs/conventions.md) is the thing at stake
-    1. audio routing table, for the coverage work above ->
-       https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604
+5. audio routing table, for the coverage work ->
+   https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604
 6. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
    rather than one list, and every number needed a provenance decision. Worth building when the gear list next grows;
    see [docs/inventory.md](docs/inventory.md)

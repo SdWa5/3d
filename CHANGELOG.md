@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `TODO.md` 1.1 (tetris stacking) written out: it is driven by a **constraint** rather than by a tier list —
+  `max_width_m`, or a stated height at the sub/top interface so the tops fire over the crowd, plus
+  `min_width_m` and `max_height_m` as the other two bounds. Recorded with the arithmetic that matters: two
+  Flexy tiers reach 1.526 m and miss a ~2.0 m interface, two plus an Achenbach row reach 2.126 m and clear,
+  which is what `full-rig-three-tier` arrived at by hand
+- The same item now names the reason it is real work: our five cabinets have five different widths and five
+  different heights, none a multiple of any other, so nothing can assume a grid. Two acceptance scenes are
+  listed for it — the whole inventory without the two SKRAM (21 cabinets), and with them (23), the SKRAM
+  being both the widest cabinet we own and the second tallest
+- `TODO.md` 5 deleted: `tools/check-glb.py` no longer fails on `tecnare-m2122`, fixed in 0.28.2. Its
+  misnested sub-item, the audio routing table, is now an item of its own
+
 ## [0.28.3] - 2026-08-04
 
 ### Added
