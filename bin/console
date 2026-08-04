@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
+use App\Command\BuildAllCommand;
 use App\Command\CatalogCommand;
 use App\Command\LibraryBuildCommand;
 use App\Command\ModelsBuildCommand;
@@ -13,7 +14,7 @@ use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('sdwa5-3d', '0.17.1');
+$app = new Application('sdwa5-3d', '0.28.3'); # todo dynamically get version from composer.json
 $app->addCommands([
         new SpecsValidateCommand(),
         new ModelsBuildCommand(),
@@ -21,5 +22,6 @@ $app->addCommands([
         new SceneBuildCommand(),
         new SceneRenderCommand(),
         new CatalogCommand(),
+        new BuildAllCommand(),
 ]);
 $app->run();

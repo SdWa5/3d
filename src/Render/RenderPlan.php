@@ -108,7 +108,13 @@ final class RenderPlan
 
         $lines = [];
         foreach ($placed as $entry) {
-            if ($mode === self::AIM_TOPS && !in_array($entry->device->subtype, self::AIMED_SUBTYPES, true)) {
+            // A placement may ask for a line either way; absent, the mode decides from the subtype. The
+            // one thing a placement cannot overrule is `none`, which stays the way to get a clean render
+            // of a scene that normally draws them.
+            $wanted = $entry->aimLines
+                ?? ($mode === self::AIM_ALL || in_array($entry->device->subtype, self::AIMED_SUBTYPES, true));
+
+            if (!$wanted) {
                 continue;
             }
 

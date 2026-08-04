@@ -30,6 +30,16 @@ final class SceneCompilerTest extends TestCase
                 'geometry' => ['dimensions_m' => ['width' => 0.5, 'height' => 0.9, 'depth' => 0.5]],
                 'physical' => ['weight_kg' => 30.0],
             ]),
+            // Flyable, with one point on its top face, for the hang tests.
+            'flown' => SpecFactory::spec([
+                'id' => 'flown',
+                'geometry' => ['dimensions_m' => ['width' => 0.5, 'height' => 0.96, 'depth' => 0.52]],
+                'physical' => ['weight_kg' => 68.0],
+                'rigging' => [
+                    'flyable' => true,
+                    'points' => [['id' => 'top-left', 'position_m' => [-0.185, -0.100, 0.960]]],
+                ],
+            ]),
             // Tapered, so it can form an arc on its own taper the way a real top does. No grille, to
             // keep the angles the same round numbers ArcTest uses.
             'top-taper' => SpecFactory::spec([
@@ -148,6 +158,47 @@ final class SceneCompilerTest extends TestCase
         self::assertEqualsWithDelta(0.9, $width, 1e-9, 'the 0.9 m height now runs left to right');
         self::assertEqualsWithDelta(0.5, $height, 1e-9, 'and the 0.5 m width is now the height');
         self::assertEqualsWithDelta(0.5, $placed[0]->topZ(), 1e-9);
+    }
+
+    /**
+     * An arc used to refuse anything but upright or turned over, because its contact solve had no roll
+     * term and would have placed cabinets through each other. It has one now, so a group of cabinets on
+     * their sides is a scene the compiler accepts — and for an untapered sub it comes out as the thing it
+     * physically is, a straight row auto-spaced by the cabinets themselves.
+     */
+    public function testAnArcOfCabinetsOnTheirSidesIsAccepted(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'sideways', 'device' => 'sub', 'at' => [0.0, 0.0], 'roll_deg' => 90,
+                'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]);
+
+        self::assertCount(3, $placed);
+        // The `sub` fixture is a 0.6 m cube, so on its side it is still 0.6 m across.
+        self::assertEqualsWithDelta(-0.6, $placed[0]->position[0], 1e-9);
+        self::assertEqualsWithDelta(0.0, $placed[1]->position[0], 1e-9);
+        self::assertEqualsWithDelta(0.6, $placed[2]->position[0], 1e-9);
+
+        foreach ($placed as $entry) {
+            self::assertSame(0.0, $entry->yawDeg(), 'a row does not turn its cabinets');
+            self::assertSame(90.0, $entry->rollDeg());
+            self::assertEqualsWithDelta(0.0, $entry->position[1], 1e-9, 'a row does not bow');
+        }
+    }
+
+    /**
+     * A quarter turn keeps the contact solve tight; anything between leaves the plan outline lopsided and
+     * could only be solved loosely, so it is refused rather than silently made roomy.
+     */
+    public function testAnArcRolledOffAQuarterTurnIsRefusedRatherThanSolvedLoosely(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+            ['id' => 'a', 'device' => 'top-taper', 'at' => [0.0, 0.0], 'roll_deg' => 45.0,
+                'arc' => ['mode' => 'convex', 'count' => 3]],
+        ]));
+
+        self::assertCount(1, $result['violations']);
+        self::assertStringContainsString('quarter turn', $result['violations'][0]->message);
     }
 
     public function testAimingAtAPointResolvesYawAndTilt(): void
@@ -397,24 +448,15 @@ final class SceneCompilerTest extends TestCase
      */
     public static function rejectionCases(): iterable
     {
-        yield 'arc and repeat together' => [
-            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0],
-                'repeat' => ['count' => 2, 'step' => [1, 0, 0]], 'arc' => ['mode' => 'convex', 'count' => 3]]],
-            'use either `repeat` or `arc`, not both',
-        ];
         yield 'arc with an explicit yaw' => [
             [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'yaw_deg' => 10.0,
                 'arc' => ['mode' => 'convex', 'count' => 3]]],
             'the arc already sets yaw — remove yaw_deg',
         ];
-        yield 'arc on a cabinet rolled onto its side' => [
-            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'roll_deg' => 90.0,
+        yield 'arc on a cabinet rolled off a quarter turn' => [
+            [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'roll_deg' => 45.0,
                 'arc' => ['mode' => 'convex', 'count' => 3]]],
-            'puts its width on the vertical',
-        ];
-        yield 'arc of untapered boxes without an angle' => [
-            [['id' => 'a', 'device' => 'sub', 'at' => [0, 0], 'arc' => ['mode' => 'convex', 'count' => 3]]],
-            'so a convex arc needs an explicit arc.splay_deg or arc.radius_m',
+            'an arc needs the cabinet on a quarter turn',
         ];
         yield 'concave arc without an angle' => [
             [['id' => 'a', 'device' => 'top-taper', 'at' => [0, 0], 'arc' => ['mode' => 'concave', 'count' => 3]]],
@@ -425,13 +467,35 @@ final class SceneCompilerTest extends TestCase
                 'arc' => ['mode' => 'convex', 'count' => 5, 'splay_deg' => 90.0]]],
             'wrap past a full circle',
         ];
+        yield 'fly and on together' => [
+            [
+                ['id' => 'base', 'device' => 'sub', 'at' => [0, 0]],
+                ['id' => 'a', 'device' => 'flown', 'at' => [0, 0], 'on' => 'base',
+                    'fly' => ['height_m' => 6.0]],
+            ],
+            'use either `fly` or `on`, not both',
+        ];
+        yield 'fly without at' => [
+            [['id' => 'a', 'device' => 'flown', 'fly' => ['height_m' => 6.0]]],
+            '`fly` needs `at` for the x and y it hangs over',
+        ];
+        yield 'fly naming a point the device does not have' => [
+            [['id' => 'a', 'device' => 'flown', 'at' => [0, 0],
+                'fly' => ['height_m' => 6.0, 'point' => 'top-middle']]],
+            "fly.point 'top-middle' is not a rigging point of flown (has: top-left)",
+        ];
+        yield 'fly naming a point on a device with none' => [
+            [['id' => 'a', 'device' => 'sub', 'at' => [0, 0],
+                'fly' => ['height_m' => 6.0, 'point' => 'top-left']]],
+            'is not a rigging point of sub (it has none)',
+        ];
         yield 'unknown device' => [
             [['id' => 'a', 'device' => 'nope', 'at' => [0, 0]]],
             "references unknown device 'nope'",
         ];
-        yield 'neither at nor on' => [
+        yield 'neither at nor on nor fly' => [
             [['id' => 'a', 'device' => 'sub']],
-            'needs either `at` or `on`',
+            'needs either `at`, `on` or `fly`',
         ];
         yield 'on a placement that does not exist' => [
             [['id' => 'a', 'device' => 'sub', 'on' => 'ghost']],
@@ -503,5 +567,171 @@ final class SceneCompilerTest extends TestCase
         }
 
         return SceneSpec::fromArray($data, '/scenes/test.yaml');
+    }
+
+    /**
+     * Two clusters, two decisions about the room. Both distances are measured from the whole rig's front
+     * face rather than from each group's own, so "2 m out" and "10 m out" mean the same kind of thing —
+     * otherwise neither number could be read off the file.
+     */
+    public function testTwoGroupsCanAimAtDifferentNamedFoci(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'near-fill', 'device' => 'top', 'at' => [0.0, 0.0], 'aim' => 'near'],
+            ['id' => 'long-throw', 'device' => 'top', 'at' => [2.0, 0.0], 'aim' => 'far'],
+        ], ['near' => ['distance_m' => 2.0, 'height_m' => 1.0], 'far' => ['distance_m' => 20.0, 'height_m' => 1.8]]);
+
+        // The `top` fixture is 0.9 m tall on the floor, so it radiates from 0.45 m and both foci are
+        // *above* that — the tilt is upwards, and negative. What the two foci decide is how steep it is.
+        self::assertGreaterThan(
+            abs($placed[1]->pitchDeg()),
+            abs($placed[0]->pitchDeg()),
+            'the near fill has much further to turn',
+        );
+        self::assertEqualsWithDelta(-12.59, $placed[0]->pitchDeg(), 0.01, '0.55 m up over 2 m out');
+        self::assertEqualsWithDelta(-3.81, $placed[1]->pitchDeg(), 0.01, '1.35 m up over 20 m out');
+    }
+
+    /**
+     * `aim: focuss` used to mean *not aimed* — silently, with the cabinet left firing straight ahead and
+     * nothing in the output to show it.
+     */
+    public function testAMisspelledAimNameIsRejectedRatherThanSilentlyIgnored(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene(
+            [['id' => 'a', 'device' => 'top', 'at' => [0.0, 0.0], 'aim' => 'focuss']],
+            ['near' => ['distance_m' => 2.0], 'far' => ['distance_m' => 10.0]],
+        ));
+
+        self::assertCount(1, $result['violations']);
+        self::assertStringContainsString("unknown focus 'focuss'", $result['violations'][0]->message);
+        self::assertStringContainsString('defined: near, far', $result['violations'][0]->message);
+    }
+
+    public function testAimFocusStillMeansTheSingleUnnamedFocus(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'a', 'device' => 'top', 'at' => [0.0, 0.0], 'aim' => 'focus'],
+        ], ['distance_m' => 10.0, 'height_m' => 1.8]);
+
+        // Aimed at all is the claim; the sign is up because a 0.9 m top on the floor radiates below
+        // ear height.
+        self::assertNotSame(0.0, $placed[0]->pitchDeg(), 'aimed, not left facing straight ahead');
+        self::assertEqualsWithDelta(-7.5, $placed[0]->pitchDeg(), 0.01);
+    }
+
+    public function testAFlownPlacementHangsFromItsHeightRatherThanTheFloor(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [0.0, 0.0], 'fly' => ['height_m' => 6.0]],
+        ]);
+
+        self::assertSame([0.0, 0.0, 6.0], $placed[0]->position);
+        self::assertEqualsWithDelta(6.96, $placed[0]->topZ(), 1e-9, 'the cabinet hangs from its own base');
+    }
+
+    /**
+     * The reason `fly.point` exists: the named piece of hardware is what is at the stated height, so the
+     * cabinet's own slot comes out 0.96 m lower and 0.185 m across from where the bar is.
+     */
+    public function testANamedRiggingPointIsWhatHangsAtTheStatedHeight(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [-3.0, 0.0],
+                'fly' => ['height_m' => 6.0, 'point' => 'top-left']],
+        ]);
+
+        self::assertSame([-2.815, 0.1, 5.04], $placed[0]->position);
+        self::assertEqualsWithDelta(6.0, $placed[0]->topZ(), 1e-9, 'the point itself is at 6 m');
+    }
+
+    /**
+     * `zLift` puts a tilted cabinet back on its slot, which is right for anything standing on something and
+     * wrong for a hang — the hardware decides where it is, not the floor.
+     */
+    public function testAFlownCabinetIsNotLiftedOntoASlot(): void
+    {
+        $flown = $this->compile([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [0.0, 0.0], 'pitch_deg' => 10.0,
+                'fly' => ['height_m' => 6.0]],
+        ]);
+        $stood = $this->compile([
+            ['id' => 'stack', 'device' => 'flown', 'at' => [0.0, 0.0], 'pitch_deg' => 10.0],
+        ]);
+
+        self::assertSame(0.0, $flown[0]->zLift());
+        self::assertGreaterThan(0.0, $stood[0]->zLift(), 'a tilted cabinet on the floor still is lifted');
+    }
+
+    /**
+     * The check that makes `fly` police itself. A hang is the one thing that can be told to sit above the
+     * floor and still end up through it, because its elements grow downwards from the anchor — which is
+     * exactly why `line_array` was unusable before there was anywhere to hang it from.
+     */
+    public function testAHangReachingBelowTheFloorIsReported(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [0.0, 0.0],
+                'fly' => ['height_m' => 1.0],
+                'line_array' => ['count' => 3, 'splay_deg' => 0.0]],
+        ]));
+
+        self::assertCount(1, $result['violations']);
+        self::assertStringContainsString('reaches 0.920 m below the floor', $result['violations'][0]->message);
+        self::assertStringContainsString('raise fly.height_m', $result['violations'][0]->message);
+    }
+
+    public function testAHangThatClearsTheFloorIsAccepted(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [0.0, 0.0],
+                'fly' => ['height_m' => 6.0],
+                'line_array' => ['count' => 3, 'splay_deg' => 0.0]],
+        ]);
+
+        self::assertCount(3, $placed);
+        // A flat stack of three 0.96 m cabinets hanging from 6 m: 6.0, 5.04, 4.08.
+        self::assertSame([6.0, 5.04, 4.08], array_map(
+            static fn ($p): float => round($p->position[2], 9),
+            $placed,
+        ));
+    }
+
+    /**
+     * A hang is one rigid body, so it is aimed once and every element inherits that attitude, differing only
+     * by the splay. Aimed element by element instead, each turns towards the target on its own and the splay
+     * cancels out exactly — four boxes all pointing at the same spot, which is not a J array.
+     */
+    public function testAHangIsAimedOnceAndTheSplayAddsToThatOneAngle(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [0.0, 0.0], 'aim' => 'focus',
+                'fly' => ['height_m' => 6.0],
+                'line_array' => ['count' => 4, 'splay_deg' => [2.0, 4.0, 7.0]]],
+        ], ['distance_m' => 14.0, 'height_m' => 1.8]);
+
+        $base = $placed[0]->pitchDeg();
+        self::assertEqualsWithDelta($base + 2.0, $placed[1]->pitchDeg(), 1e-9);
+        self::assertEqualsWithDelta($base + 6.0, $placed[2]->pitchDeg(), 1e-9);
+        self::assertEqualsWithDelta($base + 13.0, $placed[3]->pitchDeg(), 1e-9);
+
+        // And the whole hang faces one way, because it is one rigid body.
+        foreach ($placed as $entry) {
+            self::assertSame($placed[0]->yawDeg(), $entry->yawDeg());
+        }
+    }
+
+    public function testEveryCabinetOfAHangIsLabelledWithItsFlyPoint(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'hang', 'device' => 'flown', 'at' => [0.0, 0.0],
+                'fly' => ['height_m' => 6.0, 'id' => 'main-bar'],
+                'line_array' => ['count' => 2, 'splay_deg' => 0.0]],
+            ['id' => 'ground', 'device' => 'sub', 'at' => [3.0, 0.0]],
+        ]);
+
+        self::assertSame('main-bar', $placed[0]->flyPoint);
+        self::assertSame('main-bar', $placed[1]->flyPoint);
+        self::assertNull($placed[2]->flyPoint, 'a cabinet on the floor hangs from nothing');
     }
 }

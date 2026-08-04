@@ -73,21 +73,21 @@ final class SpecValidatorTest extends TestCase
             ['subtype' => 'tower'],
             "subtype 'tower' is not valid for category 'speaker'",
         ];
-        yield 'clone without an original' => [
-            ['build' => 'clone', 'clone_of' => null],
-            'build is \'clone\' but clone_of is missing',
+        yield 'self-built without an original' => [
+            ['build' => 'self-built', 'clone_of' => null],
+            'build is \'self-built\' but clone_of is missing',
         ];
         yield 'own design that still names an original' => [
             ['build' => 'own-design', 'provenance' => 'measured'],
             "clone_of is set but build is 'own-design'",
         ];
         yield 'clone with datasheet provenance but no original named' => [
-            ['build' => 'clone', 'clone_of' => null, 'provenance' => 'datasheet'],
+            ['build' => 'self-built', 'clone_of' => null, 'provenance' => 'datasheet'],
             "provenance.dimensions is 'datasheet' but no clone_of names where that came from",
         ];
         yield 'clone whose weight cites plans with no original named' => [
             [
-                'build' => 'clone',
+                'build' => 'self-built',
                 'clone_of' => null,
                 'provenance' => ['dimensions' => 'measured', 'weight' => 'plans'],
             ],

@@ -48,10 +48,16 @@ final class SceneRenderCommand extends BaseCommand
                 'aim-lines',
                 'a',
                 InputOption::VALUE_OPTIONAL,
-                'Draw where cabinets point: tops (default) or all',
+                "Draw where cabinets point: tops (default) or all. Overrules the scene's own aim_lines",
                 RenderPlan::AIM_NONE,
             )
             ->addOption('out', 'o', InputOption::VALUE_REQUIRED, 'Output PNG path (single scene only)')
+            ->addOption(
+                'out-dir',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Directory to write into, keeping the <scene>-<camera>.png names. Works for every scene',
+            )
             ->addOption('presets', null, InputOption::VALUE_NONE, 'List the presets and exit');
     }
 
@@ -87,7 +93,12 @@ final class SceneRenderCommand extends BaseCommand
             return self::SUCCESS;
         }
         if (count($scenes) > 1 && $input->getOption('out') !== null) {
-            $this->io->error('--out only makes sense when rendering a single scene');
+            $this->io->error('--out only makes sense when rendering a single scene — use --out-dir instead');
+
+            return self::FAILURE;
+        }
+        if ($input->getOption('out') !== null && $input->getOption('out-dir') !== null) {
+            $this->io->error('use either --out or --out-dir, not both');
 
             return self::FAILURE;
         }
@@ -123,8 +134,12 @@ final class SceneRenderCommand extends BaseCommand
                 continue;
             }
 
+            $directory = $input->getOption('out-dir') ?? $builder->buildDir().'/renders';
             $target = $input->getOption('out')
-                ?? sprintf('%s/renders/%s-%s.png', $builder->buildDir(), $scene->id, $settings['camera']->value);
+                ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
+
+            // The flag if it was given, otherwise whatever the scene asks for.
+            $aimLines = $settings['aimLines'] ?? $scene->aimLines;
 
             $plan = RenderPlan::forScene(
                 $placed,
@@ -133,7 +148,7 @@ final class SceneRenderCommand extends BaseCommand
                 $settings['samples'],
                 $settings['resolution'],
                 !$settings['noGround'],
-                $settings['aimLines'],
+                $aimLines,
             ) + [
                 'scene_id' => $scene->id,
                 'scene_blend' => $sceneBlend,
@@ -148,9 +163,9 @@ final class SceneRenderCommand extends BaseCommand
                 $settings['samples'],
                 $settings['resolution'][0],
                 $settings['resolution'][1],
-                $settings['aimLines'] === RenderPlan::AIM_NONE
+                $aimLines === RenderPlan::AIM_NONE
                     ? ''
-                    : sprintf(', aim lines: %s (%d)', $settings['aimLines'], count($plan['aim_lines'])),
+                    : sprintf(', aim lines: %s (%d)', $aimLines, count($plan['aim_lines'])),
             ));
 
             try {
@@ -173,7 +188,7 @@ final class SceneRenderCommand extends BaseCommand
     }
 
     /**
-     * @return array{camera: CameraPreset, lighting: LightingPreset, samples: int, resolution: array{int, int}, noGround: bool, aimLines: string}|null
+     * @return array{camera: CameraPreset, lighting: LightingPreset, samples: int, resolution: array{int, int}, noGround: bool, aimLines: string|null}|null
      */
     private function settings(InputInterface $input): ?array
     {
@@ -211,10 +226,17 @@ final class SceneRenderCommand extends BaseCommand
             return null;
         }
 
-        // `--aim-lines` with no value means "tops", which is what it is for; `=all` includes the subs.
-        $aimLines = $input->getOption('aim-lines') ?? RenderPlan::AIM_TOPS;
+        // Whether the flag was *given* has to be told apart from the value it defaults to, because a
+        // scene can now state its own mode and the flag only overrules it when somebody typed it. The
+        // option's default cannot answer that: bare `--aim-lines` already yields null, which is how it
+        // means "tops".
+        $aimLines = null;
+        if ($input->hasParameterOption(['--aim-lines', '-a'], true)) {
+            $aimLines = $input->getOption('aim-lines') ?? RenderPlan::AIM_TOPS;
+        }
+
         $allowed = [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS, RenderPlan::AIM_ALL];
-        if (!in_array($aimLines, $allowed, true)) {
+        if ($aimLines !== null && !in_array($aimLines, $allowed, true)) {
             $this->io->error(sprintf(
                 "Unknown --aim-lines value '%s'. Available: %s",
                 $aimLines,
@@ -306,10 +328,15 @@ final class SceneRenderCommand extends BaseCommand
     private function renderPlan(array $plan, string $target, OutputInterface $output): void
     {
         $planFile = sprintf(
-            '%s/build/plans/_render-%s-%s.json',
+            '%s/build/plans/_render-%s-%s-%s%s.json',
             $this->projectDir(),
             $plan['scene_id'],
             $plan['camera']['preset'],
+            // The lighting and the aim mode belong in the name: without them two variants of one scene
+            // overwrite each other's plan, and a plan that does not match the picture beside it is worse
+            // than no plan at all.
+            $plan['lighting']['preset'],
+            $plan['aim_lines'] === [] ? '' : '-aim',
         );
 
         $dir = dirname($planFile);

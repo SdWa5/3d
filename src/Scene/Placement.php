@@ -20,21 +20,25 @@ use App\Spec\ArrayReader;
  * "all the tops point at the middle of the dancefloor" means in practice, and it stays right when a
  * cabinet moves. `aim_at: [x, y, z]` names a point outright instead.
  *
- * `on` and `repeat` are what make a scene file worth writing instead of dragging cabinets around by
- * hand. A 14-cabinet sub wall is two lines, and a stack does not have to be re-measured every time
- * a spec's height changes — the compiler works the heights out from the specs.
+ * `fly` is the third way to say where a placement's base is: `at` is a ground position, `on` is the top of
+ * an earlier placement, and `fly` is a point in the air — which is the only one a hang can use, since a
+ * {@see LineArray}'s elements sit *below* their base. See {@see Fly}.
  *
- * `arc` is the other way to make copies: a group seated on a circular arc, which is what a cluster of
- * tops actually is. Where `repeat` steps along a vector and leaves the cabinets pointing the same way,
- * an arc works out each cabinet's own yaw, so the two are alternatives rather than companions. An arc
- * combines with `aim: focus` — the arc owns the yaw, the focus owns the down-tilt. See {@see Arc}.
+ * `on` and a group are what make a scene file worth writing instead of dragging cabinets around by hand.
+ * A 14-cabinet sub wall is two lines, and a stack does not have to be re-measured every time a spec's
+ * height changes — the compiler works the heights out from the specs.
+ *
+ * There are four ways to make copies and a placement uses one of them: `repeat` steps along a stated
+ * vector, `arc` seats a fan whose angle comes from the cabinet's own taper, and `lattice` and its
+ * one-dimensional shorthand `row` space a grid from the size of whatever they replicate. Any of them
+ * nests inside any other with `in`. See {@see GroupReader} for the shape and {@see GroupStack} for what
+ * nesting means.
  */
 final class Placement
 {
     /**
      * @param array{float, float}|null $at ground position; null means "inherit from `on`"
      * @param array{float, float, float}|null $aimAt point to face, instead of stating yaw and pitch
-     * @param array{float, float, float}|null $repeatStep offset between repeats
      */
     public function __construct(
         public readonly string $id,
@@ -44,18 +48,18 @@ final class Placement
         public readonly float $pitchDeg,
         public readonly float $rollDeg,
         public readonly ?array $aimAt,
-        public readonly bool $aimAtFocus,
+        public readonly ?string $aimFocus,
         public readonly ?string $on,
-        public readonly int $repeatCount,
-        public readonly ?array $repeatStep,
-        public readonly ?Arc $arc = null,
+        /** Hung from a point in the air, instead of `at`'s floor or `on`'s cabinet top. */
+        public readonly ?Fly $fly,
+        public readonly GroupStack $group,
+        /** true or false to overrule the scene's aim-line mode for this group; null to follow it. */
+        public readonly ?bool $aimLines = null,
     ) {
     }
 
     public static function fromReader(ArrayReader $reader, int $index): self
     {
-        $repeat = $reader->optionalSection('repeat');
-
         return new self(
             id: $reader->optionalString('id') ?? 'placement-'.$index,
             deviceId: $reader->requireString('device'),
@@ -64,11 +68,11 @@ final class Placement
             pitchDeg: $reader->optionalFloat('pitch_deg', 0.0) ?? 0.0,
             rollDeg: $reader->optionalFloat('roll_deg', 0.0) ?? 0.0,
             aimAt: $reader->has('aim_at') ? self::readAim($reader) : null,
-            aimAtFocus: ($reader->optionalString('aim') ?? '') === 'focus',
+            aimFocus: $reader->optionalString('aim'),
             on: $reader->optionalString('on'),
-            repeatCount: $repeat?->optionalInt('count', 1) ?? 1,
-            repeatStep: $repeat !== null && $repeat->has('step') ? $repeat->requireVector3('step') : null,
-            arc: ($arc = $reader->optionalSection('arc')) === null ? null : Arc::fromReader($arc),
+            fly: ($fly = $reader->optionalSection('fly')) === null ? null : Fly::fromReader($fly),
+            group: GroupReader::read($reader),
+            aimLines: $reader->has('aim_lines') ? $reader->requireBool('aim_lines') : null,
         );
     }
 
@@ -78,7 +82,7 @@ final class Placement
      */
     public function copyCount(): int
     {
-        return $this->arc?->count ?? $this->repeatCount;
+        return $this->group->copyCount();
     }
 
     /**

@@ -1,0 +1,63 @@
+# Two hangs of four M2122s, flown from a bar 6 m up. The first scene in the repository that actually hangs
+# anything, and the reason `fly` exists: a line array's elements grow *downwards* from their anchor, so
+# `at` (the floor) and `on` (the top of another cabinet) are both the wrong end to measure from.
+#
+# `point: top-left` is the part worth reading twice. A cabinet does not hang from its own bottom-centre; it
+# hangs from a piece of hardware on its shell, and the Tecnare's `rigging.points` already says where those
+# are. Naming one means this scene states the thing that is true — that fly point is at 6 m — and the
+# cabinet's slot is worked out from it. The point sits 0.960 m up its cabinet, so the top element's slot
+# lands at 5.040 m and the array hangs from there.
+#
+# Those three rigging positions are ESTIMATED from the nominal box (see the spec, and TODO 10.6). The hang
+# is therefore as good as they are: the shape is right, the exact attachment is not confirmed.
+#
+# 4 x 0.96 m of cabinet plus the splay puts the bottom of each hang at 2.195 m — walkable underneath, and
+# `scene:build` says so outright if a hang ever reaches through the floor.
+#
+# The hang leans back rather than dropping straight down, because a hang is one rigid frame: its joints are
+# solved at the tilt the aim gives it and its chain swings with the yaw. Solved plumb and then tilted
+# element by element, the same four boxes ended up 21.7 mm inside one another.
+id: flown-array
+name: "Flown — two hangs of four"
+
+focus:
+  far:
+    distance_m: 14.0
+    height_m: 1.8
+
+placements:
+  - id: hang-left
+    device: tecnare-m2122
+    at: [-3.0, 0.0]
+    fly:
+      height_m: 6.0
+      point: top-left
+      # Both hangs name the same bar, so the report adds them up — a truss cares about the total, not
+      # about which of the two contributed it.
+      id: main-bar
+    aim: far
+    line_array:
+      count: 4
+      # Opening up towards the bottom: the top boxes throw to the back of the room, the lower ones cover
+      # the front. Tight at the top is the whole idea of a J.
+      splay_deg: [2, 4, 7]
+
+  - id: hang-right
+    device: tecnare-m2122
+    at: [3.0, 0.0]
+    fly:
+      height_m: 6.0
+      point: top-right
+      id: main-bar
+    aim: far
+    line_array:
+      count: 4
+      splay_deg: [2, 4, 7]
+
+notes: |
+  Eight M2122s and only three exist — `scene:build` says so. The arrangement is what matters here; cut both
+  hangs to `count: 1` for something buildable, or borrow.
+
+  The tops in every other scene are ground-stacked on the sub wall. This is the same cabinet doing the other
+  job, from the same spec — which is the argument for a scene-side `fly` rather than an `origin` committed
+  per spec.

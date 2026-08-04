@@ -1,0 +1,68 @@
+# Two focus points in one rig, which is what a real setup usually needs: the tops throw down the room and
+# the near-fills cover the people standing against the stage. One focus cannot be both — aim everything at
+# 10 m and the front rows are under the tops' pattern rather than in it; aim everything at 2 m and the back
+# of the room gets nothing.
+#
+# A focus is a decision about the *room*, so both live at scene level and placements reference them by name.
+# Two clusters sharing one point is the normal case, and writing the numbers into each placement instead
+# would duplicate them and let them drift.
+#
+# Both distances are measured from the whole rig's front face, not from each group's own. That is deliberate:
+# otherwise "2 m out" and "10 m out" would be measured from two different places and neither number could be
+# read off the file. `x_m` is the escape hatch for a group that is not aiming down the centre line.
+id: two-foci
+name: "Two foci — tops long, fills near"
+
+# Draw the aim by default for this scene, because the whole point of it is that two groups point at two
+# different places and that is invisible in a still render otherwise. `scene:render --aim-lines=none` is
+# still the way to get a clean picture of it.
+aim_lines: tops
+
+focus:
+  near:
+    distance_m: 2.0
+    height_m: 1.4          # chest height at 2 m, not ear height at 10
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+
+placements:
+  - id: sub-wall
+    device: flexy-folded-horn-hybrid
+    at: [-0.302, 0.0]
+    # Subs are omnidirectional enough that `tops` skips them, and here that is worth overruling: the wall
+    # is what both foci are measured from, so seeing where it faces makes the other two lines readable.
+    aim_lines: true
+    row:
+      count: 7
+      gap_m: 0.02
+
+  # Three tops on the wall, fanned on their own taper and aimed down the room.
+  - id: tops
+    device: tecnare-m2122
+    on: sub-wall
+    aim: far
+    arc:
+      mode: convex
+      count: 3
+
+  # The two-ways on the floor either side of the wall, covering the front rows. `step_m` rather than a
+  # derived gap: how far out they sit is a coverage decision, not a question of what fits.
+  #
+  # y = -1.05 and not -0.6: the wall is 0.964 m deep so its front face is already 0.482 m forward of its
+  # own centre line, and a fill aimed at a 2 m focus is turned far enough that its own box reaches 0.42 m
+  # behind its position. At -0.6 the two intersected by 0.41 m — cabinets inside each other, and invisible
+  # in a three-quarter render. This leaves 40 mm of air in front of the mouths.
+  - id: fills
+    device: eighteensound-2way-15
+    at: [-0.302, -1.05]
+    aim: near
+    row:
+      count: 2
+      step_m: 3.2
+
+notes: |
+  Both aiming decisions are one line each and neither states an angle — the compiler works out every
+  cabinet's own yaw and down-tilt from where it actually ends up standing.
+
+  Uses gear from two owners, which `scene:build` warns about.

@@ -14,9 +14,9 @@ category: speaker             # speaker | truss | rack | stand | other
 subtype: top                  # see the category table below
 quantity: 2                   # how many of these exist
 owner: sdwa5                  # default sdwa5; lowercase-dashes. Borrowed gear names its owner
-build: clone                  # clone | own-design | original
+build: self-built             # self-built | own-design | original
 
-clone_of:                     # required for build: clone, forbidden otherwise
+clone_of:                     # required for build: self-built, forbidden otherwise
   manufacturer: Acme          # `unknown` until somebody writes it down
   model: X1
   reference: datasheet        # datasheet | plans | cad | none
@@ -61,7 +61,7 @@ rigging:
       thread: M10
 
 audio:                        # optional, but worth filling in from the original's datasheet
-  coverage_deg: { horizontal: 90, vertical: 60 }
+  coverage_deg: { horizontal: 90, vertical: 60 }   # also draws the coverage cone; see below
   drivers:                    # the complement, for the catalog and the model's metadata
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: horn, count: 1 }
@@ -84,6 +84,21 @@ notes: |
 Anything marked optional can be left out entirely rather than written as `null`.
 
 ## Baffle layout
+
+### The coverage cone
+
+Stating `audio.coverage_deg` also builds a **coverage cone**: a wireframe cone in front of the baffle,
+reaching 10 m — the same distance a scene's default focus sits at, so "does the pattern cover the
+dancefloor" reads directly against where scenes already aim. A 60° × 40° cabinet spreads 11.55 m across and
+7.28 m high by the time it gets there.
+
+Like the rigging markers it is **render-invisible** and stays out of the `.glb`, so it never changes a
+model's bounding box or turns up in a preview. It is drawn as a wireframe rather than a solid, because a
+solid ten-metre cone would swallow the cabinet it belongs to.
+
+Its apex sits at the middle of the baffle, which is a simplification worth knowing: a real pattern comes
+from the drivers, spread across the baffle and crossing over at different distances. The cone answers
+"roughly where does this cabinet throw", not "what does the summed response do".
 
 `audio.layout` is what turns a cabinet from a box with holes in it into one you can see into. Everything
 it describes is recessed **behind** the baffle, so it never changes a model's outer bounding box.

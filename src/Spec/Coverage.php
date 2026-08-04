@@ -26,6 +26,23 @@ final class Coverage
     }
 
     /**
+     * How wide and how tall the pattern is by the time it reaches `$distance`, in metres.
+     *
+     * Straight trigonometry — `2·d·tan(θ/2)` per axis — but worth having here rather than in the geometry
+     * builder, because it is the one part of a coverage cone that can be checked without opening Blender.
+     * A 60° × 40° cabinet at 10 m covers 11.55 m across and 7.28 m high.
+     *
+     * @return array{float, float}
+     */
+    public function spreadAt(float $distance): array
+    {
+        return [
+            2 * $distance * tan(deg2rad($this->horizontal) / 2),
+            2 * $distance * tan(deg2rad($this->vertical) / 2),
+        ];
+    }
+
+    /**
      * @return array{horizontal: float, vertical: float}
      */
     public function toArray(): array

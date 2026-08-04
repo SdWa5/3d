@@ -54,15 +54,19 @@ def build(plan):
         instance.instance_type = "COLLECTION"
         instance.instance_collection = collection
         instance.location = tuple(placement["position_m"])
-        # Pitch about X (nose-down aiming), then roll about Y (turning a cabinet over for mirrored
-        # horn pairs), then yaw about Z (aiming left and right) — Blender's own XYZ order, which the
-        # PHP side matches. It has already raised the position so a rotated cabinet still rests on
-        # its slot.
-        instance.rotation_euler = (
-            math.radians(placement.get("pitch_deg", 0.0)),
-            math.radians(placement.get("roll_deg", 0.0)),
-            math.radians(placement["yaw_deg"]),
+        # `rotation_euler_deg` is already in Blender's XYZ order — pitch about X, then roll about Y,
+        # then yaw about Z. The PHP side decides the rotation in a different order (roll the cabinet in
+        # its own frame, then tilt it down, then aim it) and converts, because the two orders disagree
+        # for a cabinet that is both rolled off a half turn and tilted. The bare `pitch_deg`/`roll_deg`/
+        # `yaw_deg` fallback is what plans written before that conversion existed carry; they only ever
+        # held rolls of 0 or 180, where the two orders happen to coincide.
+        # The position has already been raised so a rotated cabinet still rests on its slot.
+        rotation = placement.get("rotation_euler_deg") or (
+            placement.get("pitch_deg", 0.0),
+            placement.get("roll_deg", 0.0),
+            placement["yaw_deg"],
         )
+        instance.rotation_euler = tuple(math.radians(angle) for angle in rotation)
         instance["sdwa5_device"] = placement["device"]
         scene_collection.objects.link(instance)
 

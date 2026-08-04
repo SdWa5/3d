@@ -53,8 +53,9 @@ visual overview of the gear.
 [scenes.md](scenes.md#rendering). To render by hand instead, build a scene from the asset library, add
 your own lighting and render normally. Two things are already taken care of:
 
-* Rigging markers and the orange "estimated" tag are **render-invisible**, so they will not show up
-  in the image.
+* Rigging markers, the orange "estimated" tag and the wireframe coverage cone are **render-invisible**,
+  so they will not show up in the image. The cone is the reason a device's viewport bounds look enormous
+  while its exported model is still exactly its declared size.
 * Materials come from one shared set, so cabinets from different specs match each other under the
   same light.
 

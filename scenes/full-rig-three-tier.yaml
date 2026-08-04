@@ -22,29 +22,31 @@ placements:
   # face each other and work as one larger mouth. Rolling the *upper* row instead drives them apart.
   - id: sub-row-bottom
     device: flexy-folded-horn-hybrid
-    at: [-2.135, 0.0]
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
     roll_deg: 180
-    repeat:
-      count: 7
-      step: [0.611, 0.0, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
 
   - id: sub-row-top
     device: flexy-folded-horn-hybrid
     on: sub-row-bottom
-    at: [-2.135, 0.0]
-    repeat:
-      count: 7
-      step: [0.611, 0.0, 0.0]
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
+    row:
+      count: 6
+      gap_m: 0.02
 
-  # Six Achenbach 18s across the middle, 20 mm apart like the subs. The row is 3.70 m wide against the
-  # sub wall's 4.26 m, so it is centred on the wall (x = -0.302) rather than started at its left edge.
+  # Six Achenbach 18s across the middle, 20 mm apart like the subs, centred on the wall like every other
+  # tier. Note the row is 3.70 m against the twelve-cabinet wall's 3.646 m, so it overhangs by 27 mm each
+  # side — nothing structurally, cabinets overhang in reality, but it is why this scene's reported
+  # footprint is the Achenbach row's width and not the wall's.
   - id: achenbach-row
     device: achenbach-18
     on: sub-row-top
-    at: [-1.852, 0.0]
-    repeat:
+    at: [-0.302, 0.0]
+    row:
       count: 6
-      step: [0.62, 0.0, 0.0]
+      gap_m: 0.02
 
   # The tops sit over the outer Achenbachs, not over the ends of the sub wall: the narrower middle row
   # is what carries them now, and the old x positions would have left them overhanging its edges.

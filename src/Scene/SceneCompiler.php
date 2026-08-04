@@ -31,7 +31,11 @@ final class SceneCompiler
         // Where the rig stands, worked out before any orientation exists. Aiming needs the focus
         // point, the focus point needs the rig's front face, and the front face must not depend on
         // aiming — otherwise the two would chase each other.
-        $focusPoint = $scene->focus->point($this->frontCentre($scene));
+        $frontCentre = $this->frontCentre($scene);
+        $focusPoints = array_map(
+            static fn (Focus $focus): array => $focus->point($frontCentre),
+            $scene->focusByName,
+        );
 
         $placed = [];
         $violations = [];
@@ -42,6 +46,7 @@ final class SceneCompiler
             $violations[] = new Violation($scene->sourcePath, $message);
         };
 
+        $lowest = null;
         foreach ($scene->placements as $placement) {
             if (isset($byId[$placement->id])) {
                 $add("duplicate placement id '{$placement->id}'");
@@ -59,13 +64,25 @@ final class SceneCompiler
                 continue;
             }
 
-            $target = $placement->aimAt ?? ($placement->aimAtFocus ? $focusPoint : null);
+            if ($placement->aimFocus !== null && !isset($focusPoints[$placement->aimFocus])) {
+                // `aim: focuss` used to mean *not aimed*, silently, with the cabinet left firing straight
+                // ahead and nothing to see in the output.
+                $add(sprintf(
+                    "placement '%s': unknown focus '%s' (defined: %s)",
+                    $placement->id,
+                    $placement->aimFocus,
+                    implode(', ', array_keys($focusPoints)),
+                ));
+                continue;
+            }
+
+            $target = $placement->aimAt ?? ($placement->aimFocus === null ? null : $focusPoints[$placement->aimFocus]);
             // An arc's radius depends on how far the cabinets are tilted, and the tilt depends on where
             // they stand — so the arc is solved at the tilt of its anchor, which stands on `at` facing
             // straight ahead. Across a three-wide arc the individual tilts differ by 0.03°.
             $pitch = $target === null
                 ? $placement->pitchDeg
-                : Orientation::pitchTowards($base, $target, $device->dimensions->height, 0.0, $placement->rollDeg);
+                : Orientation::pitchTowards($base, $target, $device->dimensions->height, 0.0);
 
             $problems = $this->validate($placement, $device, $pitch);
             if ($problems !== []) {
@@ -75,58 +92,146 @@ final class SceneCompiler
                 continue;
             }
 
-            $numbered = $placement->copyCount() > 1;
-            foreach ($this->copies($placement, $device, $pitch) as $copy) {
-                $id = $numbered ? sprintf('%s-%d', $placement->id, $copy->index + 1) : $placement->id;
+            // A hang is one rigid body, so it is aimed once — at its anchor — and every element inherits
+            // that attitude, differing only by the splay accumulated down to it. Aimed element by element
+            // instead, each one turns towards the target on its own and the splay cancels out exactly:
+            // four boxes all pointing at the same spot, which is not a J array.
+            $hangAim = $target !== null && $placement->group->decidesPitch()
+                ? Orientation::aimedAt($base, $target, $device->dimensions->height, $placement->rollDeg)
+                : null;
+
+            $copies = $this->copies($placement, $device, $pitch);
+            // ...and because it is one rigid body, its chain swings with it. A hang solves its joints in the
+            // elevation plane, which has no x in it, so its offsets come out along the world's y — while
+            // every element is yawed towards the target. `flown-array` is aimed 11.1° off-axis, and the two
+            // disagreeing put 3.5 mm of the bottom element inside the one above it.
+            if ($placement->group->decidesPitch()) {
+                $hangYaw = $hangAim?->yawDeg ?? $placement->yawDeg;
+                $copies = array_map(
+                    static fn (PlacementCopy $copy): PlacementCopy => $copy->yawedBy($hangYaw),
+                    $copies,
+                );
+            }
+            // A group can put part of itself below its own base — turning a multi-tier cell over maps its
+            // offsets `z → −z` — so the whole arrangement is raised back onto the slot, exactly as one
+            // rotated cabinet is. A hang is exempt: it belongs below its anchor.
+            $lift = GroupStack::zLift($device, $copies, $pitch, $placement->rollDeg);
+
+            foreach ($copies as $copy) {
+                $id = $placement->id.$copy->idSuffix();
 
                 $position = [
                     $base[0] + $copy->offset[0],
                     $base[1] + $copy->offset[1],
-                    $base[2] + $copy->offset[2],
+                    $base[2] + $copy->offset[2] + $lift,
                 ];
 
-                // Aim is resolved per copy, so a repeated row of tops each turns towards the target
-                // rather than all sharing the first one's angle. An arc has already decided its yaw,
-                // so there the aim contributes the down-tilt only.
-                if ($target === null) {
-                    $orientation = new Orientation(
-                        $placement->pitchDeg,
-                        $placement->rollDeg,
-                        $copy->yawDeg ?? $placement->yawDeg,
+                $orientation = $this->orientationFor($placement, $device, $copy, $position, $target, $hangAim);
+                if ($orientation === null) {
+                    $add(
+                        "placement '{$placement->id}': the group turns cabinet {$id} onto its end, "
+                        .'where its roll and its yaw become the same turn',
                     );
-                } elseif ($copy->yawDeg === null) {
-                    $orientation = Orientation::aimedAt(
-                        $position,
-                        $target,
-                        $device->dimensions->height,
-                        $placement->rollDeg,
-                    );
-                } else {
-                    $orientation = new Orientation(
-                        Orientation::pitchTowards(
-                            $position,
-                            $target,
-                            $device->dimensions->height,
-                            $copy->yawDeg,
-                            $placement->rollDeg,
-                        ),
-                        $placement->rollDeg,
-                        $copy->yawDeg,
-                    );
+                    continue;
                 }
 
-                $entry = new PlacedDevice($id, $device, $position, $orientation);
+                $entry = new PlacedDevice(
+                    $id,
+                    $device,
+                    $position,
+                    $orientation,
+                    // A hang's slot is not the floor, whether it is one cabinet or a whole array: lifting a
+                    // flown cabinet back onto a slot would move it away from the hardware holding it up.
+                    $copy->seated && $placement->fly === null,
+                    $placement->aimLines,
+                    $placement->fly?->label($placement->id),
+                );
 
                 $placed[] = $entry;
+                $lowest = min($lowest ?? INF, $entry->worldBox()['min'][2]);
                 // `on` refers to the placement as a whole, so one copy has to stand for it: the last of
                 // a repeated row, and the middle of an arc, which is the one sitting on `at`.
                 if ($copy->isAnchor) {
                     $byId[$placement->id] = $entry;
                 }
             }
+
+            // The check that makes `fly` police itself: a hang is the one thing that can legitimately be
+            // told to sit above the floor and still end up through it, because its elements grow downwards
+            // from the anchor rather than upwards from the ground.
+            if ($placement->fly !== null && $lowest !== null && $lowest < -1e-9) {
+                $add(sprintf(
+                    "placement '%s': the hang reaches %.3f m below the floor — raise fly.height_m by at least that",
+                    $placement->id,
+                    -$lowest,
+                ));
+            }
+            $lowest = null;
         }
 
         return ['placed' => $placed, 'violations' => $violations];
+    }
+
+    /**
+     * How one cabinet ends up turned: the groups' contribution applied *outside* the cabinet's own
+     * attitude, `G · P`.
+     *
+     * The placement's pitch and roll are the attitude the cabinet stands at inside its cell; a group's
+     * rotation is how that cell is turned in the world. Composing them the other way round would apply an
+     * arc seat's yaw inside an already-tilted frame, which is not what a fan of tilted tops is.
+     *
+     * Aim is resolved per copy, so a repeated row of tops each turns towards the target rather than all
+     * sharing the first one's angle. Where a group has already decided the yaw, the aim contributes the
+     * down-tilt only — and it is measured against the *group's* yaw while the roll it is given is the
+     * placement's alone, because a roll living in the group is already in the matrix and counting it twice
+     * would tilt every alternately-rolled cabinet the wrong way.
+     *
+     * Null when the composition cannot be split back into three angles, which is a cabinet stood on end.
+     *
+     * @param array{float, float, float} $position
+     * @param array{float, float, float}|null $target
+     */
+    private function orientationFor(
+        Placement $placement,
+        DeviceSpec $device,
+        PlacementCopy $copy,
+        array $position,
+        ?array $target,
+        ?Orientation $hangAim = null,
+    ): ?Orientation {
+        // A group that tilts its cabinets — a hang, where the splay *is* the tilt — adds to whatever the
+        // placement or its aim resolved to, rather than turning the cell.
+        $tilt = $copy->pitchIncrementDeg;
+
+        if ($hangAim !== null) {
+            // Resolved once for the whole hang; only the splay differs between elements.
+            $own = new Orientation($hangAim->pitchDeg + $tilt, $hangAim->rollDeg, $hangAim->yawDeg);
+        } elseif ($target === null) {
+            $own = new Orientation($placement->pitchDeg + $tilt, $placement->rollDeg, $placement->yawDeg);
+        } elseif (!$placement->group->decidesYaw()) {
+            // Nothing has claimed the yaw, so the aim gets both of them. A lattice's cycled roll comes
+            // through `$copy->rotation` without claiming the yaw, which is why the question is whether the
+            // group *decides* the yaw and not whether this copy happens to have one of zero.
+            $aimed = Orientation::aimedAt($position, $target, $device->dimensions->height, $placement->rollDeg);
+            $own = new Orientation($aimed->pitchDeg + $tilt, $aimed->rollDeg, $aimed->yawDeg);
+        } else {
+            $own = new Orientation(
+                Orientation::pitchTowards(
+                    $position,
+                    $target,
+                    $device->dimensions->height,
+                    $copy->rotation?->yawDeg ?? 0.0,
+                ) + $tilt,
+                $placement->rollDeg,
+                0.0,
+            );
+        }
+
+        if ($copy->rotation === null) {
+            return $own;
+        }
+
+        return $copy->rotation->after($own);
     }
 
     /**
@@ -141,32 +246,36 @@ final class SceneCompiler
     {
         $messages = [];
 
-        if ($placement->arc !== null && $placement->repeatStep !== null) {
-            $messages[] = 'use either `repeat` or `arc`, not both';
+        if ($placement->group->decidesYaw() && $placement->yawDeg !== 0.0) {
+            $messages[] = sprintf('the %s already sets yaw — remove yaw_deg', $placement->group->kind());
         }
-        if ($placement->arc !== null && $placement->yawDeg !== 0.0) {
-            $messages[] = 'the arc already sets yaw — remove yaw_deg';
+        if ($placement->fly !== null && $placement->on !== null) {
+            // Both decide the same number, and there is no reading of the pair that is not a contradiction.
+            $messages[] = 'use either `fly` or `on`, not both — they both decide the height';
         }
-        if ($placement->arc !== null && fmod(abs($placement->rollDeg), 180.0) !== 0.0) {
+        if ($placement->fly?->point !== null && $placement->fly->pointOn($device) === null) {
+            $names = array_map(
+                static fn (\App\Spec\RiggingPoint $point): string => $point->id,
+                $device->riggingPoints,
+            );
             $messages[] = sprintf(
-                'an arc needs the cabinet upright or turned over — roll_deg %s puts its width on the vertical',
-                $placement->rollDeg,
+                "fly.point '%s' is not a rigging point of %s (%s)",
+                $placement->fly->point,
+                $device->id,
+                $names === [] ? 'it has none' : 'has: '.implode(', ', $names),
             );
         }
-        if ($placement->arc === null && $placement->repeatCount < 1) {
-            $messages[] = 'repeat.count must be at least 1';
+        if ($placement->fly?->point !== null && !$device->flyable) {
+            $messages[] = sprintf('fly.point names a point on %s, which is not flyable', $device->id);
         }
-        if ($placement->arc === null && $placement->repeatCount > 1 && $placement->repeatStep === null) {
-            $messages[] = 'repeat.count > 1 needs a repeat.step';
-        }
-        if ($placement->aimAt !== null && $placement->aimAtFocus) {
-            $messages[] = 'use either `aim: focus` or `aim_at`, not both';
+        if ($placement->aimAt !== null && $placement->aimFocus !== null) {
+            $messages[] = 'use either `aim` or `aim_at`, not both';
         }
         if (
-            ($placement->aimAt !== null || $placement->aimAtFocus)
+            ($placement->aimAt !== null || $placement->aimFocus !== null)
             && ($placement->yawDeg !== 0.0 || $placement->pitchDeg !== 0.0)
         ) {
-            // An arc's yaw does not live in `yaw_deg`, so this stays the same rule it always was.
+            // A group's yaw does not live in `yaw_deg`, so this stays the same rule it always was.
             $messages[] = 'aiming already sets yaw and pitch — remove yaw_deg/pitch_deg';
         }
 
@@ -174,7 +283,12 @@ final class SceneCompiler
             return $messages;
         }
 
-        return $placement->arc?->problems($device, $pitchDeg) ?? [];
+        return $placement->group->problems(
+            $device,
+            $pitchDeg,
+            $placement->rollDeg,
+            GroupStack::cabinetBox($device, $pitchDeg, $placement->rollDeg),
+        );
     }
 
     /**
@@ -184,24 +298,12 @@ final class SceneCompiler
      */
     private function copies(Placement $placement, DeviceSpec $device, float $pitchDeg): array
     {
-        if ($placement->arc !== null) {
-            return $placement->arc->seats($device, $pitchDeg);
-        }
-
-        $step = $placement->repeatStep ?? [0.0, 0.0, 0.0];
-        $last = $placement->repeatCount - 1;
-
-        $copies = [];
-        for ($index = 0; $index <= $last; ++$index) {
-            $copies[] = new PlacementCopy(
-                $index,
-                [$step[0] * $index, $step[1] * $index, $step[2] * $index],
-                null,
-                $index === $last,
-            );
-        }
-
-        return $copies;
+        return $placement->group->copies(
+            $device,
+            $pitchDeg,
+            $placement->rollDeg,
+            GroupStack::cabinetBox($device, $pitchDeg, $placement->rollDeg),
+        );
     }
 
     /**
@@ -240,7 +342,7 @@ final class SceneCompiler
                 continue;
             }
 
-            $aimed = $placement->aimAt !== null || $placement->aimAtFocus;
+            $aimed = $placement->aimAt !== null || $placement->aimFocus !== null;
             $pitch = $aimed ? 0.0 : $placement->pitchDeg;
             $yaw = $aimed ? 0.0 : $placement->yawDeg;
 
@@ -254,11 +356,13 @@ final class SceneCompiler
                 $x = $base[0] + $copy->offset[0];
                 $y = $base[1] + $copy->offset[1];
 
+                $attitude = new Orientation($pitch + $copy->pitchIncrementDeg, $placement->rollDeg, $yaw);
                 $box = (new PlacedDevice(
                     $placement->id,
                     $device,
                     [$x, $y, 0.0],
-                    new Orientation($pitch, $placement->rollDeg, $copy->yawDeg ?? $yaw),
+                    $copy->rotation === null ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
+                    $copy->seated,
                 ))->worldBox();
 
                 $minX = min($minX, $box['min'][0]);
@@ -287,9 +391,19 @@ final class SceneCompiler
      */
     private function resolveBase(Placement $placement, DeviceSpec $device, array $byId, callable $add): ?array
     {
+        if ($placement->fly !== null) {
+            if ($placement->at === null) {
+                $add("placement '{$placement->id}': `fly` needs `at` for the x and y it hangs over");
+
+                return null;
+            }
+
+            return $placement->fly->slot($placement->at, $placement->fly->pointOn($device));
+        }
+
         if ($placement->on === null) {
             if ($placement->at === null) {
-                $add("placement '{$placement->id}': needs either `at` or `on`");
+                $add("placement '{$placement->id}': needs either `at`, `on` or `fly`");
 
                 return null;
             }

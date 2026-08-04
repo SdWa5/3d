@@ -1,0 +1,92 @@
+# Every top we own, on one rig. The three-tier stack — mirrored Flexy wall, Achenbach row, M2122 tops —
+# with Sepp's two 18sound 2-ways added on the inner side of the outer Tecnares as near-field fill.
+#
+# The reason to put two different tops on one rig is that they are doing two different jobs, and this scene
+# says so with two named foci rather than with angles. The M2122s throw down the room; the 2-ways cover the
+# people standing against the stage, who are underneath the M2122s' pattern rather than in it. Neither
+# placement states a yaw or a tilt — the compiler works both out from where each cabinet actually ends up.
+#
+# The M2122s stay SPREAD APART at their 1.55 m step, which is a coverage decision and not a question of
+# what fits: an `arc` or a `gap_m` row would pull them together onto their own taper and give a
+# point-source cluster, which is the opposite of what wide spacing is for.
+#
+# The 2-ways tuck hard against the inner face of each outer M2122, 20 mm clear of it. That 20 mm is
+# measured on the boxes the cabinets ACTUALLY OCCUPY, which is not the same as on their widths, and the
+# difference is not small: both cabinets are aimed, so both are toed in — the outer top by 8.4 deg and the
+# fill by 20.8 deg, because a 2 m focus is a hard turn — and a yawed cabinet is wider across x than it is
+# wide. Spacing them by half-widths plus a gap (1.55 - 0.250 - 0.020 - 0.2328 = 1.0472 from centre, a step
+# of 2.0944) drives them 88 mm INTO each other. Solved against the rotated boxes it is a step of 1.887,
+# which leaves 20 mm to the outer top and 323 mm to the middle one.
+#
+# The top tier is deliberately UNEVEN — a 2-way is 0.836 m tall against an M2122's 0.960 — because they are
+# not meant to line up. They are near-field fill sitting beside the long throw, not part of one array.
+#
+# The Achenbach row still calls for SIX and only FOUR exist, exactly as in full-rig-three-tier.yaml. The
+# tops, on the other hand, are the entire top inventory: three M2122s and two 2-ways, no more, no fewer.
+id: full-rig-all-tops
+name: "Full rig — every top, long throw plus near fill"
+
+focus:
+  far:
+    distance_m: 10.0    # out into the crowd, past the front rows
+    height_m: 1.8       # ear height for a standing audience
+  near:
+    distance_m: 2.0     # the front rows, right against the stage
+    height_m: 1.8       # the same ear height — near field, not downward
+
+placements:
+  # Bottom row turned over so its mouths rise to the seam and meet the upper row's. Rolling the *upper*
+  # row instead drives them apart.
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
+    roll_deg: 180
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
+    row:
+      count: 6
+      gap_m: 0.02
+
+  # Six Achenbach 18s across the middle, 20 mm apart like the subs. At 3.70 m the row is 27 mm wider than
+  # the wall it stands on at each side, which is why it and not the wall sets the reported footprint.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-row-top
+    at: [-0.302, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  # The long throw. `step_m` rather than `gap_m` because the spacing is the point: 1.55 m apart puts each
+  # top over an outer Achenbach and leaves room between them for the fill.
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: far
+    row:
+      count: 3
+      step_m: 1.55
+
+  # Near-field fill, inside the outer tops. See the header for why this is 1.887 and not 2.0944 — spacing
+  # these on their widths rather than on their turned boxes overlaps them by 88 mm.
+  - id: near-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: near
+    row:
+      count: 2
+      step_m: 1.887
+
+notes: |
+  Compare full-rig-three-tier.yaml, which is this rig with the M2122s alone. The fill costs two cabinets
+  and one more focus, and it is the difference between covering the dancefloor and covering the room.
+
+  Mixes owners — the Achenbachs and the 2-ways are Sepp's — which `scene:build` reports.

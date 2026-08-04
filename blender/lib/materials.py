@@ -14,6 +14,7 @@ RIGGING = "sdwa5-rigging"
 CONE = "sdwa5-cone"
 HORN = "sdwa5-horn"
 ESTIMATED = "sdwa5-estimated"
+COVERAGE = "sdwa5-coverage"
 
 
 def hex_to_linear_rgba(value, alpha=1.0):
@@ -73,20 +74,34 @@ def build_set(appearance):
     grille_color = hex_to_linear_rgba(appearance["grille"]["color"] or appearance["color"])
 
     return {
-        # Painted or coated plywood: matte, not metallic.
+        # Every part of a cabinet is one colour for now — `appearance.color`, whatever that says. The parts
+        # still have their own materials so a future change can differentiate them again without
+        # restructuring anything, but they no longer differ by hue.
+        #
+        # What they differed by, and why it was dropped: the horn flares were #3a3a3c against a #141414
+        # cabinet, deliberately lighter "so the mouth reads as an opening with something inside it", and the
+        # handles were #1a1a1a. On the 18sound that horn is 0.362 m wide across a 0.466 m cabinet, so it
+        # dominated the baffle and read as a differently-coloured panel rather than as a flare. Shape and
+        # shading carry that distinction well enough on their own.
+        #
+        # `metallic` is dropped with the colour, not kept: it changes apparent shade more than roughness
+        # does, so a metallic handle at the cabinet's own colour would still not match it. `roughness` is
+        # kept, because it changes how sharp a highlight is rather than what colour the surface is.
         CABINET: _principled(CABINET, cabinet_color, roughness=0.75),
-        # Perforated steel grille reads darker and slightly metallic.
-        GRILLE: _principled(GRILLE, grille_color, roughness=0.45, metallic=0.6),
-        HANDLE: _principled(HANDLE, hex_to_linear_rgba("#1a1a1a"), roughness=0.5, metallic=0.4),
-        # Driver cones are coated paper or fibre: very dark and almost entirely diffuse, which is what
-        # makes a cone read as a cone rather than as a shiny funnel.
-        CONE: _principled(CONE, hex_to_linear_rgba("#141414"), roughness=0.88),
-        # Horn flares are moulded plastic or painted ply — lighter than the cabinet so the mouth reads
-        # as an opening with something inside it.
-        HORN: _principled(HORN, hex_to_linear_rgba("#3a3a3c"), roughness=0.55),
+        GRILLE: _principled(GRILLE, grille_color, roughness=0.45),
+        HANDLE: _principled(HANDLE, cabinet_color, roughness=0.5),
+        # Coated paper or fibre: almost entirely diffuse, which is what makes a cone read as a cone rather
+        # than as a shiny funnel.
+        CONE: _principled(CONE, cabinet_color, roughness=0.88),
+        # Moulded plastic or painted ply.
+        HORN: _principled(HORN, cabinet_color, roughness=0.55),
         RIGGING: _principled(RIGGING, hex_to_linear_rgba("#9a9a9a"), roughness=0.35, metallic=0.9),
         # Estimated marker glows so a guessed cabinet is impossible to miss in the viewport.
         ESTIMATED: _principled(
             ESTIMATED, hex_to_linear_rgba("#ff8800"), roughness=0.4, emission_strength=2.0
+        ),
+        # The coverage cone is drawn as a wireframe, so what this mostly decides is its viewport colour.
+        COVERAGE: _principled(
+            COVERAGE, hex_to_linear_rgba("#33aaff"), roughness=0.5, emission_strength=1.0
         ),
     }

@@ -1,0 +1,97 @@
+# full-rig-quarter-turned spread out for the widest stereo image the inventory allows: every tier pushed
+# apart until its OUTER EDGES line up with the sub wall's, instead of sitting centred and narrow on top of
+# it. Same twenty-three cabinets, same two foci — only the horizontal distribution differs.
+#
+# The wall is the widest thing we can build, 4.678 m with the subs on their sides, and it sets the envelope.
+# Every tier above is then spread to fill it:
+#
+#   sub wall        -2.6410 .. +2.0370     twelve Flexys, three groups of four
+#   achenbach row   -2.6410 .. +2.0370     six, with 216 mm of air between each
+#   tops            -2.6410 .. +2.0370     three, 2.1185 m apart instead of 1.55
+#   near-fills                             two, still 20 mm inside the outer tops
+#
+# Spreading the mid tier is what lets the tops spread: they stand on the Achenbachs, so the row has to reach
+# out to where the tops need to be. Hence "Achenbach with spacing each" — the gaps in that row are not a
+# compromise, they are the mechanism.
+#
+# WHAT THIS BUYS AND WHAT IT COSTS. The outer tops move from ±1.55 m to ±2.12 m either side of the rig
+# centre, so the stereo image is 37% wider and the two halves of it separate much further before they meet.
+# What it costs is the middle: three tops 2.1 m apart leave a wider hole between their patterns than three
+# tops 1.55 m apart, and the centre of the room is covered by the middle cabinet alone. That is the trade a
+# wide stereo image always is, and it is why the near-fills matter more here than in the narrow version.
+#
+# EVERY STEP IN THIS FILE IS SOLVED, NOT DERIVED, and that is the honest state of it. Aligning an *aimed*
+# cabinet's outer edge cannot be computed from widths: aiming toes it in, a toed-in cabinet occupies more x
+# than it is wide, and how far it toes in depends on where it ended up — so the answer is a fixed point, not
+# a formula. 2.1185 puts the outer tops' turned boxes exactly on the wall's edges (they toe in 11.43°);
+# 2.9709 leaves the fills exactly 20 mm inside them (they toe in 30.90°). Generalising this into a layout
+# the compiler can work out is on TODO.md.
+id: full-rig-stereo
+name: "Full rig — widest stereo image, tiers aligned on the outer edges"
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  # Unchanged from full-rig-quarter-turned: a back-to-back pair, two tiers of it for a group of four, three
+  # groups side by side. See that file for why the pair's step is stated and its cycle order matters.
+  - id: sub-wall
+    device: flexy-folded-horn-hybrid
+    at: [-0.302, 0.0]
+    row:
+      count: 2
+      step_m: 0.02
+      roll_cycle: [270, 90]
+    in:
+      - lattice:
+          count: [1, 1, 2]
+      - lattice:
+          count: [3, 1, 1]
+          gap_m: 0.02
+
+  # Spread to the wall's edges: 0.8156 m of step for a 0.600 m cabinet is 216 mm of air between each. Not
+  # a wall any more — six separate cabinets carrying the tier above at the width it needs.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-wall
+    at: [-0.302, 0.0]
+    row:
+      count: 6
+      step_m: 0.8156
+
+  # The long throw, as far apart as the rig goes. The outer two land exactly on the wall's edges.
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: far
+    row:
+      count: 3
+      step_m: 2.1185
+
+  # Near-field fill, still 20 mm inside the outer tops — which have moved, so this has moved with them.
+  - id: near-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: near
+    row:
+      count: 2
+      step_m: 2.9709
+
+notes: |
+  Three versions of the same twenty-three cabinets, narrowest to widest:
+
+    full-rig-all-tops        subs standing up, tiers centred     wall 3.65 m, outer tops at ±1.55
+    full-rig-quarter-turned  subs on their sides, tiers centred  wall 4.68 m, outer tops at ±1.55
+    full-rig-stereo          subs on their sides, tiers spread   wall 4.68 m, outer tops at ±2.12
+
+  Whether a 37% wider image is worth the thinner middle is a decision about the room, not about the rig, and
+  this file exists so the two can be compared in a render rather than argued about.
+
+  Six Achenbachs against four owned, as in every three-tier scene. Mixes owners.

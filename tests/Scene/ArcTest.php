@@ -172,7 +172,7 @@ final class ArcTest extends TestCase
         $seats = (new Arc(ArcMode::Convex, 3))->seats($this->tecnare(), 0.0);
 
         self::assertSame([0.0, 0.0, 0.0], $seats[1]->offset);
-        self::assertSame(0.0, $seats[1]->yawDeg);
+        self::assertSame(0.0, $seats[1]->rotation?->yawDeg);
         self::assertTrue($seats[1]->isAnchor);
         self::assertFalse($seats[0]->isAnchor);
     }
@@ -184,7 +184,7 @@ final class ArcTest extends TestCase
         self::assertCount(2, $seats);
         self::assertEqualsWithDelta(-$seats[1]->offset[0], $seats[0]->offset[0], 1e-12);
         self::assertEqualsWithDelta($seats[1]->offset[1], $seats[0]->offset[1], 1e-12);
-        self::assertEqualsWithDelta(-$seats[1]->yawDeg, $seats[0]->yawDeg, 1e-12);
+        self::assertEqualsWithDelta(-$seats[1]->rotation?->yawDeg, $seats[0]->rotation?->yawDeg, 1e-12);
         // Nothing sits on `at` itself; the left cabinet anchors `on:`.
         self::assertTrue($seats[0]->isAnchor);
     }
@@ -212,8 +212,8 @@ final class ArcTest extends TestCase
         self::assertGreaterThan(0.0, $convex[0]->offset[1], 'convex ends sit behind the middle');
         self::assertLessThan(0.0, $concave[0]->offset[1], 'concave ends sit in front of the middle');
         // And the outer cabinets turn opposite ways: outward in convex, inward in concave.
-        self::assertLessThan(0.0, $convex[0]->yawDeg);
-        self::assertGreaterThan(0.0, $concave[0]->yawDeg);
+        self::assertLessThan(0.0, $convex[0]->rotation?->yawDeg);
+        self::assertGreaterThan(0.0, $concave[0]->rotation?->yawDeg);
     }
 
     public function testEveryCabinetsFrontFaceLiesOnTheStatedRadius(): void
@@ -227,12 +227,12 @@ final class ArcTest extends TestCase
             self::assertEqualsWithDelta(3.0, $radius, 1e-9, 'the stated radius is the front face');
 
             foreach ($arc->seats($device, 0.0) as $seat) {
-                $front = (new Orientation(0.0, 0.0, $seat->yawDeg))->apply([0.0, -0.520 / 2, 0.0]);
+                $front = (new Orientation(0.0, 0.0, $seat->rotation?->yawDeg))->apply([0.0, -0.520 / 2, 0.0]);
                 $distance = sqrt(
                     ($seat->offset[0] + $front[0] - $centre[0]) ** 2
                     + ($seat->offset[1] + $front[1] - $centre[1]) ** 2,
                 );
-                self::assertEqualsWithDelta($radius, $distance, 1e-9, "{$mode->value} seat {$seat->index}");
+                self::assertEqualsWithDelta($radius, $distance, 1e-9, "{$mode->value} seat {$seat->path[0]}");
             }
         }
     }
@@ -260,7 +260,186 @@ final class ArcTest extends TestCase
         $seats = $arc->seats($box, 0.0);
         self::assertCount(1, $seats);
         self::assertSame([0.0, 0.0, 0.0], $seats[0]->offset);
-        self::assertSame(0.0, $seats[0]->yawDeg);
+        self::assertSame(0.0, $seats[0]->rotation?->yawDeg);
+    }
+
+    /**
+     * A cabinet with nothing to taper — a plain box, or a trapezoid whose back is as wide as its front —
+     * used to be refused for having no angle to derive. It has one: zero. Two boxes side by side are
+     * already in full face contact, which is the tightest convex arrangement there is, and the arc lays
+     * them out as a row spaced by their own width.
+     */
+    public function testAConvexArcOfPlainBoxesIsAStraightRowOfThem(): void
+    {
+        foreach ([self::device(backWidth: null), self::device(backWidth: 0.5)] as $untapered) {
+            $arc = new Arc(ArcMode::Convex, 3);
+
+            self::assertSame([], $arc->problems($untapered, 0.0));
+            self::assertSame(0.0, $arc->splayDegFor($untapered, 0.0));
+            self::assertTrue($arc->isStraight($untapered, 0.0));
+
+            $seats = $arc->seats($untapered, 0.0);
+            self::assertSame([-0.5, 0.0, 0.0], $seats[0]->offset);
+            self::assertSame([0.0, 0.0, 0.0], $seats[1]->offset);
+            self::assertSame([0.5, 0.0, 0.0], $seats[2]->offset);
+            self::assertSame(0.0, $seats[1]->rotation?->yawDeg);
+        }
+    }
+
+    /**
+     * `splay_deg: 0` states the same thing outright, and a row is the arc of infinite radius — so the
+     * radius says so rather than reporting some large number that happens not to overflow.
+     */
+    public function testAZeroSplayArcIsAStraightRowSpacedByTheCabinetsOwnWidth(): void
+    {
+        $device = $this->tecnare();
+        $arc = new Arc(ArcMode::Convex, 3, splayDeg: 0.0);
+
+        self::assertSame([], $arc->problems($device, 0.0));
+        self::assertInfinite($arc->centreRadiusM($device, 0.0));
+
+        foreach ($arc->seats($device, 0.0) as $index => $seat) {
+            self::assertSame(($index - 1) * 0.5, $seat->offset[0], "seat {$index} x");
+            self::assertSame(0.0, $seat->offset[1], "seat {$index} y — a row does not bow");
+            self::assertSame(0.0, $seat->rotation?->yawDeg, "seat {$index} yaw — a row does not turn");
+        }
+    }
+
+    /**
+     * The oracle that makes a row the same solve as an arc rather than a parallel one: as the splay
+     * closes, the arc's spacing along the seam converges on the cabinet's own width.
+     */
+    public function testTheSpacingOfAStraightRowIsTheLimitOfTheArcsSpacing(): void
+    {
+        $device = $this->tecnare();
+
+        $spacing = (new Arc(ArcMode::Convex, 3, splayDeg: 0.0))->seats($device, 0.0)[2]->offset[0]
+            - (new Arc(ArcMode::Convex, 3, splayDeg: 0.0))->seats($device, 0.0)[1]->offset[0];
+        self::assertSame(0.5, $spacing);
+
+        // Closing the splay by a factor of ten takes the arc's spacing ten times closer to the row's, so
+        // the row is the limit rather than merely a similar number: 0.4957 at 1°, 0.49996 at 0.01°.
+        $previous = null;
+        foreach ([1.0, 0.1, 0.01, 0.001] as $tiny) {
+            $radius = (new Arc(ArcMode::Convex, 3, splayDeg: $tiny))->centreRadiusM($device, 0.0);
+            $error = abs($spacing - $radius * deg2rad($tiny));
+
+            self::assertLessThan(0.005 * $tiny, $error, "splay {$tiny} should be within 0.005·splay");
+            if ($previous !== null) {
+                self::assertEqualsWithDelta(0.1, $error / $previous, 0.01, "splay {$tiny} error shrank tenfold");
+            }
+            $previous = $error;
+        }
+    }
+
+    /**
+     * A cabinet on its side touches its neighbour top to bottom, so the row is spaced by the cabinet's
+     * height. `width` is only ever a stand-in for this, and it stops being one the moment anything is
+     * turned.
+     */
+    public function testAStraightRowOfCabinetsOnTheirSidesIsSpacedByTheirHeight(): void
+    {
+        $device = $this->tecnare();
+        $arc = new Arc(ArcMode::Convex, 4);
+
+        self::assertTrue($arc->isStraight($device, 0.0, 90.0));
+        self::assertSame(0.0, $arc->splayDegFor($device, 0.0, 90.0));
+
+        $x = array_map(static fn (PlacementCopy $s): float => $s->offset[0], $arc->seats($device, 0.0, 90.0));
+        self::assertSame([-1.44, -0.48, 0.48, 1.44], $x, 'four cabinets 0.960 m apart, centred on `at`');
+    }
+
+    /**
+     * Every sub row in this repository states a 0.611 m step for a 0.591 m cabinet — a 20 mm working gap,
+     * written into a number by hand. `gap_m` is that gap said out loud.
+     */
+    public function testAGapOpensEveryJoint(): void
+    {
+        $device = $this->tecnare();
+
+        $flush = new Arc(ArcMode::Convex, 3, splayDeg: 0.0);
+        $spaced = new Arc(ArcMode::Convex, 3, splayDeg: 0.0, gapM: 0.02);
+
+        self::assertSame(0.5, $flush->seats($device, 0.0)[2]->offset[0]);
+        self::assertSame(0.52, $spaced->seats($device, 0.0)[2]->offset[0]);
+
+        // A gap opens a splayed seam too, measured across it rather than along x.
+        $tight = new Arc(ArcMode::Convex, 3, splayDeg: 25.0);
+        $roomy = new Arc(ArcMode::Convex, 3, splayDeg: 25.0, gapM: 0.02);
+        self::assertGreaterThan(
+            $tight->centreRadiusM($device, 0.0),
+            $roomy->centreRadiusM($device, 0.0),
+        );
+    }
+
+    /**
+     * Contact is solved on the plan outline of the *turned* cabinet, so it holds at every quarter turn —
+     * one code path for upright, turned over, and on its side. Measured on the cabinets' own corners with
+     * a separating-axis test, because at a quarter turn the seam meets edge to edge with the two faces
+     * offset along each other and no two corners coincide.
+     */
+    public function testAnArcTouchesAlongItsSeamAtEveryQuarterTurn(): void
+    {
+        $device = $this->tecnare();
+
+        foreach ([0.0, 90.0, 180.0, 270.0] as $roll) {
+            foreach ([ArcMode::Convex, ArcMode::Concave] as $mode) {
+                $arc = new Arc($mode, 3, splayDeg: 25.0);
+                $seats = $arc->seats($device, 0.0, $roll);
+
+                self::assertEqualsWithDelta(
+                    0.0,
+                    $this->separation($device, $seats[0], $seats[1], 0.0, $roll),
+                    1e-9,
+                    sprintf('roll %s, %s', $roll, $mode->value),
+                );
+            }
+        }
+    }
+
+    /**
+     * Turning a cabinet over leaves its plan outline alone, so it leaves the flush angle alone too.
+     */
+    public function testTurningACabinetOverDoesNotChangeItsFlushAngle(): void
+    {
+        $device = $this->tecnare();
+        $arc = new Arc(ArcMode::Convex, 3);
+
+        self::assertEqualsWithDelta(17.348216263793, $arc->splayDegFor($device, 0.0, 0.0), 1e-9);
+        self::assertEqualsWithDelta(17.348216263793, $arc->splayDegFor($device, 0.0, 180.0), 1e-9);
+        self::assertEqualsWithDelta(1.390709677419, $arc->centreRadiusM($device, 0.0, 0.0), 1e-9);
+        self::assertEqualsWithDelta(1.390709677419, $arc->centreRadiusM($device, 0.0, 180.0), 1e-9);
+    }
+
+    /**
+     * A *tilted* upside-down arc is a different arc, and it used to be solved as if it were the right way
+     * up: tilt swings the front-top edge forward, and turning the cabinet over swings it the other way.
+     * Solved flat the mirrored arc came out 73.7 mm too tight — the cabinets driven into each other, in a
+     * render that looks entirely plausible. No committed scene tilts a rolled row, which is why nothing
+     * caught it.
+     */
+    public function testTiltingAnUpsideDownArcOpensItByADifferentAmountThanARightWayUpOne(): void
+    {
+        $device = $this->tecnare();
+        $arc = new Arc(ArcMode::Convex, 3);
+
+        $upright = $arc->centreRadiusM($device, 4.4, 0.0);
+        $turnedOver = $arc->centreRadiusM($device, 4.4, 180.0);
+
+        self::assertEqualsWithDelta(1.386610911419, $upright, 1e-9);
+        self::assertEqualsWithDelta(1.460261178423, $turnedOver, 1e-9);
+        self::assertEqualsWithDelta(0.073650, $turnedOver - $upright, 1e-6);
+
+        // Both still meet exactly on their own corners, which is the point of solving them separately.
+        foreach ([0.0, 180.0] as $roll) {
+            $seats = $arc->seats($device, 4.4, $roll);
+            self::assertEqualsWithDelta(
+                0.0,
+                $this->separation($device, $seats[0], $seats[1], 4.4, $roll),
+                1e-9,
+                "roll {$roll}",
+            );
+        }
     }
 
     /**
@@ -269,7 +448,6 @@ final class ArcTest extends TestCase
     public static function rejectionCases(): iterable
     {
         $tapered = self::device();
-        $box = self::device(backWidth: null);
 
         yield 'count below one' => [
             new Arc(ArcMode::Convex, 0), $tapered, 'arc.count must be at least 1',
@@ -280,11 +458,15 @@ final class ArcTest extends TestCase
         ];
         yield 'negative splay' => [
             new Arc(ArcMode::Convex, 3, splayDeg: -3.0), $tapered,
-            'arc.splay_deg must be between 0 and 180, got -3',
+            'arc.splay_deg must be at least 0 and less than 180, got -3',
         ];
         yield 'splay at half a turn' => [
             new Arc(ArcMode::Convex, 3, splayDeg: 180.0), $tapered,
-            'arc.splay_deg must be between 0 and 180',
+            'arc.splay_deg must be at least 0 and less than 180',
+        ];
+        yield 'a negative gap' => [
+            new Arc(ArcMode::Convex, 3, gapM: -0.01), $tapered,
+            'arc.gap_m must not be negative, got -0.01',
         ];
         yield 'zero radius' => [
             new Arc(ArcMode::Convex, 3, radiusM: 0.0), $tapered,
@@ -297,14 +479,6 @@ final class ArcTest extends TestCase
         yield 'wrapping past a full circle' => [
             new Arc(ArcMode::Convex, 5, splayDeg: 90.0), $tapered,
             '5 cabinets at 90.00° wrap past a full circle — arc.splay_deg must not exceed 72.00°',
-        ];
-        yield 'a box has no taper to derive a splay from' => [
-            new Arc(ArcMode::Convex, 3), $box,
-            'it is a plain box), so a convex arc needs an explicit arc.splay_deg or arc.radius_m',
-        ];
-        yield 'an untapered trapezoid has none either' => [
-            new Arc(ArcMode::Convex, 3), self::device(backWidth: 0.5),
-            'back_width_m 0.5 is not narrower than width 0.5',
         ];
         yield 'concave has no tightest angle' => [
             new Arc(ArcMode::Concave, 3), $tapered,
@@ -378,6 +552,63 @@ final class ArcTest extends TestCase
     }
 
     /**
+     * Signed distance between two seats' plan-view silhouettes: 0 means they touch, positive means clear
+     * air, negative means they are inside each other by that much.
+     *
+     * {@see gapAt} names the corners it measures, which is the clearer assertion whenever the seam meets
+     * corner to corner. It cannot speak for a quarter-turned cabinet, where the two faces meet offset
+     * along each other and no corner lands on a corner — hence a separating-axis test, computed from the
+     * spec's own corners and {@see Orientation}, so it still owes nothing to the code under test.
+     */
+    private function separation(
+        DeviceSpec $device,
+        PlacementCopy $left,
+        PlacementCopy $right,
+        float $pitchDeg,
+        float $rollDeg,
+    ): float {
+        $silhouette = static function (PlacementCopy $seat) use ($device, $pitchDeg, $rollDeg): array {
+            $orientation = new Orientation($pitchDeg, $rollDeg, $seat->rotation?->yawDeg ?? 0.0);
+            $points = [];
+            foreach ($device->contactCorners() as $corner) {
+                $rotated = $orientation->apply($corner);
+                $points[] = [$seat->offset[0] + $rotated[0], $seat->offset[1] + $rotated[1]];
+            }
+
+            return $points;
+        };
+
+        $a = $silhouette($left);
+        $b = $silhouette($right);
+
+        // For convex shapes the widest gap over every edge normal *is* the distance between them.
+        $widest = -INF;
+        foreach ([[$a, $b], [$b, $a]] as [$from, $to]) {
+            foreach ($from as $i => $p) {
+                foreach ($from as $q) {
+                    $length = hypot($q[0] - $p[0], $q[1] - $p[1]);
+                    if ($length < 1e-12) {
+                        continue;
+                    }
+                    $normal = [($q[1] - $p[1]) / $length, -($q[0] - $p[0]) / $length];
+
+                    $fromMax = -INF;
+                    foreach ($from as $v) {
+                        $fromMax = max($fromMax, $v[0] * $normal[0] + $v[1] * $normal[1]);
+                    }
+                    $toMin = INF;
+                    foreach ($to as $v) {
+                        $toMin = min($toMin, $v[0] * $normal[0] + $v[1] * $normal[1]);
+                    }
+                    $widest = max($widest, $toMin - $fromMax);
+                }
+            }
+        }
+
+        return $widest;
+    }
+
+    /**
      * A seat's plan-view corners in the arc's own frame, at height $z.
      *
      * @return array<string, array{float, float}>
@@ -389,7 +620,7 @@ final class ArcTest extends TestCase
         $halfBack = ($device->backWidth ?? $device->dimensions->width) / 2;
         $inset = $device->grilleInset ?? 0.0;
 
-        $orientation = new Orientation($pitchDeg, 0.0, $seat->yawDeg ?? 0.0);
+        $orientation = new Orientation($pitchDeg, 0.0, $seat->rotation?->yawDeg ?? 0.0);
         $corners = [];
         foreach ([
             'frame-l' => [-$halfFront, -$depth / 2],

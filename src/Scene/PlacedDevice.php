@@ -24,6 +24,18 @@ final class PlacedDevice
         public readonly DeviceSpec $device,
         public readonly array $position,
         public readonly Orientation $orientation,
+        public readonly bool $seated = true,
+        /**
+         * Whether this cabinet's placement asked for an aim line either way, or left it to the mode.
+         * Carried here so {@see \App\Render\RenderPlan} still reads nothing but placed devices.
+         */
+        public readonly ?bool $aimLines = null,
+        /**
+         * What the report groups this cabinet's weight under when it is flown, or null when it stands on
+         * something. Carried here for the same reason {@see $aimLines} is: {@see SceneReport} is handed
+         * nothing but placed devices.
+         */
+        public readonly ?string $flyPoint = null,
     ) {
     }
 
@@ -45,8 +57,9 @@ final class PlacedDevice
             }
         }
 
-        // Rotating about the origin drops part of the cabinet below zero; put it back on its slot.
-        $lift = -$min[2];
+        // Rotating about the origin drops part of the cabinet below zero; put it back on its slot —
+        // unless it is flown, where the solved position is already where it hangs.
+        $lift = $this->seated ? -$min[2] : 0.0;
         $min[2] += $lift;
         $max[2] += $lift;
 
@@ -61,6 +74,12 @@ final class PlacedDevice
      */
     public function zLift(): float
     {
+        if (!$this->seated) {
+            // A flown cabinet's slot is not the floor. Each element of a hang is tilted differently, so
+            // lifting each one back onto its own slot would pull the array apart at every joint.
+            return 0.0;
+        }
+
         $lowest = 0.0;
         foreach ($this->corners() as $corner) {
             $lowest = min($lowest, $this->orientation->apply($corner)[2]);
@@ -70,31 +89,14 @@ final class PlacedDevice
     }
 
     /**
-     * The cabinet's eight corners in its own frame.
-     *
-     * The taper is real geometry, not decoration: treating a trapezoid as a full-width box overstates a
-     * concave arc's width by 9%, and the footprint this class reports is meant to be the exact rotated
-     * one. A wedge's front corners are likewise only as tall as its front.
+     * The cabinet's eight corners in its own frame. Lives on the spec, because the contact solve needs
+     * the same shape and one cabinet cannot be two shapes.
      *
      * @return list<array{float, float, float}>
      */
     private function corners(): array
     {
-        $dimensions = $this->device->dimensions;
-        $halfDepth = $dimensions->depth / 2;
-        $frontHeight = $this->device->frontHeight ?? $dimensions->height;
-        $halfBack = ($this->device->backWidth ?? $dimensions->width) / 2;
-
-        $corners = [];
-        foreach ([[$dimensions->width / 2, -$halfDepth, $frontHeight], [$halfBack, $halfDepth, $dimensions->height]] as [$halfWidth, $y, $top]) {
-            foreach ([-$halfWidth, $halfWidth] as $x) {
-                foreach ([0.0, $top] as $z) {
-                    $corners[] = [$x, $y, $z];
-                }
-            }
-        }
-
-        return $corners;
+        return $this->device->shellCorners();
     }
 
     /**

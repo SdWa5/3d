@@ -4,13 +4,13 @@ id: flexy-folded-horn-hybrid
 name: "Flexy Folded Horn Hybrid"
 category: speaker
 subtype: sub
-quantity: 14
+quantity: 12
 owner: sdwa5
-build: clone
+build: self-built
 
 clone_of:
   manufacturer: MrFlexySMP
-  model: "Folded Horn Hybrid"
+  model: "Folded Horn Hybrid" # Single version of https://www.youtube.com/watch?v=tzwWSL8TyKI which is similar to https://www.sbaudience.com/index.php/application/dual-18inch-horn-subwoofer/
   reference: cad
   url: null
 
@@ -30,7 +30,8 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  color: "#111111"
+  # Birch plywood with a weatherproof black textured finish.
+  color: "#141414"
 
 physical:
   # 70 kg empty + 15 kg driver, per the comparison spreadsheet.
@@ -51,7 +52,7 @@ audio:
 mesh_override:
   path: meshes/flexy-1to10.stl
   units: cm
-  rotate_deg: [90, 0, 90]
+  rotate_deg: [ 90, 0, 90 ]
 
 notes: |
   The backbone of the PA — 14 cabinets, 1190 kg of sub on its own.

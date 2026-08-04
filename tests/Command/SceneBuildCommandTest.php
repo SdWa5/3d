@@ -22,10 +22,10 @@ final class SceneBuildCommandTest extends TestCase
         $display = $tester->getDisplay();
 
         self::assertSame(Command::SUCCESS, $exit, $display);
-        self::assertStringContainsString('Cabinets:      17', $display);
+        self::assertStringContainsString('Cabinets:      15', $display);
         self::assertStringContainsString('Total weight:', $display);
         self::assertStringContainsString('Tallest stack:', $display);
-        self::assertStringContainsString('flexy-folded-horn-hybrid   14', $display);
+        self::assertStringContainsString('flexy-folded-horn-hybrid   12', $display);
     }
 
     public function testUnknownSceneListsWhatExists(): void

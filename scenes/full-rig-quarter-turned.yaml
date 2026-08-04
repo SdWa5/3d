@@ -1,0 +1,91 @@
+# full-rig-all-tops with the subs laid on their SIDES: twelve Flexys in three groups of four, every one
+# rolled a quarter turn, alternating 270 and 90. Everything above the subs is unchanged, so this is a
+# straight comparison of what turning the sub wall on its side does to the same rig.
+#
+# WHY A QUARTER TURN PAIRS THEM. Rolling 180 turns a cabinet over and leaves it where it was; rolling 90
+# swings it onto its side, and because geometry runs from the cabinet's own bottom-centre the body ends up
+# entirely to ONE SIDE of where that origin was — to the right at 90, to the left at 270. So two cabinets
+# whose origins nearly coincide, rolled opposite ways, do not overlap: they fall to opposite sides and meet
+# back to back. That is the pair this wall is built from, and `step_m: 0.02` is the 20 mm of air between
+# them rather than a spacing.
+#
+# THE ORDER OF THE CYCLE MATTERS, which is not obvious and is worth stating. `[270, 90]` opens the pair
+# outward from its shared origin and the two cabinets touch exactly. `[90, 270]` closes it inward and
+# overlaps them by exactly the 20 mm step. Same two angles, opposite result.
+#
+# AND THE SPACING CANNOT BE DERIVED HERE, unlike every other wall in the repository. A `row` of four with
+# `roll_cycle: [90, 270]` and a derived `gap_m` looks obviously right and drives adjacent cabinets 591 mm
+# into each other, because derived spacing assumes a cabinet occupies a box centred on its position — true
+# for every upright cabinet and false for one on its side. Only the pair needs stating; the two levels above
+# it derive from what the pair actually occupies.
+#
+# The wall comes out 4.678 m wide and 1.182 m tall, against 3.646 x 1.526 for the same twelve cabinets
+# standing up. Wider and lower: the Achenbach row now sits comfortably inside it rather than overhanging by
+# 27 mm, and every top is 344 mm lower, which flattens their down-tilt.
+id: full-rig-quarter-turned
+name: "Full rig — subs on their sides, three groups of four"
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  # Twelve cabinets, one placement, three levels of nesting: a back-to-back pair, two tiers of that pair to
+  # make a group of four, and three of those groups side by side.
+  - id: sub-wall
+    device: flexy-folded-horn-hybrid
+    at: [-0.302, 0.0]
+    row:
+      count: 2
+      step_m: 0.02         # air between the pair, not a spacing — see the header
+      roll_cycle: [270, 90]
+    in:
+      - lattice:
+          count: [1, 1, 2]   # the pair, twice: a group of four
+      - lattice:
+          count: [3, 1, 1]   # three groups, 20 mm apart
+          gap_m: 0.02
+
+  # Six Achenbach 18s across the middle. On this wall the row is 3.70 m against 4.678 m and sits well
+  # inside it, which is not true of the twelve-cabinet wall standing up.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-wall
+    at: [-0.302, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: far
+    row:
+      count: 3
+      step_m: 1.55
+
+  # Near-field fill, inside the outer tops. The step is 1.887 rather than the 2.0944 that half-widths
+  # suggest, because both cabinets are toed in — see full-rig-all-tops.yaml for the full argument.
+  - id: near-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: near
+    row:
+      count: 2
+      step_m: 1.887
+
+notes: |
+  Compare full-rig-all-tops.yaml, which is this rig with the same twelve subs standing up. Same cabinets,
+  same tops, same two foci — only the sub wall's orientation differs, and it changes the wall from
+  3.65 x 1.53 m to 4.68 x 1.18 m.
+
+  Whether laying horn-loaded subs on their sides is a good idea acoustically is not something this file can
+  answer; what it can show is that the arrangement fits, what it measures, and where every cabinet ends up.
+
+  Six Achenbachs against four owned, as in every three-tier scene. Mixes owners.

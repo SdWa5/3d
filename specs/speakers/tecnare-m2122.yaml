@@ -29,17 +29,28 @@ geometry:
 appearance:
   # Birch plywood with a weatherproof black textured finish.
   color: "#141414"
-  grille:
-    inset_m: 0.012
-    color: "#0a0a0a"
 
 physical:
   weight_kg: 68.0
-  handles: [left, right]
+  handles: [ left, right ] # left side and right side each have two handles (at the bottom and top in the back of the side)
 
 rigging:
-  flyable: false
-  points: []
+  flyable: true
+  # ESTIMATED FROM THE NOMINAL BOX — not measured, and not from any source. The three points are the ones
+  # the cabinet is known to have (two on top, one pull-back low on the rear); where they sit is derived
+  # geometry, so treat the positions as placeholders until somebody puts a tape on the real fly track.
+  #
+  # Positions are in the measuring frame: origin at the middle of the footprint, +X right, front towards
+  # −Y, +Z up — the frame a tape measure gives you, independent of `geometry.origin`. See
+  # docs/conventions.md.
+  #
+  # The top face is a trapezoid, 0.500 m across at the front and 0.345 at the back, so a point 0.100 m
+  # behind the front face has 0.452 m of width to sit in; ±0.185 leaves ~40 mm of margin to each side
+  # edge. The rear face is the narrow one, so the pull-back point is on its centre line.
+  points:
+    - { id: top-left, position_m: [ -0.185, -0.100, 0.960 ] }
+    - { id: top-right, position_m: [ 0.185, -0.100, 0.960 ] }
+    - { id: bottom-back, position_m: [ 0.000, 0.260, 0.120 ] }
 
 audio:
   coverage_deg: { horizontal: 60, vertical: 40 }
@@ -73,15 +84,15 @@ audio:
     provenance: estimated
     inset_m: 0.018
     features:
-      - { id: mid,   kind: horn, at_m: [0.0,  0.355], mouth_m: [0.45, 0.20], throat_in: 2.0, depth_m: 0.12,
+      - { id: mid,   kind: horn, at_m: [ 0.0,  0.355 ], mouth_m: [ 0.45, 0.20 ], throat_in: 2.0, depth_m: 0.12,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: lf-up, kind: horn, at_m: [0.0,  0.103], mouth_m: [0.45, 0.28], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
+      - { id: lf-up, kind: horn, at_m: [ 0.0,  0.103 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [0.135, 0.06], throat_in: 1.0, depth_m: 0.05,
+      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [ 0.135, 0.06 ], throat_in: 1.0, depth_m: 0.05,
           profile: pyramid, sides: 4, throat_profile: elliptical }
-      - { id: lf-lo, kind: horn, at_m: [0.0, -0.189], mouth_m: [0.45, 0.28], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
+      - { id: lf-lo, kind: horn, at_m: [ 0.0, -0.189 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [0.135, 0.06], throat_in: 1.0, depth_m: 0.05,
+      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [ 0.135, 0.06 ], throat_in: 1.0, depth_m: 0.05,
           profile: pyramid, sides: 4, throat_profile: elliptical }
 
 mesh_override: null

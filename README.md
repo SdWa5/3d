@@ -32,6 +32,7 @@ ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
 ddev exec bin/console scene:render full-rig-aimed --aim-lines   # ...with laser lines showing the aim
 ddev exec bin/console catalog             # equipment table with weight/volume totals
+ddev exec bin/console build:all           # all of the above, in order
 ddev exec bin/console list                # all commands
 ```
 
@@ -42,7 +43,12 @@ See [docs/blender.md](docs/blender.md).
 Tops can be placed as a **group on an arc** — `arc: {mode: convex, count: 3}` fans them out at the tightest
 angle the cabinets allow, which for a tapered top is its own taper ([docs/scenes.md](docs/scenes.md#arcs--a-group-on-one-placement)).
 
-Or write the setup down instead of dragging it: `scenes/full-rig.yaml` is the whole PA — a 14-cabinet sub wall in two
+Subs go in a **lattice**, which works its own spacing out: `row: {count: 6, gap_m: 0.02}` is a wall spaced and
+centred from the cabinet's width plus a working gap, and any group nests inside any other with `in`, so two
+tiers of that row — or two tiers of a fan — is one more line
+([docs/scenes.md](docs/scenes.md#lattices--a-grid-that-works-its-own-spacing-out)).
+
+Or write the setup down instead of dragging it: `scenes/full-rig.yaml` is the whole PA — a 12-cabinet sub wall in two
 stacked rows plus three tops — in about twenty lines. `scene:build` reports its weight, height and footprint before
 Blender is involved, and `scene:render` turns it into a preview image in about 8 seconds without you placing a single
 camera. See [docs/scenes.md](docs/scenes.md).
@@ -57,6 +63,7 @@ camera. See [docs/scenes.md](docs/scenes.md).
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
+| `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. `--dry-run` lists the stages; `--aim-line-variants` and `--lighting-variants` sweep a folder per combination |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device
@@ -88,11 +95,11 @@ stays text-only and diffable.
 
 ## Current state
 
-The whole PA is in the library — **5 specs, 25 cabinets, 1856 kg, 9.0 m³**:
+The whole PA is in the library — **5 specs, 23 cabinets, 1686 kg, 8.2 m³**:
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |
 |--------------------------|-------|-----|---------------------------------------------|------------------|--------------------------|
-| Flexy Folded Horn Hybrid | sdwa5 | 14  | 0.591 × 0.763 × 0.964                       | 85               | CAD — four horn mouths   |
+| Flexy Folded Horn Hybrid | sdwa5 | 12  | 0.591 × 0.763 × 0.964                       | 85               | CAD — four horn mouths   |
 | SKRAM                    | sdwa5 | 2   | 0.610 × 0.914 × 0.813                       | 90               | CAD — vent array         |
 | Tecnare M2122            | sdwa5 | 3   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated + 3 horns, 2 cones (est.) |
 | Eighteensound 2-Way 15″  | sepp  | 2   | 0.466 × 0.836 × 0.427                       | 41 (est.)        | CAD + horn and cone      |

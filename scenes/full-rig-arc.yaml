@@ -16,19 +16,19 @@ focus:
 placements:
   - id: sub-row-bottom
     device: flexy-folded-horn-hybrid
-    at: [-2.135, 0.0]
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
     roll_deg: 180
-    repeat:
-      count: 7
-      step: [0.611, 0.0, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
 
   - id: sub-row-top
     device: flexy-folded-horn-hybrid
     on: sub-row-bottom
-    at: [-2.135, 0.0]
-    repeat:
-      count: 7
-      step: [0.611, 0.0, 0.0]
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
+    row:
+      count: 6
+      gap_m: 0.02
 
   # Fronts fanning outward, back edges meeting. `mode` has no default on purpose: an arc bent the wrong
   # way is a quiet mistake, and `concave` would wrap these three around the crowd instead.

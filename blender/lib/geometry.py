@@ -298,8 +298,18 @@ def build_estimated_marker(plan, material_set):
 def add_chamfer(body, chamfer):
     """Bevel the shell's edges.
 
-    Left as a live modifier rather than applied: the .blend stays editable, and the glTF export
-    applies modifiers anyway, so the exported mesh has the chamfer baked in.
+    Applied immediately rather than left live, and that is load-bearing rather than tidiness. The baffle
+    openings are carved into this same shell *after* this runs, so a live bevel would still be sitting in
+    the modifier stack when the export evaluated it — and it would then round the carved mouths' rims as
+    well as the cabinet's own corners. Where three of those rims met, on the Tecnare's mid horn, it pushed
+    two vertices **0.9 mm in front of the baffle plane**, which broke the one promise the whole library
+    rests on: that a model's bounding box equals its declared dimensions. `tools/check-glb.py` caught it.
+
+    Applying here means the openings are cut into an already-chamfered shell, which is also the right way
+    round physically: the cabinet is built and its corners eased, then the baffle is cut.
+
+    The cost is that the .blend no longer carries an editable bevel. Same trade the handle booleans already
+    make one function up, and for the same reason.
     """
     if chamfer <= 0.0:
         return
@@ -309,3 +319,6 @@ def add_chamfer(body, chamfer):
     modifier.segments = 2
     modifier.limit_method = "ANGLE"
     modifier.angle_limit = 0.5236  # 30°, so only real corners get rounded
+
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.modifier_apply(modifier=modifier.name)

@@ -26,7 +26,7 @@ final class SpecFactory
             'owner' => 'sdwa5',
             'subtype' => 'top',
             'quantity' => 2,
-            'build' => 'clone',
+            'build' => 'self-built',
             'clone_of' => [
                 'manufacturer' => 'Acme',
                 'model' => 'X1',

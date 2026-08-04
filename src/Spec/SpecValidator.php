@@ -473,7 +473,7 @@ final class SpecValidator
 
         if ($spec->isClone()) {
             if ($spec->cloneOf === null) {
-                $messages[] = "build is 'clone' but clone_of is missing — name the original's manufacturer and model";
+                $messages[] = "build is 'self-built' but clone_of is missing — name the original's manufacturer and model";
             }
         } elseif ($spec->cloneOf !== null) {
             $messages[] = "clone_of is set but build is '{$spec->build->value}' — only clones copy an original";

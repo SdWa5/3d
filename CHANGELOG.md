@@ -6,6 +6,550 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.28.3] - 2026-08-04
+
+### Added
+
+- **`tests/Scene/ShippedScenesTest.php` — every shipped scene checked for cabinets inside each other.** CI
+  already proved that all eighteen *compile*; nothing proved any of them could be *built*. The one bug that
+  slips past a render is interpenetration, because from a three-quarter camera a cabinet buried in another
+  one looks like a cabinet in front of it — which is exactly how `two-foci.yaml`'s fills shipped 0.41 m
+  inside the sub wall in 0.21.0. That was found with a throwaway script; this is the same sweep as a test
+- Separation is measured with a **separating-axis test on each cabinet's own eight corners**, and that is
+  the whole reason the test is worth having. Comparing axis-aligned bounding boxes — the cheap version —
+  reports `full-rig-arc`, `sub-wall-lattice` and `flown-array` as broken when they are not: a yawed
+  cabinet's bounding box is far larger than the cabinet, so an arc's neighbouring seats always look like
+  they overlap. A check that fails on a third of the library gets switched off
+- A test that the check catches a deliberate intersection, so the eighteen passes mean something
+
+### Fixed
+
+- **A hang's joints were solved at plumb and its elements then tilted individually, which drove
+  `flown-array`'s cabinets 21.7 mm into one another.** Found by the sweep above on its first run. `aim`
+  resolves a hang as one rigid body, so by the time the chain is laid out its top element is already 14.263°
+  down — and a joint is not scale-free in the angle: the one that closes between 0° and 2° is not the one
+  that closes between 14.263° and 16.263°. The chain is seeded with the placement's own tilt now, so the
+  joints are solved at the angles the array actually reaches. Worst joint: 21.7 mm → 9 µm
+- **And the chain now swings with the hang's yaw.** The remaining 3.5 mm after the fix above: joints are
+  solved in the elevation plane, which has no x in it, so their offsets came out along the world's y while
+  every element was yawed 11.1° towards the focus. A frame does not do that. `PlacementCopy::yawedBy()`
+  turns a rigid group's offsets, gated on `Group::decidesPitch()` — which only `LineArray` answers yes to,
+  and for exactly this reason. A yawed `row` is deliberately left alone: a straight line of toed-in cabinets
+  is what a toed-in sub wall is
+- `flown-array` therefore leans back along its aim instead of dropping straight down, and its bottom sits at
+  2.195 m rather than 2.13 m. Still walkable underneath
+- The `line_array.splay_deg` nose check counts the aim's tilt too — 14° of aim plus 76° of splay stands an
+  element on its nose just as surely as 90° of splay does
+
+### Changed
+
+- The splay is accumulated on its own rather than subtracted back out of the running tilt. Both describe the
+  same hang, but `14.263 + 2 − 14.263` is `1.9999999999999982`, and these increments end up in a committed
+  build plan where a gap the scene wrote as 2° has to read as 2°
+
+## [0.28.2] - 2026-08-04
+
+### Fixed
+
+- **The chamfer was pushing geometry outside the declared bounding box**, which is the one promise the asset
+  library rests on, and `tools/check-glb.py` had been failing on `tecnare-m2122` because of it. The chamfer
+  was added as a *live* modifier **before** the baffle openings were carved into the same shell, so when the
+  exporter evaluated the stack the bevel rounded the carved mouths' rims as well as the cabinet's own
+  corners. Where three of those rims met on the mid horn it pushed **two vertices of 2636** 0.9 mm in front
+  of the baffle plane. Applied immediately instead — the same idiom the handle booleans one function up
+  already use — so the openings are cut into an already-chamfered shell, which is the right order
+  physically as well. Depth and height are now exact
+- The cost, stated because it was the previous behaviour's stated reason: the `.blend` no longer carries an
+  editable bevel modifier
+
+### Changed
+
+- **`tools/check-glb.py` is asymmetric now, and the equality it used to check was wrong.** Easing a corner
+  can only remove material, and on a **tapered** cabinet the widest point *is* a corner — so a 500 mm-front
+  trapezoid with 10 mm eased edges genuinely measures 497 mm across, and the model was right where the check
+  was not. A box is unaffected: its side faces stay put and only the corners between them go. Overshoot now
+  fails at 0.1 mm as before, because nothing may lie outside the declared box; undershoot is allowed up to
+  the chamfer
+- `chamfer_m` travels in the glTF metadata so the checker can reason about it, alongside `origin`, which is
+  there for the same purpose
+- `docs/conventions.md` said the bounding box "always equals width × depth × height", which is knowably
+  false for a chamfered trapezoid. It now says nothing ever lies *outside* the box, and says which shape is
+  legitimately smaller and by how much
+
+## [0.28.1] - 2026-08-04
+
+### Changed
+
+- **Every visible material now takes `appearance.color`.** The horn flares were `#3a3a3c` against a `#141414`
+  cabinet — deliberately lighter, "so the mouth reads as an opening with something inside it" — and the
+  handles were `#1a1a1a`. On the 18sound that horn is 0.362 m across a 0.466 m cabinet, so it dominated the
+  baffle and read as a differently-coloured panel rather than as a flare. It was never spec-specific: the
+  Tecnare's three flares had it too, and all five specs have shared one `#141414` shell for some time
+- `metallic` goes with the colour rather than staying: it changes apparent shade more than roughness does, so
+  a metallic handle at the cabinet's own colour still would not have matched it. `roughness` is kept, because
+  it changes how sharp a highlight is rather than what colour a surface is
+- The parts keep their own materials, so per-device colour (`TODO.md` 3.2 — flexy bracings green) can
+  differentiate them again without restructuring anything
+
+## [0.28.0] - 2026-08-04
+
+### Added
+
+- **`scenes/full-rig-stereo.yaml` — the widest image the inventory allows.** `full-rig-quarter-turned` with
+  every tier pushed apart until its **outer edges line up with the sub wall's** rather than sitting centred
+  and narrow on top of it. The sub wall on its side is the widest thing we can build at 4.678 m, so it sets
+  the envelope and everything above fills it: the Achenbach row spread to 0.8156 m of step (216 mm of air
+  between each), the tops out to 2.1185 m, the fills following them
+- **Spreading the middle tier is the mechanism, not a compromise.** The tops stand on the Achenbachs, so the
+  row has to reach out to where the tops need to be — which is why the Achenbachs get gaps
+- Outer tops move from ±1.55 m to ±2.12 m, a **37% wider** image, at the cost of a thinner middle: three tops
+  2.1 m apart leave a wider hole between their patterns, and the centre of the room is covered by the middle
+  cabinet alone. Three versions of the same 23 cabinets now exist, narrowest to widest, so that trade can be
+  looked at rather than argued about
+
+### Fixed
+
+- Nothing new, but worth recording: the near-fills follow the tops. With the tops out at 2.1185 the old
+  1.887 step left them floating mid-gap instead of tucked against the outer tops, so it is re-solved to
+  2.9709 — again against the rotated boxes, and again 20 mm exactly
+
+### Notes
+
+- **Every step in that file is solved rather than derived, and `TODO.md` 1.2 now exists because of it.**
+  Aligning an *aimed* cabinet's outer edge cannot be computed from its width: aiming toes it in, a toed-in
+  cabinet occupies more x than it is wide, and how far it toes in depends on where it ended up — so it is a
+  fixed point, not a formula. Three numbers were bisected out by hand (0.8156, 2.1185, 2.9709) and every one
+  goes stale the moment a cabinet is measured or a focus moves. That is the third time this trap has bitten:
+  it overlapped two cabinets by 88 mm in `full-rig-all-tops` and put the fills 0.41 m inside the sub wall in
+  `two-foci`. The TODO proposes named layouts — `center`, `block`, `stereo`, borrowing the text vocabulary —
+  resolved against the rotated boxes, which would remove the whole class
+
+## [0.27.0] - 2026-08-04
+
+### Added
+
+- **`scenes/full-rig-quarter-turned.yaml` — the same rig with the subs on their sides**, twelve Flexys in
+  three groups of four, every one rolled a quarter turn and alternating 270/90. Everything above the subs is
+  identical to `full-rig-all-tops.yaml`, so it is a straight comparison: the wall goes from 3.65 × 1.53 m
+  standing up to **4.68 × 1.18 m** on its side. Wider and lower — the Achenbach row now sits comfortably
+  inside the wall instead of overhanging it, and every top drops 344 mm, which flattens their down-tilt
+- Twelve cabinets in **one placement, three levels of nesting**: a back-to-back pair, two tiers of that pair
+  to make a group of four, three of those groups side by side. The deepest nest any shipped scene uses, and
+  the first to use `roll_cycle` with quarter turns rather than `[180, 0]`
+
+### Notes
+
+- **A quarter turn puts a cabinet entirely to one side of its own origin**, because geometry runs from the
+  bottom-centre — to the right at 90, to the left at 270. Two cabinets whose origins nearly coincide, rolled
+  opposite ways, therefore fall to opposite sides and meet back to back rather than overlapping. That pair is
+  what this wall is built from, and its `step_m: 0.02` is 20 mm of air rather than a spacing
+- **The order of the cycle matters, and that is not obvious.** `[270, 90]` opens the pair outward from its
+  shared origin and the two cabinets touch exactly; `[90, 270]` closes it inward and overlaps them by exactly
+  the 20 mm step. Same two angles, opposite result
+- **The pair's spacing cannot be derived, unlike every other wall in the repository.** A `row` of four with
+  `roll_cycle: [90, 270]` and a derived `gap_m` looks obviously right and drives adjacent cabinets **591 mm**
+  into each other, because derived spacing assumes a cabinet occupies a box centred on its position — true
+  for every upright cabinet, false for one on its side. Only the pair needs stating; the two levels above it
+  derive from what the pair actually occupies
+
+### Fixed
+
+- **The near-fills in `two-foci.yaml` were inside the sub wall.** At `y = -0.6` they overlapped it by
+  **0.41 m**: the wall is 0.964 m deep so its front face is already 0.482 m forward of its own centre line,
+  and a fill aimed at a 2 m focus is turned far enough that its box reaches 0.42 m behind its position. Moved
+  to `y = -1.05`, which leaves 40 mm of air in front of the mouths. Shipped wrong in 0.21.0 and invisible in
+  a three-quarter render, which is how it survived
+
+## [0.26.0] - 2026-08-04
+
+### Fixed
+
+- **We own twelve Flexys, not fourteen.** `quantity: 14` came from `Hardware Overview.xlsx` and was simply
+  wrong. Correcting it is one character; what it forced is the interesting part
+
+### Changed
+
+- **Every sub wall is now two rows of six, and derives its own spacing.** The seven scenes that built a
+  fourteen-cabinet wall would otherwise all have reported "uses 14, we own 12", so they are cut to 6 + 6 —
+  and converted from `repeat: { count: 7, step: [0.611, 0.0, 0.0] }` at a hand-computed left edge to
+  `row: { count: 6, gap_m: 0.02 }` on the wall's centre. Cutting the count the other way would have meant
+  typing `-1.8295` into five files; deriving it means the wall follows the spec and the next correction is a
+  `count:` edit. `gap_m: 0.02` reproduces the 0.611 m step from the cabinet's own width, so no position
+  moves for any reason other than the two missing cabinets
+- Every wall is now **15 cabinets, 1224.0 kg, 3.65 × 0.96 m** where it was 17, 1394.0 kg and 4.26 m. The
+  tops that sat over the wall's outer subs moved with them, to −1.8295 and +1.2255; the three scenes whose
+  tops are an `arc` on the rig centre did not move at all
+- The Achenbach row's hand-computed left edge went the same way. It is unchanged in position — a centred
+  `row` of six with a 20 mm gap resolves to exactly the `at: [-1.852, 0.0]` plus `step: 0.62` it stated
+- **`docs/scenes.md`'s `repeat` section is now about the choice rather than about walls**, since no wall uses
+  `repeat` any more. It points at `scenes/skram-detail.yaml`, where a stated step *is* the decision, and says
+  which way the dependency runs: a stated step means the scene needs correcting when a cabinet is measured, a
+  derived one means the wall follows the spec
+- The library is **23 cabinets, 1686 kg, 8.2 m³** (was 25, 1856 kg, 9.0 m³)
+
+### Added
+
+- **`scenes/full-rig-all-tops.yaml` — every top we own on one rig.** The three-tier stack with Sepp's two
+  18sound 2-ways added inside the outer M2122s as near-field fill. Two named foci rather than any stated
+  angle: the M2122s take `aim: far` down the room, the 2-ways `aim: near` for the people against the stage
+  who sit underneath the M2122s' pattern rather than in it. The M2122s stay spread at their 1.55 m step,
+  because wide spacing is a coverage decision and an `arc` would pull them onto their own taper. 23 cabinets,
+  1606 kg, and the tops are exactly the whole top inventory — three M2122s and two 2-ways
+- **The near fill's spacing had to be solved against the turned boxes, not the widths, and the gap between
+  those two answers is 108 mm.** Both cabinets are aimed, so both are toed in — the outer top by 8.4° and
+  the fill by 20.8°, because a 2 m focus is a hard turn — and a yawed cabinet occupies more x than it is
+  wide. Half-widths plus a 20 mm gap gives a step of 2.0944 and drives them **88 mm into each other**; the
+  real answer is 1.887, which leaves 20 mm to the outer top and 323 mm to the middle one. Worth writing down
+  because the arithmetic looks completely right
+
+### Notes
+
+- The Achenbach row (3.70 m) is now **wider than the wall it stands on** (3.646 m), overhanging 27 mm each
+  side. Nothing structurally — cabinets overhang in reality — but it is why the three-tier scenes report the
+  row's width as their footprint and not the wall's, and the comment claiming the row is the narrower of the
+  two has been corrected
+
+## [0.25.0] - 2026-08-04
+
+### Added
+
+- **Coverage cones from `audio.coverage_deg`.** `Coverage`'s own docblock has promised "it drives the
+  optional coverage cones" since it was written, and the angles have been crossing into Python in every
+  build plan the whole time with nothing reading them. Stating the angles now draws the pattern
+- **10 m of throw, reusing the default focus distance.** A cone is an angle, so something has to choose a
+  length, and that is the one number in the library that already means "out where aiming matters" — so a
+  cone reaches exactly as far as a scene's default aim and "does the pattern cover the dancefloor" reads
+  directly against it. A 60° × 40° Tecnare spreads 11.55 m across and 7.28 m high by the time it gets there
+- `Coverage::spreadAt()` and `tests/Spec/CoverageTest.php` — the one part of a cone that can be checked
+  without opening Blender, so the trigonometry is unit-tested even though the bpy code cannot be
+- The decision stays in PHP: `BuildPlan` emits `coverage_throw_m` and `coverage_spread_m` beside the angles,
+  the same way `mark_estimated` is decided in PHP and merely consumed. No new spec field and no CLI flag —
+  the cone is built iff the angles are there, exactly the way a missing `baffle_layout` simply builds nothing
+
+### Changed
+
+- **The cone is a wireframe, not a solid.** Solid, ten metres of it swallows the half-metre cabinet it
+  belongs to, which defeats the point of drawing it; as a wireframe it is something to sight along
+- **It is render-invisible, and that is load-bearing rather than cosmetic.** `export_glb` passes
+  `use_renderable=True` precisely so markers stay in the `.blend` and out of the `.glb`, and
+  `tools/check-glb.py` compares the exported bounding box against the declared dimensions to 1e-4 m — a
+  visible cone would fail that on every axis of every model that had one. Verified: the Tecnare's `.blend`
+  carries an 11.547 × 10.000 × 7.279 m cone and its exported box is still its own 0.500 × 0.960 × 0.520
+- It lives in `blender/lib/drivers.py` rather than with the other markers in `geometry.py`, because the
+  ring-and-shell machinery there is what draws it and a dispersion pattern is the audio side of a cabinet
+  rather than part of its box. New `sdwa5-coverage` material; the material table in `docs/conventions.md`
+  gains it, and the `sdwa5-cone`/`sdwa5-horn` rows it had been missing since the baffle work
+
+### Notes
+
+- The apex sits at the middle of the baffle, which is a simplification worth naming: a real pattern comes
+  from the drivers, spread across the baffle and crossing over at different distances. The cone answers
+  "roughly where does this cabinet throw", not "what does the summed response do"
+- Only `tecnare-m2122` states coverage angles today, so this is a no-op for the other four specs
+
+## [0.24.0] - 2026-08-04
+
+### Added
+
+- **`fly` — a third way to say where a placement's base is.** `at` is a ground position and `on` is the top
+  of an earlier placement; between them they cover everything that stands up and nothing that hangs. That
+  gap is why `line_array` shipped unusable: its elements grow *downwards* from their anchor, so anchoring
+  one on the floor put it under the floor
+- **`fly.point` names the hardware, which is what makes this more than an absolute z.** A cabinet does not
+  hang from its own bottom-centre, and `rigging.points` already says where it does hang from — so naming one
+  lets a scene state the thing that is true, that *this* point is at 6 m, and the slot is worked out from it.
+  An M2122's `top-left` sits 0.960 m up and 0.185 m left of centre, so hung at 6 m over `x = -3.0` the
+  cabinet's slot lands at 5.040 m and its centre-line at −2.815. Rigging positions are already in the
+  measuring frame, the same frame a slot position is in, so it is a plain subtraction — `geometry.origin`
+  stays out of it and the same spec remains usable both ground-stacked and flown, which committing a spec to
+  `origin: rigging-point` would not have allowed
+- **Weight per suspension point in the report**, which is the number checked against a truss's capacity.
+  `fly.id` groups it, so two hangs off one bar add up rather than reporting separately. Absent entirely when
+  nothing is flown, so every ground-stacked scene's report is byte-identical
+- **A hang that reaches through the floor is reported, with how far by.** It is the one arrangement that can
+  be told to sit above the floor and still end up below it, and it is exactly the condition that made
+  `line_array` unusable — so `fly` polices itself rather than leaving it to a render
+- `scenes/flown-array.yaml` — two J-splayed hangs of four M2122s off one 6 m bar, the first scene to use
+  `line_array` at all. `src/Scene/Fly.php`, `tests/Scene/FlyTest.php`
+
+### Changed
+
+- **A hang is aimed once, at its anchor, and the splay adds to that one angle.** A line array is one rigid
+  body: every element shares its attitude and differs only by the accumulated splay. Aimed per element
+  instead — which is right for a row of tops and was what the code did — each element turns towards the
+  target on its own and the splay cancels out exactly. The four-element J in the new scene came out at
+  14.26°, 12.63°, 12.87°, 16.10°: not even monotonic, when a J array's whole point is that it opens
+  downwards. It now reads 14.26°, 16.26°, 20.26°, 27.26° — one base tilt plus 2°, 4° and 7° — and all four
+  share one yaw. `Group::decidesPitch()` is what tells the two cases apart
+- **A flown cabinet is not lifted onto a slot.** `zLift()` exists so a tilted or upside-down cabinet still
+  rests on the thing it stands on; a hang has no such thing, and the hardware decides where it is. `fly` now
+  implies this for the whole placement, not just for `line_array` elements — a single flown top is flown too
+
+### Fixed
+
+- **A group could put part of itself below its own base with nothing to lift it back.** `PlacedDevice::zLift()`
+  does this for one rotated cabinet; a `roll_cycle` on a lattice whose cell is more than one tier tall maps
+  the cell's offsets `z → −z` and buried the lower tier. Same argument, one level out, and exempt for a hang —
+  which belongs below its anchor by construction
+- **`GroupStack` measured a nested hang as if it stood on the floor.** `boxOf()` and `cabinetBox()` both built
+  their measuring boxes without the `seated` flag, so a `line_array` inside a lattice was sized one cabinet
+  tall instead of the whole array's height, and the lattice above spaced its cells on a height the hang does
+  not have — two hangs 0.96 m apart rather than 2.88 m
+
+## [0.23.0] - 2026-08-04
+
+### Added
+
+- **`build:all` — the stage order, written down.** Every stage already refuses to run on stale input, but
+  nothing knew the order, so getting from an edited spec to a new render meant remembering five commands and
+  which of them the edit had invalidated. It delegates through the application rather than reimplementing, so
+  each stage's own staleness rules, reporting and refusals are the ones that apply, and a failing stage stops
+  the run because everything after it would be building on what just went wrong
+- **`--lighting-variants` and `--aim-line-variants`**, which are what make it more than a shell alias: four
+  lighting presets against with-and-without aim lines is eight passes into eight folders, from one command.
+  `--dry-run` lists the stages and the variant folders and runs nothing, which is also the only way to test
+  any of it where there is no Blender
+- **`scene:render --out-dir`** — a directory to write into, keeping the `<scene>-<camera>.png` names, and
+  unlike `--out` it works for a whole run. There was previously *no* way to render every scene somewhere
+  else: `--out` is refused for more than one scene
+- `src/Command/BuildAllCommand.php` and `tests/Command/BuildAllCommandTest.php`
+
+### Fixed
+
+- **Two variants of one scene used to overwrite each other**, both the picture and the plan beside it. Neither
+  filename mentioned the lighting or the aim mode, so `-l studio` followed by `-l stage` left one PNG and one
+  plan that did not describe it. The plan name now carries both; the picture is separated by its folder
+- `--out` together with `--out-dir` is refused rather than one of them quietly winning
+
+## [0.22.0] - 2026-08-04
+
+### Added
+
+- **`aim_lines` as a scene option, and a per-group override.** A scene whose whole point is where things aim
+  should not need a flag remembered on the command line: `aim_lines: tops` at scene level says it, and
+  `aim_lines: true` or `false` on a placement disagrees with the mode for that group — so a sub can be shown
+  and a top hidden. `scenes/two-foci.yaml` uses both, because two groups aiming at two different points is
+  invisible in a still render otherwise
+
+### Changed
+
+- **`--aim-lines` overrules the scene only when it is actually typed.** Whether the flag was given has to be
+  told apart from the value it defaults to, and the option's default cannot answer that — bare `--aim-lines`
+  already yields nothing, which is how it means `tops`. `hasParameterOption()` answers it
+- `--aim-lines=none` beats every placement, which keeps it the way to get a clean picture of a scene that
+  normally draws them. It is the one thing a placement cannot overrule, and the only place the command line
+  wins outright
+- The resolved flag rides on `PlacedDevice`, so `RenderPlan` still reads nothing but placed devices
+
+## [0.21.0] - 2026-08-04
+
+### Added
+
+- **More than one focus per scene, referenced by name.** A rig usually needs two: the tops throw down the
+  room and the near-fills cover the people against the stage, and one point cannot be both. `focus: { near:
+  {…}, far: {…} }` plus `aim: near` says so in a line, and `scenes/two-foci.yaml` is that rig with no angle
+  stated anywhere
+- One focus or a map of them are told apart by **shape alone** — if every value under `focus` is itself a
+  mapping it is a map, otherwise it is the single unnamed one, which keeps the name `focus` so `aim: focus`
+  still means it. Every scene written before names existed is unchanged. Same shorthand-or-expanded test
+  `ArrayReader::isSection()` already makes for `provenance`
+- `ArrayReader::keys()`, for a block whose field *names* are the scene's data rather than part of the schema
+
+### Changed
+
+- A focus stays a decision about the **room** rather than about a cabinet, which is why they are named at
+  scene level rather than written into each placement: two clusters sharing one near-field point is the
+  normal case, and duplicated numbers drift apart silently
+- **Every distance is still measured from the whole rig's front face**, not from each group's own. Measuring
+  per group would mean "2 m out" and "10 m out" came from two different places and neither number could be
+  read off the file — if the fills stand 0.8 m behind the sub wall, a group-relative 2 m focus is 2.8 m from
+  the audience. It would also reintroduce, once per group, the circularity the rig-wide front-face pre-pass
+  exists to avoid
+- `SceneSpec::$focus` is now `$focusByName`; `Placement::$aimAtFocus` (a bool) is now `$aimFocus` (a name)
+
+### Fixed
+
+- **`aim: focuss` meant *not aimed*** — silently, with the cabinet left firing straight ahead and nothing in
+  the output to show it. An unknown focus name is now a violation that lists the ones the scene defines
+
+## [0.20.0] - 2026-08-04
+
+### Added
+
+- **`line_array` — a hang, chained rather than fanned.** A sibling of `arc` and not a rolled version of it,
+  because the difference is structural: an arc rests on one centre of curvature shared by every cabinet,
+  which is what makes its wedge argument work and its radius a single maximum, while an array is a chain
+  where every gap has its own angle and there is no shared centre to take a maximum over
+- `splay_deg` takes one angle for every gap or **one per gap**, which is what a J array is — `[1, 2, 3, 5, 8]`
+  opens up towards the front rows, and writing them out is the whole point
+- **The joint hinges where a frame would pin it, and which edge that is follows from the geometry.** A
+  downward-curving array pins the rear edge, one curving up pins the front, and at a wedge's own taper both
+  give the same answer because the faces meet flat. Solved rather than assumed for a quantified reason:
+  pinning the front edge of a downward curve drives a 0.52 m deep cabinet **45 mm** into its neighbour — the
+  vertical twin of the concave interpenetration `Arc` already warns about, and just as plausible in a render
+- Contact is solved on `Outline::elevation()`, which Stage 1 built for exactly this: an arc's flush splay is
+  the angle between the plan outline's two *side* edges, and an array's is the angle between the side
+  outline's *top and bottom* edges — `atan((height − front_height) / depth)`, 17.10° for a 0.96 m box with a
+  0.80 m front. Verified against the elements' own corners by separating-axis distance: exact contact at
+  every joint for a constant splay, a J, and a flat stack
+- `src/Scene/LineArray.php` and `tests/Scene/LineArrayTest.php`
+
+### Changed
+
+- **`PlacementCopy` gains a pitch increment, separate from its rotation**, and the reason is worth stating:
+  composing an array's splay as a rotation would put it *outside* the placement's yaw, and
+  `Rx(σ)·Rz(ψ)·Rx(θ)` is not `Rz(ψ)·Rx(θ + σ)`. An arc's yaw is a turn of the cell; an array's splay **is**
+  the cabinet's own tilt, since every element of a hang shares the hang's yaw and differs only in how far it
+  is tilted. So it adds to the pitch and leaves the aim, the roll and the yaw where they are
+- **`PlacedDevice` gains `seated`, and a flown cabinet is not lifted.** `zLift()` exists so a tilted or
+  upside-down cabinet still rests on its slot, which is right for anything standing on something and wrong
+  for a hang — each element is tilted differently, so lifting each one back onto its own slot would pull the
+  array apart at every joint
+
+### Notes
+
+- **No shipped scene uses `line_array`, because there is no way to hang one yet.** Elements take negative z
+  and `at`/`on` can only name a ground position or the top of something, so an array written today ends up
+  under the floor. The geometry and the schema are done and unit-tested; a fly-point anchor is a separate
+  feature and is now on `TODO.md` next to reporting weight per flown point
+
+## [0.19.0] - 2026-08-04
+
+### Added
+
+- **`lattice` — a 1-, 2- or 3-D grid spaced from the size of whatever it replicates.** This is the group
+  that stops a scene carrying arithmetic somebody did by hand. `full-rig-mirrored.yaml` states
+  `at: [-2.135, 0.0]` and `step: [0.611, 0.0, 0.0]` twice, and all three numbers are derived: seven 591 mm
+  Flexys with a 20 mm working gap make a 4.257 m wall, centred on `x = -0.302`, left edge at −2.135. The
+  new `scenes/sub-wall-lattice.yaml` states none of them and resolves to the same fourteen positions, so
+  measuring a Flexy moves the wall instead of quietly invalidating it
+- **`row` — a lattice with one open axis**, which is the case that dominates; `axis` defaults to `x`. Not a
+  second class, because naming the axis outright is also what makes `roll_cycle` unambiguous for free
+- **`in` — groups nested inside groups, to any depth.** The sibling key is the cell and `in` is what it is
+  nested inside, read inside-out. An outer group spaces itself on the whole inner arrangement's extent, so
+  two tiers of a three-wide fan step by the fan and a row of three 2×2 blocks steps by the block — the
+  numbers nobody should have to work out. Every scene written before this is untouched rather than merely
+  still parsing, because `in` is simply absent
+- **`roll_cycle` and `cycle_axis` — alternate cells turned over**, which is a mirrored horn wall as one
+  placement instead of two. It composes with `roll_deg` rather than special-casing, so `[0, 180]` gives
+  0, 180, 0, 180… and `roll_deg: 90` alongside it gives 90, 270, 90, 270… — both rows the rig needs, from
+  one mechanism. `cycle_axis` is required when more than one axis has cells: a cycle down x instead of z on
+  a seven-by-two wall turns every *column* over instead of every tier, which is fourteen cabinets wrong and
+  renders perfectly plausibly. Values must be quarter turns, because the cell arrives as an axis-aligned
+  box and only a quarter turn can be applied to one exactly
+- **`step_m`, with 0 meaning "derive this axis"** — a step of zero is meaningless for a count above one, so
+  it is a safe way to say it. `scenes/end-fire.yaml` uses it: subs stepping 1.20 m front to back, which is a
+  decision about frequency (a quarter wavelength at 71 Hz) rather than about geometry, with x left to work
+  itself out
+- `gap_m` accepts one number or three. One number means **x and y only**, and that is the real decision: a
+  gap on x is air beside a cabinet, which is normal, while a gap on z is air *under* one, which nobody wants
+  by accident
+- `src/Scene/{Group,GroupStack,GroupReader,Repeat,Lattice,Axis,UnresolvableRotationException}.php`,
+  `scenes/{sub-wall-lattice,end-fire}.yaml`, `tests/Scene/{LatticeTest,GroupStackTest}.php`, and
+  `Orientation::after()`/`fromMatrix()`
+
+### Changed
+
+- **Expansion happens through one interface instead of one method.** `repeat` and `arc` were the only two
+  ways to make copies and they were mutually exclusive, both expanded in a single method in the compiler.
+  That holds while "a placement is one group" holds, and stops holding the moment a *cell* is itself an
+  arrangement, because then the same expansion has to happen at every level and the levels have to
+  multiply. Verified against all eleven shipped scenes: **121 cabinets, zero differences** in position,
+  orientation, top height or bounding box
+- **`PlacementCopy` carries one rotation rather than a loose yaw.** Composition is matrix multiplication:
+  rolling a group over reverses the yaw of everything inside it (`Ry(180)·Rz(θ) = Rz(−θ)·Ry(180)`), which
+  is physically what turning an arrangement upside down does and arithmetically not addition. Its `index`
+  becomes a `path`, so a nested id says which tier before which cabinet
+- **The outer turn moves the inner arrangement's offsets, not only its rotations** — a group is a rigid
+  body, and nesting one places it rather than scattering its parts. Put a touching pair inside a convex fan
+  of Tecnares and the pair's 0.52 m step has to run along the *cabinet's* x; left in the world's, the second
+  cabinet of each pair lands **155 mm** behind its own seam, which reads as an arc bug rather than a nesting
+  one
+- `repeat` is kept as its own group rather than folded into `lattice`, which can express the same thing. Its
+  anchor is the **last** copy, so `on:` a sub row stacks on the far end of it, and seven shipped scenes
+  depend on that; a lattice anchors on the middle cell, which is what lets a single cabinet be swapped for a
+  group. One class cannot own both rules without a flag whose only purpose is remembering which spelling it
+  was written as
+- Two group keys on one placement, `in` with nothing to nest, and a mistyped group name inside `in` are all
+  refused when the scene is read. The last one matters: an unrecognised name would otherwise build an empty
+  wrapper and silently drop a whole level of the nest
+- `build: clone` is now `build: self-built`. The build kind and the block naming the original had the same
+  word for two different things, and `self-built` against `own-design` says what actually differs — whose
+  drawing it was built from. `clone_of` keeps its name, because what it names really is an original
+
+### Fixed
+
+- Composed offsets are rounded to the nearest picometre. `sin(180°)` is 1.2e-16 rather than zero in binary,
+  so a cycled row picked up about 1e-16 m of height per cabinet — nothing physically, and a seventeen-digit
+  number in a build plan that should read `0`
+
+## [0.18.0] - 2026-08-04
+
+### Added
+
+- **`splay_deg: 0` is a straight row — spaced and centred from the cabinet itself.** A row is the arc of
+  infinite radius, so it is the same contact solve rather than a second mechanism: as the splay closes,
+  the arc's spacing converges on the cabinet's own width (0.4957 m at 1°, 0.49996 m at 0.01°, against
+  0.500 m), and `centreRadiusM()` now says `INF` rather than reporting a large number that happens not to
+  overflow. This is the arithmetic scenes currently carry by hand — `full-rig.yaml`'s `at: [-2.135, 0.0]`
+  and `step: [0.611, 0, 0]` are seven 591 mm Flexys plus a 20 mm gap, centred on `x = -0.302`
+- **`arc.gap_m`** — the working gap every sub row in the repository already has, stated instead of baked
+  into a step. Defined by growing the outline before the contact solve, so it means the same thing at
+  every angle: a splayed seam opens by the gap measured *across* the seam
+- **A cabinet with nothing to taper resolves to a row on its own.** A plain box, or a trapezoid whose back
+  is as wide as its front, has no tightest *bend*, but two of them side by side are already in full face
+  contact — which is the tightest convex arrangement there is. It used to be an error demanding an explicit
+  angle
+- **`roll_deg: 90` works.** Contact is solved on the plan outline of the *turned* cabinet, so an arc no
+  longer refuses anything but upright or turned over. On its side an M2122's outline is a plain
+  0.960 × 0.520 rectangle — the taper has rotated into the vertical, where the plan view cannot see it — so
+  its flush arrangement is a straight row spaced by its **height**, which is what two cabinets on their
+  sides actually present to each other. An arc still wants a multiple of 90: in between, the outline's two
+  flanks point at different centres of curvature, nothing closes both seams at once, and a solve that
+  quietly leaves 14 mm of air down every joint is worse than one that refuses
+- `src/Scene/Outline.php` — the cabinet's silhouette in one plane, as a convex hull, in the two planes
+  contact happens in: plan for cabinets meeting side to side, elevation for meeting top to bottom. The
+  corner sets move onto `DeviceSpec` as `shellCorners()` and `contactCorners()`, so the footprint and the
+  contact solve read one definition of the cabinet's shape and can disagree only about the grille frame
+- `Orientation::matrix()` and `eulerXYZ()`, `tests/Scene/OrientationTest.php` and
+  `tests/Scene/OutlineTest.php`
+
+### Changed
+
+- **A rotation is now composed in the order a scene decides it** — roll the cabinet in its own frame, then
+  tilt it down, then aim it (`Rz·Rx·Ry`) — and converted to the euler triple Blender applies (`Rz·Ry·Rx`)
+  at the boundary. The two orders agree only while roll is a multiple of 180, which is why the old code
+  could flip the sign of the pitch at exactly 180 and be right, and had nothing to say about 90. The
+  build plan carries both: `pitch_deg`/`roll_deg`/`yaw_deg` as the scene stated them, and
+  `rotation_euler_deg` as Blender wants them
+- `Orientation::pitchTowards()` loses its roll parameter. In this order `Ry(roll)` leaves the −Y axis
+  fixed, so roll cannot change where a cabinet points and cannot change the angles that aim it either
+- **The tightest radius is solved as an angular width about the centre of curvature**, pairwise and in
+  closed form, instead of fitting the outline into half a wedge. Measuring it both ways round rather than
+  assuming the outline is symmetric about its own axis is what lets a cabinet be rolled: on its side the
+  plan outline sits entirely to one side of its origin and there is no half-wedge to fit it into. Verified
+  against the previous closed form and, independently, by separating-axis distance between neighbours'
+  real corners — exact contact at roll 0, 90, 180 and 270, in both modes
+- The flush angle is read off the outline's flanks — the arrangement that puts a whole face in contact is
+  the one whose flank, extended, passes through the centre of curvature — rather than off
+  `width − back_width` over `depth − inset`. Same 17.35° for an upright M2122, same 16.95° without its
+  grille frame, and it survives a roll, which the old derivation could not
+- 121 cabinets across the ten shipped scenes are unchanged. Nine values in `full-rig-arc` move by up to
+  1e-14 — `atan2(dx, dy)` where the old code divided first, the same angle rounded differently
+
+### Fixed
+
+- **A tilted arc that was also turned over was solved as if it were the right way up.** Tilt swings the
+  front-top edge forward and rolling the cabinet 180° swings it the other way, so a mirrored tilted group
+  needs 73.7 mm *more* radius at 4.4° than an upright one — and got 73.7 mm less, with the cabinets driven
+  into each other in a render that looks entirely plausible. No shipped scene tilts a rolled row, which is
+  why nothing showed it
+- **Stated pitch and aimed pitch meant opposite things on a rolled cabinet.** `pitch_deg: 5` with
+  `roll_deg: 180` aimed at the ceiling while `aim:` on the same cabinet aimed at the floor, because the
+  roll was applied after the tilt and turned nose-down into nose-up. Nose-down is now nose-down whichever
+  way up the cabinet is
+- `Orientation::isUpright()` had no callers and is gone
+
 ## [0.17.1] - 2026-07-30
 
 ### Changed

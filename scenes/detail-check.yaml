@@ -9,22 +9,19 @@ name: "Detail check — one of each"
 placements:
   - id: flexy
     device: flexy-folded-horn-hybrid
-    at: [-2.6, 0.0]
+    at: [ -2.6, 0.0 ]
   - id: skram
     device: skram
-    at: [-1.6, 0.0]
+    at: [ -1.6, 0.0 ]
   - id: achenbach
     device: achenbach-18
-    at: [-0.6, 0.0]
+    at: [ -0.6, 0.0 ]
   - id: tecnare
     device: tecnare-m2122
-    at: [0.4, 0.0]
-  - id: tecnare-clone
-    device: tecnare-m2122
-    at: [1.2, 0.0]
+    at: [ 0.4, 0.0 ]
   - id: eighteensound
     device: eighteensound-2way-15
-    at: [2.0, 0.0]
+    at: [ 1.2, 0.0 ]
 
 notes: |
   Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is

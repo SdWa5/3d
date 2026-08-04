@@ -85,11 +85,27 @@ def check(path):
     override = metadata.get("mesh_override") or {}
     tolerance = float(override.get("tolerance_m", TOLERANCE_M)) if override else TOLERANCE_M
 
+    # Undershooting is allowed by up to the chamfer, and only undershooting. Easing a corner can only
+    # ever remove material, and on a *tapered* cabinet the widest point IS a corner — so a 500 mm-front
+    # trapezoid with 10 mm eased edges genuinely measures a couple of millimetres under 500 across, because
+    # the widest part has been eased off. A box is unaffected: its side faces stay put and only the corners
+    # between them go. Overshooting has no such excuse in either case — nothing may lie outside the
+    # declared box, which is the promise the asset library rests on.
+    chamfer = float(metadata.get("chamfer_m") or 0.0)
+    undershoot = max(tolerance, chamfer)
+
     problems = []
     for axis, label in enumerate(("width", "height", "depth")):
-        if abs(actual[axis] - expected[axis]) > tolerance:
+        over = actual[axis] - expected[axis]
+        if over > tolerance:
             problems.append(
-                "%s is %.4f m but the spec says %.4f m" % (label, actual[axis], expected[axis])
+                "%s is %.4f m but the spec says %.4f m — %.4f m of it lies outside the declared box"
+                % (label, actual[axis], expected[axis], over)
+            )
+        elif -over > undershoot:
+            problems.append(
+                "%s is %.4f m but the spec says %.4f m, which is %.4f m short of what a %.3f m chamfer explains"
+                % (label, actual[axis], expected[axis], -over - undershoot, chamfer)
             )
 
     # Only the default origin promises this; a cabinet with origin `rigging-point` hangs from its

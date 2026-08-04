@@ -28,6 +28,7 @@ build/scenes/full-rig.blend        cabinets placed at true scale, geometry insta
         │  bin/console scene:render        blender --background --python blender/render_scene.py
         ▼
 build/renders/full-rig-<camera>.png  preview image; camera and lights framed from the scene's own size
+build/renders/<variant>/…             one folder per lighting/aim-line combination, with `build:all`
 ```
 
 Nothing under `build/` is committed. It is all reproducible from the specs, and regenerating it is
@@ -49,7 +50,24 @@ ddev exec bin/console scene:render full-rig -c crowd -l stage   # preview image
 ddev exec bin/console scene:render --presets           # list camera and lighting presets
 ddev exec bin/console catalog             # table + weight/volume totals
 ddev exec bin/console catalog --write     # also write docs/catalog.md
+
+ddev exec bin/console build:all           # every stage above, in order
+ddev exec bin/console build:all --dry-run # ...list what it would run, and run nothing
+ddev exec bin/console build:all --aim-line-variants --lighting-variants
 ```
+
+`build:all` is the stage order written down. Every stage already refuses to run on stale input — the
+library will not be stitched from models older than their specs, a scene will not place a device whose
+model is out of date — but nothing knew the *order*, so getting from an edited spec to a new render meant
+remembering five commands and which of them the edit had invalidated.
+
+It delegates rather than reimplements, so each stage's own staleness rules, reporting and refusals are the
+ones that apply, and a failing stage stops the run.
+
+The variant options are what make it more than a shell alias. `--lighting-variants` renders every scene
+under each of the four lighting presets and `--aim-line-variants` renders each with and without aim lines;
+together that is eight passes into eight folders under `build/renders/`. With no variant asked for, output
+goes exactly where `scene:render` always put it.
 
 Add `-v` to any build command to see Blender's own output; without it only one line per model is
 printed, because Blender is extremely chatty.

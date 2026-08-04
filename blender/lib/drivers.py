@@ -422,3 +422,47 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
               % (len(objects), layout["provenance"]))
 
     return objects
+
+
+def build_coverage_cone(plan, material_set):
+    """The cabinet's nominal dispersion, as a wireframe cone in front of the baffle.
+
+    Lives in this module rather than with the other markers in `geometry.py` because the ring-and-shell
+    machinery above is what draws it, and a dispersion pattern is the audio side of a cabinet rather than
+    part of its box. It is a marker in every other respect: built only when the spec says something, and
+    invisible to renders.
+
+    Two flags carry the whole thing:
+
+    * `hide_render` is not cosmetic. `export_glb` passes `use_renderable=True` precisely so markers stay in
+      the .blend and out of the .glb, and `tools/check-glb.py` compares the exported bounding box against
+      the declared dimensions to 1e-4 m. A visible ten-metre cone would fail that on every axis.
+    * `display_type = "WIRE"` is what makes it usable. Solid, a 10 m cone swallows the cabinet it belongs
+      to; as a wireframe it is something to sight along, which is the only reason to draw it.
+
+    The apex sits at the middle of the baffle. That is a simplification worth naming: a real pattern
+    originates from the drivers, which are spread across the baffle and cross over at different distances,
+    so the cone answers "roughly where does this cabinet throw" and not "what does the summed response do".
+    """
+    audio = plan.get("audio") or {}
+    spread = audio.get("coverage_spread_m")
+    throw = audio.get("coverage_throw_m")
+    if not spread or not throw:
+        return []
+
+    dims = plan["geometry"]["dimensions_m"]
+    front_y = -dims["depth"] / 2.0
+    centre = (0.0, dims["height"] / 2.0)
+
+    # A zero-size ring collapses to one vertex, which is how `_shell_geometry` expresses an apex — so the
+    # cone is two rings: a point on the baffle and the pattern's spread out at the throw distance.
+    rings = [
+        _ring(centre, 0.0, 0.0, front_y, sides=None),
+        _ring(centre, spread[0] / 2.0, spread[1] / 2.0, front_y - throw, sides=None),
+    ]
+
+    cone = _shell("%s-coverage" % plan["id"], rings, material_set[materials.COVERAGE])
+    cone.hide_render = True
+    cone.display_type = "WIRE"
+
+    return [cone]

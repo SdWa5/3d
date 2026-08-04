@@ -127,6 +127,26 @@ final class ArrayReader
     }
 
     /**
+     * The keys present here, for a block whose field *names* are data — a map of named foci, say, where
+     * the names are the scene's own choice rather than part of the schema.
+     *
+     * @return list<string>
+     */
+    public function keys(): array
+    {
+        return array_map(static fn (int|string $key): string => (string)$key, array_keys($this->data));
+    }
+
+    /**
+     * Whether $key holds a list. The counterpart of {@see isSection}, for a field that accepts either one
+     * number for every axis or one per axis — `gap_m: 0.02` against `gap_m: [0.02, 0, 0.10]`.
+     */
+    public function isList(string $key): bool
+    {
+        return $this->has($key) && is_array($this->data[$key]) && array_is_list($this->data[$key]);
+    }
+
+    /**
      * Nested mapping as a reader of its own, so error messages keep the full key path.
      */
     public function requireSection(string $key): self

@@ -115,9 +115,15 @@ final class DeviceSpec
         );
     }
 
+    /**
+     * Whether this device copies somebody else's design, and so has an original to cite.
+     *
+     * The build kind is spelled `self-built`; the thing it produces is still a clone, which is why the
+     * block naming the original is `clone_of` and this reads the way it does.
+     */
     public function isClone(): bool
     {
-        return $this->build === BuildKind::Clone;
+        return $this->build === BuildKind::SelfBuilt;
     }
 
     /**
@@ -157,6 +163,75 @@ final class DeviceSpec
     }
 
     /**
+     * The cabinet's eight corners in the measuring frame.
+     *
+     * The taper is real geometry, not decoration: treating a trapezoid as a full-width box overstates a
+     * concave arc's width by 9%, and a footprint computed from these is meant to be the exact rotated
+     * one. A wedge's front corners are likewise only as tall as its front.
+     *
+     * @return list<array{float, float, float}>
+     */
+    public function shellCorners(): array
+    {
+        $halfDepth = $this->dimensions->depth / 2;
+        $frontHeight = $this->frontHeight ?? $this->dimensions->height;
+        $halfBack = ($this->backWidth ?? $this->dimensions->width) / 2;
+
+        $planes = [
+            [$this->dimensions->width / 2, -$halfDepth, $frontHeight],
+            [$halfBack, $halfDepth, $this->dimensions->height],
+        ];
+
+        return self::cornersOf($planes);
+    }
+
+    /**
+     * The corners that decide whether two cabinets touch: the shell, plus the grille frame standing
+     * proud of it.
+     *
+     * `appearance.grille.inset_m` builds a **full-width** slab across the very front, so the taper only
+     * runs over `depth − inset`. Ignoring it, a Tecnare's flush arc comes out at 16.95° when the built
+     * meshes actually need 17.35°, and they overlap by 3.5 mm. It is a wider set than
+     * {@see shellCorners} rather than a different one, which is why contact and footprint can share a
+     * definition of the cabinet and disagree only about the frame.
+     *
+     * @return list<array{float, float, float}>
+     */
+    public function contactCorners(): array
+    {
+        $halfDepth = $this->dimensions->depth / 2;
+        $frontHeight = $this->frontHeight ?? $this->dimensions->height;
+        $halfBack = ($this->backWidth ?? $this->dimensions->width) / 2;
+        $halfFront = $this->dimensions->width / 2;
+
+        $planes = [
+            [$halfFront, -$halfDepth, $frontHeight],
+            [$halfFront, -$halfDepth + ($this->grilleInset ?? 0.0), $frontHeight],
+            [$halfBack, $halfDepth, $this->dimensions->height],
+        ];
+
+        return self::cornersOf($planes);
+    }
+
+    /**
+     * @param list<array{float, float, float}> $planes half-width, y and top height of each cross-section
+     * @return list<array{float, float, float}>
+     */
+    private static function cornersOf(array $planes): array
+    {
+        $corners = [];
+        foreach ($planes as [$halfWidth, $y, $top]) {
+            foreach ([-$halfWidth, $halfWidth] as $x) {
+                foreach ([0.0, $top] as $z) {
+                    $corners[] = [$x, $y, $z];
+                }
+            }
+        }
+
+        return $corners;
+    }
+
+    /**
      * Metadata written into the glTF `extras` block, so a model stays self-describing once it
      * leaves this repo.
      *
@@ -178,6 +253,10 @@ final class DeviceSpec
             // Consumers need the origin to interpret the geometry — tools/check-glb.py uses it to
             // decide whether a cabinet is supposed to sit on the floor.
             'origin' => $this->origin->value,
+            // Also for tools/check-glb.py: easing a *tapered* cabinet's corners takes its widest point
+            // with them, so its bounding box is legitimately a little under its declared width and the
+            // checker needs to know by how much it may be.
+            'chamfer_m' => $this->chamfer,
             'weight_kg' => $this->weightKg,
             'flyable' => $this->flyable,
             'rigging_points' => array_map(

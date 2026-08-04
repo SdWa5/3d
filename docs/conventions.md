@@ -66,11 +66,20 @@ a colour scheme can be changed in one place:
 
 | Material | Used for |
 |----------|----------|
-| `sdwa5-cabinet` | the shell and the grille frame; colour from `appearance.color` |
-| `sdwa5-grille` | the grille panel; colour from `appearance.grille.color` |
+| `sdwa5-cabinet` | the shell and the grille frame |
+| `sdwa5-grille` | the grille panel |
 | `sdwa5-handle` | handle recesses |
+| `sdwa5-cone` | driver cones |
+| `sdwa5-horn` | horn flares |
 | `sdwa5-rigging` | rigging point markers |
+| `sdwa5-coverage` | the coverage cone |
 | `sdwa5-estimated` | the orange tag on guessed cabinets |
+
+**Every visible material takes `appearance.color`** — one colour per cabinet, for now. The parts keep their
+own materials so they can be differentiated again without restructuring, and they differ in `roughness`
+(how sharp a highlight is) but not in hue. The horn flares used to be lighter than the shell so a mouth read
+as an opening; on a cabinet whose horn spans most of its baffle that read as a differently-coloured panel
+instead. Per-device colour is on [`../TODO.md`](../TODO.md).
 
 Hex colours in specs are sRGB and are converted to linear on the way in — skipping that makes
 every model noticeably too bright.
@@ -80,7 +89,8 @@ every model noticeably too bright.
 Models are accurate on the outside and empty on the inside:
 
 * true outer dimensions, to the millimetre the spec claims
-* chamfered edges (bevel modifier, kept live in the `.blend`, applied on export)
+* chamfered edges (a bevel, applied at build time — see the bounding-box note below for why it
+  cannot be left live)
 * recessed grille panel behind a four-bar frame, when `appearance.grille.inset_m` is set
 * handle recesses cut into the sides listed in `physical.handles`
 * small markers at the rigging points
@@ -96,12 +106,22 @@ outright, but only if the mesh agrees with the spec's declared dimensions — se
 
 Two deliberate consequences:
 
-* The **outer bounding box always equals `width × depth × height`**. The grille frame is what
-  fills the inset, so a grille never makes a cabinet deeper than declared; handle recesses cut
-  inward, so they never make one wider. Baffle features are recessed behind the baffle for the same
-  reason — a dust cap domes forward only as far as the cone is deep, never past the front face.
-* **Markers do not render.** Rigging markers and the estimated tag are set to render-invisible:
-  they exist to snap to and to nag, not to turn up in a preview image handed to the crew.
+* **Nothing ever lies outside `width × depth × height`.** The grille frame is what fills the inset, so a
+  grille never makes a cabinet deeper than declared; handle recesses cut inward, so they never make one
+  wider. Baffle features are recessed behind the baffle for the same reason — a dust cap domes forward only
+  as far as the cone is deep, never past the front face.
+
+  The box can be a little *smaller* than declared, and on one shape it always is. Easing a corner can only
+  remove material, and on a **tapered** cabinet the widest point *is* a corner — so a Tecnare, whose front
+  face is 500 mm and whose corners are eased by 10 mm, measures 497 mm across its widest part. A box is
+  unaffected: its side faces stay where they are and only the corners between them go. `tools/check-glb.py`
+  is asymmetric for exactly this reason — it refuses any overshoot at 0.1 mm, and allows an undershoot of up
+  to the chamfer.
+* **Markers do not render.** Rigging markers, the estimated tag and the coverage cone are set to
+  render-invisible: they exist to snap to, to nag and to sight along, not to turn up in a preview image
+  handed to the crew. It is also what lets them leave the bounding box — the coverage cone reaches ten
+  metres in front of a half-metre cabinet, and `tools/check-glb.py` still measures the box as declared,
+  because render-invisible objects never reach the `.glb`.
 
 ## Provenance
 

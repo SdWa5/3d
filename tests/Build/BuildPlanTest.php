@@ -74,4 +74,37 @@ final class BuildPlanTest extends TestCase
 
         self::assertJson(json_encode($plan, JSON_THROW_ON_ERROR));
     }
+
+    /**
+     * The angles were already crossing into Python and nothing read them. A cone also needs a length, and
+     * that decision is made here rather than in the geometry builder — the default focus distance, which is
+     * the one number in the library that already means "out where aiming matters".
+     */
+    public function testCoverageAnglesAndTheThrowTheyReachReachThePlan(): void
+    {
+        $plan = BuildPlan::forSpec(
+            SpecFactory::spec(['audio' => ['coverage_deg' => ['horizontal' => 60, 'vertical' => 40]]]),
+            '/glb',
+            '/blend',
+        );
+
+        self::assertSame(['horizontal' => 60.0, 'vertical' => 40.0], $plan['audio']['coverage_deg']);
+        self::assertSame(10.0, $plan['audio']['coverage_throw_m']);
+        // 60° x 40° at 10 m: 11.55 m across and 7.28 m high.
+        self::assertEqualsWithDelta(11.547005, $plan['audio']['coverage_spread_m'][0], 1e-6);
+        self::assertEqualsWithDelta(7.279404, $plan['audio']['coverage_spread_m'][1], 1e-6);
+    }
+
+    /**
+     * Four of the five shipped specs state no coverage, so "no cone" has to be the quiet default — the same
+     * way a missing `baffle_layout` simply builds nothing.
+     */
+    public function testASpecWithoutCoverageCarriesNoneAndNoThrow(): void
+    {
+        $plan = BuildPlan::forSpec(SpecFactory::spec(['audio' => ['coverage_deg' => null]]), '/glb', '/blend');
+
+        self::assertNull($plan['audio']['coverage_deg']);
+        self::assertNull($plan['audio']['coverage_throw_m']);
+        self::assertNull($plan['audio']['coverage_spread_m']);
+    }
 }

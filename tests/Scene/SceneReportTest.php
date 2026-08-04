@@ -128,4 +128,53 @@ final class SceneReportTest extends TestCase
     {
         return new PlacedDevice($device->id.'-'.$position[0].'-'.$position[2], $device, $position, new Orientation());
     }
+
+    /**
+     * What a truss actually has to carry. Grouped by the hang rather than by the placement, so two hangs off
+     * one bar add up — which is the number somebody checks against a capacity.
+     */
+    public function testWeightIsGroupedByFlyPointAndSharedBarsAddUp(): void
+    {
+        $top = SpecFactory::spec(['id' => 'top', 'physical' => ['weight_kg' => 68.0]]);
+
+        $summary = (new SceneReport())->summarise([
+            new PlacedDevice('left-1', $top, [-3.0, 0.0, 6.0], new Orientation(), false, null, 'main-bar'),
+            new PlacedDevice('left-2', $top, [-3.0, 0.0, 5.0], new Orientation(), false, null, 'main-bar'),
+            new PlacedDevice('right-1', $top, [3.0, 0.0, 6.0], new Orientation(), false, null, 'main-bar'),
+            new PlacedDevice('spare', $top, [0.0, 0.0, 4.0], new Orientation(), false, null, 'side-bar'),
+        ]);
+
+        self::assertSame([
+            'main-bar' => ['count' => 3, 'weight_kg' => 204.0],
+            'side-bar' => ['count' => 1, 'weight_kg' => 68.0],
+        ], $summary['by_fly_point']);
+
+        // The line is laid out like the `owner` lines it sits under, so the two columns line up.
+        $lines = (new SceneReport())->lines([
+            new PlacedDevice('left-1', $top, [-3.0, 0.0, 6.0], new Orientation(), false, null, 'main-bar'),
+            new PlacedDevice('left-2', $top, [-3.0, 0.0, 5.0], new Orientation(), false, null, 'main-bar'),
+            new PlacedDevice('right-1', $top, [3.0, 0.0, 6.0], new Orientation(), false, null, 'main-bar'),
+        ]);
+        $points = array_values(array_filter($lines, static fn (string $l): bool => str_contains($l, 'point ')));
+        self::assertCount(1, $points);
+        self::assertSame(
+            sprintf('  point %-20s %2d cabinets, %.1f kg', 'main-bar', 3, 204.0),
+            $points[0],
+        );
+    }
+
+    /**
+     * Nothing flown means the grouping is absent rather than empty-but-printed, so every ground-stacked
+     * scene's report reads exactly as it always did.
+     */
+    public function testAGroundOnlySceneReportsNoFlyPointsAndPrintsNoPointLines(): void
+    {
+        $sub = SpecFactory::spec(['id' => 'sub', 'physical' => ['weight_kg' => 80.0]]);
+        $placed = [new PlacedDevice('a', $sub, [0.0, 0.0, 0.0], new Orientation())];
+
+        self::assertSame([], (new SceneReport())->summarise($placed)['by_fly_point']);
+        foreach ((new SceneReport())->lines($placed) as $line) {
+            self::assertStringNotContainsString('point ', $line);
+        }
+    }
 }

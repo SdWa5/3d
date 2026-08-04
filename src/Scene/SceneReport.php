@@ -23,6 +23,7 @@ final class SceneReport
      *     total_weight_kg: float,
      *     by_device: array<string, array{count: int, weight_kg: float}>,
      *     by_owner: array<string, array{count: int, weight_kg: float}>,
+     *     by_fly_point: array<string, array{count: int, weight_kg: float}>,
      *     tallest_stack_m: float,
      *     footprint_m: array{float, float},
      *     unmeasured_devices: list<string>,
@@ -34,6 +35,7 @@ final class SceneReport
         $weight = 0.0;
         $byDevice = [];
         $byOwner = [];
+        $byFlyPoint = [];
         $top = 0.0;
         $minX = $minY = INF;
         $maxX = $maxY = -INF;
@@ -52,6 +54,14 @@ final class SceneReport
             $byOwner[$device->owner]['count']++;
             $byOwner[$device->owner]['weight_kg'] += $device->weightKg;
 
+            // What a truss actually has to carry. Grouped by the hang rather than by the placement, so two
+            // placements sharing one bar add up — which is the number somebody checks against a capacity.
+            if ($entry->flyPoint !== null) {
+                $byFlyPoint[$entry->flyPoint] ??= ['count' => 0, 'weight_kg' => 0.0];
+                $byFlyPoint[$entry->flyPoint]['count']++;
+                $byFlyPoint[$entry->flyPoint]['weight_kg'] += $device->weightKg;
+            }
+
             // Footprint from the cabinet's exact rotated box, not just its centre.
             $box = $entry->worldBox();
             $minX = min($minX, $box['min'][0]);
@@ -66,12 +76,14 @@ final class SceneReport
 
         ksort($byDevice);
         ksort($byOwner);
+        ksort($byFlyPoint);
 
         return [
             'cabinets' => count($placed),
             'total_weight_kg' => $weight,
             'by_device' => $byDevice,
             'by_owner' => $byOwner,
+            'by_fly_point' => $byFlyPoint,
             'tallest_stack_m' => $top,
             'footprint_m' => $placed === [] ? [0.0, 0.0] : [$maxX - $minX, $maxY - $minY],
             'unmeasured_devices' => $unmeasured,
@@ -124,6 +136,10 @@ final class SceneReport
         }
         foreach ($summary['by_owner'] as $owner => $totals) {
             $lines[] = sprintf('  owner %-20s %2d cabinets, %.1f kg', $owner, $totals['count'], $totals['weight_kg']);
+        }
+        // Only when something is flown, so a ground-stacked scene's report is exactly what it always was.
+        foreach ($summary['by_fly_point'] as $point => $totals) {
+            $lines[] = sprintf('  point %-20s %2d cabinets, %.1f kg', $point, $totals['count'], $totals['weight_kg']);
         }
 
         return $lines;

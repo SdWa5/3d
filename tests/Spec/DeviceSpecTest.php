@@ -73,4 +73,16 @@ final class DeviceSpecTest extends TestCase
 
         self::assertSame(0.8 * 0.6 * 0.45, $spec->dimensions->volumeM3());
     }
+
+    /**
+     * `tools/check-glb.py` needs the chamfer to tell a legitimately-eased corner from a modelling error:
+     * easing a *tapered* cabinet's corners takes its widest point with them, so its bounding box is a
+     * little under its declared width and the checker has to know by how much it may be.
+     */
+    public function testTheChamferTravelsInTheExportedMetadata(): void
+    {
+        $metadata = SpecFactory::spec(['geometry' => ['chamfer_m' => 0.01]])->toMetadataArray();
+
+        self::assertSame(0.01, $metadata['chamfer_m']);
+    }
 }

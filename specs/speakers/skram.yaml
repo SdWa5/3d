@@ -6,7 +6,7 @@ category: speaker
 subtype: sub
 quantity: 2
 owner: sdwa5
-build: clone
+build: self-built
 
 clone_of:
   manufacturer: "Josh Ricci"
@@ -25,16 +25,17 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  color: "#111111"
+  # Birch plywood with a weatherproof black textured finish.
+  color: "#141414"
 
 physical:
   # 56 kg empty + 34 kg driver, per the comparison spreadsheet.
   weight_kg: 90.0
-  handles: [left, right]
+  handles: [ left, right ]
 
 rigging:
   flyable: false
-  points: []
+  points: [ ]
 
 audio:
   drivers:
@@ -51,7 +52,7 @@ audio:
 mesh_override:
   path: meshes/skram.stl
   units: mm
-  rotate_deg: [0, 0, 180]
+  rotate_deg: [ 0, 0, 180 ]
   tolerance_m: 0.011
 
 notes: |

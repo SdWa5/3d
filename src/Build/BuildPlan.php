@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Build;
 
+use App\Scene\Focus;
 use App\Spec\DeviceSpec;
 use App\Spec\Driver;
 use App\Spec\Provenance;
@@ -65,6 +66,12 @@ final class BuildPlan
             ],
             'audio' => [
                 'coverage_deg' => $spec->coverage?->toArray(),
+                // How far the coverage cone reaches. A cone is an angle, so something has to choose a
+                // length, and the default focus distance is the one number in the library that already
+                // means "out where aiming matters" — so a cone reaches exactly as far as a scene's
+                // default aim, and "does the pattern cover the dancefloor" reads directly against it.
+                'coverage_throw_m' => $spec->coverage === null ? null : Focus::DEFAULT_DISTANCE_M,
+                'coverage_spread_m' => $spec->coverage?->spreadAt(Focus::DEFAULT_DISTANCE_M),
                 'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $spec->drivers),
             ],
             // The baffle features, already reduced to metres so the bpy side does no unit maths.

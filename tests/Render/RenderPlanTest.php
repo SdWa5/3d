@@ -297,4 +297,51 @@ final class RenderPlanTest extends TestCase
     {
         return new PlacedDevice('p-'.$position[0].'-'.$position[2], $device, $position, new Orientation());
     }
+
+    /**
+     * A placement can ask for a line the mode would have skipped — a sub whose aim you want to see — and
+     * refuse one the mode would have drawn. That is the whole point of `aim_lines` per group.
+     */
+    public function testAPlacementCanOverruleTheModeEitherWay(): void
+    {
+        $sub = SpecFactory::spec(['id' => 'sub', 'subtype' => 'sub']);
+        $top = SpecFactory::spec(['id' => 'top', 'subtype' => 'top']);
+
+        $placed = [
+            new PlacedDevice('quiet-sub', $sub, [0.0, 0.0, 1.0], new Orientation(10.0)),
+            new PlacedDevice('shown-sub', $sub, [2.0, 0.0, 1.0], new Orientation(10.0), true, true),
+            new PlacedDevice('hidden-top', $top, [4.0, 0.0, 1.0], new Orientation(10.0), true, false),
+            new PlacedDevice('normal-top', $top, [6.0, 0.0, 1.0], new Orientation(10.0)),
+        ];
+
+        $plan = RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_TOPS);
+        $ids = array_column($plan['aim_lines'], 'placement_id');
+
+        self::assertSame(['shown-sub', 'normal-top'], $ids);
+    }
+
+    /**
+     * The one thing a placement cannot overrule. `--aim-lines=none` stays the way to get a clean render of
+     * a scene that normally draws them.
+     */
+    public function testAskingForNoAimLinesAtAllOverrulesEveryPlacement(): void
+    {
+        $top = SpecFactory::spec(['id' => 'top', 'subtype' => 'top']);
+        $placed = [new PlacedDevice('insistent', $top, [0.0, 0.0, 1.0], new Orientation(10.0), true, true)];
+
+        $plan = RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_NONE);
+
+        self::assertSame([], $plan['aim_lines']);
+    }
+
+    public function testAllStillDrawsEverythingWhateverTheSubtype(): void
+    {
+        $sub = SpecFactory::spec(['id' => 'sub', 'subtype' => 'sub']);
+        $placed = [
+            new PlacedDevice('a', $sub, [0.0, 0.0, 1.0], new Orientation(10.0)),
+            new PlacedDevice('b', $sub, [2.0, 0.0, 1.0], new Orientation(10.0)),
+        ];
+
+        self::assertCount(2, RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_ALL)['aim_lines']);
+    }
 }

@@ -64,6 +64,7 @@ def build(plan):
 
     extras += geometry.build_rigging_markers(plan, material_set)
     extras += geometry.build_estimated_marker(plan, material_set)
+    extras += drivers.build_coverage_cone(plan, material_set)
     for obj in extras:
         collection.objects.link(obj)
         obj.parent = body
