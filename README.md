@@ -114,6 +114,8 @@ Behind those openings there are now **drivers and horns**, from each spec's `aud
 a domed dust cap, and horn flares whose mouth shape, throat shape and flare law come from the spec
 ([docs/spec-format.md](docs/spec-format.md#baffle-layout)). The Tecnare has no CAD anywhere, so its whole baffle is
 generated and its numbers are estimated — the flares are carved into the shell rather than sitting behind a CAD hole.
+Its two 12″ horns are **connected**: the wall between them stops behind the baffle, so the front shows one opening and
+the two throats only part company inside, which any pair of horns can now say with `join`.
 
 All three Tecnare tops share one spec at quantity 3. Two are factory cabinets and the third is a self-built copy, but
 the geometry is identical, so modelling it twice was wasted work; the distinction is recorded in the spec's notes.

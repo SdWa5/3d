@@ -90,8 +90,18 @@ audio:
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
       - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [ 0.135, 0.06 ], throat_in: 1.0, depth_m: 0.05,
           profile: pyramid, sides: 4, throat_profile: elliptical }
+      # SHARED MOUTH, from the owner: the two 12" horns are connected. The wall between them is gone for
+      # 0.190 of the 0.20 they are deep — practically the whole flare — so the front is one opening
+      # 0.45 x 0.572 and the two paths only part company as a 10 mm lip at the drivers. What is left of
+      # the wall there is 37 mm thick.
+      #
+      # HOW FAR BACK IS ESTIMATED like every size here. The owner's account is that the pair is connected
+      # rather than that the wall ends at some measured depth, and 0.190 is that account taken as far as
+      # the geometry allows: at 0.20 there would be no wall left at all, which is a different cabinet —
+      # one horn with two throats — and not something this spec can say. A tape measure settles it.
       - { id: lf-lo, kind: horn, at_m: [ 0.0, -0.189 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
-          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential,
+          join: { with: lf-up, depth_m: 0.130 } }
       - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [ 0.135, 0.06 ], throat_in: 1.0, depth_m: 0.05,
           profile: pyramid, sides: 4, throat_profile: elliptical }
 

@@ -6,8 +6,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-08-09
+
+### Added
+
+- **`join` on a baffle feature: two horns that share one mouth.** The Tecnare's two 12″ horns are
+  connected on the real cabinet — the wall between them stops behind the baffle, so the front is one
+  opening and the two throats only part company inside. Nothing in the spec could say that. Two mouths
+  moved until they touch still read as two holes with a line between them, and the wall carries on to the
+  throats; the model showed the pair with 12 mm of baffle standing between them
+- The field is a relation, `join: { with: <earlier horn>, depth_m: … }`, stated on the later of the two the
+  way `inside` names the horn it sits in. `depth_m` is the length of the wall that is *missing*, measured
+  from the baffle inwards
+- Down to that depth the pair is cut as **one common section**, not as two cavities with the strip between
+  them knocked out. Cutting only the strip is the obvious reading and it is wrong: every horn's
+  cross-section narrows towards its throat, so two of them cut separately turn inwards near the side walls
+  and never meet there. The renders showed it immediately — a shelf at each end of the wall, at every depth
+  tried. Cut as one section the walls run unbroken from one horn's far edge to the other's
+- The section is measured off **both** horns at every depth, on their own flare laws, roundness and the
+  same cutter span the walls were cut with, rather than extruded straight back from the mouth plane. The
+  gap between two exponential horns widens as they narrow: a straight prism would have undercut the flare
+  walls sideways by 39 mm at 60 mm deep and left a 4.5 mm fin of the wall it was removing standing in front
+  of its own nose. Thin fins are also the worst input a boolean solver can get
+- The cutter's far end **rolls off over a 15 mm radius** instead of stopping square, so the wall runs into
+  the horns' side walls through a fillet. That junction is the part of a joined pair you look straight at,
+  and a square end left it as a hard inside corner no cabinet has
+- This is the first geometry in the library where two cutters overlap, which is what `_carve`'s
+  `use_self = True` was set for in 0.24.0. The cutter stops 0.1 mm short of both horns' side walls on
+  purpose: reaching them exactly would pair two coplanar, oppositely wound faces, which is the one surface
+  arrangement the EXACT solver handles worst
+
 ### Changed
 
+- **The Tecnare's two LF horns are joined, 0.190 m of the 0.200 m they are deep.** The owner's account is
+  that the pair is connected, not that the wall ends at a measured depth, so this is that account taken as
+  far as the geometry allows: at 0.200 no wall would be left at all, which is a different cabinet — one
+  horn with two throats — and not something this spec can say. What survives is a 10 mm lip, 37 mm thick,
+  right at the two drivers; the baffle reads as one 0.45 × 0.572 opening. Estimated like every other size
+  in this layout. Judged from renders at 18, 60, 100, 150 and 190 mm, which is what the setback needed
+- `specs:validate` rejects a `join` that describes no cabinet: one on a cone or on a `mesh_override` spec
+  (there the CAD cut the holes and there is no baffle of ours to open up), one naming itself, an unknown
+  feature, a later one, a cone or a nested plug, a `depth_m` of zero or one reaching the shallower horn's
+  throat, and a pair whose mouths overlap or line up on neither axis
+- `TODO.md` 2.1.1 deleted
 - `TODO.md` 1.1 (tetris stacking) written out: it is driven by a **constraint** rather than by a tier list —
   `max_width_m`, or a stated height at the sub/top interface so the tops fire over the crowd, plus
   `min_width_m` and `max_height_m` as the other two bounds. Recorded with the arithmetic that matters: two

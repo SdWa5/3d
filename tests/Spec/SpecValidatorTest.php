@@ -24,6 +24,20 @@ final class SpecValidatorTest extends TestCase
         self::assertSame([], $this->validate(SpecFactory::spec()));
     }
 
+    public function testTwoStackedHornsMayShareOneMouth(): void
+    {
+        // The arrangement the Tecnare has: apart on z, lined up on x, and the wall between them removed
+        // for less than either horn is deep.
+        $spec = SpecFactory::spec(['audio' => ['layout' => self::layout([
+            ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.12], 'mouth_m' => [0.4, 0.2],
+                'throat_in' => 4.0, 'depth_m' => 0.2],
+            ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.12], 'mouth_m' => [0.4, 0.2],
+                'throat_in' => 4.0, 'depth_m' => 0.2, 'join' => ['with' => 'lf-up', 'depth_m' => 0.018]],
+        ])]]);
+
+        self::assertSame([], $this->validate($spec));
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
@@ -252,6 +266,98 @@ final class SpecValidatorTest extends TestCase
                     'depth_m' => 0.1, 'sides' => 6],
             ])]],
             'sides only applies to a horn',
+        ];
+        yield 'join naming a feature that comes later' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.4, 0.2],
+                    'throat_in' => 4.0, 'depth_m' => 0.2, 'join' => ['with' => 'lf-up', 'depth_m' => 0.04]],
+                ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.1], 'mouth_m' => [0.4, 0.2],
+                    'throat_in' => 4.0, 'depth_m' => 0.2],
+            ])]],
+            '`join.with: lf-up` must name an earlier feature',
+        ];
+        yield 'join naming itself' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'horn', 'depth_m' => 0.02]],
+            ])]],
+            'join.with names the feature itself',
+        ];
+        yield 'join with a driver cone' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'w', 'kind' => 'cone', 'at_m' => [0.0, 0.15], 'diameter_in' => 8, 'depth_m' => 0.1],
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'w', 'depth_m' => 0.02]],
+            ])]],
+            "join only works between horns, and 'w' is a cone",
+        ];
+        yield 'join on a driver cone' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+                ['id' => 'w', 'kind' => 'cone', 'at_m' => [0.0, -0.15], 'diameter_in' => 8, 'depth_m' => 0.1,
+                    'join' => ['with' => 'horn', 'depth_m' => 0.02]],
+            ])]],
+            'join only applies to a horn',
+        ];
+        yield 'join to a horn nested inside another' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+                ['id' => 'plug', 'kind' => 'horn', 'inside' => 'horn', 'mouth_m' => [0.05, 0.05],
+                    'throat_in' => 1.0, 'depth_m' => 0.03],
+                ['id' => 'other', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'plug', 'depth_m' => 0.02]],
+            ])]],
+            "join needs both horns on the baffle, and 'plug' sits inside 'horn'",
+        ];
+        yield 'join with no depth to it' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+                ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'lf-up', 'depth_m' => 0.0]],
+            ])]],
+            'join.depth_m must be greater than 0',
+        ];
+        yield 'join reaching past a throat' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.08],
+                ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'lf-up', 'depth_m' => 0.08]],
+            ])]],
+            'reaches the throat of the shallower horn',
+        ];
+        yield 'join between two overlapping mouths' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.05], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+                ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.05], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'lf-up', 'depth_m' => 0.02]],
+            ])]],
+            'there is nothing between them to remove',
+        ];
+        yield 'join between two mouths sitting diagonally' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [-0.25, 0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1],
+                ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.25, -0.15], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'lf-up', 'depth_m' => 0.02]],
+            ])]],
+            'lines up with \'lf-up\' on neither axis',
+        ];
+        yield 'join on a cabinet whose holes come from CAD' => [
+            [
+                'mesh_override' => 'meshes/sub.obj',
+                'audio' => ['layout' => self::layout([
+                    ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.15], 'mouth_m' => [0.2, 0.2],
+                        'throat_in' => 1.4, 'depth_m' => 0.1],
+                    ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.2, 0.2],
+                        'throat_in' => 1.4, 'depth_m' => 0.1, 'join' => ['with' => 'lf-up', 'depth_m' => 0.02]],
+                ])],
+            ],
+            'join only applies to a generated cabinet',
         ];
         yield 'mesh override with unknown units' => [
             ['mesh_override' => ['path' => 'meshes/sub.obj', 'units' => 'inches']],

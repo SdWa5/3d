@@ -68,6 +68,7 @@ final class BaffleFeature
         public readonly ?string $throatProfile = null,
         public readonly ?int $sides = null,
         public readonly string $flare = self::LINEAR,
+        public readonly ?BaffleJoin $join = null,
     ) {
     }
 
@@ -97,6 +98,7 @@ final class BaffleFeature
             throatProfile: $reader->optionalString('throat_profile'),
             sides: $reader->optionalInt('sides'),
             flare: $reader->optionalString('flare') ?? self::LINEAR,
+            join: BaffleJoin::fromReader($reader->optionalSection('join')),
         );
     }
 
@@ -188,6 +190,7 @@ final class BaffleFeature
             'throat_profile' => $this->isHorn() ? $this->throatProfileOrMouth() : null,
             'sides' => $this->isHorn() ? $this->wallCount() : null,
             'flare' => $this->isHorn() ? $this->flare : null,
+            'join' => $this->isHorn() ? $this->join?->toArray() : null,
         ];
     }
 }

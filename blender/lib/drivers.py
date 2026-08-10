@@ -54,6 +54,32 @@ _DOME_RINGS = 4
 # there to avoid producing one.
 _CUTTER_OVERLAP = 0.01
 
+# How long the wall between two joined horns takes to reach its full thickness, and the rings that taper
+# spends. The wall does not start out of nowhere: it comes to a straight edge across the horns and thickens
+# behind it, which is how a splitter between two horn paths is made. Clamped to whatever length is left
+# between the join and the shallower horn's throat.
+_JOIN_WEDGE_M = 0.060
+
+_JOIN_WEDGE_RINGS = 4
+
+# What is left of the wall at its edge. A wedge that closed to nothing would be a zero-area face for the
+# boolean solver to choke on; half a millimetre is a knife edge to look at and a real surface to cut with.
+_JOIN_WEDGE_EDGE_M = 0.002
+
+# The radius a carved opening's mouth is rolled over with, where the flat baffle meets the flare walls,
+# and the rings it takes. A wooden horn's mouth is never a knife edge, and this is the edge a cabinet is
+# looked at along. The opening at the face grows by twice this over the declared mouth, which is how a
+# roundover works on a real one: the size is quoted at the outside of the roll.
+_MOUTH_ROUNDOVER_M = 0.012
+
+_MOUTH_ROUNDOVER_RINGS = 4
+
+# How far a join's cutter stops short of its two horns' side walls. Reaching them exactly is what a
+# shared mouth wants and what the solver handles worst: over the strip where the cutter reaches into
+# each horn, the two side walls would be one coplanar, oppositely wound pair. A tenth of a millimetre
+# of wood left standing is invisible, and it is the safe way to be wrong.
+_JOIN_SIDE_INSET = 0.0005
+
 # The moving assembly seen from the front, as (radius fraction, depth fraction) pairs: the frame lip sits
 # slightly recessed, the surround's half-roll crests level with the baffle, and the cone proper starts
 # behind it. The crest is the reason a driver reads as a driver — a bare cone reads as a funnel.
@@ -172,6 +198,28 @@ def _shell(name, rings, material):
     return _mesh_object(name, verts, faces, material)
 
 
+def _flare_half(mouth, throat, flare, t):
+    """Half-width and half-height of a flare `t` of the way from its mouth to its throat.
+
+    The flare law lives here alone, so anything that needs to know how wide a horn is at some depth —
+    the flare's own rings, and the join that opens two of them into one mouth — agrees with the walls
+    the builder actually cut.
+
+    Exponential is geometric interpolation: area grows exponentially with depth, so each linear
+    dimension grows as ratio**t. At t=0 and t=1 both laws meet the mouth and the throat exactly, so
+    switching laws never changes the sizes the spec declared.
+    """
+    ratio_w = throat[0] / mouth[0] if mouth[0] else 1.0
+    ratio_h = throat[1] / mouth[1] if mouth[1] else 1.0
+
+    if flare == EXPONENTIAL:
+        scale_w, scale_h = ratio_w ** t, ratio_h ** t
+    else:
+        scale_w, scale_h = 1.0 + (ratio_w - 1.0) * t, 1.0 + (ratio_h - 1.0) * t
+
+    return mouth[0] / 2.0 * scale_w, mouth[1] / 2.0 * scale_h
+
+
 def _flare_rings(
     mouth, throat, front_y, depth, centre,
     profile=PYRAMID, throat_profile=None, sides=4, flare=LINEAR,
@@ -209,10 +257,6 @@ def _flare_rings(
 
     steps = 1 if flare == LINEAR else _FLARE_STEPS
 
-    # Ratios rather than absolute sizes, so one interpolation covers both axes and both flare laws.
-    ratio_w = throat[0] / mouth[0] if mouth[0] else 1.0
-    ratio_h = throat[1] / mouth[1] if mouth[1] else 1.0
-
     def ring(half_w, half_h, y, roundness):
         return _ring(centre, half_w, half_h, y, ring_sides, roundness, count)
 
@@ -222,15 +266,9 @@ def _flare_rings(
 
     for step in range(steps + 1):
         t = step / steps
-        if flare == EXPONENTIAL:
-            # Geometric interpolation: area grows exponentially with depth, so each linear dimension
-            # grows as ratio**t. At t=0 and t=1 it meets the mouth and throat exactly, like the linear
-            # case, so switching laws never changes the sizes the spec declared.
-            scale_w, scale_h = ratio_w ** t, ratio_h ** t
-        else:
-            scale_w, scale_h = 1.0 + (ratio_w - 1.0) * t, 1.0 + (ratio_h - 1.0) * t
+        half_w, half_h = _flare_half(mouth, throat, flare, t)
         rings.append(ring(
-            mouth[0] / 2.0 * scale_w, mouth[1] / 2.0 * scale_h, front_y + depth * t,
+            half_w, half_h, front_y + depth * t,
             mouth_round + (throat_round - mouth_round) * t,
         ))
 
@@ -271,6 +309,309 @@ def _driver_cone(name, diameter, front_y, depth, material, centre):
         rings.append(_ring(centre, dome_radius, dome_radius, base_y - rise * math.sin(angle), None))
 
     return [_shell(name, rings, material)]
+
+
+def _horn_interval(horn, axis, y):
+    """A carved horn's extent on one baffle axis at absolute depth `y`, as (low, high).
+
+    `axis` 0 is x and 1 is z, the order `at_m` uses. Measured on the *cutter's* span rather than the
+    declared one: a horn's cutter starts `_CUTTER_OVERLAP` proud of the baffle and runs that much
+    deeper, so the wall the boolean actually left is a few per cent off the flare the spec describes.
+    A join sized off the declared flare would miss it by millimetres all the way down.
+    """
+    t = _horn_t(horn, y)
+    half = _flare_half(horn["mouth"], horn["throat"], horn["flare"], t)[axis]
+    centre = horn["centre"][axis]
+
+    return centre - half, centre + half
+
+
+def _horn_t(horn, y):
+    """How far along its flare a carved horn is at absolute depth `y`, as 0 at the mouth and 1 at the
+    throat."""
+    span = horn["cut_depth"]
+
+    return min(max((y - horn["cut_front_y"]) / span, 0.0), 1.0) if span else 0.0
+
+
+def _horn_roundness(horn, y):
+    """How round a carved horn's cross-section is at depth `y`: 0 straight-walled, 1 elliptical.
+
+    The same blend `_flare_rings` walks from mouth to throat. A join needs it because a horn that is
+    round at the throat has already begun curving where the wall between two of them ends, and a cutter
+    that ignored that would cut its corners into wood no flare ever reached.
+    """
+    return horn["mouth_round"] + (horn["throat_round"] - horn["mouth_round"]) * _horn_t(horn, y)
+
+
+def _horn_section(horn, y):
+    """A carved horn's cross-section at depth `y`, as (centre, [half_x, half_z], roundness)."""
+    half = _flare_half(horn["mouth"], horn["throat"], horn["flare"], _horn_t(horn, y))
+
+    return horn["centre"], [half[0], half[1]], _horn_roundness(horn, y)
+
+
+def _join_section(first, second, axis, y):
+    """Two joined horns' common cross-section at depth `y`, in the same form as `_horn_section`.
+
+    Across the join (`axis`) it runs from one horn's far edge to the other's — one wall round the pair,
+    not two facing each other. Along it, only as far as both horns reach, stopping `_JOIN_SIDE_INSET`
+    short of their side walls: a cutter face landing exactly on a flare wall is the surface pairing the
+    boolean solver handles worst, and wood left standing is the safe way to be wrong.
+
+    Returns None where the two horns have stopped leaving anything between them, which is not a join.
+    """
+    along = 1 - axis
+
+    low, high = _horn_interval(first, axis, y)
+    other_low, other_high = _horn_interval(second, axis, y)
+    if min(high, other_high) - max(low, other_low) > 1e-9:
+        return None
+    span = (min(low, other_low) + _JOIN_SIDE_INSET, max(high, other_high) - _JOIN_SIDE_INSET)
+
+    low, high = _horn_interval(first, along, y)
+    other_low, other_high = _horn_interval(second, along, y)
+    shared = (max(low, other_low) + _JOIN_SIDE_INSET, min(high, other_high) - _JOIN_SIDE_INSET)
+    if shared[1] - shared[0] <= 1e-9:
+        return None
+
+    bounds = [shared, span] if axis else [span, shared]
+
+    return (
+        tuple((bound[0] + bound[1]) / 2.0 for bound in bounds),
+        [(bound[1] - bound[0]) / 2.0 for bound in bounds],
+        # The rounder horn wins: rounding pulls the corners in, so it leaves wood rather than taking it.
+        max(_horn_roundness(first, y), _horn_roundness(second, y)),
+    )
+
+
+def _roundover_extra(distance, radius):
+    """How far a mouth's roundover stands outside the flare, `distance` behind the baffle.
+
+    A quarter circle: the full radius at the face, nothing at all by the time it reaches `radius` in,
+    and tangent to the front face where it starts — which is what makes the corner read as rolled over
+    rather than chamfered. In front of the face it stays at the radius, since a cutter reaching past
+    the surface it breaks through is just a cutter.
+    """
+    if radius <= 0.0 or distance >= radius:
+        return 0.0
+    if distance <= 0.0:
+        return radius
+
+    return radius - math.sqrt(max(radius * radius - (radius - distance) ** 2, 0.0))
+
+
+def _collar_rings(section, mouth_y, radius, count=None):
+    """The roundover at an opening's mouth: the corner where the flat baffle meets the flare walls.
+
+    A carved horn's mouth is otherwise a knife edge — the cutter meets the front face at whatever angle
+    the flare happens to have. No wooden horn is built that way; the mouth is rolled over, and it is the
+    edge a cabinet is looked at along, so it is worth the handful of rings.
+
+    Its own volume rather than extra rings in the flare, because it belongs to the *opening* and a join
+    has an opening the individual flares do not: one shared mouth around both horns. Cutters may overlap
+    — `_carve` unions them.
+    """
+    if radius <= 0.0:
+        return None
+
+    rings = []
+    for step in range(_MOUTH_ROUNDOVER_RINGS + 1):
+        distance = -_CUTTER_OVERLAP + (radius + _CUTTER_OVERLAP) * step / _MOUTH_ROUNDOVER_RINGS
+        y = mouth_y + distance
+        placed = section(max(y, mouth_y))
+        if placed is None:
+            return None
+        centre, half, roundness = placed
+        extra = _roundover_extra(distance, radius)
+        if step == 0:
+            rings.append(_ring(centre, 0.0, 0.0, y, 4))
+        rings.append(_ring(centre, half[0] + extra, half[1] + extra, y, 4, roundness, count))
+
+    rings.append(_ring(centre, 0.0, 0.0, y, 4))
+
+    return rings
+
+
+def _join_gap(first, second, axis, y):
+    """The wall between two joined horns at depth `y`: (low, high) across the join, or None if the two
+    flares have run into each other and there is no wall left."""
+    low, high = _horn_interval(first, axis, y)
+    other_low, other_high = _horn_interval(second, axis, y)
+    gap = (high, other_low) if high <= other_low else (other_high, low)
+
+    return gap if gap[1] - gap[0] > 1e-9 else None
+
+
+def _join_axis(first, second, y):
+    """Which axis two horns are apart on at depth `y`: 0 for x, 1 for z, None if that is not the case.
+
+    A join needs both — apart on one axis, so there is a wall between them, and overlapping on the
+    other, so removing it opens one mouth rather than a slot into nothing. The validator rejects the
+    other arrangements, so this is the same test again for a plan that was written by hand.
+    """
+    apart = None
+    for axis in (0, 1):
+        low, high = _horn_interval(first, axis, y)
+        other_low, other_high = _horn_interval(second, axis, y)
+        if min(high, other_high) - max(low, other_low) <= 1e-9:
+            if apart is not None:
+                return None
+            apart = axis
+
+    return apart
+
+
+def _join_rings(first, second, back_y):
+    """Two joined horns' **common section**, as a cutter reaching back to `back_y`.
+
+    Where two horns share a mouth they are not two cavities with the wall between them knocked out —
+    down to the split they are *one* horn, with one set of walls running the whole way round. Cutting
+    only the strip between them leaves each horn's own cross-section standing, and every cross-section
+    here narrows towards its throat, so near the side walls the two turn inwards and never meet: the
+    render shows a shelf at each end of the septum instead of one flare carrying on into the next.
+
+    So the cut is the two horns' outlines taken together at every depth — the full span across the join,
+    the width they share along it — which is one continuous wall from one horn's far edge to the other's.
+    Behind `back_y` the two horns' own flares take over again and the wall between them starts, its nose
+    left by this cutter's far cap.
+
+    Everything is measured off both horns at every depth rather than extruded straight back from the
+    mouth plane: the gap between two exponential horns widens as they narrow, so a prism would undercut
+    the flare walls sideways and still leave a fin of the wall it is meant to remove.
+
+    Roundness follows the horns as well, since a horn that is round at its throat has already begun
+    curving where a deep join ends; a plain rectangle that far in would take wood no flare ever reached.
+
+    Behind `back_y` the wall between the two horns takes over, and it does not start at full thickness:
+    the cutter carries on as a **wedge**, taking the whole gap between the two flares at `back_y` and none
+    of it a wedge-length later. So the wall comes to a straight edge across the horns and thickens behind
+    it — a splitter, which is what the part is — instead of presenting a blunt face.
+
+    Both ends are closed by a zero-size ring at the same depth, the way `cap_throat` shuts a flare: the
+    solver wants a closed volume. Returns None when the two horns have nothing between them to remove.
+    """
+    front_y = min(first["cut_front_y"], second["cut_front_y"])
+    if back_y - front_y <= 1e-9:
+        return None
+
+    axis = _join_axis(first, second, front_y)
+    if axis is None:
+        return None
+    along = 1 - axis
+
+    steps = _FLARE_STEPS if EXPONENTIAL in (first["flare"], second["flare"]) else 1
+    # The rounder of the two at the far end decides the sampling: a cross-section that stays square all
+    # the way needs four vertices, one that curves needs enough of them to curve with.
+    curved = max(_horn_roundness(first, back_y), _horn_roundness(second, back_y)) > 1e-9
+    count = _morph_count(4) if curved else None
+
+    rings = []
+    centre = half = None
+    for step in range(steps + 1):
+        y = front_y + (back_y - front_y) * step / steps
+        placed = _join_section(first, second, axis, y)
+        if placed is None:
+            return None
+
+        centre, half, roundness = placed
+        if step == 0:
+            rings.append(_ring(centre, 0.0, 0.0, y, 4))
+        rings.append(_ring(centre, half[0], half[1], y, 4, roundness, count))
+
+    rings.append(_ring(centre, 0.0, 0.0, back_y, 4))
+
+    return rings
+
+
+def _wedge_rings(first, second, back_y):
+    """The taper on the leading edge of the wall between two joined horns.
+
+    The wall does not begin at full thickness: it comes to a straight edge across the horns and thickens
+    behind it, which is how a splitter between two horn paths is made and what stops the pair reading as
+    two holes with a blunt board between them. So this takes the whole gap between the two flares at the
+    join and none of it a wedge-length deeper, leaving the wall wedge-shaped in section — while its edge
+    stays a straight line from one side wall to the other.
+
+    Its own closed volume rather than more rings on the common section: the two shapes meet at the same
+    depth, and one ring stack passing from one to the other there is a slab of zero thickness — which the
+    solver turns into non-manifold scrap. Overlapping closed volumes it handles, which is what
+    `_carve`'s `use_self` is for.
+    """
+    axis = _join_axis(first, second, back_y)
+    if axis is None:
+        return None
+
+    # At most as far as the shallower throat: past that there are no flares left for a wall to sit between.
+    throat_y = min(horn["cut_front_y"] + horn["cut_depth"] for horn in (first, second))
+    length = min(_JOIN_WEDGE_M, throat_y - back_y)
+    if length <= 1e-9:
+        return None
+
+    # One cut per face of the wall. Taking a single slab out of the middle instead would thin the wall
+    # from the inside: it would come to its edge at the *back*, two fins growing off the flares, which is
+    # the shape upside down. The wall is thinnest at the front, so what has to come off is a taper along
+    # each of its two faces.
+    low = first if first["centre"][axis] < second["centre"][axis] else second
+    high = second if low is first else first
+
+    return [
+        _wedge_side_rings(low, high, axis, back_y, length, 1.0),
+        _wedge_side_rings(high, low, axis, back_y, length, -1.0),
+    ]
+
+
+def _wedge_side_rings(horn, other, axis, back_y, length, direction):
+    """One face of that taper: what comes off the wall on `horn`'s side of it.
+
+    It is `horn`'s own cross-section, pushed `direction` across the join by the layer being taken off —
+    so the cut follows the flare it belongs to, rounding included, instead of being a shape of its own.
+    A straight-sided strip does not survive here: where a horn has begun rounding towards its throat, a
+    strip cut to its outer bounds takes wood the flare never reached and leaves a step along the wall.
+
+    The layer is half the gap at the join, thinning to nothing a wedge-length deeper. Both faces meet at
+    the middle of the gap where it starts, which is where the wall comes to its edge — a straight line
+    across a symmetrical pair, since both faces are pushed the same distance.
+    """
+    rings = []
+    centre = None
+    # Starting a little in front of the join, inside what the common section has already taken out. Both
+    # would otherwise close off in the same plane, and two coplanar caps leave the solver a scrap face.
+    for step in range(-1, _JOIN_WEDGE_RINGS + 1):
+        t = max(step, 0) / _JOIN_WEDGE_RINGS
+        at_y = back_y + length * t
+        y = at_y if step >= 0 else back_y - _CUTTER_OVERLAP
+        gap = _join_gap(horn, other, axis, at_y)
+        if gap is None:
+            break
+
+        placed, half, roundness = _horn_section(horn, at_y)
+        centre = list(placed)
+        # Never quite nothing: at the far end the cut would otherwise land exactly on the flare's own
+        # wall, and coincident faces are what the solver drops.
+        layer = max((gap[1] - gap[0]) / 2.0 * (1.0 - t), _JOIN_SIDE_INSET)
+        # The facing wall moves across the join by the layer being taken off; the far one moves the other
+        # way by a margin, so this cutter's back is inside the flare's own rather than exactly on it —
+        # the whole cut would sit on the horn's surface otherwise, and coincident faces come out as holes.
+        margin = 2.0 * _JOIN_SIDE_INSET
+        centre[axis] += direction * (layer + margin) / 2.0
+        half[axis] += (layer - margin) / 2.0
+        # And short of the side walls, for the same reason from the other direction — twice the common
+        # section's own margin, so the two cutters' walls do not land on each other either.
+        half[1 - axis] -= 2.0 * _JOIN_SIDE_INSET
+
+        if step < 0:
+            rings.append(_ring(tuple(centre), 0.0, 0.0, y, 4))
+        # Square where the wall comes to its edge, the flare's own roundness by the time the taper is
+        # done. Rounded from the start, the cut would follow the flare inwards near the side walls and
+        # stop short of the middle of the gap, leaving the edge blunt there and a flat band across it.
+        rings.append(_ring(tuple(centre), half[0], half[1], y, 4, roundness * t, _morph_count(4)))
+
+    if len(rings) < 3:
+        return None
+    rings.append(_ring(tuple(centre), 0.0, 0.0, rings[-1][0][1], 4))
+
+    return rings
 
 
 def _carve(body, name, openings):
@@ -316,6 +657,55 @@ def _disc_rings(diameter, front_y, depth, centre):
         _ring(centre, radius, radius, front_y + depth, None),
         _ring(centre, 0.0, 0.0, front_y + depth, None),
     ]
+
+
+def _join(feature, state, placed, openings):
+    """Add this horn's join to the cutters, if it has one and both sides can carry it.
+
+    Everything a join needs is already stated by the two horns, so a spec that names a pair the builder
+    cannot pair is a spec that means something else — it says so and builds the two horns unjoined,
+    rather than inventing a cavity. `specs:validate` rejects all of these before a build gets here; the
+    checks are repeated because a build plan can be written by hand.
+    """
+    join = feature.get("join")
+    if not join:
+        return
+
+    partner = placed.get(join["with"])
+    if not state["cut"]:
+        print("sdwa5-3d: skipping the join on %s — an imported shell has its holes already"
+              % feature["id"])
+
+        return
+    if partner is None or not partner.get("cut") or "mouth" not in partner:
+        print("sdwa5-3d: skipping the join on %s — no carved horn %r before it"
+              % (feature["id"], join["with"]))
+
+        return
+
+    rings = _join_rings(state, partner, state["front_y"] + join["depth_m"])
+    if rings is None:
+        print("sdwa5-3d: skipping the join on %s — nothing between it and %s to remove"
+              % (feature["id"], join["with"]))
+
+        return
+
+    openings.append(_shell_geometry(rings))
+
+    for side in _wedge_rings(state, partner, state["front_y"] + join["depth_m"]) or ():
+        if side is not None:
+            openings.append(_shell_geometry(side))
+
+    # The pair's mouth is one opening, so it is rolled over as one: rounding each flare on its own would
+    # leave the corner unrolled exactly where the two run together, which is the middle of what you see.
+    axis = _join_axis(state, partner, state["cut_front_y"])
+    collar = _collar_rings(
+        lambda y: _join_section(state, partner, axis, y),
+        state["front_y"], _MOUTH_ROUNDOVER_M, _morph_count(4),
+    ) if axis is not None else None
+    if collar is not None:
+        openings.append(_shell_geometry(collar))
+        state["mouth_rolled"] = partner["mouth_rolled"] = True
 
 
 def build_features(plan, material_set, baffle_y, carve_into=None):
@@ -368,6 +758,7 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
 
         # Only openings that break the outer surface are cut; a nested plug already sits inside one.
         cut = carve_into is not None and not nested
+        state = {"centre": centre, "front_y": front, "depth": depth, "cut": cut}
 
         if feature["kind"] == "cone":
             if cut:
@@ -387,6 +778,13 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
 
             visible = min(driver, throat) if driver else None
             driver_depth = min(visible * 0.6, 0.12) if visible else 0.0
+            state.update({
+                "mouth": mouth, "throat": (throat, throat), "flare": shape["flare"],
+                "cut_front_y": front - _CUTTER_OVERLAP, "cut_depth": depth + _CUTTER_OVERLAP,
+                "mouth_round": 1.0 if shape["profile"] == ELLIPTICAL else 0.0,
+                "throat_round":
+                    1.0 if (shape["throat_profile"] or shape["profile"]) == ELLIPTICAL else 0.0,
+            })
 
             if cut:
                 # The flare becomes a cavity in the cabinet itself. Starting the cutter slightly proud of
@@ -413,7 +811,21 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
                     name + "-driver", visible, front + depth, driver_depth, cone_material, centre,
                 )
 
-        placed[feature["id"]] = {"centre": centre, "front_y": front, "depth": depth}
+            _join(feature, state, placed, openings)
+
+        placed[feature["id"]] = state
+
+    # Mouth roundovers last, so a joined pair has already claimed its own — one roll round the shared
+    # opening rather than one round each half of it.
+    for state in placed.values():
+        if not state.get("cut") or "mouth" not in state or state.get("mouth_rolled"):
+            continue
+        collar = _collar_rings(
+            lambda y, horn=state: _horn_section(horn, y),
+            state["front_y"], _MOUTH_ROUNDOVER_M, _morph_count(4),
+        )
+        if collar is not None:
+            openings.append(_shell_geometry(collar))
 
     _carve(carve_into, plan["id"] + "-openings", openings)
 

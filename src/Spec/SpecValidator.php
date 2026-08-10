@@ -283,6 +283,9 @@ final class SpecValidator
             foreach ($this->validateFeaturePlacement($feature, $layout, $seen, $label, $dimensions->width, $frontHeight, $opening) as $message) {
                 $messages[] = $message;
             }
+            foreach ($this->validateFeatureJoin($feature, $layout, $seen, $label, $spec->meshOverride !== null, $opening) as $message) {
+                $messages[] = $message;
+            }
 
             $seen[$feature->id] = true;
         }
@@ -422,6 +425,111 @@ final class SpecValidator
                     $limit,
                 );
             }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Two horns sharing one mouth: `join` removes the baffle between them down to a stated depth.
+     *
+     * Everything here guards the same thing — that there is material between the two flares to remove,
+     * and that some of the divider survives behind it. A join that names an overlapping pair, or one that
+     * reaches past a throat, describes no cabinet; it would still carve *something*, which is worse than
+     * failing, because a plausible-looking cavity is not one anybody would go back and check.
+     *
+     * @param array<string, bool> $seen features already declared, so `join.with` can only look backwards
+     * @param array{float, float}|null $opening
+     * @return list<string>
+     */
+    private function validateFeatureJoin(
+        BaffleFeature $feature,
+        BaffleLayout $layout,
+        array $seen,
+        string $label,
+        bool $hasMeshOverride,
+        ?array $opening,
+    ): array {
+        $join = $feature->join;
+        if ($join === null) {
+            return [];
+        }
+
+        $messages = [];
+
+        if (!$feature->isHorn()) {
+            return ["{$label}: join only applies to a horn"];
+        }
+        if ($hasMeshOverride) {
+            // With a mesh_override the horns are shells built behind holes the CAD already cut, so there
+            // is no baffle of ours for a join to open up — honouring it is not something we could do.
+            $messages[] = "{$label}: join only applies to a generated cabinet, and this spec has a mesh_override";
+        }
+        if ($join->with === $feature->id) {
+            return [...$messages, "{$label}: join.with names the feature itself"];
+        }
+        if (!isset($seen[$join->with])) {
+            return [...$messages, "{$label}: `join.with: {$join->with}` must name an earlier feature"];
+        }
+
+        $partner = $layout->feature($join->with);
+        if ($partner === null) {
+            return $messages;
+        }
+        if (!$partner->isHorn()) {
+            $messages[] = "{$label}: join only works between horns, and '{$partner->id}' is a {$partner->kind}";
+        }
+        foreach ([$feature, $partner] as $side) {
+            if ($side->inside !== null) {
+                $messages[] = sprintf(
+                    "%s: join needs both horns on the baffle, and '%s' sits inside '%s'",
+                    $label,
+                    $side->id,
+                    $side->inside,
+                );
+            }
+        }
+
+        if ($join->depthM <= 0) {
+            $messages[] = "{$label}: join.depth_m must be greater than 0, got {$join->depthM}";
+        } else {
+            $shallowest = min($feature->depthM, $partner->depthM);
+            if ($join->depthM >= $shallowest) {
+                $messages[] = sprintf(
+                    '%s: join.depth_m (%s) reaches the throat of the shallower horn (%s m) — nothing of the wall between them would be left',
+                    $label,
+                    $join->depthM,
+                    $shallowest,
+                );
+            }
+        }
+
+        $partnerOpening = $partner->openingM();
+        if ($feature->at === null || $partner->at === null || $opening === null || $partnerOpening === null) {
+            return $messages;
+        }
+
+        // How the two mouths sit on the baffle: they have to line up on one axis, so the join has a
+        // cross-section to open up, and be apart on the other, so there is something between them.
+        $overlaps = [];
+        foreach ([0 => 'x', 1 => 'z'] as $axis => $name) {
+            $overlaps[$name] =
+                min($feature->at[$axis] + $opening[$axis] / 2, $partner->at[$axis] + $partnerOpening[$axis] / 2)
+                - max($feature->at[$axis] - $opening[$axis] / 2, $partner->at[$axis] - $partnerOpening[$axis] / 2);
+        }
+
+        if ($overlaps['x'] > 1e-9 && $overlaps['z'] > 1e-9) {
+            $messages[] = sprintf(
+                "%s: its mouth already overlaps '%s' — there is nothing between them to remove",
+                $label,
+                $partner->id,
+            );
+        } elseif ($overlaps['x'] <= 1e-9 && $overlaps['z'] <= 1e-9) {
+            $messages[] = sprintf(
+                "%s: its mouth lines up with '%s' on neither axis, so a join would open no shared mouth",
+                $label,
+                $partner->id,
+            );
         }
 
         return $messages;

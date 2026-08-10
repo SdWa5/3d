@@ -134,6 +134,52 @@ final class BaffleLayoutTest extends TestCase
         self::assertNull($feature['flare']);
     }
 
+    public function testAHornIsNotJoinedToAnythingUnlessItSaysSo(): void
+    {
+        // The default has to leave every layout written before `join` existed building what it always did.
+        $horn = $this->layout()->feature('horn');
+
+        self::assertNull($horn->join);
+        self::assertNull($horn->toArray()['join']);
+    }
+
+    public function testTwoHornsCanShareOneMouth(): void
+    {
+        $layout = $this->layout([
+            ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.1], 'mouth_m' => [0.4, 0.2],
+                'throat_in' => 10.0, 'depth_m' => 0.2],
+            ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.4, 0.2],
+                'throat_in' => 10.0, 'depth_m' => 0.2,
+                'join' => ['with' => 'lf-up', 'depth_m' => 0.045]],
+        ]);
+
+        $join = $layout->feature('lf-lo')->join;
+        self::assertNotNull($join);
+        self::assertSame('lf-up', $join->with);
+        self::assertSame(0.045, $join->depthM);
+        // The relation lives on one side only: the earlier horn knows nothing about it.
+        self::assertNull($layout->feature('lf-up')->join);
+        self::assertSame(
+            ['with' => 'lf-up', 'depth_m' => 0.045],
+            $layout->feature('lf-lo')->toArray()['join'],
+        );
+    }
+
+    public function testAJoinRejectsAMisspelledField(): void
+    {
+        // Neither field has a default, so a typo would build a different cabinet with nothing to see.
+        $this->expectException(\App\Spec\InvalidSpecException::class);
+        $this->expectExceptionMessage("join: unknown key 'depth'");
+
+        $this->layout([
+            ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.1], 'mouth_m' => [0.4, 0.2],
+                'throat_in' => 10.0, 'depth_m' => 0.2],
+            ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.4, 0.2],
+                'throat_in' => 10.0, 'depth_m' => 0.2,
+                'join' => ['with' => 'lf-up', 'depth' => 0.045]],
+        ]);
+    }
+
     public function testANestedFeatureHasNoPositionOfItsOwn(): void
     {
         $plug = $this->layout()->feature('plug');

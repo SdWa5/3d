@@ -124,6 +124,8 @@ the cabinet's `origin` does.
 | `throat_profile` | horns | the **throat's** cross-section, defaulting to the mouth's. `profile: pyramid` with `throat_profile: elliptical` is a horn with straight edges outside and a round throat, which is what a compression-driver horn is — the throat is a round bolt flange. The flare morphs between the two |
 | `sides` | pyramid ends | wall count, default 4. `8` gives the familiar octagon |
 | `flare` | horns | `linear` (default) — a straight-walled conical horn — or `exponential`, where the area grows exponentially with depth, as most real horns do |
+| `join.with` | horns | an **earlier** horn this one shares its mouth with. Both must sit on the baffle, be apart on one axis and line up on the other — two horns side by side or stacked |
+| `join.depth_m` | horns | how much of the wall between the two is missing, measured from the baffle inwards. Less than either horn's own `depth_m`, so some of the wall survives |
 
 Both flare laws meet the declared `mouth_m` and `throat_in` exactly, so switching between them changes
 the walls and never the sizes. The defaults are chosen so a layout written without these fields builds
@@ -135,6 +137,38 @@ horns that ask for it pay that.
 
 The features are a flat list with `inside` references rather than a nested tree: easier to validate, and
 it reads as a parts list.
+
+### Two horns on one mouth
+
+`join` is the other relation between features. Where `inside` puts one horn at another's throat, `join`
+takes two horns lying next to each other and removes the wall between them from the baffle inwards, so
+the front shows **one opening** and the two throats only part company deeper in — which is what a
+cabinet with two drivers on one flare looks like:
+
+```yaml
+- { id: lf-up, kind: horn, at_m: [ 0.0,  0.103 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, depth_m: 0.20 }
+- { id: lf-lo, kind: horn, at_m: [ 0.0, -0.189 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, depth_m: 0.20,
+    join: { with: lf-up, depth_m: 0.018 } }
+```
+
+Moving the two mouths until they touch does not say this: they still read as two holes with a line
+between them, and the wall carries on to the throats. The relation belongs to the pair, so it is stated
+on the later of the two, the same way `inside` names the horn it sits in.
+
+Down to `depth_m` the pair is cut as **one common section**, not as two cavities with the strip between
+them knocked out. That distinction is the whole difference between a joined pair that reads right and one
+that does not: every horn's cross-section narrows towards its throat, so two of them cut separately turn
+inwards near the side walls and never meet there, leaving a shelf at each end of the wall. Cut as one
+section, the walls run without a break from one horn's far edge to the other's, and the wall between the
+two appears only where the join ends — with a blunt nose, because it is a board.
+
+The section is measured off both horns at every depth, on their own flare laws and roundness, so it meets
+the flares exactly where it hands back over to them. Its far end rolls off over a 15 mm radius rather than
+stopping square, which leaves a fillet where the wall runs into the side walls instead of a sharp inside
+corner — that junction is the part of a joined pair you actually look at.
+
+Only a **generated** cabinet can have one. With a `mesh_override` the CAD already cut the holes and the
+builder only fills in what sits behind them, so there is no baffle of ours to open up.
 
 For a **generated** cabinet the openings are cut into the shell, so a horn's flare is carved out of the
 cabinet and its own material forms the walls — which is what a wooden horn is. For one with a
@@ -222,5 +256,9 @@ narrower, so the builder rejects it. That is the mechanism doing its job.
   reaches past the edge of the baffle
 * an unknown `profile`, `throat_profile` or `flare`; `sides` below 3, on a horn that is elliptical at
   both ends, or on a driver cone; `throat_profile` on a driver cone
+* a `join` on a driver cone, on a spec with a `mesh_override`, or naming itself, an unknown feature, one
+  that comes later in the list, a driver cone, or a feature nested with `inside`; a `join.depth_m` of
+  zero or one reaching the throat of the shallower of the two horns; a pair whose mouths already overlap,
+  or that line up on neither axis and so have no shared mouth to open
 * a `mesh_override` whose path does not exist, whose extension Blender cannot import
   (`.FCStd` being the common mistake), whose `units` are unknown, or whose tolerance is negative

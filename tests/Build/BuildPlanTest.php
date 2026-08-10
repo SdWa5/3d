@@ -107,4 +107,28 @@ final class BuildPlanTest extends TestCase
         self::assertNull($plan['audio']['coverage_throw_m']);
         self::assertNull($plan['audio']['coverage_spread_m']);
     }
+
+    /**
+     * A join is a relation between two features, and bpy resolves it by id the way it resolves `inside`.
+     * So the plan has to carry it verbatim: a builder that had to re-derive which pair belongs together
+     * would be deciding geometry the spec already decided.
+     */
+    public function testAJoinedPairReachesThePlan(): void
+    {
+        $plan = BuildPlan::forSpec(SpecFactory::spec(['audio' => ['layout' => [
+            'provenance' => 'estimated',
+            'features' => [
+                ['id' => 'lf-up', 'kind' => 'horn', 'at_m' => [0.0, 0.1], 'mouth_m' => [0.4, 0.2],
+                    'throat_in' => 10.0, 'depth_m' => 0.2],
+                ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.4, 0.2],
+                    'throat_in' => 10.0, 'depth_m' => 0.2,
+                    'join' => ['with' => 'lf-up', 'depth_m' => 0.045]],
+            ],
+        ]]]), '/glb', '/blend');
+
+        $features = $plan['baffle_layout']['features'];
+
+        self::assertNull($features[0]['join']);
+        self::assertSame(['with' => 'lf-up', 'depth_m' => 0.045], $features[1]['join']);
+    }
 }
