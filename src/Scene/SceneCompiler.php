@@ -41,10 +41,13 @@ final class SceneCompiler
         $add = static function (string $message) use ($scene, &$violations): void {
             $violations[] = new Violation($scene->sourcePath, $message);
         };
+        $warn = static function (string $message) use ($scene, &$violations): void {
+            $violations[] = new Violation($scene->sourcePath, $message, Violation::WARNING);
+        };
 
         // A `stack` is solved into ordinary placements first, once, so nothing after this point — not the
         // front-face walk, not the placing loop, not the report — has to know stacks exist.
-        $placements = $this->expandStacks($scene->placements, $add);
+        $placements = $this->expandStacks($scene->placements, $add, $warn);
 
         // Where the rig stands, worked out before any orientation exists. Aiming needs the focus
         // point, the focus point needs the rig's front face, and the front face must not depend on
@@ -266,9 +269,10 @@ final class SceneCompiler
      *
      * @param list<Placement> $placements
      * @param callable(string):void $add
+     * @param callable(string):void $warn
      * @return list<Placement>
      */
-    private function expandStacks(array $placements, callable $add): array
+    private function expandStacks(array $placements, callable $add, callable $warn): array
     {
         $expanded = [];
 
@@ -279,6 +283,12 @@ final class SceneCompiler
             }
 
             $problems = $placement->stack->problems();
+            if ($placement->at === null) {
+                // Every tier is centred on the stack's own x, and a mixed row's segments are offset from
+                // it — there is nothing to offset from without one, and the bottom tier has no `on` to
+                // inherit from either.
+                $problems[] = 'stack needs `at` for the x and y the rig is centred on';
+            }
             $inventory = [];
             foreach ($placement->stack->from as $deviceId) {
                 $device = $this->devicesById[$deviceId] ?? null;
@@ -293,6 +303,11 @@ final class SceneCompiler
                 $solved = StackSolver::solve($inventory, $placement->stack);
                 $problems = $solved['problems'];
                 if ($problems === []) {
+                    // Buildable, but worth saying out loud: a stepped row, or a tier standing slightly
+                    // proud of the one below it. Warnings, so the rig still builds.
+                    foreach ($solved['warnings'] as $warning) {
+                        $warn("placement '{$placement->id}': {$warning}");
+                    }
                     array_push($expanded, ...$placement->stack->expand($placement, $solved['tiers']));
                     continue;
                 }

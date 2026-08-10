@@ -103,11 +103,33 @@ final class Alignment
      */
     public function orAcross(string $placementId): self
     {
-        if ($this->widthM !== null || $this->across !== null || $this->inside !== null) {
+        if ($this->hasEnvelope()) {
             return $this;
         }
 
         return new self($this->mode, null, $placementId, null, $this->insetM);
+    }
+
+    /**
+     * This alignment with a stated width as its envelope, unless one was already given.
+     *
+     * What a {@see Stack} falls back to when its bottom row is **mixed**: that row is several placements, so
+     * there is no single id for `across` to name, and naming one segment would size the envelope from a pair
+     * of Flexys instead of the whole 3.684 m row. The row's nominal width is exact here because a bottom row
+     * is unaimed subs, whose rotated extent is their extent.
+     */
+    public function orWidth(float $widthM): self
+    {
+        if ($this->hasEnvelope()) {
+            return $this;
+        }
+
+        return new self($this->mode, $widthM, null, null, $this->insetM);
+    }
+
+    private function hasEnvelope(): bool
+    {
+        return $this->widthM !== null || $this->across !== null || $this->inside !== null;
     }
 
     /**

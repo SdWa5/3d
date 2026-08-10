@@ -134,34 +134,94 @@ final class Stack
      */
     public function expand(Placement $placement, array $tiers): array
     {
+        $at = $placement->at ?? [0.0, 0.0];
+        $envelope = self::envelopeOf($tiers[0] ?? null, $this->gapM, $placement->id);
+
         $placements = [];
-        $previous = null;
+        $support = null;
 
         foreach ($tiers as $index => $tier) {
-            $id = sprintf('%s/%d', $placement->id, $index + 1);
-            $isFirst = $previous === null;
+            $seats = $tier->seats($this->gapM);
+            $tallest = null;
+            $tallestHeight = -INF;
 
-            $placements[] = new Placement(
-                id: $id,
-                deviceId: $tier->device->id,
-                at: $placement->at,
-                yawDeg: $placement->yawDeg,
-                pitchDeg: $placement->pitchDeg,
-                rollDeg: $placement->rollDeg,
-                aimAt: $tier->isSub() ? null : $placement->aimAt,
-                aimFocus: $tier->isSub() ? null : $placement->aimFocus,
-                on: $previous,
-                fly: null,
-                group: new GroupStack([new Lattice([$tier->count, 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X)]),
-                aimLines: $placement->aimLines,
-                // The bottom tier has nothing below it to be measured against, and a tier of one has
-                // nothing to distribute — both would be violations rather than sensible defaults.
-                align: $isFirst || $tier->count < 2 ? null : $placement->align?->orAcross($placements[0]->id),
-            );
+            foreach ($seats as $segment => [$device, $count, $offsetX]) {
+                // Letters for a mixed row's segments, so they cannot be confused with the numeric `-1`,
+                // `-2` suffixes a group appends to every copy it makes.
+                $id = sprintf(
+                    '%s/%d%s',
+                    $placement->id,
+                    $index + 1,
+                    $tier->isMixed() ? chr(ord('a') + $segment) : '',
+                );
 
-            $previous = $id;
+                $placements[] = new Placement(
+                    id: $id,
+                    deviceId: $device->id,
+                    at: [$at[0] + $offsetX, $at[1]],
+                    yawDeg: $placement->yawDeg,
+                    pitchDeg: $placement->pitchDeg,
+                    rollDeg: $placement->rollDeg,
+                    aimAt: $tier->isSub() ? null : $placement->aimAt,
+                    aimFocus: $tier->isSub() ? null : $placement->aimFocus,
+                    on: $support,
+                    fly: null,
+                    group: new GroupStack([new Lattice([$count, 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X)]),
+                    aimLines: $placement->aimLines,
+                    // The bottom tier *is* the envelope, a mixed tier is several placements with nothing
+                    // sensible to distribute one at a time, and a segment of one cabinet has nothing to
+                    // spread — all three would be violations rather than useful defaults.
+                    align: $index === 0 || $tier->isMixed() || $count < 2
+                        ? null
+                        : self::envelopeFor($placement->align, $envelope),
+                );
+
+                if ($device->dimensions->height > $tallestHeight) {
+                    $tallestHeight = $device->dimensions->height;
+                    $tallest = $id;
+                }
+            }
+
+            // Whatever comes next stands on the **tallest** segment of this row, because that is the top
+            // face `on:` reads and the one the cabinets physically rest on. For a stepped row the tier above
+            // bridges the short segments, which {@see StackSolver} warns about rather than hides.
+            $support = $tallest;
         }
 
         return $placements;
+    }
+
+    /**
+     * The bottom row as an envelope for everything above it: its id when it is one placement, or its width
+     * when it is mixed and so has no single id to name.
+     *
+     * @return array{?string, ?float}
+     */
+    private static function envelopeOf(?Tier $bottom, float $gapM, string $stackId): array
+    {
+        if ($bottom === null) {
+            return [null, null];
+        }
+
+        return $bottom->isMixed()
+            ? [null, $bottom->widthM($gapM)]
+            : [sprintf('%s/1', $stackId), null];
+    }
+
+    /**
+     * @param array{?string, ?float} $envelope
+     */
+    private static function envelopeFor(?Alignment $align, array $envelope): ?Alignment
+    {
+        [$across, $widthM] = $envelope;
+
+        if ($align === null) {
+            return null;
+        }
+        if ($widthM !== null) {
+            return $align->orWidth($widthM);
+        }
+
+        return $across === null ? $align : $align->orAcross($across);
     }
 }

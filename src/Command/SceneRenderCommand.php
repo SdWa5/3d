@@ -13,6 +13,7 @@ use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
 use App\Spec\InvalidSpecException;
+use App\Spec\Violation;
 use JsonException;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
@@ -113,8 +114,10 @@ final class SceneRenderCommand extends BaseCommand
 
         foreach ($scenes as $scene) {
             ['placed' => $placed, 'violations' => $violations] = (new SceneCompiler($devicesById))->compile($scene);
-            if ($violations !== []) {
-                $this->reportViolations($violations);
+            $this->reportViolations($violations);
+            // Errors only, as in `scene:build`: a warning is something to know about a buildable rig, not a
+            // reason to refuse to render it.
+            if (Violation::errorsIn($violations) !== []) {
                 $exit = self::FAILURE;
                 continue;
             }
@@ -180,11 +183,6 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         return $exit;
-    }
-
-    protected function scenesDir(): string
-    {
-        return $this->projectDir().'/scenes';
     }
 
     /**

@@ -45,6 +45,11 @@ abstract class BaseCommand extends Command
         return $this->projectDir().'/specs';
     }
 
+    protected function scenesDir(): string
+    {
+        return $this->projectDir().'/scenes';
+    }
+
     protected function loader(): SpecLoader
     {
         return new SpecLoader($this->specsDir());

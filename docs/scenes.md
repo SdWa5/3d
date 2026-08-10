@@ -531,6 +531,73 @@ still clears.
 **`from` must list subs before tops.** The fill is bottom-up, so a top listed first would put a Tecnare
 under a Flexy and still satisfy every height check.
 
+**A row may be mixed, and the bottom one sometimes has to be.** Only two SKRAMs exist, so a row of nothing
+but SKRAMs is 1.240 m — narrower than the 2.460 m Achenbach row that would come to stand on it, and a stack
+whose tiers get *wider* as they rise is 610 mm of Achenbach hanging in mid-air at each end. The solver puts
+the two SKRAMs in the middle of the bottom row, where the widest and heaviest cabinets belong anyway, and
+flanks them with Flexys: 3.684 m, and the rig is a pyramid. This happens **only to remove an inverted step** —
+never just because a device is in short supply, which would have dragged `full-rig-stacked`'s Achenbachs
+below its Flexys.
+
+A mixed tier expands into one placement per segment (`main/1a`, `main/1b`, `main/1c` — letters, so they cannot
+be confused with the numeric copy suffixes), and it is not `align`ed, because there is nothing sensible to
+distribute one segment at a time.
+
+**Rows are balanced, not greedy.** Eight leftover Flexys at six-per-row come out 4 + 4, not 6 + 2 — same
+number of rows, but a 1.222 m row could not carry the Achenbachs above it and a 2.424 m one can.
+
+**Two things it warns about rather than refuses**, because a crew deals with both and refusing them would
+make the solver useless for real gear:
+
+* a **stepped** mixed row — a SKRAM is 0.914 m tall and a Flexy 0.763, so whatever stands on that row rests
+  on the SKRAMs and bridges the Flexys. 151 mm, shimmed on the day.
+* a tier standing **proud** of the one below it by more than a centimetre, with the overhang in millimetres.
+
+Neither shows up anywhere else: `on:` only reads a top face, and the shipped-scene check only catches
+cabinets *inside* each other, never one standing on air.
+
+### scene:stack — writing the scene for you
+
+`stack:` still has to be typed into a file. `scene:stack` is the step before that: give it the gear and the
+bounds and it writes one scene per arrangement that works, with a reason for every one it left out.
+
+```bash
+bin/console scene:stack --max-width=3.70 --interface-height=2.0
+#   wrote   scenes/stacked-center.yaml    23 cabinets
+#   wrote   scenes/stacked-block.yaml     23 cabinets
+#   wrote   scenes/stacked-stereo.yaml    23 cabinets
+```
+
+| Option | Meaning |
+|--------|---------|
+| `--from=ID` | repeatable, low frequency first. Default: every speaker, **widest first within each band**, subs before tops — the order that stacks without inverting |
+| `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints |
+| `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
+| `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
+| `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
+| `--id=PREFIX` | base scene id. Default `stacked` |
+| `--max-scenes=N` | refuse past this many. Default 24 |
+| `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
+
+How many scenes you get is a parameter, not a decision baked in: `--align=block --subs=mixed` is exactly one,
+the default is three. Going over `--max-scenes` is **refused rather than truncated** — a silent cap reads as
+"that is every possibility" when it is not.
+
+Every candidate is **compiled before it is written**, and arrangements that resolve to the same rig are
+written once. A worked refusal, which is also a real answer about our gear:
+
+```bash
+bin/console scene:stack --max-width=10.0 --interface-height=2.0
+#   skipped stacked-center — stack.interface_height_m (2.000): the subs stack 1.514 m high …
+```
+
+At 10 m wide the bottom row swallows all twelve Flexys, so only two sub tiers are left and the tops would
+fire into the crowd. A wide stage is not automatically a better rig.
+
+The output is a `stack:` block rather than the expanded tiers, so a generated scene **re-solves every build**
+and follows the specs when a cabinet is finally measured, instead of freezing today's answer into a list of
+rows.
+
 `align` on a stack applies to every tier **except the bottom one**, whose edges become the envelope when no
 `across`/`inside`/`width_m` is stated — which is how `full-rig-stacked` gets all four rows running exactly
 -2.1250 .. +1.5210.

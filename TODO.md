@@ -1,17 +1,30 @@
 1. alignments of speakers and object groups
-    1. **`align` on nested groups.** `align` takes a single `row`/`lattice` today and refuses anything nested,
-       because scaling a nested arrangement's x would stretch the inner group's spacing along with the outer
-       one's. Telling the two apart needs the level named — a key nothing shipped wants yet. Same for `arc`
+    1. **`align` on nested groups.** `align` takes a single `row`/`lattice` today and refuses anything nested, because
+       scaling a nested arrangement's x would stretch the inner group's spacing along with the outer one's. Telling the
+       two apart needs the level named — a key nothing shipped wants yet. Same for `arc`
        and `line_array`, which own their own spacing and are refusals rather than gaps
     2. **`stack` cannot over-book.** Counts come from each spec's `quantity`, so a stack places what exists.
-       `full-rig-three-tier` deliberately asks for six Achenbachs against four owned, to see whether the rig
-       would work if two more were borrowed — a `counts:` override would let a stack say the same thing
-    3. **`stereo` splits into halves only.** Column size is `floor(n/2)`; asking for 2 + 2 out of six with two
-       in the middle needs a `columns:` key. Nothing shipped wants it yet
-2. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
+       `full-rig-three-tier` deliberately asks for six Achenbachs against four owned, to see whether the rig would work
+       if two more were borrowed — a `counts:` override would let a stack say the same thing
+    3. **`stereo` splits into halves only.** Column size is `floor(n/2)`; asking for 2 + 2 out of six with two in the
+       middle needs a `columns:` key. Nothing shipped wants it yet
+    4. **`scene:stack` cannot vary the alignment per tier.** It writes one scene per alignment — `center`,
+       `block`, `stereo`, only the possible ones, de-duplicated — because `stack.align` is one setting for the
+       whole rig. One scene per (tier × alignment) needs either a per-tier `align` inside `stack:`, or a
+       `--form=tiers` output mode that writes the solved rows out explicitly — and that second one costs the
+       re-solving that makes a generated scene worth generating
+    5. **only the bottom row can be mixed.** Enough for the SKRAMs, which are the only cabinets we own in a
+       quantity too small for a row of their own. A second short-supply device higher up the stack would want
+       the same treatment, and would need the mix to be chosen per tier rather than once
+2. make the tetris stacking scene generation command take info about which speakers belong to which sound system (so
+   each sound system gets its own stack or multiple stacks per sound system)
+3. daylight renders, insides of speakers come out a little bit too dark
+4. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a
            general feature)
+        2. make the sides of the connected horns one flat piece instead of three each side (probably currently ist more
+           complex than necessary) no unnecessary parts or unnecessary details
     2. find our custom flexy 3d model with the actual braces (smaller W-like metal braces) somewhere in gdrive or
        locally
     3. two ways top
@@ -20,7 +33,7 @@
            a generated cabinet has no way to declare a port at all
     4. handle recesses are currently a plain rectangular cut — a rounded dish would read better (implement general
        handle 3d model)
-3. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
+5. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
     1. write the splayed sub arc scene. `arc` covers the schema side now — a mirrored Flexy arc is
        `arc` plus `roll_deg: 180`, which the arc's roll rule deliberately allows — but no scene uses it, and a sub arc
        is the case where the reported footprint reads worst: a bounding box around a fan includes floor that nothing
@@ -29,21 +42,21 @@
        like a venue rather than a void
     3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene files — they encode
        stack arrangements that already worked
-4. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
+6. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
    shapes for truss segments and rack boxes
     1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
-5. audio routing table, for the coverage work ->
+7. audio routing table, for the coverage work ->
    https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604
-6. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
+8. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
    rather than one list, and every number needed a provenance decision. Worth building when the gear list next grows;
    see [docs/inventory.md](docs/inventory.md)
-7. asset previews are blank because they cannot be rendered in background mode. Either generate them in the GUI once, or
+9. asset previews are blank because they cannot be rendered in background mode. Either generate them in the GUI once, or
    find a way to render thumbnails headless
-8. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that only runs when
-   `blender/` or `specs/` changed
-9. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so
-   this should mostly be packaging and metadata mapping
-10. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a design or a
+10. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that only runs when
+    `blender/` or `specs/` changed
+11. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so
+    this should mostly be packaging and metadata mapping
+12. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a design or a
     datasheet, not our build; `catalog` lists what is still un-measured
     1. hanging-scale the two estimated weights first: `eighteensound-2way-15` (41 kg) and `achenbach-18`
        (50 kg). Neither exists in any source — the whole Shared Drive was searched, and Eighteen Sound publishes no
@@ -64,4 +77,4 @@
        validates and so a flown scene has something to snap to; nothing has confirmed where the real track sits. The
        schema has no provenance field for rigging, so the estimate is stated in a comment in the spec — worth adding one
        if more flyable gear arrives
-11. fly through renderings + combine with new project from existing audio routing table
+13. fly through renderings + combine with new project from existing audio routing table

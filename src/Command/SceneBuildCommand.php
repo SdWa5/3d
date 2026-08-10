@@ -81,8 +81,12 @@ final class SceneBuildCommand extends BaseCommand
             $this->io->section($scene->name.' ('.$scene->id.')');
 
             ['placed' => $placed, 'violations' => $sceneViolations] = (new SceneCompiler($devicesById))->compile($scene);
-            if ($sceneViolations !== []) {
-                $this->reportViolations($sceneViolations);
+            $this->reportViolations($sceneViolations);
+            // Only errors stop a build, exactly as the spec check above already does. A scene can now carry
+            // *warnings* — a stack whose mixed row is stepped, a tier standing slightly proud of the one
+            // below it — and those are things to know about a rig that is otherwise perfectly buildable.
+            // Treating them as fatal swallowed the whole build report, which is where the numbers are.
+            if (Violation::errorsIn($sceneViolations) !== []) {
                 $exit = self::FAILURE;
                 continue;
             }
@@ -113,11 +117,6 @@ final class SceneBuildCommand extends BaseCommand
         }
 
         return $exit;
-    }
-
-    protected function scenesDir(): string
-    {
-        return $this->projectDir().'/scenes';
     }
 
     /**

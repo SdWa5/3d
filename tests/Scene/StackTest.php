@@ -108,6 +108,88 @@ final class StackTest extends TestCase
         )), 'four Achenbachs exist, so four are placed');
     }
 
+    /**
+     * A mixed row is several placements, because a `row` group makes copies of **one** device. Segments get
+     * letters so they cannot be confused with the numeric `-1`, `-2` suffixes every group appends.
+     */
+    public function testAMixedTierExpandsIntoOnePlacementPerSegment(): void
+    {
+        $placed = $this->compile($this->allSpeakers());
+
+        $ids = [];
+        foreach ($placed as $entry) {
+            $ids[preg_replace('/-\d+$/', '', $entry->placementId)] = true;
+        }
+
+        self::assertSame(
+            ['main/1a', 'main/1b', 'main/1c', 'main/2', 'main/3', 'main/4', 'main/5', 'main/6'],
+            array_keys($ids),
+        );
+    }
+
+    /**
+     * The segments of a mixed row have to sit side by side with the row's own working gap between them,
+     * including across a segment boundary — a SKRAM beside a Flexy needs the same air as two Flexys do.
+     */
+    public function testTheSegmentsOfAMixedRowSitSideBySideWithOneGapBetweenThem(): void
+    {
+        $placed = $this->compile($this->allSpeakers());
+
+        $left = $this->edgesOf($placed, 'main/1a');
+        $middle = $this->edgesOf($placed, 'main/1b');
+        $right = $this->edgesOf($placed, 'main/1c');
+
+        self::assertEqualsWithDelta(0.02, $middle['min'] - $left['max'], 1e-9);
+        self::assertEqualsWithDelta(0.02, $right['min'] - $middle['max'], 1e-9);
+        // And the row as a whole is the 3.684 m that makes the rig a pyramid.
+        self::assertEqualsWithDelta(3.684, $right['max'] - $left['min'], 1e-9);
+    }
+
+    /**
+     * Whatever stands on a stepped row rests on its **tallest** segment, because that is the top face `on:`
+     * reads. The SKRAMs are 0.914 m and the Flexys either side 0.763 m, so tier 2 starts at 0.914 m.
+     */
+    public function testTheTierAboveAMixedRowStandsOnItsTallestSegment(): void
+    {
+        $placed = $this->compile($this->allSpeakers());
+
+        $bottom = static fn (string $tier): float => min(array_map(
+            static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
+            array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, $tier.'-')),
+        ));
+
+        self::assertEqualsWithDelta(0.914, $bottom('main/2'), 1e-9);
+    }
+
+    /** The whole inventory, as a scene rather than only as a count assertion. */
+    public function testTheWholeInventoryStacksAndClearsTheInterface(): void
+    {
+        $placed = $this->compile($this->allSpeakers());
+
+        self::assertCount(23, $placed);
+        // 12 Flexy + 2 SKRAM + 4 Achenbach = 3.040 m of subs under the tops.
+        $tops = min(array_map(
+            static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
+            array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, 'main/5-')),
+        ));
+        self::assertGreaterThanOrEqual(2.0, $tops);
+        self::assertEqualsWithDelta(3.040, $tops, 1e-9);
+    }
+
+    /**
+     * The two things the solver has to say about this rig, said as **warnings** so it still builds. Before
+     * this, `scene:build` treated any violation as fatal and swallowed the whole report.
+     */
+    public function testTheStepAndTheOverhangAreWarningsRatherThanErrors(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene($this->allSpeakers()));
+
+        self::assertSame([], \App\Spec\Violation::errorsIn($result['violations']));
+        $messages = implode("\n", array_map(static fn ($v): string => $v->message, $result['violations']));
+        self::assertStringContainsString('stepped by 151 mm', $messages);
+        self::assertStringContainsString('overhangs 18 mm each side', $messages);
+    }
+
     public function testAnUnknownDeviceInFromIsReported(): void
     {
         $violations = $this->violations([
@@ -183,6 +265,48 @@ final class StackTest extends TestCase
     }
 
     /**
+     * All 23 cabinets, which is the case that forces a mixed bottom row.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function allSpeakers(): array
+    {
+        return [
+            ['id' => 'main', 'at' => [-0.302, 0.0], 'aim' => 'focus', 'stack' => [
+                'max_width_m' => 3.70,
+                'interface_height_m' => 2.0,
+                'gap_m' => 0.02,
+                'from' => [
+                    'flexy-folded-horn-hybrid', 'skram', 'achenbach-18',
+                    'tecnare-m2122', 'eighteensound-2way-15',
+                ],
+            ]],
+        ];
+    }
+
+    /**
+     * A placement's outer edges in x.
+     *
+     * @param list<PlacedDevice> $placed
+     * @return array{min: float, max: float}
+     */
+    private function edgesOf(array $placed, string $placementId): array
+    {
+        $min = INF;
+        $max = -INF;
+        foreach ($placed as $entry) {
+            if (!str_starts_with($entry->placementId, $placementId.'-')) {
+                continue;
+            }
+            $box = $entry->worldBox();
+            $min = min($min, $box['min'][0]);
+            $max = max($max, $box['max'][0]);
+        }
+
+        return ['min' => $min, 'max' => $max];
+    }
+
+    /**
      * @param list<PlacedDevice> $placed
      */
     private function extentOf(array $placed, string $placementId): float
@@ -209,7 +333,12 @@ final class StackTest extends TestCase
     {
         $result = (new SceneCompiler($this->devices))->compile($this->scene($placements));
 
-        self::assertSame([], array_map(static fn ($v): string => $v->message, $result['violations']));
+        // Errors only. A stack may legitimately warn — a stepped mixed row, a tier standing slightly proud
+        // of the one below — and those are things to know about a buildable rig, not test failures.
+        self::assertSame([], array_map(
+            static fn ($v): string => $v->message,
+            \App\Spec\Violation::errorsIn($result['violations']),
+        ));
 
         return $result['placed'];
     }

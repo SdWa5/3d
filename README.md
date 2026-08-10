@@ -28,6 +28,7 @@ ddev composer install
 ddev exec bin/console specs:validate      # check every spec (no Blender needed)
 ddev exec bin/console models:build        # build .glb + .blend for whatever changed
 ddev exec bin/console library:build       # assemble the Blender asset library
+ddev exec bin/console scene:stack         # solve a rig from constraints, write it as scene files
 ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
 ddev exec bin/console scene:render full-rig-aimed --aim-lines   # ...with laser lines showing the aim
@@ -51,7 +52,13 @@ tiers of that row — or two tiers of a fan — is one more line
 Or state the rig as **constraints** and let the tiers be worked out: `stack: {max_width_m: 3.70,
 interface_height_m: 2.0, from: [...]}` deals the cabinets you own into rows bottom-up, stacking subs until
 the tops clear head height. Against our gear that lands on the same three-tier rig `full-rig-three-tier.yaml`
-reached by hand ([docs/scenes.md](docs/scenes.md#stack)).
+reached by hand. It will mix a row where it has to — two SKRAMs in the middle of the bottom row with Flexys
+either side, because a row of only two SKRAMs is narrower than the tier that would stand on it
+([docs/scenes.md](docs/scenes.md#stack)).
+
+You do not have to write that file either: `ddev exec bin/console scene:stack --max-width=3.70` solves the rig
+and writes one scene per alignment, with a reason for every arrangement it left out
+([docs/scenes.md](docs/scenes.md#scenestack--writing-the-scene-for-you)).
 
 A tier can be **spread across a width** rather than centred on a spacing you worked out:
 `align: {mode: block, across: sub-wall}` justifies it until its outer edges land on the sub wall's. That is a
@@ -70,6 +77,7 @@ camera. See [docs/scenes.md](docs/scenes.md).
 | `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too                                     |
 | `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
+| `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. `--align`/`--subs` narrow it, `--dry-run` prints, `--force` overwrites |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |

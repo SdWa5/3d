@@ -6,6 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.31.0] - 2026-08-11
+
+### Added
+
+- **`bin/console scene:stack` — scene files written from constraints instead of typed out.** `stack:` already
+  solved a rig, but somebody had to write the scene first; this is the step before that. One scene per
+  arrangement that works, and a stated reason for every one it left out
+- How many scenes you get is a parameter rather than a decision baked in: `--align` (repeatable),
+  `--subs=mixed|beside|both`, `--from`, the `stack:` bounds, `--at`, `--id`. `--align=block --subs=mixed` is
+  exactly one scene; the default is three. Going over `--max-scenes` is **refused, not truncated** — a silent
+  cap reads as "that is every possibility" when it is not
+- Every candidate is **compiled before it is written**, arrangements that resolve to the same rig are written
+  once, and an existing scene is never clobbered without `--force`. Output is a `stack:` block rather than the
+  expanded tiers, so a generated scene re-solves every build instead of freezing today's answer
+- The default `--from` is every speaker, **widest first within each band**, subs before tops — the order that
+  stacks without inverting. It produces a cleaner pyramid than listing the Flexys first
+
+### Changed
+
+- **A tier may be mixed, and the bottom one sometimes has to be.** Only two SKRAMs exist, so a row of nothing
+  but SKRAMs is 1.240 m — narrower than the 2.460 m Achenbach row that would stand on it. The solver puts the
+  two SKRAMs in the middle of the bottom row and flanks them with Flexys: 3.684 m, and the rig is a pyramid.
+  Strictly **only to remove an inverted step** — the looser rule "mix whenever a device is in short supply"
+  would have dragged `full-rig-stacked`'s Achenbachs below its Flexys, since the Achenbach is the widest sub
+  we own at 0.600 m against the Flexy's 0.591
+- A mixed tier expands into one placement per segment — `main/1a`, `main/1b`, `main/1c`, letters so they cannot
+  be confused with the numeric copy suffixes — and whatever stands on it rests on its **tallest** segment,
+  because that is the top face `on:` reads
+- **Rows are balanced rather than greedy.** Eight leftover Flexys at six-per-row come out 4 + 4, not 6 + 2:
+  the same number of rows, but a 1.222 m row could not carry the Achenbachs above it and a 2.424 m one can
+- `scenes/full-rig-all-speakers.yaml` — all 23 cabinets in one stack, which was not expressible before
+
+### Fixed
+
+- **A stack could produce a rig that cannot be built, silently.** Asked for all 23 cabinets it put a 2-wide
+  SKRAM row under a 4-wide Achenbach row — 610 mm of Achenbach hanging in mid-air at each end. Nothing noticed:
+  `on:` only reads a top face, and `ShippedScenesTest` only catches cabinets *inside* each other, never one
+  standing on air. There is now a support check, reported as a **warning** with the overhang in millimetres,
+  alongside one for a mixed row's step (151 mm between a SKRAM and a Flexy) — both things a crew shims rather
+  than refuses, and neither silent
+- **`scene:build` and `scene:render` treated any violation as fatal**, so the first warning-severity scene
+  violation swallowed the entire build report — which is where the numbers are. Both now filter with
+  `Violation::errorsIn()`, exactly as their own spec checks twenty lines above already did
+- `scenesDir()` was defined identically in `SceneBuildCommand` and `SceneRenderCommand`; moved to
+  `BaseCommand` rather than adding a third copy
+
 ## [0.30.0] - 2026-08-10
 
 ### Added

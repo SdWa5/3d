@@ -419,9 +419,11 @@ final class ShippedScenesTest extends TestCase
 
         $result = (new SceneCompiler($devices))->compile($scene);
 
+        // Errors only: a shipped scene may carry warnings — `full-rig-all-speakers` reports a stepped mixed
+        // row and an 18 mm overhang — and those describe a rig that builds rather than one that does not.
         self::assertSame(
             [],
-            array_map(static fn ($v): string => $v->message, $result['violations']),
+            array_map(static fn ($v): string => $v->message, \App\Spec\Violation::errorsIn($result['violations'])),
             "scene '{$sceneId}' does not compile cleanly",
         );
 
