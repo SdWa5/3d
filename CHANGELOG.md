@@ -6,6 +6,70 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-08-10
+
+### Added
+
+- **`stack` on a placement: a rig solved from constraints instead of a tier per row written by hand.**
+  `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, gap_m }`. `from` lists the cabinets
+  low frequency first and takes the counts from each spec's `quantity`; the solver deals them into rows
+  bottom-up and expands into ordinary placements — `main/1`, `main/2`… — each standing `on` the one below
+- **The sub/top interface is the constraint worth having.** `interface_height_m` (default **2.0 m**) is how
+  high the sub stack's top face has to reach so the tops fire over a standing crowd rather than into it.
+  Against what we own, two Flexy tiers reach 1.526 m and miss, and two Flexy tiers plus an Achenbach row
+  reach 2.126 m and clear — which is exactly what `full-rig-three-tier` arrived at by hand, so the
+  constraint reproduces a stack we already trust
+- Either a width bound or the interface height is enough on its own; both together is a solve that can
+  fail, and it fails with the number it reached beside the number it needed rather than shipping a near
+  miss. `min_width_m` and `max_height_m` are the other two bounds
+- **Nothing in the solver assumes a common module**, which is the real work: five cabinets, five widths
+  (0.4656 / 0.500 / 0.591 / 0.600 / 0.610) and five heights (0.600 / 0.763 / 0.836 / 0.914 / 0.960), no two
+  of them multiples of anything. Every row count is worked out per cabinet and every height is summed
+  rather than multiplied — tested over the whole inventory twice, with and without the SKRAM, because the
+  SKRAM is the widest thing we own and the second tallest and so is what a tier boundary has to bend around
+- `scenes/full-rig-stacked.yaml` — `full-rig-three-tier` with nobody choosing the tiers. It agrees with the
+  hand-written scene on the Flexy rows and the interface height, and corrects it on one point: that scene
+  calls for six Achenbachs and only four exist
+- `align` on a stack applies to every tier but the bottom one, whose edges become the envelope — so a whole
+  constraint-solved rig can also be justified, and `full-rig-stacked`'s four rows all run -2.1250 .. +1.5210
+- **`align` on a placement: a tier spread across a width instead of a step somebody bisected by hand.**
+  `{ mode, width_m | across | inside, inset_m }`. `mode: block` justifies a tier until its outer edges land
+  on the width; `center` is the natural spacing every row already had; `stereo` splits the count into two
+  columns pushed apart, keeping each column's own spacing
+- The reason it cannot be arithmetic: **an aimed cabinet's outer edge does not follow from its width.**
+  Aiming toes it in, a toed-in cabinet occupies more x than it is wide, and how far it toes in depends on
+  where it ended up — so aligning one tier's edge with another's is a fixed point. It is worse for a
+  trapezoid: a Tecnare toed in 11.43° reaches 0.2206 m off centre on its *back* bottom corner, against the
+  0.250 m half-width the sum would use, so the naive answer is wrong in both directions depending on the
+  cabinet
+- The fixed point is bisected against the same rotated boxes the compiler already uses for contact, camera
+  framing and the build report — the trial layout goes through the very same `orientationFor()` and
+  `worldBox()` as the final one, so the solve and the geometry cannot hold different opinions about where an
+  edge is
+- `across` and `inside` are separate words because they are separate objects: `full-rig-stereo`'s tops are
+  4.678 m *across* and 3.628 m *inside*. A tier standing beside another wants the first; a fill going
+  between its outer cabinets wants the second
+- Refusals rather than silent near-misses, all naming the number they reached and the one they needed: an
+  envelope narrower than the cabinets stacked on one spot, an inset that eats the envelope, a forward or
+  self reference, `step_m` alongside `align`, an `arc`/`line_array`/nested group that has no step to solve
+
+### Changed
+
+- `scenes/full-rig-stereo.yaml` no longer carries **0.8156**, **2.1185** or **2.9709**, and
+  `scenes/full-rig-all-tops.yaml` no longer carries **1.887**. All four are solved, and the old values are
+  now the regression test that the solver reproduces them — to within the 4-decimal rounding of the numbers
+  themselves (the exact fixed points are 2.118461, 2.970946 and 1.886983)
+- A placement now **rejects unknown keys**. It used to accept anything, so `algn:` read as "not aligned" and
+  `aim_lies:` as "follow the scene mode" — both rendering perfectly plausibly with nothing to see. Same
+  argument `arc` and `lattice` already made for their own keys
+
+### Fixed
+
+- `scenes/full-rig-quarter-turned.yaml`'s near-fill step was **1.887 copied from the upright rig, where it
+  did not belong**. Its subs lie on their sides, so its tops stand 344 mm lower and toe in by a different
+  angle; the step that really leaves 20 mm there is 1.8918. The scene had ~5 mm less clearance than its own
+  comment claimed. Solved per scene, the two no longer share a number they never shared geometry for
+
 ## [0.29.0] - 2026-08-09
 
 ### Added

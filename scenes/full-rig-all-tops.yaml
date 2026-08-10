@@ -74,16 +74,19 @@ placements:
       count: 3
       step_m: 1.55
 
-  # Near-field fill, inside the outer tops. See the header for why this is 1.887 and not 2.0944 — spacing
-  # these on their widths rather than on their turned boxes overlaps them by 88 mm.
+  # Near-field fill, inside the outer tops with 20 mm to spare. See the header for why a step worked out
+  # from widths would be 2.0944 and would overlap them by 88 mm; `align` solves the real one instead.
   - id: near-fills
     device: eighteensound-2way-15
     on: achenbach-row
     at: [-0.302, 0.0]
     aim: near
+    align:
+      mode: block
+      inside: tops
+      inset_m: 0.020
     row:
       count: 2
-      step_m: 1.887
 
 notes: |
   Compare full-rig-three-tier.yaml, which is this rig with the M2122s alone. The fill costs two cabinets

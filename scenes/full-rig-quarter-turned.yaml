@@ -69,16 +69,19 @@ placements:
       count: 3
       step_m: 1.55
 
-  # Near-field fill, inside the outer tops. The step is 1.887 rather than the 2.0944 that half-widths
-  # suggest, because both cabinets are toed in — see full-rig-all-tops.yaml for the full argument.
+  # Near-field fill, inside the outer tops with 20 mm to spare. Solved rather than stated, because both
+  # cabinets are toed in and half-widths get it wrong — see full-rig-all-tops.yaml for the full argument.
   - id: near-fills
     device: eighteensound-2way-15
     on: achenbach-row
     at: [-0.302, 0.0]
     aim: near
+    align:
+      mode: block
+      inside: tops
+      inset_m: 0.020
     row:
       count: 2
-      step_m: 1.887
 
 notes: |
   Compare full-rig-all-tops.yaml, which is this rig with the same twelve subs standing up. Same cabinets,

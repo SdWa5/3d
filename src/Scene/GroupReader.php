@@ -35,6 +35,17 @@ final class GroupReader
      */
     private const GROUPS = ['arc', 'lattice', 'line_array', 'repeat', 'row'];
 
+    /**
+     * Every placement key this reader consumes, so {@see Placement} can reject the ones nobody consumes
+     * without having to keep a second copy of this list in step with it.
+     *
+     * @return list<string>
+     */
+    public static function keys(): array
+    {
+        return [...self::GROUPS, 'in'];
+    }
+
     public static function read(ArrayReader $reader): GroupStack
     {
         $cell = self::readCell($reader);

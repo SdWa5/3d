@@ -42,7 +42,8 @@ final class Placement
      */
     public function __construct(
         public readonly string $id,
-        public readonly string $deviceId,
+        /** Null only on a `stack`, which names its cabinets in `stack.from` and is expanded before use. */
+        public readonly ?string $deviceId,
         public readonly ?array $at,
         public readonly float $yawDeg,
         public readonly float $pitchDeg,
@@ -55,14 +56,50 @@ final class Placement
         public readonly GroupStack $group,
         /** true or false to overrule the scene's aim-line mode for this group; null to follow it. */
         public readonly ?bool $aimLines = null,
+        /** How this tier is distributed across a stated width; null is the natural spacing. */
+        public readonly ?Alignment $align = null,
+        /** A rig stated as constraints instead of tiers; expanded into real placements before compiling. */
+        public readonly ?Stack $stack = null,
     ) {
     }
 
+    /** Everything a placement may say that is not a group. {@see GroupReader::keys} supplies the rest. */
+    private const KEYS = [
+        'id', 'device', 'at', 'yaw_deg', 'pitch_deg', 'roll_deg',
+        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack',
+    ];
+
     public static function fromReader(ArrayReader $reader, int $index): self
     {
+        // A placement used to accept anything, which meant a mistyped key was simply not there: `algn:`
+        // would read as "not aligned", `aim_lies:` as "follow the scene mode", and both would render
+        // perfectly plausibly with nothing to see. It is the same argument `arc` and `lattice` already
+        // make for their own keys — a block whose every field changes the geometry cannot afford a typo.
+        $unknown = $reader->unknownKeys([...self::KEYS, ...GroupReader::keys()]);
+        if ($unknown !== []) {
+            throw new \App\Spec\InvalidSpecException(sprintf(
+                "placement '%s': unknown key '%s'",
+                $reader->optionalString('id') ?? 'placement-'.$index,
+                $unknown[0],
+            ));
+        }
+
+        $stack = $reader->optionalSection('stack');
+        if ($stack !== null) {
+            // A stack names its cabinets in `stack.from` and writes its own rows, so `device` and a group
+            // are not merely redundant here — either would have to lose an argument with the solver.
+            foreach ([...GroupReader::keys(), 'device'] as $key) {
+                if ($reader->has($key)) {
+                    throw new \App\Spec\InvalidSpecException(
+                        "stack: `{$key}` is decided by the stack — remove it, or write the tiers out by hand",
+                    );
+                }
+            }
+        }
+
         return new self(
             id: $reader->optionalString('id') ?? 'placement-'.$index,
-            deviceId: $reader->requireString('device'),
+            deviceId: $stack === null ? $reader->requireString('device') : null,
             at: $reader->has('at') ? self::readGround($reader) : null,
             yawDeg: $reader->optionalFloat('yaw_deg', 0.0) ?? 0.0,
             pitchDeg: $reader->optionalFloat('pitch_deg', 0.0) ?? 0.0,
@@ -73,6 +110,8 @@ final class Placement
             fly: ($fly = $reader->optionalSection('fly')) === null ? null : Fly::fromReader($fly),
             group: GroupReader::read($reader),
             aimLines: $reader->has('aim_lines') ? $reader->requireBool('aim_lines') : null,
+            align: ($align = $reader->optionalSection('align')) === null ? null : Alignment::fromReader($align),
+            stack: $stack === null ? null : Stack::fromReader($stack),
         );
     }
 

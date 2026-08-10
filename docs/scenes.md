@@ -52,6 +52,8 @@ placements:
 | `placements[].lattice` | `{ count: [nx, ny, nz], gap_m, step_m, roll_cycle, cycle_axis }` — a 1/2/3-D grid, spaced from what it replicates, centred on `at` in x and y, stacking upward in z |
 | `placements[].row` | `{ count, axis, gap_m, step_m, roll_cycle }` — a lattice with one open axis; `axis` defaults to `x` |
 | `placements[].line_array` | `{ count, splay_deg, gap_m }` — a hang: elements chained below one another, each tilted further than the last. `splay_deg` is one angle or one per gap |
+| `placements[].align` | `{ mode, width_m, across, inside, inset_m }` — how this tier is spread across a width, instead of stating `step_m`. See [align](#align) |
+| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, gap_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
 | `placements[].in` | list of groups this one is nested **inside**, innermost first: `in[0]` wraps the sibling group, `in[1]` wraps that |
 | `placements[].arc` | `{ mode, count, splay_deg, radius_m, gap_m }` — a group seated on an arc. Exclusive with `repeat`; see below |
 | `placements[].arc.gap_m` | working gap between neighbours, in metres. Default 0 — cabinets touching |
@@ -403,9 +405,135 @@ twelve positions.
   the easiest trap in the file to fall into. Aiming toes a cabinet in, and a yawed cabinet occupies more x
   than it is wide. In `scenes/full-rig-all-tops.yaml` the near fill sits beside a top that is toed in 8.4°
   while the fill itself is toed in 20.8° — a 2 m focus is a hard turn — so half-widths plus a 20 mm gap
-  (a step of 2.0944) drives the two cabinets **88 mm into each other**. The step that really leaves 20 mm
-  is 1.887. `gap_m` has no such problem, because it is applied to the outline of the *turned* cabinet;
-  it is only a step you state yourself that has to account for the turn.
+  (a step of 2.0944) drives the two cabinets **88 mm into each other**. `gap_m` has no such problem, because
+  it is applied to the outline of the *turned* cabinet; it is only a step you state yourself that has to
+  account for the turn. **Do not state one — use [`align`](#align) and let it be solved.**
+
+### align
+
+A group decides *what* is in a tier and how many. `align` decides *where across the width* they end up —
+the alignment vocabulary text has, applied to cabinets.
+
+```yaml
+  - id: near-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: near
+    align:
+      mode: block
+      inside: tops
+      inset_m: 0.020
+    row:
+      count: 2
+```
+
+| Key | Meaning |
+|-----|---------|
+| `mode` | `center` (the natural spacing, what a row already did), `block` (justified — spread until the outer edges land on the width), `stereo` (two columns pushed apart, natural spacing kept within each) |
+| `width_m` | the envelope stated outright — a stage, a truss |
+| `across` | an **earlier** placement; its own outer edges are the envelope |
+| `inside` | an **earlier** placement; the clear gap between its outermost cabinets' facing edges is the envelope |
+| `inset_m` | taken off the envelope on **each** side. Default 0 |
+
+Exactly one of `width_m`, `across` and `inside` is stated, and `center` takes none of them.
+
+**Why this is a feature and not arithmetic.** An aimed cabinet's outer edge cannot be computed from its
+width. Aiming toes it in, a toed-in cabinet occupies more x than it is wide, and how far it toes in depends
+on where it ended up — so "put this tier's edges on that one's" is a **fixed point**, not a formula. It is
+worse for a trapezoid: once a Tecnare is toed in 11.4° its outermost point is its *back* bottom corner,
+0.2206 m off centre against the 0.250 m half-width the arithmetic would use. The naive answer is wrong in
+both directions depending on the cabinet.
+
+`full-rig-stereo.yaml` used to carry three numbers — 0.8156, 2.1185 and 2.9709 — bisected by hand, and
+`full-rig-all-tops.yaml` a fourth at 1.887. The compiler now bisects them itself, against the same rotated
+boxes it uses for contact and camera framing, so they follow the specs when a cabinet is finally measured.
+(`full-rig-quarter-turned.yaml` had copied 1.887 from the upright rig, where it was ~5 mm wrong: its tops
+stand lower and so toe in differently. Solving it separates the two.)
+
+**`across` and `inside` are different objects**, and the difference is not small: `full-rig-stereo`'s tops
+are 4.678 m *across* and 3.628 m *inside*. A tier that sits beside another wants `across`; one that goes
+*between* its outer cabinets wants `inside`.
+
+**What `stereo` does.** It splits the count into two columns on the sign of each cabinet's natural offset —
+so an even count divides in half with the middle left open, and an odd count leaves the one spare cabinet on
+`at`, because that is the only placement for it that stays symmetric. Each column keeps its own `gap_m`
+spacing; only the two columns move.
+
+**Limits, all of them refusals rather than surprises:**
+
+* `align` needs a single `row` or `lattice` with nothing nested in it. An `arc`'s spacing is its radius and
+  a `line_array`'s is its splay — neither is a step to solve — and scaling a *nested* arrangement would
+  stretch the inner group's spacing along with the outer one's.
+* `step_m` on the same placement is refused: both decide the spacing. `gap_m` is fine — it is what `center`
+  and `stereo`'s columns use, and under `block` it simply cancels.
+* `across`/`inside` must name an **earlier** placement, the same rule `on` follows and for the same reason.
+* An envelope narrower than the cabinets stacked on one spot is refused, naming both numbers.
+
+### stack
+
+A rig described by what it has to satisfy, instead of by a tier per row somebody wrote out.
+
+```yaml
+  - id: main
+    at: [-0.302, 0.0]
+    aim: focus                  # goes on the TOP tiers only; subs fire straight ahead
+    align: { mode: block }      # optional: spread every tier onto the bottom one's edges
+    stack:
+      max_width_m: 3.70
+      interface_height_m: 2.0
+      gap_m: 0.02
+      from:                     # low frequency first — the order is the fill order
+        - flexy-folded-horn-hybrid
+        - achenbach-18
+        - tecnare-m2122
+```
+
+| Key | Meaning |
+|-----|---------|
+| `from` | device ids, **low frequency first**. How many of each comes from the spec's `quantity` — a stack deals out what the inventory says is in the building |
+| `max_width_m` | how wide the stage or the truss lets the rig be. The row count falls out of it |
+| `interface_height_m` | how high the sub stack's top face must reach, so the tops fire over a standing crowd. **Defaults to 2.0** — state `0` for a rig that deliberately sits low |
+| `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
+| `max_height_m` | a ceiling or a rigging limit |
+| `gap_m` | working gap between neighbours in a row |
+
+A `stack` replaces `device` and any group — both are decided by the solve, and stating one as well is
+refused rather than quietly overruled. It expands into one ordinary placement per tier, numbered `main/1`,
+`main/2`…, each standing `on` the one below, so anything later in the file can still say `on: main/4`.
+
+Either a width bound or an interface height is enough on its own. **Both together is a solve that can fail**,
+and it says so with the number it reached beside the number it needed.
+
+`scenes/full-rig-stacked.yaml` is the worked example. Against the gear list it deals out:
+
+```
+  1  flexy-folded-horn-hybrid  x6    0.763 m    six fit: (3.70 + 0.02) / (0.591 + 0.02) = 6.09
+  2  flexy-folded-horn-hybrid  x6    1.526 m    twelve owned, so a second row — and 1.526 MISSES 2.0
+  3  achenbach-18              x4    2.126 m    which is what puts the Achenbachs in, and now it clears
+  4  tecnare-m2122             x3               the tops, aimed
+```
+
+which is the same three-tier stack `full-rig-three-tier.yaml` arrived at by hand — reached from the
+constraint instead, so it follows the specs when a cabinet is finally measured. (The two differ on one
+thing, and it is a correction: the hand-written scene calls for six Achenbachs and only four exist.)
+
+**Nothing in the solver assumes a grid, and it could not.** The five cabinets we own have five widths
+(0.4656 / 0.500 / 0.591 / 0.600 / 0.610 m) and five heights (0.600 / 0.763 / 0.836 / 0.914 / 0.960 m), no
+two of them multiples of anything. Every row count is worked out per cabinet and every height is summed
+rather than multiplied — a fill that assumed a module would look right on the Flexys alone and fall apart
+the moment an Achenbach or a SKRAM is in the same stack.
+
+**With no `max_width_m`,** the row count is the widest that still reaches the interface height: narrower
+rows mean more of them, so the sub stack grows as the count falls, and the answer is the largest count that
+still clears.
+
+**`from` must list subs before tops.** The fill is bottom-up, so a top listed first would put a Tecnare
+under a Flexy and still satisfy every height check.
+
+`align` on a stack applies to every tier **except the bottom one**, whose edges become the envelope when no
+`across`/`inside`/`width_m` is stated — which is how `full-rig-stacked` gets all four rows running exactly
+-2.1250 .. +1.5210.
 
 ### Groups inside groups
 

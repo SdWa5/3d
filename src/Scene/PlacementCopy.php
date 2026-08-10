@@ -93,6 +93,26 @@ final class PlacementCopy
     }
 
     /**
+     * This copy slid along x, for an {@see Alignment} spreading a tier across a stated width.
+     *
+     * Only x moves and nothing turns: how far a cabinet stands from `at` is a question about the tier's
+     * distribution, while which way it points is still the aim's to answer — and it is answered afterwards,
+     * against the position this produces. That ordering is the fixed point, and keeping the two separate is
+     * what lets one scalar drive the whole solve.
+     */
+    public function movedInX(float $x): self
+    {
+        return new self(
+            $this->path,
+            [self::snap($x), $this->offset[1], $this->offset[2]],
+            $this->rotation,
+            $this->isAnchor,
+            $this->pitchIncrementDeg,
+            $this->seated,
+        );
+    }
+
+    /**
      * This copy nested inside `$outer` — `$outer` places it, so `$outer`'s turn applies to this one's
      * offset as well as to its rotation.
      *

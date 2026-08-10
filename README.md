@@ -48,6 +48,16 @@ centred from the cabinet's width plus a working gap, and any group nests inside 
 tiers of that row — or two tiers of a fan — is one more line
 ([docs/scenes.md](docs/scenes.md#lattices--a-grid-that-works-its-own-spacing-out)).
 
+Or state the rig as **constraints** and let the tiers be worked out: `stack: {max_width_m: 3.70,
+interface_height_m: 2.0, from: [...]}` deals the cabinets you own into rows bottom-up, stacking subs until
+the tops clear head height. Against our gear that lands on the same three-tier rig `full-rig-three-tier.yaml`
+reached by hand ([docs/scenes.md](docs/scenes.md#stack)).
+
+A tier can be **spread across a width** rather than centred on a spacing you worked out:
+`align: {mode: block, across: sub-wall}` justifies it until its outer edges land on the sub wall's. That is a
+solve and not a sum — an aimed cabinet toes in, and a toed-in cabinet is wider across x than it is wide, so
+the answer depends on where the cabinet ends up ([docs/scenes.md](docs/scenes.md#align)).
+
 Or write the setup down instead of dragging it: `scenes/full-rig.yaml` is the whole PA — a 12-cabinet sub wall in two
 stacked rows plus three tops — in about twenty lines. `scene:build` reports its weight, height and footprint before
 Blender is involved, and `scene:render` turns it into a preview image in about 8 seconds without you placing a single

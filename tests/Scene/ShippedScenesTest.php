@@ -77,6 +77,79 @@ final class ShippedScenesTest extends TestCase
         }
     }
 
+    /**
+     * How far a solved step may sit from the number it replaced.
+     *
+     * The shipped scenes used to carry these steps as literals somebody bisected by hand and wrote down to
+     * four decimal places. The exact fixed points are 2.118461, 2.970946 and 1.886983, so the whole
+     * disagreement is the rounding in the old files — under 5e-5 m. A tolerance of 1e-4 admits exactly that
+     * and nothing else: it is two orders below the 20 mm clearance these scenes are built around, and three
+     * below the 88 mm mistake that spacing cabinets on their widths produced.
+     */
+    private const HAND_BISECTED_TOLERANCE_M = 1e-4;
+
+    /**
+     * The steps `align` now solves, against the numbers the scenes carried before it existed.
+     *
+     * @return iterable<string, array{string, string, float}>
+     */
+    public static function handBisectedSteps(): iterable
+    {
+        yield 'the achenbach row justified across the sub wall' => ['full-rig-stereo', 'achenbach-row', 0.8156];
+        yield 'the tops justified across the sub wall, aimed' => ['full-rig-stereo', 'tops', 2.1185];
+        yield 'the near-fills inside the outer tops' => ['full-rig-stereo', 'near-fills', 2.9709];
+        yield 'the near-fills of the upright rig, inside its tops' => ['full-rig-all-tops', 'near-fills', 1.887];
+    }
+
+    /**
+     * The point of `align`, checked against the only evidence there is: the numbers that were right before.
+     *
+     * Three of these four are fixed points rather than arithmetic — the cabinets are aimed, so spreading
+     * them toes them in and moves the edge that was being aligned. Somebody bisected each one by hand and
+     * wrote it into the scene, where it would have gone stale the moment a cabinet was measured. If this
+     * test fails, either the solver drifted or a spec changed and the old number is the stale one.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('handBisectedSteps')]
+    public function testTheSolvedStepReproducesTheNumberThatWasBisectedByHand(
+        string $sceneId,
+        string $placementId,
+        float $expected,
+    ): void {
+        $step = $this->stepOf($this->compile($sceneId), $placementId);
+
+        self::assertEqualsWithDelta($expected, $step, self::HAND_BISECTED_TOLERANCE_M);
+    }
+
+    /**
+     * The clearance itself, which is what the scene actually asked for — and it is asserted much tighter
+     * than the step, because both sides of it come out of the solved geometry and carry no rounding.
+     *
+     * This is measured on the boxes the cabinets *occupy*: at `full-rig-stereo`'s foci the outer top is
+     * toed in 11.4° and the fill beside it 30.9°, and a step worked out from their widths instead would
+     * have driven them into each other.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('insetScenes')]
+    public function testTheNearFillsStandExactlyTheStatedTwentyMillimetresInsideTheOuterTops(string $sceneId): void
+    {
+        $placed = $this->compile($sceneId);
+
+        $tops = $this->edgesOf($placed, 'tops');
+        $fills = $this->edgesOf($placed, 'near-fills');
+
+        self::assertEqualsWithDelta(0.020, $fills['min'] - $tops['innerLeft'], 1e-6);
+        self::assertEqualsWithDelta(0.020, $tops['innerRight'] - $fills['max'], 1e-6);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function insetScenes(): iterable
+    {
+        yield 'full-rig-stereo' => ['full-rig-stereo'];
+        yield 'full-rig-all-tops' => ['full-rig-all-tops'];
+        yield 'full-rig-quarter-turned' => ['full-rig-quarter-turned'];
+    }
+
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
     public function testNoTwoCabinetsAreInsideEachOther(string $sceneId): void
     {
@@ -280,6 +353,57 @@ final class ShippedScenesTest extends TestCase
     /**
      * @return list<PlacedDevice>
      */
+    /**
+     * The uniform spacing of a placement's cabinets along x, which is what `step_m` used to state outright.
+     *
+     * @param list<PlacedDevice> $placed
+     */
+    private function stepOf(array $placed, string $placementId): float
+    {
+        $x = [];
+        foreach ($placed as $entry) {
+            if (str_starts_with($entry->placementId, $placementId.'-')) {
+                $x[] = $entry->position[0];
+            }
+        }
+        sort($x);
+
+        self::assertGreaterThan(1, count($x), "placement '{$placementId}' has no spacing to read");
+
+        return ($x[count($x) - 1] - $x[0]) / (count($x) - 1);
+    }
+
+    /**
+     * A placement's outer edges, and the facing edges of its outermost cabinets.
+     *
+     * @param list<PlacedDevice> $placed
+     * @return array{min: float, max: float, innerLeft: float, innerRight: float}
+     */
+    private function edgesOf(array $placed, string $placementId): array
+    {
+        $min = INF;
+        $max = -INF;
+        $innerLeft = -INF;
+        $innerRight = INF;
+
+        foreach ($placed as $entry) {
+            if (!str_starts_with($entry->placementId, $placementId.'-')) {
+                continue;
+            }
+            $box = $entry->worldBox();
+            if ($box['min'][0] < $min) {
+                $min = $box['min'][0];
+                $innerLeft = $box['max'][0];
+            }
+            if ($box['max'][0] > $max) {
+                $max = $box['max'][0];
+                $innerRight = $box['min'][0];
+            }
+        }
+
+        return ['min' => $min, 'max' => $max, 'innerLeft' => $innerLeft, 'innerRight' => $innerRight];
+    }
+
     private function compile(string $sceneId): array
     {
         $project = dirname(__DIR__, 2);

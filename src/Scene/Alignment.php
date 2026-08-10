@@ -1,0 +1,239 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Scene;
+
+use App\Spec\ArrayReader;
+use App\Spec\InvalidSpecException;
+
+/**
+ * Where a tier's cabinets land across the width it is given.
+ *
+ * This exists because **an aimed cabinet's outer edge cannot be computed from its width.** Aiming toes a
+ * cabinet in, a toed-in cabinet occupies more x than it is wide, and how far it toes in depends on where it
+ * ended up — so "put this tier's edges on that one's" is a fixed point, not a formula. Every attempt to do
+ * it as arithmetic has been wrong in a way that renders perfectly plausibly: `full-rig-all-tops` spaced two
+ * aimed fills on their half-widths and drove them 88 mm into each other, and `two-foci` put its fills
+ * 0.41 m inside the sub wall. `full-rig-stereo` got it right only by carrying three numbers somebody
+ * bisected by hand (0.8156, 2.1185, 2.9709), every one of which goes stale the moment a cabinet is measured
+ * or a focus moves.
+ *
+ * It is worse than "the width is the wrong number", too. A Tecnare is a trapezoid, so once it is toed in
+ * its outermost point is its *back* bottom corner rather than a front one, and at `full-rig-stereo`'s
+ * 11.43° that corner sits 0.2206 m off centre against the 0.250 m half-width the arithmetic would use. The
+ * naive answer is wrong in both directions depending on the cabinet.
+ *
+ * So the scene states the intent — "justified across the sub wall", "between the outer tops with 20 mm to
+ * spare" — and the compiler solves for the spacing against the same exact rotated boxes it already uses for
+ * contact, camera framing and the build report. See {@see StepSolver} for the solve and
+ * {@see SceneCompiler::aligned} for where the envelope comes from.
+ *
+ * The transform is deliberately **one scalar** for both solved modes, which is what lets them share a
+ * one-dimensional solver:
+ *
+ * * `block` scales every copy's x offset by `k`. A row's offsets are `(i − (n−1)/2) · step`, so scaling x
+ *   *is* changing the step.
+ * * `stereo` translates the copies left of `at` by `−d` and those right of it by `+d`, leaving each
+ *   column's internal spacing alone. The sign of a copy's natural offset *is* the column split, so a count
+ *   of four gives two columns of two and a count of five leaves the middle cabinet on `at`. That
+ *   non-uniformity is why `stereo` could not have been expressed by writing a step back into the group.
+ *
+ * Both are symmetric about `at`, which matters more than it looks: it is why the rig's centre line does not
+ * move when a tier is spread, and so why {@see SceneCompiler::frontCentre} can keep resolving the focus
+ * before any alignment is solved without the two chasing each other.
+ */
+final class Alignment
+{
+    /** Below this a copy counts as sitting on the centre line rather than in either column. */
+    private const CENTRE_EPSILON_M = 1e-9;
+
+    public function __construct(
+        public readonly LayoutMode $mode,
+        /** The envelope stated outright — a stage or a truss, measured rather than referred to. */
+        public readonly ?float $widthM = null,
+        /** An earlier placement whose own x extent is the envelope. */
+        public readonly ?string $across = null,
+        /**
+         * An earlier placement whose *inner* faces are the envelope — the free span between its outermost
+         * cabinets, which is a different object from its extent and needs its own word. `full-rig-stereo`'s
+         * tops span 4.678 m across and 3.628 m inside, and it is the second number a fill goes between.
+         */
+        public readonly ?string $inside = null,
+        /** Taken off the envelope on **each** side — "20 mm inside the outer tops". */
+        public readonly float $insetM = 0.0,
+    ) {
+    }
+
+    public static function fromReader(ArrayReader $reader): self
+    {
+        $allowed = ['mode', 'width_m', 'across', 'inside', 'inset_m'];
+        $unknown = $reader->unknownKeys($allowed);
+        if ($unknown !== []) {
+            throw new InvalidSpecException(sprintf(
+                "align: unknown key '%s' (allowed: %s)",
+                $unknown[0],
+                implode(', ', $allowed),
+            ));
+        }
+
+        return new self(
+            mode: $reader->requireEnum('mode', LayoutMode::class),
+            widthM: $reader->optionalFloat('width_m'),
+            across: $reader->optionalString('across'),
+            inside: $reader->optionalString('inside'),
+            insetM: $reader->optionalFloat('inset_m', 0.0) ?? 0.0,
+        );
+    }
+
+    /**
+     * The placement whose geometry states the envelope, or null when it is stated as a number.
+     */
+    public function reference(): ?string
+    {
+        return $this->across ?? $this->inside;
+    }
+
+    /**
+     * This alignment with `$placementId` as its envelope, unless one was already stated.
+     *
+     * A {@see Stack} writes its own tiers, so an `align` on the stack means "every tier after the bottom
+     * one lines up with the bottom one" — and the bottom one's id is not something the scene author can
+     * know, because the stack invents it. Naming an envelope explicitly still wins.
+     */
+    public function orAcross(string $placementId): self
+    {
+        if ($this->widthM !== null || $this->across !== null || $this->inside !== null) {
+            return $this;
+        }
+
+        return new self($this->mode, null, $placementId, null, $this->insetM);
+    }
+
+    /**
+     * Everything wrong with this `align` block for this placement, without the `placement '<id>': ` prefix
+     * the compiler adds. Whether the reference names something that exists is not decided here — that needs
+     * the earlier placements already resolved, so {@see SceneCompiler::aligned} asks it.
+     *
+     * @return list<string>
+     */
+    public function problems(GroupStack $group, int $copyCount): array
+    {
+        $messages = [];
+        $stated = count(array_filter([$this->widthM, $this->across, $this->inside], static fn (mixed $v): bool => $v !== null));
+
+        if ($stated > 1) {
+            $messages[] = 'use one of align.width_m, align.across or align.inside, not two — they all state the envelope';
+        }
+        if ($this->mode->isSolved() && $stated === 0) {
+            $messages[] = sprintf("align.mode '%s' needs a width to fill — state width_m, across or inside", $this->mode->value);
+        }
+        if (!$this->mode->isSolved() && ($stated > 0 || $this->insetM !== 0.0)) {
+            // Silently ignoring them would make `center` look like it had been given a width and obeyed it.
+            $messages[] = "align.mode 'center' is the natural spacing and has no width to fill "
+                .'— remove width_m/across/inside/inset_m, or ask for block';
+        }
+        if ($this->widthM !== null && $this->widthM <= 0.0) {
+            $messages[] = sprintf('align.width_m must be positive, got %s', $this->widthM);
+        }
+        if ($this->insetM < 0.0) {
+            $messages[] = sprintf('align.inset_m must not be negative, got %s', $this->insetM);
+        }
+
+        if (!$this->mode->isSolved() || $messages !== []) {
+            return $messages;
+        }
+
+        return array_merge($messages, $this->groupProblems($group, $copyCount));
+    }
+
+    /**
+     * The copies moved to the parameter `$t`, whatever that parameter means for this mode.
+     *
+     * @param list<PlacementCopy> $copies
+     * @return list<PlacementCopy>
+     */
+    public function apply(array $copies, float $t): array
+    {
+        if (!$this->mode->isSolved()) {
+            return $copies;
+        }
+
+        return array_map(
+            fn (PlacementCopy $copy): PlacementCopy => $copy->movedInX(
+                $this->mode === LayoutMode::Block
+                    ? $copy->offset[0] * $t
+                    : $copy->offset[0] + self::column($copy->offset[0]) * $t,
+            ),
+            $copies,
+        );
+    }
+
+    /**
+     * Where the doubling search starts looking for a bracket.
+     *
+     * `block`'s parameter is a factor, so 1 is the arrangement as the group made it; `stereo`'s is a
+     * distance, so 0 is. Both are bounded below by 0 — the tightest either mode can be, every cabinet on
+     * `at` — which is what gives the solver a lower end it never has to search for.
+     */
+    public function startParameter(): float
+    {
+        return $this->mode === LayoutMode::Block ? 1.0 : 0.0;
+    }
+
+    /**
+     * Whether the group this is attached to can be spread at all.
+     *
+     * The rule is deliberately narrow: **one** `row` or `lattice`, nothing nested. Scaling the x offsets of
+     * a *nested* arrangement would scale the inner one's spacing along with the outer one's — the 20 mm of
+     * air inside `full-rig-stereo`'s rolled Flexy pairs would stretch with the wall — and telling the two
+     * apart needs the level named, which is a key nothing shipped would use yet. With a single level,
+     * scaling x is exactly changing that level's `step_m`, which is the whole claim this class rests on.
+     *
+     * @return list<string>
+     */
+    private function groupProblems(GroupStack $group, int $copyCount): array
+    {
+        $levels = $group->groups;
+
+        if (count($levels) !== 1 || !$levels[0] instanceof Lattice) {
+            // An arc's spacing is its radius and a hang's is its splay — neither is a step to solve. A
+            // `repeat` runs from `at` rather than about it, so neither the column split nor the symmetry
+            // the focus resolution leans on would hold.
+            return [sprintf(
+                'align needs a single row or lattice and nothing nested in it, got %s',
+                $levels === [] ? 'one cabinet' : $group->kind().(count($levels) > 1 ? ' inside another group' : ''),
+            )];
+        }
+
+        $lattice = $levels[0];
+        $messages = [];
+
+        if ($lattice->count[0] < 2) {
+            $messages[] = 'align needs more than one cabinet across x to space';
+        }
+        if ($lattice->stepM[0] !== 0.0) {
+            // Only `step_m`. `gap_m` stays legal: it is the natural spacing the solve starts from, it is
+            // what `stereo` keeps within a column, and under `block` it simply cancels — a pure scale onto
+            // a stated width does not depend on where it started.
+            $messages[] = sprintf('align solves the spacing — remove %s.step_m', $lattice->kind());
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Which side of `at` a copy is on: −1 left, +1 right, 0 on the centre line.
+     *
+     * For `stereo` this *is* the column split, and it falls out of the natural offsets rather than being
+     * counted: a row of four has two copies each side, a row of five has two each side and one on zero.
+     */
+    private static function column(float $x): float
+    {
+        if (abs($x) < self::CENTRE_EPSILON_M) {
+            return 0.0;
+        }
+
+        return $x < 0.0 ? -1.0 : 1.0;
+    }
+}

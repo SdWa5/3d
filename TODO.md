@@ -1,46 +1,13 @@
 1. alignments of speakers and object groups
-    1. **tetris stacking** — sort rows low frequency to high frequency and fill from the bottom up, instead of writing
-       out a tier per placement by hand. Every `full-rig*` scene is this done manually: subs low, 18" above them, tops
-       on top
-        1. it is driven by a **constraint**, not by a tier list, and there are two ways to state one. Either is enough
-           on its own; both together is a solve that can fail and has to say so:
-            1. `max_width_m` — how wide the stage or the truss lets the rig be. The wall grows upward until the row no
-               longer fits, which is how `full-rig`'s 12 Flexys became 2 × 6 at 3.646 m
-            2. a **height at the sub/top interface** — stack subs until the tops' bottom edge (equivalently the sub
-               stack's top face) clears a stated height, so the tops fire over the crowd rather than into it. Above head
-               height is the point of it; the number is configurable and needs deciding,
-               ~2.0 m is the candidate. Worked against what we own: 2 Flexy tiers reach 1.526 m and miss, 2 Flexy tiers
-               plus an Achenbach row reach **2.126 m** and clear — which is exactly what
-               `full-rig-three-tier` arrived at by hand, so the constraint reproduces a stack we already trust
-            3. `min_width_m` and `max_height_m` as the other two bounds — a minimum width is how you ask for a wide
-               short wall rather than a tall narrow one out of the same cabinets, and a maximum height is a ceiling or a
-               rigging limit
-        2. **there is no common module to lean on**, which is the real work. Our five cabinets have five different
-           widths (0.4656 / 0.500 / 0.591 / 0.600 / 0.610 m) and five different heights (0.600 / 0.763 / 0.836 / 0.914 /
-           0.960 m), no two of them multiples of anything. A fill that assumes a grid will look right on the Flexys
-           alone and fall apart the moment an Achenbach or a SKRAM is in the same stack
-        3. test it twice over the whole inventory, because the second case is the one that breaks a grid assumption:
-            1. **all speakers except the two SKRAM** — 21 cabinets: 12 Flexy, 4 Achenbach, 3 Tecnare, 2 18sound. Two sub
-               widths (0.591 / 0.600 m) and two top widths (0.500 / 0.4656 m)
-            2. **all speakers including the two SKRAM** — all 23. The SKRAM is the widest cabinet we own at 0.610 m and
-               the second tallest at 0.914 m, so it is what a tier boundary has to bend around
-    2. **named layouts on top of the tetris stacking**, the way text has alignment. The stacking decides *what*
-       goes in each tier; a layout decides *how it is distributed across the width*. Wanted, borrowing the text
-       vocabulary:
-        1. `center` — natural spacing, centred on `at`. What every `row` and `lattice` does today, and the only one that
-           exists
-        2. `block` (justify) — spread to fill a stated width with equal gaps, so a tier's outer edges land where you
-           say. `scenes/full-rig-stereo.yaml` is this done by hand: `step_m: 0.8156` for the Achenbach row is "six 0.600
-           m cabinets justified across 4.678 m"
-        3. `stereo` — two columns pushed as far apart as the subs allow, with whatever is left over filling between them
-           The reason this is worth generalising rather than leaving to arithmetic: **an aimed cabinet's outer edge
-           cannot be computed from its width.** Aiming toes it in, a toed-in cabinet occupies more x than it is wide,
-           and how far it toes in depends on where it ended up — so "align this tier's edge with that one's" is a fixed
-           point, not a formula. `full-rig-stereo.yaml` needed three numbers bisected out by hand (0.8156, 2.1185,
-           2.9709) and every one of them goes stale the moment a cabinet is measured or a focus moves. The same trap
-           already bit `full-rig-all-tops.yaml`, where spacing two aimed cabinets on their widths overlapped them by 88
-           mm, and `two-foci.yaml`, where it put the fills 0.41 m inside the sub wall. A layout that resolves against
-           the rotated boxes would remove the whole class
+    1. **`align` on nested groups.** `align` takes a single `row`/`lattice` today and refuses anything nested,
+       because scaling a nested arrangement's x would stretch the inner group's spacing along with the outer
+       one's. Telling the two apart needs the level named — a key nothing shipped wants yet. Same for `arc`
+       and `line_array`, which own their own spacing and are refusals rather than gaps
+    2. **`stack` cannot over-book.** Counts come from each spec's `quantity`, so a stack places what exists.
+       `full-rig-three-tier` deliberately asks for six Achenbachs against four owned, to see whether the rig
+       would work if two more were borrowed — a `counts:` override would let a stack say the same thing
+    3. **`stereo` splits into halves only.** Column size is `floor(n/2)`; asking for 2 + 2 out of six with two
+       in the middle needs a `columns:` key. Nothing shipped wants it yet
 2. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a

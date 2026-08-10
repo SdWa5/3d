@@ -6,9 +6,9 @@
 # Every tier above is then spread to fill it:
 #
 #   sub wall        -2.6410 .. +2.0370     twelve Flexys, three groups of four
-#   achenbach row   -2.6410 .. +2.0370     six, with 216 mm of air between each
-#   tops            -2.6410 .. +2.0370     three, 2.1185 m apart instead of 1.55
-#   near-fills                             two, still 20 mm inside the outer tops
+#   achenbach row   across the sub wall    six, with 216 mm of air between each
+#   tops            across the sub wall    three, ~2.12 m apart instead of 1.55
+#   near-fills      inside the outer tops  two, 20 mm clear of them
 #
 # Spreading the mid tier is what lets the tops spread: they stand on the Achenbachs, so the row has to reach
 # out to where the tops need to be. Hence "Achenbach with spacing each" — the gaps in that row are not a
@@ -20,12 +20,12 @@
 # tops 1.55 m apart, and the centre of the room is covered by the middle cabinet alone. That is the trade a
 # wide stereo image always is, and it is why the near-fills matter more here than in the narrow version.
 #
-# EVERY STEP IN THIS FILE IS SOLVED, NOT DERIVED, and that is the honest state of it. Aligning an *aimed*
-# cabinet's outer edge cannot be computed from widths: aiming toes it in, a toed-in cabinet occupies more x
-# than it is wide, and how far it toes in depends on where it ended up — so the answer is a fixed point, not
-# a formula. 2.1185 puts the outer tops' turned boxes exactly on the wall's edges (they toe in 11.43°);
-# 2.9709 leaves the fills exactly 20 mm inside them (they toe in 30.90°). Generalising this into a layout
-# the compiler can work out is on TODO.md.
+# NOT ONE STEP IN THIS FILE IS A NUMBER ANY MORE. It used to carry three — 0.8156, 2.1185 and 2.9709 — each
+# bisected by hand, because aligning an *aimed* cabinet's outer edge cannot be computed from widths: aiming
+# toes it in, a toed-in cabinet occupies more x than it is wide, and how far it toes in depends on where it
+# ended up, so the answer is a fixed point rather than a formula. `align` states the intent instead and the
+# compiler solves the fixed point against the same rotated boxes it uses for everything else, so the tiers
+# follow the wall when a cabinet is finally measured. The old numbers survive as the regression test.
 id: full-rig-stereo
 name: "Full rig — widest stereo image, tiers aligned on the outer edges"
 
@@ -54,35 +54,44 @@ placements:
           count: [3, 1, 1]
           gap_m: 0.02
 
-  # Spread to the wall's edges: 0.8156 m of step for a 0.600 m cabinet is 216 mm of air between each. Not
-  # a wall any more — six separate cabinets carrying the tier above at the width it needs.
+  # Spread to the wall's edges, which works out at 216 mm of air between each 0.600 m cabinet. Not a wall
+  # any more — six separate cabinets carrying the tier above at the width it needs.
   - id: achenbach-row
     device: achenbach-18
     on: sub-wall
     at: [-0.302, 0.0]
+    align:
+      mode: block
+      across: sub-wall
     row:
       count: 6
-      step_m: 0.8156
 
-  # The long throw, as far apart as the rig goes. The outer two land exactly on the wall's edges.
+  # The long throw, as far apart as the rig goes. The outer two land exactly on the wall's edges — which is
+  # a solve and not a sum, because they are aimed and so toe in by 11.43° once they get there.
   - id: tops
     device: tecnare-m2122
     on: achenbach-row
     at: [-0.302, 0.0]
     aim: far
+    align:
+      mode: block
+      across: sub-wall
     row:
       count: 3
-      step_m: 2.1185
 
-  # Near-field fill, still 20 mm inside the outer tops — which have moved, so this has moved with them.
+  # Near-field fill, 20 mm inside the outer tops — `inside` and not `across`, because what a fill goes
+  # between is the tops' facing edges (3.628 m) and not their overall span (4.678 m).
   - id: near-fills
     device: eighteensound-2way-15
     on: achenbach-row
     at: [-0.302, 0.0]
     aim: near
+    align:
+      mode: block
+      inside: tops
+      inset_m: 0.020
     row:
       count: 2
-      step_m: 2.9709
 
 notes: |
   Three versions of the same twenty-three cabinets, narrowest to widest:
