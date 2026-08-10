@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.31.1] - 2026-08-11
+
+### Removed
+
+- `scenes/aimed-close.yaml` — the full rig aimed at a 2 m / 1 m focus instead of 10 m / 1.8 m
+- `scenes/driver-detail.yaml` — a contact sheet of three baffles
+
 ## [0.31.0] - 2026-08-11
 
 ### Added
