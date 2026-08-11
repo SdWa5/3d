@@ -47,6 +47,15 @@ final class Stack
     public const DEFAULT_INTERFACE_HEIGHT_M = 2.0;
 
     /**
+     * How much two cabinets must overlap in x before one counts as standing on the other.
+     *
+     * A micrometre. Cabinets in neighbouring runs are separated by a working gap, so this only has to rule out
+     * the case where two spans touch exactly at an edge — which happens, because a row's cabinets are laid out
+     * by repeated addition and a boundary can land on a hair.
+     */
+    private const CONTACT_EPSILON_M = 1e-6;
+
+    /**
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      */
     public function __construct(
@@ -179,95 +188,149 @@ final class Stack
     public function expand(Placement $placement, array $tiers): array
     {
         $at = $placement->at ?? [0.0, 0.0];
-
         $placements = [];
-        $support = null;
+
+        /** @var list<array{id: string, lo: float, hi: float, top: float}> $below what this tier lands on */
+        $below = [];
 
         foreach ($tiers as $index => $tier) {
-            $seats = $tier->seats($this->gapM);
-            $tallest = null;
-            $tallestHeight = -INF;
+            $runs = $this->runsFor($tier, $below);
+            $isTop = $index === count($tiers) - 1;
+            $current = [];
 
-            foreach ($seats as $segment => [$device, $count, $offsetX]) {
-                // Letters for a mixed row's segments, so they cannot be confused with the numeric `-1`,
-                // `-2` suffixes a group appends to every copy it makes.
+            foreach ($runs as $slot => $run) {
+                // Letters when a tier lands in more than one place, so they cannot be confused with the
+                // numeric `-1`, `-2` suffixes a group appends to every copy it makes.
                 $id = sprintf(
                     '%s/%d%s',
                     $placement->id,
                     $index + 1,
-                    $tier->isMixed() ? chr(ord('a') + $segment) : '',
+                    count($runs) > 1 ? chr(ord('a') + $slot) : '',
                 );
 
                 $placements[] = new Placement(
                     id: $id,
-                    deviceId: $device->id,
-                    at: [$at[0] + $offsetX, $at[1]],
+                    deviceId: $run['device']->id,
+                    at: [$at[0] + ($run['lo'] + $run['hi']) / 2, $at[1]],
                     yawDeg: $placement->yawDeg,
                     pitchDeg: $placement->pitchDeg,
                     rollDeg: $placement->rollDeg,
                     aimAt: $tier->isSub() ? null : $placement->aimAt,
                     aimFocus: $tier->isSub() ? null : $placement->aimFocus,
-                    on: $support,
+                    on: $run['on'],
                     fly: null,
-                    group: new GroupStack([new Lattice([$count, 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X)]),
+                    group: new GroupStack([
+                        new Lattice([$run['count'], 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X),
+                    ]),
                     aimLines: $placement->aimLines,
-                    // Only the **top** tier is spread, and only as wide as the tier holding it up. Both
-                    // halves of that matter, and each was learned the hard way:
+                    // Only the **top** tier is spread, and only as wide as what holds it up. Both halves of
+                    // that matter, and each was learned the hard way:
                     //
                     // * Spreading a tier turns it into gaps, and a tier that carries another then holds it
                     //   up over thin air — justifying every tier of the whole inventory put two Flexys
                     //   6.76 m apart with the middle Tecnare floating over the space between them.
                     // * Spreading even the top tier to the *bottom* row's width is no better: the two
                     //   2-ways went to ±1.84 m while the Tecnare row carrying them spans 1.54 m, so they
-                    //   stood on nothing at all. A tier can only be distributed across its own support.
+                    //   stood on nothing at all.
                     //
-                    // The bottom tier has no support to measure, a mixed tier is several placements with
-                    // nothing sensible to distribute one at a time, and a segment of one cabinet has nothing
-                    // to spread.
-                    align: $index === 0 || $index !== count($tiers) - 1 || $tier->isMixed() || $count < 2
+                    // A tier that landed in several places is left alone: each run has its own support and
+                    // its own width, and there is no single envelope to justify them into.
+                    align: !$isTop || $index === 0 || count($runs) > 1 || $run['count'] < 2 || $run['on'] === null
                         ? null
-                        : self::envelopeFor(
-                            $this->alignFor($tier, $placement->align),
-                            self::supportEnvelope($tiers, $index, $this->gapM, $placement->id),
-                        ),
+                        : self::envelopeFor($this->alignFor($tier, $placement->align), [$run['on'], null]),
                 );
 
-                if ($device->dimensions->height > $tallestHeight) {
-                    $tallestHeight = $device->dimensions->height;
-                    $tallest = $id;
-                }
+                $current[] = [
+                    'id' => $id,
+                    'lo' => $run['lo'],
+                    'hi' => $run['hi'],
+                    'top' => $run['top'] + $run['device']->dimensions->height,
+                ];
             }
 
-            // Whatever comes next stands on the **tallest** segment of this row, because that is the top
-            // face `on:` reads and the one the cabinets physically rest on. For a stepped row the tier above
-            // bridges the short segments, which {@see StackSolver} warns about rather than hides.
-            $support = $tallest;
+            $below = $current;
         }
 
         return $placements;
     }
 
     /**
-     * The tier directly below `$index` as an envelope: its id when it is one placement, or its width when it
-     * is mixed and so has no single id to name.
+     * A tier's cabinets grouped into the placements they actually land as — **gravity, one cabinet at a time**.
      *
-     * The tier below is the *support*, and that is the only honest envelope for a tier being spread — a row
-     * distributed wider than what it stands on is a row standing on air.
+     * This is the whole of it: a cabinet falls until it hits whatever is under *it*, not until it reaches the
+     * height of the tallest thing in the row below. A row of Flexys with two SKRAMs in the middle is 151 mm
+     * taller in the middle, so the Flexys above the SKRAMs rest at 0.914 m and the ones above Flexys at 0.763 —
+     * an uneven top, and nothing hanging in the air. Resting the whole row at the tallest height was what left
+     * four Flexys floating; refusing to mix heights at all was the wrong fix for it.
      *
-     * @param list<Tier> $tiers
-     * @return array{?string, ?float}
+     * Adjacent cabinets sharing a device **and** a support become one placement, so a tier standing on level
+     * ground is still a single row and only a stepped one splits. `on:` then does the rest: it reads the
+     * support's own top face, so every height still comes out of the specs and none is written down.
+     *
+     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     * @return list<array{device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null}>
      */
-    private static function supportEnvelope(array $tiers, int $index, float $gapM, string $stackId): array
+    private function runsFor(Tier $tier, array $below): array
     {
-        $below = $tiers[$index - 1] ?? null;
-        if ($below === null) {
-            return [null, null];
+        $runs = [];
+
+        foreach ($tier->seats($this->gapM) as [$device, $count, $centreX]) {
+            $width = $device->dimensions->width;
+            $span = $count * $width + ($count - 1) * $this->gapM;
+            $x = $centreX - $span / 2;
+
+            for ($seat = 0; $seat < $count; ++$seat) {
+                ['on' => $on, 'top' => $top] = self::landsOn($below, $x, $x + $width);
+
+                $last = $runs === [] ? null : $runs[count($runs) - 1];
+                if ($last !== null && $last['device'] === $device && $last['on'] === $on) {
+                    $runs[count($runs) - 1]['count'] = $last['count'] + 1;
+                    $runs[count($runs) - 1]['hi'] = $x + $width;
+                } else {
+                    $runs[] = [
+                        'device' => $device,
+                        'count' => 1,
+                        'lo' => $x,
+                        'hi' => $x + $width,
+                        'top' => $top,
+                        'on' => $on,
+                    ];
+                }
+
+                $x += $width + $this->gapM;
+            }
         }
 
-        return $below->isMixed()
-            ? [null, $below->widthM($gapM)]
-            : [sprintf('%s/%d', $stackId, $index), null];
+        return $runs;
     }
+
+    /**
+     * What a cabinet spanning `$lo`..`$hi` comes to rest on: the **highest** thing under it, or the floor.
+     *
+     * Highest rather than first, because that is what falling does — a cabinet bridging a Flexy and a SKRAM
+     * settles on the SKRAM and leaves a gap over the Flexy, which is exactly the shim a crew would put in.
+     *
+     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     * @return array{on: string|null, top: float}
+     */
+    private static function landsOn(array $below, float $lo, float $hi): array
+    {
+        $on = null;
+        $top = 0.0;
+
+        foreach ($below as $candidate) {
+            $overlaps = $candidate['lo'] < $hi - self::CONTACT_EPSILON_M
+                && $candidate['hi'] > $lo + self::CONTACT_EPSILON_M;
+
+            if ($overlaps && ($on === null || $candidate['top'] > $top)) {
+                $on = $candidate['id'];
+                $top = $candidate['top'];
+            }
+        }
+
+        return ['on' => $on, 'top' => $top];
+    }
+
 
     /**
      * @param array{?string, ?float} $envelope

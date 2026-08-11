@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-08-11
+
+### Changed
+
+- **Gravity: each cabinet in a stack lands on whatever is under it**, not on the height of the tallest cabinet
+  in the row below. A tier is now expanded as one placement per *run* — adjacent cabinets sharing a device and
+  a support — so a tier on level ground is still one row and only a stepped one splits. `Stack::runsFor()`
+- **Mixed rows of different heights are legitimate again.** This is the arrangement the mixed bottom row exists
+  for: two SKRAMs in the middle of a Flexy row. It was banned in 0.32.0 after that row left four of six Flexys
+  floating 151 mm up — but the floating came from resting the whole row above at the taller height, not from
+  the mixing. Banning it removed the symptom and the feature with it
+- **All twenty-three cabinets go into one stack again**, and nothing is left out. `scenes/stacked-center.yaml`
+  is regenerated: `2× flexy + 2× skram + 2× flexy` on the floor, two 4-wide Flexy rows, the Achenbachs, and
+  every top in one row
+- The stepped-row warning is gone. It said the tier above "rests on the tall cabinets and bridges the short
+  ones", which was true of the old placement and is exactly what gravity fixed
+
+### Removed
+
+- `Stack::supportEnvelope()`, superseded by each run knowing its own support
+
 ## [0.34.1] - 2026-08-11
 
 ### Removed

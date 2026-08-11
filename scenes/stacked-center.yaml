@@ -5,20 +5,19 @@
 #
 # What it deals out today:
 #
-#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   2  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   3  4× achenbach-18                                                           2.46 m wide
-#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
+#   2  4× flexy-folded-horn-hybrid                                              2.424 m wide
+#   3  4× flexy-folded-horn-hybrid                                              2.424 m wide
+#   4  4× achenbach-18                                                           2.46 m wide
+#   5  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.126 m, so the tops clear the 2.0 m interface. The stack is 3.086 m of cabinet.
-#
-# The build report will warn about this, and both are real:
-#   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is stepped by 124 mm, so
-#     whatever stands on it rests on the tall cabinets and bridges the short ones
+# Subs reach 3.04 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
+#   * the 4× achenbach-18 row is 2.460 m on a 2.424 m row, so it overhangs 18 mm each side
 #   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is 2.511 m on a 2.460 m row,
 #     so it overhangs 26 mm each side
+#
 id: stacked-center
-name: "Solved rig — tiers centred"
+name: "Solved rig — one stack, tiers centred"
 
 focus:
   far:
@@ -37,6 +36,7 @@ placements:
       interface_height_m: 2.0
       gap_m: 0.02
       from:
+        - skram
         - flexy-folded-horn-hybrid
         - achenbach-18
         - tecnare-m2122

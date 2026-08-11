@@ -237,30 +237,66 @@ final class StackTest extends TestCase
     }
 
     /**
-     * A stack that cannot be solved contributes nothing and says why; the rest of the scene still builds.
+     * A stack whose bounds cannot be met contributes nothing and says why; the rest of the scene still builds.
      *
-     * "Cannot be solved" now means **cannot stand up**, not "cannot reach the interface height" — a low rig is
-     * a warning. The whole inventory is the case: a two-wide SKRAM row is unmixable (nothing shares its
-     * height) and too narrow to carry the Achenbach row above it, at any row width.
+     * A stage narrower than a single cabinet is the honest case now. "Cannot be solved" no longer means
+     * "cannot reach the interface height" (a low rig is a warning) nor "cannot mix heights" (gravity handles a
+     * stepped row).
      */
-    public function testAStackThatCannotStandUpReportsAndPlacesNothing(): void
+    public function testAStackWhoseBoundsCannotBeMetReportsAndPlacesNothing(): void
     {
         $result = (new SceneCompiler($this->devices))->compile($this->scene([
             ['id' => 'main', 'at' => [0.0, 0.0], 'stack' => [
-                'max_width_m' => 3.7, 'interface_height_m' => 2.0,
-                'from' => [
-                    'flexy-folded-horn-hybrid', 'skram', 'achenbach-18',
-                    'tecnare-m2122', 'eighteensound-2way-15',
-                ],
+                'max_width_m' => 0.4, 'interface_height_m' => 0.0,
+                'from' => ['flexy-folded-horn-hybrid'],
             ]],
             ['id' => 'elsewhere', 'device' => 'skram', 'at' => [8.0, 0.0]],
         ]));
 
         self::assertCount(1, $result['placed'], 'only the SKRAM, which has nothing to do with the stack');
         self::assertStringContainsString(
-            'stands on nothing',
+            'stack.max_width_m',
             implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
         );
+    }
+
+    /**
+     * **Gravity.** Each cabinet above a stepped row lands on whatever is under *it*, not on the height of the
+     * tallest cabinet in the row below.
+     *
+     * This is the test for the bug that took three attempts to get right. A Flexy bottom row with two SKRAMs in
+     * the middle is 151 mm taller in the middle; resting the whole row above at 0.914 m left four of its six
+     * Flexys hanging in the air over the Flexys either side. Banning mixed heights removed the symptom and the
+     * feature with it. Landing each cabinet individually keeps both: an uneven top, and everything carried.
+     */
+    public function testEachCabinetLandsOnWhateverIsUnderIt(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
+                'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
+                'from' => [
+                    'flexy-folded-horn-hybrid', 'skram', 'achenbach-18',
+                    'tecnare-m2122', 'eighteensound-2way-15',
+                ],
+            ]],
+        ]);
+
+        self::assertCount(23, $placed, 'every cabinet we own, in one stack');
+
+        // The second tier splits into three: over the left Flexys, over the SKRAMs, over the right Flexys.
+        $bottomOf = function (string $run) use ($placed): float {
+            $zs = array_map(
+                static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
+                array_values(array_filter($placed, static fn (PlacedDevice $e): bool => self::belongsTo($e, $run))),
+            );
+            self::assertNotSame([], $zs, $run.' was not placed');
+
+            return min($zs);
+        };
+
+        self::assertEqualsWithDelta(0.763, $bottomOf('main/2a'), 1e-9, 'over a Flexy');
+        self::assertEqualsWithDelta(0.914, $bottomOf('main/2b'), 1e-9, 'over a SKRAM, 151 mm higher');
+        self::assertEqualsWithDelta(0.763, $bottomOf('main/2c'), 1e-9, 'over a Flexy again');
     }
 
     public function testAStackRefusesADeviceOfItsOwn(): void

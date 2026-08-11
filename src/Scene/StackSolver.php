@@ -250,17 +250,7 @@ final class StackSolver
                     );
                     continue;
                 }
-                if (abs($heights[$otherId] - $device->dimensions->height) > self::EPSILON_M) {
-                    $messages[] = sprintf(
-                        "stack.from '%s': cannot share a row with %s — %.3f m against %.3f m tall, and a row "
-                        .'with a step through it has two top faces, so whatever stands on it hangs in the air '
-                        .'over the short half',
-                        $device->id,
-                        $otherId,
-                        $device->dimensions->height,
-                        $heights[$otherId],
-                    );
-                }
+
             }
         }
 
@@ -275,10 +265,8 @@ final class StackSolver
      * the scene author saying "these share a row", at whatever height that device sits — which is what lifts
      * mixing off the bottom.
      *
-     * The **height gate still applies**, and it is not negotiable: a row whose cabinets are not all the same
-     * height has two top faces, so whatever stands on it rests on the tall ones and hangs in the air over the
-     * short ones. Naming a mix explicitly does not make that buildable, so a mismatched `mix_with` is ignored
-     * here and reported by {@see mixProblems}.
+     * Heights need not match: a mixed row simply has an uneven top, and {@see Stack::runsFor} lands each
+     * cabinet above it on whatever is actually under that cabinet.
      *
      * @param list<array{DeviceSpec, int}> $remaining
      * @return array{Tier, list<array{DeviceSpec, int}>}|null
@@ -295,9 +283,6 @@ final class StackSolver
         foreach ($wanted as $otherId) {
             foreach ($remaining as $other => [$otherDevice, $otherCount]) {
                 if ($other === $index || $otherDevice->id !== $otherId || $otherCount < 1) {
-                    continue;
-                }
-                if (abs($otherDevice->dimensions->height - $device->dimensions->height) > self::EPSILON_M) {
                     continue;
                 }
                 $segments[$other] = [$otherDevice, $otherCount];
@@ -561,17 +546,13 @@ final class StackSolver
 
     /**
      * The sub to flank the middle with: the one with the most cabinets left, since it is the one that can
-     * afford to give a pair away and still fill the rows above — and, crucially, **one the same height**.
+     * afford to give a pair away and still fill the rows above.
      *
-     * The height rule is not a nicety. A row of cabinets that are not all the same height has two top faces,
-     * so the tier above rests on the tall ones and hangs in the air over the short ones: a SKRAM is 0.914 m
-     * and a Flexy 0.763, and mixing them left six Flexys floating 151 mm off the row below. Calling that a
-     * shim on the day was wrong — nobody builds a wall with a step through the middle of it and then stacks
-     * on it.
-     *
-     * Our five cabinets have five different heights, so in practice this refuses every mix we could make
-     * today, and the two SKRAMs belong **beside** the rig rather than in it — which is what
-     * `scene:stack --subs=beside` is for.
+     * **Heights need not match**, and that is worth stating because it was briefly forbidden. A row whose
+     * cabinets differ in height has two top faces, and resting the whole row above at the taller of them left
+     * six Flexys floating 151 mm over the SKRAMs' neighbours. The fix for that is gravity — each cabinet lands
+     * on whatever is under *it*, see {@see Stack::runsFor} — not a ban on mixing. Banning it threw out the
+     * arrangement the feature exists for: two SKRAMs in the middle of a Flexy bottom row.
      *
      * @param list<array{DeviceSpec, int}> $remaining
      */
@@ -580,9 +561,6 @@ final class StackSolver
         $best = null;
         foreach ($remaining as $index => [$device, $count]) {
             if ($index === $centre || $count < 2 || $device->subtype !== 'sub') {
-                continue;
-            }
-            if (abs($device->dimensions->height - $centreDevice->dimensions->height) > self::EPSILON_M) {
                 continue;
             }
             if ($best === null || $count > $remaining[$best][1]) {
@@ -730,20 +708,11 @@ final class StackSolver
         $problems = [];
         $warnings = [];
 
-        $topmost = count($tiers) - 1;
-
         foreach ($tiers as $index => $tier) {
-            // A step only matters if something stands on the row. The **top** row is allowed to be as uneven
-            // as it likes — the tops row mixes an 0.960 m M2122 with an 0.836 m 2-way and always will, and
-            // warning about that was a false positive on every rig we own: nothing rests on it to bridge.
-            if ($index < $topmost && $tier->isMixed() && $tier->heightStepM() > self::EPSILON_M) {
-                $warnings[] = sprintf(
-                    'the %s row is stepped by %.0f mm, so whatever stands on it rests on the tall cabinets '
-                    .'and bridges the short ones',
-                    $tier->label(),
-                    $tier->heightStepM() * 1000,
-                );
-            }
+            // No warning for a stepped row any more. It used to say the tier above "rests on the tall
+            // cabinets and bridges the short ones", which was true of the old placement and is the thing
+            // gravity fixed: each cabinet now lands on whatever is under it, so a stepped row simply has an
+            // uneven top and everything above it is carried. See {@see Stack::runsFor}.
 
             if ($index === 0) {
                 continue;

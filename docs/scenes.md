@@ -562,11 +562,18 @@ Achenbachs ended up carrying twelve Flexys.
 **Tops do not stack — every top goes in one row**, widest in the middle. Nothing stands on a top, so width is
 the only thing it costs, and a 2-way perched on a tilted M2122 is a fill hovering over the middle of the rig.
 
-**A row must have one top face.** Cabinets of different heights are never mixed into a row, because a row with
-a step through it has two top faces and the tier above rests on the tall ones and hangs in the air over the
-short ones. Our five cabinets have five different heights, so nothing in the current inventory can be mixed —
-which is why the two SKRAMs cannot be part of a stacked rig at all: a row of them alone is 1.240 m and carries
-nothing above it.
+**Gravity: each cabinet lands on whatever is under it.** Not on the height of the tallest cabinet in the row
+below — on the thing directly beneath that particular cabinet, and on the highest of them where it bridges two.
+So a Flexy row with two SKRAMs in the middle is 151 mm taller in the middle, and the Flexys above rest at
+0.914 m over the SKRAMs and 0.763 m over the Flexys: an uneven top, and nothing hanging in the air.
+
+That is what makes a **mixed row of different heights** legitimate, which is the arrangement the mixed row exists
+for. Resting the whole row above at the taller height instead left four of six Flexys floating 151 mm up; the
+first fix was to ban mixing unequal heights, and that removed the symptom and the feature with it.
+
+A tier is expanded as one placement per **run** — a maximal group of adjacent cabinets sharing a device and a
+support — so a tier standing on level ground is still a single row, and only a stepped one splits. Heights still
+come from `on:`, so none of them is ever written into the file.
 
 **A row may be mixed, and the bottom one sometimes has to be.** Only two SKRAMs exist, so a row of nothing
 but SKRAMs is 1.240 m — narrower than the 2.460 m Achenbach row that would come to stand on it, and a stack

@@ -130,23 +130,25 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * Asked for the whole inventory, the command now **builds the rig and says what it left out** rather than
-     * refusing everything.
+     * Asked for the whole inventory, the command places **all twenty-three** cabinets in one stack.
      *
-     * The two SKRAMs cannot be in a stack: nothing shares their height so they cannot be mixed into a row, and
-     * a row of the two of them is 1.240 m and carries nothing above it. Refusing all twenty-three cabinets
-     * over that was far less useful than placing the twenty-one that work and naming the omission — which is
-     * what the solver's own error already advised doing.
+     * The SKRAMs used to be left out, because a row of the two of them carries nothing and mixing them into a
+     * Flexy row was banned after that mixed row left Flexys floating. Gravity removed the reason for the ban —
+     * each cabinet lands on whatever is under it — so the arrangement the mixed row was built for works, and
+     * the leaving-out machinery is left for cases that genuinely cannot stand up.
      */
-    public function testCabinetsThatCannotBeCarriedAreLeftOutAndReported(): void
+    public function testTheWholeInventoryGoesIntoOneStack(): void
     {
-        $tester = $this->invoke(['--max-width' => '3.70', '--interface-height' => '2.0', '--dry-run' => true]);
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--interface-height' => '2.0',
+            '--align' => ['center'], '--dry-run' => true,
+        ]);
 
-        self::assertSame(0, $tester->getStatusCode(), 'the rig that does work still gets written');
+        self::assertSame(0, $tester->getStatusCode());
 
         $output = $tester->getDisplay();
-        self::assertStringContainsString('LEFT OUT skram', $output);
-        self::assertStringContainsString('cannot be carried', $output);
+        self::assertStringNotContainsString('LEFT OUT', $output, 'nothing needs leaving out any more');
+        self::assertStringContainsString('2× skram', $output, 'the SKRAMs share the bottom row');
     }
 
     /**

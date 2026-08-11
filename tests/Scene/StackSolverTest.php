@@ -92,25 +92,28 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * The whole inventory **cannot** be one stack, and the solver has to say so rather than build a rig that
-     * falls over.
+     * The whole inventory **is** one stack, and the two SKRAMs go in the middle of the bottom row.
      *
-     * Only two SKRAMs exist, so a row of them is 1.240 m. They cannot be mixed into a wider row either,
-     * because a SKRAM is 0.914 m tall against a Flexy's 0.763 and a row with a step through it has two top
-     * faces — the tier above would rest on the tall pair and hang in the air over the rest. Left as their own
-     * row, the 2.511 m row of tops stands on 1.240 m and more than half of each outboard cabinet is off the
-     * edge. Refused, with the fix named: they belong beside the rig, not in it.
+     * This is the arrangement the feature was built for. It was briefly impossible, because mixing cabinets of
+     * different heights was banned after a mixed row left six Flexys floating — but the floating was caused by
+     * resting the whole row above at the taller cabinet's height, not by the mixing. Gravity fixed it: each
+     * cabinet lands on whatever is under *it* ({@see \App\Scene\Stack::runsFor}), so the row above a mixed row
+     * simply has an uneven top.
      */
-    public function testTheWholeInventoryCannotBeOneStackBecauseOfTheSkrams(): void
+    public function testTheWholeInventoryIsOneStackWithTheSkramsInTheBottomRow(): void
     {
-        $result = StackSolver::solve(
-            $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
-            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
+        $tiers = $this->solve(
+            ['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'],
+            maxWidthM: 3.70,
+            interfaceHeightM: 2.0,
         );
 
-        $problems = implode("\n", $result['problems']);
-        self::assertStringContainsString('overhangs 610 mm each side', $problems);
-        self::assertStringContainsString('stands on nothing', $problems);
+        self::assertSame(23, $this->cabinets($tiers), 'every cabinet we own');
+        self::assertSame(
+            '2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid',
+            $tiers[0]->label(),
+        );
+        self::assertEqualsWithDelta(3.684, $tiers[0]->widthM(0.02), 1e-9);
     }
 
     /**
@@ -182,24 +185,22 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * Cabinets of different heights are never mixed into one row, however badly a mix would help the widths.
+     * Cabinets of different heights **are** mixed, and the row is simply stepped.
      *
-     * This is the fix for the worst bug the feature had: SKRAMs mixed among Flexys left the row above resting
-     * on the tall pair and floating 151 mm over the short ones. A row has to have one top face.
-     *
-     * Our five cabinets have five different heights, so nothing in the current inventory can be mixed at all —
-     * which is why the SKRAMs end up beside the rig rather than in it.
+     * A SKRAM is 0.914 m against a Flexy's 0.763. Forbidding that combination was the wrong fix for floating
+     * subs — it also threw out the one arrangement the mixed row exists for. Nothing warns about the step any
+     * more either, because under gravity nothing bridges it.
      */
-    public function testCabinetsOfDifferentHeightsAreNeverMixedIntoOneRow(): void
+    public function testCabinetsOfDifferentHeightsAreMixedAndTheRowIsSimplyStepped(): void
     {
         $result = StackSolver::solve(
             $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18']),
             new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
         );
 
-        foreach ($result['tiers'] as $tier) {
-            self::assertFalse($tier->isMixed(), 'no two of our cabinets share a height');
-        }
+        self::assertSame([], $result['problems']);
+        self::assertTrue($result['tiers'][0]->isMixed(), 'the SKRAMs share the bottom row');
+        self::assertEqualsWithDelta(0.151, $result['tiers'][0]->heightStepM(), 1e-9);
         self::assertStringNotContainsString('stepped by', implode("\n", $result['warnings']));
     }
 
@@ -325,14 +326,12 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * A `mix_with` across different heights is **refused**, not quietly dropped.
+     * A `mix_with` naming a device of a different height is honoured, not refused.
      *
-     * Naming a mix does not make it buildable: a row whose cabinets differ in height has two top faces, so
-     * whatever stands on it rests on the tall ones and hangs over the short ones — the bug that left four
-     * Flexys 151 mm in the air. And a mix that silently does not happen is the worst outcome available, since
-     * the rig still builds and nothing in a render says the row is not the row that was asked for.
+     * The row comes out stepped and gravity deals with it. What is still refused is naming a device that is not
+     * in the stack at all, which is a typo rather than a geometry question.
      */
-    public function testMixingStillRefusesCabinetsOfDifferentHeights(): void
+    public function testMixingAcrossDifferentHeightsIsHonoured(): void
     {
         $result = StackSolver::solve(
             $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122']),
@@ -349,9 +348,8 @@ final class StackSolverTest extends TestCase
             ),
         );
 
-        $problems = implode("\n", $result['problems']);
-        self::assertStringContainsString('cannot share a row with skram', $problems);
-        self::assertStringContainsString('0.763 m against 0.914 m tall', $problems);
+        self::assertSame([], $result['problems']);
+        self::assertTrue($result['tiers'][0]->isMixed());
     }
 
     /** Naming a device that is not in this stack at all is refused rather than ignored. */
