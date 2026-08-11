@@ -608,6 +608,18 @@ A mixed tier expands into one placement per segment (`main/1a`, `main/1b`, `main
 be confused with the numeric copy suffixes), and it is not `align`ed, because there is nothing sensible to
 distribute one segment at a time.
 
+**A cabinet with nothing under it at all is an error.** Falling puts it on the floor, which for a tier above the
+bottom means *inside* the tier below. Unreachable in practice — but it used to be held only by the tier-width
+rule refusing the shapes that cause it, which is two rules agreeing rather than the invariant being kept.
+
+**A sub tier narrowed to a single column is refused.** The interface chase had no floor: narrower rows mean more
+of them and so a taller stack, so on a pile it could not otherwise lift the search kept narrowing, and
+`--per-owner` gave `sdwa5` a rig 1.8 m across and 4.9 m tall. Every other rule passed it — each tier exactly as
+wide as the one below, nothing overhanging, every cabinet carried — because a column is never more than half a
+cabinet wider than the column beneath it. It also came out marginal in the ways only a full compile shows: two
+aimed tops 3 m up biting 10.6 mm into each other, and a top bearing on 43 % of its own footprint. So the ordering
+extends: support outranks the interface, and a rig that stands up as a rig outranks reaching the height.
+
 **Bearing is checked per cabinet, not just per tier.** How much of a cabinet is over the thing it landed on, as
 a fraction of its own width; under half is an error. Comparing tier widths cannot see this and neither can the
 shipped-scene sweep: a flanked Achenbach row is 163 mm taller at its shoulders, and a top row laid contiguously
@@ -655,6 +667,11 @@ bin/console scene:stack --max-width=3.70 --interface-height=2.0
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
+
+A generated scene is **re-solved on every build**, so everything the solve decided has to be in the file. A split
+rig therefore writes each stack's share as `count:`, and a turned one writes `roll_mirror:`. Both were once left
+out, and a share left out is the worse of the two: a rig reported as two stacks of eleven was *built* with every
+stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
 | `--max-scenes=N` | refuse past this many. Default 24 |
@@ -741,6 +758,13 @@ placement instead of two.
   a cell's position depend on its neighbours while the anchor sits in the middle, so changing the cycle
   would move whatever stacks on the placement. The cost only shows up mixing quarter turns with half turns,
   which is not a real setup — `[0, 180]` and `[90, 270]` both leave the extent alone.
+* **An all-quarter-turn cycle derives its own spacing**, by laying out the **bodies** at a uniform pitch rather
+  than the origins. That distinction is the whole of it: a rolled cabinet is not centred on its origin, so
+  uniform origins drive adjacent rolled cabinets 591 mm into each other. `full-rig-quarter-turned.yaml` used to
+  work around it with a hand-stated `step_m: 0.02` inside a two-cabinet row nested twice; it is now one row of
+  six with a `gap_m`, and the geometry is identical to the micrometre. A cycle mixing `0` with `90` still cannot
+  — those bodies are two different widths, so there is no uniform pitch — and a stated `step_m` always wins,
+  because that is the author overriding the spacing outright.
 
 ### `roll_mirror` — the halves turned opposite ways
 

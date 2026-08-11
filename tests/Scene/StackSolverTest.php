@@ -504,6 +504,67 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * A cabinet with **nothing** under it is an error, not a silent drop to the floor.
+     *
+     * Falling puts a cabinet on the floor when it finds nothing beneath it, which for a tier above the bottom
+     * means inside the tier below. It was unreachable — but only because the tier-width rule happens to refuse
+     * the shapes that cause it, so the invariant was held by a coincidence of two rules agreeing rather than by
+     * itself. Here the row above is wide enough that its outer cabinets miss the base entirely.
+     */
+    public function testACabinetWithNothingUnderItIsAnError(): void
+    {
+        $tiers = [
+            Tier::of($this->devices['achenbach-18'], 1),
+            Tier::of($this->devices['achenbach-18'], 5),
+        ];
+
+        $check = new \ReflectionMethod(StackSolver::class, 'supportChecks');
+        $problems = $check->invoke(null, $tiers, new Stack(from: [], maxWidthM: null, interfaceHeightM: 0.0, gapM: 0.02))['problems'];
+
+        self::assertStringContainsString('nothing under it at all', implode("\n", $problems));
+        self::assertStringContainsString('would fall to the floor', implode("\n", $problems));
+    }
+
+    /**
+     * A sub tier narrowed to a single column is refused — a pillar rather than a rig.
+     *
+     * The interface chase had no floor: narrower rows mean more of them and so a taller stack, so on a pile it
+     * cannot otherwise lift, the search kept narrowing until `--per-owner` gave `sdwa5` a rig 1.8 m across and
+     * 4.9 m tall. Every other rule passed it — each tier exactly as wide as the one below, nothing overhanging,
+     * every cabinet carried — because a column is never more than half a cabinet wider than the column beneath
+     * it. Missing the interface is a warning; a tower is not an answer.
+     */
+    public function testASubTierNarrowedToASingleColumnIsRefused(): void
+    {
+        // The refusal works by steering the search, so the usual outcome is a wider rig and a warning rather
+        // than a message: an unreachable 12 m interface no longer buys a tower of one-wide tiers.
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'tecnare-m2122']),
+            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 12.0, gapM: 0.02),
+        );
+
+        self::assertSame([], $result['problems']);
+        foreach ($result['tiers'] as $tier) {
+            if ($tier->isSub()) {
+                self::assertGreaterThan(1, $tier->count(), 'no sub tier is a single column');
+            }
+        }
+        self::assertStringContainsString('interface', implode("\n", $result['warnings']));
+
+        // The message itself surfaces only when a column is the *only* thing that fits — here a stage narrower
+        // than two Flexys, where every arrangement is a pillar and there is nothing better to fall back to.
+        $narrow = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'tecnare-m2122']),
+            new Stack(from: [], maxWidthM: 0.70, interfaceHeightM: 2.0, gapM: 0.02),
+        );
+        self::assertStringContainsString('is a single column', implode("\n", $narrow['problems']));
+
+        // And with a reachable interface the same inventory is untouched.
+        $sane = $this->solve(['flexy-folded-horn-hybrid', 'tecnare-m2122'], maxWidthM: 3.70, interfaceHeightM: 2.0);
+        self::assertSame([4, 4, 4, 3], array_map(static fn (Tier $t): int => $t->count(), $sane));
+    }
+
+    /**
      * A cabinet landing on less than half its own width is an error, however tidy the tier widths look.
      *
      * The gap the bearing check fills, in the geometry that found it. A single SKRAM between two Flexys makes a

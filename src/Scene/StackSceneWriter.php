@@ -62,17 +62,34 @@ final class StackSceneWriter
                 $lines[] = sprintf('      %s: %s', $key, self::number($value));
             }
             $lines[] = '      from:';
+            $counts = $block->counts();
+            $owned = $block->owned();
             foreach ($block->from as $deviceId) {
-                // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
-                // It has to be written: a scene is re-solved on every build, and a roll left out of the file
-                // would come back upright the next time anybody ran `scene:build`.
+                // Everything the solve decided has to be written, because a `stack:` block is **re-solved on
+                // every build**. A roll left out comes back upright; a share left out comes back as the whole
+                // inventory, which is how two stacks 0.5 m apart ended up 561 mm inside each other.
                 $roll = $block->stack->entryFor($deviceId)?->rollMirror;
-                if ($roll === null) {
+                $count = $counts[$deviceId] ?? 0;
+
+                if ($count < 1) {
+                    // Not in the solve at all — listing it would invite the re-solve to place it after all.
+                    continue;
+                }
+
+                // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
+                $share = $count !== ($owned[$deviceId] ?? $count) ? $count : null;
+                if ($roll === null && $share === null) {
                     $lines[] = sprintf('        - %s', $deviceId);
                     continue;
                 }
+
                 $lines[] = sprintf('        - device: %s', $deviceId);
-                $lines[] = sprintf('          roll_mirror: %s', self::number($roll));
+                if ($share !== null) {
+                    $lines[] = sprintf('          count: %d', $share);
+                }
+                if ($roll !== null) {
+                    $lines[] = sprintf('          roll_mirror: %s', self::number($roll));
+                }
             }
             $lines[] = '';
         }

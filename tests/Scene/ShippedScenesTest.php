@@ -172,56 +172,72 @@ final class ShippedScenesTest extends TestCase
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
     public function testEveryCabinetAboveTheFloorHasSomethingUnderIt(string $sceneId): void
     {
-        $placed = $this->compile($sceneId);
+        $this->assertEveryCabinetIsCarried($this->compile($sceneId), $sceneId);
+    }
 
+    /**
+     * @param list<PlacedDevice> $placed
+     */
+    private function assertEveryCabinetIsCarried(array $placed, string $where): void
+    {
         foreach ($placed as $entry) {
             $box = $entry->worldBox();
             if ($box['min'][2] < self::CONTACT_TOLERANCE_M || $entry->flyPoint !== null) {
                 continue;
             }
 
-            $bearing = $this->bearingOf($entry, $placed);
-
             // Not just *something* under it — enough of it. Presence alone passes a cabinet balanced on a
             // 5.6 mm sliver of a taller neighbour, which is exactly what a stepped row produces and what
-            // measuring tier widths cannot see either. Half its own footprint, the same line
+            // measuring tier widths cannot see either. Half its own extent, the same line
             // {@see \App\Scene\Gravity::MIN_BEARING} draws inside the solver.
-            self::assertGreaterThan(
-                0.5,
-                $bearing,
-                sprintf(
-                    '%s in %s sits at %.3f m on %.1f%% of its own footprint',
-                    $entry->placementId,
-                    $sceneId,
-                    $box['min'][2],
-                    $bearing * 100,
-                ),
-            );
+            //
+            // **Per axis, not as an area.** Multiplying the two fractions was wrong and had been since this
+            // check was written: a Flexy is 964 mm deep and a SKRAM 813, so a Flexy standing squarely on a
+            // SKRAM covers 84 % of its own depth however perfectly it is centred, and the product read 43 % for
+            // a cabinet that is properly stacked. Cabinets of different depths sit on each other in every rig
+            // there is. What matters is that neither axis is more than half off.
+            foreach (['x' => 0, 'y' => 1] as $name => $axis) {
+                $bearing = $this->bearingOf($entry, $placed, $axis);
+
+                self::assertGreaterThan(
+                    0.5,
+                    $bearing,
+                    sprintf(
+                        '%s in %s sits at %.3f m on %.1f%% of its own %s extent',
+                        $entry->placementId,
+                        $where,
+                        $box['min'][2],
+                        $bearing * 100,
+                        $name,
+                    ),
+                );
+            }
         }
     }
 
     /**
-     * How much of this cabinet's footprint has something under it, as a fraction — 0 for one in mid-air.
+     * How much of this cabinet's `$axis` extent has something under it, as a fraction — 0 for one in mid-air.
      *
      * Everything whose top face meets this cabinet's bottom face counts, and the covered areas are summed: a
      * cabinet bridging two neighbours is carried by both, and a row is normally spread across several supports.
      *
      * Deliberately measured against the **rotated** bounding box, so an aimed top is judged on the box it
      * actually occupies. That understates a yawed cabinet — the box grows while the cabinet does not — which
-     * makes the check conservative in the one direction that matters. The tightest shipped case is a yawed
-     * Tecnare at 57 %.
+     * makes the check conservative in the one direction that matters.
      *
      * @param list<PlacedDevice> $placed
      */
-    private function bearingOf(PlacedDevice $entry, array $placed): float
+    private function bearingOf(PlacedDevice $entry, array $placed, int $axis): float
     {
         $box = $entry->worldBox();
-        $area = ($box['max'][0] - $box['min'][0]) * ($box['max'][1] - $box['min'][1]);
-        if ($area <= 0.0) {
+        $extent = $box['max'][$axis] - $box['min'][$axis];
+        if ($extent <= 0.0) {
             return 0.0;
         }
 
-        $covered = 0.0;
+        // The union of what is under it, projected onto this axis — a union rather than a sum, so a cabinet
+        // resting on two overlapping supports is not credited twice.
+        $spans = [];
         foreach ($placed as $other) {
             if ($other === $entry) {
                 continue;
@@ -232,21 +248,160 @@ final class ShippedScenesTest extends TestCase
                 continue;
             }
 
-            $x = min($box['max'][0], $under['max'][0]) - max($box['min'][0], $under['min'][0]);
-            $y = min($box['max'][1], $under['max'][1]) - max($box['min'][1], $under['min'][1]);
-            if ($x > self::CONTACT_TOLERANCE_M && $y > self::CONTACT_TOLERANCE_M) {
-                $covered += $x * $y;
+            $overlap = [];
+            foreach ([0, 1] as $plan) {
+                $overlap[$plan] = min($box['max'][$plan], $under['max'][$plan])
+                    - max($box['min'][$plan], $under['min'][$plan]);
+            }
+            if ($overlap[0] <= self::CONTACT_TOLERANCE_M || $overlap[1] <= self::CONTACT_TOLERANCE_M) {
+                continue;
+            }
+
+            $spans[] = [
+                max($box['min'][$axis], $under['min'][$axis]),
+                min($box['max'][$axis], $under['max'][$axis]),
+            ];
+        }
+
+        usort($spans, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $covered = 0.0;
+        $reach = -INF;
+        foreach ($spans as [$lo, $hi]) {
+            $lo = max($lo, $reach);
+            if ($hi > $lo) {
+                $covered += $hi - $lo;
+                $reach = $hi;
             }
         }
 
-        return $covered / $area;
+        return $covered / $extent;
+    }
+
+    /**
+     * Every rig `scene:stack` can produce, through the same two sweeps.
+     *
+     * The gap this closes: `sceneCases()` enumerates `scenes/*.yaml`, so a rig that exists only as a command
+     * invocation was checked for support by the solver and never by the separating-axis or bearing sweeps —
+     * which is exactly where the risky geometry is. Turned subs, mirrored halves, several stacks side by side
+     * and an over-booked Achenbach row all live here and in no scene file.
+     *
+     * The **command** generates it and the **writer** produces the YAML, so the round trip is on the path too:
+     * a roll left out of the written file would come back upright, and only re-reading the file catches that.
+     *
+     * @return iterable<string, array{list<string>, array<string, mixed>}>
+     */
+    public static function generatedRigCases(): iterable
+    {
+        $all = ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'];
+        $noSkram = ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'];
+
+        yield 'everything, unbounded' => [$all, []];
+        yield 'everything on a 3.70 m stage' => [$all, ['--max-width' => '3.70']];
+        yield 'chasing a 12 m interface' => [$all, ['--interface-height' => '12.0']];
+        yield 'one stack per owner' => [$all, ['--per-owner' => true]];
+        yield 'two stacks' => [$all, ['--stacks' => '2', '--max-width' => '3.70']];
+        yield 'three stacks' => [$all, ['--stacks' => '3', '--max-width' => '3.70']];
+        yield 'subs on their sides' => [
+            $noSkram,
+            ['--max-width' => '3.70', '--roll-mirror' => ['flexy-folded-horn-hybrid']],
+        ];
+    }
+
+    /**
+     * @param list<string> $from
+     * @param array<string, mixed> $options
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('generatedRigCases')]
+    public function testEveryGeneratedRigIsBuildableGeometry(array $from, array $options): void
+    {
+        $placed = $this->compileGenerated($from, $options);
+        if ($placed === null) {
+            return;
+        }
+
+        $label = 'scene:stack '.json_encode($options, JSON_THROW_ON_ERROR);
+        $this->assertNoTwoCabinetsAreInsideEachOther($placed, $label);
+        $this->assertEveryCabinetIsCarried($placed, $label);
+    }
+
+    /**
+     * Runs the real command, writes what it printed into a temp directory and loads it back.
+     *
+     * Null when the command refused the arrangement — which is a legitimate answer for some of these, and the
+     * reason it is checked rather than skipped: a refusal has to **say why**. A silent skip would let a rig
+     * that stopped being solvable pass as "nothing to check".
+     *
+     * @param list<string> $from
+     * @param array<string, mixed> $options
+     * @return list<PlacedDevice>|null
+     */
+    private function compileGenerated(array $from, array $options): ?array
+    {
+        $command = new \App\Command\SceneStackCommand();
+        $application = new \Symfony\Component\Console\Application();
+        $application->add($command);
+
+        $tester = new \Symfony\Component\Console\Tester\CommandTester($command);
+        $tester->execute([
+            '--from' => $from,
+            '--align' => ['center'],
+            '--dry-run' => true,
+        ] + $options);
+        $display = $tester->getDisplay();
+
+        if ($tester->getStatusCode() !== 0) {
+            self::assertMatchesRegularExpression(
+                '/cannot|refus|no workable|LEFT OUT|already/i',
+                $display,
+                'a refused arrangement has to say why',
+            );
+
+            return null;
+        }
+
+        $at = strpos($display, '# Generated by');
+        self::assertNotFalse($at, "the command printed no scene:\n".$display);
+
+        $dir = \App\Tests\Support\SpecFactory::tempDir('sdwa5-3d-generated-');
+        try {
+            $path = $dir.'/generated.yaml';
+            file_put_contents($path, substr($display, $at));
+
+            $devices = [];
+            foreach ((new SpecLoader(dirname(__DIR__, 2).'/specs'))->loadAll()['specs'] as $spec) {
+                /** @var DeviceSpec $spec */
+                $devices[$spec->id] = $spec;
+            }
+
+            $scene = (new SceneLoader($dir))->find($path)['scene'];
+            self::assertNotNull($scene, 'the written scene did not load back');
+
+            $result = (new SceneCompiler($devices))->compile($scene);
+            self::assertSame(
+                [],
+                array_map(static fn ($v): string => $v->message, \App\Spec\Violation::errorsIn($result['violations'])),
+                'a written scene has to compile cleanly',
+            );
+
+            return $result['placed'];
+        } finally {
+            \App\Tests\Support\SpecFactory::removeDir($dir);
+        }
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
     public function testNoTwoCabinetsAreInsideEachOther(string $sceneId): void
     {
-        $placed = $this->compile($sceneId);
-        self::assertNotSame([], $placed, "scene '{$sceneId}' placed nothing");
+        $this->assertNoTwoCabinetsAreInsideEachOther($this->compile($sceneId), $sceneId);
+    }
+
+    /**
+     * @param list<PlacedDevice> $placed
+     */
+    private function assertNoTwoCabinetsAreInsideEachOther(array $placed, string $where): void
+    {
+        self::assertNotSame([], $placed, "'{$where}' placed nothing");
 
         $hulls = array_map(fn (PlacedDevice $entry): array => $this->corners($entry), $placed);
 
@@ -274,7 +429,7 @@ final class ShippedScenesTest extends TestCase
         self::assertGreaterThan(
             -self::TOLERANCE_M,
             $worst,
-            sprintf('%s are %.4f m inside each other in %s', $offenders, -$worst, $sceneId),
+            sprintf('%s are %.4f m inside each other in %s', $offenders, -$worst, $where),
         );
     }
 

@@ -988,9 +988,71 @@ final class StackSolver
         }
 
         return [
-            'problems' => [...$problems, ...self::bearingProblems($tiers, $stack)],
+            'problems' => [
+                ...$problems,
+                ...self::bearingProblems($tiers, $stack),
+                ...self::pillarProblems($tiers, $stack),
+            ],
             'warnings' => $warnings,
         ];
+    }
+
+    /**
+     * Sub tiers narrowed all the way to a single column, which is a pillar rather than a rig.
+     *
+     * The interface chase has no floor without this. Narrower rows mean more of them and so a taller stack, so
+     * on a pile it cannot otherwise lift, {@see fill} keeps narrowing — and at a 12 m interface the Flexys end
+     * up one wide and `--per-owner` gives `sdwa5` a rig 1.8 m across and 4.9 m tall. Every existing rule passes
+     * it: each tier is exactly as wide as the one below, so nothing overhangs, and every cabinet is fully
+     * carried.
+     *
+     * What it is not is a **rig**. A one-cabinet tier has no lateral stiffness, and the support rule goes
+     * vacuous on it — a column is never more than half a cabinet wider than the column beneath it, so the check
+     * that catches every other bad shape cannot see this one. It also came out geometrically marginal in the
+     * ways only a full compile shows: two aimed tops 3 m up biting 10.6 mm into each other, and a top bearing on
+     * 43 % of its footprint once its own down-tilt is applied.
+     *
+     * So this extends the ordering {@see fill} already states. Support outranks the interface; a rig that stands
+     * up as a rig outranks reaching the height. Missing the interface is a warning, and the search reports that
+     * instead of handing back a tower.
+     *
+     * Only when the device has more than one cabinet in this stack — a single Tecnare *is* a single column, and
+     * there is nothing else it could be.
+     *
+     * @param list<Tier> $tiers
+     * @return list<string>
+     */
+    private static function pillarProblems(array $tiers, Stack $stack): array
+    {
+        $held = [];
+        foreach ($tiers as $tier) {
+            foreach ($tier->segments as [$device, $count]) {
+                $held[$device->id] = ($held[$device->id] ?? 0) + $count;
+            }
+        }
+
+        $problems = [];
+        foreach ($tiers as $tier) {
+            if (!$tier->isSub() || $tier->count() > 1) {
+                continue;
+            }
+
+            [$device] = $tier->segments[0];
+            if (($held[$device->id] ?? 0) < 2) {
+                continue;
+            }
+
+            $problems[] = sprintf(
+                'the %s row is a single column, and %d of them are in this stack — a one-wide tier is a pillar '
+                .'rather than a rig, however well each cabinet is carried. Widen the rows and accept a lower '
+                .'interface, or take cabinets out of the stack',
+                $tier->label(),
+                $held[$device->id],
+            );
+            break;
+        }
+
+        return $problems;
     }
 
     /**
@@ -1016,6 +1078,19 @@ final class StackSolver
 
         foreach (Gravity::resolve($tiers, $stack->gapM, 'stack') as $index => $runs) {
             foreach ($runs as $run) {
+                // Nothing underneath at all. Falling puts it on the floor, which for a tier above the bottom
+                // means *inside* the tier below — and this is the one place that can say so. The rule is here
+                // rather than left to the tier-width check because that check refusing the shapes which cause
+                // it is a coincidence of two rules agreeing, not the invariant being held.
+                if ($index > 0 && $run['on'] === null) {
+                    $problems[] = sprintf(
+                        'a %s in the %s row has nothing under it at all, so it would fall to the floor — '
+                        .'inside the row below it',
+                        $run['device']->id,
+                        $tiers[$index]->label(),
+                    );
+                    continue;
+                }
                 if ($run['bearing'] + self::EPSILON_M >= Gravity::MIN_BEARING) {
                     continue;
                 }

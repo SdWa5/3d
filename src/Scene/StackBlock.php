@@ -33,6 +33,51 @@ final class StackBlock
     }
 
     /**
+     * How many of each device this stack actually stands up, counted off the solve.
+     *
+     * The scene file needs this written into it, and that is not a nicety. A `stack:` block carries constraints
+     * and a device list, and the compiler **re-solves it on every build** — against the spec's own `quantity`.
+     * So a rig split across two stacks reported one split in its header comment and then built with *every*
+     * stack holding the whole inventory: two 3.6 m walls 0.5 m apart, 561 mm inside each other. Writing the
+     * share as `count:` is what makes the file mean what the header says.
+     *
+     * Counted from the tiers rather than from the share the generator dealt out, because the two can differ:
+     * a device the solver could not carry is simply not in the tiers, and reproducing the solve means
+     * reproducing that too.
+     *
+     * @return array<string, int> device id => cabinets in this stack
+     */
+    public function counts(): array
+    {
+        $counts = [];
+        foreach ($this->tiers as $tier) {
+            foreach ($tier->segments as [$device, $count]) {
+                $counts[$device->id] = ($counts[$device->id] ?? 0) + $count;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * The spec `quantity` of each device this stack places, so the writer can tell a share from the whole lot
+     * and keep the shorthand where nothing was split.
+     *
+     * @return array<string, int>
+     */
+    public function owned(): array
+    {
+        $owned = [];
+        foreach ($this->tiers as $tier) {
+            foreach ($tier->segments as [$device, $count]) {
+                $owned[$device->id] = $device->quantity;
+            }
+        }
+
+        return $owned;
+    }
+
+    /**
      * How much floor this stack covers — its widest tier, which is what neighbouring stacks have to clear.
      */
     public function widthM(): float

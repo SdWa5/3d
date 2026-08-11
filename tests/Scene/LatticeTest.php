@@ -321,6 +321,62 @@ final class LatticeTest extends TestCase
     }
 
     /**
+     * A quarter-turn `roll_cycle` derives its own spacing now, exactly as `roll_mirror` does.
+     *
+     * It could not before, and that cost a real file: `full-rig-quarter-turned.yaml` had to state `step_m: 0.02`
+     * inside a two-cabinet row nested twice — a pair, two tiers of the pair, three groups of that — because
+     * spacing *origins* uniformly drives adjacent rolled cabinets into each other. Laying the bodies out at a
+     * uniform pitch says the same thing in one row of six, and the geometry comes out identical.
+     */
+    public function testAQuarterTurnCycleDerivesItsSpacing(): void
+    {
+        $copies = $this->copies(new Lattice([4, 1, 1], [0.02, 0.0, 0.0], rollCycle: [270.0, 90.0], cycleAxis: Axis::X));
+
+        // The fixture is 0.96 tall, so 0.96 across on its side: bodies at a 0.98 pitch, every joint 20 mm.
+        $edges = [];
+        foreach ($copies as $copy) {
+            $roll = $copy->rotation?->rollDeg ?? 0.0;
+            $edges[] = $roll === 270.0
+                ? [$copy->offset[0] - 0.96, $copy->offset[0]]
+                : [$copy->offset[0], $copy->offset[0] + 0.96];
+        }
+
+        for ($joint = 1; $joint < 4; ++$joint) {
+            self::assertEqualsWithDelta(0.02, $edges[$joint][0] - $edges[$joint - 1][1], 1e-9, "joint {$joint}");
+        }
+        self::assertEqualsWithDelta(4 * 0.96 + 3 * 0.02, $edges[3][1] - $edges[0][0], 1e-9);
+        self::assertEqualsWithDelta(0.0, $edges[0][0] + $edges[3][1], 1e-9, 'and centred');
+    }
+
+    /**
+     * A stated `step_m` still wins, because that is the author overriding the spacing outright.
+     *
+     * It has to keep working: the shipped file carried one for exactly as long as deriving it was impossible,
+     * and a key that quietly stopped being honoured would change geometry nobody asked to change.
+     */
+    public function testAStatedStepStillOverridesADerivedCycle(): void
+    {
+        $copies = $this->copies(new Lattice([2, 1, 1], [0.02, 0.0, 0.0], [0.02, 0.0, 0.0], [270.0, 90.0], Axis::X));
+
+        self::assertEqualsWithDelta(-0.01, $copies[0]->offset[0], 1e-9);
+        self::assertEqualsWithDelta(0.01, $copies[1]->offset[0], 1e-9);
+    }
+
+    /**
+     * And a cycle mixing a quarter turn with a half turn does **not** derive it.
+     *
+     * Those bodies are two different widths — 0.5 upright and 0.96 on its side — so there is no uniform pitch to
+     * lay them at, and per-joint spacing is the thing {@see \App\Scene\Lattice::spanOf} refuses outright.
+     */
+    public function testACycleMixingQuarterAndHalfTurnsKeepsUniformOriginSpacing(): void
+    {
+        $copies = $this->copies(new Lattice([2, 1, 1], [0.02, 0.0, 0.0], rollCycle: [0.0, 90.0], cycleAxis: Axis::X));
+
+        // Uniform origin steps on the widest attitude in the cycle: 0.96 + 0.02.
+        self::assertEqualsWithDelta(0.98, $copies[1]->offset[0] - $copies[0]->offset[0], 1e-9);
+    }
+
+    /**
      * A **mirrored** row: the half past the middle rolled one way, the half before it the other.
      *
      * The fixture is 0.5 wide and 0.96 tall, so on its side it is 0.96 across. Six of them with a 20 mm gap

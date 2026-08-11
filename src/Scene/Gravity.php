@@ -157,6 +157,7 @@ final class Gravity
         $groups[] = [[$seats[$last]], $below[$outer]['lo'], $below[$outer]['hi']];
 
         $placed = [];
+        $reach = -INF;
         foreach ($groups as [$segments, $lo, $hi]) {
             $span = self::spanOf($segments, $gapM);
             if ($span > $hi - $lo + self::CONTACT_EPSILON_M) {
@@ -164,11 +165,20 @@ final class Gravity
             }
 
             $x = ($lo + $hi) / 2 - $span / 2;
+            if ($reach > $x + self::CONTACT_EPSILON_M) {
+                // The groups would be seated into each other. Two support runs can sit closer together than the
+                // segments they are being given — a one-wide tower is the case, where the outer runs are a
+                // single column each and the fills end up 10 mm inside the tops. Falling back to the contiguous
+                // row is the honest answer: this layout is a repair, and it cannot repair everything.
+                return null;
+            }
+
             foreach ($segments as [$device, $count, , $roll]) {
                 $own = $count * RolledBox::widthOf($device, $roll) + ($count - 1) * $gapM;
                 $placed[] = [$device, $count, $x + $own / 2, $roll];
                 $x += $own + $gapM;
             }
+            $reach = $x - $gapM + $gapM;
         }
 
         return $placed;

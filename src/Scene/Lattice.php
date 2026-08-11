@@ -111,9 +111,21 @@ final class Lattice implements Group
             $this->count[2] - 1,
         ];
 
-        $mirrored = $this->rollMirror === null || $axis === null
-            ? null
-            : $this->mirroredOffsets($cellBox, $axis);
+        $mirrored = null;
+        if ($axis !== null) {
+            if ($this->rollMirror !== null) {
+                $mirrored = $this->mirroredOffsets($cellBox, $axis);
+            } elseif ($this->cycleDerivesItsSpacing($axis)) {
+                $rolls = [];
+                for ($cell = 0; $cell < $this->count[$axis->index()]; ++$cell) {
+                    $rolls[] = self::normalisedRoll($this->rollAt(
+                        [$axis === Axis::X ? $cell : 0, $axis === Axis::Y ? $cell : 0, $axis === Axis::Z ? $cell : 0],
+                        $axis,
+                    ));
+                }
+                $mirrored = $this->turnedOffsets($cellBox, $axis, $rolls);
+            }
+        }
 
         $copies = [];
         for ($ix = 0; $ix < $this->count[0]; ++$ix) {
@@ -358,26 +370,70 @@ final class Lattice implements Group
         $count = $this->count[$axis->index()];
         $right = self::normalisedRoll((float)$this->rollMirror);
         $left = self::normalisedRoll(360.0 - $right);
-        $gap = $this->gapM[$axis->index()];
 
-        // Both halves are quarter turns of the same box, so both bodies are the same width.
+        $rolls = [];
+        for ($cell = 0; $cell < $count; ++$cell) {
+            $rolls[] = $cell < intdiv($count, 2) ? $left : $right;
+        }
+
+        return $this->turnedOffsets($cellBox, $axis, $rolls);
+    }
+
+    /**
+     * Origins that put a row of **quarter-turned cells' bodies** at a uniform pitch.
+     *
+     * Shared by `roll_mirror` and a quarter-turn `roll_cycle`, because the two differ only in which cell gets
+     * which turn — the layout problem is identical and it is the reason `roll_cycle`'s spacing could not be
+     * derived. Every cell here is a quarter turn of the same box, so every body is the same width; only which
+     * side of its origin it falls on differs.
+     *
+     * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     * @param list<float> $rolls one per cell along $axis
+     * @return array{offsets: list<float>, rolls: list<float>}
+     */
+    private function turnedOffsets(array $cellBox, Axis $axis, array $rolls): array
+    {
+        $count = count($rolls);
+        $gap = $this->gapM[$axis->index()];
         $width = $cellBox['max'][2] - $cellBox['min'][2];
         $pitch = $width + $gap;
         $first = -($count * $width + max(0, $count - 1) * $gap) / 2;
 
         $offsets = [];
-        $rolls = [];
         for ($cell = 0; $cell < $count; ++$cell) {
-            $roll = $cell < intdiv($count, 2) ? $left : $right;
-            $span = self::rolledSpan($cellBox, $roll);
+            $span = self::rolledSpan($cellBox, $rolls[$cell]);
 
             // The body's centre, then the origin that puts it there.
             $centre = $first + $cell * $pitch + $width / 2;
             $offsets[] = $centre - ($span[0] + $span[1]) / 2;
-            $rolls[] = $roll;
         }
 
         return ['offsets' => $offsets, 'rolls' => $rolls];
+    }
+
+    /**
+     * Whether a `roll_cycle` can have its spacing derived: every turn in it a quarter turn, and no `step_m`
+     * stated on the axis it runs along.
+     *
+     * Both halves matter. A cycle mixing `0` with `90` puts bodies of **two different widths** in one row, so
+     * there is no uniform pitch to lay them at and per-joint spacing is the thing {@see spanOf} refuses — those
+     * keep the conservative uniform-origin spacing and still need their step stated. And a stated `step_m` is
+     * the author overriding the spacing outright, which has to keep working: `full-rig-quarter-turned.yaml`
+     * carried one for exactly as long as deriving it was impossible.
+     */
+    private function cycleDerivesItsSpacing(Axis $axis): bool
+    {
+        if ($this->rollCycle === [] || $this->stepM[$axis->index()] !== 0.0) {
+            return false;
+        }
+
+        foreach ($this->rollCycle as $roll) {
+            if (fmod(abs($roll), 180.0) !== self::CYCLE_STEP_DEG) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -188,6 +188,43 @@ final class SceneStackCommandTest extends TestCase
         self::assertStringContainsString('2 stacks side by side', $output);
     }
 
+    /**
+     * A split rig writes each stack's **share** into the file, because the file is re-solved on every build.
+     *
+     * This was a silent and complete failure of multi-stack scenes. A `stack:` block carries constraints and a
+     * device list, and the compiler solves it afresh against each spec's own `quantity` — so a rig reported in
+     * its header as two stacks of eleven was *built* with both stacks holding all twenty-three cabinets: two
+     * 3.6 m walls 0.5 m apart, 561 mm inside each other. Nothing said so, because the header comment described
+     * the intended split and no check ever compiled the written file.
+     */
+    public function testASplitRigWritesEachStacksShareSoItRebuildsTheSame(): void
+    {
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--stacks' => '2', '--align' => ['center'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+
+        // Six of the twelve Flexys per stack, stated, so the re-solve cannot reach for all twelve.
+        $output = $tester->getDisplay();
+        self::assertStringContainsString("- device: flexy-folded-horn-hybrid\n          count: 6", $output);
+        self::assertSame(2, substr_count($output, 'count: 6'), 'one share per stack');
+    }
+
+    /** And a rig that is *not* split keeps the shorthand, so an ordinary file stays a list of ids. */
+    public function testAnUnsplitRigKeepsTheShorthandDeviceList(): void
+    {
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--align' => ['center'], '--dry-run' => true,
+        ]);
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('- flexy-folded-horn-hybrid', $output);
+        self::assertStringNotContainsString('count:', $output);
+    }
+
     public function testAStackCountBelowOneIsRejected(): void
     {
         $tester = $this->invoke(['--stacks' => '0', '--dry-run' => true]);
