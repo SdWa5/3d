@@ -61,10 +61,12 @@ final class StackSolver
             ];
         }
 
+        ['problems' => $unsupported, 'warnings' => $warnings] = self::supportChecks($tiers, $stack);
+
         return [
             'tiers' => $tiers,
-            'problems' => self::boundsProblems($tiers, $stack),
-            'warnings' => self::supportWarnings($tiers, $stack),
+            'problems' => [...self::boundsProblems($tiers, $stack), ...$unsupported],
+            'warnings' => $warnings,
         ];
     }
 
@@ -103,35 +105,50 @@ final class StackSolver
     /**
      * The rows themselves, bottom up.
      *
+     * A search over one number: how many cabinets go in a row. Wider rows mean fewer of them, so the sub
+     * stack gets *shorter* as the row gets wider — and the tops have to clear the interface height. So the
+     * answer is the **widest row that still gets the tops up**, and it is found by trying the widest first
+     * and narrowing.
+     *
+     * That search is what `max_width_m` alone could not do. A bound is a *maximum*, not a target: on a 10 m
+     * stage every device fits in one row, which leaves two sub tiers at 1.363 m and a 2 m interface out of
+     * reach forever. Narrowing the rows is the only way to gain height out of a fixed pile of cabinets, and
+     * refusing to narrow made a wide stage strictly worse than a narrow one.
+     *
      * @param list<array{DeviceSpec, int}> $inventory
      * @return list<Tier>
      */
     private static function fill(array $inventory, Stack $stack): array
     {
-        $uniform = $stack->maxWidthM === null ? self::widestThatReaches($inventory, $stack) : null;
+        $widest = 0;
+        foreach ($inventory as [$device, $count]) {
+            $widest = max($widest, min($count, self::perTier($device, $stack->maxWidthM, $stack->gapM)));
+        }
 
-        // A mixed bottom row is paid for out of the flanking device's stock, and those are the very cabinets
-        // the sub tiers above are made of — so a wide row can eat the rig's own height. On a 10 m stage the
-        // greedy answer swallowed all twelve Flexys into one 8.572 m row, left two sub tiers at 1.514 m and
-        // could never reach a 2 m interface however the tops were arranged.
-        //
-        // So the flanking width is not taken greedily: try the widest bottom row first, and give a pair back
-        // for as long as the stack misses the interface. Widest-that-works, which is the same rule
-        // {@see widestThatReaches} already applies to the row count. The first attempt is what a bounded
-        // stage produces anyway, so nothing that already fitted changes.
-        $widest = null;
-        for ($pairs = self::flankingPairs($inventory, $stack, $uniform); $pairs >= 0; --$pairs) {
-            $tiers = self::fillWith($inventory, $stack, $uniform, $pairs);
-            $widest ??= $tiers;
+        $tallest = [];
+        $tallestSubs = -INF;
 
-            if (self::reachesInterface($tiers, $stack)) {
-                return $tiers;
+        for ($perRow = $widest; $perRow >= 1; --$perRow) {
+            $flanking = self::flankingPairs($inventory, $stack, $perRow);
+            for ($pairs = $flanking; $pairs >= 0; --$pairs) {
+                $tiers = self::fillWith($inventory, $stack, $perRow, $pairs);
+
+                if (self::reachesInterface($tiers, $stack)) {
+                    return $tiers;
+                }
+
+                $subs = self::subHeight($tiers);
+                if ($subs > $tallestSubs) {
+                    $tallestSubs = $subs;
+                    $tallest = $tiers;
+                }
             }
         }
 
-        // Nothing reaches it. Hand back the widest attempt so the failure names the height it did reach
-        // rather than the height of some narrower arrangement nobody asked for.
-        return $widest ?? [];
+        // Nothing reaches it, so hand back the **tallest** arrangement rather than the widest. The failure
+        // message is then the useful one: not "it got to 2.126 m" — which reads as though one more tier would
+        // fix it — but the ceiling of this inventory however the rows are cut.
+        return $tallest;
     }
 
     /**
@@ -140,7 +157,7 @@ final class StackSolver
      * @param list<array{DeviceSpec, int}> $inventory
      * @return list<Tier>
      */
-    private static function fillWith(array $inventory, Stack $stack, ?int $uniform, int $pairs): array
+    private static function fillWith(array $inventory, Stack $stack, int $perRow, int $pairs): array
     {
         $remaining = [];
         foreach ($inventory as $index => [$device, $count]) {
@@ -149,17 +166,20 @@ final class StackSolver
 
         $tiers = [];
         if ($pairs > 0) {
-            $bottom = self::mixedBottomRow($remaining, $stack, $uniform, $pairs);
+            $bottom = self::mixedBottomRow($remaining, $stack, $perRow, $pairs);
             if ($bottom !== null) {
                 [$tiers[], $remaining] = $bottom;
             }
         }
 
+        // Subs stack; tops do not. A sub row carries the row above it, so running out of width means another
+        // tier. Tops carry nothing and stand side by side on the sub stack — putting a 2-way *on* a Tecnare
+        // is what produced a fill hovering over the middle of the rig, and it is not how anybody rigs a PA.
         foreach ($remaining as [$device, $count]) {
-            if ($count < 1) {
+            if ($count < 1 || $device->subtype !== 'sub') {
                 continue;
             }
-            $perTier = $uniform ?? self::perTier($device, $stack->maxWidthM, $stack->gapM);
+            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
             $rows = (int)ceil($count / $perTier);
@@ -168,7 +188,58 @@ final class StackSolver
             }
         }
 
+        $tops = self::topRow($remaining);
+        if ($tops !== null) {
+            $tiers[] = $tops;
+        }
+
         return $tiers;
+    }
+
+    /**
+     * Every top in **one** row, widest in the middle and the rest split symmetrically around it.
+     *
+     * Not split across tiers however wide it comes out, because that is what the caller asked for and it is
+     * also the physical truth: nothing stands on the tops, so width is the only thing they cost. If the row
+     * is wider than `max_width_m` that is reported by {@see boundsProblems} rather than quietly turned into
+     * a second tier of tops balanced on the first.
+     *
+     * The widest goes in the middle for the same reason it does in a mixed bottom row: it is the main
+     * cluster, and the smaller boxes are fills that belong outboard of it.
+     *
+     * @param list<array{DeviceSpec, int}> $remaining
+     */
+    private static function topRow(array $remaining): ?Tier
+    {
+        $tops = [];
+        foreach ($remaining as [$device, $count]) {
+            if ($count > 0 && $device->subtype !== 'sub') {
+                $tops[] = [$device, $count];
+            }
+        }
+        if ($tops === []) {
+            return null;
+        }
+
+        usort($tops, static fn (array $a, array $b): int => $b[0]->dimensions->width <=> $a[0]->dimensions->width);
+        $centre = array_shift($tops);
+
+        $left = [];
+        $right = [];
+        foreach ($tops as [$device, $count]) {
+            $share = intdiv($count, 2);
+            if ($count - 2 * $share > 0) {
+                ++$share;
+            }
+            if ($share > 0) {
+                $left[] = [$device, $share];
+            }
+            if ($count - $share > 0) {
+                $right[] = [$device, $count - $share];
+            }
+        }
+
+        return new Tier([...array_reverse($left), $centre, ...$right]);
     }
 
     /**
@@ -176,18 +247,19 @@ final class StackSolver
      *
      * @param list<array{DeviceSpec, int}> $inventory
      */
-    private static function flankingPairs(array $inventory, Stack $stack, ?int $uniform): int
+    private static function flankingPairs(array $inventory, Stack $stack, int $perRow): int
     {
         $centre = self::widestSub($inventory);
         if ($centre === null) {
             return 0;
         }
-        $flank = self::flankingSub($inventory, $centre);
+        [$device, $available] = $inventory[$centre];
+
+        $flank = self::flankingSub($inventory, $centre, $device);
         if ($flank === null) {
             return 0;
         }
 
-        [$device, $available] = $inventory[$centre];
         [$flankDevice, $flankAvailable] = $inventory[$flank];
 
         $pairs = 0;
@@ -207,6 +279,23 @@ final class StackSolver
     }
 
     /**
+     * How high the sub tiers reach.
+     *
+     * @param list<Tier> $tiers
+     */
+    private static function subHeight(array $tiers): float
+    {
+        $height = 0.0;
+        foreach ($tiers as $tier) {
+            if ($tier->isSub()) {
+                $height += $tier->heightM();
+            }
+        }
+
+        return $height;
+    }
+
+    /**
      * Whether the sub tiers get the tops above the stated interface — the constraint the flanking search is
      * trying to satisfy. Vacuously true when there are no tops to lift, or no interface asked for.
      *
@@ -218,13 +307,14 @@ final class StackSolver
             return true;
         }
 
-        $subHeight = 0.0;
         $hasTop = false;
         foreach ($tiers as $tier) {
-            $tier->isSub() ? $subHeight += $tier->heightM() : $hasTop = true;
+            if (!$tier->isSub()) {
+                $hasTop = true;
+            }
         }
 
-        return !$hasTop || $subHeight + self::EPSILON_M >= $stack->interfaceHeightM;
+        return !$hasTop || self::subHeight($tiers) + self::EPSILON_M >= $stack->interfaceHeightM;
     }
 
     /**
@@ -233,7 +323,7 @@ final class StackSolver
      *
      * **Mixing happens only to remove an inverted step**, and that gate matters more than it looks. The
      * obvious rule — "mix whenever the widest sub cannot fill a row on its own" — restructures rigs that
-     * were already fine: in `full-rig-stacked` the widest sub is the *Achenbach* (0.600 m against the
+     * were already fine. With the SKRAMs left out, the widest sub is the *Achenbach* (0.600 m against the
      * Flexy's 0.591 m) with four owned against a six-per-row fit, so that rule would drag the Achenbachs
      * into the bottom row and stand them *under* the Flexys.
      *
@@ -247,7 +337,7 @@ final class StackSolver
      * @param list<array{DeviceSpec, int}> $remaining
      * @return array{Tier, list<array{DeviceSpec, int}>}|null
      */
-    private static function mixedBottomRow(array $remaining, Stack $stack, ?int $uniform, int $pairs): ?array
+    private static function mixedBottomRow(array $remaining, Stack $stack, int $perRow, int $pairs): ?array
     {
         $centre = self::widestSub($remaining);
         if ($centre === null) {
@@ -255,17 +345,17 @@ final class StackSolver
         }
 
         [$device, $available] = $remaining[$centre];
-        $fits = $uniform ?? self::perTier($device, $stack->maxWidthM, $stack->gapM);
+        $fits = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
 
         $ownRow = Tier::of($device, min($available, $fits))->widthM($stack->gapM);
-        $rowAbove = self::rowAbove($remaining, $centre, $stack, $uniform);
+        $rowAbove = self::rowAbove($remaining, $centre, $stack, $perRow);
         if ($rowAbove === null || $ownRow + self::EPSILON_M >= $rowAbove) {
             // Nothing stands on it, or what does is no wider — there is no inversion to remove, so leave
             // the order the author wrote alone.
             return null;
         }
 
-        $flank = self::flankingSub($remaining, $centre);
+        $flank = self::flankingSub($remaining, $centre, $device);
         if ($flank === null) {
             return null;
         }
@@ -294,14 +384,14 @@ final class StackSolver
      *
      * @param list<array{DeviceSpec, int}> $remaining
      */
-    private static function rowAbove(array $remaining, int $index, Stack $stack, ?int $uniform): ?float
+    private static function rowAbove(array $remaining, int $index, Stack $stack, int $perRow): ?float
     {
         foreach ($remaining as $next => [$device, $count]) {
             if ($next <= $index || $count < 1) {
                 continue;
             }
 
-            $perTier = $uniform ?? self::perTier($device, $stack->maxWidthM, $stack->gapM);
+            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
             $rows = (int)ceil($count / $perTier);
 
             return Tier::of($device, self::share($count, $rows)[0])->widthM($stack->gapM);
@@ -338,15 +428,28 @@ final class StackSolver
 
     /**
      * The sub to flank the middle with: the one with the most cabinets left, since it is the one that can
-     * afford to give a pair away and still fill the rows above.
+     * afford to give a pair away and still fill the rows above — and, crucially, **one the same height**.
+     *
+     * The height rule is not a nicety. A row of cabinets that are not all the same height has two top faces,
+     * so the tier above rests on the tall ones and hangs in the air over the short ones: a SKRAM is 0.914 m
+     * and a Flexy 0.763, and mixing them left six Flexys floating 151 mm off the row below. Calling that a
+     * shim on the day was wrong — nobody builds a wall with a step through the middle of it and then stacks
+     * on it.
+     *
+     * Our five cabinets have five different heights, so in practice this refuses every mix we could make
+     * today, and the two SKRAMs belong **beside** the rig rather than in it — which is what
+     * `scene:stack --subs=beside` is for.
      *
      * @param list<array{DeviceSpec, int}> $remaining
      */
-    private static function flankingSub(array $remaining, int $centre): ?int
+    private static function flankingSub(array $remaining, int $centre, DeviceSpec $centreDevice): ?int
     {
         $best = null;
         foreach ($remaining as $index => [$device, $count]) {
             if ($index === $centre || $count < 2 || $device->subtype !== 'sub') {
+                continue;
+            }
+            if (abs($device->dimensions->height - $centreDevice->dimensions->height) > self::EPSILON_M) {
                 continue;
             }
             if ($best === null || $count > $remaining[$best][1]) {
@@ -391,41 +494,6 @@ final class StackSolver
         return max(1, $fit);
     }
 
-    /**
-     * With no width bound, the widest row the subs can afford and still reach the interface height.
-     *
-     * Narrower rows mean more of them, so the sub stack gets taller as the count goes down: the reachable
-     * height is non-increasing in the row count, and the answer is simply the largest count that still
-     * clears. That is what "as wide as possible, while still getting the tops up" means, and stating it
-     * this way is what keeps the two constraints from needing an arbitrary tie-break.
-     *
-     * @param list<array{DeviceSpec, int}> $inventory
-     */
-    private static function widestThatReaches(array $inventory, Stack $stack): int
-    {
-        $subs = array_values(array_filter(
-            $inventory,
-            static fn (array $entry): bool => $entry[0]->subtype === 'sub' && $entry[1] > 0,
-        ));
-
-        $total = array_sum(array_map(static fn (array $entry): int => $entry[1], $subs));
-        if ($subs === [] || $total < 1) {
-            return 1;
-        }
-
-        $widest = 1;
-        for ($count = 1; $count <= $total; ++$count) {
-            $height = 0.0;
-            foreach ($subs as [$device, $quantity]) {
-                $height += (int)ceil($quantity / $count) * $device->dimensions->height;
-            }
-            if ($height + self::EPSILON_M >= $stack->interfaceHeightM) {
-                $widest = $count;
-            }
-        }
-
-        return $widest;
-    }
 
     /**
      * Every bound the finished stack misses, each naming the number it reached and the number it needed.
@@ -494,18 +562,22 @@ final class StackSolver
     }
 
     /**
-     * What is buildable-but-worth-knowing about the finished stack.
+     * How well each tier is carried by the one below it, split by whether it is buildable.
      *
-     * Warnings rather than errors, because both of these are things a crew routinely deals with — a bar
-     * across a stepped row, a cabinet edge proud of a joint — and refusing them would make the solver
-     * useless for real gear. Silence, though, is not an option: neither shows up anywhere else in the
-     * pipeline, and a render makes an overhanging tier look deliberate.
+     * The line between the two is **half the outboard cabinet's width**, and it is the difference between a
+     * cabinet sitting proud of a joint and a cabinet standing on nothing. Under it, the overhang is what feet
+     * and working gaps absorb and a crew would not comment on it. Over it, more than half of that cabinet's
+     * footprint is off the edge of its support — it is in the air, and no amount of shimming fixes it.
+     *
+     * Both are reported. Neither shows up anywhere else in the pipeline: `on:` only reads a top face, and the
+     * shipped-scene check only catches cabinets *inside* each other, never one standing on air.
      *
      * @param list<Tier> $tiers
-     * @return list<string>
+     * @return array{problems: list<string>, warnings: list<string>}
      */
-    private static function supportWarnings(array $tiers, Stack $stack): array
+    private static function supportChecks(array $tiers, Stack $stack): array
     {
+        $problems = [];
         $warnings = [];
 
         foreach ($tiers as $index => $tier) {
@@ -524,17 +596,28 @@ final class StackSolver
 
             $below = $tiers[$index - 1]->widthM($stack->gapM);
             $overhang = ($tier->widthM($stack->gapM) - $below) / 2;
-            if ($overhang > self::OVERHANG_TOLERANCE_M) {
-                $warnings[] = sprintf(
-                    'the %s row is %.3f m on a %.3f m row, so it overhangs %.0f mm each side',
-                    $tier->label(),
-                    $tier->widthM($stack->gapM),
-                    $below,
-                    $overhang * 1000,
-                );
+            if ($overhang <= self::OVERHANG_TOLERANCE_M) {
+                continue;
             }
+
+            $message = sprintf(
+                'the %s row is %.3f m on a %.3f m row, so it overhangs %.0f mm each side',
+                $tier->label(),
+                $tier->widthM($stack->gapM),
+                $below,
+                $overhang * 1000,
+            );
+
+            if ($overhang > $tier->outerWidthM() / 2) {
+                $problems[] = $message.' — more than half of the outer cabinet is off the edge, so it stands '
+                    .'on nothing. Narrow the tier, widen what carries it, or take the odd cabinets out of '
+                    .'the stack';
+                continue;
+            }
+
+            $warnings[] = $message;
         }
 
-        return $warnings;
+        return ['problems' => $problems, 'warnings' => $warnings];
     }
 }

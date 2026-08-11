@@ -43,6 +43,18 @@ rigging:
   points: [ ]
 
 audio:
+  # Stated by the owner from how the rig is actually driven, not read off a datasheet — hence `estimated`.
+  #
+  # `driven_from_hz` is the point of this block. The cabinet reaches 35 Hz, but it is high-passed at 38 — the
+  # same corner as the Flexys — most of the time, deliberately, so that it sits ABOVE them in a stack instead
+  # of under them. A `stack` orders its tiers on the driven corner, so recording only the 35 would put four
+  # Achenbachs at the bottom of the wall carrying twelve Flexys. Keeping both numbers keeps the cabinet's real
+  # capability and the operating choice from having to overwrite each other.
+  passband_hz:
+    low_hz: 35
+    high_hz: 1500
+    driven_from_hz: 38
+    provenance: estimated
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

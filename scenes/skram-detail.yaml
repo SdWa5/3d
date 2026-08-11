@@ -1,8 +1,0 @@
-# Two SKRAM side by side, for looking at the horn mouth and vent geometry that its CAD provides.
-id: skram-detail
-name: "SKRAM pair"
-placements:
-  - id: pair
-    device: skram
-    at: [-0.32, 0.0]
-    repeat: { count: 2, step: [0.64, 0.0, 0.0] }

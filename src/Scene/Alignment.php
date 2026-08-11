@@ -14,7 +14,7 @@ use App\Spec\InvalidSpecException;
  * cabinet in, a toed-in cabinet occupies more x than it is wide, and how far it toes in depends on where it
  * ended up — so "put this tier's edges on that one's" is a fixed point, not a formula. Every attempt to do
  * it as arithmetic has been wrong in a way that renders perfectly plausibly: `full-rig-all-tops` spaced two
- * aimed fills on their half-widths and drove them 88 mm into each other, and `two-foci` put its fills
+ * aimed fills on their half-widths and drove them 88 mm into each other, and another put its fills
  * 0.41 m inside the sub wall. `full-rig-stereo` got it right only by carrying three numbers somebody
  * bisected by hand (0.8156, 2.1185, 2.9709), every one of which goes stale the moment a cabinet is measured
  * or a focus moves.

@@ -27,6 +27,13 @@ final class SceneStackCommandTest extends TestCase
 {
     private const THROWAWAY_ID = 'zz-test-stack';
 
+    /**
+     * Every cabinet that can share a stack. The SKRAMs are left out on purpose: only two exist, nothing else
+     * shares their height so they cannot be mixed into a row, and a row of their own carries nothing — the
+     * solver refuses them, which {@see testAnArrangementThatCannotBeSolvedIsSkippedWithAReason} pins.
+     */
+    private const STACKABLE = ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'];
+
     protected function tearDown(): void
     {
         foreach (glob(dirname(__DIR__, 2).'/scenes/'.self::THROWAWAY_ID.'*.yaml') ?: [] as $file) {
@@ -35,31 +42,38 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * The default call is three scenes — one per alignment — and not the cross product of every tier's
-     * options, which would be hundreds.
+     * The alignments are tried, and the ones that resolve to the same rig are written once.
+     *
+     * Every top now shares one row, that row is mixed, and a mixed row is not distributed one segment at a
+     * time — so `center`, `block` and `stereo` come out identical here and only the first is written. Three
+     * files would imply a choice that does not exist.
      */
-    public function testTheDefaultCallProducesOneScenePerAlignment(): void
+    public function testAlignmentsThatResolveToTheSameRigAreWrittenOnce(): void
     {
-        $tester = $this->invoke(['--max-width' => '3.70', '--dry-run' => true]);
+        $tester = $this->invoke(['--max-width' => '3.70', '--from' => self::STACKABLE, '--dry-run' => true]);
 
-        $output = $tester->getDisplay();
-        foreach (['stacked-center.yaml', 'stacked-block.yaml', 'stacked-stereo.yaml'] as $expected) {
-            self::assertStringContainsString($expected, $output);
-        }
         self::assertSame(0, $tester->getStatusCode());
+        self::assertSame(1, preg_match_all('/^id: /m', $tester->getDisplay()));
+        self::assertStringContainsString('the same rig as stacked-center', $tester->getDisplay());
     }
 
-    /** The fast path: one alignment, one sub placement, exactly one scene. */
+    /** The fast path: one alignment named outright, exactly one scene. */
     public function testASingleAlignmentProducesExactlyOneScene(): void
     {
-        $tester = $this->invoke(['--max-width' => '3.70', '--align' => ['block'], '--subs' => 'mixed', '--dry-run' => true]);
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--align' => ['block'], '--dry-run' => true,
+        ]);
 
         self::assertSame(1, preg_match_all('/^id: /m', $tester->getDisplay()));
     }
 
     public function testDryRunWritesNothing(): void
     {
-        $this->invoke(['--max-width' => '3.70', '--id' => self::THROWAWAY_ID, '--dry-run' => true]);
+        $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--id' => self::THROWAWAY_ID, '--dry-run' => true,
+        ]);
 
         self::assertSame([], glob(dirname(__DIR__, 2).'/scenes/'.self::THROWAWAY_ID.'*.yaml') ?: []);
     }
@@ -70,14 +84,15 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testAnExistingSceneIsRefusedWithoutForce(): void
     {
-        $first = $this->invoke(['--max-width' => '3.70', '--align' => ['block'], '--id' => self::THROWAWAY_ID]);
+        $args = ['--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['block'], '--id' => self::THROWAWAY_ID];
+        $first = $this->invoke($args);
         self::assertSame(0, $first->getStatusCode());
 
-        $again = $this->invoke(['--max-width' => '3.70', '--align' => ['block'], '--id' => self::THROWAWAY_ID]);
+        $again = $this->invoke($args);
         self::assertSame(1, $again->getStatusCode());
         self::assertStringContainsString('--force', $again->getDisplay());
 
-        $forced = $this->invoke(['--max-width' => '3.70', '--align' => ['block'], '--id' => self::THROWAWAY_ID, '--force' => true]);
+        $forced = $this->invoke($args + ['--force' => true]);
         self::assertSame(0, $forced->getStatusCode());
     }
 
@@ -87,24 +102,27 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testExceedingMaxScenesIsRefusedRatherThanTruncated(): void
     {
-        $tester = $this->invoke(['--max-width' => '3.70', '--subs' => 'both', '--max-scenes' => '2', '--dry-run' => true]);
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--max-scenes' => '0', '--dry-run' => true,
+        ]);
 
         self::assertSame(1, $tester->getStatusCode());
-        self::assertStringContainsString('--max-scenes=2', $tester->getDisplay());
+        self::assertStringContainsString('--max-scenes=0', $tester->getDisplay());
     }
 
     /**
-     * A wide stage must not cost the rig its height.
-     *
-     * This is the bug that made `--max-width=10` — and `--max-width` left out entirely — unsolvable: the
-     * mixed bottom row grew until the *width bound* stopped it, swallowing all twelve Flexys into one
-     * 8.572 m row, leaving two sub tiers at 1.514 m and no way to clear a 2 m interface however the tops were
-     * arranged. The flanking width is now spent only as far as the interface allows.
+     * A wide stage must not cost the rig its height. `max_width_m` is a maximum, not a target: on a 10 m
+     * stage every device fits in one row, which leaves two sub tiers and puts a 2 m interface out of reach
+     * forever unless the rows are allowed to narrow.
      */
     public function testAWideStageStillReachesTheInterface(): void
     {
         foreach ([['--max-width' => '10.0'], []] as $widthOption) {
-            $tester = $this->invoke($widthOption + ['--interface-height' => '2.0', '--align' => ['center'], '--dry-run' => true]);
+            $tester = $this->invoke($widthOption + [
+                '--from' => self::STACKABLE, '--interface-height' => '2.0',
+                '--align' => ['center'], '--dry-run' => true,
+            ]);
 
             self::assertSame(0, $tester->getStatusCode(), 'a wide or unbounded stage still solves');
             self::assertStringContainsString('clear the 2.0 m interface', $tester->getDisplay());
@@ -112,26 +130,30 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * Every arrangement it rules out says why — and a height nothing we own can reach is the honest case for
-     * that, rather than one the solver could have found its own way around.
+     * Every arrangement it rules out says why, and the SKRAMs are the honest case for it: two cabinets whose
+     * height nothing else shares, so they cannot be mixed into a row, and whose own row is too narrow to
+     * carry the tops. Asked for the whole inventory, the command refuses and names the fix.
      */
     public function testAnArrangementThatCannotBeSolvedIsSkippedWithAReason(): void
     {
-        $tester = $this->invoke(['--max-width' => '3.70', '--interface-height' => '9.0', '--dry-run' => true]);
+        $tester = $this->invoke(['--max-width' => '3.70', '--interface-height' => '2.0', '--dry-run' => true]);
 
-        self::assertStringContainsString('skipped', $tester->getDisplay());
-        self::assertStringContainsString('interface_height_m', $tester->getDisplay());
         self::assertSame(1, $tester->getStatusCode(), 'nothing workable is a failure, not a silent success');
+        self::assertStringContainsString('skipped', $tester->getDisplay());
+        self::assertStringContainsString('stands on nothing', $tester->getDisplay());
+        self::assertStringContainsString('take the odd cabinets out of the stack', $tester->getDisplay());
     }
 
     /**
      * The one that matters. A generator that emits a scene the compiler rejects is worse than no generator,
      * because the failure then surfaces later and further from its cause — so every candidate is compiled
-     * before it is written, and this pins that the check is real by reading the cabinet counts back.
+     * before it is written, and this pins that the check is real by reading the cabinets back.
      */
     public function testEveryGeneratedSceneCompilesAndPlacesEveryCabinet(): void
     {
-        $tester = $this->invoke(['--max-width' => '3.70', '--subs' => 'both', '--id' => self::THROWAWAY_ID]);
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--id' => self::THROWAWAY_ID,
+        ]);
 
         self::assertSame(0, $tester->getStatusCode());
         $written = glob(dirname(__DIR__, 2).'/scenes/'.self::THROWAWAY_ID.'*.yaml') ?: [];
@@ -152,10 +174,9 @@ final class SceneStackCommandTest extends TestCase
                 array_map(static fn ($v): string => $v->message, Violation::errorsIn($result['violations'])),
                 basename($file).' does not compile',
             );
-            // `mixed` puts all 23 in the stack; `beside` stands the two SKRAMs next to it. Either way the
-            // whole inventory ends up somewhere — a generator that quietly dropped cabinets would pass
-            // every other check in this file.
-            self::assertCount(23, $result['placed'], basename($file).' lost cabinets');
+            // 12 Flexy + 4 Achenbach + 3 Tecnare + 2 2-ways. A generator that quietly dropped cabinets
+            // would pass every other check in this file.
+            self::assertCount(21, $result['placed'], basename($file).' lost cabinets');
         }
     }
 

@@ -5,18 +5,18 @@
 #
 # What it deals out today:
 #
-#   1  5× flexy-folded-horn-hybrid + 2× skram + 5× flexy-folded-horn-hybrid     7.35 m wide
-#   2  4× achenbach-18                                                           2.46 m wide
-#   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   4  3× tecnare-m2122                                                          1.54 m wide
-#   5  2× eighteensound-2way-15                                                0.9512 m wide
+#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
+#   2  6× flexy-folded-horn-hybrid                                              3.646 m wide
+#   3  4× achenbach-18                                                           2.46 m wide
+#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.277 m, so the tops clear the 2.0 m interface. The stack is 4.073 m of cabinet.
+# Subs reach 2.126 m, so the tops clear the 2.0 m interface. The stack is 3.086 m of cabinet.
 #
 # The build report will warn about this, and both are real:
-#   * the 5× flexy-folded-horn-hybrid + 2× skram + 5× flexy-folded-horn-hybrid row is stepped by 151 mm, so
+#   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is stepped by 124 mm, so
 #     whatever stands on it rests on the tall cabinets and bridges the short ones
-#   * the 3× tecnare-m2122 row is 1.540 m on a 1.202 m row, so it overhangs 169 mm each side
+#   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is 2.511 m on a 2.460 m row,
+#     so it overhangs 26 mm each side
 id: stacked-center
 name: "Solved rig — tiers centred"
 
@@ -33,12 +33,12 @@ placements:
     at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
+      max_width_m: 3.7
       interface_height_m: 2.0
       gap_m: 0.02
       from:
-        - skram
-        - achenbach-18
         - flexy-folded-horn-hybrid
+        - achenbach-18
         - tecnare-m2122
         - eighteensound-2way-15
 

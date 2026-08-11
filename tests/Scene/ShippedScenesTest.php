@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
  * Runs against the repository's real specs and scenes — the same thing CI already does with
  * `scene:build --dry-run`, which proves a scene *compiles* and says nothing about whether the result is
  * physically buildable. This is the missing half, and it exists because it found a real one: the near-fills
- * in `two-foci.yaml` sat **0.41 m inside the sub wall** for two releases. Nothing complained, because from
+ * of one since-deleted scene sat **0.41 m inside the sub wall** for two releases. Nothing complained, because from
  * the three-quarter camera the fill is in front of the wall and looks fine.
  *
  * The separation is measured with a separating-axis test on each cabinet's own eight corners, and that
@@ -43,6 +43,12 @@ final class ShippedScenesTest extends TestCase
      * catches were 21.7 mm and 0.41 m.
      */
     private const TOLERANCE_M = 1e-3;
+
+    /**
+     * How close a top face has to be to a bottom face to count as carrying it — and how much plan overlap
+     * counts as being under something. A millimetre either way; the mistakes this catches are 151 mm gaps.
+     */
+    private const CONTACT_TOLERANCE_M = 2e-3;
 
     /**
      * The hexahedron {@see DeviceSpec::shellCorners} builds, as face and edge index lists.
@@ -148,6 +154,73 @@ final class ShippedScenesTest extends TestCase
         yield 'full-rig-stereo' => ['full-rig-stereo'];
         yield 'full-rig-all-tops' => ['full-rig-all-tops'];
         yield 'full-rig-quarter-turned' => ['full-rig-quarter-turned'];
+    }
+
+    /**
+     * Every cabinet above the floor has something under it.
+     *
+     * The sibling of the overlap check, and it exists for the same reason: it caught a real one. The sub wall
+     * of `full-rig-arc` had two SKRAMs in the middle of its bottom row, and because a SKRAM is 0.914 m tall
+     * against a Flexy's 0.763, the row above rested on the SKRAMs and **four of its six Flexys hung 151 mm in
+     * the air**. It rendered perfectly plausibly from a three-quarter camera — the gap is behind the front
+     * faces — and `scene:build` was happy, because `on:` only reads a top face and never asks whether
+     * anything is actually there.
+     *
+     * A cabinet counts as supported when something's top face is at its bottom face and the two overlap in
+     * plan. Flown cabinets are exempt: hanging in the air is the entire point of them.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
+    public function testEveryCabinetAboveTheFloorHasSomethingUnderIt(string $sceneId): void
+    {
+        $placed = $this->compile($sceneId);
+
+        foreach ($placed as $entry) {
+            $box = $entry->worldBox();
+            if ($box['min'][2] < self::CONTACT_TOLERANCE_M || $entry->flyPoint !== null) {
+                continue;
+            }
+
+            self::assertTrue(
+                $this->isCarried($entry, $placed),
+                sprintf(
+                    '%s in %s sits at %.3f m with nothing under it',
+                    $entry->placementId,
+                    $sceneId,
+                    $box['min'][2],
+                ),
+            );
+        }
+    }
+
+    /**
+     * Whether anything's top face meets this cabinet's bottom face, overlapping it in plan.
+     *
+     * @param list<PlacedDevice> $placed
+     */
+    private function isCarried(PlacedDevice $entry, array $placed): bool
+    {
+        $box = $entry->worldBox();
+
+        foreach ($placed as $other) {
+            if ($other === $entry) {
+                continue;
+            }
+            $under = $other->worldBox();
+
+            if (abs($under['max'][2] - $box['min'][2]) > self::CONTACT_TOLERANCE_M) {
+                continue;
+            }
+            $overlaps = $under['min'][0] < $box['max'][0] - self::CONTACT_TOLERANCE_M
+                && $under['max'][0] > $box['min'][0] + self::CONTACT_TOLERANCE_M
+                && $under['min'][1] < $box['max'][1] - self::CONTACT_TOLERANCE_M
+                && $under['max'][1] > $box['min'][1] + self::CONTACT_TOLERANCE_M;
+
+            if ($overlaps) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]

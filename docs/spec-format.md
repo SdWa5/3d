@@ -62,6 +62,11 @@ rigging:
 
 audio:                        # optional, but worth filling in from the original's datasheet
   coverage_deg: { horizontal: 90, vertical: 60 }   # also draws the coverage cone; see below
+  passband_hz:                # what it covers and how it is driven; orders a `stack`. See below
+    low_hz: 35
+    high_hz: 1500
+    driven_from_hz: 38        # optional: where it is high-passed in practice
+    provenance: estimated     # required whenever a passband exists
   drivers:                    # the complement, for the catalog and the model's metadata
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: horn, count: 1 }
@@ -84,6 +89,39 @@ notes: |
 Anything marked optional can be left out entirely rather than written as `null`.
 
 ## Baffle layout
+
+### The passband, and the difference between reach and use
+
+`audio.passband_hz` is what orders the tiers of a [`stack`](scenes.md#stack): lowest first, so the deepest
+cabinets end up on the floor carrying everything.
+
+| Field | Meaning |
+|-------|---------|
+| `low_hz` / `high_hz` | the band the cabinet **covers** |
+| `driven_from_hz` | optional — where it is **high-passed in practice**, when that is deliberately not its low corner |
+| `provenance` | `measured`, `plans`, `datasheet` or `estimated`. **Required**, for the same reason a baffle layout's is: a frequency is trivial to invent, impossible to check by looking at a render, and it silently decides the order every generated rig comes out in |
+
+**Why two low corners rather than one.** They are two different facts, and collapsing them loses the more
+useful one. Our Achenbach 18s reach **35 Hz** — lower than the Flexys' 38 — but they are run from **38** most
+of the time, the same corner as the Flexys, deliberately, so that they sit *above* them in a stack rather
+than under them. Recorded as a single number, either the cabinet's real capability or the operating choice
+has to be thrown away: write 35 and four Achenbachs end up at the bottom of the wall carrying twelve Flexys;
+write 38 and the spec now claims the cabinet cannot go below 38, which is untrue and would mislead anyone
+reading it for any other purpose. So both are kept, and the solver sorts on `driven_from_hz` where it exists.
+
+**Ties break on the high corner**, and that rule exists for exactly this pair: the Flexy and the Achenbach are
+both driven from 38 Hz, and the one that stops sooner (Flexy at 200 Hz against the Achenbach's 1500) is the
+more sub-like of the two, so it belongs lower. A spec with no passband at all sorts last within its band and
+falls back to how much row the device can make.
+
+The gear list as it stands — the tops carry no passband, because nothing needs one: subs always go below tops,
+and the tops all share a single row ordered by width.
+
+| Device | Covers | Driven from |
+|--------|--------|-------------|
+| `skram` | 15 – 120 Hz | — |
+| `flexy-folded-horn-hybrid` | 38 – 200 Hz | — |
+| `achenbach-18` | 35 – 1500 Hz | **38 Hz** |
 
 ### The coverage cone
 
@@ -254,6 +292,9 @@ narrower, so the builder rejects it. That is the mechanism doing its job.
   `at_m`, naming an unknown feature, naming one that comes later in the list, or naming something that
   is not a horn; a nested feature wider or deeper than the horn hosting it; a feature whose mouth
   reaches past the edge of the baffle
+* in `audio.passband_hz`: a `low_hz` of zero or less; a `high_hz` at or below `low_hz`; a `driven_from_hz`
+  below `low_hz` (a cabinet cannot be driven lower than it reaches) or at or above `high_hz` (which leaves no
+  band at all)
 * an unknown `profile`, `throat_profile` or `flare`; `sides` below 3, on a horn that is elliptical at
   both ends, or on a driver cone; `throat_profile` on a driver cone
 * a `join` on a driver cone, on a spec with a `mesh_override`, or naming itself, an unknown feature, one

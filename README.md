@@ -31,7 +31,7 @@ ddev exec bin/console library:build       # assemble the Blender asset library
 ddev exec bin/console scene:stack         # solve a rig from constraints, write it as scene files
 ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
-ddev exec bin/console scene:render full-rig-aimed --aim-lines   # ...with laser lines showing the aim
+ddev exec bin/console scene:render full-rig-arc --aim-lines     # ...with laser lines showing the aim
 ddev exec bin/console catalog             # equipment table with weight/volume totals
 ddev exec bin/console build:all           # all of the above, in order
 ddev exec bin/console list                # all commands
@@ -51,8 +51,8 @@ tiers of that row — or two tiers of a fan — is one more line
 
 Or state the rig as **constraints** and let the tiers be worked out: `stack: {max_width_m: 3.70,
 interface_height_m: 2.0, from: [...]}` deals the cabinets you own into rows bottom-up, stacking subs until
-the tops clear head height. Against our gear that lands on the same three-tier rig `full-rig-three-tier.yaml`
-reached by hand. It will mix a row where it has to — two SKRAMs in the middle of the bottom row with Flexys
+the tops clear head height. Against our gear that lands on a three-tier rig with an Achenbach row between
+the subs and the tops. It will mix a row where it has to — two SKRAMs in the middle of the bottom row with Flexys
 either side, because a row of only two SKRAMs is narrower than the tier that would stand on it
 ([docs/scenes.md](docs/scenes.md#stack)).
 

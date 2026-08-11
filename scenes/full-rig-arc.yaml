@@ -1,11 +1,28 @@
-# The three tops as one group on an arc, instead of three placements that happen to point the same way.
+# The three tops as one group on an arc, instead of three placements that happen to point the same way —
+# now with the rest of the inventory under and beside them, so this is the whole PA rather than a fragment.
 #
 # `arc` with no size is the tightest the cabinets can be grouped: the M2122's own taper *is* its splay
 # angle, because that is the one angle at which two of them sit side by side with their side faces fully
 # in contact. Nothing here states an angle or a radius — 17.35° and 1.65 m fall out of the cabinet.
 #
-# The arc owns the yaw, the focus owns the down-tilt. `at` is the middle of the fan, so this is the same
-# point the single `top-centre` stood on in full-rig-mirrored.yaml.
+# The arc owns the yaw, the focus owns the down-tilt. `at` is the middle of the fan and of every tier below
+# it, so the whole rig shares one centre line.
+#
+# WHAT IS UNDER AND BESIDE THE ARC:
+#
+#   sub wall        12 Flexys, two rows of six          3.646 m wide, 1.526 m tall
+#   achenbach row   4 on top of the wall                lifts the arc's bottom edge to 2.126 m
+#   tops            3 M2122s in the fan                 aimed long
+#   side-fills      2 18sound 2-ways beside the fan     same row as the tops, same focus
+#
+# The Achenbach row is what earns its place: without it the arc's bottom edge sits at 1.526 m and the tops
+# fire into the crowd. Four of them — the number that exists — reach 2.126 m, which clears head height.
+#
+# NO SKRAMS. They were in the bottom row of this scene and they had to come out. A SKRAM is 0.914 m tall
+# against a Flexy's 0.763, so a row containing both has two top faces: the row above rested on the SKRAMs and
+# four of its six Flexys hung 151 mm in the air over the ones either side. Calling that a shim on the day was
+# wrong. With only two SKRAMs there is no arrangement that works — a row of them alone is 1.240 m and carries
+# nothing — so they are not part of a stacked rig. `stack` refuses them for the same reason.
 id: full-rig-arc
 name: "Full rig — tops in a convex arc"
 
@@ -30,21 +47,57 @@ placements:
       count: 6
       gap_m: 0.02
 
+  # The 18" row that gets the arc above head height. Four is what we own, so four is what stands here.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-row-top
+    at: [-0.302, 0.0]
+    row:
+      count: 4
+      gap_m: 0.02
+
   # Fronts fanning outward, back edges meeting. `mode` has no default on purpose: an arc bent the wrong
   # way is a quiet mistake, and `concave` would wrap these three around the crowd instead.
   - id: tops
     device: tecnare-m2122
-    on: sub-row-top
+    on: achenbach-row
     at: [-0.302, 0.0]
     aim: focus
     arc:
       mode: convex
       count: 3
 
+  # The two 2-ways BESIDE the fan, not on it — one either side, sharing the Achenbach row with the arc.
+  #
+  # Tops do not stack. Nothing stands on them, so width is the only thing they cost, and a 2-way perched on
+  # a tilted M2122 is a fill hovering over the middle of the rig rather than covering anything. Every top
+  # belongs in one row.
+  #
+  # `width_m: 2.60` is the finished top row and it is the one stated number here. It cannot be derived from
+  # the arc today: the fills have to clear the arc's *outer* faces, and `align` can measure a placement's
+  # extent (`across`) or the gap between its outermost cabinets (`inside`) but not the room outboard of it.
+  # 2.60 puts them about 20 mm clear — see TODO.md.
+  - id: side-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: focus
+    align:
+      mode: stereo
+      width_m: 2.60
+    row:
+      count: 2
+
 notes: |
-  Compare full-rig-aimed.yaml, which is the same three tops written out one at a time and all pointing at
-  the focus. There the cabinets stay parallel and only turn towards one spot; here they form a fan, which
-  is what a point-source cluster is.
+  An arc is a fan, not three cabinets that happen to point the same way: the seats share one centre of
+  curvature, so the pattern behaves as one source rather than three overlapping ones.
+
   `splay_deg: 25` opens the fan and keeps the back edges touching, with the fronts opening out. A
   `radius_m` states the arc the front faces sit on instead — and note that for a convex arc a *larger*
   radius is a *flatter* fan, so it is bounded above rather than below.
+
+  Compare full-rig-all-speakers.yaml: the same 23 cabinets solved from constraints rather than arranged by
+  hand. It reaches the same conclusion about the SKRAMs — middle of the bottom row — from the geometry
+  alone, and its Flexys end up in three tiers rather than two.
+
+  Mixes owners — the Achenbachs and the 2-ways are Sepp's — which `scene:build` reports.

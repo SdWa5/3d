@@ -88,6 +88,12 @@ final class Tier
         return $shortest === INF ? 0.0 : $tallest - $shortest;
     }
 
+    /** The width of the cabinet at the end of the row — what an overhang is measured against. */
+    public function outerWidthM(): float
+    {
+        return $this->segments[0][0]->dimensions->width;
+    }
+
     public function isSub(): bool
     {
         foreach ($this->segments as [$device, $count]) {

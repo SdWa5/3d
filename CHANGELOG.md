@@ -6,6 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-08-11
+
+### Added
+
+- **`audio.passband_hz` on a device spec** — `{ low_hz, high_hz, driven_from_hz, provenance }`. What a cabinet
+  covers, and where it is high-passed in practice when that is deliberately not its low corner. `provenance` is
+  required, as it is for a baffle layout: a frequency is trivial to invent and silently decides the order every
+  generated rig comes out in
+- Filled in for the three subs from the owner's own operating practice: SKRAM 15–120 Hz, Flexy 38–200 Hz,
+  Achenbach 35–1500 Hz **driven from 38**. The tops carry none, because nothing needs one — subs always go
+  below tops and the tops share a single row ordered by width
+- A shipped-scene test that **every cabinet above the floor has something under it**. The sibling of the
+  overlap check, and it caught a real one immediately (see Fixed)
+
+### Changed
+
+- **`scene:stack` orders tiers by frequency**, lowest driven corner first, instead of by cabinet width. Width
+  was a plausible-looking proxy that got it backwards: the Achenbach is 0.600 m against the Flexy's 0.591, so
+  it sorted first and four Achenbachs ended up carrying twelve Flexys. Ties break on the high corner, which is
+  exactly the Flexy-versus-Achenbach case — both driven from 38 Hz, and the one that stops sooner belongs lower
+- **Every top goes in one row**, widest in the middle, rather than a tier per device. Nothing stands on a top,
+  so width is the only thing it costs — and a 2-way stacked on a tilted M2122 was a fill hovering over the
+  middle of the rig
+- **`max_width_m` is a maximum, not a target.** The row count now narrows until the tops clear the interface,
+  so a 10 m stage no longer makes a 2 m interface unreachable — which it did, because every device fitted in
+  one row and left two sub tiers at 1.363 m
+- `align` on a stack spreads **only the top tier, and only as wide as the tier carrying it**
+- An unreachable interface height now reports the **ceiling of the inventory** rather than the height of the
+  widest attempt: "2.126 m" read as though one more tier would fix it
+- `--subs`/`beside` removed. What is in a rig is chosen with `--from`
+- `scene:stack` de-duplicates on **solved geometry** rather than on the emitted file, so alignments that come
+  out as the same rig are written once
+
+### Fixed
+
+- **Cabinets could float, and did.** A row containing cabinets of different heights has two top faces, so the
+  tier above rests on the tall ones and hangs over the short ones — the sub wall of `full-rig-arc` had four of
+  its six second-row Flexys **151 mm in the air** over a mixed SKRAM/Flexy row. Mixing now requires matching
+  heights, and since no two of our five cabinets share one, the SKRAMs are simply not part of a stacked rig
+- **`align` spread load-bearing tiers**, putting two Flexys 6.76 m apart with the middle Tecnare floating over
+  the gap between them
+- An overhang large enough that more than half the outboard cabinet is off its support is now an **error**
+  rather than a warning — the case that produced a 2.511 m tops row on a 1.240 m SKRAM row
+- `scenes/full-rig-all-speakers.yaml` removed: identical geometry to the generated `stacked-center`, verified
+  cabinet by cabinet
+
 ## [0.31.1] - 2026-08-11
 
 ### Removed

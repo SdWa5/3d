@@ -76,7 +76,7 @@ unmaintainable; as two rows of six it is obvious what the setup *is*.
 Every shipped wall uses `row`, which works its spacing out from the cabinet
 ([below](#lattices--a-grid-that-works-its-own-spacing-out)). `repeat` is the older shorthand that steps
 along a vector you state yourself — still the clearest thing to write when the step *is* the decision, as
-in `scenes/skram-detail.yaml`:
+in `scenes/detail-check.yaml`:
 
 ```yaml
     repeat: { count: 2, step: [0.64, 0.0, 0.0] }
@@ -110,7 +110,7 @@ stacked in mirrored pairs so two mouths meet and behave as one larger mouth:
     row: { count: 6, gap_m: 0.02 }
 ```
 
-`scenes/full-rig-mirrored.yaml` is exactly `full-rig.yaml` with that one line added — which is the
+`scenes/full-rig-arc.yaml` carries that one line on its bottom row — which is the
 argument for keeping setups as files rather than as Blender scenes.
 
 Which row to flip is not obvious and depends on where the mouth sits on the cabinet's face. A Flexy's
@@ -153,7 +153,7 @@ placements:
     aim: focus
 ```
 
-`scenes/full-rig-aimed.yaml` does exactly that, and resolves to:
+`scenes/full-rig-arc.yaml` does exactly that, and resolves to:
 
 ```
   top-left     x=-1.8295  yaw= +8.29°   pitch=+1.11°
@@ -167,7 +167,7 @@ Worth reading the pitch figures honestly: ~1.1° is almost nothing, and that is 
 middle sits 2 m up, aiming at ear height 10 m away, drops only 20 cm over that distance. Bring the focus
 closer or lower and the tilt steepens; that is the trade-off aiming actually is.
 
-Raising the tops does the same thing. `scenes/full-rig-three-tier.yaml` puts a row of Achenbach 18s
+Raising the tops does the same thing. `scenes/full-rig-arc.yaml` puts a row of Achenbach 18s
 between the subs and the tops, which lifts the tops from 1.53 m to 2.15 m, and the same focus then
 resolves to:
 
@@ -315,7 +315,7 @@ placements:
     aim: far
 ```
 
-`scenes/two-foci.yaml` is that rig. Neither aiming decision states an angle.
+`scenes/full-rig-all-tops.yaml` is that rig. Neither aiming decision states an angle.
 
 `scenes/full-rig-all-tops.yaml` is the same idea on the whole PA: every top we own on one three-tier stack,
 the three M2122s spread at 1.55 m taking the far focus and the two 18sound 2-ways tucked inside them taking
@@ -380,12 +380,12 @@ that thing's own size rather than from a step somebody worked out.
 `row: { count: 6, axis: x }` is the same thing with one open axis, which is the case that dominates. `axis`
 defaults to `x`.
 
-`scenes/sub-wall-lattice.yaml` is the twelve-cabinet mirrored sub wall as **one** placement, and it is
-worth comparing against `full-rig-mirrored.yaml` line by line. Both derive their spacing; what differs is
-the shape of the statement. There the two tiers are two entries and the mirroring is a `roll_deg` on one of
-them; here a `row` of six is nested in a two-tier `lattice` and `roll_cycle` turns the lower tier over, so
-the wall is one thing with a shape rather than two things that happen to line up. Both resolve to the same
-twelve positions.
+A twelve-cabinet mirrored sub wall can be written either way, and the difference is the shape of the
+statement rather than the result. As **two** placements the tiers are two entries and the mirroring is a
+`roll_deg` on one of them — that is what `scenes/full-rig-arc.yaml` does. As **one**, a `row` of six nests in
+a two-tier `lattice` and `roll_cycle` turns the lower tier over, so the wall is one thing with a shape rather
+than two things that happen to line up. Both derive their spacing, and both resolve to the same twelve
+positions.
 
 * **x and y are centred on `at`; z runs upward from it.** Centring x and y is what lets a single cabinet be
   swapped for a row of six without moving, and one formula covers an odd count (a cell on `at`) and an
@@ -505,7 +505,7 @@ refused rather than quietly overruled. It expands into one ordinary placement pe
 Either a width bound or an interface height is enough on its own. **Both together is a solve that can fail**,
 and it says so with the number it reached beside the number it needed.
 
-`scenes/full-rig-stacked.yaml` is the worked example. Against the gear list it deals out:
+`scenes/full-rig-all-speakers.yaml` is the worked example. Against the gear list it deals out:
 
 ```
   1  flexy-folded-horn-hybrid  x6    0.763 m    six fit: (3.70 + 0.02) / (0.591 + 0.02) = 6.09
@@ -514,9 +514,7 @@ and it says so with the number it reached beside the number it needed.
   4  tecnare-m2122             x3               the tops, aimed
 ```
 
-which is the same three-tier stack `full-rig-three-tier.yaml` arrived at by hand — reached from the
-constraint instead, so it follows the specs when a cabinet is finally measured. (The two differ on one
-thing, and it is a correction: the hand-written scene calls for six Achenbachs and only four exist.)
+reached from the constraint rather than chosen, so it follows the specs when a cabinet is finally measured.
 
 **Nothing in the solver assumes a grid, and it could not.** The five cabinets we own have five widths
 (0.4656 / 0.500 / 0.591 / 0.600 / 0.610 m) and five heights (0.600 / 0.763 / 0.836 / 0.914 / 0.960 m), no
@@ -531,13 +529,28 @@ still clears.
 **`from` must list subs before tops.** The fill is bottom-up, so a top listed first would put a Tecnare
 under a Flexy and still satisfy every height check.
 
+**Tiers are ordered by frequency, not by size.** `scene:stack`'s default `--from` sorts on
+[`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use): lowest driven
+corner first, so the deepest cabinets end up on the floor. Ordering by cabinet width instead got this wrong in
+a way that looked plausible — the Achenbach is 0.600 m against the Flexy's 0.591, so it sorted first and four
+Achenbachs ended up carrying twelve Flexys.
+
+**Tops do not stack — every top goes in one row**, widest in the middle. Nothing stands on a top, so width is
+the only thing it costs, and a 2-way perched on a tilted M2122 is a fill hovering over the middle of the rig.
+
+**A row must have one top face.** Cabinets of different heights are never mixed into a row, because a row with
+a step through it has two top faces and the tier above rests on the tall ones and hangs in the air over the
+short ones. Our five cabinets have five different heights, so nothing in the current inventory can be mixed —
+which is why the two SKRAMs cannot be part of a stacked rig at all: a row of them alone is 1.240 m and carries
+nothing above it.
+
 **A row may be mixed, and the bottom one sometimes has to be.** Only two SKRAMs exist, so a row of nothing
 but SKRAMs is 1.240 m — narrower than the 2.460 m Achenbach row that would come to stand on it, and a stack
 whose tiers get *wider* as they rise is 610 mm of Achenbach hanging in mid-air at each end. The solver puts
 the two SKRAMs in the middle of the bottom row, where the widest and heaviest cabinets belong anyway, and
 flanks them with Flexys: 3.684 m, and the rig is a pyramid. This happens **only to remove an inverted step** —
-never just because a device is in short supply, which would have dragged `full-rig-stacked`'s Achenbachs
-below its Flexys.
+never just because a device is in short supply, which would drag the Achenbachs below the Flexys in any rig
+that has more Flexys than Achenbachs.
 
 A mixed tier expands into one placement per segment (`main/1a`, `main/1b`, `main/1c` — letters, so they cannot
 be confused with the numeric copy suffixes), and it is not `align`ed, because there is nothing sensible to
@@ -546,15 +559,14 @@ distribute one segment at a time.
 **Rows are balanced, not greedy.** Eight leftover Flexys at six-per-row come out 4 + 4, not 6 + 2 — same
 number of rows, but a 1.222 m row could not carry the Achenbachs above it and a 2.424 m one can.
 
-**Two things it warns about rather than refuses**, because a crew deals with both and refusing them would
-make the solver useless for real gear:
+**Support is checked, and the line is half the outboard cabinet's width.** Under it, a tier standing proud of
+the one below is a **warning** with the overhang in millimetres — what feet and working gaps absorb. Over it,
+more than half that cabinet's footprint is off the edge: it is standing on air, and that is an **error**.
+Neither shows up anywhere else, because `on:` only reads a top face and never asks whether anything is there.
 
-* a **stepped** mixed row — a SKRAM is 0.914 m tall and a Flexy 0.763, so whatever stands on that row rests
-  on the SKRAMs and bridges the Flexys. 151 mm, shimmed on the day.
-* a tier standing **proud** of the one below it by more than a centimetre, with the overhang in millimetres.
-
-Neither shows up anywhere else: `on:` only reads a top face, and the shipped-scene check only catches
-cabinets *inside* each other, never one standing on air.
+**Also `align` only ever spreads the top tier, and only as wide as the tier carrying it.** Spreading a tier
+turns it into gaps, so a tier with load on it has to stay tight; and spreading even the top tier to the bottom
+row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 ### scene:stack — writing the scene for you
 
@@ -570,7 +582,7 @@ bin/console scene:stack --max-width=3.70 --interface-height=2.0
 
 | Option | Meaning |
 |--------|---------|
-| `--from=ID` | repeatable, low frequency first. Default: every speaker, **widest first within each band**, subs before tops — the order that stacks without inverting |
+| `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use) — lowest driven corner first, subs before tops |
 | `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints |
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
@@ -599,8 +611,8 @@ and follows the specs when a cabinet is finally measured, instead of freezing to
 rows.
 
 `align` on a stack applies to every tier **except the bottom one**, whose edges become the envelope when no
-`across`/`inside`/`width_m` is stated — which is how `full-rig-stacked` gets all four rows running exactly
--2.1250 .. +1.5210.
+`across`/`inside`/`width_m` is stated. Only the **topmost** tier is spread: a tier that carries another one
+has to stay tight, because spreading it turns it into gaps and the tier above then stands over air.
 
 ### Groups inside groups
 
@@ -843,8 +855,8 @@ nicely. A sun is left alone, since irradiance does not fall off.
 ### Aim lines
 
 ```bash
-ddev exec bin/console scene:render full-rig-aimed --aim-lines          # tops only
-ddev exec bin/console scene:render full-rig-aimed --aim-lines=all      # subs too
+ddev exec bin/console scene:render full-rig-arc --aim-lines            # tops only
+ddev exec bin/console scene:render full-rig-arc --aim-lines=all        # subs too
 ```
 
 Draws a thin glowing rod from the centre of each cabinet's front face along the direction it points,
@@ -878,7 +890,7 @@ placements:
     aim_lines: false   # …and this one is not
 ```
 
-`scenes/two-foci.yaml` does exactly that: two groups aiming at two different points is invisible in a still
+`scenes/full-rig-all-tops.yaml` does exactly that: two groups aiming at two different points is invisible in a still
 render otherwise.
 
 * **The flag overrules the scene only when it is actually typed.** Whether `--aim-lines` was given has to be

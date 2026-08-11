@@ -6,7 +6,6 @@ namespace App\Tests\Scene;
 
 use App\Scene\PlacedDevice;
 use App\Scene\SceneCompiler;
-use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
@@ -56,7 +55,7 @@ final class StackTest extends TestCase
 
         $bottom = static fn (string $tier): float => min(array_map(
             static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
-            array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, $tier.'-')),
+            array_filter($placed, static fn (PlacedDevice $e): bool => self::belongsTo($e, $tier)),
         ));
 
         self::assertEqualsWithDelta(0.0, $bottom('main/1'), 1e-9);
@@ -88,29 +87,11 @@ final class StackTest extends TestCase
     }
 
     /**
-     * The shipped scene against the one written out by hand. They agree on the Flexy rows and on the
-     * interface height; they differ on the Achenbach row, and that difference is a correction —
-     * `full-rig-three-tier` asks for six Achenbachs and only four exist.
-     */
-    public function testTheSolvedRigAgreesWithTheHandWrittenOneOnItsSubRows(): void
-    {
-        $solved = $this->compileShipped('full-rig-stacked');
-        $byHand = $this->compileShipped('full-rig-three-tier');
-
-        self::assertEqualsWithDelta(
-            $this->extentOf($byHand, 'sub-row-bottom'),
-            $this->extentOf($solved, 'main/1'),
-            1e-9,
-        );
-        self::assertSame(4, count(array_filter(
-            $solved,
-            static fn (PlacedDevice $e): bool => $e->device->id === 'achenbach-18',
-        )), 'four Achenbachs exist, so four are placed');
-    }
-
-    /**
      * A mixed row is several placements, because a `row` group makes copies of **one** device. Segments get
      * letters so they cannot be confused with the numeric `-1`, `-2` suffixes every group appends.
+     *
+     * The mixed row here is the **tops**: every top shares one row, widest in the middle, so it comes out as
+     * a 2-way, three M2122s and a 2-way — three placements at one height.
      */
     public function testAMixedTierExpandsIntoOnePlacementPerSegment(): void
     {
@@ -121,73 +102,81 @@ final class StackTest extends TestCase
             $ids[preg_replace('/-\d+$/', '', $entry->placementId)] = true;
         }
 
-        self::assertSame(
-            ['main/1a', 'main/1b', 'main/1c', 'main/2', 'main/3', 'main/4', 'main/5', 'main/6'],
-            array_keys($ids),
-        );
+        self::assertSame(['main/1', 'main/2', 'main/3', 'main/4a', 'main/4b', 'main/4c'], array_keys($ids));
     }
 
     /**
-     * The segments of a mixed row have to sit side by side with the row's own working gap between them,
-     * including across a segment boundary — a SKRAM beside a Flexy needs the same air as two Flexys do.
+     * The segments of a mixed row sit side by side, spaced on their nominal widths plus one working gap —
+     * including across a segment boundary, because a 2-way beside an M2122 needs the same air as two M2122s.
+     *
+     * Checked on the **slot positions**, not the rotated boxes, and that distinction is the point: these are
+     * aimed cabinets, so toe-in eats into the gap and the boxes measure 7.9 mm apart where the layout put
+     * 20 mm. The layout is what this test is about; whether the turned boxes still clear each other is
+     * {@see ShippedScenesTest}'s job, and it does check it.
      */
     public function testTheSegmentsOfAMixedRowSitSideBySideWithOneGapBetweenThem(): void
     {
         $placed = $this->compile($this->allSpeakers());
 
-        $left = $this->edgesOf($placed, 'main/1a');
-        $middle = $this->edgesOf($placed, 'main/1b');
-        $right = $this->edgesOf($placed, 'main/1c');
+        $centre = function (string $segment) use ($placed): float {
+            $xs = array_map(
+                static fn (PlacedDevice $e): float => $e->position[0],
+                array_values(array_filter($placed, static fn (PlacedDevice $e): bool => self::belongsTo($e, $segment))),
+            );
 
-        self::assertEqualsWithDelta(0.02, $middle['min'] - $left['max'], 1e-9);
-        self::assertEqualsWithDelta(0.02, $right['min'] - $middle['max'], 1e-9);
-        // And the row as a whole is the 3.684 m that makes the rig a pyramid.
-        self::assertEqualsWithDelta(3.684, $right['max'] - $left['min'], 1e-9);
+            return array_sum($xs) / count($xs);
+        };
+
+        // Row is 2.5112 m centred on -0.302: a 2-way at each end, three M2122s in the middle.
+        self::assertEqualsWithDelta(-1.3248, $centre('main/4a'), 1e-9);
+        self::assertEqualsWithDelta(-0.302, $centre('main/4b'), 1e-9);
+        self::assertEqualsWithDelta(0.7208, $centre('main/4c'), 1e-9);
     }
 
     /**
-     * Whatever stands on a stepped row rests on its **tallest** segment, because that is the top face `on:`
-     * reads. The SKRAMs are 0.914 m and the Flexys either side 0.763 m, so tier 2 starts at 0.914 m.
+     * Every segment of the tops row stands at the same height, on the Achenbach row — not on each other.
+     * A 2-way perched on a tilted M2122 was a fill hovering over the middle of the rig.
      */
-    public function testTheTierAboveAMixedRowStandsOnItsTallestSegment(): void
+    public function testEverySegmentOfTheTopsRowStandsAtTheSameHeight(): void
     {
         $placed = $this->compile($this->allSpeakers());
 
-        $bottom = static fn (string $tier): float => min(array_map(
-            static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
-            array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, $tier.'-')),
-        ));
-
-        self::assertEqualsWithDelta(0.914, $bottom('main/2'), 1e-9);
+        foreach (['main/4a', 'main/4b', 'main/4c'] as $segment) {
+            $bottom = min(array_map(
+                static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
+                array_filter($placed, static fn (PlacedDevice $e): bool => self::belongsTo($e, $segment)),
+            ));
+            self::assertEqualsWithDelta(2.126, $bottom, 1e-9, $segment.' is not on the Achenbach row');
+        }
     }
 
-    /** The whole inventory, as a scene rather than only as a count assertion. */
-    public function testTheWholeInventoryStacksAndClearsTheInterface(): void
+    /** Everything that can share a stack, as a scene rather than only as a count assertion. */
+    public function testEveryStackableCabinetStacksAndClearsTheInterface(): void
     {
         $placed = $this->compile($this->allSpeakers());
 
-        self::assertCount(23, $placed);
-        // 12 Flexy + 2 SKRAM + 4 Achenbach = 3.040 m of subs under the tops.
+        self::assertCount(21, $placed);
+        // 12 Flexy + 4 Achenbach = 2.126 m of subs under the tops.
         $tops = min(array_map(
             static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
-            array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, 'main/5-')),
+            array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, 'main/4')),
         ));
         self::assertGreaterThanOrEqual(2.0, $tops);
-        self::assertEqualsWithDelta(3.040, $tops, 1e-9);
+        self::assertEqualsWithDelta(2.126, $tops, 1e-9);
     }
 
     /**
-     * The two things the solver has to say about this rig, said as **warnings** so it still builds. Before
-     * this, `scene:build` treated any violation as fatal and swallowed the whole report.
+     * The one thing the solver has to say about this rig, said as a **warning** so it still builds: the tops
+     * row is 2.511 m on a 2.460 m Achenbach row, so it stands 26 mm proud at each end. Before this,
+     * `scene:build` treated any violation as fatal and swallowed the whole report.
      */
-    public function testTheStepAndTheOverhangAreWarningsRatherThanErrors(): void
+    public function testASmallOverhangIsAWarningRatherThanAnError(): void
     {
         $result = (new SceneCompiler($this->devices))->compile($this->scene($this->allSpeakers()));
 
         self::assertSame([], \App\Spec\Violation::errorsIn($result['violations']));
         $messages = implode("\n", array_map(static fn ($v): string => $v->message, $result['violations']));
-        self::assertStringContainsString('stepped by 151 mm', $messages);
-        self::assertStringContainsString('overhangs 18 mm each side', $messages);
+        self::assertStringContainsString('overhangs 26 mm each side', $messages);
     }
 
     public function testAnUnknownDeviceInFromIsReported(): void
@@ -213,7 +202,7 @@ final class StackTest extends TestCase
         ]));
 
         self::assertCount(1, $result['placed'], 'only the SKRAM, which has nothing to do with the stack');
-        self::assertStringContainsString('interface_height_m', $result['violations'][0]->message);
+        self::assertNotSame([], \App\Spec\Violation::errorsIn($result['violations']));
     }
 
     public function testAStackRefusesADeviceOfItsOwn(): void
@@ -265,7 +254,7 @@ final class StackTest extends TestCase
     }
 
     /**
-     * All 23 cabinets, which is the case that forces a mixed bottom row.
+     * Every cabinet that can share a stack — 21 of them. The tops row is the mixed one.
      *
      * @return list<array<string, mixed>>
      */
@@ -276,12 +265,27 @@ final class StackTest extends TestCase
                 'max_width_m' => 3.70,
                 'interface_height_m' => 2.0,
                 'gap_m' => 0.02,
+                // No SKRAMs: only two exist and no other cabinet shares their height, so they cannot be
+                // mixed into a row and a row of their own carries nothing. They belong beside a rig.
                 'from' => [
-                    'flexy-folded-horn-hybrid', 'skram', 'achenbach-18',
+                    'flexy-folded-horn-hybrid', 'achenbach-18',
                     'tecnare-m2122', 'eighteensound-2way-15',
                 ],
             ]],
         ];
+    }
+
+    /**
+     * Whether a cabinet belongs to a placement.
+     *
+     * A placement that makes **one** cabinet gets no numeric suffix at all — `idSuffix()` is empty when the
+     * group has no axis with more than one cell — so a segment of one is `main/4a`, not `main/4a-1`. Matching
+     * on the dash alone silently matches nothing.
+     */
+    private static function belongsTo(PlacedDevice $entry, string $placementId): bool
+    {
+        return $entry->placementId === $placementId
+            || str_starts_with($entry->placementId, $placementId.'-');
     }
 
     /**
@@ -295,7 +299,7 @@ final class StackTest extends TestCase
         $min = INF;
         $max = -INF;
         foreach ($placed as $entry) {
-            if (!str_starts_with($entry->placementId, $placementId.'-')) {
+            if (!self::belongsTo($entry, $placementId)) {
                 continue;
             }
             $box = $entry->worldBox();
@@ -304,25 +308,6 @@ final class StackTest extends TestCase
         }
 
         return ['min' => $min, 'max' => $max];
-    }
-
-    /**
-     * @param list<PlacedDevice> $placed
-     */
-    private function extentOf(array $placed, string $placementId): float
-    {
-        $min = INF;
-        $max = -INF;
-        foreach ($placed as $entry) {
-            if (!str_starts_with($entry->placementId, $placementId.'-')) {
-                continue;
-            }
-            $box = $entry->worldBox();
-            $min = min($min, $box['min'][0]);
-            $max = max($max, $box['max'][0]);
-        }
-
-        return $max - $min;
     }
 
     /**
@@ -341,17 +326,6 @@ final class StackTest extends TestCase
         ));
 
         return $result['placed'];
-    }
-
-    /**
-     * @return list<PlacedDevice>
-     */
-    private function compileShipped(string $sceneId): array
-    {
-        $scene = (new SceneLoader(dirname(__DIR__, 2).'/scenes'))->find($sceneId)['scene'];
-        self::assertNotNull($scene);
-
-        return (new SceneCompiler($this->devices))->compile($scene)['placed'];
     }
 
     /**

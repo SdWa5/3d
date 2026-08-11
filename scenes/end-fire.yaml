@@ -29,4 +29,4 @@ notes: |
   Twelve Flexys, and only eight exist — `scene:build` says so. The arrangement is what matters here; cut
   the outer lattice to `count: [2, 1, 1]` for a buildable six.
 
-  Compare against sub-wall-lattice.yaml, which is the same cabinet spaced flush and mirrored instead.
+  Compare against full-rig.yaml, which is the same cabinet spaced flush in a wall instead.

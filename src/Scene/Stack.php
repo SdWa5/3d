@@ -12,7 +12,7 @@ use App\Spec\InvalidSpecException;
  *
  * Every `full-rig*` scene is the same decision made by a person: subs low, 18" above them, tops on top, and
  * a count per row chosen so the wall comes out a sensible width. `full-rig` arrived at 2 × 6 Flexys at
- * 3.646 m that way, and `full-rig-three-tier` at a 2.126 m sub/top interface. Both are consequences of the
+ * 3.646 m that way, and the hand-built three-tier rig at a 2.126 m sub/top interface. Both are consequences of the
  * cabinets we own and a bound on the rig, so both can be worked out — and then they stay right when a
  * cabinet is finally measured, instead of quietly becoming a rig that no longer fits the stage.
  *
@@ -22,7 +22,7 @@ use App\Spec\InvalidSpecException;
  * * **`interface_height_m`** — how high the sub stack's top face has to reach, so the tops fire over a
  *   standing crowd rather than into it. Defaults to {@see DEFAULT_INTERFACE_HEIGHT_M}; state `0` for a rig
  *   that deliberately sits low. Against what we own, two Flexy tiers reach 1.526 m and miss, and two Flexy
- *   tiers plus an Achenbach row reach 2.126 m and clear — which is exactly what `full-rig-three-tier`
+ *   tiers plus an Achenbach row reach 2.126 m and clear — which is exactly what the three-tier rig
  *   arrived at by hand.
  * * **`min_width_m` / `max_height_m`** — the other two bounds. A minimum width is how you ask for a wide
  *   short wall rather than a tall narrow one out of the same cabinets; a maximum height is a ceiling or a
@@ -135,7 +135,6 @@ final class Stack
     public function expand(Placement $placement, array $tiers): array
     {
         $at = $placement->at ?? [0.0, 0.0];
-        $envelope = self::envelopeOf($tiers[0] ?? null, $this->gapM, $placement->id);
 
         $placements = [];
         $support = null;
@@ -168,12 +167,22 @@ final class Stack
                     fly: null,
                     group: new GroupStack([new Lattice([$count, 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X)]),
                     aimLines: $placement->aimLines,
-                    // The bottom tier *is* the envelope, a mixed tier is several placements with nothing
-                    // sensible to distribute one at a time, and a segment of one cabinet has nothing to
-                    // spread — all three would be violations rather than useful defaults.
-                    align: $index === 0 || $tier->isMixed() || $count < 2
+                    // Only the **top** tier is spread, and only as wide as the tier holding it up. Both
+                    // halves of that matter, and each was learned the hard way:
+                    //
+                    // * Spreading a tier turns it into gaps, and a tier that carries another then holds it
+                    //   up over thin air — justifying every tier of the whole inventory put two Flexys
+                    //   6.76 m apart with the middle Tecnare floating over the space between them.
+                    // * Spreading even the top tier to the *bottom* row's width is no better: the two
+                    //   2-ways went to ±1.84 m while the Tecnare row carrying them spans 1.54 m, so they
+                    //   stood on nothing at all. A tier can only be distributed across its own support.
+                    //
+                    // The bottom tier has no support to measure, a mixed tier is several placements with
+                    // nothing sensible to distribute one at a time, and a segment of one cabinet has nothing
+                    // to spread.
+                    align: $index === 0 || $index !== count($tiers) - 1 || $tier->isMixed() || $count < 2
                         ? null
-                        : self::envelopeFor($placement->align, $envelope),
+                        : self::envelopeFor($placement->align, self::supportEnvelope($tiers, $index, $this->gapM, $placement->id)),
                 );
 
                 if ($device->dimensions->height > $tallestHeight) {
@@ -192,20 +201,25 @@ final class Stack
     }
 
     /**
-     * The bottom row as an envelope for everything above it: its id when it is one placement, or its width
-     * when it is mixed and so has no single id to name.
+     * The tier directly below `$index` as an envelope: its id when it is one placement, or its width when it
+     * is mixed and so has no single id to name.
      *
+     * The tier below is the *support*, and that is the only honest envelope for a tier being spread — a row
+     * distributed wider than what it stands on is a row standing on air.
+     *
+     * @param list<Tier> $tiers
      * @return array{?string, ?float}
      */
-    private static function envelopeOf(?Tier $bottom, float $gapM, string $stackId): array
+    private static function supportEnvelope(array $tiers, int $index, float $gapM, string $stackId): array
     {
-        if ($bottom === null) {
+        $below = $tiers[$index - 1] ?? null;
+        if ($below === null) {
             return [null, null];
         }
 
-        return $bottom->isMixed()
-            ? [null, $bottom->widthM($gapM)]
-            : [sprintf('%s/1', $stackId), null];
+        return $below->isMixed()
+            ? [null, $below->widthM($gapM)]
+            : [sprintf('%s/%d', $stackId, $index), null];
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Scene\StackSolver;
 use App\Scene\Tier;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
+use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -45,32 +46,33 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * The constraint reproducing a stack we already trust. Two Flexy tiers reach 1.526 m and the tops would
-     * fire into the crowd; adding the Achenbach row reaches 2.126 m and clears — which is exactly what
-     * `full-rig-three-tier` arrived at by hand.
+     * The row count is narrowed until the tops are up, because narrower rows mean more of them.
+     *
+     * Twelve Flexys six-wide are two tiers at 1.526 m and miss a 2 m interface; four-wide they are three
+     * tiers at 2.289 m and clear it. Nothing else changes — same cabinets, same stage, more height bought
+     * with width.
      */
-    public function testTwoFlexyTiersMissTheInterfaceHeightAndAnAchenbachRowClearsIt(): void
+    public function testTheRowIsNarrowedUntilTheTopsAreUp(): void
     {
-        $missed = StackSolver::solve(
-            $this->inventory(['flexy-folded-horn-hybrid', 'tecnare-m2122']),
-            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
-        );
+        $tiers = $this->solve(['flexy-folded-horn-hybrid', 'tecnare-m2122'], maxWidthM: 3.70, interfaceHeightM: 2.0);
 
-        self::assertNotSame([], $missed['problems']);
-        self::assertStringContainsString('the subs stack 1.526 m high', $missed['problems'][0]);
+        self::assertSame([4, 4, 4, 3], array_map(static fn (Tier $t): int => $t->count(), $tiers));
+        self::assertEqualsWithDelta(2.289, $this->subHeight($tiers), 1e-9);
 
-        $cleared = $this->solve(
+        // Add the Achenbachs and six-wide Flexy rows clear it instead, at 2.126 m — the hand-built answer.
+        $withAchenbach = $this->solve(
             ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
             maxWidthM: 3.70,
             interfaceHeightM: 2.0,
         );
-
-        self::assertEqualsWithDelta(2.126, $this->subHeight($cleared), 1e-9);
+        self::assertEqualsWithDelta(2.126, $this->subHeight($withAchenbach), 1e-9);
     }
 
     /**
-     * The first of the two inventory sweeps: everything but the SKRAM. Two sub widths and two top widths,
-     * none of them a multiple of another.
+     * Everything but the SKRAM: three sub tiers of matching cabinets, then **one** row of tops.
+     *
+     * Tops share a row rather than stacking, and the widest goes in the middle — the M2122 cluster with a
+     * 2-way outboard of it each side, which is how the hand-built rigs arrange them too.
      */
     public function testTheWholeInventoryExceptTheSkramStacks(): void
     {
@@ -81,38 +83,33 @@ final class StackSolverTest extends TestCase
         );
 
         self::assertSame(21, $this->cabinets($tiers), '12 Flexy, 4 Achenbach, 3 Tecnare, 2 18sound');
-        self::assertSame([6, 6, 4, 3, 2], array_map(static fn (Tier $t): int => $t->count(), $tiers));
+        self::assertSame([6, 6, 4, 5], array_map(static fn (Tier $t): int => $t->count(), $tiers));
+        self::assertSame(
+            '1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15',
+            $tiers[3]->label(),
+        );
     }
 
     /**
-     * The second sweep, and the one that breaks a grid assumption: the SKRAM is the widest cabinet we own
-     * at 0.610 m and the second tallest at 0.914 m, so it is what a tier boundary has to bend around.
+     * The whole inventory **cannot** be one stack, and the solver has to say so rather than build a rig that
+     * falls over.
      *
-     * Only two exist, so a row of nothing but SKRAMs is 1.240 m — narrower than the 2.460 m Achenbach row
-     * that would stand on it, which is the whole reason mixed rows exist. Mixed into the bottom row instead,
-     * the rig is a pyramid and every tier is carried.
+     * Only two SKRAMs exist, so a row of them is 1.240 m. They cannot be mixed into a wider row either,
+     * because a SKRAM is 0.914 m tall against a Flexy's 0.763 and a row with a step through it has two top
+     * faces — the tier above would rest on the tall pair and hang in the air over the rest. Left as their own
+     * row, the 2.511 m row of tops stands on 1.240 m and more than half of each outboard cabinet is off the
+     * edge. Refused, with the fix named: they belong beside the rig, not in it.
      */
-    public function testTheWholeInventoryIncludingTheSkramStacks(): void
+    public function testTheWholeInventoryCannotBeOneStackBecauseOfTheSkrams(): void
     {
-        $tiers = $this->solve(
-            ['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'],
-            maxWidthM: 3.70,
-            interfaceHeightM: 2.0,
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
+            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
         );
 
-        self::assertSame(23, $this->cabinets($tiers), 'the whole inventory');
-        self::assertSame([6, 4, 4, 4, 3, 2], array_map(static fn (Tier $t): int => $t->count(), $tiers));
-
-        // The bottom row is the mixed one: two SKRAMs in the middle, a pair of Flexys either side.
-        self::assertSame('2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid', $tiers[0]->label());
-        self::assertEqualsWithDelta(3.684, $tiers[0]->widthM(0.02), 1e-9);
-
-        // Nothing here is a multiple of anything. `n` cabinets carry `n − 1` gaps, so a four-wide Flexy row
-        // is 4 × 0.591 + 3 × 0.02 = 2.424 m — not 2.444, which is the mistake of counting a gap per cabinet.
-        self::assertEqualsWithDelta([3.684, 2.424, 2.424, 2.460, 1.540, 0.9512], array_map(
-            static fn (Tier $t): float => $t->widthM(0.02),
-            $tiers,
-        ), 1e-9);
+        $problems = implode("\n", $result['problems']);
+        self::assertStringContainsString('overhangs 610 mm each side', $problems);
+        self::assertStringContainsString('stands on nothing', $problems);
     }
 
     /**
@@ -146,7 +143,7 @@ final class StackSolverTest extends TestCase
     /**
      * The gate on mixing, and the reason it is not "mix whenever the widest sub cannot fill a row alone".
      *
-     * `full-rig-stacked`'s widest sub is the **Achenbach** — 0.600 m against the Flexy's 0.591 — with four
+     * With the SKRAMs left out, the widest sub is the **Achenbach** — 0.600 m against the Flexy's 0.591 — with four
      * owned against a six-per-row fit. The looser rule would have dragged them into the bottom row and stood
      * them *under* the Flexys, silently restructuring a shipped scene. Its row is 2.460 m and the Tecnare row
      * above it is 1.514 m, so there is no inversion to remove and nothing is mixed.
@@ -184,19 +181,25 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * A mixed row of unequal cabinets is stepped, and the tier above rests on the tall ones and bridges the
-     * short ones. Buildable — a crew shims it — but never silent, because a render makes it look deliberate.
+     * Cabinets of different heights are never mixed into one row, however badly a mix would help the widths.
+     *
+     * This is the fix for the worst bug the feature had: SKRAMs mixed among Flexys left the row above resting
+     * on the tall pair and floating 151 mm over the short ones. A row has to have one top face.
+     *
+     * Our five cabinets have five different heights, so nothing in the current inventory can be mixed at all —
+     * which is why the SKRAMs end up beside the rig rather than in it.
      */
-    public function testAMixedRowOfUnequalCabinetsWarnsAboutItsStep(): void
+    public function testCabinetsOfDifferentHeightsAreNeverMixedIntoOneRow(): void
     {
         $result = StackSolver::solve(
             $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18']),
             new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
         );
 
-        self::assertSame([], $result['problems']);
-        // SKRAM 0.914 m against Flexy 0.763 m.
-        self::assertStringContainsString('stepped by 151 mm', implode("\n", $result['warnings']));
+        foreach ($result['tiers'] as $tier) {
+            self::assertFalse($tier->isMixed(), 'no two of our cabinets share a height');
+        }
+        self::assertStringNotContainsString('stepped by', implode("\n", $result['warnings']));
     }
 
     /**
@@ -214,64 +217,58 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * And the honest converse: the whole inventory *does* leave 18 mm of Achenbach proud of the Flexy row
-     * below it, and that gets said. Small, absorbed by the working gaps in practice, and still not silent —
+     * And the honest small case: the tops row is 2.511 m on a 2.460 m Achenbach row, so it stands 26 mm proud
+     * at each end. Absorbed by the working gaps in practice, well under half a cabinet, and still not silent —
      * a render makes an overhanging tier look deliberate.
      */
-    public function testTheWholeInventoryStillReportsItsEighteenMillimetreOverhang(): void
+    public function testASmallOverhangIsWarnedAboutRatherThanRefused(): void
     {
         $result = StackSolver::solve(
-            $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
+            $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
             new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
         );
 
         self::assertSame([], $result['problems']);
-        // 2.460 m of Achenbach on a 2.424 m Flexy row.
-        self::assertStringContainsString('overhangs 18 mm each side', implode("\n", $result['warnings']));
+        self::assertStringContainsString('overhangs 26 mm each side', implode("\n", $result['warnings']));
     }
 
     /**
-     * A mixed bottom row is paid for out of the flanking device's stock, and those are the very cabinets the
-     * sub tiers above are made of — so an unbounded row can eat the rig's own height.
+     * A wide stage must not cost the rig its height.
      *
-     * Grown greedily on a 10 m stage it swallowed all twelve Flexys into one 8.572 m row, left two sub tiers
-     * at 1.514 m, and made a 2 m interface unreachable however the tops were arranged. Giving a pair back
-     * until the interface clears keeps a third sub tier and reaches 2.277 m.
+     * With no width bound to stop it, the fill used to put every Flexy into one row and leave two sub tiers
+     * at 1.514 m, so a 2 m interface was unreachable however the tops were arranged. The row count is now
+     * chosen as the widest that still clears the interface.
      */
-    public function testAWideStageGivesBackAFlankingPairRatherThanLoseTheInterface(): void
+    public function testAWideStageStillReachesTheInterface(): void
     {
-        $tiers = $this->solve(
-            ['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122'],
-            maxWidthM: 10.0,
-            interfaceHeightM: 2.0,
-        );
+        foreach ([10.0, null] as $maxWidthM) {
+            $tiers = $this->solve(
+                ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
+                maxWidthM: $maxWidthM,
+                interfaceHeightM: 2.0,
+            );
 
-        // Five pairs, not six: two Flexys stay behind to make a third sub tier.
-        self::assertSame('5× flexy-folded-horn-hybrid + 2× skram + 5× flexy-folded-horn-hybrid', $tiers[0]->label());
-        self::assertEqualsWithDelta(2.277, $this->subHeight($tiers), 1e-9);
+            self::assertGreaterThanOrEqual(2.0, $this->subHeight($tiers));
+        }
     }
 
-    /** Same bug, same fix, with no width bound at all — the case that has nothing to stop the growth. */
-    public function testAnUnboundedStageAlsoReachesTheInterface(): void
-    {
-        $tiers = $this->solve(
-            ['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122'],
-            maxWidthM: null,
-            interfaceHeightM: 2.0,
-        );
-
-        self::assertGreaterThanOrEqual(2.0, $this->subHeight($tiers));
-    }
-
+    /**
+     * A height nothing we own can reach is refused, naming how far it got.
+     *
+     * 12 m rather than a rounder number on purpose: every Flexy in a one-wide column is 9.156 m and the
+     * Achenbachs add 2.4, so 11.556 m is the ceiling of this inventory however the rows are cut. Anything
+     * under that the solver can reach by narrowing, which is what it should do.
+     */
     public function testAStackThatCannotReachTheInterfaceHeightSaysHowFarItGot(): void
     {
         $result = StackSolver::solve(
             $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122']),
-            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 4.0, gapM: 0.02),
+            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 12.0, gapM: 0.02),
         );
 
-        self::assertStringContainsString('stack.interface_height_m (4.000)', $result['problems'][0]);
-        self::assertStringContainsString('2.126 m', $result['problems'][0]);
+        $problems = implode("\n", $result['problems']);
+        self::assertStringContainsString('stack.interface_height_m (12.000)', $problems);
+        self::assertStringContainsString('11.556 m high', $problems);
     }
 
     public function testAStackTallerThanItsCeilingSaysSo(): void

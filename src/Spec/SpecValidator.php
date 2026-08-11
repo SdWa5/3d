@@ -677,6 +677,37 @@ final class SpecValidator
             }
         }
 
+        $passband = $spec->passband;
+        if ($passband !== null) {
+            if ($passband->lowHz <= 0.0) {
+                $messages[] = "audio.passband_hz.low_hz must be greater than 0, got {$passband->lowHz}";
+            }
+            if ($passband->highHz <= $passband->lowHz) {
+                $messages[] = sprintf(
+                    'audio.passband_hz.high_hz (%s) must be above low_hz (%s)',
+                    $passband->highHz,
+                    $passband->lowHz,
+                );
+            }
+            if ($passband->drivenFromHz !== null && $passband->drivenFromHz < $passband->lowHz) {
+                // High-passing *below* what the cabinet reaches is not a choice, it is a typo — and it would
+                // silently reorder a stack, since the driven corner is what a `stack` sorts on.
+                $messages[] = sprintf(
+                    'audio.passband_hz.driven_from_hz (%s) is below low_hz (%s) — a cabinet cannot be driven '
+                    .'lower than it reaches',
+                    $passband->drivenFromHz,
+                    $passband->lowHz,
+                );
+            }
+            if ($passband->drivenFromHz !== null && $passband->drivenFromHz >= $passband->highHz) {
+                $messages[] = sprintf(
+                    'audio.passband_hz.driven_from_hz (%s) is at or above high_hz (%s), which leaves no band',
+                    $passband->drivenFromHz,
+                    $passband->highHz,
+                );
+            }
+        }
+
         foreach ($spec->drivers as $index => $driver) {
             if ($driver->sizeIn <= 0) {
                 $messages[] = "audio.drivers[{$index}].size_in must be greater than 0, got {$driver->sizeIn}";

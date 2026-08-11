@@ -51,6 +51,8 @@ final class DeviceSpec
         public readonly bool $flyable,
         public readonly array $riggingPoints,
         public readonly ?Coverage $coverage,
+        /** The band it covers and the band it is driven over; orders a `stack`. Optional. */
+        public readonly ?Passband $passband,
         public readonly array $drivers,
         public readonly ?BaffleLayout $layout,
         public readonly ?MeshOverride $meshOverride,
@@ -105,6 +107,7 @@ final class DeviceSpec
                 $rigging?->sectionList('points') ?? [],
             ),
             coverage: $coverage !== null ? Coverage::fromReader($coverage) : null,
+            passband: Passband::fromReader($audio?->optionalSection('passband_hz')),
             drivers: array_map(
                 static fn (ArrayReader $driver): Driver => Driver::fromReader($driver),
                 $audio?->sectionList('drivers') ?? [],

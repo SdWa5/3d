@@ -43,6 +43,11 @@ rigging:
   points: [ ]
 
 audio:
+  # Stated by the owner from how the rig is actually driven, not read off a datasheet — hence `estimated`.
+  passband_hz:
+    low_hz: 38
+    high_hz: 200
+    provenance: estimated
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

@@ -21,7 +21,8 @@
 # The top tier is deliberately UNEVEN — a 2-way is 0.836 m tall against an M2122's 0.960 — because they are
 # not meant to line up. They are near-field fill sitting beside the long throw, not part of one array.
 #
-# The Achenbach row still calls for SIX and only FOUR exist, exactly as in full-rig-three-tier.yaml. The
+# The Achenbach row still calls for SIX and only FOUR exist — deliberately, to see whether the rig would
+# work if two more were borrowed. The
 # tops, on the other hand, are the entire top inventory: three M2122s and two 2-ways, no more, no fewer.
 id: full-rig-all-tops
 name: "Full rig — every top, long throw plus near fill"
@@ -89,7 +90,7 @@ placements:
       count: 2
 
 notes: |
-  Compare full-rig-three-tier.yaml, which is this rig with the M2122s alone. The fill costs two cabinets
+  Without the two 2-ways this is the same rig with the M2122s alone. The fill costs two cabinets
   and one more focus, and it is the difference between covering the dancefloor and covering the room.
 
   Mixes owners — the Achenbachs and the 2-ways are Sepp's — which `scene:build` reports.

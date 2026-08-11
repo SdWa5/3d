@@ -48,7 +48,6 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('at', null, InputOption::VALUE_REQUIRED, 'Where the rig is centred, as X,Y', '-0.302,0')
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
-            ->addOption('subs', null, InputOption::VALUE_REQUIRED, 'What to do with the widest sub: mixed, beside or both', 'mixed')
             ->addOption('max-scenes', null, InputOption::VALUE_REQUIRED, 'Refuse to write more than this many', (string)self::DEFAULT_MAX_SCENES)
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print the scenes instead of writing them')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite an existing scene file');
@@ -84,29 +83,16 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $placements = match ((string)$input->getOption('subs')) {
-            'mixed' => [false],
-            'beside' => [true],
-            'both' => [false, true],
-            default => null,
-        };
-        if ($placements === null) {
-            $this->io->error('--subs expects mixed, beside or both');
-
-            return self::FAILURE;
-        }
-
         $candidates = [];
         $skipped = [];
-        foreach ($placements as $beside) {
-            foreach ($modes as $mode) {
-                $built = $this->build($devices, $from, $at, $mode, $beside, $input);
-                if (is_string($built)) {
-                    $skipped[$this->nameFor((string)$input->getOption('id'), $mode, $beside)] = $built;
-                    continue;
-                }
-                $candidates[$this->nameFor((string)$input->getOption('id'), $mode, $beside)] = $built;
+        foreach ($modes as $mode) {
+            $name = sprintf('%s-%s', (string)$input->getOption('id'), $mode->value);
+            $built = $this->build($devices, $from, $at, $mode, $input);
+            if (is_string($built)) {
+                $skipped[$name] = $built;
+                continue;
             }
+            $candidates[$name] = $built;
         }
 
         $candidates = $this->deduplicate($candidates, $skipped);
@@ -142,14 +128,13 @@ final class SceneStackCommand extends BaseCommand
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $from
      * @param array{float, float} $at
-     * @return array{yaml: string, cabinets: int}|string
+     * @return array{yaml: string, cabinets: int, fingerprint: string}|string
      */
     private function build(
         array $devices,
         array $from,
         array $at,
         LayoutMode $mode,
-        bool $beside,
         InputInterface $input,
     ): array|string {
         $stack = new Stack(
@@ -166,31 +151,9 @@ final class SceneStackCommand extends BaseCommand
             return $problems[0];
         }
 
-        $stood = null;
-        $inStack = $from;
-        if ($beside) {
-            $widest = $this->widestSub($devices, $from);
-            if ($widest === null) {
-                return 'no sub to stand beside the rig';
-            }
-            $stood = [$devices[$widest], $devices[$widest]->quantity];
-            $inStack = array_values(array_filter($from, static fn (string $id): bool => $id !== $widest));
-            if ($inStack === []) {
-                return 'standing the only sub beside the rig would leave nothing in it';
-            }
-            $stack = new Stack(
-                from: $inStack,
-                maxWidthM: $stack->maxWidthM,
-                minWidthM: $stack->minWidthM,
-                maxHeightM: $stack->maxHeightM,
-                interfaceHeightM: $stack->interfaceHeightM,
-                gapM: $stack->gapM,
-            );
-        }
-
         $inventory = array_map(
             static fn (string $id): array => [$devices[$id], $devices[$id]->quantity],
-            $inStack,
+            $from,
         );
 
         $solved = StackSolver::solve($inventory, $stack);
@@ -200,14 +163,13 @@ final class SceneStackCommand extends BaseCommand
 
         $yaml = StackSceneWriter::yaml(
             id: 'placeholder',
-            name: $this->describe($mode, $beside),
+            name: $this->describe($mode),
             stack: $stack,
             tiers: $solved['tiers'],
             warnings: $solved['warnings'],
             at: $at,
-            from: $inStack,
+            from: $from,
             align: $mode === LayoutMode::Center ? null : $mode,
-            beside: $stood,
         );
 
         // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
@@ -217,16 +179,22 @@ final class SceneStackCommand extends BaseCommand
             return $compiled;
         }
 
-        return ['yaml' => $yaml, 'cabinets' => $compiled];
+        return ['yaml' => $yaml] + $compiled;
     }
 
     /**
-     * How many cabinets the scene places, or the first error it produces.
+     * What the scene actually resolves to — how many cabinets, and a fingerprint of where they all end up —
+     * or the first error it produces.
+     *
+     * The fingerprint is the **solved geometry**, not the file, and that distinction is the whole point of
+     * it: two arrangements can differ in what they *say* and still be the same rig. Once every top shares one
+     * row, that row is mixed, `align` has nothing left to distribute, and `center`/`block`/`stereo` all come
+     * out identical — three files implying a choice that does not exist.
      *
      * @param array<string, DeviceSpec> $devices
-     * @return int|string
+     * @return array{cabinets: int, fingerprint: string}|string
      */
-    private function compileYaml(string $yaml, array $devices): int|string
+    private function compileYaml(string $yaml, array $devices): array|string
     {
         try {
             /** @var array<string, mixed> $data */
@@ -242,7 +210,21 @@ final class SceneStackCommand extends BaseCommand
             return $errors[0]->message;
         }
 
-        return count($result['placed']);
+        $marks = [];
+        foreach ($result['placed'] as $entry) {
+            $position = $entry->liftedPosition();
+            $marks[] = sprintf(
+                '%s@%.6F,%.6F,%.6F/%.4F',
+                $entry->device->id,
+                $position[0],
+                $position[1],
+                $position[2],
+                $entry->yawDeg(),
+            );
+        }
+        sort($marks);
+
+        return ['cabinets' => count($result['placed']), 'fingerprint' => implode('|', $marks)];
     }
 
     /**
@@ -252,9 +234,9 @@ final class SceneStackCommand extends BaseCommand
      * `at` and the outer two land on the envelope edges — and writing that rig twice under two names would
      * suggest a choice that does not exist.
      *
-     * @param array<string, array{yaml: string, cabinets: int}> $candidates
+     * @param array<string, array{yaml: string, cabinets: int, fingerprint: string}> $candidates
      * @param array<string, string> $skipped
-     * @return array<string, array{yaml: string, cabinets: int}>
+     * @return array<string, array{yaml: string, cabinets: int, fingerprint: string}>
      */
     private function deduplicate(array $candidates, array &$skipped): array
     {
@@ -262,9 +244,7 @@ final class SceneStackCommand extends BaseCommand
         $seen = [];
 
         foreach ($candidates as $name => $candidate) {
-            // The tier table in the header is the solved geometry in text form, which is all that has to
-            // match for two arrangements to be the same rig.
-            $fingerprint = preg_replace('/^(id|name):.*$/m', '', $candidate['yaml']);
+            $fingerprint = $candidate['fingerprint'];
             $existing = array_search($fingerprint, $seen, true);
             if ($existing !== false) {
                 $skipped[$name] = sprintf('the same rig as %s', $existing);
@@ -279,7 +259,7 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
-     * @param array<string, array{yaml: string, cabinets: int}> $candidates
+     * @param array<string, array{yaml: string, cabinets: int, fingerprint: string}> $candidates
      */
     private function emit(array $candidates, bool $dryRun, bool $force): int
     {
@@ -331,34 +311,45 @@ final class SceneStackCommand extends BaseCommand
             if ($spec->category->value !== 'speaker' || $spec->quantity < 1) {
                 continue;
             }
-            // Widest first within each band, which is the order that stacks without inverting.
             $spec->subtype === 'sub' ? $subs[] = $spec : $tops[] = $spec;
         }
 
-        $byWidth = static fn (DeviceSpec $a, DeviceSpec $b): int => $b->dimensions->width <=> $a->dimensions->width;
-        usort($subs, $byWidth);
-        usort($tops, $byWidth);
+        usort($subs, self::byFrequency());
+        usort($tops, self::byFrequency());
 
         return array_map(static fn (DeviceSpec $s): string => $s->id, [...$subs, ...$tops]);
     }
 
-    /**
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $from
-     */
-    private function widestSub(array $devices, array $from): ?string
-    {
-        $widest = null;
-        foreach ($from as $id) {
-            if ($devices[$id]->subtype !== 'sub') {
-                continue;
-            }
-            if ($widest === null || $devices[$id]->dimensions->width > $devices[$widest]->dimensions->width) {
-                $widest = $id;
-            }
-        }
 
-        return $widest;
+    /**
+     * Lowest first, so the deepest cabinets end up on the floor carrying everything.
+     *
+     * On the **driven** corner where a spec states one, not the cabinet's own: our Achenbachs reach 35 Hz but
+     * are high-passed at 38 like the Flexys, deliberately, so that they sit above them rather than under.
+     * See {@see \App\Spec\Passband}.
+     *
+     * The high corner breaks a tie, and that tie is exactly the Flexy-versus-Achenbach case: both are driven
+     * from 38 Hz, and the one that stops sooner — the Flexy at 200 Hz against the Achenbach's 1500 — is the
+     * more sub-like of the two and belongs lower. A spec with no passband sorts last within its band and falls
+     * back to how much row it can make, which puts the most numerous cabinet on the floor.
+     *
+     * @return callable(DeviceSpec, DeviceSpec): int
+     */
+    private static function byFrequency(): callable
+    {
+        return static function (DeviceSpec $a, DeviceSpec $b): int {
+            $low = ($a->passband?->orderingLowHz() ?? INF) <=> ($b->passband?->orderingLowHz() ?? INF);
+            if ($low !== 0) {
+                return $low;
+            }
+
+            $high = ($a->passband?->highHz ?? INF) <=> ($b->passband?->highHz ?? INF);
+            if ($high !== 0) {
+                return $high;
+            }
+
+            return $b->quantity * $b->dimensions->width <=> $a->quantity * $a->dimensions->width;
+        };
     }
 
     /**
@@ -409,21 +400,13 @@ final class SceneStackCommand extends BaseCommand
         return $value === null ? null : (float)$value;
     }
 
-    private function nameFor(string $base, LayoutMode $mode, bool $beside): string
-    {
-        return $base.'-'.$mode->value.($beside ? '-beside' : '');
-    }
 
-    private function describe(LayoutMode $mode, bool $beside): string
+    private function describe(LayoutMode $mode): string
     {
-        return sprintf(
-            'Solved rig — tiers %s%s',
-            match ($mode) {
-                LayoutMode::Center => 'centred',
-                LayoutMode::Block => 'justified',
-                LayoutMode::Stereo => 'split left and right',
-            },
-            $beside ? ', widest sub beside the rig' : '',
-        );
+        return 'Solved rig — tiers '.match ($mode) {
+            LayoutMode::Center => 'centred',
+            LayoutMode::Block => 'justified',
+            LayoutMode::Stereo => 'split left and right',
+        };
     }
 }
