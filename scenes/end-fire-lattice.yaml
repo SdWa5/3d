@@ -1,10 +1,15 @@
-# End fire as a BLOCK rather than a line: two columns across, three deep, two tiers up. One lattice, twelve
+# End fire as a BLOCK rather than a line: three columns across, two deep, two tiers up. One lattice, twelve
 # Flexys — exactly what we own, where `end-fire.yaml`'s four-by-three asks for twelve and has to say so.
 #
 # The point of the three-dimensional form is that an end-fire array is not really a row of columns. Every
 # cabinet in a column fires into the one in front of it, and stacking the columns two high doubles the output
 # without changing the cancellation at all: the front-to-back spacing is what tunes it, and z does not touch
 # that. Widening x adds output the same way. So the arrangement scales in two axes and is tuned in the third.
+#
+# TWO DEEP RATHER THAN THREE is the one thing to know about this particular block. Depth is what buys rear
+# rejection — each cabinet firing into the one ahead of it — so two deep cancels less than three would. Twelve
+# cabinets have to be spent somewhere, and this spends them on width and height instead: three columns across
+# and two up is more forward output and a wider pattern, for less cancellation behind.
 #
 # THE ONE STATED NUMBER is the same one `end-fire.yaml` states, for the same reason: `step_m`'s 1.20 m along y
 # is a decision about frequency, not geometry. Flush would put the cabinets 0.964 m apart — a quarter
@@ -14,22 +19,23 @@
 # Everything else is derived. `gap_m` on x is the working gap and the columns space themselves on the
 # cabinet's own width; z says nothing at all, so the tiers sit on each other.
 id: end-fire-lattice
-name: "End fire — a block, two by three by two"
+name: "End fire — a block, three by two by two"
 
 placements:
   - id: end-fire-block
     device: flexy-folded-horn-hybrid
     at: [0.0, 0.0]
     lattice:
-      count: [2, 3, 2]
+      count: [3, 2, 2]
       gap_m: [0.02, 0.0, 0.0]
       step_m: [0.0, 1.20, 0.0]   # y only: the frequency decision, see the header
 
 notes: |
   Twelve Flexys, which is the whole holding — so unlike `end-fire.yaml` this one is buildable as written.
 
-  Compare `end-fire.yaml`, the same idea as four separate columns one tier high, and `end-fire-turned.yaml`,
-  which lays the same cabinets on their sides.
+  Compare `end-fire.yaml`, the same idea as four separate columns three deep and one tier high, and
+  `end-fire-turned.yaml`, which lays those on their sides. This block trades a cabinet of depth for a column of
+  width and a tier of height.
 
   Whether two tiers of an end-fire column behave as one source is a question for a measurement rather than for
   a 3D model. What this file can say is that the block fits, and where every cabinet in it stands.

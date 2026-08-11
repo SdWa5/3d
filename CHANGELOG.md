@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.47.1] - 2026-08-11
+
+### Changed
+
+- `scenes/end-fire-lattice.yaml` reshaped from `[2, 3, 2]` to `[3, 2, 2]` — three columns across, two deep, still
+  two tiers up. Footprint 1.81 × 2.16 m where it was 1.20 × 3.36, and twelve Flexys either way. Depth is what buys
+  rear rejection, so two deep cancels less than three would; the twelve cabinets go on width and height instead
+
 ## [0.47.0] - 2026-08-11
 
 ### Fixed
