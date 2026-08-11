@@ -387,13 +387,51 @@ final class StackSolver
                 [$device, $available],
                 [$flankDevice, $pairs + 1],
             ]);
-            if ($stack->maxWidthM !== null && $candidate->widthM($stack->gapM) > $stack->maxWidthM + self::EPSILON_M) {
+            $width = $candidate->widthM($stack->gapM);
+
+            if ($stack->maxWidthM !== null && $width > $stack->maxWidthM + self::EPSILON_M) {
                 break;
             }
             ++$pairs;
+
+            // Stop as soon as the row is no longer narrower than what will stand on it. Mixing exists to
+            // remove an inverted step, so growing past the point where the step is gone is not a wider base,
+            // it is cabinets stolen from the rows above: unbounded, the flanks ate eight of twelve Flexys and
+            // left a 6.128 m bottom row carrying a 2.424 m one. A pancake with a tower on it, not a wall.
+            //
+            // Every Flexy the flanks take is one fewer in the row above, so the two widths converge from both
+            // ends and the crossing point is where the taper stops. With a `max_width_m` the bound usually
+            // bites first and this changes nothing.
+            if ($width + self::EPSILON_M >= self::widthAbove($flankDevice, $flankAvailable - 2 * $pairs, $inventory, $flank, $stack, $perRow)) {
+                break;
+            }
         }
 
         return $pairs;
+    }
+
+    /**
+     * How wide the row standing on the mixed bottom row would be: the flanking device's leftovers if it has
+     * any, otherwise the next device's first row.
+     *
+     * @param list<array{DeviceSpec, int}> $inventory
+     */
+    private static function widthAbove(
+        DeviceSpec $flankDevice,
+        int $leftOver,
+        array $inventory,
+        int $flank,
+        Stack $stack,
+        int $perRow,
+    ): float {
+        if ($leftOver > 0) {
+            $perTier = min($perRow, self::perTier($flankDevice, $stack->maxWidthM, $stack->gapM));
+            $rows = (int)ceil($leftOver / $perTier);
+
+            return Tier::of($flankDevice, self::share($leftOver, $rows)[0])->widthM($stack->gapM);
+        }
+
+        return self::rowAbove($inventory, $flank, $stack, $perRow) ?? 0.0;
     }
 
     /**

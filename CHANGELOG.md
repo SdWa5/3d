@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.35.1] - 2026-08-11
+
+### Fixed
+
+- **The mixed bottom row grew far wider than the rows above it.** Without a `max_width_m` the flanks were bounded
+  only by the available cabinets, so they ate eight of the twelve Flexys and left a 6.128 m bottom row carrying a
+  2.424 m one. Mixing exists to remove an inverted step, and that rule decided *whether* to mix but not *how
+  much*: it now stops as soon as the row is no longer narrower than what stands on it. Unbounded, the rig is a
+  pyramid again — 4.906 / 3.646 / 2.460 / 2.511. A stated `max_width_m` usually bites first, so bounded rigs are
+  unchanged
+
 ## [0.35.0] - 2026-08-11
 
 ### Changed

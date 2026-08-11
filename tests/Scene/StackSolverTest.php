@@ -388,6 +388,51 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * The mixed bottom row grows only until the step is gone — never wider.
+     *
+     * Mixing exists to remove an inverted step, so every cabinet the flanks take past that point is one stolen
+     * from the rows above. With no `max_width_m` to stop it the flanks ate eight of the twelve Flexys and left a
+     * **6.128 m bottom row carrying a 2.424 m one** — a pancake with a tower on it. The two widths converge from
+     * both ends as the flanks grow, and the crossing point is where the taper stops.
+     */
+    public function testTheMixedBottomRowGrowsOnlyUntilTheStepIsGone(): void
+    {
+        $tiers = $this->solve(
+            ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'],
+            maxWidthM: null,
+            interfaceHeightM: 2.0,
+        );
+
+        self::assertSame(
+            '3× flexy-folded-horn-hybrid + 2× skram + 3× flexy-folded-horn-hybrid',
+            $tiers[0]->label(),
+            'three pairs, not four: at four the row above would be narrower still',
+        );
+
+        // A pyramid — every tier no wider than the one under it, bar the usual 26 mm at the tops.
+        $widths = array_map(static fn (Tier $t): float => $t->widthM(0.02), $tiers);
+        self::assertEqualsWithDelta([4.906, 3.646, 2.460, 2.5112], $widths, 1e-9);
+    }
+
+    /**
+     * And a stated `max_width_m` usually bites first, so bounding the stage changes nothing about the mix.
+     */
+    public function testAWidthBoundStillDecidesTheMixWhenItIsTheTighterLimit(): void
+    {
+        $tiers = $this->solve(
+            ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'],
+            maxWidthM: 3.70,
+            interfaceHeightM: 2.0,
+        );
+
+        self::assertSame(
+            '2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid',
+            $tiers[0]->label(),
+        );
+        self::assertEqualsWithDelta(3.684, $tiers[0]->widthM(0.02), 1e-9);
+    }
+
+    /**
      * The interface height is an **optimum, not a requirement**: a height nothing we own can reach is a
      * warning naming the ceiling, not a refusal.
      *
