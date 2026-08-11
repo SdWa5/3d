@@ -31,7 +31,7 @@ id: gmss-middle-sub
 name: "GMSS Middle Sub"
 category: speaker
 subtype: sub
-quantity: 2
+quantity: 3
 owner: gmss
 build: own-design
 
@@ -64,8 +64,11 @@ audio:
 notes: |
   Stated by GMSS: "Middle subs are 18/1600rms". An 18" driver, 1600 W RMS.
 
-  The count is NOT stated. Two of these are visible side by side in the middle of GMSS.jpeg, so `quantity: 2`
-  is read off the photograph. If GMSS owns more than the two that were stacked that day, this is wrong.
+  The count is NOT stated and is read off the photograph: two stand side by side on the ground in the middle of
+  GMSS.jpeg and a third lies on its side above them, carrying the row of three tops — so `quantity: 3`. The
+  third one is the least certain of the three, since what the photo actually shows there is a cross-braced horn
+  mouth that is wider than it is tall, and a middle sub laid on its side is the reading that fits both that
+  shape and the height the tops end up at. It could be a cabinet type GMSS never mentioned.
 
   NOT MEASURED. The 18" is real; the box around it is an estimate scaled from the measured folded horns in this
   repository. Needs a tape measure before it plans a real load-in.

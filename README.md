@@ -71,9 +71,9 @@ Blender is involved, and `scene:render` turns it into a preview image in about 8
 camera. See [docs/scenes.md](docs/scenes.md).
 
 A **second system is documented rather than owned**: `specs/speakers/gmss-*.yaml` and
-[`scenes/gmss-full-stack.yaml`](scenes/gmss-full-stack.yaml) describe GMSS (Gena Made Sound System) — eight turbo
-subs, two 18″ middle subs, two mid-bass horns and three turbo tops, reconstructed from a site photo and a
-message. Not one dimension in them is sourced, so all four are `provenance: estimated`, `catalog` lists every one
+[`scenes/gmss-full-stack.yaml`](scenes/gmss-full-stack.yaml) describe GMSS (Gena Made Sound System) — six turbo subs
+over a small sub at each column's foot, two 18″ middle subs with a third laid on its side across them, and three
+turbo tops in one row, reconstructed from a site photo and a message. Not one dimension in them is sourced, so all four are `provenance: estimated`, `catalog` lists every one
 in the measuring backlog, and `scene:build` warns that the positions rely on un-measured cabinets. That is the
 point of the provenance field: a rig can be laid out now and corrected when somebody gets a tape measure to it.
 See [docs/sources.md](docs/sources.md#gmss-is-estimated-end-to-end).

@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.54.0] - 2026-08-11
+
+### Fixed
+
+- **The mid-bass cabinets are the foot of the outer columns, not a row in the middle.** In the photo each column
+  stands on a short wide box carrying the same recessed oval logo as the cabinets above it. 0.53.0 read those as a
+  fourth turbo sub per column and 0.52.0 as plinths; they are the small subs, they are on the ground, and the
+  turbo subs stand on them
+- **Six turbo subs, not eight.** GMSS owns eight and only six are in the photograph — three to a column — so the
+  scene builds the six that can be seen. `scene:build` warns about over-using gear and never about under-using
+  it, so a rig that spends part of the inventory is a legitimate arrangement
+- **The middle bay's second row was empty**, which left the tops 0.950 m below the column shoulders. It now holds
+  a third middle sub
+
+### Added
+
+- `gmss-middle-sub` quantity 2 → 3. The third is laid **on its side** (`roll_deg: 90`) across the pair on the
+  ground — the one genuinely speculative placement in the rig, and the reason to believe it is that the same
+  quarter turn settles two independent things that were not aimed for:
+  - **it carries the tops.** The row of three is 1.420 m; on a cabinet standing up there would be 0.900 m under
+    it and each outer top would hang half off, where rolled there is 1.350 m and every top keeps 92% of itself on
+  - **the heights come out level.** Tops finish at 3.400 m against the columns' 3.450 — 50 mm, which is what the
+    photograph shows. Standing that cabinet up instead puts them at 3.850 m, 400 mm proud, which it does not
+
+### Notes
+
+- The rig is now 14 cabinets, 1225 kg, 3.450 m tall, footprint 3.66 × 1.10 m
+- What the photo shows in that second row is a cross-braced horn mouth, wider than it is tall. A middle sub on its
+  side is the reading that fits the shape; it could equally be a cabinet type GMSS never listed
+- Still guessed: every depth, since the side faces are foreshortened past reading; the counts of middle subs and
+  mid-bass cabinets, which GMSS never stated; and the absolute scale, which still rests on reading the blue logo
+  as a ~60 mm badge
+
 ## [0.53.0] - 2026-08-11
 
 ### Fixed
