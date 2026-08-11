@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
+use App\Build\Staleness;
 use App\Scene\PlacedDevice;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
@@ -35,7 +36,8 @@ final class SceneBuildCommand extends BaseCommand
             ->setName('scene:build')
             ->setDescription('Assemble a scene from scenes/<name>.yaml into build/scenes/<id>.blend')
             ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id or path; omit to build every scene')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Report the setup without running Blender');
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Report the setup without running Blender')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Reassemble even when the .blend looks up to date');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -75,6 +77,7 @@ final class SceneBuildCommand extends BaseCommand
 
         $builder = new ModelBuilder($this->projectDir(), new BlenderRunner($this->runner));
         $dryRun = (bool)$input->getOption('dry-run');
+        $force = (bool)$input->getOption('force');
         $exit = self::SUCCESS;
 
         foreach ($scenes as $scene) {
@@ -104,6 +107,10 @@ final class SceneBuildCommand extends BaseCommand
                 $exit = self::FAILURE;
                 continue;
             }
+            if (!$force && !$this->needsAssembling($scene, $placed, $builder)) {
+                $this->io->text(sprintf('<comment>up to date</comment> %s', $this->relative($this->blendFor($scene->id, $builder))));
+                continue;
+            }
 
             try {
                 $target = $this->assemble($scene->id, $placed, $builder, $output);
@@ -117,6 +124,33 @@ final class SceneBuildCommand extends BaseCommand
         }
 
         return $exit;
+    }
+
+    /**
+     * Whether this scene's `.blend` is older than anything it is built from.
+     *
+     * The inputs are the scene file, the assembly script, and **the model of every cabinet the scene places** —
+     * that last one is what makes the chain work: measure a cabinet, its model rebuilds, and every scene
+     * standing on it reassembles without anybody having to remember which.
+     *
+     * @param list<PlacedDevice> $placed
+     */
+    private function needsAssembling(\App\Scene\SceneSpec $scene, array $placed, ModelBuilder $builder): bool
+    {
+        $inputs = Staleness::blenderInputs($this->projectDir(), 'blender/build_scene.py');
+        $inputs[] = $scene->sourcePath;
+
+        $seen = [];
+        foreach ($placed as $entry) {
+            $seen[$entry->device->id] = $builder->blendPath($entry->device);
+        }
+
+        return Staleness::outOfDate([$this->blendFor($scene->id, $builder)], [...$inputs, ...array_values($seen)]);
+    }
+
+    private function blendFor(string $sceneId, ModelBuilder $builder): string
+    {
+        return $builder->buildDir().'/scenes/'.$sceneId.'.blend';
     }
 
     /**

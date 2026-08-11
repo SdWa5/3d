@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
+use App\Build\Staleness;
 use App\Render\CameraPreset;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
@@ -31,6 +32,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 final class SceneRenderCommand extends BaseCommand
 {
+    /** The Blender script this stage runs; an input for {@see Staleness}, so editing it redraws. */
+    public const SCRIPT = 'blender/render_scene.py';
+
     protected function configure(): void
     {
         $cameras = implode(', ', array_column(CameraPreset::cases(), 'value'));
@@ -59,7 +63,8 @@ final class SceneRenderCommand extends BaseCommand
                 InputOption::VALUE_REQUIRED,
                 'Directory to write into, keeping the <scene>-<camera>.png names. Works for every scene',
             )
-            ->addOption('presets', null, InputOption::VALUE_NONE, 'List the presets and exit');
+            ->addOption('presets', null, InputOption::VALUE_NONE, 'List the presets and exit')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Re-render even when the PNG looks up to date');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -140,6 +145,21 @@ final class SceneRenderCommand extends BaseCommand
             $directory = $input->getOption('out-dir') ?? $builder->buildDir().'/renders';
             $target = $input->getOption('out')
                 ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
+
+            // Only redraw what has changed. A render is the most expensive thing in the pipeline — eight
+            // seconds a frame, and `build:all --lighting-variants --aim-line-variants` asks for eight per
+            // scene — so a rig nobody has touched should cost nothing. The `.blend` is the input, and it
+            // carries the whole chain with it: `scene:build` only rewrites it when the scene file or one of
+            // the cabinet models moved, so a spec edit still reaches the PNG.
+            if (!$input->getOption('force')
+                && !Staleness::outOfDate(
+                    [$target],
+                    [$sceneBlend, ...Staleness::blenderInputs($this->projectDir(), self::SCRIPT)],
+                )
+            ) {
+                $this->io->text(sprintf('<comment>up to date</comment> %s', $this->relative($target)));
+                continue;
+            }
 
             // The flag if it was given, otherwise whatever the scene asks for.
             $aimLines = $settings['aimLines'] ?? $scene->aimLines;
@@ -352,7 +372,7 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         (new BlenderRunner($this->runner))->run(
-            $this->projectDir().'/blender/render_scene.py',
+            $this->projectDir().'/'.self::SCRIPT,
             $planFile,
             $this->blenderOutputSink($output),
         );

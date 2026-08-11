@@ -37,7 +37,7 @@ final class BuildAllCommand extends BaseCommand
         $this
             ->setName('build:all')
             ->setDescription('Validate, build models, library, scenes and renders — the whole pipeline')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Rebuild models even if they look up to date')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Rebuild everything, even what looks up to date')
             ->addOption('skip-render', null, InputOption::VALUE_NONE, 'Stop after the scenes are assembled')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'List the stages and variants without running any')
             ->addOption(
@@ -63,11 +63,16 @@ final class BuildAllCommand extends BaseCommand
         $this->io = new SymfonyStyle($input, $output);
         $dryRun = (bool)$input->getOption('dry-run');
 
+        // Every stage skips what is already current, so a rebuild after touching one scene costs one scene
+        // and its renders rather than the whole library. `--force` overrides all of them at once — it used to
+        // reach only `models:build`, which meant a forced run still reused stale scenes and renders.
+        $force = $input->getOption('force') ? ['--force' => true] : [];
+
         $stages = [
             ['specs:validate', []],
-            ['models:build', $input->getOption('force') ? ['--force' => true] : []],
+            ['models:build', $force],
             ['library:build', []],
-            ['scene:build', []],
+            ['scene:build', $force],
         ];
 
         $renders = $input->getOption('skip-render') ? [] : $this->renderVariants($input);
@@ -125,6 +130,10 @@ final class BuildAllCommand extends BaseCommand
             '--samples' => $input->getOption('samples'),
             '--resolution' => $input->getOption('resolution'),
         ], static fn (mixed $value): bool => $value !== null);
+
+        if ($input->getOption('force')) {
+            $shared['--force'] = true;
+        }
 
         $lightings = $input->getOption('lighting-variants')
             ? array_map(static fn (LightingPreset $p): string => $p->value, LightingPreset::cases())

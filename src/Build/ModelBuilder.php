@@ -47,25 +47,13 @@ final class ModelBuilder
      */
     public function isStale(DeviceSpec $spec): bool
     {
-        $glb = $this->glbPath($spec);
-        $blend = $this->blendPath($spec);
-        if (!is_file($glb) || !is_file($blend)) {
-            return true;
-        }
-
-        $outputTime = min((int)filemtime($glb), (int)filemtime($blend));
         $inputs = [$spec->sourcePath, ...$this->modelInputScripts()];
         if ($spec->meshOverride !== null) {
             $inputs[] = $this->resolve($spec->meshOverride->path);
         }
 
-        foreach ($inputs as $input) {
-            if (is_file($input) && (int)filemtime($input) > $outputTime) {
-                return true;
-            }
-        }
-
-        return false;
+        // One rule for the whole pipeline; see {@see Staleness} for why it is mtimes rather than hashes.
+        return Staleness::outOfDate([$this->glbPath($spec), $this->blendPath($spec)], $inputs);
     }
 
     /**

@@ -81,7 +81,7 @@ camera. See [docs/scenes.md](docs/scenes.md).
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
-| `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. `--dry-run` lists the stages; `--aim-line-variants` and `--lighting-variants` sweep a folder per combination |
+| `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. Every stage skips what is already current; `--force` rebuilds anyway. `--dry-run` lists the stages; `--aim-line-variants` and `--lighting-variants` sweep a folder per combination |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device

@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-08-11
+
+### Added
+
+- **Incremental builds: every stage skips what is already current.** `scene:build` leaves a `.blend` alone
+  when nothing it is built from has moved, and `scene:render` leaves a PNG alone when its `.blend` has not.
+  A rebuild after touching one scene now costs that scene and its renders instead of the whole library — which
+  at eight variants a scene was 72 frames of Blender for nothing
+- `src/Build/Staleness.php` — one freshness rule shared by all three stages, replacing the copy that lived in
+  `ModelBuilder`. An output is stale when it is missing or older than any input
+- `scene:build --force` and `scene:render --force`, matching `models:build --force`
+- `tests/Build/StalenessTest.php`
+
+### Changed
+
+- **`build:all --force` reaches every stage.** It used to pass `--force` only to `models:build`, so a forced
+  run still reused stale scenes and renders — the one situation where somebody has explicitly asked for
+  everything to be redone
+- `scene:build` watches **the model of every cabinet a scene places**, not just the scene file. Measuring a
+  cabinet rebuilds its model, which reassembles every scene standing on it, which redraws those renders —
+  the whole cascade falls out of comparing neighbours, with nothing to remember
+
 ## [0.33.0] - 2026-08-11
 
 ### Added

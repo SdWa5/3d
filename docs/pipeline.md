@@ -56,6 +56,23 @@ ddev exec bin/console build:all --dry-run # ...list what it would run, and run n
 ddev exec bin/console build:all --aim-line-variants --lighting-variants
 ```
 
+**Every stage skips what is already current**, so a rebuild after touching one scene costs that scene and its
+renders rather than the whole library. Freshness is one rule shared by all of them (`App\Build\Staleness`): an
+output is stale when it is missing, or older than any of its inputs.
+
+| Stage | Output | Inputs it watches |
+|-------|--------|-------------------|
+| `models:build` | `build/glb/<id>.glb` + `build/blend/<id>.blend` | the spec, `blender/build_model.py`, all of `blender/lib`, any mesh override |
+| `scene:build` | `build/scenes/<id>.blend` | the scene file, `blender/build_scene.py`, `blender/lib`, **and the model of every cabinet the scene places** |
+| `scene:render` | the PNG | the scene's `.blend`, `blender/render_scene.py`, `blender/lib` |
+
+Mtimes rather than hashes, and that choice is what makes the *chain* work with no bookkeeping: a spec is newer
+than its model, so the model rebuilds; the model is then newer than the scene, so the scene reassembles; the
+scene is then newer than the render, so the render redraws. Each stage only ever compares its own neighbours.
+
+`--force` on `build:all`, `scene:build` or `scene:render` rebuilds anyway. On `build:all` it now reaches
+**every** stage — it used to reach only `models:build`, so a forced run still reused stale scenes and renders.
+
 `build:all` is the stage order written down. Every stage already refuses to run on stale input — the
 library will not be stitched from models older than their specs, a scene will not place a device whose
 model is out of date — but nothing knew the *order*, so getting from an edited spec to a new render meant
