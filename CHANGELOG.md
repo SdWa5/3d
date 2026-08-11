@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-08-11
+
+### Added
+
+- **`scenes/stacked-6-achenbach-center.yaml`** — the corrected one-stack rig with all six owned Achenbachs,
+  generated bare (no `count` override) so it tracks the spec going forward
+
+### Changed
+
+- **`scenes/stacked-three-center.yaml` and `scenes/stacked-two-center.yaml`** regenerated with the real
+  Achenbach count: each stack now gets two more, since `intdiv(6, 3)` and `intdiv(6, 2)` both split evenly
+  and no longer trip the odd-remainder special case
+
+### Fixed
+
+- **`specs/speakers/achenbach-18.yaml` `quantity` was 4; six are actually owned.** Every bare `stack.from`
+  entry reads its count from this spec, so `stacked-center.yaml`, `stacked-three-center.yaml` and
+  `stacked-two-center.yaml` were each two Achenbachs short of the real inventory
+- `scenes/stacked-center.yaml` pinned to an explicit `count: 4` override on its Achenbach entry so it keeps
+  shipping today's four-Achenbach rig unchanged, now that the spec it used to read six from bare
+- Three hand-written scenes still said "Six Achenbachs against four owned" in their notes. Six is the whole
+  holding now, so calling for six is no longer an over-claim
+
 ## [0.39.0] - 2026-08-11
 
 ### Added

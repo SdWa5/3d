@@ -510,7 +510,7 @@ and it says so with the number it reached beside the number it needed.
 ```
   1  flexy-folded-horn-hybrid  x6    0.763 m    six fit: (3.70 + 0.02) / (0.591 + 0.02) = 6.09
   2  flexy-folded-horn-hybrid  x6    1.526 m    twelve owned, so a second row — and 1.526 MISSES 2.0
-  3  achenbach-18              x4    2.126 m    which is what puts the Achenbachs in, and now it clears
+  3  achenbach-18              x6    2.126 m    which is what puts the Achenbachs in, and now it clears
   4  tecnare-m2122             x3               the tops, aimed
 ```
 
@@ -534,15 +534,14 @@ Most entries are just a device id. The mapping form is for the occasional tier t
 from:
   - flexy-folded-horn-hybrid          # the shorthand, and what a generated scene writes
   - device: achenbach-18
-    count: 6                          # six against the four we own
+    count: 8                          # eight against the six we own
     align: block                      # this tier's own alignment
     mix_with: skram                   # share a row with these
 ```
 
-* **`count`** overrides the spec's `quantity`. This is how a stack over-books deliberately — six Achenbachs
-  against four owned, to see whether the rig would work if two more were borrowed, which is what
-  `full-rig-all-tops` says by hand. It needs no new warning: `scene:build` already reports
-  *"uses 6, we own 4"*.
+* **`count`** overrides the spec's `quantity`. This is how a stack over-books deliberately — eight Achenbachs
+  against six owned, to see whether the rig would work if two more were borrowed. It needs no new warning:
+  `scene:build` already reports *"uses 8, we own 6"*.
 * **`align`** is this tier's alignment instead of the whole stack's. It says *which* alignment, not *how many*
   tiers may spread — only a tier nothing stands on can be spread at all, so in a plain tower that is the top
   one.
@@ -652,10 +651,15 @@ bounds and it writes one scene per arrangement that works, with a reason for eve
 
 ```bash
 bin/console scene:stack --max-width=3.70 --interface-height=2.0
-#   wrote   scenes/stacked-center.yaml    23 cabinets
-#   wrote   scenes/stacked-block.yaml     23 cabinets
-#   wrote   scenes/stacked-stereo.yaml    23 cabinets
+#   wrote      scenes/stacked-center.yaml    23 cabinets — LEFT OUT skram, it cannot be carried in this stack
+#   skipped    stacked-block — the same rig as stacked-center
+#   skipped    stacked-stereo — the same rig as stacked-center
 ```
+
+With six Achenbachs the sub row is 3.70 m wide — the same as the stage limit — so there is no width left
+for the two SKRAMs anywhere in the stack, and they are left out rather than forced on with an overhang the
+rig cannot stand on. `--align` no longer changes anything either: the top row already reaches the full width,
+so block and stereo alignment have nothing left to spread it into.
 
 | Option | Meaning |
 |--------|---------|

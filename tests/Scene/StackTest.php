@@ -42,7 +42,7 @@ final class StackTest extends TestCase
         }
 
         self::assertSame(['main/1', 'main/2', 'main/3', 'main/4'], array_keys($tiers));
-        self::assertCount(19, $placed, '12 Flexy, 4 Achenbach, 3 Tecnare');
+        self::assertCount(21, $placed, '12 Flexy, 6 Achenbach, 3 Tecnare');
     }
 
     /**
@@ -155,8 +155,8 @@ final class StackTest extends TestCase
     {
         $placed = $this->compile($this->allSpeakers());
 
-        self::assertCount(21, $placed);
-        // 12 Flexy + 4 Achenbach = 2.126 m of subs under the tops.
+        self::assertCount(23, $placed);
+        // 12 Flexy + 6 Achenbach = 2.126 m of subs under the tops.
         $tops = min(array_map(
             static fn (PlacedDevice $e): float => $e->worldBox()['min'][2],
             array_filter($placed, static fn (PlacedDevice $e): bool => str_starts_with($e->placementId, 'main/4')),
@@ -166,8 +166,8 @@ final class StackTest extends TestCase
     }
 
     /**
-     * The one thing the solver has to say about this rig, said as a **warning** so it still builds: the tops
-     * row is 2.511 m on a 2.460 m Achenbach row, so it stands 26 mm proud at each end. Before this,
+     * The one thing the solver has to say about this rig, said as a **warning** so it still builds: the
+     * Achenbach row is 3.700 m on a 3.646 m Flexy row, so it stands 27 mm proud at each end. Before this,
      * `scene:build` treated any violation as fatal and swallowed the whole report.
      */
     public function testASmallOverhangIsAWarningRatherThanAnError(): void
@@ -176,7 +176,7 @@ final class StackTest extends TestCase
 
         self::assertSame([], \App\Spec\Violation::errorsIn($result['violations']));
         $messages = implode("\n", array_map(static fn ($v): string => $v->message, $result['violations']));
-        self::assertStringContainsString('overhangs 26 mm each side', $messages);
+        self::assertStringContainsString('overhangs 27 mm each side', $messages);
     }
 
     /**
@@ -202,11 +202,11 @@ final class StackTest extends TestCase
 
         $placed = $this->compile($placements);
 
-        // The Tecnare row is spread onto the Achenbach row carrying it: 2.460 m, not the 1.514 m it occupies
+        // The Tecnare row is spread onto the Achenbach row carrying it: 3.700 m, not the 1.514 m it occupies
         // unaligned. The delta is the solver's own tolerance — `align` bisects a fixed point to 1e-6 m,
         // because these cabinets are aimed and their outer edge moves as they toe in.
         $tops = $this->edgesOf($placed, 'main/4');
-        self::assertEqualsWithDelta(2.460, $tops['max'] - $tops['min'], 1e-5);
+        self::assertEqualsWithDelta(3.700, $tops['max'] - $tops['min'], 1e-5);
     }
 
     /** Without a per-tier alignment the tier keeps its natural spacing. */
@@ -321,11 +321,13 @@ final class StackTest extends TestCase
      */
     public function testTheTopsOfAFlankedRigSitOutboardOnTheShoulders(): void
     {
+        // Achenbach pinned to the four this scenario's numbers were computed against — six real ones are
+        // their own row's full 3.70 m stage width and can no longer be flanked to close a step.
         $placed = $this->compile([
             ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
                 'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
                 'from' => [
-                    'skram', 'flexy-folded-horn-hybrid', 'achenbach-18',
+                    'skram', 'flexy-folded-horn-hybrid', ['device' => 'achenbach-18', 'count' => 4],
                     'tecnare-m2122', 'eighteensound-2way-15',
                 ],
             ]],
@@ -362,11 +364,12 @@ final class StackTest extends TestCase
      */
     public function testEachCabinetLandsOnWhateverIsUnderIt(): void
     {
+        // Achenbach pinned to four — see testTheTopsOfAFlankedRigSitOutboardOnTheShoulders just above.
         $placed = $this->compile([
             ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
                 'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
                 'from' => [
-                    'flexy-folded-horn-hybrid', 'skram', 'achenbach-18',
+                    'flexy-folded-horn-hybrid', 'skram', ['device' => 'achenbach-18', 'count' => 4],
                     'tecnare-m2122', 'eighteensound-2way-15',
                 ],
             ]],

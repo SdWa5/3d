@@ -17,7 +17,7 @@ use App\Spec\InvalidSpecException;
  * from:
  *   - flexy-folded-horn-hybrid          # the shorthand
  *   - device: achenbach-18
- *     count: 6                          # six against the four we own
+ *     count: 8                          # eight against the six we own
  *     align: block                      # this tier's own alignment
  *     mix_with: skram                   # share a row with these
  *   - device: flexy-folded-horn-hybrid
@@ -27,8 +27,8 @@ use App\Spec\InvalidSpecException;
  * The keys exist because a stack had exactly one setting for the whole rig and that was too coarse:
  *
  * * **`count`** overrides the spec's `quantity`. A stack could only place what the inventory holds, so it
- *   could not express what `full-rig-all-tops` says by hand — six Achenbachs against four owned, to see
- *   whether the rig would work if two more were borrowed. Over-booking is already reported downstream by
+ *   could not express an over-claim by hand — eight Achenbachs against six owned, to see whether the rig
+ *   would work if two more were borrowed. Over-booking is already reported downstream by
  *   {@see SceneReport::summarise}'s `over_inventory`, so nothing new has to warn about it.
  * * **`align`** is this tier's alignment rather than the whole stack's. The rules around it are unchanged:
  *   only a tier nothing stands on may be spread, and only as wide as its own support.

@@ -21,8 +21,8 @@
 # The top tier is deliberately UNEVEN — a 2-way is 0.836 m tall against an M2122's 0.960 — because they are
 # not meant to line up. They are near-field fill sitting beside the long throw, not part of one array.
 #
-# The Achenbach row still calls for SIX and only FOUR exist — deliberately, to see whether the rig would
-# work if two more were borrowed. The
+# The Achenbach row calls for all SIX we own — no longer a deliberate over-claim now that six is the real
+# count (it used to ask for two more than the four we had). The
 # tops, on the other hand, are the entire top inventory: three M2122s and two 2-ways, no more, no fewer.
 id: full-rig-all-tops
 name: "Full rig — every top, long throw plus near fill"

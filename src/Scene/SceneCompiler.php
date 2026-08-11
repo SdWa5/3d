@@ -301,7 +301,7 @@ final class SceneCompiler
                         $problems[] = "stack.from '{$entry->device}': mix_with names unknown device '{$other}'";
                     }
                 }
-                // A stated `count` over-books deliberately — six Achenbachs against the four we own, to see
+                // A stated `count` over-books deliberately — eight Achenbachs against the six we own, to see
                 // whether the rig would work if two more were borrowed. The report already says so:
                 // `SceneReport::summarise()` returns `over_inventory` and `scene:build` warns on it.
                 $inventory[] = [$device, $entry->count ?? $device->quantity];

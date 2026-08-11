@@ -136,11 +136,15 @@ final class SceneStackCommandTest extends TestCase
      * Flexy row was banned after that mixed row left Flexys floating. Gravity removed the reason for the ban —
      * each cabinet lands on whatever is under it — so the arrangement the mixed row was built for works, and
      * the leaving-out machinery is left for cases that genuinely cannot stand up.
+     *
+     * 5.0 m rather than 3.70 m: six real Achenbachs are their own row's full 3.70 m stage width, so a SKRAM
+     * row flanked by three Flexys either side (4.906 m) no longer fits under the 3.70 m bound and the command
+     * falls back to leaving the SKRAMs out. Widen the stage and the flanked arrangement is reachable again.
      */
     public function testTheWholeInventoryGoesIntoOneStack(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--interface-height' => '2.0',
+            '--max-width' => '5.0', '--interface-height' => '2.0',
             '--align' => ['center'], '--dry-run' => true,
         ]);
 
@@ -263,9 +267,9 @@ final class SceneStackCommandTest extends TestCase
                 array_map(static fn ($v): string => $v->message, Violation::errorsIn($result['violations'])),
                 basename($file).' does not compile',
             );
-            // 12 Flexy + 4 Achenbach + 3 Tecnare + 2 2-ways. A generator that quietly dropped cabinets
+            // 12 Flexy + 6 Achenbach + 3 Tecnare + 2 2-ways. A generator that quietly dropped cabinets
             // would pass every other check in this file.
-            self::assertCount(21, $result['placed'], basename($file).' lost cabinets');
+            self::assertCount(23, $result['placed'], basename($file).' lost cabinets');
         }
     }
 

@@ -113,7 +113,7 @@ stays text-only and diffable.
 
 ## Current state
 
-The whole PA is in the library — **5 specs, 23 cabinets, 1686 kg, 8.2 m³**:
+The whole PA is in the library — **5 specs, 25 cabinets, 1786 kg, 8.7 m³**:
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |
 |--------------------------|-------|-----|---------------------------------------------|------------------|--------------------------|
@@ -121,7 +121,7 @@ The whole PA is in the library — **5 specs, 23 cabinets, 1686 kg, 8.2 m³**:
 | SKRAM                    | sdwa5 | 2   | 0.610 × 0.914 × 0.813                       | 90               | CAD — vent array         |
 | Tecnare M2122            | sdwa5 | 3   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated + 3 horns, 2 cones (est.) |
 | Eighteensound 2-Way 15″  | sepp  | 2   | 0.466 × 0.836 × 0.427                       | 41 (est.)        | CAD + horn and cone      |
-| Achenbach 18             | sepp  | 4   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD + 18″ cone           |
+| Achenbach 18             | sepp  | 6   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD + 18″ cone           |
 
 **Four of five carry their own CAD** via `mesh_override`, so the models show the openings you actually see on a
 cabinet rather than a black box. The meshes themselves are third-party files and are not committed —

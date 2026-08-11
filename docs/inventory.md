@@ -24,9 +24,9 @@ see [sources.md](sources.md) for which is which:
 | SKRAM                                                                     | sdwa5 | 2   |                                                 |
 | Tecnare M2122 (installation grp/frp version of the touring L2122LT model) | sdwa5 | 3   | two factory cabinets and one self-built version |
 | Eighteensound 2-Way 15″                                                   | sepp  | 2   |                                                 |
-| Achenbach 18                                                              | sepp  | 4   |                                                 |
+| Achenbach 18                                                              | sepp  | 6   |                                                 |
 
-23 cabinets, 1686 kg, 8.21 m³ in total. Note that `Hardware Overview.xlsx` lists 2 Tecnare, counting only the factory
+25 cabinets, 1786 kg, 8.72 m³ in total. Note that `Hardware Overview.xlsx` lists 2 Tecnare, counting only the factory
 pair — the third, self-built one is not in the spreadsheet.
 
 SKHORN, GHORN and OTHORN appear in the comparison spreadsheet but were evaluated, not bought, so they are not in the
