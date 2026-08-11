@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.34.1] - 2026-08-11
+
+### Removed
+
+- TODO entry for incremental renders, which shipped in 0.34.0
+
 ## [0.34.0] - 2026-08-11
 
 ### Added
