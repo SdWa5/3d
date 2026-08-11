@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.46.0] - 2026-08-11
+
+### Added
+
+- **`src/Scene/Stability.php` — a row is one body.** A tier tips when its *combined* centre of mass, weighted by
+  the `weight_kg` every spec carries, falls outside what carries it. The rule this replaces refused a row by half
+  a millimetre, because "half the outer cabinet off the edge" turns out to *be* the per-cabinet centre-of-mass
+  rule: 916.5 mm out against a support edge at 916.0
+- **A settle angle replaces the bearing fraction as the refusal.** A cabinet whose own weight is off its support
+  and whose overhang catches a lower surface tilts until it touches — `atan(drop / overhang)`, refused past 5°.
+  It is the only measure that separates the cases: 1.7° for a Flexy left 19 mm proud, 27° for one half off with a
+  151 mm drop, 19.5° for a 2-way on a 163 mm shoulder. A footprint fraction reads all three as "about half off".
+  **The gate matters as much as the formula** — a cabinet whose centre is over its support sits flat whatever is
+  beside it, and without that a 20 mm sliver over a 19 mm step reads 43.5°
+- **A device is never split so that a row ends up one wide** when a wider row still fits the stated width. Three
+  Achenbachs at two per row are dealt `2 + 1`, and a one-wide sub tier is refused as a pillar — while all three in
+  one row are 1.840 m and fit the stage with two metres to spare. The search's row count is a preference, not a
+  constraint, so it gives way to its own rule
+
+### Changed
+
+- **The SKRAMs now split one per stack in the upright two-stack rig as well as the turned one**, which is what
+  the whole change was for. `stacked-two-center` and `stacked-two-turned-center` are both 12 + 12 cabinets with a
+  SKRAM in each stack, and they are genuinely different rigs rather than two names for one
+- `stacked-center` places all 25 cabinets — the SKRAMs are no longer dropped from the one-stack rig
+- **The cost is height.** Splitting the SKRAMs upright is only possible on narrow rows, so `stacked-two-center`
+  comes out 4.856 m tall on a 0.61 m base against the turned rig's 3.399 m. The turned form is the better rig;
+  the upright one now exists and is honest about its shape
+- `ShippedScenesTest` asserts that every cabinet has *something* under it in both axes rather than half of it.
+  The tilt is the solver's question and is pinned in `GravityTest`: re-deriving it from world boxes alone needs
+  "the tier immediately below", and a first attempt searched everything downwards, found the floor under a 20 mm
+  overhang and called a properly built rig 89° out of level
+
 ## [0.45.1] - 2026-08-11
 
 ### Fixed

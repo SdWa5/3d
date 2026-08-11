@@ -625,6 +625,25 @@ cabinet wider than the column beneath it. It also came out marginal in the ways 
 aimed tops 3 m up biting 10.6 mm into each other, and a top bearing on 43 % of its own footprint. So the ordering
 extends: support outranks the interface, and a rig that stands up as a rig outranks reaching the height.
 
+**A row is one body, and stability is weighed rather than measured as a fraction.** Two rules replace what used
+to be one proxy:
+
+* **A tier tips** when its combined centre of mass — weighted by `weight_kg`, which every spec carries — falls
+  outside the span of what carries it. A row's cabinets touch and are strapped, so the question is about the row,
+  not each cabinet: four Flexys on an 1.832 m row have their mass dead centre and stand, with the end cabinets
+  reaching past the support and held by the neighbours they lean on. The old rule refused that by **half a
+  millimetre**, because "half the outer cabinet off the edge" turns out to *be* the per-cabinet centre-of-mass
+  rule — 916.5 mm out against a support edge at 916.0.
+* **A cabinet settles out of level** when its own weight is off its support *and* the overhang catches a lower
+  surface: `atan(drop / overhang)`, refused past 5°. That is the only thing that tells a shim from a cantilever —
+  a Flexy left 19 mm proud over a 630 mm overhang is **1.7°**, one half off with the rest over a surface 151 mm
+  down is **27°**, and a 2-way perched on a 163 mm shoulder is **19.5°**. A fraction of a footprint reads all
+  three as "about half off".
+
+The gate matters as much as the formula: a cabinet whose centre is over its support **sits flat**, whatever is
+beside it. Without that, a 20 mm sliver hanging over a 19 mm step reads 43.5° — geometrically true and physically
+nonsense.
+
 **Bearing is checked per cabinet, not just per tier.** How much of a cabinet is over the thing it landed on, as
 a fraction of its own width; under half is an error. Comparing tier widths cannot see this and neither can the
 shipped-scene sweep: a flanked Achenbach row is 163 mm taller at its shoulders, and a top row laid contiguously

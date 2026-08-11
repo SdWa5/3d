@@ -96,6 +96,39 @@ final class GravityTest extends TestCase
     }
 
     /**
+     * The tilt a cabinet comes to rest at — **zero unless its own weight is off its support**.
+     *
+     * That gate is the whole rule, and leaving it out produced nonsense: a cabinet with a 20 mm sliver hanging
+     * over a 19 mm step reads 43.5° by `atan(drop / overhang)` and does not move at all in reality, because its
+     * weight is still over what holds it up. With the gate, the three cases this repository kept confusing come
+     * apart on their own numbers.
+     */
+    public function testACabinetOnlyTiltsWhenItsOwnWeightIsOffItsSupport(): void
+    {
+        $rc = new \ReflectionMethod(Gravity::class, 'landsOn');
+
+        // Centre over the support, a sliver hanging over a 19 mm step: sits flat.
+        $flat = $rc->invoke(null, [
+            ['id' => 'under', 'lo' => -0.30, 'hi' => 0.28, 'top' => 0.610],
+            ['id' => 'lower', 'lo' => 0.30, 'hi' => 1.00, 'top' => 0.591],
+        ], -0.30, 0.30);
+        self::assertSame(0.0, $flat['settle'], 'its weight is over the support, so nothing tilts');
+
+        // Half off the support with the rest over a surface 151 mm down: it rocks.
+        $rocks = $rc->invoke(null, [
+            ['id' => 'tall', 'lo' => -0.305, 'hi' => 0.305, 'top' => 0.914],
+            ['id' => 'short', 'lo' => -0.916, 'hi' => -0.325, 'top' => 0.763],
+        ], -0.601, -0.010);
+        self::assertEqualsWithDelta(27.0, $rocks['settle'], 0.2, '151 mm down over a 296 mm overhang');
+
+        // Off the support with nothing under the overhang at all: a cantilever, not a tilt.
+        $cantilever = $rc->invoke(null, [
+            ['id' => 'under', 'lo' => -0.916, 'hi' => -0.621, 'top' => 0.763],
+        ], -1.212, -0.621);
+        self::assertSame(0.0, $cantilever['settle'], 'over air, so the row decides rather than this cabinet');
+    }
+
+    /**
      * A mirrored tier lands as **two runs**, because its halves are turned opposite ways.
      *
      * Run identity is device, support *and roll*: without the roll the two halves of a mirrored row would merge

@@ -57,7 +57,7 @@ final class Gravity
      * @param string $prefix the placement id the run ids hang off
      * @return list<list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
-     *     top: float, on: string|null, bearing: float, roll: float
+     *     top: float, on: string|null, bearing: float, settle: float, roll: float
      * }>> one entry per tier, in the same order
      */
     public static function resolve(array $tiers, float $gapM, string $prefix): array
@@ -213,7 +213,7 @@ final class Gravity
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
      * @return list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
-     *     top: float, on: string|null, bearing: float, roll: float
+     *     top: float, on: string|null, bearing: float, settle: float, roll: float
      * }>
      */
     private static function runs(array $seats, array $below, float $gapM): array
@@ -226,7 +226,8 @@ final class Gravity
             $x = $centreX - $span / 2;
 
             for ($seat = 0; $seat < $count; ++$seat) {
-                ['on' => $on, 'top' => $top, 'bearing' => $bearing] = self::landsOn($below, $x, $x + $width);
+                ['on' => $on, 'top' => $top, 'bearing' => $bearing, 'settle' => $settle]
+                    = self::landsOn($below, $x, $x + $width);
 
                 $last = $runs === [] ? null : $runs[count($runs) - 1];
                 // Device, support **and roll**: the two halves of a mirrored tier are turned opposite ways, so
@@ -237,6 +238,7 @@ final class Gravity
                     // The worst-carried cabinet speaks for the run: they share a support, so the ones at its
                     // ends are the only ones that can be hanging off it.
                     $runs[count($runs) - 1]['bearing'] = min($last['bearing'], $bearing);
+                    $runs[count($runs) - 1]['settle'] = max($last['settle'], $settle);
                 } else {
                     $runs[] = [
                         'id' => '',
@@ -247,6 +249,7 @@ final class Gravity
                         'top' => $top,
                         'on' => $on,
                         'bearing' => $bearing,
+                        'settle' => $settle,
                         'roll' => $roll,
                     ];
                 }
@@ -256,6 +259,79 @@ final class Gravity
         }
 
         return $runs;
+    }
+
+    /**
+     * How far out of level a cabinet ends up, in degrees — and **zero unless it would actually tilt**.
+     *
+     * That gate is the whole of it, and getting it wrong once produced nonsense: a cabinet with a 20 mm sliver
+     * hanging over a 19 mm step reads 43.5° by `atan(drop / overhang)` and does not move at all in reality,
+     * because its weight is still over its support. A cabinet only rotates if its **own centre** is off what
+     * holds it up. So:
+     *
+     * * centre over the support → sits flat, whatever is beside it. Zero.
+     * * centre off it, and the overhang is over **air** → not a tilt but a cantilever, held by the neighbours it
+     *   is strapped to. Zero here too, and {@see Stability::tips} decides it by weighing the row.
+     * * centre off it, and the overhang catches a **lower surface** → it tilts until it touches, and that angle
+     *   is what tells a shim from a cantilever: a 19 mm step over a 630 mm overhang is 1.7°, a 163 mm shoulder
+     *   over 460 mm is 19.5°.
+     *
+     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     * @param list<array{float, float}> $held the spans covered by supports level with the landing
+     */
+    private static function settleOf(array $below, float $lo, float $hi, float $top, array $held): float
+    {
+        $centre = ($lo + $hi) / 2;
+        foreach ($held as [$from, $to]) {
+            if ($centre >= $from - self::CONTACT_EPSILON_M && $centre <= $to + self::CONTACT_EPSILON_M) {
+                return 0.0;
+            }
+        }
+
+        $worst = 0.0;
+        foreach (self::gapsIn($held, $lo, $hi) as [$from, $to]) {
+            $overhang = $to - $from;
+            if ($overhang <= self::CONTACT_EPSILON_M) {
+                continue;
+            }
+
+            $under = -INF;
+            foreach ($below as $candidate) {
+                if (min($to, $candidate['hi']) - max($from, $candidate['lo']) > self::CONTACT_EPSILON_M) {
+                    $under = max($under, $candidate['top']);
+                }
+            }
+            if ($under > -INF) {
+                $worst = max($worst, rad2deg(atan2($top - $under, $overhang)));
+            }
+        }
+
+        return $worst;
+    }
+
+    /**
+     * The stretches of `$lo`..`$hi` no support covers, left to right.
+     *
+     * @param list<array{float, float}> $taken
+     * @return list<array{float, float}>
+     */
+    private static function gapsIn(array $taken, float $lo, float $hi): array
+    {
+        usort($taken, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $gaps = [];
+        $reach = $lo;
+        foreach ($taken as [$from, $to]) {
+            if ($from > $reach) {
+                $gaps[] = [$reach, $from];
+            }
+            $reach = max($reach, $to);
+        }
+        if ($reach < $hi) {
+            $gaps[] = [$reach, $hi];
+        }
+
+        return $gaps;
     }
 
     /**
@@ -270,7 +346,7 @@ final class Gravity
      * acceptable. The floor carries everything, so a cabinet on the ground bears 1.
      *
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
-     * @return array{on: string|null, top: float, bearing: float}
+     * @return array{on: string|null, top: float, bearing: float, settle: float}
      */
     private static function landsOn(array $below, float $lo, float $hi): array
     {
@@ -289,7 +365,7 @@ final class Gravity
             }
         }
         if ($on === null) {
-            return ['on' => null, 'top' => 0.0, 'bearing' => 1.0];
+            return ['on' => null, 'top' => 0.0, 'bearing' => 1.0, 'settle' => 0.0];
         }
 
         // **Every** support at that height carries it, not just the one it is named after. A cabinet spanning
@@ -297,6 +373,7 @@ final class Gravity
         // 35 % where it was really 93 % — which then refused arrangements that were perfectly well carried.
         // Only supports level with the landing count, within a shim's worth: a lower one is not touching it.
         $bearing = 0.0;
+        $held = [];
         foreach ($below as $candidate) {
             if (abs($candidate['top'] - $top) > self::LEVEL_TOLERANCE_M) {
                 continue;
@@ -304,9 +381,15 @@ final class Gravity
             $overlap = min($hi, $candidate['hi']) - max($lo, $candidate['lo']);
             if ($overlap > self::CONTACT_EPSILON_M) {
                 $bearing += $overlap;
+                $held[] = [max($lo, $candidate['lo']), min($hi, $candidate['hi'])];
             }
         }
 
-        return ['on' => $on, 'top' => $top, 'bearing' => $bearing / ($hi - $lo)];
+        return [
+            'on' => $on,
+            'top' => $top,
+            'bearing' => $bearing / ($hi - $lo),
+            'settle' => self::settleOf($below, $lo, $hi, $top, $held),
+        ];
     }
 }

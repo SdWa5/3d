@@ -606,19 +606,14 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * A cabinet landing on less than half its own width is an error, however tidy the tier widths look.
+     * A cabinet that would come to rest **out of level** is an error — the tilt, not the fraction.
      *
-     * The gap the bearing check fills, in the geometry that found it. A single SKRAM between two Flexys makes a
-     * 1.832 m row that is 151 mm taller in its middle, and a two-Flexy row on top of it is 1.202 m — comfortably
-     * narrower, so the tier-width rule has nothing to say. Land the cabinets individually and the inner Flexy
-     * rests on 295 mm of SKRAM and 296 mm of thin air: 49.9 %, over on the wrong side of the same
-     * half-a-cabinet line the overhang rule already draws.
-     *
-     * This is what `scene:stack --stacks=2` runs into. Splitting the inventory in half puts one SKRAM in each
-     * stack, and one SKRAM cannot be flanked into a bottom row that carries anything — which is why the
-     * two-stack TODO says to keep the pair together.
+     * The geometry that found it. A single SKRAM between two Flexys makes a row 151 mm taller in its middle, and
+     * a two-Flexy row on top of it has each cabinet half on the SKRAM and half over a Flexy 151 mm below. It
+     * would rock 27° until it touched. The old rule called this "50 % of its own width" and could not tell it
+     * apart from a Flexy left 19 mm proud by a turned SKRAM, which is the same fraction and 1.7° — a shim.
      */
-    public function testACabinetBearingOnLessThanHalfItsWidthIsAnError(): void
+    public function testACabinetThatWouldRestOutOfLevelIsAnError(): void
     {
         $flexy = $this->devices['flexy-folded-horn-hybrid'];
         $tiers = [
@@ -627,11 +622,34 @@ final class StackSolverTest extends TestCase
         ];
 
         $stack = new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 0.0, gapM: 0.02);
-
         $problems = StackChecks::supportChecks($tiers, $stack)['problems'];
 
-        self::assertStringContainsString('land on only 50% of its own width', implode("\n", $problems));
+        self::assertStringContainsString('out of level', implode("\n", $problems));
+        self::assertStringContainsString('27.0°', implode("\n", $problems));
         self::assertSame([], StackChecks::supportChecks([$tiers[0]], $stack)['problems'], 'the row itself is fine');
+    }
+
+    /**
+     * And a row whose end cabinets reach past their support **stands**, because a row is one body.
+     *
+     * Four Flexys on a 1.832 m row overhang 296 mm each side against a half-cabinet of 295.5 — refused by half a
+     * millimetre by the old proxy, which turns out to *be* the per-cabinet centre-of-mass rule. The row's own mass
+     * is dead centre over its support, and its outer cabinets are held by the neighbours they are strapped to.
+     * Nothing under the overhang, so there is no tilt to measure either.
+     */
+    public function testARowWhoseEndCabinetsReachPastTheirSupportStands(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $tiers = [
+            new Tier([[$flexy, 1], [$this->devices['skram'], 1], [$flexy, 1]]),
+            Tier::of($flexy, 4),
+        ];
+
+        $stack = new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 0.0, gapM: 0.02);
+        $checked = StackChecks::supportChecks($tiers, $stack);
+
+        // Still worth saying out loud, so the 296 mm is reported rather than silently accepted.
+        self::assertStringContainsString('overhangs 296 mm', implode("\n", $checked['warnings']));
     }
 
     /**

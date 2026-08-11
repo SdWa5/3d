@@ -163,13 +163,6 @@ final class StackChecks
                 $overhang * 1000,
             );
 
-            if ($overhang > $tier->outerWidthM() / 2) {
-                $problems[] = $message.' — more than half of the outer cabinet is off the edge, so it stands '
-                    .'on nothing. Narrow the tier, widen what carries it, or take the odd cabinets out of '
-                    .'the stack';
-                continue;
-            }
-
             $warnings[] = $message;
         }
 
@@ -262,7 +255,8 @@ final class StackChecks
     {
         $problems = [];
 
-        foreach (Gravity::resolve($tiers, $stack->gapM, 'stack') as $index => $runs) {
+        $resolved = Gravity::resolve($tiers, $stack->gapM, 'stack');
+        foreach ($resolved as $index => $runs) {
             foreach ($runs as $run) {
                 // Nothing underneath at all. Falling puts it on the floor, which for a tier above the bottom
                 // means *inside* the tier below — and this is the one place that can say so. The rule is here
@@ -277,17 +271,31 @@ final class StackChecks
                     );
                     continue;
                 }
-                if ($run['bearing'] + self::EPSILON_M >= Gravity::MIN_BEARING) {
-                    continue;
+                // **How far out of level it ends up**, not what fraction of it is over its support. A cabinet
+                // whose weight is off its support and whose overhang catches a lower surface tilts until it
+                // touches, and that angle tells a shim from a cantilever: 1.7° where a turned SKRAM leaves a
+                // Flexy 19 mm proud, 19.5° where a 2-way is perched on a 163 mm shoulder. A footprint fraction
+                // reads both as "about half off" and cannot choose between them.
+                if ($run['settle'] > Stability::MAX_SETTLE_DEG) {
+                    $problems[] = sprintf(
+                        'a %s in the %s row would come to rest %.1f° out of level: its weight is off its support '
+                        .'and the overhang catches a lower surface, so it stands on a corner. Line the segments '
+                        .'up with what carries them',
+                        $run['device']->id,
+                        $tiers[$index]->label(),
+                        $run['settle'],
+                    );
                 }
+            }
 
+            // And the row as one body: its combined mass has to sit over what carries it. This is the question a
+            // per-cabinet rule cannot ask, and the one that matters for a row whose end cabinets reach past the
+            // support and lean on the neighbours they are strapped to.
+            if ($index > 0 && Stability::tips($runs, $resolved[$index - 1])) {
                 $problems[] = sprintf(
-                    'a %s in the %s row would land on only %.0f%% of its own width — the row below is stepped, '
-                    .'so it catches the taller cabinet and hangs off it. Reshape the row, or line the segments '
-                    .'up with what carries them',
-                    $run['device']->id,
+                    'the %s row would tip: its combined centre of mass falls outside what carries it. Narrow the '
+                    .'tier, widen what carries it, or take the odd cabinets out of the stack',
                     $tiers[$index]->label(),
-                    $run['bearing'] * 100,
                 );
             }
         }

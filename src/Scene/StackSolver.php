@@ -218,12 +218,13 @@ final class StackSolver
                 continue;
             }
 
-            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)));
+            $roll = self::rollFor($device, $stack);
+            $perTier = self::rowSizeFor($device, $count, $stack, $perRow, $roll);
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
             $rows = (int)ceil($count / $perTier);
             foreach (self::share($count, $rows) as $row) {
-                $tiers[] = Tier::of($device, $row, self::rollFor($device, $stack));
+                $tiers[] = Tier::of($device, $row, $roll);
             }
         }
 
@@ -826,6 +827,38 @@ final class StackSolver
         }
 
         return $shares;
+    }
+
+    /**
+     * How many of a device go in a row — the search's row count, **widened if that would leave a pillar**.
+     *
+     * `$perRow` is the search variable: {@see fill} narrows it to buy height, because narrower rows mean more of
+     * them. It is not a stated constraint, and applying it to *every* device is what produced the one arrangement
+     * that could not be built. Three Achenbachs at two per row are dealt `2 + 1`, and a one-wide sub tier is
+     * refused as a pillar — while all three in one row are 1.840 m and fit the stage with two metres to spare.
+     *
+     * So a pillar is worth one step of widening, and only as far as the width the scene actually stated. It is the
+     * search's own preference being overruled by its own rule, not a constraint being relaxed: nothing here can
+     * exceed `max_width_m`, and a device with fewer than two cabinets is left alone because a single cabinet *is*
+     * a single column and there is nothing else it could be.
+     */
+    private static function rowSizeFor(DeviceSpec $device, int $count, Stack $stack, int $perRow, float $roll): int
+    {
+        $byWidth = self::perTier($device, $stack->maxWidthM, $stack->gapM, $roll);
+        $perTier = min($perRow, $byWidth);
+
+        if ($count < 2 || $perTier >= $count) {
+            return $perTier;
+        }
+
+        // Widen only while the balanced split would still strand a row of one.
+        for ($size = $perTier; $size <= min($count, $byWidth); ++$size) {
+            if (!in_array(1, self::share($count, (int)ceil($count / $size)), true)) {
+                return $size;
+            }
+        }
+
+        return $perTier;
     }
 
     /**
