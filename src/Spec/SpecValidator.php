@@ -566,6 +566,69 @@ final class SpecValidator
             }
         }
 
+        return [...$messages, ...$this->validateTruss($spec)];
+    }
+
+    /**
+     * The truss block: required for `shape: truss`, refused on anything else, and its tubes have to fit.
+     *
+     * The fitting check is the one worth having. `dimensions_m` is the bounding box the rest of the repository
+     * measures a truss by — scene placement, the overlap sweep, the catalog's shipping volume — so a chord fatter
+     * than the box it is declared to sit in would put geometry outside the volume everything else reasons about.
+     * Two chords plus the gap between them is the box's own cross-section, so a single chord can never exceed it.
+     *
+     * @return list<string>
+     */
+    private function validateTruss(DeviceSpec $spec): array
+    {
+        $truss = $spec->truss;
+
+        if ($spec->shape !== Shape::Truss) {
+            return $truss === null
+                ? []
+                : ["geometry.truss only applies to shape 'truss', not '{$spec->shape->value}'"];
+        }
+
+        if ($truss === null) {
+            return ["geometry.truss is required for shape 'truss'"];
+        }
+
+        $messages = [];
+
+        // Two is a ladder, three a triangle, four a box. Anything else is not a truss anybody sells.
+        if ($truss->chords < 2 || $truss->chords > 4) {
+            $messages[] = "geometry.truss.chords must be 2, 3 or 4, got {$truss->chords}";
+        }
+
+        foreach (['chord_diameter_m' => $truss->chordDiameter, 'diagonal_diameter_m' => $truss->diagonalDiameter] as $key => $diameter) {
+            if ($diameter <= 0.0) {
+                $messages[] = "geometry.truss.{$key} must be greater than 0, got {$diameter}";
+            }
+        }
+
+        // The cross-section, not the length: a chord runs along the segment, so what has to contain it is the
+        // box's other two edges.
+        $section = min($spec->dimensions->height, $spec->dimensions->depth);
+        if ($truss->chordDiameter > 0.0 && $truss->chordDiameter > $section) {
+            $messages[] = sprintf(
+                'geometry.truss.chord_diameter_m (%s) does not fit the %s m cross-section of geometry.dimensions_m',
+                $truss->chordDiameter,
+                $section,
+            );
+        }
+
+        if ($truss->diagonalDiameter > $truss->chordDiameter && $truss->chordDiameter > 0.0) {
+            $messages[] = sprintf(
+                'geometry.truss.diagonal_diameter_m (%s) is thicker than the chords (%s) — bracing is the thinner tube',
+                $truss->diagonalDiameter,
+                $truss->chordDiameter,
+            );
+        }
+
+        if ($truss->bayLength <= 0.0) {
+            $messages[] = "geometry.truss.bay_length_m must be greater than 0, got {$truss->bayLength}";
+        }
+
         return $messages;
     }
 

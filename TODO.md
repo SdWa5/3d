@@ -13,40 +13,33 @@
    the same rig and `scene:stack` still writes one all-speaker scene rather than three. The 2-ways *do* now go outboard
    on the shoulders of a flanked row, but as a gravity repair — it fires only when the contiguous row would leave a
    cabinet on less than half its width, not because an alignment asked for it
-3. **stability is still only checked structurally.** One-wide sub tiers are refused now, which was the tower, but
-   nothing weighs the rig: the half-a-cabinet support rule passes a 286 mm overhang on a 1.240 m base, and
-   `weight_kg` is on every spec while no centre of mass is ever computed. A tipping angle — combined centre of mass
-   against the base half-width — would put a number on it, and there is no citable limit to compare it against, so it
-   wants reporting rather than refusing
-4. **only one tier per pass is flanked from below, and only if it fits a single row.** A device needing several rows
+3. **only one tier per pass is flanked from below, and only if it fits a single row.** A device needing several rows
    would have to say *which* of its rows gets the flanks, and a device that already names its row-mates with
    `mix_with` is left alone. One flanked tier is all this inventory can produce, so the general case is untested
-5. **the whole inventory cannot be turned at once.** A rolled SKRAM is 610 mm tall and a rolled Flexy 591, so a bottom
+4. **the whole inventory cannot be turned at once.** A rolled SKRAM is 610 mm tall and a rolled Flexy 591, so a bottom
    row mixing them has a 19 mm step and the tier above straddles it — gravity lifts each cabinet onto the taller
    neighbour it catches and the bearing check reports 17 %. Turned rigs work where the row below is level (Flexys +
    Achenbachs + tops come out at 94 % worst bearing). A shim, or a `bearing` rule that weighed the *drop* rather than
    only the overlap, would be the way in
-6. **an odd mirrored row is lopsided by one cabinet** — `intdiv(n, 2)` go left and the rest right
-7. **finish GMSS.** The four speakers, their models, `scenes/gmss-full-stack.yaml` and its renders are done —
-   all `provenance: estimated` and all in the measuring backlog. What is left:
-    1. **measure the four cabinets.** Nothing in them is sourced: the dimensions are reconstructions scaled off
-       our own measured cabinets and off a Turbosound TMS-4, and the weights are calculated skins. A tape measure
-       replaces the lot. See [docs/sources.md](docs/sources.md#gmss-is-estimated-end-to-end)
-    2. **confirm the counts that were not stated.** 8 turbo subs and 3 turbo tops are stated; the 3 middle subs
-       and 2 mid-bass cabinets are read off the photograph and are guesses. Only 6 of the 8 turbo subs are in the
-       photo, so `gmss-full-stack.yaml` builds six — where the other two go is unknown
+5. **an odd mirrored row is lopsided by one cabinet** — `intdiv(n, 2)` go left and the rest right
+6. **finish GMSS.** The four speakers, their models, `scenes/gmss-full-stack.yaml` and its renders are done — all
+   `provenance: estimated` and all in the measuring backlog. What is left:
+    1. **measure the four cabinets.** Nothing in them is sourced: the dimensions are reconstructions scaled off our own
+       measured cabinets and off a Turbosound TMS-4, and the weights are calculated skins. A tape measure replaces the
+       lot. See [docs/sources.md](docs/sources.md#gmss-is-estimated-end-to-end)
+    2. **confirm the counts that were not stated.** 8 turbo subs and 3 turbo tops are stated; the 3 middle subs and 2
+       mid-bass cabinets are read off the photograph and are guesses. Only 6 of the 8 turbo subs are in the photo, so
+       `gmss-full-stack.yaml` builds six — where the other two go is unknown
     3. resolve what "USB" means in "USB 2x 700rms mid bass", and the two drivers' size
-    4. **whether the third middle sub really lies on its side** in the middle bay's second row. What the photo
-       shows there is a cross-braced horn mouth, wider than it is tall; a middle sub rolled a quarter turn fits
-       that shape, carries the 1.420 m tops row at 92% bearing and lands the tops 50 mm off level with the
-       columns — three things agreeing, but still a reading of a photograph rather than a fact. It could be a
-       cabinet type GMSS never listed. The low boxes under the middle bay are not modelled either
-    5. the 9 m truss and the two 5.2 m towers — `category: truss` with subtype `straight`/`tower` already exists,
-       and both numbers are stated, so this needs less invention than the cabinets did
-    6. the 4 Martin MAC Performance 2 moving heads, as `category: other`. Real datasheet dimensions are published
-       for these, so they would be the only GMSS items with solid provenance
-    7. reference photo: /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.jpeg
-8. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
+    4. **whether the third middle sub really lies on its side** in the middle bay's second row. What the photo shows
+       there is a cross-braced horn mouth, wider than it is tall; a middle sub rolled a quarter turn fits that shape,
+       carries the 1.420 m tops row at 92% bearing and lands the tops 50 mm off level with the columns — three things
+       agreeing, but still a reading of a photograph rather than a fact. It could be a cabinet type GMSS never listed.
+       The low boxes under the middle bay are not modelled either
+    5. the 4 Martin MAC Performance 2 moving heads, as `category: other`. Real datasheet dimensions are published for
+       these, so they would be the only GMSS items with solid provenance
+    6. reference photo: /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.jpeg
+7. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a
            general feature)
@@ -60,8 +53,8 @@
            a generated cabinet has no way to declare a port at all
     4. handle recesses are currently a plain rectangular cut — a rounded dish would read better (implement general
        handle 3d model)
-9. daylight renders, insides of speakers come out a little bit too dark
-10. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
+8. daylight renders, insides of speakers come out a little bit too dark
+9. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
     1. write the splayed sub arc scene. `arc` covers the schema side now — a mirrored Flexy arc is
        `arc` plus `roll_deg: 180`, which the arc's roll rule deliberately allows — but no scene uses it, and a sub arc
        is the case where the reported footprint reads worst: a bounding box around a fan includes floor that nothing
@@ -70,29 +63,37 @@
        like a venue rather than a void
     3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene files — they encode
        stack arrangements that already worked
-11. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
-    shapes for truss segments and rack boxes
-    1. Truss: 2x 4 meter telescope feet; 5x 2m three point truss segments
-    2. 2x 5 meter gerüst, 7 meter arbeitshöhe including 2 meters persons hand height (Das Krause Plattformgerüst AH7
+10. more categories: amp racks, stands, lighting. The schema and validator already accept them, and **truss is
+    done** — `shape: truss` builds chords and bracing, and `specs/truss/` holds our segments and stands plus
+    GMSS's. A rack is a box and needs no new shape, so the geometry still missing is a telescoping mast and the
+    lighting fixtures
+    1. 2x 5 meter gerüst, 7 meter arbeitshöhe including 2 meters persons hand height (Das Krause Plattformgerüst AH7
        lässt schnell und einfach werkzeuglos montieren. Aufgrund des vertikal unabhängigen Rahmens kann es auf Treppen
        verwendet werden. Die Stabilität wird durch Diagonalträger gewährleistet. Die 7 m hohe, 1,50 m lange und 0,60 m
        breite Plattform ist witterungsbeständig. Bei der zweiten Aufstockung wird der Gerüstrahmen um 2 Meter angehoben,
        was mit dem Sockel und der ersten Aufstockung bis zu 7 Meter Arbeitshöhe bedeutet.)
-    3. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
+    2. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
        (2 racks for amps 1 rack for power distribution)
-    4. lighting: 2 600w rgb led strobes, 1 mini moving head, 1 mini laser
-12. audio routing table, for the coverage work ->
+    3. lighting: 2 600w rgb led strobes, 1 mini moving head, 1 mini laser
+    4. **a telescoping mast shape for the towers.** `truss-tower-4m` and `gmss-tower-5m` are `shape: box` — a
+       0.203 m column, which is the folded base size. A crank stand is a nested mast on folding outriggers, and
+       neither the nesting nor the outriggers are drawn. The outriggers matter most: unfolded they spread to
+       1.499 × 1.499 m, which is what has to be kept clear at the feet on a real stage, where the scene shows a
+       column a fifth of that. A `mast` shape taking a section count and the folded/unfolded base would fix both
+    5. **`Rack` has no subtype for power distribution.** `Category::Rack` allows `amp` / `network` / `shipping`,
+       and the third rack in 10.2 is neither — it distributes power. Needs a `power` case before those specs land
+11. audio routing table, for the coverage work ->
     https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604
-13. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
+12. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
     rather than one list, and every number needed a provenance decision. Worth building when the gear list next grows;
     see [docs/inventory.md](docs/inventory.md)
-14. asset previews are blank because they cannot be rendered in background mode. Either generate them in the GUI once,
+13. asset previews are blank because they cannot be rendered in background mode. Either generate them in the GUI once,
     or find a way to render thumbnails headless
-15. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that only runs when
+14. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that only runs when
     `blender/` or `specs/` changed
-16. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so
+15. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so
     this should mostly be packaging and metadata mapping
-17. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a design or a
+16. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a design or a
     datasheet, not our build; `catalog` lists what is still un-measured
     1. hanging-scale the two estimated weights first: `eighteensound-2way-15` (41 kg) and `achenbach-18`
        (50 kg). Neither exists in any source — the whole Shared Drive was searched, and Eighteen Sound publishes no
@@ -113,37 +114,42 @@
        validates and so a flown scene has something to snap to; nothing has confirmed where the real track sits. The
        schema has no provenance field for rigging, so the estimate is stated in a comment in the spec — worth adding one
        if more flyable gear arrives
-18. fly through renderings + combine with new project from existing audio routing table
-19. endfire setup add other sub and tops
-20. **`scene:stack` with no `--from` now mixes two sound systems.** The default is "every speaker, subs before
-    tops", and since the GMSS cabinets arrived that includes another system's gear: the tops row comes out
+17. fly through renderings + combine with new project from existing audio routing table
+18. endfire setup add other sub and tops
+19. **`scene:stack` with no `--from` now mixes two sound systems.** The default is "every speaker, subs before tops",
+    and since the GMSS cabinets arrived that includes another system's gear: the tops row comes out
     `1× eighteensound + 2× tecnare + 3× gmss-turbo-top + 1× tecnare + 1× eighteensound` at 4.071 m and the solve
-    refuses. It refuses with a clear reason rather than writing a wrong rig, so this is degraded and not broken,
-    and `--per-owner` (which now yields three stacks) or an explicit `--from` both work. The fix is for the
-    default to mean "one system's gear" — either an `--owner` narrowing option or owner-awareness in
-    `everySpeaker()`. Owner is not quite the right discriminator, since the repository deliberately supports
-    borrowing gear between owners, so this needs a decision before it needs code
-21. **`audio.drivers` cannot record a count without a size.** `size_in` is required on every entry, so a cabinet
-    known to have two drivers of unknown size — `gmss-mid-bass`, from "USB 2x 700rms" — has to omit the whole
-    `audio` block and put the count in its notes. Making `size_in` optional would let the schema hold what is
-    actually known instead of forcing a choice between inventing a size and recording nothing
-22. **`scene:stack` spaces an aimed row on the cabinet's flat width and ignores the toe-in.** Every cabinet in an
-    aimed row toes in on the focus from its OWN position, so a row does not share one yaw — and two boxes at
-    different angles need about `depth x sin(yaw difference)` more room than two parallel ones. The solver gives
-    them the stack's plain `gap_m`, so a stack far enough off the centre line writes a scene whose own cabinets
-    overlap: `both-systems-per-owner-center.yaml`'s GMSS stack sits 2.65 m out and its three aimed tops came out
-    **16.2 mm inside each other** at `gap_m: 0.02`. Caught by the overlap sweep in `ShippedScenesTest`, not by eye.
-    That scene is generated with `--gap=0.05` as a workaround, which is honest but blunt — it widens every gap in
-    every stack to fix a problem in one row of one of them. The fix is for the row spacing to account for the
-    neighbour's yaw the way `align` already accounts for a toed-in cabinet being wider across x than it is wide.
-    It is not GMSS-specific — any `--per-owner` or `--stacks=N` rig whose outer stacks sit far enough out can hit
-    it, and the wider the rig the worse it gets
-23. **a generated scene's comment table goes stale while the scene itself stays correct.** `scene:stack` writes a
-    row-by-row summary into the file as comments — "1  4x gmss-turbo-sub  2.55 m wide" — but the `stack:` block
-    below it is re-solved by the compiler on every build. So the picture always follows the current specs while the
-    comments describe the solve as it stood when the file was written. Rescaling the GMSS cabinets in 0.55.0 left
-    `both-systems-per-owner-center.yaml` claiming rows of 3.26 m that build as 2.55 m, and a five-row stack that
-    builds as four. Nothing is wrong with the rig; the documentation beside it is wrong, which is worse than no
-    documentation because it reads as authoritative. Options: regenerate the summary at build time, have
-    `scene:build` warn when a generated scene's comments disagree with what it just solved, or drop the table and
-    print it from `scene:build` instead. Regenerating the file by hand is the workaround today
+    refuses. It refuses with a clear reason rather than writing a wrong rig, so this is degraded and not broken, and
+    `--per-owner` (which now yields three stacks) or an explicit `--from` both work. The fix is for the default to mean
+    "one system's gear" — either an `--owner` narrowing option or owner-awareness in
+    `everySpeaker()`. Owner is not quite the right discriminator, since the repository deliberately supports borrowing
+    gear between owners, so this needs a decision before it needs code
+20. **`audio.drivers` cannot record a count without a size.** `size_in` is required on every entry, so a cabinet known
+    to have two drivers of unknown size — `gmss-mid-bass`, from "USB 2x 700rms" — has to omit the whole
+    `audio` block and put the count in its notes. Making `size_in` optional would let the schema hold what is actually
+    known instead of forcing a choice between inventing a size and recording nothing
+21. **`scene:stack` spaces an aimed row on the cabinet's flat width and ignores the toe-in.** Every cabinet in an aimed
+    row toes in on the focus from its OWN position, so a row does not share one yaw — and two boxes at different angles
+    need about `depth x sin(yaw difference)` more room than two parallel ones. The solver gives them the stack's plain
+    `gap_m`, so a stack far enough off the centre line writes a scene whose own cabinets overlap:
+    `both-systems-per-owner-center.yaml`'s GMSS stack sits 2.65 m out and its three aimed tops came out **16.2 mm inside
+    each other** at `gap_m: 0.02`. Caught by the overlap sweep in `ShippedScenesTest`, not by eye. That scene is
+    generated with `--gap=0.05` as a workaround, which is honest but blunt — it widens every gap in every stack to fix a
+    problem in one row of one of them. The fix is for the row spacing to account for the neighbour's yaw the way `align`
+    already accounts for a toed-in cabinet being wider across x than it is wide. It is not GMSS-specific — any
+    `--per-owner` or `--stacks=N` rig whose outer stacks sit far enough out can hit it, and the wider the rig the worse
+    it gets
+22. **a generated scene's comment table goes stale while the scene itself stays correct.** `scene:stack` writes a
+    row-by-row summary into the file as comments — "1 4x gmss-turbo-sub 2.55 m wide" — but the `stack:` block below it
+    is re-solved by the compiler on every build. So the picture always follows the current specs while the comments
+    describe the solve as it stood when the file was written. Rescaling the GMSS cabinets in 0.55.0 left
+    `both-systems-per-owner-center.yaml` claiming rows of 3.26 m that build as 2.55 m, and a five-row stack that builds
+    as four. Nothing is wrong with the rig; the documentation beside it is wrong, which is worse than no documentation
+    because it reads as authoritative. Options: regenerate the summary at build time, have
+    `scene:build` warn when a generated scene's comments disagree with what it just solved, or drop the table and print
+    it from `scene:build` instead. Regenerating the file by hand is the workaround today
+23. **stability is still only checked structurally.** One-wide sub tiers are refused now, which was the tower, but
+    nothing weighs the rig: the half-a-cabinet support rule passes a 286 mm overhang on a 1.240 m base, and
+    `weight_kg` is on every spec while no centre of mass is ever computed. A tipping angle — combined centre of mass
+    against the base half-width — would put a number on it, and there is no citable limit to compare it against, so it
+    wants reporting rather than refusing

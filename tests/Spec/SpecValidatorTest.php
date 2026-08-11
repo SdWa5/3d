@@ -171,6 +171,33 @@ final class SpecValidatorTest extends TestCase
             ['geometry' => ['shape' => 'wedge']],
             "geometry.front_height_m is required for shape 'wedge'",
         ];
+        // The truss block, which is the taper rule's shape applied to a shape that is not a hexahedron at all:
+        // required for its own shape, refused on any other, and its tubes have to fit the box everything else
+        // measures a truss by.
+        yield 'truss without its tubes stated' => [
+            ['geometry' => ['shape' => 'truss']],
+            "geometry.truss is required for shape 'truss'",
+        ];
+        yield 'truss block on a plain box' => [
+            ['geometry' => ['truss' => self::truss()]],
+            "geometry.truss only applies to shape 'truss'",
+        ];
+        yield 'truss with an impossible chord count' => [
+            ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['chords' => 5])]],
+            'geometry.truss.chords must be 2, 3 or 4',
+        ];
+        yield 'chord fatter than the cross-section it sits in' => [
+            ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['chord_diameter_m' => 0.9])]],
+            'does not fit the',
+        ];
+        yield 'bracing thicker than the chords it braces' => [
+            ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['diagonal_diameter_m' => 0.06])]],
+            'is thicker than the chords',
+        ];
+        yield 'truss with no bay length' => [
+            ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['bay_length_m' => 0.0])]],
+            'geometry.truss.bay_length_m must be greater than 0',
+        ];
         yield 'mesh override Blender cannot read' => [
             ['mesh_override' => 'Achenbach 18.FCStd'],
             'Blender cannot read FreeCAD',
@@ -372,6 +399,26 @@ final class SpecValidatorTest extends TestCase
     private static function layout(array $features): array
     {
         return ['provenance' => 'estimated', 'inset_m' => 0.012, 'features' => $features];
+    }
+
+    /**
+     * A valid truss block, for cases that break exactly one thing about it.
+     *
+     * The values are the 300 mm class standard the shipped segments use, so a case that overrides nothing is
+     * genuinely valid against the factory's 0.8 x 0.6 x 0.45 box.
+     *
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
+    private static function truss(array $overrides = []): array
+    {
+        return [
+            'chords' => 3,
+            'chord_diameter_m' => 0.050,
+            'diagonal_diameter_m' => 0.020,
+            'bay_length_m' => 0.500,
+            ...$overrides,
+        ];
     }
 
     /**

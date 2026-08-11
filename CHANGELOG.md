@@ -6,6 +6,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.58.0] - 2026-08-12
+
+### Added
+
+- **`shape: truss` — the first device geometry that is not a hexahedron, and the first that is not a loudspeaker.**
+  A truss is mostly air, so drawing its bounding box would stand a solid wall where a 9 m span belongs and hide the
+  whole rig behind it. `blender/lib/truss.py` builds chords and bracing from the stated tube sizes instead
+- `geometry.truss` block: `chords` (2 a ladder, 3 a triangle, 4 a box), `chord_diameter_m`, `diagonal_diameter_m`
+  and `bay_length_m`. Validated by extending `SpecValidator::validateShape()`, which already did exactly this job
+  for the taper fields — required for its shape, refused on any other, and the tubes have to fit the stated box
+- **`dimensions_m` stays the true bounding box**, and chord centres are derived *inwards* from it by one radius so
+  the tubes touch its faces. That is what lets scene placement, the overlap sweep and the catalog's shipping volume
+  go on reading one field without knowing a truss from a subwoofer
+- Four specs in a new `specs/truss/`: `truss-f33-2m` (5 of ours), `truss-tower-4m` (2 telescopic stands),
+  `gmss-truss-9m` and `gmss-tower-5m`
+- **`scenes/full-rig-truss.yaml`** — the full rig under a goalpost, 8 m of truss on two 4 m stands. What
+  `docs/scenes.md` has wanted for a while: "a venue rather than a void". The truss is placed with `fly`, whose
+  docblock already anticipated it, and its 4.258 m top clears the arc below by 875 mm
+- `detail-check.yaml` gains the truss segment and both towers — twelve of thirteen devices, with `gmss-truss-9m`
+  deliberately left out and the reason stated in the file
+
+### Changed
+
+- `plan_version` 1 → 2. A plan carrying a truss block is one an older builder would silently draw as a box
+- `build_model.py` skips what a truss has none of: grille, handle recesses, chamfer, drivers and the coverage cone.
+  The origin shift and the rigging and estimated markers still apply — those are about the device, not the cabinet
+- `Shape::isCabinet()` asks the question of the *shape* rather than the `Category`, because it is the geometry that
+  decides: a rack is a `Box` and wants the same shell treatment, while a truss cannot take a grille whatever it is
+  filed under
+
+### Notes
+
+- **The lengths are ours and the cross-section is a class standard.** "5x 2m three point truss segments" states the
+  part that matters structurally and leaves the brand and section open, so those come from Global Truss F33 —
+  chord Ø 50 × 2 mm, diagonal Ø 20 × 2 mm, 290 mm overall width. Prolyte X30 and Eurotruss FD32 are within a few
+  millimetres, which is what makes it a class rather than a guess at a brand
+- **The weight is derived from three published points, not interpolated by eye.** F33 is quoted at 6.4 kg / 1.0 m,
+  8.2 / 1.5 m and 14.1 / 3.0 m, which fit `2.55 kg + 3.85 kg/m` — 6.40, 8.33, 14.10 against those. The 2.55 kg
+  intercept is the end connectors, which is why short segments are heavy per metre. So 2 m is 10.3 kg
+- **The cross-section is derived from the same figures**: chords Ø 50 inside 290 mm overall puts the centres on an
+  equilateral triangle of side 240 mm, so the box is 257.8 mm tall by 290 across
+- `truss-tower-4m` matches the Global Truss ST-132 on the stated description, so its **weight and heights are
+  published** (25 kg, 4.0 m max, 1.8 m min, 100 kg load). What is estimated is its shape
+- **The towers are placeholders and look it.** Both are a 0.203 m column, the folded base size; the folding
+  outriggers are not drawn, and unfolded they spread to 1.499 × 1.499 m — the footprint that actually has to be
+  kept clear. So the footprint those specs report is the mast's. Filed as TODO 10.4
+- `bay_length_m` is the only number in a truss spec with no source at all; manufacturers publish tube sizes and
+  weights but rarely the brace pitch. It changes the picture and nothing else
+- Adding `blender/lib/truss.py` made every model stale, as `Staleness::blenderInputs` intends — one full
+  `models:build` rebuilt all thirteen
+
 ## [0.57.0] - 2026-08-11
 
 ### Fixed

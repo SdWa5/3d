@@ -33,13 +33,14 @@ deviations: |                 # optional: how the build differs from the origina
   Custom grille art, different corner hardware.
 
 geometry:
-  shape: box                  # box | trapezoid | wedge
+  shape: box                  # box | trapezoid | wedge | truss
   dimensions_m:               # outer dimensions, always the true bounding box
     width: 0.80
     height: 0.58
     depth: 0.45
   back_width_m: null          # trapezoid only: width at the back
   front_height_m: null        # wedge only: height at the front
+  truss: null                 # truss only: the tubes — see Shapes below
   origin: bottom-center       # bottom-center | rigging-point | geometric-center
   chamfer_m: 0.012            # edge bevel; below half the smallest edge
 
@@ -232,9 +233,38 @@ from a ratio would invent a measurement, which is exactly what `provenance` exis
 |---------|-------------|---------|
 | `trapezoid` | `back_width_m` | narrows towards the back, e.g. an array-able top |
 | `wedge` | `front_height_m` | lower at the front, e.g. a floor monitor |
+| `truss` | `truss` (a block) | chords and bracing instead of a shell — see below |
 
-The front face stays a full `width × height` (or `width × front_height_m`) rectangle in all three,
+The front face stays a full `width × height` (or `width × front_height_m`) rectangle in the first three,
 which is why the grille frame works the same way everywhere.
+
+### truss
+
+The first three shapes are one hexahedron with different corners, and their outer dimensions *are* the
+object. `truss` is the odd one out: **a truss is mostly air**, so drawing its bounding box would put a
+solid wall where a 9 m span should be and hide the whole rig behind it. It is built from tubes instead.
+
+```yaml
+geometry:
+  shape: truss
+  dimensions_m: { width: 2.000, height: 0.258, depth: 0.290 }
+  truss:
+    chords: 3                 # 2 a ladder, 3 a triangle, 4 a box
+    chord_diameter_m: 0.050   # the main tubes
+    diagonal_diameter_m: 0.020  # the bracing, always the thinner tube
+    bay_length_m: 0.500       # pitch of the zigzag; rounded to whole bays
+```
+
+`dimensions_m` is still the true bounding box, and that is deliberate: scene placement, the overlap sweep
+in `ShippedScenesTest` and the catalog's shipping volume all read it, and none of them knows a truss from
+a subwoofer. The chord centres are derived *inwards* from it by one radius, so the tubes touch its faces.
+
+A segment **lies along X** — `width` is the length of the span and the other two are the cross-section.
+Three chords are built apex up; a scene wanting it inverted uses `roll_deg: 180`. The builder skips
+everything a truss has none of: grille, handle recesses, chamfer, drivers and the coverage cone.
+
+`bay_length_m` is usually the only unsourced number in an otherwise sourced truss spec — manufacturers
+publish tube sizes and weights but rarely the brace pitch. It changes the picture and nothing else.
 
 ## Mesh overrides
 

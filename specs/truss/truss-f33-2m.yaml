@@ -1,0 +1,91 @@
+# Three-point truss, 2 m straight segment — the first non-speaker device in the library.
+#
+# WHAT WE OWN: "5x 2m three point truss segments". The length and the count are stated; the brand is not, and the
+# cross-section is not. So the length is ours and everything else comes from the class standard, which for a 2 m
+# three-point segment is near-universally the 300 mm one — Global Truss F33, Prolyte X30, Eurotruss FD32 are all
+# within a few millimetres of each other.
+#
+# PUBLISHED F33 FIGURES, which is what the numbers below are built from:
+#
+#   main tube (chord)   50 mm diameter, 2 mm wall
+#   diagonal brace      20 mm diameter, 2 mm wall
+#   overall width       290 mm
+#   weights             1.0 m -> 6.4 kg, 1.5 m -> 8.2 kg, 3.0 m -> 14.1 kg
+#
+# https://globaltruss.de/en/F33-300cm/F33300 and
+# https://www.stagespot.com/global-truss-f33-triangular-truss-straight-segments.html
+#
+# THE WEIGHT IS DERIVED FROM THOSE THREE POINTS, not interpolated by eye. They fit a straight line:
+# 2.55 kg + 3.85 kg/m. Check it — 1.0 m gives 6.40 against a published 6.4, 1.5 m gives 8.33 against 8.2, and
+# 3.0 m gives 14.10 against 14.1. The 2.55 kg intercept is the end connectors, which is exactly why a short
+# segment weighs so much per metre. At 2 m that is 2.55 + 7.70 = 10.25, so 10.3 kg.
+#
+# THE CROSS-SECTION IS DERIVED FROM THE SAME FIGURES. Chords are 50 mm inside a 290 mm overall width, so the chord
+# centres form an equilateral triangle of side 290 - 50 = 240 mm. Its height is 240 x sqrt(3)/2 = 207.8 mm, and the
+# bounding box is that plus a chord diameter: 257.8 mm tall, 290 mm across. Rounded to 0.258 x 0.290.
+#
+# A SEGMENT LIES ALONG X, so `width` is the 2 m span and `height`/`depth` are the cross-section. That is what keeps
+# `dimensions_m` the true bounding box, which is what scene placement, the overlap sweep in ShippedScenesTest and
+# the catalog's shipping volume all read. None of them knows a truss from a subwoofer, and none of them needs to.
+id: truss-f33-2m
+name: "Truss F33 — 2 m straight"
+category: truss
+subtype: straight
+quantity: 5
+owner: sdwa5
+build: original
+
+# No `clone_of`: a factory truss is not a copy of anything, the same as `tecnare-m2122`. The manufacturer and the
+# datasheet are recorded in the notes below and in docs/sources.md, which is where a factory device's provenance
+# lives in this repository.
+
+provenance:
+  # The tube sizes and the weight model are published figures; that OUR segments are this class is the assumption.
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: truss
+  # The bounding box, derived above. Not the tubes — those are in `truss` below.
+  dimensions_m: { width: 2.000, height: 0.258, depth: 0.290 }
+  origin: bottom-center
+  # Meaningless for a truss and ignored by the builder: there are no edges to round, only tubes.
+  chamfer_m: 0.0
+
+  truss:
+    chords: 3
+    chord_diameter_m: 0.050
+    diagonal_diameter_m: 0.020
+    # THE ONE FIGURE NOT PUBLISHED. Manufacturers give tube sizes and weights but rarely the brace pitch, and it
+    # is the least consequential number here — it changes how many diagonals are drawn, nothing about the outer
+    # box or the weight. 0.5 m puts four bays in a 2 m segment, which is what the photographs of F33 show.
+    bay_length_m: 0.500
+
+appearance:
+  # Mill-finish aluminium, not the cabinets' black.
+  color: "#9A9EA3"
+
+physical:
+  # 2.55 kg of connectors + 3.85 kg/m x 2 m, from the published weights — see the header.
+  weight_kg: 10.3
+  handles: [ ]
+
+rigging:
+  # Truss is what other things hang FROM. It is not itself flown from a point on its shell, and a coupler is not
+  # a rigging point in this schema's sense, so this claims none.
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by the owner: 5 segments, 2 m, three-point. Everything else is the 300 mm class standard.
+
+  Modelled on the Global Truss F33 300 (12") straight segment — https://globaltruss.de/en/F33-300cm/F33300 and
+  https://www.stagespot.com/global-truss-f33-triangular-truss-straight-segments.html. Recorded as a class
+  standard rather than a claim that ours are that brand; see docs/sources.md.
+
+  `provenance: estimated` on both axes, and the reason is worth being precise about: the tube diameters and the
+  weight model are genuinely published, but that these are F33-class segments is an inference from "2 m three
+  point". Measure the outer width across the flats and the chord diameter with a caliper and this becomes
+  `datasheet` on dimensions without any other change.
+
+  `bay_length_m` is the only number with no source at all. It affects the picture and nothing else.

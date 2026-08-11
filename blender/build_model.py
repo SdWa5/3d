@@ -15,7 +15,7 @@ import bpy
 # Blender does not put the script's directory on sys.path, so the shared helpers need help.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib import drivers, export, geometry, materials, mesh_import  # noqa: E402  (after sys.path)
+from lib import drivers, export, geometry, materials, mesh_import, truss  # noqa: E402  (after sys.path)
 
 
 def build(plan):
@@ -26,7 +26,14 @@ def build(plan):
 
     extras = []
 
-    if plan.get("mesh_override"):
+    if plan["geometry"]["shape"] == "truss":
+        # A truss has no shell, so it has none of what a shell carries: no grille to inset, no handle recesses,
+        # no chamfer to round, no drivers behind a baffle and no coverage cone. Everything below the branch still
+        # applies — the origin shift, the rigging markers and the estimated marker are about the device, not
+        # about its being a cabinet.
+        body = truss.build(plan, material_set)
+        collection.objects.link(body)
+    elif plan.get("mesh_override"):
         # A real mesh replaces the generated shell entirely — including the grille and handle
         # recesses, which it already has modelled far better than the builder could.
         body = mesh_import.load(plan, material_set[materials.CABINET])
@@ -58,13 +65,14 @@ def build(plan):
         baffle_y = front_y
         carve_into = body
 
-    # Deliberately outside the branch above: an override supplies the shell and its baffle holes, but
-    # nothing behind them, so the drivers and horns are exactly what it is missing.
-    extras += drivers.build_features(plan, material_set, baffle_y, carve_into)
+    if plan["geometry"]["shape"] != "truss":
+        # Deliberately outside the shell branches: an override supplies the shell and its baffle holes, but
+        # nothing behind them, so the drivers and horns are exactly what it is missing.
+        extras += drivers.build_features(plan, material_set, baffle_y, carve_into)
+        extras += drivers.build_coverage_cone(plan, material_set)
 
     extras += geometry.build_rigging_markers(plan, material_set)
     extras += geometry.build_estimated_marker(plan, material_set)
-    extras += drivers.build_coverage_cone(plan, material_set)
     for obj in extras:
         collection.objects.link(obj)
         obj.parent = body

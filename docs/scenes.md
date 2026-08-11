@@ -1055,6 +1055,42 @@ elements grow *downwards* from their anchor, so anchoring one on the floor puts 
   be told to sit above the floor and still end up below it, so it is worth saying out loud rather than
   leaving to a render.
 
+## Truss over a rig
+
+`scenes/full-rig-truss.yaml` is `full-rig-arc` with a goalpost over it: 8 m of three-point truss on two 4 m
+telescopic stands. It exists because every other scene is cabinets on an infinite grey floor, which is fine for
+checking a stack and useless for showing anybody what a stage looks like.
+
+```yaml
+  - id: tower-left
+    device: truss-tower-4m
+    at: [ -4.302, 0.0 ]
+
+  - id: truss
+    device: truss-f33-2m
+    at: [ -0.302, 0.0 ]
+    fly:
+      height_m: 4.000
+    row:
+      count: 4
+      gap_m: 0.0
+```
+
+Three things in that are worth knowing:
+
+* **`fly` is how a span between two supports is placed**, even though nothing is hanging. `on:` would put the
+  truss at the right height too, but it would claim the truss stands on *one* named stand. `fly` says "this sits
+  at this height" and leaves what holds it up to the scene, which is what a goalpost needs. The height is not
+  chosen either — the stands are 4.000 m at full extension, so that is where the truss's bottom chords sit.
+* **`gap_m: 0.0` between segments.** A working gap is exactly what a truss coupler does not leave. Cabinets
+  standing side by side want 20 mm; truss bolts up flush.
+* **The hung weight is reported under the `fly` id**, so the four segments come out as one 41.2 kg total rather
+  than four line items. `fly.id` is how two placements sharing one bar are added together — which is the case
+  that matters once lights hang from it.
+
+A truss is the one device whose geometry is not its bounding box: see
+[spec-format.md](spec-format.md#truss) for why, and `roll_deg: 180` for a triangular truss the other way up.
+
 ## What it tells you before Blender opens
 
 ```

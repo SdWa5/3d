@@ -14,17 +14,47 @@ final class BuildPlanTest extends TestCase
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(1, $plan['plan_version']);
+        self::assertSame(2, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
         self::assertNull($plan['geometry']['back_width_m']);
         self::assertNull($plan['geometry']['front_height_m']);
+        self::assertNull($plan['geometry']['truss'], 'a cabinet has no tubes');
         self::assertSame('bottom-center', $plan['geometry']['origin']);
         self::assertSame(0.012, $plan['appearance']['grille']['inset_m']);
         self::assertSame(['left', 'right'], $plan['physical']['handles']);
         self::assertSame('/build/glb/top-a.glb', $plan['outputs']['glb']);
         self::assertSame('/build/blend/top-a.blend', $plan['outputs']['blend']);
+    }
+
+    /**
+     * The tubes reach the bpy side, which is the whole reason `plan_version` went to 2: a plan carrying a truss
+     * block is one an older builder would silently draw as a box.
+     */
+    public function testATrussCarriesItsTubesIntoThePlan(): void
+    {
+        $plan = BuildPlan::forSpec(
+            SpecFactory::spec(['geometry' => [
+                'shape' => 'truss',
+                'truss' => [
+                    'chords' => 3,
+                    'chord_diameter_m' => 0.050,
+                    'diagonal_diameter_m' => 0.020,
+                    'bay_length_m' => 0.500,
+                ],
+            ]]),
+            '/glb',
+            '/blend',
+        );
+
+        self::assertSame('truss', $plan['geometry']['shape']);
+        self::assertSame([
+            'chords' => 3,
+            'chord_diameter_m' => 0.050,
+            'diagonal_diameter_m' => 0.020,
+            'bay_length_m' => 0.500,
+        ], $plan['geometry']['truss']);
     }
 
     public function testGrilleFallsBackToTheCabinetColour(): void

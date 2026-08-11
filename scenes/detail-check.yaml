@@ -44,9 +44,31 @@ placements:
     device: gmss-turbo-top
     at: [ 5.1, 0.0 ]
 
+  # The non-speaker gear, further right again. The truss segment is the point of interest here: it is the only
+  # device in the library that is not a hexahedron, so this is where its chords and bracing can be looked at
+  # against a cabinet for scale. The two towers are `shape: box` placeholders and look it, which is the honest
+  # result of not having a telescoping-mast shape yet.
+  - id: truss-f33-2m
+    device: truss-f33-2m
+    at: [ 6.6, 0.0 ]
+
+  - id: truss-tower-4m
+    device: truss-tower-4m
+    at: [ 8.0, 0.0 ]
+
+  - id: gmss-tower-5m
+    device: gmss-tower-5m
+    at: [ 8.6, 0.0 ]
+
 notes: |
   Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is
   expected here, and that it leans on un-measured cabinets, which is the four GMSS boxes.
 
   One of every device in the repository, which is the whole point of the file: if a device exists and is not on
-  this sheet, the sheet is broken. All nine are here — five of ours, four of GMSS's.
+  this sheet, the sheet is broken. Twelve of the thirteen are here — five speakers of ours, four of GMSS's, a truss
+  segment and the two towers.
+
+  THE ONE DELIBERATE OMISSION is `gmss-truss-9m`. It is the same geometry as `truss-f33-2m` at four and a half
+  times the length, so it shows nothing new, and including it would stretch this sheet past 20 m and leave every
+  cabinet on it too small to inspect — which is the one thing the sheet exists to allow. Any other device missing
+  from here is a bug.

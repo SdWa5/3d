@@ -78,6 +78,12 @@ in the measuring backlog, and `scene:build` warns that the positions rely on un-
 point of the provenance field: a rig can be laid out now and corrected when somebody gets a tape measure to it.
 See [docs/sources.md](docs/sources.md#gmss-is-estimated-end-to-end).
 
+**Not everything is a loudspeaker.** [`specs/truss/`](specs/truss) holds three-point truss segments and the
+telescopic stands that hold them up, and [`scenes/full-rig-truss.yaml`](scenes/full-rig-truss.yaml) puts a goalpost
+over the full rig. A truss is the one device whose geometry is *not* its bounding box: it is mostly air, so drawing
+the box would stand a solid wall where the span should be and hide the rig behind it. `shape: truss` builds chords
+and bracing from the tube sizes instead ([docs/spec-format.md](docs/spec-format.md#truss)).
+
 ## Commands
 
 | Command          | Does                                                                                                                             |
@@ -105,7 +111,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 ## Repository layout
 
 ```
-specs/          one YAML file per device — the source of truth
+specs/          one YAML file per device — the source of truth, in speakers/ and truss/
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/

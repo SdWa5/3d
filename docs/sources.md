@@ -37,6 +37,12 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | | `GMSS.jpeg` | The short wide box at the foot of each column, carrying the same recessed oval logo as the cabinets above it — so a cabinet and not a riser. The turbo subs stand on it |
 | `gmss-turbo-top` | — (GMSS self-build) | — | A message from GMSS | Count 3 and 2500 W RMS |
 | | | | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), [manual](https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt) | 1143 × 502 × 730 mm and 74.8 kg for a documented cabinet of the same class — a **size sanity check, not a lineage** |
+| `truss-f33-2m` | — (factory truss) | `datasheet` | [Global Truss F33 300](https://globaltruss.de/en/F33-300cm/F33300), [StageSpot](https://www.stagespot.com/global-truss-f33-triangular-truss-straight-segments.html) | Chord Ø 50 × 2 mm, diagonal Ø 20 × 2 mm, overall width 290 mm; weights at 1.0 m / 1.5 m / 3.0 m |
+| | | | The owner | That we have **5 segments at 2 m, three-point**. The class is an inference from that |
+| `truss-tower-4m` | — (factory stand) | `datasheet` | [Global Truss ST-132](https://www.globaltruss.com/st-132), [manual](https://www.globaltruss.com/pub/media/globaltrdownloads/downloads/s/t/st132_manual.pdf) | 25 kg, max height 4.0 m, min 1.8 m, max load 100 kg, folded base 8″, unfolded base 59″ |
+| | | | The owner | That we have **2 telescopic stands at 4 m** |
+| `gmss-truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
+| `gmss-tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our ST-132 |
 
 ### The 18sound drawings are partial dimensions
 
@@ -67,6 +73,51 @@ The whole Shared Drive was searched for weight data — 1166 files, no hits in a
 document or filename. Eighteen Sound publishes no finished-cabinet weight either, since the 15″
 2 Ways is a DIY kit whose weight depends on the builder. These three need the hanging scale; see
 [measuring.md](measuring.md).
+
+### Truss: the length is ours, the cross-section is a class standard
+
+The truss specs invert the usual problem. For a cabinet the dimensions are the hard part and the power rating is
+the throwaway; for a truss the **length** is what matters structurally and it is the one thing that was stated —
+"5x 2m three point truss segments", and GMSS's "9m truss". What is missing is the cross-section and the brand.
+
+So the lengths are ours and everything else is the 300 mm three-point class standard, for which
+[Global Truss F33](https://globaltruss.de/en/F33-300cm/F33300) publishes real figures. Prolyte X30 and Eurotruss
+FD32 are within a few millimetres, which is what makes it a class rather than a guess at a brand.
+
+**The weight is derived from three published points, not interpolated by eye.** F33 is quoted at 6.4 kg for 1.0 m,
+8.2 kg for 1.5 m and 14.1 kg for 3.0 m. Those fit a straight line:
+
+| | |
+|---|---|
+| model | `2.55 kg + 3.85 kg/m` |
+| 1.0 m | 6.40 (published 6.4) |
+| 1.5 m | 8.33 (published 8.2) |
+| 3.0 m | 14.10 (published 14.1) |
+
+The 2.55 kg intercept is the end connectors, which is why a short segment is so heavy per metre. Our 2 m segment
+is therefore **10.3 kg** and GMSS's 9 m run **37.2 kg** — though bolted up from three 3 m pieces it would be
+42.3 kg, since each segment brings its own pair of connectors. The 37.2 is what is modelled; the 42.3 is what
+would be on the truck.
+
+**The cross-section is derived from the same figures.** Chords are Ø 50 inside a 290 mm overall width, so the chord
+centres form an equilateral triangle of side `290 − 50 = 240 mm`. Its height is `240 × √3/2 = 207.8 mm`, and the
+bounding box is that plus one chord diameter: **257.8 mm tall, 290 mm across**, rounded to 0.258 × 0.290.
+
+`bay_length_m` — the pitch of the zigzag — has **no source at all**. Manufacturers publish tube sizes and weights
+but rarely the brace pitch. It changes how many diagonals are drawn and nothing about the box or the weight.
+
+### The towers are placeholders, and look it
+
+`truss-tower-4m` matches the Global Truss ST-132 exactly on the stated description, so its **weight and heights are
+published**: 25 kg, 4.0 m max, 1.8 m min, 100 kg load. What is estimated is its *shape* — a telescopic mast on
+folding outriggers is neither a hexahedron nor a truss, so it is drawn as a 0.203 m column, which is the folded
+base size. **The outriggers are not modelled**: unfolded they spread to 1.499 × 1.499 m, which is the footprint
+that actually has to be kept clear on a stage. So the footprint these specs report is the mast's — not the working
+footprint, and not the folded transport size either. It is the one number in them to be careful with.
+
+`gmss-tower-5m` has no datasheet behind it at all. Its 33 kg is our ST-132's published 25 kg at 4 m scaled by
+height into a taller class — an inference from one datapoint in a neighbouring class, and the first number to
+replace if GMSS ever names the brand.
 
 ### GMSS is estimated end to end
 

@@ -1,0 +1,116 @@
+# The full rig with a truss over it — the first scene in the library that is not just loudspeakers.
+#
+# WHY IT EXISTS. `docs/scenes.md` has wanted this for a while: "a truss/stage backdrop so a preview looks like a
+# venue rather than a void". Every other scene is cabinets on an infinite grey floor, which is fine for checking a
+# stack and useless for showing anybody what a stage looks like. This is `full-rig-arc` with a goalpost over it.
+#
+# WHAT IS OVER IT: four of our five 2 m F33 segments end to end, 8 m of span, on the two 4 m crank stands. Four
+# rather than five because the fifth has nowhere to go on a symmetrical span — an 8 m truss centred on the rig
+# leaves the stands 4 m apart either side of centre, and a 10 m one would put them outside the picture for no gain.
+#
+# HOW THE TRUSS IS PLACED: `fly`, which already exists for exactly this and is used by `scenes/flown-array.yaml`.
+# Its docblock even anticipates this case — "a truss cares about the total, not about which of the two hangs
+# contributed it". The truss is not literally hung here, it rests on the stands; `fly` is how a scene says "this
+# sits at this height" without standing it on a named placement, which is what a span between two supports needs.
+# `on: tower-left` would put it at the right height too, but it would claim the truss stands on ONE stand.
+#
+# THE HEIGHT IS DERIVED, not chosen. The stands are 4.000 m at full extension, so the truss sits with its bottom
+# chords on their tops: `fly.height_m` is 4.000 and the truss's own 0.258 m of section takes it to 4.258. That
+# clears the rig under it — the arc's highest point is 3.125 m — by 875 mm, which is the number to look at if
+# anything ever needs to hang from the truss.
+#
+# THE STANDS' SPACING IS DERIVED TOO: an 8 m truss centred on the rig's own centre line reaches 4 m either side, so
+# a stand under each end sits at that centre line plus and minus 4.000. Our rig's centre is -0.302, the same as
+# `full-rig-arc` uses, so the stands are at -4.302 and 3.698.
+#
+# WHAT IS NOT MODELLED, and it matters for reading this picture: the stands' outriggers, which unfolded spread to
+# 1.499 x 1.499 m each. On a real stage that is what has to be kept clear at the feet, and this scene shows a
+# 0.203 m column instead. See `truss-tower-4m.yaml`.
+id: full-rig-truss
+name: "Full rig — under a truss"
+
+focus:
+  distance_m: 10.0
+  height_m: 1.8
+
+placements:
+  # ─── THE RIG, exactly as `full-rig-arc.yaml` has it ────────────────────────────────────────────────────────
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [ -0.302, 0.0 ]
+    roll_deg: 180
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [ -0.302, 0.0 ]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-row-top
+    at: [ -0.302, 0.0 ]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [ -0.302, 0.0 ]
+    aim: focus
+    arc:
+      mode: convex
+      count: 3
+
+  - id: side-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [ -0.302, 0.0 ]
+    aim: focus
+    align:
+      mode: stereo
+      outside: tops
+      inset_m: 0.020
+    row:
+      count: 2
+
+  # ─── THE GOALPOST ─────────────────────────────────────────────────────────────────────────────────────────
+  # Two stands on the floor, 8 m apart, centred on the rig.
+  - id: tower-left
+    device: truss-tower-4m
+    at: [ -4.302, 0.0 ]
+
+  - id: tower-right
+    device: truss-tower-4m
+    at: [ 3.698, 0.0 ]
+
+  # Four 2 m segments end to end. `gap_m: 0.0` because truss bolts up flush — a working gap between segments is
+  # exactly what a truss coupler does not leave, unlike two cabinets standing side by side.
+  - id: truss
+    device: truss-f33-2m
+    at: [ -0.302, 0.0 ]
+    fly:
+      height_m: 4.000
+    row:
+      count: 4
+      gap_m: 0.0
+
+notes: |
+  `full-rig-arc` with a goalpost over it: 8 m of F33 on two 4 m crank stands. The first scene here that places
+  something other than a loudspeaker.
+
+  `scene:build` reports gear from two owners, which is the Achenbachs and the 2-ways as always, and warns about
+  un-measured cabinets. The truss and the stands are `provenance: estimated` on dimensions too — the tube sizes
+  and the stand's weight are published figures, but that our segments are that class is an inference. See
+  docs/sources.md.
+
+  Nothing hangs from the truss yet. When lights arrive they go here, and `fly.id` is how two placements sharing
+  one bar get their weight reported as one total.
+
+  The truss sits 875 mm above the highest thing under it. Worth keeping if anything is ever slung below it.
