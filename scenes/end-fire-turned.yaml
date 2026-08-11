@@ -1,0 +1,40 @@
+# `end-fire.yaml` with the subs on their SIDES, and mirrored: four columns of three, the two on the left
+# rolled 270 and the two on the right rolled 90, symmetric about the rig's centre line.
+#
+# Rolling does not touch what makes an end-fire array work. The cancellation comes from the front-to-back
+# spacing along y, and a quarter turn is about the front-to-back axis — so every cabinet still faces the same
+# way, still fires into the one in front of it, and the 1.20 m that tunes the column to about 71 Hz is
+# untouched. What changes is the wall's shape: a rolled Flexy is 763 mm across and 591 mm tall instead of
+# 591 x 763, so the array comes out wider and lower out of the same twelve cabinets.
+#
+# `roll_mirror` rather than `roll_cycle` for the derived spacing. A rolled cabinet is not centred on its own
+# origin — at 90 the body is entirely to the right of it, at 270 entirely to the left — so `roll_cycle` has to
+# be told its step, while `roll_mirror` lays the bodies out at a uniform pitch and works each origin back from
+# the body that needs it. The seam between the two halves then falls out of `gap_m` with nothing stated.
+#
+# THE ONE STATED NUMBER is still the 1.20 m along y, and for the same reason as in `end-fire.yaml`: it is a
+# decision about frequency rather than about geometry. Everything else derives.
+id: end-fire-turned
+name: "End fire — four columns of three, on their sides"
+
+placements:
+  - id: end-fire-array
+    device: flexy-folded-horn-hybrid
+    at: [0.0, 0.0]
+    # Three deep, centred on `at` like x is, so the front cabinet of each column stands 1.20 m in front of the
+    # placement rather than on it.
+    lattice:
+      count: [1, 3, 1]
+      step_m: [0.0, 1.20, 0.0]
+    in:
+      - lattice:
+          count: [4, 1, 1]
+          gap_m: 0.02
+          roll_mirror: 90     # right half 90, left half its mirror image at 270
+
+notes: |
+  Twelve Flexys, and only eight exist — `scene:build` says so. The arrangement is what matters here; cut the
+  outer lattice to `count: [2, 1, 1]` for a buildable six, as `end-fire.yaml` suggests for the upright form.
+
+  Compare `end-fire.yaml`, the same four columns standing up, and `end-fire-lattice.yaml`, which makes a block
+  of the same idea and does fit the inventory.

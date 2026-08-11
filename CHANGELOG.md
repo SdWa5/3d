@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.45.0] - 2026-08-11
+
+### Added
+
+- **`scenes/full-rig-arc-turned.yaml`** — the last rig without a turned counterpart. The wall goes
+  4.678 × 1.182 against 3.646 × 1.526, which cuts two ways and the file says so: the Achenbach row now sits well
+  inside the wall rather than 27 mm proud of it, and the arc's bottom edge drops from 2.126 m to 1.782 m, below
+  head height. A better-supported wall aimed lower, not a free win. **Its fills needed nothing restated** — the
+  arc moved and `align.outside` re-solved the 20 mm, which is exactly what the hand-picked `width_m: 2.60` could
+  not do
+- **`scenes/end-fire-turned.yaml`** — the four-by-three end fire on its side, mirrored. Rolling is about the
+  front-to-back axis, so the 1.20 m that tunes the column to about 71 Hz is untouched; only the wall's shape
+  changes
+- **`scenes/end-fire-lattice.yaml`** — end fire as a **block**: `count: [2, 3, 2]`, two across, three deep, two
+  tiers up. Twelve Flexys, so unlike the four-by-three form it is buildable as written. An end-fire array scales
+  in x and z and is tuned in y, and one lattice says all three
+- **`scenes/detail-check-turned.yaml`** — the contact sheet on its side, which is where a wrong `rotate_deg`
+  hides: upright, an error in which face is which looks plausible; rolled, it puts the horn mouth at the floor.
+  The SKRAM's own orientation is still unconfirmed against the real cabinet, and this is the cheapest way to
+  eyeball it
+
 ## [0.44.0] - 2026-08-11
 
 ### Added

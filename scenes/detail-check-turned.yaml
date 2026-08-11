@@ -1,0 +1,42 @@
+# `detail-check.yaml` with every cabinet rolled a quarter turn, for looking at the models on their sides.
+#
+# Worth having as its own sheet rather than a flag on the other one: a rolled mesh is exactly where a wrong
+# `rotate_deg` in a spec hides. Upright, a cabinet's mouth faces the camera and any error in which face is
+# which looks plausible; on its side the same error puts the horn mouth at the floor or the ceiling and is
+# obvious at a glance. The SKRAM's own orientation is still unconfirmed against the real cabinet — see
+# TODO.md — and this is the cheapest way to eyeball it.
+#
+# Rolled 90, so each body lands entirely to the RIGHT of its origin rather than centred on it, which is why
+# the positions here are not the ones in `detail-check.yaml`. Spacing is 1.2 m, generous and uniform: the
+# widest of these on its side is the M2122 at 960 mm, and this is a contact sheet rather than a rig.
+id: detail-check-turned
+name: "Detail check — one of each, on its side"
+
+placements:
+  - id: flexy
+    device: flexy-folded-horn-hybrid
+    at: [ -3.0, 0.0 ]
+    roll_deg: 90
+  - id: skram
+    device: skram
+    at: [ -1.8, 0.0 ]
+    roll_deg: 90
+  - id: achenbach
+    device: achenbach-18
+    at: [ -0.6, 0.0 ]
+    roll_deg: 90
+  - id: tecnare
+    device: tecnare-m2122
+    at: [ 0.6, 0.0 ]
+    roll_deg: 90
+  - id: eighteensound
+    device: eighteensound-2way-15
+    at: [ 1.8, 0.0 ]
+    roll_deg: 90
+
+notes: |
+  Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is expected
+  here, as it is for `detail-check.yaml`.
+
+  Render it with `-l flat` beside the upright sheet: the two together are the whole geometry surface of the
+  repository in two images.

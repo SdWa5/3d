@@ -1,0 +1,95 @@
+# `full-rig-arc.yaml` with the sub wall on its SIDE: the same twelve Flexys mirrored a quarter turn, with the
+# same Achenbach row, the same three-cabinet arc and the same two fills beside it.
+#
+# WHAT TURNING THE WALL COSTS AND BUYS. A rolled Flexy is 763 mm across and 591 mm tall instead of 591 x 763,
+# so the wall comes out 4.678 x 1.182 against 3.646 x 1.526 — wider and 344 mm lower. Two consequences, and
+# they pull opposite ways:
+#
+#   * the Achenbach row is 3.700 m and now sits well inside the wall rather than 27 mm proud of it
+#   * the arc's bottom edge drops from 2.126 m to 1.782 m, which is below head height for a standing crowd
+#
+# So this is the turned rig's real trade rather than a free win: it is a better-supported wall aimed lower.
+# `full-rig-arc.yaml` remains the one that clears a crowd.
+#
+# THE FILLS NEED NOTHING RESTATED, which is the point of `align.outside`. They have to clear the arc's outer
+# faces, the arc has moved, and `inset_m: 0.020` still means 20 mm — the spacing is solved against wherever
+# the arc actually ended up. The upright scene carried a hand-picked `width_m: 2.60` for this and it was
+# 18 mm looser than its own comment claimed.
+id: full-rig-arc-turned
+name: "Full rig — tops in a convex arc, subs on their sides"
+
+focus:
+  distance_m: 10.0
+  height_m: 1.8
+
+placements:
+  # Twelve cabinets on their sides: one mirrored row of six, two tiers of it. 4.678 x 1.182 against the
+  # upright wall's 3.646 x 1.526.
+  - id: sub-wall
+    device: flexy-folded-horn-hybrid
+    at: [-0.302, 0.0]        # the middle of the wall, not its left edge
+    row:
+      count: 6
+      gap_m: 0.02
+      roll_mirror: 90        # right half 90, left half its mirror image at 270
+    in:
+      - lattice:
+          count: [1, 1, 2]   # two tiers of that row
+
+  # The 18" row that gets the arc above head height. Six is what we own, so six is what stands here.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-wall
+    at: [-0.302, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  # Fronts fanning outward, back edges meeting. `mode` has no default on purpose: an arc bent the wrong
+  # way is a quiet mistake, and `concave` would wrap these three around the crowd instead.
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: focus
+    arc:
+      mode: convex
+      count: 3
+
+  # The two 2-ways BESIDE the fan, not on it — one either side, sharing the Achenbach row with the arc.
+  #
+  # Tops do not stack. Nothing stands on them, so width is the only thing they cost, and a 2-way perched on
+  # a tilted M2122 is a fill hovering over the middle of the rig rather than covering anything. Every top
+  # belongs in one row.
+  #
+  # `outside: tops` is the room outboard of the arc, which is what a fill beside it actually needs. This used
+  # to be `width_m: 2.60`, "the one stated number here", with a comment that it could not be derived: `align`
+  # could measure a placement's extent (`across`) or the gap between its outermost cabinets (`inside`) but not
+  # the room past its outer faces. It can now, and it turns out 2.60 was not the number it claimed to be —
+  # that spacing left **37.8 mm** of air, not the "about 20 mm" the comment said. `inset_m: 0.020` states the
+  # 20 mm and the solve finds the spacing, so the fills sit 18 mm further in than they used to.
+  - id: side-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: focus
+    align:
+      mode: stereo
+      outside: tops
+      inset_m: 0.020
+    row:
+      count: 2
+
+notes: |
+  An arc is a fan, not three cabinets that happen to point the same way: the seats share one centre of
+  curvature, so the pattern behaves as one source rather than three overlapping ones.
+
+  `splay_deg: 25` opens the fan and keeps the back edges touching, with the fronts opening out. A
+  `radius_m` states the arc the front faces sit on instead — and note that for a convex arc a *larger*
+  radius is a *flatter* fan, so it is bounded above rather than below.
+
+  Compare stacked-6-achenbach-center.yaml: the same cabinets solved from constraints rather than arranged by
+  hand. It reaches the opposite conclusion about the SKRAMs — it finds a place for them, in the middle of the
+  bottom row, from the geometry alone — and its Flexys end up in three tiers rather than two.
+
+  Mixes owners — the Achenbachs and the 2-ways are Sepp's — which `scene:build` reports.

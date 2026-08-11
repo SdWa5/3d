@@ -1,0 +1,35 @@
+# End fire as a BLOCK rather than a line: two columns across, three deep, two tiers up. One lattice, twelve
+# Flexys — exactly what we own, where `end-fire.yaml`'s four-by-three asks for twelve and has to say so.
+#
+# The point of the three-dimensional form is that an end-fire array is not really a row of columns. Every
+# cabinet in a column fires into the one in front of it, and stacking the columns two high doubles the output
+# without changing the cancellation at all: the front-to-back spacing is what tunes it, and z does not touch
+# that. Widening x adds output the same way. So the arrangement scales in two axes and is tuned in the third.
+#
+# THE ONE STATED NUMBER is the same one `end-fire.yaml` states, for the same reason: `step_m`'s 1.20 m along y
+# is a decision about frequency, not geometry. Flush would put the cabinets 0.964 m apart — a quarter
+# wavelength at about 89 Hz — and 1.20 m tunes the column to about 71 Hz. Delay per cabinet follows from that
+# distance and belongs in the DSP; this file only says where the boxes stand.
+#
+# Everything else is derived. `gap_m` on x is the working gap and the columns space themselves on the
+# cabinet's own width; z says nothing at all, so the tiers sit on each other.
+id: end-fire-lattice
+name: "End fire — a block, two by three by two"
+
+placements:
+  - id: end-fire-block
+    device: flexy-folded-horn-hybrid
+    at: [0.0, 0.0]
+    lattice:
+      count: [2, 3, 2]
+      gap_m: [0.02, 0.0, 0.0]
+      step_m: [0.0, 1.20, 0.0]   # y only: the frequency decision, see the header
+
+notes: |
+  Twelve Flexys, which is the whole holding — so unlike `end-fire.yaml` this one is buildable as written.
+
+  Compare `end-fire.yaml`, the same idea as four separate columns one tier high, and `end-fire-turned.yaml`,
+  which lays the same cabinets on their sides.
+
+  Whether two tiers of an end-fire column behave as one source is a question for a measurement rather than for
+  a 3D model. What this file can say is that the block fits, and where every cabinet in it stands.
