@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Scene;
 
 use App\Scene\Stack;
+use App\Scene\StackChecks;
 use App\Scene\StackEntry;
 use App\Scene\StackSolver;
 use App\Scene\Tier;
@@ -538,7 +539,7 @@ final class StackSolverTest extends TestCase
             interfaceHeightM: 2.0,
         );
 
-        // 18 mm each side, which {@see StackSolver::supportChecks} warns about and does not refuse.
+        // 18 mm each side, which {@see \App\Scene\StackChecks::supportChecks} warns about and does not refuse.
         self::assertGreaterThan($tiers[1]->widthM(0.02), $tiers[2]->widthM(0.02));
         self::assertLessThan(0.02, ($tiers[2]->widthM(0.02) - $tiers[1]->widthM(0.02)) / 2);
     }
@@ -558,7 +559,7 @@ final class StackSolverTest extends TestCase
             Tier::of($this->devices['achenbach-18'], 5),
         ];
 
-        $check = new \ReflectionMethod(StackSolver::class, 'supportChecks');
+        $check = new \ReflectionMethod(\App\Scene\StackChecks::class, 'supportChecks');
         $problems = $check->invoke(null, $tiers, new Stack(from: [], maxWidthM: null, interfaceHeightM: 0.0, gapM: 0.02))['problems'];
 
         self::assertStringContainsString('nothing under it at all', implode("\n", $problems));
@@ -626,12 +627,11 @@ final class StackSolverTest extends TestCase
         ];
 
         $stack = new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 0.0, gapM: 0.02);
-        $check = new \ReflectionMethod(StackSolver::class, 'supportChecks');
 
-        $problems = $check->invoke(null, $tiers, $stack)['problems'];
+        $problems = StackChecks::supportChecks($tiers, $stack)['problems'];
 
         self::assertStringContainsString('land on only 50% of its own width', implode("\n", $problems));
-        self::assertSame([], $check->invoke(null, [$tiers[0]], $stack)['problems'], 'the row itself is fine');
+        self::assertSame([], StackChecks::supportChecks([$tiers[0]], $stack)['problems'], 'the row itself is fine');
     }
 
     /**

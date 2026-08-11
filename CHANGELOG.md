@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.42.0] - 2026-08-11
+
+### Changed
+
+- **`src/Scene/StackChecks.php` extracted from `StackSolver`** — 1110 lines down to 850, with the 257 lines that
+  judge a solved rig in a file of their own. The seam is clean: the two share nothing but a `list<Tier>` and the
+  `Stack` it came from, one searching for an arrangement and the other judging one. Its docblock now states what
+  each of the four checks actually catches, because more than once a rule has been written here to catch something
+  another already covered from a different angle — bounds are arithmetic, `supportChecks` measures a *tier*
+  against the tier below, `bearingProblems` a *cabinet* against what it personally landed on, and
+  `pillarProblems` the shape of the whole rig
+- Two tests dropped their `ReflectionMethod` now that the checks they exercise are public
+
+No behaviour change: the whole suite passes untouched, which is the only verification an extraction needs.
+
 ## [0.41.0] - 2026-08-11
 
 ### Added

@@ -33,13 +33,6 @@ final class StackSolver
     /** Float slack when comparing a fit — a micrometre, far below anything a cabinet is measured to. */
     private const EPSILON_M = 1e-9;
 
-    /**
-     * How far a tier may hang over the one below it before it is worth saying so, per side.
-     *
-     * A centimetre. Below that it is a cabinet edge sitting proud of a joint, which is normal and is what
-     * the rubber feet and the working gaps absorb. Above it, something is standing on air.
-     */
-    private const OVERHANG_TOLERANCE_M = 0.01;
 
     /**
      * @param list<array{DeviceSpec, int}> $inventory device and how many of it, low frequency first
@@ -66,8 +59,8 @@ final class StackSolver
             ];
         }
 
-        ['problems' => $unsupported, 'warnings' => $support] = self::supportChecks($tiers, $stack);
-        ['problems' => $bounds, 'warnings' => $missedInterface] = self::boundsProblems($tiers, $stack);
+        ['problems' => $unsupported, 'warnings' => $support] = StackChecks::supportChecks($tiers, $stack);
+        ['problems' => $bounds, 'warnings' => $missedInterface] = StackChecks::boundsProblems($tiers, $stack);
 
         return [
             'tiers' => $tiers,
@@ -148,7 +141,7 @@ final class StackSolver
                 $tiers = self::fillWith($inventory, $stack, $perRow, $pairs);
                 $widestAttempt = $widestAttempt === [] ? $tiers : $widestAttempt;
 
-                if (self::supportChecks($tiers, $stack)['problems'] !== []) {
+                if (StackChecks::supportChecks($tiers, $stack)['problems'] !== []) {
                     continue;
                 }
                 if (self::reachesInterface($tiers, $stack)) {
@@ -343,7 +336,7 @@ final class StackSolver
      *
      * A promotion that would leave the flanked row standing more than half a cabinet off its own support is
      * refused outright: closing a step is worth doing, and not worth doing by hanging the row in the air. An
-     * overhang inside that limit is left to {@see supportChecks} to warn about, which is what happens to the
+     * overhang inside that limit is left to {@see StackChecks::supportChecks} to warn about, which is what happens to the
      * 18 mm the Achenbach row ends up proud of the Flexy row under it.
      */
     private static function liftPairs(
@@ -509,7 +502,7 @@ final class StackSolver
      *
      * Not split across tiers however wide it comes out, because that is what the caller asked for and it is
      * also the physical truth: nothing stands on the tops, so width is the only thing they cost. If the row
-     * is wider than `max_width_m` that is reported by {@see boundsProblems} rather than quietly turned into
+     * is wider than `max_width_m` that is reported by {@see StackChecks::boundsProblems} rather than quietly turned into
      * a second tier of tops balanced on the first.
      *
      * The widest goes in the middle for the same reason it does in a mixed bottom row: it is the main
@@ -853,264 +846,5 @@ final class StackSolver
         $fit = (int)floor(($maxWidthM + $gapM) / (RolledBox::widthOf($device, $rollDeg) + $gapM) + self::EPSILON_M);
 
         return max(1, $fit);
-    }
-
-
-    /**
-     * Every bound the finished stack misses, each naming the number it reached and the number it needed.
-     *
-     * @param list<Tier> $tiers
-     * @return array{problems: list<string>, warnings: list<string>}
-     */
-    private static function boundsProblems(array $tiers, Stack $stack): array
-    {
-        $messages = [];
-        $warnings = [];
-
-        $subHeight = 0.0;
-        $totalHeight = 0.0;
-        $widest = 0.0;
-        $widestLabel = $tiers[0]->label();
-        $hasTop = false;
-        foreach ($tiers as $tier) {
-            $totalHeight += $tier->heightM();
-            if ($tier->isSub()) {
-                $subHeight += $tier->heightM();
-            } else {
-                $hasTop = true;
-            }
-            if ($tier->widthM($stack->gapM) > $widest) {
-                $widest = $tier->widthM($stack->gapM);
-                $widestLabel = $tier->label();
-            }
-        }
-
-        // The interface height is an **optimum, not a requirement**, so missing it is a warning.
-        //
-        // The solver already does everything it can to reach it — it tries the widest row first and narrows,
-        // because narrower rows mean more of them — and hands back the tallest arrangement it managed when
-        // none reach. What is left over is a rig lower than ideal, which is a judgement about coverage rather
-        // than something impossible. Refusing it outright made small rigs unbuildable for no good reason:
-        // four Achenbachs one-wide reach 2.400 m and two-wide only 1.200 m, and neither is absurd.
-        //
-        // An **unsupported** tier stays an error ({@see supportChecks}), and that is the line: a cabinet
-        // hanging off the edge of its support cannot be built at any price, while tops a bit low can.
-        //
-        // Nothing to fire over anybody's head means nothing to say: a stack of subs alone has no interface,
-        // and mentioning one would be noise.
-        if ($hasTop && $stack->interfaceHeightM > 0.0 && $subHeight + self::EPSILON_M < $stack->interfaceHeightM) {
-            // "while every tier is still carried" and not "at all": narrowing the rows further would stack
-            // higher, but it would also leave the tops overhanging a one-wide column, and support outranks
-            // the interface. Claiming this is the inventory's ceiling would be untrue.
-            $warnings[] = sprintf(
-                'the subs reach %.3f m against the %.3f m interface asked for, so the tops sit %.0f mm lower '
-                .'than ideal — %.3f m is the most they reach while every tier is still carried',
-                $subHeight,
-                $stack->interfaceHeightM,
-                ($stack->interfaceHeightM - $subHeight) * 1000,
-                $subHeight,
-            );
-        }
-        if ($stack->maxHeightM !== null && $totalHeight > $stack->maxHeightM + self::EPSILON_M) {
-            $messages[] = sprintf(
-                'stack.max_height_m (%.3f): the stack comes out %.3f m tall',
-                $stack->maxHeightM,
-                $totalHeight,
-            );
-        }
-        if ($stack->minWidthM !== null && $widest + self::EPSILON_M < $stack->minWidthM) {
-            $messages[] = sprintf(
-                'stack.min_width_m (%.3f): the widest tier is only %.3f m',
-                $stack->minWidthM,
-                $widest,
-            );
-        }
-        if ($stack->maxWidthM !== null && $widest > $stack->maxWidthM + self::EPSILON_M) {
-            // Reachable only when one cabinet is wider than the whole bound, since `perTier` floors to at
-            // least one — which is exactly the case worth naming rather than rounding away.
-            $messages[] = sprintf(
-                'stack.max_width_m (%.3f): the %s row is already %.3f m wide',
-                $stack->maxWidthM,
-                $widestLabel,
-                $widest,
-            );
-        }
-
-        return ['problems' => $messages, 'warnings' => $warnings];
-    }
-
-    /**
-     * How well each tier is carried by the one below it, split by whether it is buildable.
-     *
-     * The line between the two is **half the outboard cabinet's width**, and it is the difference between a
-     * cabinet sitting proud of a joint and a cabinet standing on nothing. Under it, the overhang is what feet
-     * and working gaps absorb and a crew would not comment on it. Over it, more than half of that cabinet's
-     * footprint is off the edge of its support — it is in the air, and no amount of shimming fixes it.
-     *
-     * Both are reported. Neither shows up anywhere else in the pipeline: `on:` only reads a top face, and the
-     * shipped-scene check only catches cabinets *inside* each other, never one standing on air.
-     *
-     * @param list<Tier> $tiers
-     * @return array{problems: list<string>, warnings: list<string>}
-     */
-    private static function supportChecks(array $tiers, Stack $stack): array
-    {
-        $problems = [];
-        $warnings = [];
-
-        foreach ($tiers as $index => $tier) {
-            // No warning for a stepped row any more. It used to say the tier above "rests on the tall
-            // cabinets and bridges the short ones", which was true of the old placement and is the thing
-            // gravity fixed: each cabinet now lands on whatever is under it, so a stepped row simply has an
-            // uneven top and everything above it is carried. See {@see Stack::runsFor}.
-
-            if ($index === 0) {
-                continue;
-            }
-
-            $below = $tiers[$index - 1]->widthM($stack->gapM);
-            $overhang = ($tier->widthM($stack->gapM) - $below) / 2;
-            if ($overhang <= self::OVERHANG_TOLERANCE_M) {
-                continue;
-            }
-
-            $message = sprintf(
-                'the %s row is %.3f m on a %.3f m row, so it overhangs %.0f mm each side',
-                $tier->label(),
-                $tier->widthM($stack->gapM),
-                $below,
-                $overhang * 1000,
-            );
-
-            if ($overhang > $tier->outerWidthM() / 2) {
-                $problems[] = $message.' — more than half of the outer cabinet is off the edge, so it stands '
-                    .'on nothing. Narrow the tier, widen what carries it, or take the odd cabinets out of '
-                    .'the stack';
-                continue;
-            }
-
-            $warnings[] = $message;
-        }
-
-        return [
-            'problems' => [
-                ...$problems,
-                ...self::bearingProblems($tiers, $stack),
-                ...self::pillarProblems($tiers, $stack),
-            ],
-            'warnings' => $warnings,
-        ];
-    }
-
-    /**
-     * Sub tiers narrowed all the way to a single column, which is a pillar rather than a rig.
-     *
-     * The interface chase has no floor without this. Narrower rows mean more of them and so a taller stack, so
-     * on a pile it cannot otherwise lift, {@see fill} keeps narrowing — and at a 12 m interface the Flexys end
-     * up one wide and `--per-owner` gives `sdwa5` a rig 1.8 m across and 4.9 m tall. Every existing rule passes
-     * it: each tier is exactly as wide as the one below, so nothing overhangs, and every cabinet is fully
-     * carried.
-     *
-     * What it is not is a **rig**. A one-cabinet tier has no lateral stiffness, and the support rule goes
-     * vacuous on it — a column is never more than half a cabinet wider than the column beneath it, so the check
-     * that catches every other bad shape cannot see this one. It also came out geometrically marginal in the
-     * ways only a full compile shows: two aimed tops 3 m up biting 10.6 mm into each other, and a top bearing on
-     * 43 % of its footprint once its own down-tilt is applied.
-     *
-     * So this extends the ordering {@see fill} already states. Support outranks the interface; a rig that stands
-     * up as a rig outranks reaching the height. Missing the interface is a warning, and the search reports that
-     * instead of handing back a tower.
-     *
-     * Only when the device has more than one cabinet in this stack — a single Tecnare *is* a single column, and
-     * there is nothing else it could be.
-     *
-     * @param list<Tier> $tiers
-     * @return list<string>
-     */
-    private static function pillarProblems(array $tiers, Stack $stack): array
-    {
-        $held = [];
-        foreach ($tiers as $tier) {
-            foreach ($tier->segments as [$device, $count]) {
-                $held[$device->id] = ($held[$device->id] ?? 0) + $count;
-            }
-        }
-
-        $problems = [];
-        foreach ($tiers as $tier) {
-            if (!$tier->isSub() || $tier->count() > 1) {
-                continue;
-            }
-
-            [$device] = $tier->segments[0];
-            if (($held[$device->id] ?? 0) < 2) {
-                continue;
-            }
-
-            $problems[] = sprintf(
-                'the %s row is a single column, and %d of them are in this stack — a one-wide tier is a pillar '
-                .'rather than a rig, however well each cabinet is carried. Widen the rows and accept a lower '
-                .'interface, or take cabinets out of the stack',
-                $tier->label(),
-                $held[$device->id],
-            );
-            break;
-        }
-
-        return $problems;
-    }
-
-    /**
-     * Every cabinet that would land on too little of its support to call itself carried.
-     *
-     * The rule above measures a *tier* against the tier below it, which is the right check for a level row and
-     * blind to a stepped one. A mixed row is 163 mm taller at its shoulders than in its middle, and a row laid
-     * across that step can clip a shoulder by 5.6 mm — whereupon falling does exactly what falling does and
-     * lifts the whole cabinet onto that 5.6 mm. Tier widths say nothing is wrong: the row above is *narrower*
-     * than the row below, and the floating-cabinet sweep is satisfied too, because there really is something
-     * underneath. Only asking how much of the cabinet is over it catches this.
-     *
-     * Half its own width, the same line the overhang rule draws — "more than half off the edge is standing on
-     * nothing" — applied per cabinet instead of per tier. Reusing {@see Gravity} rather than measuring again is
-     * the point: the solver has to reject exactly the arrangement the expansion would build.
-     *
-     * @param list<Tier> $tiers
-     * @return list<string>
-     */
-    private static function bearingProblems(array $tiers, Stack $stack): array
-    {
-        $problems = [];
-
-        foreach (Gravity::resolve($tiers, $stack->gapM, 'stack') as $index => $runs) {
-            foreach ($runs as $run) {
-                // Nothing underneath at all. Falling puts it on the floor, which for a tier above the bottom
-                // means *inside* the tier below — and this is the one place that can say so. The rule is here
-                // rather than left to the tier-width check because that check refusing the shapes which cause
-                // it is a coincidence of two rules agreeing, not the invariant being held.
-                if ($index > 0 && $run['on'] === null) {
-                    $problems[] = sprintf(
-                        'a %s in the %s row has nothing under it at all, so it would fall to the floor — '
-                        .'inside the row below it',
-                        $run['device']->id,
-                        $tiers[$index]->label(),
-                    );
-                    continue;
-                }
-                if ($run['bearing'] + self::EPSILON_M >= Gravity::MIN_BEARING) {
-                    continue;
-                }
-
-                $problems[] = sprintf(
-                    'a %s in the %s row would land on only %.0f%% of its own width — the row below is stepped, '
-                    .'so it catches the taller cabinet and hangs off it. Reshape the row, or line the segments '
-                    .'up with what carries them',
-                    $run['device']->id,
-                    $tiers[$index]->label(),
-                    $run['bearing'] * 100,
-                );
-            }
-        }
-
-        return $problems;
     }
 }
