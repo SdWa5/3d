@@ -434,6 +434,7 @@ the alignment vocabulary text has, applied to cabinets.
 | `width_m` | the envelope stated outright — a stage, a truss |
 | `across` | an **earlier** placement; its own outer edges are the envelope |
 | `inside` | an **earlier** placement; the clear gap between its outermost cabinets' facing edges is the envelope |
+| `outside` | an **earlier** placement to sit *beyond*; `inset_m` is then the clearance to keep past its outer faces, not a width to span |
 | `inset_m` | taken off the envelope on **each** side. Default 0 |
 
 Exactly one of `width_m`, `across` and `inside` is stated, and `center` takes none of them.
@@ -865,6 +866,39 @@ so a bottom row mixing them has a 19 mm step through it and the tier above strad
 each cabinet onto the taller neighbour it catches, the bearing check then reports 17 %, and the whole-inventory
 turned rig is refused. Turned rigs work when the row below is level — the Flexys, the Achenbachs and the tops
 together come out with nothing worse than 94 % bearing.
+
+### `outside` — the room past a placement's outer faces
+
+`across` and `inside` are both widths a tier has to **span**. `outside` is a clearance it has to **keep**, on the
+far side of somebody else's edges — the case a fill beside a group actually needs, and the one `align` could not
+express:
+
+```yaml
+  - id: side-fills
+    on: achenbach-row
+    aim: focus
+    align:
+      mode: stereo
+      outside: tops        # sit beyond the arc's outer faces…
+      inset_m: 0.020       # …with 20 mm of air
+    row:
+      count: 2
+```
+
+`full-rig-arc` carried the gap as a comment for as long as it existed: *"the fills have to clear the arc's outer
+faces, and `align` can measure a placement's extent (`across`) or the gap between its outermost cabinets
+(`inside`) but not the room outboard of it. 2.60 puts them about 20 mm clear."* It does not — **that spacing left
+37.8 mm**, nearly twice what the comment claimed, which is what a round number picked by hand tends to do. Stating
+the 20 mm and solving for the spacing puts the fills 18 mm further in and makes the number mean something.
+
+The clearance comes out of the two measurements `Envelope` already makes: the free span between my own outermost
+cabinets, less the obstacle's extent, halved — per side, because the arrangement is symmetric about `at`. Same
+bisection as every other alignment, against the same rotated boxes, so the spacing it lands on is the spacing
+that actually clears.
+
+**Refused rather than solved when the cabinets already clear by more than asked.** Pulling them *in* would need a
+bracket below the starting parameter, and every mode's parameter is bounded below by zero — every cabinet on `at`,
+the tightest arrangement there is. A row already too wide is an over-wide row, not a spacing to solve.
 
 ## Line arrays — a hang rather than a fan
 

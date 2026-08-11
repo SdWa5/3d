@@ -161,6 +161,50 @@ final class AlignmentTest extends TestCase
     }
 
     /**
+     * `outside` measures the room **past** a placement's outer faces, which is the third thing a fill can be
+     * solved against and the one `align` could not express.
+     *
+     * `across` and `inside` are both widths my cabinets must *span*; this is a clearance they must *keep*, on the
+     * far side of somebody else's edges. `full-rig-arc` carried the gap as a comment — "the fills have to clear
+     * the arc's outer faces … 2.60 puts them about 20 mm clear" — and it turned out 2.60 left 37.8 mm.
+     */
+    public function testOutsideSolvesForTheRoomPastAPlacementsOuterFaces(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top', 'at' => [0.0, 0.0], 'row' => ['count' => 3, 'step_m' => 1.5]],
+            ['id' => 'fills', 'device' => 'sub', 'at' => [0.0, 0.0],
+                'align' => ['mode' => 'stereo', 'outside' => 'tops', 'inset_m' => 0.02],
+                'row' => ['count' => 2]],
+        ]);
+
+        // Three 0.5 m tops on a 1.5 m step span 3.5 m. Two 0.6 m subs 20 mm clear of that, one either side, put
+        // their inner faces at ±1.77 and so span 3.5 + 2×0.02 + 2×0.6 = 4.74 m outer to outer.
+        self::assertEqualsWithDelta(4.74, $this->extent(array_slice($placed, 3)), 1e-6);
+    }
+
+    /**
+     * And it is refused rather than solved when the cabinets already clear by more than asked.
+     *
+     * Pulling them *in* would need a bracket below the starting parameter, and every mode's parameter is bounded
+     * below by zero — every cabinet on `at`, the tightest arrangement there is. A row already too wide is an
+     * over-wide row, not a spacing to solve, and saying so beats returning the natural spacing as if it fitted.
+     */
+    public function testOutsideRefusesCabinetsThatAlreadyClearByMoreThanAsked(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+            ['id' => 'tops', 'device' => 'top', 'at' => [0.0, 0.0], 'row' => ['count' => 1]],
+            ['id' => 'fills', 'device' => 'sub', 'at' => [0.0, 0.0],
+                'align' => ['mode' => 'stereo', 'outside' => 'tops', 'inset_m' => 0.02],
+                'row' => ['count' => 2, 'gap_m' => 6.0]],
+        ]));
+
+        self::assertStringContainsString(
+            'already clear',
+            implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
+        );
+    }
+
+    /**
      * An envelope reads the whole placement and not just its anchor. `$byId` holds the anchor copy alone,
      * so reading `across` off it would size a twelve-cabinet wall from one cabinet — silently, and
      * plausibly, which is the worst way for it to be wrong.
@@ -200,7 +244,7 @@ final class AlignmentTest extends TestCase
 
         yield 'block with no envelope' => [
             $base + ['align' => ['mode' => 'block'], 'row' => ['count' => 3]],
-            "align.mode 'block' needs a width to fill",
+            "align.mode 'block' needs something to solve against",
         ];
         yield 'center given an envelope' => [
             $base + ['align' => ['mode' => 'center', 'width_m' => 4.0], 'row' => ['count' => 3]],

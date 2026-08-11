@@ -78,10 +78,12 @@ placements:
   # a tilted M2122 is a fill hovering over the middle of the rig rather than covering anything. Every top
   # belongs in one row.
   #
-  # `width_m: 2.60` is the finished top row and it is the one stated number here. It cannot be derived from
-  # the arc today: the fills have to clear the arc's *outer* faces, and `align` can measure a placement's
-  # extent (`across`) or the gap between its outermost cabinets (`inside`) but not the room outboard of it.
-  # 2.60 puts them about 20 mm clear — see TODO.md.
+  # `outside: tops` is the room outboard of the arc, which is what a fill beside it actually needs. This used
+  # to be `width_m: 2.60`, "the one stated number here", with a comment that it could not be derived: `align`
+  # could measure a placement's extent (`across`) or the gap between its outermost cabinets (`inside`) but not
+  # the room past its outer faces. It can now, and it turns out 2.60 was not the number it claimed to be —
+  # that spacing left **37.8 mm** of air, not the "about 20 mm" the comment said. `inset_m: 0.020` states the
+  # 20 mm and the solve finds the spacing, so the fills sit 18 mm further in than they used to.
   - id: side-fills
     device: eighteensound-2way-15
     on: achenbach-row
@@ -89,7 +91,8 @@ placements:
     aim: focus
     align:
       mode: stereo
-      width_m: 2.60
+      outside: tops
+      inset_m: 0.020
     row:
       count: 2
 

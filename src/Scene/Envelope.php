@@ -41,7 +41,7 @@ final class Envelope
                 // self-reference both land here, as does one naming a placement that failed to compile.
                 return sprintf(
                     "align.%s: '%s' must name an earlier placement",
-                    $align->across !== null ? 'across' : 'inside',
+                    $align->across !== null ? 'across' : ($align->inside !== null ? 'inside' : 'outside'),
                     $reference,
                 );
             }
@@ -62,6 +62,30 @@ final class Envelope
         }
 
         return $inset;
+    }
+
+    /**
+     * How much x the placement an `outside` alignment names covers — the thing its cabinets have to clear.
+     *
+     * Separate from {@see widthFor} because the objective is different in kind, not just in number: that one
+     * returns a width the cabinets must *span*, this returns an obstacle they must *stay clear of*. The inset is
+     * deliberately not applied here — under `outside` the inset is the target of the solve rather than something
+     * taken off an envelope, so folding it in would count it twice.
+     *
+     * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
+     * @return float|string
+     */
+    public static function obstacleFor(Alignment $align, array $placedById): float|string
+    {
+        /** @var string $reference */
+        $reference = $align->outside;
+        $cabinets = $placedById[$reference] ?? null;
+
+        if ($cabinets === null) {
+            return sprintf("align.outside: '%s' must name an earlier placement", $reference);
+        }
+
+        return self::extentOf($cabinets);
     }
 
     /**

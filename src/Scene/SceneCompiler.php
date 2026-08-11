@@ -358,6 +358,13 @@ final class SceneCompiler
             return $copies;
         }
 
+        // Two objectives, one solver. `outside` asks for a clearance beyond somebody else's outer faces; the rest
+        // ask for a width to span. They differ in what the bisection chases and in what an impossible case looks
+        // like, so they are kept apart here rather than pretended to be one number.
+        if ($align->isClearance()) {
+            return $this->clearedOutside($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg, $align, $placedById);
+        }
+
         $width = Envelope::widthFor($align, $placedById);
         if (is_string($width)) {
             return $width;
@@ -399,6 +406,75 @@ final class SceneCompiler
     }
 
     /**
+     * The copies pushed out until they clear the placement `outside` names by `inset_m`.
+     *
+     * The solve `full-rig-arc` had to do by hand. Its two fills have to sit beyond the arc's *outer* faces, and
+     * an aimed cabinet's outer edge is not its half-width — a toed-in Tecnare's outermost point is its back
+     * bottom corner — so the file carried `width_m: 2.60` as "about 20 mm clear" and a comment saying it could
+     * not be derived. Now `inset_m: 0.020` states the 20 mm and this finds the 2.60.
+     *
+     * Refused rather than solved when the cabinets already clear the obstacle by more than asked: pulling them
+     * *in* would need a bracket below the starting parameter, and every mode's parameter is bounded below by 0 —
+     * every cabinet on `at`, the tightest arrangement there is. A fill already too far out is an over-wide `row`,
+     * not a spacing to solve.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     * @param array<string, list<PlacedDevice>> $placedById
+     * @return list<PlacementCopy>|string
+     */
+    private function clearedOutside(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+        Alignment $align,
+        array $placedById,
+    ): array|string {
+        $obstacle = Envelope::obstacleFor($align, $placedById);
+        if (is_string($obstacle)) {
+            return $obstacle;
+        }
+
+        $clearanceAt = fn (float $parameter): float => $this->clearanceOf(
+            $placement,
+            $device,
+            $align->apply($copies, $parameter),
+            $base,
+            $target,
+            $hangAim,
+            $pitchDeg,
+            $obstacle,
+        );
+
+        $tightest = $clearanceAt($align->startParameter());
+        if ($tightest > $align->insetM + StepSolver::TOLERANCE_M) {
+            return sprintf(
+                'align.outside: these cabinets already clear %s by %.4f m at their natural spacing, more than the '
+                .'%.4f m asked for — there is nothing to solve, tighten the row instead',
+                (string)$align->outside,
+                $tightest,
+                $align->insetM,
+            );
+        }
+
+        $parameter = StepSolver::solve($clearanceAt, $align->insetM, $align->startParameter());
+        if ($parameter === null) {
+            return sprintf(
+                'align.outside: the cabinets never reach %.4f m clear of %s, however far they are pushed out',
+                $align->insetM,
+                (string)$align->outside,
+            );
+        }
+
+        return $align->apply($copies, $parameter);
+    }
+
+    /**
      * How much x an arrangement covers once every cabinet in it is placed and turned.
      *
      * @param list<PlacementCopy> $copies
@@ -414,10 +490,64 @@ final class SceneCompiler
         ?Orientation $hangAim,
         float $pitchDeg,
     ): float {
+        $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
+
+        return $placed === [] ? 0.0 : Envelope::extentOf($placed);
+    }
+
+    /**
+     * How much air an `outside` alignment leaves between its cabinets and the placement they have to clear.
+     *
+     * The other half of {@see spanOf}'s job, against the same rotated boxes. Both numbers come out of
+     * {@see Envelope}: the free span between my own outermost cabinets, less the obstacle's extent, halved —
+     * because the clearance is per side and the arrangement is symmetric about `at`.
+     *
+     * Negative when the cabinets are still inside the obstacle, which is what the solver needs: the bracket has
+     * to start somewhere below the target, and "they overlap by 300 mm" is a perfectly good place to start.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     */
+    private function clearanceOf(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+        float $obstacle,
+    ): float {
+        $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
+
+        return $placed === [] ? 0.0 : (Envelope::freeSpanOf($placed) - $obstacle) / 2;
+    }
+
+    /**
+     * Every copy of a candidate arrangement as a placed cabinet, aimed exactly as the finished scene would aim it.
+     *
+     * The shared half of both objectives, and the reason either can be trusted: the solve measures the same
+     * `orientationFor()` + `worldBox()` the geometry is finally built from, so the spacing it lands on is the
+     * spacing that actually clears.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     * @return list<PlacedDevice>
+     */
+    private function placedFor(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+    ): array {
         $lift = GroupStack::zLift($device, $copies, $pitchDeg, $placement->rollDeg);
 
-        $min = INF;
-        $max = -INF;
+        $placed = [];
         foreach ($copies as $copy) {
             $position = [
                 $base[0] + $copy->offset[0],
@@ -430,19 +560,16 @@ final class SceneCompiler
                 continue;
             }
 
-            $box = (new PlacedDevice(
+            $placed[] = new PlacedDevice(
                 '',
                 $device,
                 $position,
                 $orientation,
                 $copy->seated && $placement->fly === null,
-            ))->worldBox();
-
-            $min = min($min, $box['min'][0]);
-            $max = max($max, $box['max'][0]);
+            );
         }
 
-        return $min === INF ? 0.0 : $max - $min;
+        return $placed;
     }
 
     /**

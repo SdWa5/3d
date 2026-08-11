@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.43.0] - 2026-08-11
+
+### Added
+
+- **`align.outside` — the room past a placement's outer faces.** `across` and `inside` are both widths a tier has
+  to *span*; this is a clearance it has to *keep*, beyond somebody else's edges. It is the third thing a fill can
+  be solved against and the one `align` could not express, which `full-rig-arc` had carried as a comment for as
+  long as the file existed. Same `StepSolver` bisection against the same rotated boxes, with a second objective
+  rather than a second solver: the free span between my outermost cabinets, less the obstacle's extent, halved
+- Refused rather than solved when the cabinets already clear by more than asked — pulling them *in* would need a
+  bracket below the starting parameter, and every mode's parameter is bounded below by zero
+
+### Fixed
+
+- **`full-rig-arc`'s `width_m: 2.60` was 18 mm looser than its own comment claimed.** The file said "2.60 puts
+  them about 20 mm clear"; measured, that spacing left **37.8 mm**. It now states `outside: tops, inset_m: 0.020`
+  and the solve finds the spacing, so the fills sit 18 mm further in — and the last stated number in the scene is
+  gone
+
+### Changed
+
+- `SceneCompiler::spanOf()` split into a shared `placedFor()` walk plus two objectives, so the clearance solve
+  measures exactly the geometry the width solve does
+
 ## [0.42.0] - 2026-08-11
 
 ### Changed

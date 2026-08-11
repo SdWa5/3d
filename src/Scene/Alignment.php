@@ -60,14 +60,26 @@ final class Alignment
          * tops span 4.678 m across and 3.628 m inside, and it is the second number a fill goes between.
          */
         public readonly ?string $inside = null,
-        /** Taken off the envelope on **each** side — "20 mm inside the outer tops". */
+        /**
+         * An earlier placement to sit **outboard of** — the third thing a fill can be measured against, and the
+         * one `align` could not express. `across` and `inside` are both *widths* my cabinets have to span;
+         * `outside` is a *clearance* they have to keep, on the far side of somebody else's outer faces.
+         *
+         * `full-rig-arc` carried the gap as a comment for exactly as long: "the fills have to clear the arc's
+         * outer faces, and `align` can measure a placement's extent (`across`) or the gap between its outermost
+         * cabinets (`inside`) but not the room outboard of it. 2.60 puts them about 20 mm clear." With this,
+         * `inset_m: 0.020` says the 20 mm and the solve finds the 2.60.
+         */
+        public readonly ?string $outside = null,
+        /** Taken off the envelope on **each** side — "20 mm inside the outer tops". Or, with `outside`, the
+         * clearance to keep beyond it. */
         public readonly float $insetM = 0.0,
     ) {
     }
 
     public static function fromReader(ArrayReader $reader): self
     {
-        $allowed = ['mode', 'width_m', 'across', 'inside', 'inset_m'];
+        $allowed = ['mode', 'width_m', 'across', 'inside', 'outside', 'inset_m'];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -82,6 +94,7 @@ final class Alignment
             widthM: $reader->optionalFloat('width_m'),
             across: $reader->optionalString('across'),
             inside: $reader->optionalString('inside'),
+            outside: $reader->optionalString('outside'),
             insetM: $reader->optionalFloat('inset_m', 0.0) ?? 0.0,
         );
     }
@@ -91,7 +104,20 @@ final class Alignment
      */
     public function reference(): ?string
     {
-        return $this->across ?? $this->inside;
+        return $this->across ?? $this->inside ?? $this->outside;
+    }
+
+    /**
+     * Whether the solve is against a **clearance** rather than a width.
+     *
+     * The two objectives are genuinely different questions, which is why this is a flag and not another number:
+     * `across`/`inside`/`width_m` all ask "how wide should my cabinets come out", and `outside` asks "how much
+     * air should there be between me and that". Only the second one can be satisfied by a lone cabinet, and only
+     * the first has a tightest case worth reporting.
+     */
+    public function isClearance(): bool
+    {
+        return $this->outside !== null;
     }
 
     /**
@@ -107,7 +133,7 @@ final class Alignment
             return $this;
         }
 
-        return new self($this->mode, null, $placementId, null, $this->insetM);
+        return new self($this->mode, null, $placementId, null, null, $this->insetM);
     }
 
     /**
@@ -124,12 +150,13 @@ final class Alignment
             return $this;
         }
 
-        return new self($this->mode, $widthM, null, null, $this->insetM);
+        return new self($this->mode, $widthM, null, null, null, $this->insetM);
     }
 
     private function hasEnvelope(): bool
     {
-        return $this->widthM !== null || $this->across !== null || $this->inside !== null;
+        return $this->widthM !== null || $this->across !== null || $this->inside !== null
+            || $this->outside !== null;
     }
 
     /**
@@ -142,18 +169,23 @@ final class Alignment
     public function problems(GroupStack $group, int $copyCount): array
     {
         $messages = [];
-        $stated = count(array_filter([$this->widthM, $this->across, $this->inside], static fn (mixed $v): bool => $v !== null));
+        $sources = [$this->widthM, $this->across, $this->inside, $this->outside];
+        $stated = count(array_filter($sources, static fn (mixed $v): bool => $v !== null));
 
         if ($stated > 1) {
-            $messages[] = 'use one of align.width_m, align.across or align.inside, not two — they all state the envelope';
+            $messages[] = 'use one of align.width_m, align.across, align.inside or align.outside, not two '
+                .'— they all state what the tier is solved against';
         }
         if ($this->mode->isSolved() && $stated === 0) {
-            $messages[] = sprintf("align.mode '%s' needs a width to fill — state width_m, across or inside", $this->mode->value);
+            $messages[] = sprintf(
+                "align.mode '%s' needs something to solve against — state width_m, across, inside or outside",
+                $this->mode->value,
+            );
         }
         if (!$this->mode->isSolved() && ($stated > 0 || $this->insetM !== 0.0)) {
             // Silently ignoring them would make `center` look like it had been given a width and obeyed it.
-            $messages[] = "align.mode 'center' is the natural spacing and has no width to fill "
-                .'— remove width_m/across/inside/inset_m, or ask for block';
+            $messages[] = "align.mode 'center' is the natural spacing and has nothing to solve "
+                .'— remove width_m/across/inside/outside/inset_m, or ask for block';
         }
         if ($this->widthM !== null && $this->widthM <= 0.0) {
             $messages[] = sprintf('align.width_m must be positive, got %s', $this->widthM);
