@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-08-11
+
+### Added
+
+- **`scenes/stacked-two-center.yaml` and `scenes/stacked-three-center.yaml`** — the two- and three-stack
+  all-speaker rigs. Two stacks: identical mirrored halves of eleven, one SKRAM centred in each, 22 of 23
+  cabinets and 5.46 m wide. Three: the SKRAM pair in the middle stack as asked, all 23 placed, 5.94 m wide
+- **`--stacks=N` mirrors if it can.** Two ways of dealing the inventory out are tried — every device split
+  evenly, or a device kept whole in the middle stack when there are too few to go round — and the one that
+  stands up **more cabinets** wins, an even split breaking a tie. Scoring by cabinets rather than by "did it
+  solve" is what makes it work: an even split that cannot be carried does not fail, it silently returns a rig
+  without the offending device, so a naive fall-back would take a mirrored 20-cabinet rig over a 22-cabinet one
+- **Turning the horn subs is what lets the SKRAMs be split.** Upright they cannot be: a SKRAM is 610 mm and a
+  Flexy 591, so a row above an odd-count row lands on the *joints* below and gets 49.9 % of itself on the taller
+  cabinet, cantilevered over a 151 mm drop. On its side a SKRAM is 914 × 610 and carries a Flexy row squarely
+- The remainder of an even split is left out and **named**: three M2122s over two stacks are 1 + 1 with the third
+  reported, because 2 + 1 makes a stereo pair that is not a pair
+- The generated-rig sweep covers the turned two- and three-stack rigs
+
+### Fixed
+
+- `inventoryFor()`'s closure did not capture the flag it branched on, so both split strategies behaved
+  identically. PHP only warns about an undefined variable in a boolean, and `!$undefined` is `true`
+
 ## [0.38.0] - 2026-08-11
 
 ### Fixed

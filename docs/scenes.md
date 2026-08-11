@@ -668,6 +668,28 @@ bin/console scene:stack --max-width=3.70 --interface-height=2.0
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 
+`--stacks=N` deals the inventory out **evenly, and mirrors if it can**. Two strategies are tried — split every
+device evenly, which makes the stacks identical, or keep a device whole in the middle stack when there are too
+few of it to go round — and the one that stands up **more cabinets** wins, with the even split breaking a tie.
+
+Scoring by cabinets rather than by "did it solve" is the point. An even split that cannot be carried does not
+fail: the generator drops the offending device and returns a perfectly good rig without it, so falling back only
+on an error would take a mirrored 20-cabinet rig over a 22-cabinet one every time. Two **upright** SKRAMs cannot
+be split one per stack — a SKRAM is 610 mm and a Flexy 591, so a row above an odd-count row lands on the joints
+and gets 49.9 % of itself on the taller cabinet, cantilevered over a 151 mm drop — and they are kept together.
+The same pair **turned** can be split, because on its side a SKRAM is 914 × 610 and carries a Flexy row squarely,
+so it is: `--stacks=2 --roll-mirror=skram --roll-mirror=flexy-folded-horn-hybrid` gives two identical stacks of
+eleven with one SKRAM centred in each.
+
+Only subs are held back by the second rule. A top does not flank anything and nothing stands on it, so one
+Tecnare per stack is a perfectly good top row; applying the rule to tops made the middle stack hoard every one of
+them. A device with **fewer than one per stack** is always kept whole, since splitting two 2-ways across three
+stacks would otherwise leave every one of them out.
+
+The remainder of an even split is **left out and named** rather than dealt to the earlier stacks: three M2122s
+over two stacks are 1 + 1 with the third reported, because 2 + 1 makes a stereo pair that is not a pair — one
+side would get a wider top row, a different interface height and a different rig.
+
 A generated scene is **re-solved on every build**, so everything the solve decided has to be in the file. A split
 rig therefore writes each stack's share as `count:`, and a turned one writes `roll_mirror:`. Both were once left
 out, and a share left out is the worse of the two: a rig reported as two stacks of eleven was *built* with every

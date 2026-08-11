@@ -148,16 +148,52 @@ final class SceneStackCommand extends BaseCommand
             return $groups;
         }
 
+        // **Mirror if possible, and do not lose gear to get it.** Two ways to deal the inventory out: split every
+        // device evenly, which makes the stacks identical, or keep a device whole in the middle stack when there
+        // are too few of it to go round. Both are tried and the one that stands up more cabinets wins, with the
+        // even split breaking a tie.
+        //
+        // Scoring by cabinets rather than by "did it solve" is the whole trick. An even split that cannot be
+        // carried does not fail — {@see solveGroup} drops the offending device and returns a perfectly good rig
+        // without it, so a naive attempt-and-fall-back would take the mirrored 20-cabinet rig over the
+        // 22-cabinet one every time. Two upright SKRAMs cannot be split, one each, and are kept together; the
+        // same pair *turned* can, so it is, and both stacks come out the same rig.
         $blocks = [];
-        foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
-            // Cast, because PHP turns an array key that looks like a number into one — `--stacks=2` without
-            // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
-            $label = (string)$key;
-            $block = $this->solveGroup($devices, $ids, $label, $mode, $input, count($groups) > 1, $index, $of);
-            if (is_string($block)) {
-                return $label === '' ? $block : sprintf('%s: %s', $label, $block);
+        $best = -1;
+        $firstProblem = null;
+
+        foreach ([true, false] as $evenSplit) {
+            $attempt = [];
+            $problem = null;
+
+            foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
+                // Cast, because PHP turns an array key that looks like a number into one — `--stacks=2` without
+                // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
+                $label = (string)$key;
+                $block = $this->solveGroup(
+                    $devices, $ids, $label, $mode, $input, count($groups) > 1, $index, $of, $evenSplit,
+                );
+                if (is_string($block)) {
+                    $problem = $label === '' ? $block : sprintf('%s: %s', $label, $block);
+                    break;
+                }
+                $attempt[] = $block;
             }
-            $blocks[] = $block;
+
+            if ($problem !== null) {
+                $firstProblem ??= $problem;
+                continue;
+            }
+
+            $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $attempt));
+            if ($placed > $best) {
+                $best = $placed;
+                $blocks = $attempt;
+            }
+        }
+
+        if ($blocks === []) {
+            return $firstProblem ?? 'no workable arrangement';
         }
 
         $clearance = (float)$input->getOption('clearance');
@@ -251,8 +287,10 @@ final class SceneStackCommand extends BaseCommand
         bool $named,
         int $index,
         int $of,
+        bool $evenSplit = true,
     ): StackBlock|string {
-        $omitted = [];
+        // What an even split cannot place at all, named up front rather than just being absent from the tiers.
+        $omitted = $this->splitRemainder($devices, $ids, $of, $evenSplit);
 
         // Try the whole group, then the group with one device removed, smallest holding first — the cabinet
         // most likely to be the odd one out is the one there are fewest of.
@@ -274,7 +312,10 @@ final class SceneStackCommand extends BaseCommand
                 return $problems[0];
             }
 
-            $solved = StackSolver::solve($this->inventoryFor($devices, $attempt, $index, $of), $stack);
+            $solved = StackSolver::solve(
+                $this->inventoryFor($devices, $attempt, $index, $of, $evenSplit),
+                $stack,
+            );
             if ($solved['problems'] !== []) {
                 $firstProblem ??= $solved['problems'][0];
                 continue;
@@ -328,26 +369,90 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
-     * This stack's share of each device.
+     * This stack's share of each device — **symmetric, and never split below what a row needs**.
      *
-     * The remainder goes to the earlier stacks rather than nowhere: three M2122s over two stacks is 2 + 1.
-     * Dividing and discarding would have left the third cabinet silently unplaced, and a generator that
-     * quietly drops gear is worse than one that refuses.
+     * Two rules, both learned from what the even split produced.
+     *
+     * **A device too small to split is not split.** Fewer than two per stack cannot flank a mixed row
+     * ({@see StackSolver} needs two to make a pair) and cannot be flanked into one either, so one SKRAM per
+     * half left the row above it standing on 49.9 % of its own width and the solver dropped the pair
+     * altogether — 180 kg of sub in no rig at all. The pair goes whole to the **middle** stack instead:
+     * `intdiv($of, 2)`, which is the middle of three and the right-hand one of two.
+     *
+     * **The rest is shared evenly and the remainder is left out, not dealt to the earlier stacks.** Three
+     * M2122s over two stacks used to be 2 + 1, which makes a stereo pair that is not a pair: one side gets a
+     * wider top row, a different interface height and a different rig. Symmetry is the point of splitting at
+     * all, so it is 1 + 1 and the odd cabinet is **reported** rather than silently either dropped or
+     * lopsidedly placed.
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
      * @return list<array{DeviceSpec, int}>
      */
-    private function inventoryFor(array $devices, array $ids, int $index, int $of): array
+    private function inventoryFor(array $devices, array $ids, int $index, int $of, bool $evenSplit = true): array
     {
-        return array_map(
-            static function (string $id) use ($devices, $index, $of): array {
-                $quantity = $devices[$id]->quantity;
+        $middle = intdiv($of, 2);
 
-                return [$devices[$id], intdiv($quantity, $of) + ($index < $quantity % $of ? 1 : 0)];
+        return array_map(
+            static function (string $id) use ($devices, $index, $of, $middle, $evenSplit): array {
+                $quantity = $devices[$id]->quantity;
+                $share = intdiv($quantity, $of);
+
+                // Two cases keep a device whole. **Fewer than one per stack** — there are simply not enough to
+                // go round, and splitting three stacks' worth out of two 2-ways leaves every one of them out.
+                // **Fewer than two per stack, for a sub** — a sub has to flank a mixed row or be flanked into
+                // one, and neither works with one cabinet. Tops are exempt from the second: nothing stands on a
+                // top, so one Tecnare per stack is a perfectly good top row, and applying the rule to them made
+                // the middle stack hoard every one and left the outer stacks a row of subs with nothing above.
+                if ($share < 1 || (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub')) {
+                    return [$devices[$id], $index === $middle ? $quantity : 0];
+                }
+
+                return [$devices[$id], $share];
             },
             $ids,
         );
+    }
+
+    /**
+     * What an even split leaves over, per device, so the report can name it instead of it just being absent.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     * @return array<string, string> device id => why some are not in any stack
+     */
+    private function splitRemainder(array $devices, array $ids, int $of, bool $evenSplit = true): array
+    {
+        if ($of < 2) {
+            return [];
+        }
+
+        $left = [];
+        foreach ($ids as $id) {
+            $quantity = $devices[$id]->quantity;
+            $share = intdiv($quantity, $of);
+
+            // The same condition {@see inventoryFor} keeps a device whole on: those are all placed, in one
+            // stack, so there is no remainder to report. Guarding on the share alone skipped the tops with one
+            // per stack, which is exactly the case this exists for — the odd third M2122.
+            if ($share < 1 || (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub')) {
+                continue;
+            }
+
+            $over = $quantity - $share * $of;
+            if ($over > 0) {
+                $left[$id] = sprintf(
+                    '%d of %d left out — %d stacks take %d each, and an odd cabinet would make one stack '
+                    .'a different rig from the others',
+                    $over,
+                    $quantity,
+                    $of,
+                    $share,
+                );
+            }
+        }
+
+        return $left;
     }
 
     /**

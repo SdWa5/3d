@@ -302,6 +302,14 @@ final class ShippedScenesTest extends TestCase
         yield 'one stack per owner' => [$all, ['--per-owner' => true]];
         yield 'two stacks' => [$all, ['--stacks' => '2', '--max-width' => '3.70']];
         yield 'three stacks' => [$all, ['--stacks' => '3', '--max-width' => '3.70']];
+        yield 'two stacks, subs on their sides' => [
+            $all,
+            ['--stacks' => '2', '--max-width' => '3.70', '--roll-mirror' => ['skram', 'flexy-folded-horn-hybrid']],
+        ];
+        yield 'three stacks, subs on their sides' => [
+            $all,
+            ['--stacks' => '3', '--max-width' => '3.70', '--roll-mirror' => ['skram', 'flexy-folded-horn-hybrid']],
+        ];
         yield 'subs on their sides' => [
             $noSkram,
             ['--max-width' => '3.70', '--roll-mirror' => ['flexy-folded-horn-hybrid']],
