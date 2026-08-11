@@ -16,8 +16,9 @@
        A rig with siblings rather than a pure tower would change that
 5. **`align` cannot spread a mixed row.** A tier that lands in several runs — and the tops row is always
    `18sound + M2122 + 18sound` — has no single envelope to justify into, so `center`, `block` and `stereo` resolve to
-   the same rig and `scene:stack` writes one all-speaker scene rather than three. Spreading the *segments* apart,
-   the 2-ways outboard, would be the meaningful version
+   the same rig and `scene:stack` still writes one all-speaker scene rather than three. The 2-ways *do* now go
+   outboard on the shoulders of a flanked row, but as a gravity repair — it fires only when the contiguous row
+   would leave a cabinet on less than half its width, not because an alignment asked for it
 6. **a cabinet with nothing under it would fall to the floor.** Gravity lands each cabinet on the highest thing
    beneath it, and on nothing at all that is z = 0 — inside the tier below. Unreachable today because the support
    check refuses a tier more than half a cabinet wider than what carries it, so every cabinet still overlaps its
@@ -26,9 +27,15 @@
    chasing the 2 m interface narrows the rows until the tiers are single columns. Geometrically valid, physically tippy.
    Related: the half-a-cabinet support rule passes a 286 mm overhang on a 1.240 m base, which is marginal — an
    aspect-ratio or centre-of-mass check would catch both
-8. **the floating-cabinet test only covers `scenes/`.** A rig that exists only as a `scene:stack` invocation is checked
+8. **only one tier per pass is flanked from below, and only if it fits a single row.** A device needing several
+   rows would have to say *which* of its rows gets the flanks, and a device that already names its row-mates with
+   `mix_with` is left alone. One flanked tier is all this inventory can produce, so the general case is untested
+9. **`scene:stack --stacks=2` now leaves a SKRAM out of each half.** Splitting the inventory puts one SKRAM in
+   each stack, and a single SKRAM flanked into a bottom row leaves the row above it on 49.9 % of its own width —
+   just over the half-a-cabinet line. Which is what item 2.1 already says to do about it: keep the pair together
+10. **the floating-cabinet test only covers `scenes/`.** A rig that exists only as a `scene:stack` invocation is checked
    for support by the solver but never by the separating-axis and support sweeps in `ShippedScenesTest`
-9. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
+11. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a
            general feature)
@@ -42,8 +49,8 @@
            a generated cabinet has no way to declare a port at all
     4. handle recesses are currently a plain rectangular cut — a rounded dish would read better (implement general
        handle 3d model)
-10. daylight renders, insides of speakers come out a little bit too dark
-11. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
+12. daylight renders, insides of speakers come out a little bit too dark
+13. finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done
     1. write the splayed sub arc scene. `arc` covers the schema side now — a mirrored Flexy arc is
        `arc` plus `roll_deg: 180`, which the arc's roll rule deliberately allows — but no scene uses it, and a sub arc
        is the case where the reported footprint reads worst: a bounding box around a fan includes floor that nothing
@@ -52,7 +59,7 @@
        like a venue rather than a void
     3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene files — they encode
        stack arrangements that already worked
-12. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
+14. more categories: truss, amp racks, stands. The schema and validator already accept them; the geometry builder needs
     shapes for truss segments and rack boxes
     1. Truss: 2x 4 meter telescope feet; 5x 2m three point truss segments
     2. 2x 5 meter gerüst, 7 meter arbeitshöhe including 2 meters persons hand height (Das Krause Plattformgerüst AH7
@@ -63,18 +70,18 @@
     3. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
        (2 racks for amps 1 rack for power distribution)
     4. lighting: 2 600w rgb led strobes, 1 mini moving head, 1 mini laser
-13. audio routing table, for the coverage work ->
+15. audio routing table, for the coverage work ->
     https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604
-14. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
+16. `inventory:import` — the first import was done by hand because the source is several spreadsheets and CAD files
     rather than one list, and every number needed a provenance decision. Worth building when the gear list next grows;
     see [docs/inventory.md](docs/inventory.md)
-15. asset previews are blank because they cannot be rendered in background mode. Either generate them in the GUI once,
+17. asset previews are blank because they cannot be rendered in background mode. Either generate them in the GUI once,
     or find a way to render thumbnails headless
-16. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that only runs when
+18. run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job that only runs when
     `blender/` or `specs/` changed
-17. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so
+19. GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so
     this should mostly be packaging and metadata mapping
-18. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a design or a
+20. measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec currently describes a design or a
     datasheet, not our build; `catalog` lists what is still un-measured
     1. hanging-scale the two estimated weights first: `eighteensound-2way-15` (41 kg) and `achenbach-18`
        (50 kg). Neither exists in any source — the whole Shared Drive was searched, and Eighteen Sound publishes no
@@ -95,5 +102,5 @@
        validates and so a flown scene has something to snap to; nothing has confirmed where the real track sits. The
        schema has no provenance field for rigging, so the estimate is stated in a comment in the spec — worth adding one
        if more flyable gear arrives
-19. fly through renderings + combine with new project from existing audio routing table
-20. make endfire setup two rows vertically too and add tops
+21. fly through renderings + combine with new project from existing audio routing table
+22. make endfire setup two rows vertically too and add tops

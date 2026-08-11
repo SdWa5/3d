@@ -388,6 +388,85 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * A sub tier narrower than the one below it is **flanked from below** to close the step.
+     *
+     * The rule that builds the mixed bottom row asks whether a row would be narrower than the row coming to
+     * stand *on* it — a support question, which is why it can only ever fire at the bottom. Asking whether a row
+     * is narrower than the row it stands *on* is the same mechanism pointed the other way. Four Achenbachs on
+     * six Flexys is 2.460 m on 3.646 m: perfectly carried, and a 593 mm shoulder each side. One Flexy either
+     * side of them makes it 3.682 m and the wall flat.
+     */
+    public function testASubTierIsFlankedFromBelowToCloseTheStep(): void
+    {
+        $tiers = $this->solve(
+            ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'],
+            maxWidthM: 3.70,
+            interfaceHeightM: 2.0,
+        );
+
+        self::assertSame(23, $this->cabinets($tiers), 'every cabinet we own, none spent on the flanks');
+        self::assertSame(
+            '1× flexy-folded-horn-hybrid + 4× achenbach-18 + 1× flexy-folded-horn-hybrid',
+            $tiers[2]->label(),
+        );
+
+        $widths = array_map(static fn (Tier $t): float => $t->widthM(0.02), $tiers);
+        self::assertEqualsWithDelta([3.684, 3.646, 3.682, 2.5112], $widths, 1e-9);
+        // 38 mm between the widest and narrowest sub tier, where it used to be 1.260 m across five tiers.
+        self::assertEqualsWithDelta(0.038, max(array_slice($widths, 0, 3)) - min(array_slice($widths, 0, 3)), 1e-9);
+    }
+
+    /**
+     * And only one pair, because every cabinet the flanks take is one fewer in the row below.
+     *
+     * The same converging-widths criterion the bottom row's flanks use. A second pair would make the Achenbach
+     * row 4.904 m while leaving four Flexys — 2.424 m — underneath it, which is not a flatter wall, it is the
+     * same step moved down a tier with the rig now top-heavy.
+     */
+    public function testTheFlankedTierIsNeverWiderThanWhatCarriesIt(): void
+    {
+        $tiers = $this->solve(
+            ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'],
+            maxWidthM: 3.70,
+            interfaceHeightM: 2.0,
+        );
+
+        // 18 mm each side, which {@see StackSolver::supportChecks} warns about and does not refuse.
+        self::assertGreaterThan($tiers[1]->widthM(0.02), $tiers[2]->widthM(0.02));
+        self::assertLessThan(0.02, ($tiers[2]->widthM(0.02) - $tiers[1]->widthM(0.02)) / 2);
+    }
+
+    /**
+     * A cabinet landing on less than half its own width is an error, however tidy the tier widths look.
+     *
+     * The gap the bearing check fills, in the geometry that found it. A single SKRAM between two Flexys makes a
+     * 1.832 m row that is 151 mm taller in its middle, and a two-Flexy row on top of it is 1.202 m — comfortably
+     * narrower, so the tier-width rule has nothing to say. Land the cabinets individually and the inner Flexy
+     * rests on 295 mm of SKRAM and 296 mm of thin air: 49.9 %, over on the wrong side of the same
+     * half-a-cabinet line the overhang rule already draws.
+     *
+     * This is what `scene:stack --stacks=2` runs into. Splitting the inventory in half puts one SKRAM in each
+     * stack, and one SKRAM cannot be flanked into a bottom row that carries anything — which is why the
+     * two-stack TODO says to keep the pair together.
+     */
+    public function testACabinetBearingOnLessThanHalfItsWidthIsAnError(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $tiers = [
+            new Tier([[$flexy, 1], [$this->devices['skram'], 1], [$flexy, 1]]),
+            Tier::of($flexy, 2),
+        ];
+
+        $stack = new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 0.0, gapM: 0.02);
+        $check = new \ReflectionMethod(StackSolver::class, 'supportChecks');
+
+        $problems = $check->invoke(null, $tiers, $stack)['problems'];
+
+        self::assertStringContainsString('land on only 50% of its own width', implode("\n", $problems));
+        self::assertSame([], $check->invoke(null, [$tiers[0]], $stack)['problems'], 'the row itself is fine');
+    }
+
+    /**
      * The mixed bottom row grows only until the step is gone — never wider.
      *
      * Mixing exists to remove an inverted step, so every cabinet the flanks take past that point is one stolen
@@ -404,14 +483,17 @@ final class StackSolverTest extends TestCase
         );
 
         self::assertSame(
-            '3× flexy-folded-horn-hybrid + 2× skram + 3× flexy-folded-horn-hybrid',
+            '2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid',
             $tiers[0]->label(),
-            'three pairs, not four: at four the row above would be narrower still',
+            'two pairs, not four: past that the flanks eat the rows above',
         );
 
-        // A pyramid — every tier no wider than the one under it, bar the usual 26 mm at the tops.
+        // Two pairs rather than three, because the Achenbach row above takes a pair as well and six Flexys
+        // in the row between come to 3.646 m — see testASubTierIsFlankedFromBelowToCloseTheStep. Before the
+        // two decisions knew about each other this was 3 pairs and 4.906 m, on the assumption that all eight
+        // remaining Flexys would stand in one 4.868 m row and overhang anything narrower.
         $widths = array_map(static fn (Tier $t): float => $t->widthM(0.02), $tiers);
-        self::assertEqualsWithDelta([4.906, 3.646, 2.460, 2.5112], $widths, 1e-9);
+        self::assertEqualsWithDelta([3.684, 3.646, 3.682, 2.5112], $widths, 1e-9);
     }
 
     /**

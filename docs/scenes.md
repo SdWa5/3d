@@ -579,13 +579,47 @@ come from `on:`, so none of them is ever written into the file.
 but SKRAMs is 1.240 m — narrower than the 2.460 m Achenbach row that would come to stand on it, and a stack
 whose tiers get *wider* as they rise is 610 mm of Achenbach hanging in mid-air at each end. The solver puts
 the two SKRAMs in the middle of the bottom row, where the widest and heaviest cabinets belong anyway, and
-flanks them with Flexys: 3.684 m, and the rig is a pyramid. This happens **only to remove an inverted step** —
-never just because a device is in short supply, which would drag the Achenbachs below the Flexys in any rig
-that has more Flexys than Achenbachs.
+flanks them with Flexys: 3.684 m, and the rig is a pyramid. Never just because a device is in short supply,
+which would drag the Achenbachs below the Flexys in any rig that has more Flexys than Achenbachs.
+
+**And a row may be flanked from below, to close a step rather than an inversion.** Same mechanism, pointed the
+other way. The bottom row asks whether it would be narrower than the row coming to stand *on* it — a support
+question, which is why it can only ever fire at the bottom. Asking whether a row is narrower than the row it
+stands *on* covers the rest of the wall: four Achenbachs on six Flexys is 2.460 m on 3.646 m, perfectly carried
+and a 593 mm shoulder each side. A Flexy either side of them makes it 3.682 m, and the whole rig comes out
+3.684 / 3.646 / 3.682 — 38 mm of variation across the sub tiers, where the unflanked version was five tiers and
+1.260 m.
+
+How many pairs to promote is the **converging-widths** criterion the bottom row's flanks already use: every
+cabinet the flanks take is one fewer in the row below, so the flanked row grows while its support shrinks and the
+two widths approach from opposite ends. Stop at the crossing. Past it a promotion no longer flattens anything, it
+moves the step down a tier and makes the rig top-heavy — a second pair here would be 4.904 m of Achenbach row
+over 2.424 m of Flexy.
+
+The two decisions have to know about each other, and that is the whole subtlety. Left alone, the bottom row grew
+to three pairs and 4.906 m, because the eight Flexys it left over came to 4.868 m in one row and anything
+narrower would have been overhung by it. Knowing that two of those eight go up instead, six come to 3.646 m and
+two pairs is enough.
+
+Not applied to a tier that names its own row-mates with `mix_with`, nor to one that needs more than a single row
+— that would have to say *which* of its rows gets the flanks, and neither is a guess worth making.
 
 A mixed tier expands into one placement per segment (`main/1a`, `main/1b`, `main/1c` — letters, so they cannot
 be confused with the numeric copy suffixes), and it is not `align`ed, because there is nothing sensible to
 distribute one segment at a time.
+
+**Bearing is checked per cabinet, not just per tier.** How much of a cabinet is over the thing it landed on, as
+a fraction of its own width; under half is an error. Comparing tier widths cannot see this and neither can the
+shipped-scene sweep: a flanked Achenbach row is 163 mm taller at its shoulders, and a top row laid contiguously
+across that step clips a shoulder by 5.6 mm — whereupon falling does what falling does and lifts a whole 2-way
+onto **1.2 % of its own footprint**. The row above is narrower than the row below, so the widths look fine, and
+there really is something underneath, so the floating check passes it too.
+
+**So the top tier is re-seated fills outboard when the ordinary row would hang**: the end segments centred on
+the end supports, everything between them centred on what is left. The Tecnares land on the Achenbachs, the two
+2-ways out on the Flexy shoulders they would otherwise have caught — raised 163 mm and 1.55 m out, which is
+where a fill belongs anyway and the shape the top row is already built in. Only as a repair: a tier that is
+already carried keeps the layout it had, so no rig that stands up today is quietly restyled.
 
 **Rows are balanced, not greedy.** Eight leftover Flexys at six-per-row come out 4 + 4, not 6 + 2 — same
 number of rows, but a 1.222 m row could not carry the Achenbachs above it and a 2.424 m one can.

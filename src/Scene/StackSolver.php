@@ -189,6 +189,8 @@ final class StackSolver
             }
         }
 
+        [$lifts, $remaining] = self::reserveLifts($remaining, $stack, $perRow);
+
         // Subs stack; tops do not. A sub row carries the row above it, so running out of width means another
         // tier. Tops carry nothing and stand side by side on the sub stack — putting a 2-way *on* a Tecnare
         // is what produced a fill hovering over the middle of the rig, and it is not how anybody rigs a PA.
@@ -203,6 +205,14 @@ final class StackSolver
             $stated = self::statedMix($remaining, $index, $stack, $perRow);
             if ($stated !== null) {
                 [$tiers[], $remaining] = $stated;
+                continue;
+            }
+
+            // Cabinets held back from the rows below, standing either side of this one to close the step.
+            if (isset($lifts[$index])) {
+                [$source, $lift] = $lifts[$index];
+                $tiers[] = new Tier([[$source, $lift], [$device, $count], [$source, $lift]]);
+                $remaining[$index] = [$device, 0];
                 continue;
             }
 
@@ -221,6 +231,158 @@ final class StackSolver
         }
 
         return $tiers;
+    }
+
+    /**
+     * Cabinets held back from a lower device's rows to stand either side of the tier above it.
+     *
+     * **This is {@see mixedBottomRow}'s rule read one word differently.** That one mixes "only to remove an
+     * inverted step" — a *support* rule, which is why it can only ever fire on the bottom row: the question it
+     * asks is whether this row would be narrower than the row coming to stand on it. Asking instead whether it
+     * is narrower than the row it stands *on* is the same mechanism pointed the other way, and it closes the
+     * step that support alone does not care about. Four Achenbachs on six Flexys is 2.460 m on 3.646 m —
+     * perfectly carried, and a 593 mm shoulder on each side. One Flexy either side of them makes it 3.682 m and
+     * the wall face flat.
+     *
+     * **The reservation has to happen before the source's own rows are built**, which is why this is a pass of
+     * its own rather than a decision made in the loop: by the time the fill reaches the Achenbachs every Flexy
+     * is already spoken for, and there is nothing left to borrow.
+     *
+     * Two devices at a time, each promotion measured against what is left of the source afterwards — taking a
+     * pair is not free, it comes out of the row below and can cost that row a whole tier.
+     *
+     * @param list<array{DeviceSpec, int}> $remaining
+     * @return array{array<int, array{DeviceSpec, int}>, list<array{DeviceSpec, int}>} lifts by target index,
+     *     and what is left to fill rows with
+     */
+    private static function reserveLifts(array $remaining, Stack $stack, int $perRow): array
+    {
+        $lifts = [];
+
+        foreach (array_keys($remaining) as $source) {
+            [$device, $count] = $remaining[$source];
+            // A device already being flanked has no rows of its own left to lend from.
+            if ($count < 1 || $device->subtype !== 'sub' || isset($lifts[$source])) {
+                continue;
+            }
+
+            $lift = self::liftAbove($remaining, $source, $stack, $perRow);
+            if ($lift === null) {
+                continue;
+            }
+
+            [$target, $pairs] = $lift;
+            $lifts[$target] = [$device, $pairs];
+            $remaining[$source][1] -= 2 * $pairs;
+        }
+
+        return [$lifts, $remaining];
+    }
+
+    /**
+     * The tier standing on `$source` that wants flanking, and how many pairs it takes — or null for none.
+     *
+     * Split out because **two callers have to agree**: the reservation pass above, and {@see widthAbove}, which
+     * decides how wide the mixed bottom row may grow. That one asks how wide the row above the bottom will be,
+     * and the answer changes if some of those cabinets are about to be lifted a tier — which is exactly the
+     * coupling that kept the flat wall out of reach. Left to itself the bottom row grew to 3 pairs and 4.906 m,
+     * because the eight Flexys left over came to 4.868 m in one row and anything narrower would have been
+     * overhung. Knowing two of them go up instead, six come to 3.646 m and 2 pairs is enough.
+     *
+     * @param list<array{DeviceSpec, int}> $remaining
+     * @return array{int, int}|null target index and pairs per side
+     */
+    private static function liftAbove(array $remaining, int $source, Stack $stack, int $perRow): ?array
+    {
+        [$sourceDevice, $sourceCount] = $remaining[$source];
+        if ($sourceCount < 2 || ($stack->entryFor($sourceDevice->id)?->mixWith ?? []) !== []) {
+            return null;
+        }
+
+        foreach ($remaining as $index => [$device, $count]) {
+            if ($index <= $source || $count < 1 || $device->subtype !== 'sub') {
+                continue;
+            }
+
+            // A tier that names its own row-mates has already said what it wants, and one that needs more than
+            // a single row would have to say *which* of its rows gets the flanks. Neither is a guess to make.
+            if (($stack->entryFor($device->id)?->mixWith ?? []) !== []) {
+                return null;
+            }
+            if ($count > min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM))) {
+                return null;
+            }
+
+            $lift = self::liftPairs($device, $count, $sourceDevice, $sourceCount, $stack, $perRow);
+
+            return $lift > 0 ? [$index, $lift] : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * How many pairs to promote: enough to close the step, and not one cabinet more.
+     *
+     * The same converging-widths criterion the bottom row's flanks use, and for the same reason. Every cabinet
+     * the flanks take is one fewer in the row below, so the flanked row grows while its support shrinks and the
+     * two widths approach from opposite ends. Past the crossing point a promotion no longer flattens anything —
+     * it just moves the step down a tier and makes the rig top-heavy.
+     *
+     * A promotion that would leave the flanked row standing more than half a cabinet off its own support is
+     * refused outright: closing a step is worth doing, and not worth doing by hanging the row in the air. An
+     * overhang inside that limit is left to {@see supportChecks} to warn about, which is what happens to the
+     * 18 mm the Achenbach row ends up proud of the Flexy row under it.
+     */
+    private static function liftPairs(
+        DeviceSpec $target,
+        int $targetCount,
+        DeviceSpec $source,
+        int $sourceCount,
+        Stack $stack,
+        int $perRow,
+    ): int {
+        $lift = 0;
+
+        while (2 * ($lift + 1) <= $sourceCount) {
+            $candidate = new Tier([[$source, $lift + 1], [$target, $targetCount], [$source, $lift + 1]]);
+            $width = $candidate->widthM($stack->gapM);
+
+            if ($stack->maxWidthM !== null && $width > $stack->maxWidthM + self::EPSILON_M) {
+                break;
+            }
+
+            $support = self::lastRowWidth($source, $sourceCount - 2 * ($lift + 1), $stack, $perRow);
+            if (($width - $support) / 2 > $candidate->outerWidthM() / 2) {
+                break;
+            }
+
+            ++$lift;
+
+            if ($width + self::EPSILON_M >= $support) {
+                break;
+            }
+        }
+
+        return $lift;
+    }
+
+    /**
+     * How wide the source's **last** row comes out — the one that ends up directly under the flanked tier.
+     *
+     * Last rather than first because {@see share} puts the fuller row at the bottom, so the top of a device's
+     * own stack is its narrowest row and that is what the tier above actually stands on.
+     */
+    private static function lastRowWidth(DeviceSpec $device, int $count, Stack $stack, int $perRow): float
+    {
+        if ($count < 1) {
+            return 0.0;
+        }
+
+        $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
+        $shares = self::share($count, (int)ceil($count / $perTier));
+
+        return Tier::of($device, $shares[count($shares) - 1])->widthM($stack->gapM);
     }
 
     /**
@@ -402,7 +564,14 @@ final class StackSolver
             // Every Flexy the flanks take is one fewer in the row above, so the two widths converge from both
             // ends and the crossing point is where the taper stops. With a `max_width_m` the bound usually
             // bites first and this changes nothing.
-            if ($width + self::EPSILON_M >= self::widthAbove($flankDevice, $flankAvailable - 2 * $pairs, $inventory, $flank, $stack, $perRow)) {
+            // The probe has the bottom row already taken out of it. Without that, `widthAbove` sees the
+            // SKRAMs still sitting in the inventory, decides they are a tier waiting to be flanked, and
+            // reserves Flexys for a mixed row that the bottom row is in the middle of building.
+            $probe = $inventory;
+            $probe[$centre] = [$device, 0];
+            $probe[$flank] = [$flankDevice, $flankAvailable - 2 * $pairs];
+
+            if ($width + self::EPSILON_M >= self::widthAbove($flankDevice, $flankAvailable - 2 * $pairs, $probe, $flank, $stack, $perRow)) {
                 break;
             }
         }
@@ -424,6 +593,10 @@ final class StackSolver
         Stack $stack,
         int $perRow,
     ): float {
+        if ($leftOver > 0) {
+            // Cabinets destined for the tier above are not in this row, see {@see liftAbove}.
+            $leftOver -= 2 * (self::liftAbove($inventory, $flank, $stack, $perRow)[1] ?? 0);
+        }
         if ($leftOver > 0) {
             $perTier = min($perRow, self::perTier($flankDevice, $stack->maxWidthM, $stack->gapM));
             $rows = (int)ceil($leftOver / $perTier);
@@ -780,6 +953,50 @@ final class StackSolver
             $warnings[] = $message;
         }
 
-        return ['problems' => $problems, 'warnings' => $warnings];
+        return [
+            'problems' => [...$problems, ...self::bearingProblems($tiers, $stack)],
+            'warnings' => $warnings,
+        ];
+    }
+
+    /**
+     * Every cabinet that would land on too little of its support to call itself carried.
+     *
+     * The rule above measures a *tier* against the tier below it, which is the right check for a level row and
+     * blind to a stepped one. A mixed row is 163 mm taller at its shoulders than in its middle, and a row laid
+     * across that step can clip a shoulder by 5.6 mm — whereupon falling does exactly what falling does and
+     * lifts the whole cabinet onto that 5.6 mm. Tier widths say nothing is wrong: the row above is *narrower*
+     * than the row below, and the floating-cabinet sweep is satisfied too, because there really is something
+     * underneath. Only asking how much of the cabinet is over it catches this.
+     *
+     * Half its own width, the same line the overhang rule draws — "more than half off the edge is standing on
+     * nothing" — applied per cabinet instead of per tier. Reusing {@see Gravity} rather than measuring again is
+     * the point: the solver has to reject exactly the arrangement the expansion would build.
+     *
+     * @param list<Tier> $tiers
+     * @return list<string>
+     */
+    private static function bearingProblems(array $tiers, Stack $stack): array
+    {
+        $problems = [];
+
+        foreach (Gravity::resolve($tiers, $stack->gapM, 'stack') as $index => $runs) {
+            foreach ($runs as $run) {
+                if ($run['bearing'] + self::EPSILON_M >= Gravity::MIN_BEARING) {
+                    continue;
+                }
+
+                $problems[] = sprintf(
+                    'a %s in the %s row would land on only %.0f%% of its own width — the row below is stepped, '
+                    .'so it catches the taller cabinet and hangs off it. Reshape the row, or line the segments '
+                    .'up with what carries them',
+                    $run['device']->id,
+                    $tiers[$index]->label(),
+                    $run['bearing'] * 100,
+                );
+            }
+        }
+
+        return $problems;
     }
 }

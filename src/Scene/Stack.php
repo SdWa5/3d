@@ -47,15 +47,6 @@ final class Stack
     public const DEFAULT_INTERFACE_HEIGHT_M = 2.0;
 
     /**
-     * How much two cabinets must overlap in x before one counts as standing on the other.
-     *
-     * A micrometre. Cabinets in neighbouring runs are separated by a working gap, so this only has to rule out
-     * the case where two spans touch exactly at an edge — which happens, because a row's cabinets are laid out
-     * by repeated addition and a boundary can land on a hair.
-     */
-    private const CONTACT_EPSILON_M = 1e-6;
-
-    /**
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      */
     public function __construct(
@@ -190,26 +181,13 @@ final class Stack
         $at = $placement->at ?? [0.0, 0.0];
         $placements = [];
 
-        /** @var list<array{id: string, lo: float, hi: float, top: float}> $below what this tier lands on */
-        $below = [];
-
-        foreach ($tiers as $index => $tier) {
-            $runs = $this->runsFor($tier, $below);
+        foreach (Gravity::resolve($tiers, $this->gapM, $placement->id) as $index => $runs) {
+            $tier = $tiers[$index];
             $isTop = $index === count($tiers) - 1;
-            $current = [];
 
-            foreach ($runs as $slot => $run) {
-                // Letters when a tier lands in more than one place, so they cannot be confused with the
-                // numeric `-1`, `-2` suffixes a group appends to every copy it makes.
-                $id = sprintf(
-                    '%s/%d%s',
-                    $placement->id,
-                    $index + 1,
-                    count($runs) > 1 ? chr(ord('a') + $slot) : '',
-                );
-
+            foreach ($runs as $run) {
                 $placements[] = new Placement(
-                    id: $id,
+                    id: $run['id'],
                     deviceId: $run['device']->id,
                     at: [$at[0] + ($run['lo'] + $run['hi']) / 2, $at[1]],
                     yawDeg: $placement->yawDeg,
@@ -239,98 +217,11 @@ final class Stack
                         ? null
                         : self::envelopeFor($this->alignFor($tier, $placement->align), [$run['on'], null]),
                 );
-
-                $current[] = [
-                    'id' => $id,
-                    'lo' => $run['lo'],
-                    'hi' => $run['hi'],
-                    'top' => $run['top'] + $run['device']->dimensions->height,
-                ];
             }
-
-            $below = $current;
         }
 
         return $placements;
     }
-
-    /**
-     * A tier's cabinets grouped into the placements they actually land as — **gravity, one cabinet at a time**.
-     *
-     * This is the whole of it: a cabinet falls until it hits whatever is under *it*, not until it reaches the
-     * height of the tallest thing in the row below. A row of Flexys with two SKRAMs in the middle is 151 mm
-     * taller in the middle, so the Flexys above the SKRAMs rest at 0.914 m and the ones above Flexys at 0.763 —
-     * an uneven top, and nothing hanging in the air. Resting the whole row at the tallest height was what left
-     * four Flexys floating; refusing to mix heights at all was the wrong fix for it.
-     *
-     * Adjacent cabinets sharing a device **and** a support become one placement, so a tier standing on level
-     * ground is still a single row and only a stepped one splits. `on:` then does the rest: it reads the
-     * support's own top face, so every height still comes out of the specs and none is written down.
-     *
-     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
-     * @return list<array{device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null}>
-     */
-    private function runsFor(Tier $tier, array $below): array
-    {
-        $runs = [];
-
-        foreach ($tier->seats($this->gapM) as [$device, $count, $centreX]) {
-            $width = $device->dimensions->width;
-            $span = $count * $width + ($count - 1) * $this->gapM;
-            $x = $centreX - $span / 2;
-
-            for ($seat = 0; $seat < $count; ++$seat) {
-                ['on' => $on, 'top' => $top] = self::landsOn($below, $x, $x + $width);
-
-                $last = $runs === [] ? null : $runs[count($runs) - 1];
-                if ($last !== null && $last['device'] === $device && $last['on'] === $on) {
-                    $runs[count($runs) - 1]['count'] = $last['count'] + 1;
-                    $runs[count($runs) - 1]['hi'] = $x + $width;
-                } else {
-                    $runs[] = [
-                        'device' => $device,
-                        'count' => 1,
-                        'lo' => $x,
-                        'hi' => $x + $width,
-                        'top' => $top,
-                        'on' => $on,
-                    ];
-                }
-
-                $x += $width + $this->gapM;
-            }
-        }
-
-        return $runs;
-    }
-
-    /**
-     * What a cabinet spanning `$lo`..`$hi` comes to rest on: the **highest** thing under it, or the floor.
-     *
-     * Highest rather than first, because that is what falling does — a cabinet bridging a Flexy and a SKRAM
-     * settles on the SKRAM and leaves a gap over the Flexy, which is exactly the shim a crew would put in.
-     *
-     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
-     * @return array{on: string|null, top: float}
-     */
-    private static function landsOn(array $below, float $lo, float $hi): array
-    {
-        $on = null;
-        $top = 0.0;
-
-        foreach ($below as $candidate) {
-            $overlaps = $candidate['lo'] < $hi - self::CONTACT_EPSILON_M
-                && $candidate['hi'] > $lo + self::CONTACT_EPSILON_M;
-
-            if ($overlaps && ($on === null || $candidate['top'] > $top)) {
-                $on = $candidate['id'];
-                $top = $candidate['top'];
-            }
-        }
-
-        return ['on' => $on, 'top' => $top];
-    }
-
 
     /**
      * @param array{?string, ?float} $envelope

@@ -180,27 +180,48 @@ final class ShippedScenesTest extends TestCase
                 continue;
             }
 
-            self::assertTrue(
-                $this->isCarried($entry, $placed),
+            $bearing = $this->bearingOf($entry, $placed);
+
+            // Not just *something* under it — enough of it. Presence alone passes a cabinet balanced on a
+            // 5.6 mm sliver of a taller neighbour, which is exactly what a stepped row produces and what
+            // measuring tier widths cannot see either. Half its own footprint, the same line
+            // {@see \App\Scene\Gravity::MIN_BEARING} draws inside the solver.
+            self::assertGreaterThan(
+                0.5,
+                $bearing,
                 sprintf(
-                    '%s in %s sits at %.3f m with nothing under it',
+                    '%s in %s sits at %.3f m on %.1f%% of its own footprint',
                     $entry->placementId,
                     $sceneId,
                     $box['min'][2],
+                    $bearing * 100,
                 ),
             );
         }
     }
 
     /**
-     * Whether anything's top face meets this cabinet's bottom face, overlapping it in plan.
+     * How much of this cabinet's footprint has something under it, as a fraction — 0 for one in mid-air.
+     *
+     * Everything whose top face meets this cabinet's bottom face counts, and the covered areas are summed: a
+     * cabinet bridging two neighbours is carried by both, and a row is normally spread across several supports.
+     *
+     * Deliberately measured against the **rotated** bounding box, so an aimed top is judged on the box it
+     * actually occupies. That understates a yawed cabinet — the box grows while the cabinet does not — which
+     * makes the check conservative in the one direction that matters. The tightest shipped case is a yawed
+     * Tecnare at 57 %.
      *
      * @param list<PlacedDevice> $placed
      */
-    private function isCarried(PlacedDevice $entry, array $placed): bool
+    private function bearingOf(PlacedDevice $entry, array $placed): float
     {
         $box = $entry->worldBox();
+        $area = ($box['max'][0] - $box['min'][0]) * ($box['max'][1] - $box['min'][1]);
+        if ($area <= 0.0) {
+            return 0.0;
+        }
 
+        $covered = 0.0;
         foreach ($placed as $other) {
             if ($other === $entry) {
                 continue;
@@ -210,17 +231,15 @@ final class ShippedScenesTest extends TestCase
             if (abs($under['max'][2] - $box['min'][2]) > self::CONTACT_TOLERANCE_M) {
                 continue;
             }
-            $overlaps = $under['min'][0] < $box['max'][0] - self::CONTACT_TOLERANCE_M
-                && $under['max'][0] > $box['min'][0] + self::CONTACT_TOLERANCE_M
-                && $under['min'][1] < $box['max'][1] - self::CONTACT_TOLERANCE_M
-                && $under['max'][1] > $box['min'][1] + self::CONTACT_TOLERANCE_M;
 
-            if ($overlaps) {
-                return true;
+            $x = min($box['max'][0], $under['max'][0]) - max($box['min'][0], $under['min'][0]);
+            $y = min($box['max'][1], $under['max'][1]) - max($box['min'][1], $under['min'][1]);
+            if ($x > self::CONTACT_TOLERANCE_M && $y > self::CONTACT_TOLERANCE_M) {
+                $covered += $x * $y;
             }
         }
 
-        return false;
+        return $covered / $area;
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]

@@ -261,6 +261,47 @@ final class StackTest extends TestCase
     }
 
     /**
+     * The tops of a flanked rig sit **outboard on the shoulders**, not butted together across the step.
+     *
+     * The whole rig, end to end, in the arrangement the flanking rule produces: a mixed Achenbach row with a
+     * Flexy either side, 163 mm taller at those shoulders than in the middle. Laid out as one contiguous row the
+     * outboard 2-way clips a shoulder by 5.6 mm and gravity lifts it onto 1.2 % of itself — nothing about the
+     * tier widths says so, and there really is something underneath, so both of the other checks pass it.
+     * Seated on the shoulder instead it is squarely carried, raised, and out where a fill belongs.
+     */
+    public function testTheTopsOfAFlankedRigSitOutboardOnTheShoulders(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
+                'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
+                'from' => [
+                    'skram', 'flexy-folded-horn-hybrid', 'achenbach-18',
+                    'tecnare-m2122', 'eighteensound-2way-15',
+                ],
+            ]],
+        ]);
+
+        self::assertCount(23, $placed, 'every cabinet we own, in one stack');
+
+        $fills = array_values(array_filter(
+            $placed,
+            static fn (PlacedDevice $e): bool => $e->device->id === 'eighteensound-2way-15',
+        ));
+        self::assertCount(2, $fills);
+
+        foreach ($fills as $fill) {
+            $box = $fill->worldBox();
+            $centre = ($box['min'][0] + $box['max'][0]) / 2;
+            // On the shoulder, whose Flexy spans 1.250..1.841 — a contiguous row would have put it at 1.023.
+            // Within a centimetre rather than exactly, because the fill is aimed: yawing it moves the centre of
+            // its bounding box a few millimetres off the seat it was given.
+            self::assertEqualsWithDelta(1.5455, abs($centre), 0.01);
+            // And standing on the Flexy, so 763 mm above the 1.526 m tier rather than 600 mm.
+            self::assertEqualsWithDelta(2.289, $box['min'][2], 1e-9);
+        }
+    }
+
+    /**
      * **Gravity.** Each cabinet above a stepped row lands on whatever is under *it*, not on the height of the
      * tallest cabinet in the row below.
      *

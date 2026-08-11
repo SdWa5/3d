@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-08-11
+
+### Added
+
+- **A sub tier narrower than the one below it is flanked from below, to close the step.** The rule that builds
+  the mixed bottom row asks whether a row would be narrower than the row coming to stand *on* it — a support
+  question, which is why it only ever fired at the bottom. Asking whether a row is narrower than the row it
+  stands *on* covers the rest of the wall. Four Achenbachs on six Flexys is 2.460 m on 3.646 m: perfectly
+  carried, and a 593 mm shoulder each side. A Flexy either side of them makes it 3.682 m, and the all-speaker
+  rig comes out 3.684 / 3.646 / 3.682 — four tiers and 38 mm of variation, where it was five tiers and 1.260 m.
+  How many pairs to promote is the converging-widths criterion the bottom row's flanks already use, and the two
+  decisions now know about each other: left alone the bottom row grew to three pairs and 4.906 m on the
+  assumption that all eight remaining Flexys would stand in one 4.868 m row
+- **Bearing is checked per cabinet.** How much of a cabinet is over the thing it landed on, as a fraction of its
+  own width; under half is an error. This is a real gap, not a belt-and-braces check: comparing tier widths only
+  ever sees a *row* hanging off a row, and the shipped-scene sweep only asks whether there is anything underneath
+  at all. A flanked Achenbach row is 163 mm taller at its shoulders, and a contiguous top row across that step
+  clips a shoulder by 5.6 mm — whereupon falling lifts a whole 2-way onto **1.2 % of its own footprint**, and
+  both existing checks pass it
+- **The top tier is re-seated fills outboard when the ordinary row would hang**: end segments centred on the end
+  supports, everything between them centred on what is left. The Tecnares land on the Achenbachs, the two 2-ways
+  out on the Flexy shoulders they would otherwise have caught. Only as a repair — a tier that is already carried
+  keeps its layout, so no rig that stands up today is restyled
+- `src/Scene/Gravity.php`, holding falling and the bearing figure. It is used by both `Stack::expand()` and
+  `StackSolver`, so the solver rejects exactly the arrangement the expansion would build
+- `ShippedScenesTest` measures bearing rather than mere presence. The tightest shipped case is a yawed Tecnare at
+  57 % of its rotated bounding box
+
+### Changed
+
+- `scenes/stacked-center.yaml` regenerated: four tiers instead of five, 3.400 m tall instead of 4.000 m, all 23
+  cabinets. The committed file had also gone stale against 0.35.1 and still described the 6.128 m bottom row
+- `scene:stack --stacks=2` now leaves one SKRAM out of each half rather than building it. A single SKRAM flanked
+  into a bottom row leaves the row above it on 49.9 % of its own width, just past the half-a-cabinet line — which
+  is why the two-stack plan keeps the pair together
+
 ## [0.35.1] - 2026-08-11
 
 ### Fixed
