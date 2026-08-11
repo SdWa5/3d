@@ -15,7 +15,25 @@ import bpy
 # Blender does not put the script's directory on sys.path, so the shared helpers need help.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib import drivers, export, geometry, materials, mesh_import, truss  # noqa: E402  (after sys.path)
+from lib import (  # noqa: E402  (after sys.path)
+    drivers,
+    export,
+    fixture,
+    geometry,
+    materials,
+    mesh_import,
+    scaffold,
+    truss,
+)
+
+# Shapes that are not loudspeaker cabinets, each with its own builder. A table rather than a chain of branches:
+# there are three now, and the next one should be a line here rather than another arm. Mirrors
+# `App\Spec\Shape::isCabinet()`, which is the PHP side of the same question.
+OPEN_FRAME_BUILDERS = {
+    "truss": truss.build,
+    "moving-head": fixture.build,
+    "scaffold": scaffold.build,
+}
 
 
 def build(plan):
@@ -26,12 +44,14 @@ def build(plan):
 
     extras = []
 
-    if plan["geometry"]["shape"] == "truss":
-        # A truss has no shell, so it has none of what a shell carries: no grille to inset, no handle recesses,
-        # no chamfer to round, no drivers behind a baffle and no coverage cone. Everything below the branch still
-        # applies — the origin shift, the rigging markers and the estimated marker are about the device, not
-        # about its being a cabinet.
-        body = truss.build(plan, material_set)
+    open_frame = OPEN_FRAME_BUILDERS.get(plan["geometry"]["shape"])
+
+    if open_frame is not None:
+        # None of these has a shell, so none has what a shell carries: no grille to inset, no handle recesses, no
+        # chamfer to round, no drivers behind a baffle and no coverage cone. Everything below the branch still
+        # applies — the origin shift, the rigging markers and the estimated marker are about the device rather
+        # than about its being a cabinet.
+        body = open_frame(plan, material_set)
         collection.objects.link(body)
     elif plan.get("mesh_override"):
         # A real mesh replaces the generated shell entirely — including the grille and handle
@@ -65,7 +85,7 @@ def build(plan):
         baffle_y = front_y
         carve_into = body
 
-    if plan["geometry"]["shape"] != "truss":
+    if open_frame is None:
         # Deliberately outside the shell branches: an override supplies the shell and its baffle holes, but
         # nothing behind them, so the drivers and horns are exactly what it is missing.
         extras += drivers.build_features(plan, material_set, baffle_y, carve_into)

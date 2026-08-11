@@ -29,8 +29,9 @@ final class BuildPlan
     ): array {
         return [
             // Bumped when the plan's shape changes in a way the bpy side must react to. 2 added
-            // `geometry.truss`, which the bpy side branches on to build tubes instead of a shell.
-            'plan_version' => 2,
+            // `geometry.truss`, which the bpy side branches on to build tubes instead of a shell; 3 added
+            // `moving_head` and `scaffold`, which do the same for two more open-frame shapes.
+            'plan_version' => 3,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,
@@ -41,8 +42,10 @@ final class BuildPlan
                 // Taper dimensions: null for a plain box, which is what the builder falls back to.
                 'back_width_m' => $spec->backWidth,
                 'front_height_m' => $spec->frontHeight,
-                // Null for every cabinet; the tubes to build for `shape: truss`, which has no shell at all.
+                // Null for every cabinet; the parts to build for the shapes that have no shell at all.
                 'truss' => $spec->truss?->toArray(),
+                'moving_head' => $spec->movingHead?->toArray(),
+                'scaffold' => $spec->scaffold?->toArray(),
                 'origin' => $spec->origin->value,
                 'chamfer_m' => $spec->chamfer,
             ],

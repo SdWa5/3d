@@ -1091,6 +1091,36 @@ Three things in that are worth knowing:
 A truss is the one device whose geometry is not its bounding box: see
 [spec-format.md](spec-format.md#truss) for why, and `roll_deg: 180` for a triangular truss the other way up.
 
+## Hanging fixtures from a truss
+
+`scenes/gmss-full-stack-truss.yaml` hangs four moving heads under a 9 m truss, and it is the first scene here where
+anything hangs from anything:
+
+```yaml
+  - id: macs
+    device: gmss-mac-2000-performance-ii
+    at: [ 0.0, 0.0 ]
+    roll_deg: 180
+    fly:
+      height_m: 5.130
+      id: truss
+    row:
+      count: 4
+      gap_m: 1.610
+```
+
+**`fly.id` is what makes them one hang.** All four name `truss`, and the truss itself is flown under the same id, so
+the report adds them into a single bar total — **195.2 kg**, being 37.2 kg of truss plus 158 kg of fixture. That is
+the number a truss's capacity gets checked against, and it is why `Fly` has an `id` at all.
+
+**`roll_deg: 180`, because a fixture clamped under a bar is upside down.** A moving head's spec models it in the pose
+its datasheet height is quoted in — base down, head straight up — and hanging one means turning it over.
+
+**Rolling changes what `fly.height_m` means, and this is the easy mistake.** A model is built in bottom-center
+coordinates, so its mesh runs from the placement point *upwards*; rolled 180° about that point it runs *downwards*.
+So for an inverted fixture `height_m` is its **top**, not its bottom. Getting it wrong the first time left the
+fixtures hanging 800 mm below the truss instead of 70 mm — a gap the render showed immediately and no test could.
+
 ## What it tells you before Blender opens
 
 ```

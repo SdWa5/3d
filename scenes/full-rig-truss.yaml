@@ -101,6 +101,22 @@ placements:
       count: 4
       gap_m: 0.0
 
+  # ─── THE SCAFFOLD TOWERS ──────────────────────────────────────────────────────────────────────────────────────
+  # Both Gerüste, outboard of the goalpost — which is where a work platform actually stands at an event: clear of
+  # the truss feet, with a view over the rig. 6.000 m either side of the rig's centre line puts them well outside
+  # the towers at 4.000, so nothing shares ground with anything.
+  #
+  # THEY ARE TALLER THAN THE TRUSS, and that is the useful thing to see: the platform is at 5.000 m against a truss
+  # at 4.000, so somebody standing on one is looking down on the rig rather than up at it. Reading 7 m off the
+  # Arbeitshöhe would have put them a further two metres up, which is exactly the mistake the spec warns about.
+  - id: geruest-left
+    device: geruest-krause-ah7
+    at: [ -6.302, 0.0 ]
+
+  - id: geruest-right
+    device: geruest-krause-ah7
+    at: [ 5.698, 0.0 ]
+
 notes: |
   `full-rig-arc` with a goalpost over it: 8 m of F33 on two 4 m crank stands. The first scene here that places
   something other than a loudspeaker.
@@ -110,7 +126,10 @@ notes: |
   and the stand's weight are published figures, but that our segments are that class is an inference. See
   docs/sources.md.
 
-  Nothing hangs from the truss yet. When lights arrive they go here, and `fly.id` is how two placements sharing
-  one bar get their weight reported as one total.
+  Nothing hangs from OUR truss yet — we own no fixtures. `scenes/gmss-full-stack-truss.yaml` shows what it looks
+  like when something does: four MACs on a shared `fly.id`, reported as one 195.2 kg bar total.
+
+  Both Gerüste stand outboard, platform at 5.000 m against the truss at 4.000 — so the platforms look down on the
+  rig. That is the frame height and not the 7 m Arbeitshöhe; see `geruest-krause-ah7.yaml`.
 
   The truss sits 875 mm above the highest thing under it. Worth keeping if anything is ever slung below it.

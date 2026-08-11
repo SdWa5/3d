@@ -14,13 +14,15 @@ final class BuildPlanTest extends TestCase
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(2, $plan['plan_version']);
+        self::assertSame(3, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
         self::assertNull($plan['geometry']['back_width_m']);
         self::assertNull($plan['geometry']['front_height_m']);
         self::assertNull($plan['geometry']['truss'], 'a cabinet has no tubes');
+        self::assertNull($plan['geometry']['moving_head']);
+        self::assertNull($plan['geometry']['scaffold']);
         self::assertSame('bottom-center', $plan['geometry']['origin']);
         self::assertSame(0.012, $plan['appearance']['grille']['inset_m']);
         self::assertSame(['left', 'right'], $plan['physical']['handles']);
@@ -55,6 +57,50 @@ final class BuildPlanTest extends TestCase
             'diagonal_diameter_m' => 0.020,
             'bay_length_m' => 0.500,
         ], $plan['geometry']['truss']);
+    }
+
+    /**
+     * The other two open-frame blocks reach the plan the same way the truss one does. One test rather than two
+     * because the mechanism is identical and it is the mechanism that could break.
+     */
+    public function testTheOtherOpenFrameBlocksCarryIntoThePlan(): void
+    {
+        $head = BuildPlan::forSpec(
+            SpecFactory::spec(['geometry' => [
+                'shape' => 'moving-head',
+                'dimensions_m' => ['width' => 0.49, 'height' => 0.743, 'depth' => 0.408],
+                'moving_head' => [
+                    'base_height_m' => 0.240,
+                    'yoke_arm_thickness_m' => 0.075,
+                    'head_diameter_m' => 0.300,
+                    'head_length_m' => 0.430,
+                ],
+            ]]),
+            '/glb',
+            '/blend',
+        );
+
+        self::assertSame('moving-head', $head['geometry']['shape']);
+        self::assertSame(0.240, $head['geometry']['moving_head']['base_height_m']);
+        self::assertNull($head['geometry']['truss'], 'one shape, one block');
+
+        $tower = BuildPlan::forSpec(
+            SpecFactory::spec(['geometry' => [
+                'shape' => 'scaffold',
+                'dimensions_m' => ['width' => 1.5, 'height' => 5.0, 'depth' => 0.65],
+                'scaffold' => [
+                    'post_diameter_m' => 0.050,
+                    'brace_diameter_m' => 0.025,
+                    'platform_height_m' => 5.000,
+                    'platform_thickness_m' => 0.050,
+                ],
+            ]]),
+            '/glb',
+            '/blend',
+        );
+
+        self::assertSame('scaffold', $tower['geometry']['shape']);
+        self::assertSame(5.000, $tower['geometry']['scaffold']['platform_height_m']);
     }
 
     public function testGrilleFallsBackToTheCabinetColour(): void

@@ -194,6 +194,50 @@ final class SpecValidatorTest extends TestCase
             ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['diagonal_diameter_m' => 0.06])]],
             'is thicker than the chords',
         ];
+        // The other two open-frame shapes. Same rule as the truss block — required for its shape, refused on any
+        // other — plus the one physical check each that stops geometry escaping the stated bounding box.
+        yield 'moving head without its parts stated' => [
+            ['geometry' => ['shape' => 'moving-head']],
+            "geometry.moving_head is required for shape 'moving-head'",
+        ];
+        yield 'moving head block on a plain box' => [
+            ['geometry' => ['moving_head' => self::movingHead()]],
+            "geometry.moving_head only applies to shape 'moving-head'",
+        ];
+        yield 'a base with no room for a head above it' => [
+            ['geometry' => ['shape' => 'moving-head', 'moving_head' => self::movingHead(['base_height_m' => 0.6])]],
+            'leaves no room for a head',
+        ];
+        yield 'base plus head taller than the fixture' => [
+            ['geometry' => ['shape' => 'moving-head', 'moving_head' => self::movingHead(['head_length_m' => 0.5])]],
+            'is taller than geometry.dimensions_m.height',
+        ];
+        yield 'a head too wide for its yoke' => [
+            ['geometry' => ['shape' => 'moving-head', 'moving_head' => self::movingHead(['head_diameter_m' => 0.9])]],
+            'does not fit the',
+        ];
+        yield 'scaffold without its frame stated' => [
+            ['geometry' => ['shape' => 'scaffold']],
+            "geometry.scaffold is required for shape 'scaffold'",
+        ];
+        yield 'scaffold block on a plain box' => [
+            ['geometry' => ['scaffold' => self::scaffold()]],
+            "geometry.scaffold only applies to shape 'scaffold'",
+        ];
+        // The mistake this catches is reading a working height off a label: a tower sold as AH7 has its platform at
+        // 5 m, and a spec that put 7 in the box would clear a truss it does not clear.
+        yield 'a platform above its own frame' => [
+            ['geometry' => ['shape' => 'scaffold', 'scaffold' => self::scaffold(['platform_height_m' => 0.9])]],
+            'is above the frame',
+        ];
+        yield 'posts too fat to leave a span between them' => [
+            ['geometry' => ['shape' => 'scaffold', 'scaffold' => self::scaffold(['post_diameter_m' => 0.3])]],
+            'leaves no span between posts',
+        ];
+        yield 'bracing thicker than the posts it braces' => [
+            ['geometry' => ['shape' => 'scaffold', 'scaffold' => self::scaffold(['brace_diameter_m' => 0.06])]],
+            'is thicker than the posts',
+        ];
         yield 'truss with no bay length' => [
             ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['bay_length_m' => 0.0])]],
             'geometry.truss.bay_length_m must be greater than 0',
@@ -399,6 +443,40 @@ final class SpecValidatorTest extends TestCase
     private static function layout(array $features): array
     {
         return ['provenance' => 'estimated', 'inset_m' => 0.012, 'features' => $features];
+    }
+
+    /**
+     * A valid moving-head block against the factory's 0.8 x 0.6 x 0.45 box, for cases that break one thing.
+     *
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
+    private static function movingHead(array $overrides = []): array
+    {
+        return [
+            'base_height_m' => 0.200,
+            'yoke_arm_thickness_m' => 0.050,
+            'head_diameter_m' => 0.300,
+            'head_length_m' => 0.300,
+            ...$overrides,
+        ];
+    }
+
+    /**
+     * A valid scaffold block against the same box.
+     *
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
+    private static function scaffold(array $overrides = []): array
+    {
+        return [
+            'post_diameter_m' => 0.050,
+            'brace_diameter_m' => 0.025,
+            'platform_height_m' => 0.600,
+            'platform_thickness_m' => 0.050,
+            ...$overrides,
+        ];
     }
 
     /**

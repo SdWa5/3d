@@ -43,6 +43,10 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | | The owner | That we have **2 telescopic stands at 4 m** |
 | `gmss-truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
 | `gmss-tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our ST-132 |
+| `gmss-mac-2000-performance-ii` | — (factory fixture) | `datasheet` | [Martin MAC 2000 Performance II](https://www.martin.com/en-US/products/mac-2000-performance-ii) | 408 × 490 × 743 mm head straight up, 39.5 kg, 1200 W lamp, 540°/267° pan and tilt |
+| | | | A message from GMSS | That they have **4 of them** — "4pcs Martin mac performance 2", read as the Performance II |
+| `geruest-krause-ah7` | — (factory scaffold) | `datasheet` | [Krause Plattformgerüst AH7](https://www.bauhaus.at/kleingerueste/krause-plattformgeruest-ah7/p/29059229) | Arbeitshöhe 7 m, platform 1.50 × 0.60 m rated 200 kg, frame field 1.50 × 0.65 m, ~84 kg |
+| | | | The owner | That we have **2 of them**, and the AH7 convention: 7 m working height means a **5 m platform** |
 
 ### The 18sound drawings are partial dimensions
 
@@ -118,6 +122,32 @@ footprint, and not the folded transport size either. It is the one number in the
 `gmss-tower-5m` has no datasheet behind it at all. Its 33 kg is our ST-132's published 25 kg at 4 m scaled by
 height into a taller class — an inference from one datapoint in a neighbouring class, and the first number to
 replace if GMSS ever names the brand.
+
+### The MAC is the one GMSS device with a datasheet
+
+Every GMSS cabinet is a reconstruction from one photograph. The moving heads are not: "4pcs Martin mac performance 2"
+identifies a catalogue product, the **MAC 2000 Performance II**, and Martin publishes its dimensions and weight. So
+in `scenes/gmss-full-stack-truss.yaml` the *lights are better sourced than the speakers under them*.
+
+**One thing the schema cannot express, and it applies to every moving head.** The outer box and the weight are
+datasheet; how the height divides between base, yoke and head is not published anywhere and comes off product
+photographs. `provenance.dimensions` is a single field, so the spec says `datasheet` — which is what the bounding box
+everything downstream uses actually is — and the qualification lives in prose. Recorded as a TODO.
+
+Martin quotes "408 length × 490 width". This repository's `width` is across the device and `depth` front to back, so
+490 is the width and 408 the depth. Reversing them would put the yoke arms on the wrong faces.
+
+### The Gerüst, and why it is not 7 m tall
+
+`geruest-krause-ah7` matches the Krause Plattformgerüst AH7 on every stated figure, so its footprint, platform height,
+capacity and weight are published. **What is estimated is only the tube sections** — Krause gives the tower's
+dimensions and weight but not its tube diameters, so 50 mm posts and 25 mm braces are the ordinary aluminium sizes,
+and like a truss's bay pitch they change the picture and nothing else.
+
+**AH7 means *Arbeitshöhe* 7 m, and a working height is the platform plus about two metres of a person's reach.** So
+the platform stands at **5 m** and that is what `dimensions_m.height` carries. A spec that put 7 in the box would
+clear a truss it does not clear, which is why `SpecValidator` refuses a platform above the frame. Guardrails and rungs
+are not modelled, so the box stops at the deck and understates the standing structure by roughly a guardrail.
 
 ### GMSS is estimated end to end
 

@@ -6,6 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.59.0] - 2026-08-12
+
+### Added
+
+- **`shape: moving-head`** — base, yoke arms and head. A rack really is a box and loses nothing by being drawn as
+  one; a moving head drawn as a box is unrecognisable, and four hung on a truss would read as four flight cases
+- **`shape: scaffold`** — four posts, bracing on all four sides and a platform deck. Open like a truss for the same
+  reason, with the platform as the one solid part because that is what makes it a scaffold rather than a frame
+- **`blender/lib/tubes.py`** — the capped-cylinder primitive extracted from `truss.py`, now shared by all three
+  open-frame builders, plus `add_box` and `mesh_object` since all three finish the same way
+- **`specs/lighting/gmss-mac-2000-performance-ii.yaml`** — GMSS's four Martin MAC 2000 Performance II. "4pcs Martin
+  mac performance 2" identifies a catalogue product, so 408 × 490 × 743 mm and 39.5 kg are **datasheet figures** —
+  the only GMSS gear that has any
+- **`specs/stands/geruest-krause-ah7.yaml`** — the two Krause Plattformgerüst AH7. Footprint, platform height,
+  200 kg capacity and ~84 kg are published; only the tube sections are estimated
+- **`scenes/gmss-full-stack-truss.yaml`** — the GMSS stack, its 9 m truss on two towers, and all four MACs hung from
+  it. The first scene here where anything hangs from anything, and the first use of `fly.id`: the report adds the
+  truss and the fixtures into **one 195.2 kg bar total**, which is what a truss's capacity is checked against
+- `full-rig-truss.yaml` gains both Gerüste, and `detail-check.yaml` both new devices — fourteen of fifteen
+- `Category::Stand` gains a `scaffold` subtype. A work platform is a stand; `speaker-pole`/`tripod`/`riser` had no
+  room for it
+- `tests/Spec/ShapeTest.php` — `isCabinet()` is true for exactly box, trapezoid and wedge, and the enum's values are
+  the strings `build_model.py` dispatches on
+
+### Changed
+
+- `plan_version` 2 → 3, and `build_model.py` now dispatches through an **`OPEN_FRAME_BUILDERS` table** rather than a
+  chain of `if shape == …`. Three non-cabinet shapes made the chain the wrong shape; the next one is a table entry
+- `Shape::isCabinet()` lists the shapes that *are* cabinets rather than negating truss, and its `match` has no
+  default arm — so a new shape nobody has classified fails to compile instead of quietly inheriting a grille
+- `SpecValidator` grew `validateShapeBlocks()`, one loop covering "required for its shape, refused on any other" for
+  all three blocks, where `validateTruss()` had been doing its own copy of it
+
+### Notes
+
+- **Both identifications were checked rather than assumed.** "Martin mac performance 2" is the MAC 2000
+  Performance II; the Gerüst is the Krause AH7, and **AH7 means *Arbeitshöhe* 7 m, which is platform + 2 m of a
+  person's reach** — so the platform is at 5 m. A spec that put 7 m in the bounding box would clear a truss it does
+  not clear, and `SpecValidator` now refuses a platform above its own frame
+- **Martin's axis naming needs care**: it quotes "408 length × 490 width", where this repository's `width` is across
+  the device — so 490 is the width and 408 the depth. Reversed, the yoke arms end up on the wrong faces
+- **A rolled placement's `fly.height_m` is its top, not its bottom**, and getting that wrong left the fixtures
+  hanging 800 mm under the truss instead of 70. A model is built bottom-center so its mesh runs *up* from the
+  placement point; rolled 180° it runs *down*. The render showed it at once and no test could have
+- **`provenance.dimensions` cannot say "outer box sourced, internals estimated"**, which both new specs need: the
+  MAC's box is Martin's and its base/yoke/head split comes off photographs, and the Gerüst's footprint is published
+  where its tube diameters are not. Both say so in prose only. Filed as TODO 24
+- The plan split this as 0.59.0 then 0.60.0; it shipped as one release because the enum, the validator, the dispatch
+  table and the shared tube primitive are common to both shapes and splitting them would have been artificial
+
 ## [0.58.0] - 2026-08-12
 
 ### Added

@@ -1,0 +1,89 @@
+# Krause Plattformgerüst AH7 — the two scaffold towers, for working at height.
+#
+# WHAT WE OWN: "2x 5 meter gerüst, 7 meter arbeitshöhe including 2 meters persons hand height". Both numbers in that
+# are the same fact stated twice, and the note explains the convention itself: AH7 means *Arbeitshöhe* 7 m, and a
+# working height is the platform plus about two metres of a person's reach. So THE PLATFORM STANDS AT 5 m.
+#
+# PUBLISHED FIGURES:
+#
+#   Arbeitshöhe        7 m
+#   platform           1.50 x 0.60 m, 0.84 m2, rated 200 kg
+#   frame footprint    1.50 x 0.65 m
+#   weight             ~84 kg
+#
+# https://www.bauhaus.at/kleingerueste/krause-plattformgeruest-ah7/p/29059229
+#
+# THE WORKING HEIGHT IS NOT A BOUNDING BOX, and this is the one thing to get right about this spec. A scene that
+# read 7 m would put the structure two metres taller than it is and clear a truss it does not clear. `dimensions_m`
+# is the FRAME: 1.50 x 0.65 m on the floor, 5.000 m tall. The 7 m is a fact about people and lives in the notes.
+#
+# WHAT IS DRAWN: four posts, diagonal bracing on all four sides, and the platform deck at 5 m. WHAT IS NOT: the
+# guardrail, which on the real tower carries the posts about a metre above the deck, and the rungs. So the bounding
+# box describes the frame up to the platform and UNDERSTATES the standing structure by roughly that guardrail — the
+# box is exactly what is modelled, which is the rule everywhere in this repository, but it is not the full silhouette
+# of the thing on site.
+#
+# The deck is drawn at the frame's 1.50 x 0.65 footprint where the real one is 1.50 x 0.60. The 50 mm is the frame's
+# own thickness either side, and drawing the deck to the frame is simpler than stating an inset nobody measured.
+#
+# THE TUBE DIAMETERS ARE ESTIMATES. Krause publishes the tower's dimensions, capacity and weight but not its tube
+# sections. 50 mm posts and 25 mm braces are the ordinary sizes for aluminium tower scaffold, and like a truss's bay
+# pitch they change the picture and nothing about the box, the weight or the capacity.
+id: geruest-krause-ah7
+name: "Gerüst Krause AH7 — 5 m platform"
+category: stand
+subtype: scaffold
+quantity: 2
+owner: sdwa5
+build: original
+
+# No `clone_of`: a factory scaffold copies nothing. Manufacturer and source are in the notes and docs/sources.md.
+
+provenance:
+  # Footprint, platform height and weight are published; the tube sections are not — see the header.
+  dimensions: estimated
+  weight: datasheet
+
+geometry:
+  shape: scaffold
+  # The FRAME, not the working height. 5.000 m is the platform level and the top of the posts as modelled.
+  dimensions_m: { width: 1.500, height: 5.000, depth: 0.650 }
+  origin: bottom-center
+  chamfer_m: 0.0
+
+  scaffold:
+    post_diameter_m: 0.050
+    brace_diameter_m: 0.025
+    # The deck's top face — the surface somebody stands on.
+    platform_height_m: 5.000
+    platform_thickness_m: 0.050
+
+appearance:
+  # Mill-finish aluminium, as the truss.
+  color: "#9A9EA3"
+
+physical:
+  # Published: about 84 kg for the tower.
+  weight_kg: 84.0
+  handles: [ ]
+
+rigging:
+  # A scaffold stands on the ground. Nothing hangs from it and it hangs from nothing.
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by the owner: 2 towers, platform at 5 m, 7 m working height. That matches the Krause Plattformgerüst AH7 —
+  https://www.bauhaus.at/kleingerueste/krause-plattformgeruest-ah7/p/29059229
+
+  ARBEITSHÖHE 7 m IS NOT A HEIGHT THIS MODEL HAS. The convention adds two metres for a person's reach, so the
+  platform is at 5 m and that is what `dimensions_m.height` carries. Do not read 7 m off this spec.
+
+  Platform rated 200 kg — the number that matters when deciding who and what goes up. There is no field for a load
+  rating in this schema, the same gap the truss stands have.
+
+  From the manufacturer's own note: for greater heights the 1.50 × 0.65 m field is not enough on its own and a
+  V-shaped traverse widens the base. Those outriggers are NOT modelled, so as with the truss stands the footprint
+  here is the frame's rather than the working one.
+
+  NOT MODELLED: the guardrail above the deck and the rungs. The box is what is drawn, so it stops at the platform.

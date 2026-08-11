@@ -42,6 +42,8 @@ final class DeviceSpec
         public readonly ?float $backWidth,
         public readonly ?float $frontHeight,
         public readonly ?Truss $truss,
+        public readonly ?MovingHead $movingHead,
+        public readonly ?Scaffold $scaffold,
         public readonly Origin $origin,
         public readonly float $chamfer,
         public readonly string $color,
@@ -97,6 +99,12 @@ final class DeviceSpec
             frontHeight: $geometry->optionalFloat('front_height_m'),
             truss: ($trussSection = $geometry->optionalSection('truss')) !== null
                 ? Truss::fromReader($trussSection)
+                : null,
+            movingHead: ($headSection = $geometry->optionalSection('moving_head')) !== null
+                ? MovingHead::fromReader($headSection)
+                : null,
+            scaffold: ($scaffoldSection = $geometry->optionalSection('scaffold')) !== null
+                ? Scaffold::fromReader($scaffoldSection)
                 : null,
             origin: $geometry->optionalEnum('origin', Origin::class, Origin::BottomCenter),
             chamfer: $geometry->optionalFloat('chamfer_m', 0.0) ?? 0.0,

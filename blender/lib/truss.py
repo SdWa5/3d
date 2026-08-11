@@ -13,80 +13,13 @@ radius, so the tubes touch its faces exactly and the box stays the truth the res
 by — scene placement, the overlap sweep and the catalog's shipping volume all read `dimensions_m` and none of them
 knows a truss from a sub.
 
+The tube primitive lives in `tubes.py`, shared with the moving-head and scaffold builders.
+
 A three-chord segment is built **apex up**: two chords along the bottom, one along the top. Real triangular truss is
 flown either way round, and a scene that wants it inverted has `roll_deg: 180` — the same key the Flexy rows use.
 """
 
-import math
-
-import bmesh
-import bpy
-
-from . import materials
-
-# Vertices per tube ring. A chord is 50 mm across in a picture metres wide, so ten sides already read as round and
-# a smoother tube would spend geometry nobody can see — the same reasoning as the cone rings in drivers.py.
-_TUBE_SIDES = 10
-
-
-def _normalise(vector):
-    length = math.sqrt(sum(component * component for component in vector))
-    if length == 0.0:
-        raise ValueError("a truss member cannot have zero length")
-
-    return tuple(component / length for component in vector)
-
-
-def _cross(a, b):
-    return (
-        a[1] * b[2] - a[2] * b[1],
-        a[2] * b[0] - a[0] * b[2],
-        a[0] * b[1] - a[1] * b[0],
-    )
-
-
-def _perpendicular_basis(axis):
-    """Two unit vectors spanning the plane across `axis`, for laying a ring out on.
-
-    The helper vector is chosen along whichever world axis the member leans on *least*, because crossing with a
-    nearly-parallel vector loses all its precision — and a truss has members along X, across Y and diagonal, so
-    no single fixed helper is safe for all of them.
-    """
-    smallest = min(range(3), key=lambda index: abs(axis[index]))
-    helper = tuple(1.0 if index == smallest else 0.0 for index in range(3))
-
-    u = _normalise(_cross(axis, helper))
-
-    return u, _cross(axis, u)
-
-
-def _add_tube(verts, faces, start, end, diameter, sides=_TUBE_SIDES):
-    """One capped cylinder between two arbitrary points, appended to a shared vertex and face list.
-
-    Capped, because an open tube end shows as a hole from any angle that can see into it — and on a truss, the
-    cut ends of every diagonal face outwards.
-    """
-    axis = _normalise(tuple(end[index] - start[index] for index in range(3)))
-    u, v = _perpendicular_basis(axis)
-    radius = diameter / 2.0
-
-    base = len(verts)
-    for point in (start, end):
-        for step in range(sides):
-            angle = 2.0 * math.pi * step / sides
-            offset = tuple(
-                radius * (math.cos(angle) * u[index] + math.sin(angle) * v[index])
-                for index in range(3)
-            )
-            verts.append(tuple(point[index] + offset[index] for index in range(3)))
-
-    for step in range(sides):
-        nxt = (step + 1) % sides
-        faces.append((base + step, base + nxt, base + sides + nxt, base + sides + step))
-
-    # Both caps as n-gons. Winding is left to bmesh, which recalculates normals for the whole mesh anyway.
-    faces.append(tuple(base + step for step in range(sides)))
-    faces.append(tuple(base + sides + step for step in range(sides)))
+from . import materials, tubes
 
 
 def _chord_positions(dims, chords, radius):
@@ -166,18 +99,6 @@ def build(plan, material_set):
     verts = []
     faces = []
     for start, end, diameter in _members(geometry["dimensions_m"], spec):
-        _add_tube(verts, faces, start, end, diameter)
+        tubes.add_tube(verts, faces, start, end, diameter)
 
-    mesh = bpy.data.meshes.new(plan["id"])
-    bm = bmesh.new()
-    bm_verts = [bm.verts.new(vert) for vert in verts]
-    for face in faces:
-        bm.faces.new([bm_verts[index] for index in face])
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bm.to_mesh(mesh)
-    bm.free()
-
-    obj = bpy.data.objects.new(plan["id"], mesh)
-    obj.data.materials.append(material_set[materials.CABINET])
-
-    return obj
+    return tubes.mesh_object(plan["id"], verts, faces, material_set[materials.CABINET])

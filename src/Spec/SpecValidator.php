@@ -19,6 +19,15 @@ final class SpecValidator
 
     private const COLOR_PATTERN = '/^#[0-9a-fA-F]{6}$/';
 
+    /**
+     * Slack allowed when checking that a shape's parts fit inside its stated bounding box.
+     *
+     * A tenth of a millimetre, which is below anything a tape measure or a datasheet reports, and exists only so a
+     * part that fills its box exactly is not refused by floating-point noise — `0.408 - 2 * 0.204` is not reliably
+     * zero. It is not a tolerance for sloppy numbers: a part a millimetre too big still fails.
+     */
+    private const FIT_TOLERANCE_M = 0.0001;
+
     public function __construct(private readonly string $projectDir)
     {
     }
@@ -566,11 +575,159 @@ final class SpecValidator
             }
         }
 
-        return [...$messages, ...$this->validateTruss($spec)];
+        return [
+            ...$messages,
+            ...$this->validateShapeBlocks($spec),
+            ...$this->validateTruss($spec),
+            ...$this->validateMovingHead($spec),
+            ...$this->validateScaffold($spec),
+        ];
     }
 
     /**
-     * The truss block: required for `shape: truss`, refused on anything else, and its tubes have to fit.
+     * Each shape that is not a hexahedron needs its own block, and refuses everyone else's.
+     *
+     * One loop rather than the same six lines in three methods: the rule is identical for all of them, and it is
+     * the rule the taper fields already follow — a shape's extra geometry is stated outright or the spec is wrong.
+     *
+     * @return list<string>
+     */
+    private function validateShapeBlocks(DeviceSpec $spec): array
+    {
+        $blocks = [
+            'truss' => [Shape::Truss, $spec->truss],
+            'moving_head' => [Shape::MovingHead, $spec->movingHead],
+            'scaffold' => [Shape::Scaffold, $spec->scaffold],
+        ];
+
+        $messages = [];
+        foreach ($blocks as $key => [$requiredBy, $value]) {
+            if ($spec->shape === $requiredBy && $value === null) {
+                $messages[] = "geometry.{$key} is required for shape '{$requiredBy->value}'";
+            } elseif ($spec->shape !== $requiredBy && $value !== null) {
+                $messages[] = "geometry.{$key} only applies to shape '{$requiredBy->value}', not '{$spec->shape->value}'";
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * A moving head's parts have to fit the box the datasheet gave, and add up to it.
+     *
+     * The height check is the one that earns its place. `dimensions_m.height` is quoted by manufacturers with the
+     * head straight up, so base + head really should account for it — and a base and head that together overflow
+     * the box would put geometry outside the volume scene placement and the overlap sweep reason about.
+     *
+     * @return list<string>
+     */
+    private function validateMovingHead(DeviceSpec $spec): array
+    {
+        $head = $spec->movingHead;
+        if ($head === null) {
+            return [];
+        }
+
+        $messages = [];
+
+        foreach ([
+            'base_height_m' => $head->baseHeight,
+            'yoke_arm_thickness_m' => $head->yokeArmThickness,
+            'head_diameter_m' => $head->headDiameter,
+            'head_length_m' => $head->headLength,
+        ] as $key => $value) {
+            if ($value <= 0.0) {
+                $messages[] = "geometry.moving_head.{$key} must be greater than 0, got {$value}";
+            }
+        }
+
+        if ($head->baseHeight >= $spec->dimensions->height) {
+            $messages[] = sprintf(
+                'geometry.moving_head.base_height_m (%s) leaves no room for a head inside the %s m height',
+                $head->baseHeight,
+                $spec->dimensions->height,
+            );
+        }
+
+        if ($head->baseHeight + $head->headLength > $spec->dimensions->height + self::FIT_TOLERANCE_M) {
+            $messages[] = sprintf(
+                'geometry.moving_head: base %s + head %s is taller than geometry.dimensions_m.height (%s)',
+                $head->baseHeight,
+                $head->headLength,
+                $spec->dimensions->height,
+            );
+        }
+
+        // The head hangs between the yoke arms, so it has to be narrower than the gap they leave.
+        $gap = $spec->dimensions->width - 2 * $head->yokeArmThickness;
+        if ($head->headDiameter > $gap + self::FIT_TOLERANCE_M) {
+            $messages[] = sprintf(
+                'geometry.moving_head.head_diameter_m (%s) does not fit the %s m between the yoke arms',
+                $head->headDiameter,
+                $gap,
+            );
+        }
+
+        return $messages;
+    }
+
+    /**
+     * A scaffold's platform has to be inside its frame, and its posts have to fit the footprint.
+     *
+     * @return list<string>
+     */
+    private function validateScaffold(DeviceSpec $spec): array
+    {
+        $scaffold = $spec->scaffold;
+        if ($scaffold === null) {
+            return [];
+        }
+
+        $messages = [];
+
+        foreach ([
+            'post_diameter_m' => $scaffold->postDiameter,
+            'brace_diameter_m' => $scaffold->braceDiameter,
+            'platform_height_m' => $scaffold->platformHeight,
+            'platform_thickness_m' => $scaffold->platformThickness,
+        ] as $key => $value) {
+            if ($value <= 0.0) {
+                $messages[] = "geometry.scaffold.{$key} must be greater than 0, got {$value}";
+            }
+        }
+
+        if ($scaffold->platformHeight > $spec->dimensions->height) {
+            $messages[] = sprintf(
+                'geometry.scaffold.platform_height_m (%s) is above the frame — geometry.dimensions_m.height is %s.'
+                .' A working height is not a bounding box; keep the reach in the notes',
+                $scaffold->platformHeight,
+                $spec->dimensions->height,
+            );
+        }
+
+        $footprint = min($spec->dimensions->width, $spec->dimensions->depth);
+        if ($scaffold->postDiameter * 2 > $footprint) {
+            $messages[] = sprintf(
+                'geometry.scaffold.post_diameter_m (%s) leaves no span between posts across the %s m footprint',
+                $scaffold->postDiameter,
+                $footprint,
+            );
+        }
+
+        if ($scaffold->braceDiameter > $scaffold->postDiameter && $scaffold->postDiameter > 0.0) {
+            $messages[] = sprintf(
+                'geometry.scaffold.brace_diameter_m (%s) is thicker than the posts (%s) — bracing is the thinner tube',
+                $scaffold->braceDiameter,
+                $scaffold->postDiameter,
+            );
+        }
+
+        return $messages;
+    }
+
+    /**
+     * The truss block's own numbers: chord count, tube diameters and the bay pitch. Whether the block is required
+     * at all belongs to {@see validateShapeBlocks}.
      *
      * The fitting check is the one worth having. `dimensions_m` is the bounding box the rest of the repository
      * measures a truss by — scene placement, the overlap sweep, the catalog's shipping volume — so a chord fatter
@@ -582,15 +739,9 @@ final class SpecValidator
     private function validateTruss(DeviceSpec $spec): array
     {
         $truss = $spec->truss;
-
-        if ($spec->shape !== Shape::Truss) {
-            return $truss === null
-                ? []
-                : ["geometry.truss only applies to shape 'truss', not '{$spec->shape->value}'"];
-        }
-
         if ($truss === null) {
-            return ["geometry.truss is required for shape 'truss'"];
+            // Whether it is required at all is {@see validateShapeBlocks}' question, asked once for all three shapes.
+            return [];
         }
 
         $messages = [];

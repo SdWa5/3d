@@ -84,6 +84,11 @@ over the full rig. A truss is the one device whose geometry is *not* its boundin
 the box would stand a solid wall where the span should be and hide the rig behind it. `shape: truss` builds chords
 and bracing from the tube sizes instead ([docs/spec-format.md](docs/spec-format.md#truss)).
 
+Beyond that: [`specs/lighting/`](specs/lighting) holds GMSS's four Martin MAC 2000 Performance II — the only gear of
+theirs with a real datasheet — and [`specs/stands/`](specs/stands) the two Krause AH7 scaffold towers.
+[`scenes/gmss-full-stack-truss.yaml`](scenes/gmss-full-stack-truss.yaml) hangs the fixtures under their 9 m truss and
+reports the bar total, **195.2 kg**, which is the number a truss's capacity is checked against.
+
 ## Commands
 
 | Command          | Does                                                                                                                             |
@@ -111,7 +116,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 ## Repository layout
 
 ```
-specs/          one YAML file per device — the source of truth, in speakers/ and truss/
+specs/          one YAML file per device — speakers/, truss/, lighting/, stands/
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/

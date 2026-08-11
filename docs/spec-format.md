@@ -33,7 +33,7 @@ deviations: |                 # optional: how the build differs from the origina
   Custom grille art, different corner hardware.
 
 geometry:
-  shape: box                  # box | trapezoid | wedge | truss
+  shape: box                  # box | trapezoid | wedge | truss | moving-head | scaffold
   dimensions_m:               # outer dimensions, always the true bounding box
     width: 0.80
     height: 0.58
@@ -41,6 +41,8 @@ geometry:
   back_width_m: null          # trapezoid only: width at the back
   front_height_m: null        # wedge only: height at the front
   truss: null                 # truss only: the tubes — see Shapes below
+  moving_head: null           # moving-head only: base, yoke and head
+  scaffold: null              # scaffold only: posts, bracing and platform
   origin: bottom-center       # bottom-center | rigging-point | geometric-center
   chamfer_m: 0.012            # edge bevel; below half the smallest edge
 
@@ -234,6 +236,8 @@ from a ratio would invent a measurement, which is exactly what `provenance` exis
 | `trapezoid` | `back_width_m` | narrows towards the back, e.g. an array-able top |
 | `wedge` | `front_height_m` | lower at the front, e.g. a floor monitor |
 | `truss` | `truss` (a block) | chords and bracing instead of a shell — see below |
+| `moving-head` | `moving_head` (a block) | base, yoke arms and head — see below |
+| `scaffold` | `scaffold` (a block) | posts, bracing and a platform — see below |
 
 The front face stays a full `width × height` (or `width × front_height_m`) rectangle in the first three,
 which is why the grille frame works the same way everywhere.
@@ -265,6 +269,52 @@ everything a truss has none of: grille, handle recesses, chamfer, drivers and th
 
 `bay_length_m` is usually the only unsourced number in an otherwise sourced truss spec — manufacturers
 publish tube sizes and weights but rarely the brace pitch. It changes the picture and nothing else.
+
+### moving-head
+
+A rack really is a box and loses nothing by being drawn as one. A **moving head drawn as a box is
+unrecognisable**, and four of them hung on a truss would read as four flight cases — so the three parts are
+stated and built.
+
+```yaml
+geometry:
+  shape: moving-head
+  dimensions_m: { width: 0.490, height: 0.743, depth: 0.408 }
+  moving_head:
+    base_height_m: 0.240          # the base, on the floor
+    yoke_arm_thickness_m: 0.075   # the two arms, as tubes
+    head_diameter_m: 0.300
+    head_length_m: 0.430
+```
+
+**Pan and tilt are zero — the head points straight up.** That is the pose a datasheet quotes its height in and so
+the only pose in which `dimensions_m` is true. Aim is a cue, not a dimension: a scene aims one with `yaw_deg` and
+`pitch_deg`, and hangs one upside down under a bar with `roll_deg: 180`.
+
+These four numbers are typically the **estimated part of an otherwise sourced spec**: manufacturers publish the
+overall size and the weight but not how the height divides. `provenance.dimensions` is a single field and cannot
+say "box sourced, internals estimated", so the spec has to say it in prose.
+
+### scaffold
+
+Open like a truss and drawn from tubes for the same reason. What makes it a scaffold is the **platform**, so that
+is the one solid part.
+
+```yaml
+geometry:
+  shape: scaffold
+  dimensions_m: { width: 1.500, height: 5.000, depth: 0.650 }
+  scaffold:
+    post_diameter_m: 0.050
+    brace_diameter_m: 0.025       # always the thinner tube
+    platform_height_m: 5.000      # the deck's top face — where somebody stands
+    platform_thickness_m: 0.050
+```
+
+**`platform_height_m` is not the working height.** A tower sold as "AH7" — *Arbeitshöhe* 7 m — has its platform at
+5 m, because the convention adds two metres for a person's reach. That two metres is a fact about people and has no
+place in a bounding box: `dimensions_m.height` is the frame, and the validator refuses a platform above it.
+Guardrails and rungs are not modelled, so the box stops at the deck.
 
 ## Mesh overrides
 

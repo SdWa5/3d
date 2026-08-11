@@ -36,9 +36,7 @@
        carries the 1.420 m tops row at 92% bearing and lands the tops 50 mm off level with the columns — three things
        agreeing, but still a reading of a photograph rather than a fact. It could be a cabinet type GMSS never listed.
        The low boxes under the middle bay are not modelled either
-    5. the 4 Martin MAC Performance 2 moving heads, as `category: other`. Real datasheet dimensions are published for
-       these, so they would be the only GMSS items with solid provenance
-    6. reference photo: /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.jpeg
+    5. reference photo: /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.jpeg
 7. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a
@@ -63,24 +61,20 @@
        like a venue rather than a void
     3. port the existing 2D setup drawings in Drive (`…/setups/`, ~13 events as SVG) into scene files — they encode
        stack arrangements that already worked
-10. more categories: amp racks, stands, lighting. The schema and validator already accept them, and **truss is
-    done** — `shape: truss` builds chords and bracing, and `specs/truss/` holds our segments and stands plus
-    GMSS's. A rack is a box and needs no new shape, so the geometry still missing is a telescoping mast and the
-    lighting fixtures
-    1. 2x 5 meter gerüst, 7 meter arbeitshöhe including 2 meters persons hand height (Das Krause Plattformgerüst AH7
-       lässt schnell und einfach werkzeuglos montieren. Aufgrund des vertikal unabhängigen Rahmens kann es auf Treppen
-       verwendet werden. Die Stabilität wird durch Diagonalträger gewährleistet. Die 7 m hohe, 1,50 m lange und 0,60 m
-       breite Plattform ist witterungsbeständig. Bei der zweiten Aufstockung wird der Gerüstrahmen um 2 Meter angehoben,
-       was mit dem Sockel und der ersten Aufstockung bis zu 7 Meter Arbeitshöhe bedeutet.)
-    2. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
+10. more categories: amp racks and the remaining lighting. **Truss, moving heads and the Gerüst are done** —
+    `shape: truss`, `moving-head` and `scaffold` all build from the shared tube primitive in `blender/lib/tubes.py`,
+    and `specs/` now has truss/, lighting/ and stands/ beside speakers/. A rack is a box and needs no new shape, so
+    the only geometry still missing is a telescoping mast
+    1. amps and DSP are documented in Drive but not modelled — Gisen MM14K, Behringer Europower 4000, t.amp Proline 3000
        (2 racks for amps 1 rack for power distribution)
-    3. lighting: 2 600w rgb led strobes, 1 mini moving head, 1 mini laser
-    4. **a telescoping mast shape for the towers.** `truss-tower-4m` and `gmss-tower-5m` are `shape: box` — a
+    2. lighting: 2 600w rgb led strobes, 1 mini moving head, 1 mini laser. No brands stated, so no
+       dimensions — the weakest-sourced group left. `shape: moving-head` already exists for the mini head
+    3. **a telescoping mast shape for the towers.** `truss-tower-4m` and `gmss-tower-5m` are `shape: box` — a
        0.203 m column, which is the folded base size. A crank stand is a nested mast on folding outriggers, and
        neither the nesting nor the outriggers are drawn. The outriggers matter most: unfolded they spread to
        1.499 × 1.499 m, which is what has to be kept clear at the feet on a real stage, where the scene shows a
        column a fifth of that. A `mast` shape taking a section count and the folded/unfolded base would fix both
-    5. **`Rack` has no subtype for power distribution.** `Category::Rack` allows `amp` / `network` / `shipping`,
+    4. **`Rack` has no subtype for power distribution.** `Category::Rack` allows `amp` / `network` / `shipping`,
        and the third rack in 10.2 is neither — it distributes power. Needs a `power` case before those specs land
 11. audio routing table, for the coverage work ->
     https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604
@@ -153,3 +147,10 @@
     `weight_kg` is on every spec while no centre of mass is ever computed. A tipping angle — combined centre of mass
     against the base half-width — would put a number on it, and there is no citable limit to compare it against, so it
     wants reporting rather than refusing
+24. **`provenance.dimensions` cannot say "outer box sourced, internals estimated".** It is one field for the whole
+    geometry, and the shapes built from parts break that assumption: `gmss-mac-2000-performance-ii` has its 408 × 490
+    × 743 mm box and its 39.5 kg from Martin's datasheet, while the split between base, yoke and head comes off
+    product photographs. The spec says `datasheet` — correct for the bounding box everything downstream reads — and
+    the qualification survives only as prose in the file and in docs/sources.md, where nothing can check it. The same
+    applies to `geruest-krause-ah7`, whose footprint and weight are published and whose tube diameters are not. A
+    per-block provenance, or a `provenance.parts` beside `dimensions`, would let the spec say what is actually true

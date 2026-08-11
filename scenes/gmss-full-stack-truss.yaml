@@ -1,0 +1,130 @@
+# GMSS with its truss and lights — the first scene in the library where anything hangs from anything.
+#
+# WHAT IS HERE: the GMSS stack as `gmss-full-stack.yaml` has it, their 9 m truss on their two 5.2 m towers, and all
+# four Martin MAC 2000 Performance II hung from the truss. Every item GMSS listed except the mid-bass count that was
+# never stated — this is as close to "the whole system" as their own description allows.
+#
+# THE POINT OF THE SCENE IS THE HUNG WEIGHT. Four MACs are 4 x 39.5 = 158 kg on one 9 m truss whose own weight is
+# 37.2 kg, and `scene:build` reports it as one bar total because all four name the same `fly.id`. That is what
+# `src/Scene/Fly.php` was written for — "two hangs off one bar name the same id and the report adds them up" — and
+# until now nothing in the repository used it. A number like 158 kg is the whole reason to model lights at all: it
+# is what a truss's capacity gets checked against, and it is invisible in a photograph.
+#
+# THE TRUSS HEIGHT IS DERIVED. The towers are 5.200 m at full extension, so the truss's bottom chords rest there and
+# `fly.height_m` is 5.200. Its own 0.258 m of section puts its top at 5.458.
+#
+# THE FIXTURES HANG BELOW THE TRUSS, AND UPSIDE DOWN. `roll_deg: 180` turns each one over, because the spec models a
+# MAC in the pose its datasheet height is quoted in — base down, head straight up — and a fixture clamped under a bar
+# is the other way up: base bolted to the truss, head pointing at the floor.
+#
+# ROLLING MOVES WHERE THE BODY SITS, and getting this wrong is what left an 800 mm gap under the truss on the first
+# attempt. A model is built in bottom-center coordinates, so its mesh runs from its placement point UPWARDS; rolled
+# 180 degrees about that same point it runs DOWNWARDS instead. So `fly.height_m` is the fixture's TOP once it is
+# inverted, not its bottom — 5.130 puts the base 70 mm under the truss's bottom chord at 5.200, which is the omega
+# bracket and clamp that are not modelled, and hangs the head down to 4.387.
+#
+# THE SPACING IS DERIVED. Four fixtures across a 9 m truss, centred: `align` is not used because a row of four with
+# a stated gap is the simpler statement and there is no envelope to justify into. 2.100 m apart puts them at
+# -3.150, -1.050, 1.050 and 3.150 — inside the truss's 9 m and outside the 2.44 m stack below, so nothing is
+# hanging over the cabinets where a shackle could reach them.
+#
+# WHAT IS NOT MODELLED: the omega brackets and clamps between fixture and truss, the cabling, and the GMSS towers'
+# outriggers. All three are stated in the specs they belong to rather than drawn here.
+id: gmss-full-stack-truss
+name: "GMSS — full stack, truss and lights"
+
+focus:
+  distance_m: 12.0
+  height_m: 1.8
+
+placements:
+  # ─── THE STACK, exactly as `gmss-full-stack.yaml` has it ──────────────────────────────────────────────────────
+  - id: middle-subs
+    device: gmss-middle-sub
+    at: [ 0.0, 0.0 ]
+    row:
+      count: 2
+      gap_m: 0.02
+
+  - id: middle-sub-upper
+    device: gmss-middle-sub
+    on: middle-subs
+    at: [ -0.510, 0.0 ]
+    roll_deg: 90
+
+  - id: tops
+    device: gmss-turbo-top
+    on: middle-sub-upper
+    at: [ 0.0, 0.0 ]
+    row:
+      count: 3
+      gap_m: 0.02
+
+  - id: small-sub-left
+    device: gmss-mid-bass
+    at: [ -0.922, 0.0 ]
+
+  - id: column-left
+    device: gmss-turbo-sub
+    on: small-sub-left
+    at: [ -0.922, 0.0 ]
+    lattice:
+      count: [ 1, 1, 3 ]
+
+  - id: small-sub-right
+    device: gmss-mid-bass
+    at: [ 0.922, 0.0 ]
+
+  - id: column-right
+    device: gmss-turbo-sub
+    on: small-sub-right
+    at: [ 0.922, 0.0 ]
+    lattice:
+      count: [ 1, 1, 3 ]
+
+  # ─── THE GOALPOST ─────────────────────────────────────────────────────────────────────────────────────────────
+  # The towers stand outboard of the stack, 9 m apart so the truss's ends land on them.
+  - id: tower-left
+    device: gmss-tower-5m
+    at: [ -4.500, 0.0 ]
+
+  - id: tower-right
+    device: gmss-tower-5m
+    at: [ 4.500, 0.0 ]
+
+  - id: truss
+    device: gmss-truss-9m
+    at: [ 0.0, 0.0 ]
+    fly:
+      height_m: 5.200
+
+  # ─── THE LIGHTS ───────────────────────────────────────────────────────────────────────────────────────────────
+  # All four on one bar, and `fly.id` is what says so: the report adds them into a single 158 kg total instead of
+  # four separate hangs, because what gets checked against a truss's capacity is the sum.
+  - id: macs
+    device: gmss-mac-2000-performance-ii
+    at: [ 0.0, 0.0 ]
+    # UPSIDE DOWN, because that is how a fixture hangs — see the header. Rolled, `fly.height_m` is the fixture's
+    # top rather than its bottom, so 5.130 hangs the base 70 mm under the truss and the head down to 4.387.
+    roll_deg: 180
+    fly:
+      height_m: 5.130
+      id: truss
+    row:
+      count: 4
+      gap_m: 1.610
+
+notes: |
+  The whole GMSS system as far as their own description allows: the stack, the 9 m truss on two 5.2 m towers, and
+  four Martin MAC 2000 Performance II hung from the truss.
+
+  THE NUMBER TO LOOK AT is the bar total. Four MACs are 158 kg on one truss, reported as one hang because they share
+  a `fly.id`. That is more than a Global Truss ST-132 stand is rated to carry at 100 kg — GMSS's towers are not
+  ST-132s and their rating is unknown, which is exactly the kind of thing this scene makes askable.
+
+  `scene:build` reports gear from one owner here, all of it GMSS, and warns that the positions rely on un-measured
+  cabinets — every GMSS cabinet is a reconstruction from one photograph. The MACs are the exception and the only
+  GMSS device with a datasheet, so the lights in this picture are better sourced than the speakers under them.
+
+  Compare `gmss-full-stack.yaml`, the same stack with no truss, and `full-rig-truss.yaml`, our own rig under a
+  goalpost with nothing hanging from it yet.

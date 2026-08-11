@@ -9,10 +9,17 @@ namespace App\Spec;
  * is the classic tapered top; `Wedge` is a floor monitor. All three are driven purely by the
  * spec's dimensions, so a shape change never invents new measurements.
  *
- * `Truss` is the odd one out and the only one that is not a hexahedron. The first three describe
- * solid things whose outer dimensions are the object; a truss's outer dimensions are a volume it
- * barely fills, so it is built from tubes instead — see {@see Truss}. It is also the first shape
- * that is not a loudspeaker, which is why the builder skips grille, handles and drivers for it.
+ * The first three are one hexahedron with different corners, and their outer dimensions *are* the
+ * object. The rest are not hexahedra at all, and each is built from its own parts:
+ *
+ * - `Truss` — chords and bracing, because a truss's outer dimensions are a volume it barely fills
+ *   and a solid box would hide the rig behind it. See {@see Truss}.
+ * - `MovingHead` — base, yoke and head, because a moving head's shape is its identity and a box
+ *   would be unrecognisable. See {@see MovingHead}.
+ * - `Scaffold` — posts, bracing and a platform. See {@see Scaffold}.
+ *
+ * None of them is a loudspeaker, which is why {@see isCabinet} exists and why the builder skips
+ * grille, handles, chamfer, drivers and the coverage cone for all three.
  */
 enum Shape: string
 {
@@ -20,6 +27,8 @@ enum Shape: string
     case Trapezoid = 'trapezoid';
     case Wedge = 'wedge';
     case Truss = 'truss';
+    case MovingHead = 'moving-head';
+    case Scaffold = 'scaffold';
 
     /**
      * Whether the shape is a loudspeaker cabinet, and so gets a grille, handle recesses and drivers.
@@ -27,9 +36,15 @@ enum Shape: string
      * Asked as a question about the shape rather than about {@see Category}, because it is the *geometry*
      * that decides: a rack is `Box` and gets the same shell treatment a cabinet does, while a truss
      * cannot take a grille no matter what category it is filed under.
+     *
+     * Written as the list of shapes that ARE cabinets rather than as "not truss". There are three that are not
+     * now, and a fourth added without thinking would otherwise quietly inherit a grille and a coverage cone.
      */
     public function isCabinet(): bool
     {
-        return $this !== self::Truss;
+        return match ($this) {
+            self::Box, self::Trapezoid, self::Wedge => true,
+            self::Truss, self::MovingHead, self::Scaffold => false,
+        };
     }
 }
