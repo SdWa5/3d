@@ -41,13 +41,23 @@ final class Gravity
     public const MIN_BEARING = 0.5;
 
     /**
+     * How close to the landing height a second support has to be before it carries the cabinet too.
+     *
+     * A centimetre, the same figure {@see StackSolver::OVERHANG_TOLERANCE_M} calls "what the rubber feet and the
+     * working gaps absorb". Requiring supports to be *exactly* level was too strict to be physical: a cabinet
+     * bridging two neighbours a millimetre apart in height rests on both of them, and crediting it with only the
+     * taller one understates what is holding it up.
+     */
+    private const LEVEL_TOLERANCE_M = 0.01;
+
+    /**
      * The runs of every tier, bottom up, each one already knowing what it stands on and how well.
      *
      * @param list<Tier> $tiers
      * @param string $prefix the placement id the run ids hang off
      * @return list<list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
-     *     top: float, on: string|null, bearing: float
+     *     top: float, on: string|null, bearing: float, roll: float
      * }>> one entry per tier, in the same order
      */
     public static function resolve(array $tiers, float $gapM, string $prefix): array
@@ -85,7 +95,8 @@ final class Gravity
                     'id' => $id,
                     'lo' => $run['lo'],
                     'hi' => $run['hi'],
-                    'top' => $run['top'] + $run['device']->dimensions->height,
+                    // The **rolled** height: a Flexy on its side raises what stands on it by 591 mm, not 763.
+                    'top' => $run['top'] + RolledBox::heightOf($run['device'], $run['roll']),
                 ];
             }
 
@@ -126,9 +137,9 @@ final class Gravity
      * Null unless each of the three groups fits the span it would be given. A segment wider than its shoulder
      * would only trade one bad landing for another, and inventing some other distribution is guessing.
      *
-     * @param list<array{DeviceSpec, int, float}> $seats
+     * @param list<array{DeviceSpec, int, float, float}> $seats
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
-     * @return list<array{DeviceSpec, int, float}>|null
+     * @return list<array{DeviceSpec, int, float, float}>|null
      */
     private static function outboardSeats(array $seats, array $below, float $gapM): ?array
     {
@@ -153,9 +164,9 @@ final class Gravity
             }
 
             $x = ($lo + $hi) / 2 - $span / 2;
-            foreach ($segments as [$device, $count]) {
-                $own = $count * $device->dimensions->width + ($count - 1) * $gapM;
-                $placed[] = [$device, $count, $x + $own / 2];
+            foreach ($segments as [$device, $count, , $roll]) {
+                $own = $count * RolledBox::widthOf($device, $roll) + ($count - 1) * $gapM;
+                $placed[] = [$device, $count, $x + $own / 2, $roll];
                 $x += $own + $gapM;
             }
         }
@@ -167,14 +178,14 @@ final class Gravity
      * How wide a set of segments stands side by side — cabinets plus one gap between every neighbouring pair,
      * across a segment boundary as much as within one.
      *
-     * @param list<array{DeviceSpec, int, float}> $segments
+     * @param list<array{DeviceSpec, int, float, float}> $segments
      */
     private static function spanOf(array $segments, float $gapM): float
     {
         $width = 0.0;
         $cabinets = 0;
-        foreach ($segments as [$device, $count]) {
-            $width += $count * $device->dimensions->width;
+        foreach ($segments as [$device, $count, , $roll]) {
+            $width += $count * RolledBox::widthOf($device, $roll);
             $cabinets += $count;
         }
 
@@ -188,19 +199,19 @@ final class Gravity
      * ground is still a single row and only a stepped one splits. `on:` then does the rest: it reads the
      * support's own top face, so every height still comes out of the specs and none is written down.
      *
-     * @param list<array{DeviceSpec, int, float}> $seats
+     * @param list<array{DeviceSpec, int, float, float}> $seats
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
      * @return list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
-     *     top: float, on: string|null, bearing: float
+     *     top: float, on: string|null, bearing: float, roll: float
      * }>
      */
     private static function runs(array $seats, array $below, float $gapM): array
     {
         $runs = [];
 
-        foreach ($seats as [$device, $count, $centreX]) {
-            $width = $device->dimensions->width;
+        foreach ($seats as [$device, $count, $centreX, $roll]) {
+            $width = RolledBox::widthOf($device, $roll);
             $span = $count * $width + ($count - 1) * $gapM;
             $x = $centreX - $span / 2;
 
@@ -208,7 +219,9 @@ final class Gravity
                 ['on' => $on, 'top' => $top, 'bearing' => $bearing] = self::landsOn($below, $x, $x + $width);
 
                 $last = $runs === [] ? null : $runs[count($runs) - 1];
-                if ($last !== null && $last['device'] === $device && $last['on'] === $on) {
+                // Device, support **and roll**: the two halves of a mirrored tier are turned opposite ways, so
+                // they are two placements however level the ground under them is.
+                if ($last !== null && $last['device'] === $device && $last['on'] === $on && $last['roll'] === $roll) {
                     $runs[count($runs) - 1]['count'] = $last['count'] + 1;
                     $runs[count($runs) - 1]['hi'] = $x + $width;
                     // The worst-carried cabinet speaks for the run: they share a support, so the ones at its
@@ -224,6 +237,7 @@ final class Gravity
                         'top' => $top,
                         'on' => $on,
                         'bearing' => $bearing,
+                        'roll' => $roll,
                     ];
                 }
 
@@ -240,7 +254,8 @@ final class Gravity
      * Highest rather than first, because that is what falling does — a cabinet bridging a Flexy and a SKRAM
      * settles on the SKRAM and leaves a gap over the Flexy, which is exactly the shim a crew would put in.
      *
-     * `bearing` is how much of the cabinet that support actually carries, as a fraction of its own width, and
+     * `bearing` is how much of the cabinet is carried at that height, summed across every support level with
+     * it, as a fraction of its own width. It is
      * it is reported rather than acted on here: falling is not the place to decide whether a landing is
      * acceptable. The floor carries everything, so a cabinet on the ground bears 1.
      *
@@ -251,7 +266,6 @@ final class Gravity
     {
         $on = null;
         $top = 0.0;
-        $bearing = 1.0;
 
         foreach ($below as $candidate) {
             $overlap = min($hi, $candidate['hi']) - max($lo, $candidate['lo']);
@@ -262,10 +276,27 @@ final class Gravity
             if ($on === null || $candidate['top'] > $top) {
                 $on = $candidate['id'];
                 $top = $candidate['top'];
-                $bearing = $overlap / ($hi - $lo);
+            }
+        }
+        if ($on === null) {
+            return ['on' => null, 'top' => 0.0, 'bearing' => 1.0];
+        }
+
+        // **Every** support at that height carries it, not just the one it is named after. A cabinet spanning
+        // two neighbours of equal height rests on both, and crediting it with only the larger overlap read as
+        // 35 % where it was really 93 % — which then refused arrangements that were perfectly well carried.
+        // Only supports level with the landing count, within a shim's worth: a lower one is not touching it.
+        $bearing = 0.0;
+        foreach ($below as $candidate) {
+            if (abs($candidate['top'] - $top) > self::LEVEL_TOLERANCE_M) {
+                continue;
+            }
+            $overlap = min($hi, $candidate['hi']) - max($lo, $candidate['lo']);
+            if ($overlap > self::CONTACT_EPSILON_M) {
+                $bearing += $overlap;
             }
         }
 
-        return ['on' => $on, 'top' => $top, 'bearing' => $bearing];
+        return ['on' => $on, 'top' => $top, 'bearing' => $bearing / ($hi - $lo)];
     }
 }

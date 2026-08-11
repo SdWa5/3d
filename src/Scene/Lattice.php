@@ -42,6 +42,8 @@ final class Lattice implements Group
      * @param array{float, float, float} $gapM air between neighbours per axis
      * @param array{float, float, float} $stepM stated spacing per axis; 0 means "derive it"
      * @param list<float> $rollCycle roll applied to successive cells along $cycleAxis, repeating
+     * @param float|null $rollMirror the quarter turn given to the cells past the middle, the ones before it
+     *     getting its mirror image — see {@see mirroredOffsets}
      */
     public function __construct(
         public readonly array $count,
@@ -49,12 +51,17 @@ final class Lattice implements Group
         public readonly array $stepM = [0.0, 0.0, 0.0],
         public readonly array $rollCycle = [],
         public readonly ?Axis $cycleAxis = null,
+        public readonly ?float $rollMirror = null,
     ) {
     }
 
     public static function fromReader(ArrayReader $reader): self
     {
-        self::rejectUnknown($reader, ['count', 'gap_m', 'step_m', 'roll_cycle', 'cycle_axis'], 'lattice');
+        self::rejectUnknown(
+            $reader,
+            ['count', 'gap_m', 'step_m', 'roll_cycle', 'cycle_axis', 'roll_mirror'],
+            'lattice',
+        );
 
         return new self(
             count: self::readCount($reader),
@@ -62,6 +69,7 @@ final class Lattice implements Group
             stepM: self::readStep($reader),
             rollCycle: self::readCycle($reader),
             cycleAxis: $reader->has('cycle_axis') ? $reader->requireEnum('cycle_axis', Axis::class) : null,
+            rollMirror: $reader->optionalFloat('roll_mirror'),
         );
     }
 
@@ -73,7 +81,7 @@ final class Lattice implements Group
      */
     public static function rowFromReader(ArrayReader $reader): self
     {
-        self::rejectUnknown($reader, ['count', 'axis', 'gap_m', 'step_m', 'roll_cycle'], 'row');
+        self::rejectUnknown($reader, ['count', 'axis', 'gap_m', 'step_m', 'roll_cycle', 'roll_mirror'], 'row');
 
         $axis = $reader->has('axis') ? $reader->requireEnum('axis', Axis::class) : Axis::X;
         $count = [1, 1, 1];
@@ -88,7 +96,7 @@ final class Lattice implements Group
         /** @var array{int, int, int} $count */
         /** @var array{float, float, float} $gap */
         /** @var array{float, float, float} $step */
-        return new self($count, $gap, $step, self::readCycle($reader), $axis);
+        return new self($count, $gap, $step, self::readCycle($reader), $axis, $reader->optionalFloat('roll_mirror'));
     }
 
     public function copies(DeviceSpec $device, float $pitchDeg, float $rollDeg, array $cellBox): array
@@ -103,6 +111,10 @@ final class Lattice implements Group
             $this->count[2] - 1,
         ];
 
+        $mirrored = $this->rollMirror === null || $axis === null
+            ? null
+            : $this->mirroredOffsets($cellBox, $axis);
+
         $copies = [];
         for ($ix = 0; $ix < $this->count[0]; ++$ix) {
             for ($iy = 0; $iy < $this->count[1]; ++$iy) {
@@ -110,13 +122,19 @@ final class Lattice implements Group
                     $cell = [$ix, $iy, $iz];
                     $roll = $this->rollAt($cell, $axis);
 
+                    $offset = [
+                        ($ix - ($this->count[0] - 1) / 2) * $step[0],
+                        ($iy - ($this->count[1] - 1) / 2) * $step[1],
+                        $iz * $step[2],
+                    ];
+                    if ($mirrored !== null) {
+                        $offset[$axis->index()] = $mirrored['offsets'][$cell[$axis->index()]];
+                        $roll = $mirrored['rolls'][$cell[$axis->index()]];
+                    }
+
                     $copies[] = new PlacementCopy(
                         array_map(static fn (int $a): int => $cell[$a] + 1, $numbered),
-                        [
-                            ($ix - ($this->count[0] - 1) / 2) * $step[0],
-                            ($iy - ($this->count[1] - 1) / 2) * $step[1],
-                            $iz * $step[2],
-                        ],
+                        $offset,
                         $roll === 0.0 ? null : new Orientation(0.0, $roll, 0.0),
                         $cell === $anchor,
                     );
@@ -158,6 +176,43 @@ final class Lattice implements Group
                     $this->kind(),
                     $roll,
                 );
+            }
+        }
+
+        if ($this->rollMirror !== null) {
+            if (fmod(abs($this->rollMirror), self::CYCLE_STEP_DEG) !== 0.0
+                || fmod(abs($this->rollMirror), 180.0) === 0.0) {
+                // Only a quarter turn moves the body off to one side, which is what the mirror is made of;
+                // 0 and 180 leave it centred and would mirror nothing.
+                $messages[] = sprintf(
+                    '%s.roll_mirror must be 90 or 270, got %s',
+                    $this->kind(),
+                    $this->rollMirror,
+                );
+            }
+            if ($this->rollCycle !== []) {
+                $messages[] = sprintf(
+                    '%s cannot have both roll_cycle and roll_mirror — they both decide the same cells\' roll',
+                    $this->kind(),
+                );
+            }
+            if ($this->cycleAxis === null && count($this->openAxes()) > 1) {
+                $messages[] = sprintf(
+                    '%s.roll_mirror needs a cycle_axis when more than one axis has cells (%s)',
+                    $this->kind(),
+                    implode(' and ', array_map(static fn (int $a): string => $names[$a], $this->openAxes())),
+                );
+            }
+            foreach ($this->openAxes() as $open) {
+                if ($this->stepM[$open] !== 0.0) {
+                    // The mirror derives its spacing from the bodies. A stated step would be applied to the
+                    // origins, which is exactly the thing that opens the seam by a whole cabinet.
+                    $messages[] = sprintf(
+                        '%s.roll_mirror derives its own spacing, so step_m cannot be stated with it (%s)',
+                        $this->kind(),
+                        $names[$open],
+                    );
+                }
             }
         }
 
@@ -269,6 +324,87 @@ final class Lattice implements Group
         }
 
         return $this->rollCycle[$cell[$axis->index()] % count($this->rollCycle)];
+    }
+
+    /**
+     * A **mirrored** row: the cells past the middle rolled one way, the ones before it the other.
+     *
+     * Bodies are laid out, not origins, and that is the whole of it. Rolling a quarter turn does not merely
+     * swap a cabinet's width and height — geometry runs from its bottom-centre, so the body ends up entirely
+     * to one side of the origin it was measured from: to the **right at 90**, to the **left at 270**. Step
+     * origins uniformly across a mirrored row and the seam opens by a whole cabinet while nothing else moves,
+     * because the two cells either side of it fall away from each other and need only the gap. Lay the bodies
+     * at a uniform pitch instead and put each origin wherever its own body requires, and the seam falls out
+     * with nothing stated.
+     *
+     * That is what {@see \App\Scene\Lattice::$rollCycle} cannot do, and why `full-rig-quarter-turned.yaml`
+     * has to state `step_m: 0.02` by hand and warn that a derived gap "drives adjacent cabinets 591 mm into
+     * each other". Here the spacing is derivable, so it is derived.
+     *
+     * **The envelope is unchanged**, which is the useful part: within a half two same-rolled bodies need
+     * `W + gap` and at the seam they need `gap`, so the row still measures `n·W + (n−1)·gap` — the same as
+     * the alternating pair pattern, and the same as any other row of `n` cells `W` wide. Only the handedness
+     * differs.
+     *
+     * An **odd** count cannot be mirrored exactly. `intdiv(n, 2)` cells go on the left and the remaining
+     * `n - intdiv(n, 2)` on the right, so the middle cabinet joins the right half; picking a side beats
+     * refusing, and the row is then lopsided by one cabinet.
+     *
+     * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     * @return array{offsets: list<float>, rolls: list<float>}
+     */
+    private function mirroredOffsets(array $cellBox, Axis $axis): array
+    {
+        $count = $this->count[$axis->index()];
+        $right = self::normalisedRoll((float)$this->rollMirror);
+        $left = self::normalisedRoll(360.0 - $right);
+        $gap = $this->gapM[$axis->index()];
+
+        // Both halves are quarter turns of the same box, so both bodies are the same width.
+        $width = $cellBox['max'][2] - $cellBox['min'][2];
+        $pitch = $width + $gap;
+        $first = -($count * $width + max(0, $count - 1) * $gap) / 2;
+
+        $offsets = [];
+        $rolls = [];
+        for ($cell = 0; $cell < $count; ++$cell) {
+            $roll = $cell < intdiv($count, 2) ? $left : $right;
+            $span = self::rolledSpan($cellBox, $roll);
+
+            // The body's centre, then the origin that puts it there.
+            $centre = $first + $cell * $pitch + $width / 2;
+            $offsets[] = $centre - ($span[0] + $span[1]) / 2;
+            $rolls[] = $roll;
+        }
+
+        return ['offsets' => $offsets, 'rolls' => $rolls];
+    }
+
+    /**
+     * Where a cell's body lands along the mirror axis once rolled, relative to its own origin.
+     *
+     * Rolling about the front-to-back axis maps `(x, y, z) → (z, y, −x)` at 90 and `(−z, y, x)` at 270, so the
+     * span along x comes out of the cell's *height*. For a cabinet with its origin at bottom-centre that is
+     * `[0, h]` one way and `[−h, 0]` the other, which is the measured fact this whole layout rests on.
+     *
+     * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     * @return array{float, float}
+     */
+    private static function rolledSpan(array $cellBox, float $roll): array
+    {
+        if (fmod(abs($roll), 180.0) === 0.0) {
+            return [$cellBox['min'][0], $cellBox['max'][0]];
+        }
+
+        return self::normalisedRoll($roll) === 90.0
+            ? [$cellBox['min'][2], $cellBox['max'][2]]
+            : [-$cellBox['max'][2], -$cellBox['min'][2]];
+    }
+
+    /** Any roll brought into 0..360, so 90 and −270 are the same turn. */
+    private static function normalisedRoll(float $roll): float
+    {
+        return fmod(fmod($roll, 360.0) + 360.0, 360.0);
     }
 
     /**

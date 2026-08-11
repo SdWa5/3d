@@ -654,6 +654,7 @@ bin/console scene:stack --max-width=3.70 --interface-height=2.0
 | `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints |
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
+| `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
 | `--max-scenes=N` | refuse past this many. Default 24 |
@@ -740,6 +741,66 @@ placement instead of two.
   a cell's position depend on its neighbours while the anchor sits in the middle, so changing the cycle
   would move whatever stacks on the placement. The cost only shows up mixing quarter turns with half turns,
   which is not a real setup — `[0, 180]` and `[90, 270]` both leave the extent alone.
+
+### `roll_mirror` — the halves turned opposite ways
+
+```yaml
+  row:
+    count: 6
+    gap_m: 0.02
+    roll_mirror: 90        # right half 90, left half its mirror image at 270
+```
+
+A **mirrored** row instead of an alternating one: the half past the middle takes the stated quarter turn, the
+half before it takes `360 −` that, and the wall is symmetric about the rig's centre line. Folded horns are the
+reason it is wanted — `scenes/full-rig-mirrored-subs.yaml` is `full-rig-quarter-turned.yaml` with three mouths
+opening left and three opening right instead of alternating pairs.
+
+**Same envelope**, which is the useful part. Within a half two same-rolled bodies need `W + gap`; at the seam,
+where the two halves fall away from each other, they need only `gap`. So the row still measures
+`n·W + (n−1)·gap` — 4.678 m for six rolled Flexys, exactly what the alternating pattern measures. Only the
+handedness differs, and the two scenes are a straight comparison.
+
+**And the spacing is derived, where `roll_cycle`'s cannot be.** This is the real difference between the two
+keys. A rolled cabinet is **not centred on its own origin**: geometry runs from its bottom-centre, so at 90 the
+body ends up entirely to the right of where the origin was and at 270 entirely to the left. `roll_cycle` spaces
+*origins* uniformly, which is why `full-rig-quarter-turned` has to state `step_m: 0.02` by hand and warns that
+a derived gap "drives adjacent cabinets 591 mm into each other". `roll_mirror` lays the *bodies* out at a
+uniform pitch and puts each origin wherever its own body needs it, so the seam falls out of the gap with
+nothing stated — and it stays right if a cabinet is ever re-measured.
+
+* **90 or 270 only.** A half turn leaves the body centred and would mirror nothing.
+* **`step_m` is refused alongside it**, because a stated step is applied to the origins, which is exactly what
+  opens the seam by a whole cabinet.
+* **`roll_cycle` is refused alongside it** — two keys deciding the same cells' roll is a contradiction.
+* **An odd count cannot be mirrored exactly.** `intdiv(n, 2)` cabinets go left and the rest right, so the middle
+  one joins the right-hand half and the row is lopsided by one cabinet.
+
+It is also a **stack entry key**, which is how a solved rig gets turned subs:
+
+```yaml
+    stack:
+      from:
+        - device: flexy-folded-horn-hybrid
+          roll_mirror: 90
+        - achenbach-18            # upright, as before
+```
+
+The solver then fits and stacks that device by its rolled dimensions throughout — four rolled Flexys fill a
+3.70 m stage where six standing up do, and a tier of them raises what is above by 591 mm rather than 763. Every
+one of those numbers comes from the same rotated box the compiler places the cabinet with, via
+`RolledBox::of()`; swapping width and height by hand is near enough for a plain box and wrong for a Tecnare,
+whose shell is a chamfered trapezoid.
+
+Named per device rather than inferred, because **no spec field says which cabinets are horn-loaded** and adding
+one to drive a rotation would be inventing a property to serve a layout. `scene:stack --roll-mirror=<id>` is the
+command-line form, repeatable.
+
+**A limit worth knowing before planning a turned rig:** a rolled SKRAM is 610 mm tall and a rolled Flexy 591 mm,
+so a bottom row mixing them has a 19 mm step through it and the tier above straddles that step. Gravity lifts
+each cabinet onto the taller neighbour it catches, the bearing check then reports 17 %, and the whole-inventory
+turned rig is refused. Turned rigs work when the row below is level — the Flexys, the Achenbachs and the tops
+together come out with nothing worse than 94 % bearing.
 
 ## Line arrays — a hang rather than a fan
 

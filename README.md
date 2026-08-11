@@ -77,7 +77,7 @@ camera. See [docs/scenes.md](docs/scenes.md).
 | `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too                                     |
 | `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
-| `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. `--per-owner` gives each owner its own stack, `--stacks=N` splits into a stereo pair, `--dry-run` prints, `--force` overwrites |
+| `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. `--per-owner` gives each owner its own stack, `--stacks=N` splits into a stereo pair, `--roll-mirror=ID` lays a device on its side mirrored about the centre line, `--dry-run` prints, `--force` overwrites |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |

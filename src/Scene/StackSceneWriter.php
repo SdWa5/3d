@@ -63,7 +63,16 @@ final class StackSceneWriter
             }
             $lines[] = '      from:';
             foreach ($block->from as $deviceId) {
-                $lines[] = sprintf('        - %s', $deviceId);
+                // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
+                // It has to be written: a scene is re-solved on every build, and a roll left out of the file
+                // would come back upright the next time anybody ran `scene:build`.
+                $roll = $block->stack->entryFor($deviceId)?->rollMirror;
+                if ($roll === null) {
+                    $lines[] = sprintf('        - %s', $deviceId);
+                    continue;
+                }
+                $lines[] = sprintf('        - device: %s', $deviceId);
+                $lines[] = sprintf('          roll_mirror: %s', self::number($roll));
             }
             $lines[] = '';
         }

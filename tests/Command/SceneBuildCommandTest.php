@@ -18,11 +18,11 @@ final class SceneBuildCommandTest extends TestCase
     public function testTheShippedSceneCompilesAndReports(): void
     {
         $tester = new CommandTester(new SceneBuildCommand());
-        $exit = $tester->execute(['scene' => 'full-rig', '--dry-run' => true]);
+        $exit = $tester->execute(['scene' => 'full-rig-all-tops', '--dry-run' => true]);
         $display = $tester->getDisplay();
 
         self::assertSame(Command::SUCCESS, $exit, $display);
-        self::assertStringContainsString('Cabinets:      15', $display);
+        self::assertStringContainsString('Cabinets:      23', $display);
         self::assertStringContainsString('Total weight:', $display);
         self::assertStringContainsString('Tallest stack:', $display);
         self::assertStringContainsString('flexy-folded-horn-hybrid   12', $display);
@@ -35,7 +35,7 @@ final class SceneBuildCommandTest extends TestCase
 
         self::assertSame(Command::FAILURE, $exit);
         self::assertStringContainsString('Available:', $tester->getDisplay());
-        self::assertStringContainsString('full-rig', $tester->getDisplay());
+        self::assertStringContainsString('full-rig-all-tops', $tester->getDisplay());
     }
 
     public function testBuildingEveryScenePicksUpTheShippedOne(): void
@@ -44,6 +44,6 @@ final class SceneBuildCommandTest extends TestCase
         $exit = $tester->execute(['--dry-run' => true]);
 
         self::assertSame(Command::SUCCESS, $exit, $tester->getDisplay());
-        self::assertStringContainsString('full-rig', $tester->getDisplay());
+        self::assertStringContainsString('full-rig-all-tops', $tester->getDisplay());
     }
 }

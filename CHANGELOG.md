@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-08-11
+
+### Added
+
+- **`roll_mirror` on `row` / `lattice`** — a mirrored quarter-turned wall: the half past the middle rolled the
+  stated turn, the half before it its mirror image, symmetric about the rig's centre line. `90` or `270` only;
+  `step_m` and `roll_cycle` are both refused alongside it. **Same envelope as the alternating pattern** —
+  6 rolled Flexys measure 4.678 m either way, because within a half two same-rolled bodies need `W + gap` and at
+  the seam they need only `gap`. Only the handedness differs
+- **Spacing that derives itself, where `roll_cycle`'s could not.** A rolled cabinet is not centred on its own
+  origin — geometry runs from its bottom-centre, so at 90 the body lands entirely right of it and at 270 entirely
+  left. `roll_cycle` steps origins uniformly, which is why `full-rig-quarter-turned` has to state `step_m: 0.02`
+  by hand and warns that a derived gap "drives adjacent cabinets 591 mm into each other". `roll_mirror` lays out
+  the bodies and puts each origin where its own body needs it
+- **`roll_mirror` as a stack entry key**, and `scene:stack --roll-mirror=ID` (repeatable). The solver then fits
+  and stacks that device by its rolled dimensions throughout: four rolled Flexys fill a 3.70 m stage where six
+  standing up do, and a tier of them lifts what is above by 591 mm rather than 763
+- `src/Scene/RolledBox.php` — one memoised source for what a rolled cabinet measures and where its body sits,
+  taken from the same rotated box the compiler places it with. Swapping width and height by hand is near enough
+  for a plain box and wrong for a Tecnare, whose shell is a chamfered trapezoid
+- `scenes/full-rig-mirrored-subs.yaml` — `full-rig-quarter-turned` with the wall mirrored instead of
+  alternating. Identical footprint (4.68 × 0.96 m), identical tops, identical foci; four of the twelve subs
+  change roll and position
+
+### Fixed
+
+- **Bearing counted only one support.** It took the overlap with the single highest thing underneath and called
+  that the whole bearing, so a cabinet spanning two neighbours of equal height read 35 % where it was really
+  93 % — and arrangements that were perfectly well carried were refused. Every support level with the landing
+  now counts, within the same centimetre the overhang rule already calls "what feet and working gaps absorb"
+
+### Changed
+
+- `Tier` segments carry a roll, and `Tier` measures through `RolledBox` rather than nominal dimensions. Rigs
+  with no roll stated are unchanged — `stacked-center.yaml` and the four hand-written `full-rig-*` scenes all
+  regenerate byte-identical
+- Two tests pointed at `scenes/full-rig.yaml`, which was deleted from the working tree; they now use
+  `full-rig-all-tops`
+
 ## [0.36.0] - 2026-08-11
 
 ### Added

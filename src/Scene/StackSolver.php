@@ -130,7 +130,7 @@ final class StackSolver
     {
         $widest = 0;
         foreach ($inventory as [$device, $count]) {
-            $widest = max($widest, min($count, self::perTier($device, $stack->maxWidthM, $stack->gapM)));
+            $widest = max($widest, min($count, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack))));
         }
 
         $tallestCarried = [];
@@ -211,26 +211,33 @@ final class StackSolver
             // Cabinets held back from the rows below, standing either side of this one to close the step.
             if (isset($lifts[$index])) {
                 [$source, $lift] = $lifts[$index];
-                $tiers[] = new Tier([[$source, $lift], [$device, $count], [$source, $lift]]);
+                $tiers[] = new Tier([
+                    [$source, $lift, self::rollFor($source, $stack)],
+                    [$device, $count, self::rollFor($device, $stack)],
+                    [$source, $lift, self::rollFor($source, $stack)],
+                ]);
                 $remaining[$index] = [$device, 0];
                 continue;
             }
 
-            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
+            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)));
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
             $rows = (int)ceil($count / $perTier);
             foreach (self::share($count, $rows) as $row) {
-                $tiers[] = Tier::of($device, $row);
+                $tiers[] = Tier::of($device, $row, self::rollFor($device, $stack));
             }
         }
 
-        $tops = self::topRow($remaining);
+        $tops = self::topRow($remaining, $stack);
         if ($tops !== null) {
             $tiers[] = $tops;
         }
 
-        return $tiers;
+        // The mirror last, in one place, so it catches every tier however it was built — a plain row, a mixed
+        // bottom row, a flanked one, the tops. Splitting a rolled segment about the row's own centre is what
+        // makes the rig symmetric about its centre line rather than about each segment.
+        return array_map(static fn (Tier $tier): Tier => $tier->mirrored(), $tiers);
     }
 
     /**
@@ -309,7 +316,7 @@ final class StackSolver
             if (($stack->entryFor($device->id)?->mixWith ?? []) !== []) {
                 return null;
             }
-            if ($count > min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM))) {
+            if ($count > min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)))) {
                 return null;
             }
 
@@ -345,7 +352,11 @@ final class StackSolver
         $lift = 0;
 
         while (2 * ($lift + 1) <= $sourceCount) {
-            $candidate = new Tier([[$source, $lift + 1], [$target, $targetCount], [$source, $lift + 1]]);
+            $candidate = new Tier([
+                [$source, $lift + 1, self::rollFor($source, $stack)],
+                [$target, $targetCount, self::rollFor($target, $stack)],
+                [$source, $lift + 1, self::rollFor($source, $stack)],
+            ]);
             $width = $candidate->widthM($stack->gapM);
 
             if ($stack->maxWidthM !== null && $width > $stack->maxWidthM + self::EPSILON_M) {
@@ -368,6 +379,18 @@ final class StackSolver
     }
 
     /**
+     * The quarter turn this device's tiers lie on, or 0 for upright.
+     *
+     * Read off the entry rather than passed around, so every place that builds a `Tier` measures the same
+     * cabinet the expansion will place. A stack built without entries — which is how the solver's own tests
+     * construct one — has nothing to say and everything stays upright.
+     */
+    private static function rollFor(DeviceSpec $device, Stack $stack): float
+    {
+        return $stack->entryFor($device->id)?->rollMirror ?? 0.0;
+    }
+
+    /**
      * How wide the source's **last** row comes out — the one that ends up directly under the flanked tier.
      *
      * Last rather than first because {@see share} puts the fuller row at the bottom, so the top of a device's
@@ -379,10 +402,10 @@ final class StackSolver
             return 0.0;
         }
 
-        $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
+        $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)));
         $shares = self::share($count, (int)ceil($count / $perTier));
 
-        return Tier::of($device, $shares[count($shares) - 1])->widthM($stack->gapM);
+        return Tier::of($device, $shares[count($shares) - 1], self::rollFor($device, $stack))->widthM($stack->gapM);
     }
 
     /**
@@ -461,17 +484,17 @@ final class StackSolver
         foreach ($segments as $other => [$otherDevice, $otherCount]) {
             $share = intdiv($otherCount, 2) + ($otherCount % 2);
             if ($share > 0) {
-                $left[] = [$otherDevice, $share];
+                $left[] = [$otherDevice, $share, self::rollFor($otherDevice, $stack)];
             }
             if ($otherCount - $share > 0) {
-                $right[] = [$otherDevice, $otherCount - $share];
+                $right[] = [$otherDevice, $otherCount - $share, self::rollFor($otherDevice, $stack)];
             }
             $remaining[$other] = [$otherDevice, 0];
         }
         $remaining[$index] = [$device, 0];
 
         return [
-            new Tier([...array_reverse($left), [$device, $count], ...$right]),
+            new Tier([...array_reverse($left), [$device, $count, self::rollFor($device, $stack)], ...$right]),
             $remaining,
         ];
     }
@@ -489,7 +512,7 @@ final class StackSolver
      *
      * @param list<array{DeviceSpec, int}> $remaining
      */
-    private static function topRow(array $remaining): ?Tier
+    private static function topRow(array $remaining, Stack $stack): ?Tier
     {
         $tops = [];
         foreach ($remaining as [$device, $count]) {
@@ -501,8 +524,10 @@ final class StackSolver
             return null;
         }
 
-        usort($tops, static fn (array $a, array $b): int => $b[0]->dimensions->width <=> $a[0]->dimensions->width);
+        usort($tops, static fn (array $a, array $b): int => RolledBox::widthOf($b[0], self::rollFor($b[0], $stack))
+            <=> RolledBox::widthOf($a[0], self::rollFor($a[0], $stack)));
         $centre = array_shift($tops);
+        $centre[] = self::rollFor($centre[0], $stack);
 
         $left = [];
         $right = [];
@@ -512,10 +537,10 @@ final class StackSolver
                 ++$share;
             }
             if ($share > 0) {
-                $left[] = [$device, $share];
+                $left[] = [$device, $share, self::rollFor($device, $stack)];
             }
             if ($count - $share > 0) {
-                $right[] = [$device, $count - $share];
+                $right[] = [$device, $count - $share, self::rollFor($device, $stack)];
             }
         }
 
@@ -529,7 +554,7 @@ final class StackSolver
      */
     private static function flankingPairs(array $inventory, Stack $stack, int $perRow): int
     {
-        $centre = self::widestSub($inventory);
+        $centre = self::widestSub($inventory, $stack);
         if ($centre === null) {
             return 0;
         }
@@ -545,9 +570,9 @@ final class StackSolver
         $pairs = 0;
         while (2 * ($pairs + 1) <= $flankAvailable) {
             $candidate = new Tier([
-                [$flankDevice, $pairs + 1],
-                [$device, $available],
-                [$flankDevice, $pairs + 1],
+                [$flankDevice, $pairs + 1, self::rollFor($flankDevice, $stack)],
+                [$device, $available, self::rollFor($device, $stack)],
+                [$flankDevice, $pairs + 1, self::rollFor($flankDevice, $stack)],
             ]);
             $width = $candidate->widthM($stack->gapM);
 
@@ -598,10 +623,11 @@ final class StackSolver
             $leftOver -= 2 * (self::liftAbove($inventory, $flank, $stack, $perRow)[1] ?? 0);
         }
         if ($leftOver > 0) {
-            $perTier = min($perRow, self::perTier($flankDevice, $stack->maxWidthM, $stack->gapM));
+            $perTier = min($perRow, self::perTier($flankDevice, $stack->maxWidthM, $stack->gapM, self::rollFor($flankDevice, $stack)));
             $rows = (int)ceil($leftOver / $perTier);
 
-            return Tier::of($flankDevice, self::share($leftOver, $rows)[0])->widthM($stack->gapM);
+            return Tier::of($flankDevice, self::share($leftOver, $rows)[0], self::rollFor($flankDevice, $stack))
+                ->widthM($stack->gapM);
         }
 
         return self::rowAbove($inventory, $flank, $stack, $perRow) ?? 0.0;
@@ -668,15 +694,15 @@ final class StackSolver
      */
     private static function mixedBottomRow(array $remaining, Stack $stack, int $perRow, int $pairs): ?array
     {
-        $centre = self::widestSub($remaining);
+        $centre = self::widestSub($remaining, $stack);
         if ($centre === null) {
             return null;
         }
 
         [$device, $available] = $remaining[$centre];
-        $fits = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
+        $fits = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)));
 
-        $ownRow = Tier::of($device, min($available, $fits))->widthM($stack->gapM);
+        $ownRow = Tier::of($device, min($available, $fits), self::rollFor($device, $stack))->widthM($stack->gapM);
         $rowAbove = self::rowAbove($remaining, $centre, $stack, $perRow);
         if ($rowAbove === null || $ownRow + self::EPSILON_M >= $rowAbove) {
             // Nothing stands on it, or what does is no wider — there is no inversion to remove, so leave
@@ -702,7 +728,11 @@ final class StackSolver
         $remaining[$flank] = [$flankDevice, $flankAvailable - 2 * $pairs];
 
         return [
-            new Tier([[$flankDevice, $pairs], [$device, $available], [$flankDevice, $pairs]]),
+            new Tier([
+                [$flankDevice, $pairs, self::rollFor($flankDevice, $stack)],
+                [$device, $available, self::rollFor($device, $stack)],
+                [$flankDevice, $pairs, self::rollFor($flankDevice, $stack)],
+            ]),
             $remaining,
         ];
     }
@@ -720,10 +750,11 @@ final class StackSolver
                 continue;
             }
 
-            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
+            $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)));
             $rows = (int)ceil($count / $perTier);
 
-            return Tier::of($device, self::share($count, $rows)[0])->widthM($stack->gapM);
+            return Tier::of($device, self::share($count, $rows)[0], self::rollFor($device, $stack))
+                ->widthM($stack->gapM);
         }
 
         return null;
@@ -735,7 +766,7 @@ final class StackSolver
      *
      * @param list<array{DeviceSpec, int}> $remaining
      */
-    private static function widestSub(array $remaining): ?int
+    private static function widestSub(array $remaining, Stack $stack): ?int
     {
         $best = null;
         foreach ($remaining as $index => [$device, $count]) {
@@ -747,7 +778,8 @@ final class StackSolver
                 continue;
             }
             $incumbent = $remaining[$best][0];
-            if ($device->dimensions->width > $incumbent->dimensions->width + self::EPSILON_M) {
+            if (RolledBox::widthOf($device, self::rollFor($device, $stack))
+                > RolledBox::widthOf($incumbent, self::rollFor($incumbent, $stack)) + self::EPSILON_M) {
                 $best = $index;
             }
         }
@@ -805,13 +837,15 @@ final class StackSolver
      * one, always: a stage narrower than a single cabinet is a bound the caller has to hear about as a
      * width failure, not something to silently turn into an empty rig.
      */
-    private static function perTier(DeviceSpec $device, ?float $maxWidthM, float $gapM): int
+    private static function perTier(DeviceSpec $device, ?float $maxWidthM, float $gapM, float $rollDeg = 0.0): int
     {
         if ($maxWidthM === null) {
             return PHP_INT_MAX;
         }
 
-        $fit = (int)floor(($maxWidthM + $gapM) / ($device->dimensions->width + $gapM) + self::EPSILON_M);
+        // The **rolled** width. Four Flexys on their sides fill a 3.70 m stage where six standing up do, and
+        // fitting them by their nominal 591 mm put 3.895 m of cabinet on a 3.70 m stage.
+        $fit = (int)floor(($maxWidthM + $gapM) / (RolledBox::widthOf($device, $rollDeg) + $gapM) + self::EPSILON_M);
 
         return max(1, $fit);
     }

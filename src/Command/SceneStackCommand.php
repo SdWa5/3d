@@ -50,6 +50,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('at', null, InputOption::VALUE_REQUIRED, 'Where the rig is centred, as X,Y', '-0.302,0')
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
+            ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
             ->addOption('stacks', null, InputOption::VALUE_REQUIRED, 'Split each group into this many stacks', '1')
             ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
@@ -303,10 +304,21 @@ final class SceneStackCommand extends BaseCommand
      */
     private function stackFor(array $ids, InputInterface $input): Stack
     {
+        // Named outright rather than inferred from the cabinets, because **no spec field says which are
+        // horn-loaded** — and adding one to drive a rotation would be inventing a property to serve a layout.
+        /** @var list<string> $turned */
+        $turned = $input->getOption('roll-mirror');
+
         return new Stack(
-            // The command only ever generates the shorthand form — one device id per entry, no per-tier
-            // options. Anything wanting those is edited into the written file afterwards.
-            from: array_map(static fn (string $id): StackEntry => new StackEntry($id), $ids),
+            // Otherwise the shorthand form — one device id per entry. Anything wanting `count`, `align` or
+            // `mix_with` is edited into the written file afterwards.
+            from: array_map(
+                static fn (string $id): StackEntry => new StackEntry(
+                    $id,
+                    rollMirror: in_array($id, $turned, true) ? 90.0 : null,
+                ),
+                $ids,
+            ),
             maxWidthM: $this->readFloat($input, 'max-width'),
             minWidthM: $this->readFloat($input, 'min-width'),
             maxHeightM: $this->readFloat($input, 'max-height'),

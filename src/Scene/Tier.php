@@ -22,15 +22,28 @@ use App\Spec\DeviceSpec;
 final class Tier
 {
     /**
-     * @param list<array{DeviceSpec, int}> $segments left to right; more than one makes a mixed row
+     * @param list<array{DeviceSpec, int}|array{DeviceSpec, int, float}> $segments left to right; more than one
+     *     makes a mixed row. The third element is the segment's roll in degrees, absent meaning upright — and
+     *     absent rather than required because PHP's list destructuring ignores what it is not given, so every
+     *     `[$device, $count]` reader in the solver kept working when the roll arrived.
      */
     public function __construct(public readonly array $segments)
     {
     }
 
-    public static function of(DeviceSpec $device, int $count): self
+    public static function of(DeviceSpec $device, int $count, float $rollDeg = 0.0): self
     {
-        return new self([[$device, $count]]);
+        return new self([[$device, $count, $rollDeg]]);
+    }
+
+    /**
+     * This segment's roll, 0 when it does not state one.
+     *
+     * @param array{DeviceSpec, int}|array{DeviceSpec, int, float} $segment
+     */
+    public static function rollOf(array $segment): float
+    {
+        return $segment[2] ?? 0.0;
     }
 
     /** How many cabinets stand in this row, whatever they are. */
@@ -50,8 +63,9 @@ final class Tier
     public function widthM(float $gapM): float
     {
         $width = 0.0;
-        foreach ($this->segments as [$device, $count]) {
-            $width += $count * $device->dimensions->width;
+        foreach ($this->segments as $segment) {
+            [$device, $count] = $segment;
+            $width += $count * RolledBox::widthOf($device, self::rollOf($segment));
         }
 
         return $width + max(0, $this->count() - 1) * $gapM;
@@ -68,8 +82,8 @@ final class Tier
     public function heightM(): float
     {
         $height = 0.0;
-        foreach ($this->segments as [$device, $count]) {
-            $height = max($height, $device->dimensions->height);
+        foreach ($this->segments as $segment) {
+            $height = max($height, RolledBox::heightOf($segment[0], self::rollOf($segment)));
         }
 
         return $height;
@@ -80,9 +94,10 @@ final class Tier
     {
         $tallest = 0.0;
         $shortest = INF;
-        foreach ($this->segments as [$device, $count]) {
-            $tallest = max($tallest, $device->dimensions->height);
-            $shortest = min($shortest, $device->dimensions->height);
+        foreach ($this->segments as $segment) {
+            $own = RolledBox::heightOf($segment[0], self::rollOf($segment));
+            $tallest = max($tallest, $own);
+            $shortest = min($shortest, $own);
         }
 
         return $shortest === INF ? 0.0 : $tallest - $shortest;
@@ -91,7 +106,7 @@ final class Tier
     /** The width of the cabinet at the end of the row — what an overhang is measured against. */
     public function outerWidthM(): float
     {
-        return $this->segments[0][0]->dimensions->width;
+        return RolledBox::widthOf($this->segments[0][0], self::rollOf($this->segments[0]));
     }
 
     public function isSub(): bool
@@ -114,9 +129,58 @@ final class Tier
     public function label(): string
     {
         return implode(' + ', array_map(
-            static fn (array $segment): string => sprintf('%d× %s', $segment[1], $segment[0]->id),
+            static fn (array $segment): string => sprintf(
+                '%d× %s%s',
+                $segment[1],
+                $segment[0]->id,
+                self::rollOf($segment) === 0.0 ? '' : sprintf(' rolled %d°', (int)self::rollOf($segment)),
+            ),
             $this->segments,
         ));
+    }
+
+    /**
+     * This row with every rolled segment **split about the row's own centre** — the mirror.
+     *
+     * A segment's roll arrives as the quarter turn its right-hand half wants; this is where the left half gets
+     * the mirror image of it. Split about the *row's* midpoint rather than each segment's, because the rig is
+     * meant to be symmetric about its centre line and a mixed row would otherwise mirror three times: the two
+     * SKRAMs in the middle of a Flexy row have to roll one way on the left of centre and the other way on the
+     * right, not each pair about itself.
+     *
+     * Upright segments are left alone, so a row that mixes rolled and upright cabinets keeps the upright ones
+     * where they were — the heights differ and gravity deals with that, exactly as it does for any stepped row.
+     *
+     * An **odd** cabinet count cannot be mirrored exactly: `intdiv(n, 2)` go left and the rest right, so the
+     * middle cabinet joins the right-hand half.
+     */
+    public function mirrored(): self
+    {
+        $midpoint = intdiv($this->count(), 2);
+
+        $segments = [];
+        $index = 0;
+        foreach ($this->segments as $segment) {
+            [$device, $count] = $segment;
+            $roll = self::rollOf($segment);
+
+            if (fmod(abs($roll), 180.0) !== 90.0) {
+                $segments[] = $segment;
+                $index += $count;
+                continue;
+            }
+
+            $left = max(0, min($count, $midpoint - $index));
+            if ($left > 0) {
+                $segments[] = [$device, $left, fmod(360.0 - $roll, 360.0)];
+            }
+            if ($count - $left > 0) {
+                $segments[] = [$device, $count - $left, $roll];
+            }
+            $index += $count;
+        }
+
+        return new self($segments);
     }
 
     /**
@@ -125,16 +189,18 @@ final class Tier
      * This is what lets a mixed row expand into one placement per segment: each segment is a plain `row`
      * of identical cabinets, and the offsets put them side by side with the row centred on `at`.
      *
-     * @return list<array{DeviceSpec, int, float}>
+     * @return list<array{DeviceSpec, int, float, float}> device, count, centre x, roll
      */
     public function seats(float $gapM): array
     {
         $x = -$this->widthM($gapM) / 2;
 
         $seats = [];
-        foreach ($this->segments as [$device, $count]) {
-            $span = $count * $device->dimensions->width + ($count - 1) * $gapM;
-            $seats[] = [$device, $count, $x + $span / 2];
+        foreach ($this->segments as $segment) {
+            [$device, $count] = $segment;
+            $roll = self::rollOf($segment);
+            $span = $count * RolledBox::widthOf($device, $roll) + ($count - 1) * $gapM;
+            $seats[] = [$device, $count, $x + $span / 2, $roll];
             $x += $span + $gapM;
         }
 

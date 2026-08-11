@@ -261,6 +261,56 @@ final class StackTest extends TestCase
     }
 
     /**
+     * A stack whose subs lie on their sides places them by their **bodies**, not their origins.
+     *
+     * The trap the whole roll path turns on: a rolled cabinet is not centred on its own origin — at 90 the body
+     * is entirely to the right of it, at 270 entirely to the left. A run whose `at` were taken as the middle of
+     * its body span would sit half a cabinet off, and mirrored halves would slide into each other from both
+     * sides. Checked here in world coordinates, which is the only place the mistake would show.
+     */
+    public function testAStackOfRolledSubsPlacesThemByTheirBodies(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
+                'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
+                'from' => [
+                    ['device' => 'flexy-folded-horn-hybrid', 'roll_mirror' => 90],
+                    'achenbach-18',
+                    'tecnare-m2122',
+                ],
+            ]],
+        ]);
+
+        $subs = array_values(array_filter(
+            $placed,
+            static fn (PlacedDevice $e): bool => $e->device->id === 'flexy-folded-horn-hybrid',
+        ));
+        self::assertCount(12, $subs);
+
+        // The bottom tier, left to right: four rolled bodies tiling from −1.556 with 20 mm between them.
+        $bottom = array_values(array_filter($subs, static fn (PlacedDevice $e): bool => $e->worldBox()['min'][2] < 1e-9));
+        usort($bottom, static fn (PlacedDevice $a, PlacedDevice $b): int => $a->worldBox()['min'][0] <=> $b->worldBox()['min'][0]);
+        self::assertCount(4, $bottom);
+
+        $edges = array_map(static fn (PlacedDevice $e): array => [
+            round($e->worldBox()['min'][0], 4),
+            round($e->worldBox()['max'][0], 4),
+        ], $bottom);
+        self::assertSame([[-1.556, -0.793], [-0.773, -0.01], [0.01, 0.773], [0.793, 1.556]], $edges);
+
+        // Rolled, so each one is 763 mm across and 591 mm tall rather than the other way round.
+        foreach ($bottom as $sub) {
+            $box = $sub->worldBox();
+            self::assertEqualsWithDelta(0.763, $box['max'][0] - $box['min'][0], 1e-9);
+            self::assertEqualsWithDelta(0.591, $box['max'][2] - $box['min'][2], 1e-9);
+        }
+
+        // And the halves are turned opposite ways.
+        self::assertEqualsWithDelta(270.0, fmod($bottom[0]->rollDeg() + 360.0, 360.0), 1e-9);
+        self::assertEqualsWithDelta(90.0, fmod($bottom[3]->rollDeg() + 360.0, 360.0), 1e-9);
+    }
+
+    /**
      * The tops of a flanked rig sit **outboard on the shoulders**, not butted together across the step.
      *
      * The whole rig, end to end, in the arrangement the flanking rule produces: a mixed Achenbach row with a

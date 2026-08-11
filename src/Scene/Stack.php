@@ -189,14 +189,27 @@ final class Stack
                 $placements[] = new Placement(
                     id: $run['id'],
                     deviceId: $run['device']->id,
-                    at: [$at[0] + ($run['lo'] + $run['hi']) / 2, $at[1]],
+                    // A run's `lo`..`hi` is where its **bodies** go, and a rolled cabinet does not sit centred
+                    // on its own origin — at 90 the body is entirely to the right of it, at 270 entirely to the
+                    // left. So the origin is worked back from the body rather than assumed to be its middle.
+                    at: [
+                        $at[0] + RolledBox::originFor(
+                            $run['device'],
+                            $run['roll'],
+                            ($run['lo'] + $run['hi']) / 2,
+                        ),
+                        $at[1],
+                    ],
                     yawDeg: $placement->yawDeg,
                     pitchDeg: $placement->pitchDeg,
-                    rollDeg: $placement->rollDeg,
+                    rollDeg: $placement->rollDeg + $run['roll'],
                     aimAt: $tier->isSub() ? null : $placement->aimAt,
                     aimFocus: $tier->isSub() ? null : $placement->aimFocus,
                     on: $run['on'],
                     fly: null,
+                    // Plain uniform spacing: every cabinet in a run shares one roll, so their bodies do step
+                    // evenly. Only the seam *between* the two halves collapses to the gap, and that is already
+                    // in `lo`..`hi` because the halves are separate runs.
                     group: new GroupStack([
                         new Lattice([$run['count'], 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X),
                     ]),

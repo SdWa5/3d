@@ -69,6 +69,56 @@ final class GravityTest extends TestCase
     }
 
     /**
+     * **Every** support at the landing height carries the cabinet, not just the one it is named after.
+     *
+     * A defect in the bearing figure as first written: it took the overlap with the single highest support and
+     * called that the bearing. A cabinet spanning two neighbours of equal height rests on both, and crediting it
+     * with only the larger overlap read 35 % where it was really 93 % — which then refused arrangements that
+     * were perfectly well carried. Level within a shim's worth counts; a support genuinely lower down does not.
+     */
+    public function testACabinetBridgingTwoLevelSupportsIsCarriedByBoth(): void
+    {
+        $rc = new \ReflectionMethod(Gravity::class, 'landsOn');
+
+        $level = [
+            ['id' => 'left', 'lo' => -1.0, 'hi' => -0.01, 'top' => 0.6],
+            ['id' => 'right', 'lo' => 0.01, 'hi' => 1.0, 'top' => 0.6],
+        ];
+        // Spans the joint: 0.49 on the left, 0.49 on the right, 0.02 over the gap between them.
+        $both = $rc->invoke(null, $level, -0.5, 0.5);
+        self::assertEqualsWithDelta(0.98, $both['bearing'], 1e-9, 'both halves count');
+
+        // Drop one of them well below and only the other carries it.
+        $stepped = [$level[0], ['id' => 'right', 'lo' => 0.01, 'hi' => 1.0, 'top' => 0.4]];
+        $one = $rc->invoke(null, $stepped, -0.5, 0.5);
+        self::assertSame('left', $one['on']);
+        self::assertEqualsWithDelta(0.49, $one['bearing'], 1e-9, 'the lower one is not touching it');
+    }
+
+    /**
+     * A mirrored tier lands as **two runs**, because its halves are turned opposite ways.
+     *
+     * Run identity is device, support *and roll*: without the roll the two halves of a mirrored row would merge
+     * into one placement and be built as a single unturned lattice, which is the whole rig silently upright.
+     */
+    public function testAMirroredTierLandsAsTwoRunsTurnedOppositeWays(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $resolved = Gravity::resolve(
+            [new Tier([[$flexy, 2, 270.0], [$flexy, 2, 90.0]])],
+            0.02,
+            'main',
+        );
+
+        self::assertCount(2, $resolved[0]);
+        self::assertSame(270.0, $resolved[0][0]['roll']);
+        self::assertSame(90.0, $resolved[0][1]['roll']);
+        // Rolled bodies, so each run is 2 × 0.763 + 0.02 wide rather than 2 × 0.591 + 0.02.
+        self::assertEqualsWithDelta(1.546, $resolved[0][0]['hi'] - $resolved[0][0]['lo'], 1e-9);
+        self::assertEqualsWithDelta(0.02, $resolved[0][1]['lo'] - $resolved[0][0]['hi'], 1e-9, 'the seam');
+    }
+
+    /**
      * So the top tier is re-seated **fills outboard**, and the whole rig comes out carried.
      *
      * The end segments go over the end supports and the rest is centred between them, which is the layout that

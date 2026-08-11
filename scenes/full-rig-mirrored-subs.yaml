@@ -1,0 +1,84 @@
+# full-rig-quarter-turned with the sub wall MIRRORED instead of alternating: twelve Flexys on their sides,
+# the left half rolled 270 and the right half 90, symmetric about the rig's centre line. Everything above the
+# subs is unchanged, so this is a straight comparison of handedness against `full-rig-quarter-turned.yaml`.
+#
+# WHY IT IS THE SAME SIZE. Rolling 90 swings a cabinet onto its side and, because geometry runs from its own
+# bottom-centre, the body ends up entirely to ONE SIDE of where that origin was — to the right at 90, to the
+# left at 270. Within a half two cabinets rolled the same way need a full 763 mm plus air between their
+# origins; at the seam, where the two halves fall away from each other, they need only the 20 mm. So the wall
+# still measures 6 x 763 + 5 x 20 = 4.678 m, exactly what the alternating pair pattern measures. Only which way
+# each cabinet lies differs — three mouths opening left, three opening right, instead of alternating pairs.
+#
+# AND THE SPACING IS DERIVED, which is the difference that matters in the file. `full-rig-quarter-turned` has to
+# state `step_m: 0.02` by hand and warns that a derived gap "drives adjacent cabinets 591 mm into each other",
+# because `roll_cycle` spaces ORIGINS uniformly and a rolled cabinet is not centred on its origin. `roll_mirror`
+# lays out the BODIES at a uniform pitch and puts each origin wherever its own body needs it, so the seam falls
+# out of the gap with nothing stated — and it stays right if a Flexy is ever re-measured.
+#
+# The wall comes out 4.678 m wide and 1.182 m tall, against 3.646 x 1.526 for the same twelve cabinets standing
+# up. Wider and lower, so the Achenbach row sits comfortably inside it rather than overhanging, and every top is
+# 344 mm lower, which flattens their down-tilt.
+id: full-rig-mirrored-subs
+name: "Full rig — subs on their sides, mirrored about the centre line"
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  # Twelve cabinets, one placement, two levels: a mirrored row of six, twice over.
+  - id: sub-wall
+    device: flexy-folded-horn-hybrid
+    at: [-0.302, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
+      roll_mirror: 90      # right half 90, left half its mirror image at 270
+    in:
+      - lattice:
+          count: [1, 1, 2]   # two tiers of that row
+
+  # Six Achenbach 18s across the middle, as on the alternating wall: 3.70 m against 4.678 m, well inside it.
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-wall
+    at: [-0.302, 0.0]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: far
+    row:
+      count: 3
+      step_m: 1.55
+
+  # Near-field fill, inside the outer tops with 20 mm to spare. Solved rather than stated, because both
+  # cabinets are toed in and half-widths get it wrong — see full-rig-all-tops.yaml for the full argument.
+  - id: near-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [-0.302, 0.0]
+    aim: near
+    align:
+      mode: block
+      inside: tops
+      inset_m: 0.020
+    row:
+      count: 2
+
+notes: |
+  Compare full-rig-quarter-turned.yaml, which is this rig with the same twelve subs alternating rather than
+  mirrored. Identical envelope, identical tops, identical foci — only the handedness of each cabinet differs.
+
+  Whether a mirrored horn wall is better than an alternating one is not something this file can answer; what it
+  can show is that both fit the same stage, and where every cabinet ends up in each.
+
+  Six Achenbachs against four owned, as in every three-tier scene. Mixes owners.

@@ -284,7 +284,7 @@ final class ShippedScenesTest extends TestCase
      */
     public function testTheCheckActuallyDetectsAnIntersection(): void
     {
-        $placed = $this->compile('full-rig');
+        $placed = $this->compile('full-rig-all-tops');
         $hulls = array_map(fn (PlacedDevice $entry): array => $this->corners($entry), $placed);
 
         // Same cabinet twice, the second shifted a centimetre: unmistakably intersecting.

@@ -321,6 +321,93 @@ final class LatticeTest extends TestCase
     }
 
     /**
+     * A **mirrored** row: the half past the middle rolled one way, the half before it the other.
+     *
+     * The fixture is 0.5 wide and 0.96 tall, so on its side it is 0.96 across. Six of them with a 20 mm gap
+     * come to `6 × 0.96 + 5 × 0.02 = 5.860 m` — and that is the whole point: **the same envelope a row of six
+     * takes with any other pattern of quarter turns.** Only the handedness changes.
+     */
+    public function testAMirroredRowRollsItsHalvesOppositeWays(): void
+    {
+        $copies = $this->copies(new Lattice([6, 1, 1], [0.02, 0.0, 0.0], rollMirror: 90.0, cycleAxis: Axis::X));
+
+        $rolls = array_map(static fn (PlacementCopy $c): float => $c->rotation?->rollDeg ?? 0.0, $copies);
+        self::assertSame([270.0, 270.0, 270.0, 90.0, 90.0, 90.0], $rolls);
+    }
+
+    /**
+     * And the seam between the halves is **the gap**, not a whole cabinet.
+     *
+     * This is the reason `roll_mirror` exists rather than a hand-written `roll_cycle`. A rolled cabinet is not
+     * centred on its own origin — at 90 its body is entirely to the right of it, at 270 entirely to the left —
+     * so spacing origins uniformly across a mirrored row opens the seam by a full 960 mm while every other
+     * joint stays at 20 mm. Laying the *bodies* out at a uniform pitch instead puts each origin wherever its
+     * own body needs it, and the seam comes out of the gap with nothing stated.
+     */
+    public function testTheSeamBetweenTheMirroredHalvesIsJustTheGap(): void
+    {
+        $copies = $this->copies(new Lattice([6, 1, 1], [0.02, 0.0, 0.0], rollMirror: 90.0, cycleAxis: Axis::X));
+
+        // Body spans: rolled 270 runs from origin − 0.96 to the origin, rolled 90 from the origin onwards.
+        $left = $copies[2]->offset[0];              // the innermost cabinet of the left half, body ends here
+        $right = $copies[3]->offset[0];             // the innermost of the right half, body starts here
+        self::assertEqualsWithDelta(0.02, $right - $left, 1e-9, 'the seam is the working gap');
+
+        // Within a half it is a whole cabinet plus the gap, as it has to be — both bodies fall the same way.
+        self::assertEqualsWithDelta(0.98, $copies[2]->offset[0] - $copies[1]->offset[0], 1e-9);
+
+        // And the row still measures what any row of six 0.96 m cabinets measures.
+        $lo = $copies[0]->offset[0] - 0.96;
+        $hi = $copies[5]->offset[0] + 0.96;
+        self::assertEqualsWithDelta(6 * 0.96 + 5 * 0.02, $hi - $lo, 1e-9);
+        self::assertEqualsWithDelta(0.0, $lo + $hi, 1e-9, 'and stays centred on the placement');
+    }
+
+    /**
+     * An odd count cannot be mirrored exactly, so the middle cabinet joins the right-hand half.
+     *
+     * Picking a side beats refusing — the row is then lopsided by one cabinet, which is a fact about the
+     * inventory rather than a fault in the layout.
+     */
+    public function testAnOddMirroredRowPutsTheExtraCabinetOnTheRight(): void
+    {
+        $copies = $this->copies(new Lattice([5, 1, 1], [0.02, 0.0, 0.0], rollMirror: 90.0, cycleAxis: Axis::X));
+
+        $rolls = array_map(static fn (PlacementCopy $c): float => $c->rotation?->rollDeg ?? 0.0, $copies);
+        self::assertSame([270.0, 270.0, 90.0, 90.0, 90.0], $rolls);
+    }
+
+    /**
+     * Only a quarter turn moves the body off to one side, which is what a mirror is made of — 0 and 180 leave
+     * it centred and would mirror nothing.
+     */
+    public function testAMirrorNeedsAQuarterTurn(): void
+    {
+        $problems = (new Lattice([6, 1, 1], rollMirror: 45.0, cycleAxis: Axis::X))
+            ->problems($this->device(), 0.0, 0.0, $this->cellBox());
+
+        self::assertStringContainsString('roll_mirror must be 90 or 270', implode("\n", $problems));
+    }
+
+    /** A stated step would be applied to the origins, which is exactly what opens the seam. */
+    public function testAMirrorRefusesAStatedStepBecauseItDerivesItsOwnSpacing(): void
+    {
+        $problems = (new Lattice([6, 1, 1], [0.02, 0.0, 0.0], [0.7, 0.0, 0.0], rollMirror: 90.0, cycleAxis: Axis::X))
+            ->problems($this->device(), 0.0, 0.0, $this->cellBox());
+
+        self::assertStringContainsString('derives its own spacing', implode("\n", $problems));
+    }
+
+    /** Two keys deciding the same cells' roll is a contradiction, not a composition. */
+    public function testAMirrorAndACycleTogetherAreRefused(): void
+    {
+        $problems = (new Lattice([6, 1, 1], rollCycle: [90.0, 270.0], rollMirror: 90.0, cycleAxis: Axis::X))
+            ->problems($this->device(), 0.0, 0.0, $this->cellBox());
+
+        self::assertStringContainsString('both roll_cycle and roll_mirror', implode("\n", $problems));
+    }
+
+    /**
      * @return array{min: array{float, float, float}, max: array{float, float, float}}
      */
     private function cellBox(): array

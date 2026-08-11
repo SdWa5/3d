@@ -20,9 +20,11 @@ use App\Spec\InvalidSpecException;
  *     count: 6                          # six against the four we own
  *     align: block                      # this tier's own alignment
  *     mix_with: skram                   # share a row with these
+ *   - device: flexy-folded-horn-hybrid
+ *     roll_mirror: 90                   # on their sides, mirrored about the rig centre line
  * ```
  *
- * All three keys exist because a stack had exactly one setting for the whole rig and that was too coarse:
+ * The keys exist because a stack had exactly one setting for the whole rig and that was too coarse:
  *
  * * **`count`** overrides the spec's `quantity`. A stack could only place what the inventory holds, so it
  *   could not express what `full-rig-all-tops` says by hand — six Achenbachs against four owned, to see
@@ -33,18 +35,25 @@ use App\Spec\InvalidSpecException;
  * * **`mix_with`** names the devices to share a row with, which lifts mixing off the bottom row. It still has
  *   to pass the same two gates — matching heights, and only to remove an inverted step — because a row with a
  *   step through it has two top faces and whatever stands on it hangs in the air over the short half.
+ * * **`roll_mirror`** lays this device's tiers on their sides, the half past the middle rolled the stated
+ *   quarter turn and the half before it its mirror image. Folded horns are the reason: a Flexy on its side is
+ *   763 × 591 rather than 591 × 763, so the wall comes out wider and lower out of the same cabinets. Named per
+ *   device rather than inferred, because **no spec field says which cabinets are horn-loaded** and adding one
+ *   to drive a rotation would be inventing a property to serve a layout.
  */
 final class StackEntry
 {
     /**
      * @param int|null $count null means "however many the spec says we own"
      * @param list<string> $mixWith device ids to share this tier with
+     * @param float|null $rollMirror the quarter turn given to this device's right-hand half, null for upright
      */
     public function __construct(
         public readonly string $device,
         public readonly ?int $count = null,
         public readonly ?LayoutMode $align = null,
         public readonly array $mixWith = [],
+        public readonly ?float $rollMirror = null,
     ) {
     }
 
@@ -59,7 +68,7 @@ final class StackEntry
             return new self($entry);
         }
 
-        $allowed = ['device', 'count', 'align', 'mix_with'];
+        $allowed = ['device', 'count', 'align', 'mix_with', 'roll_mirror'];
         $unknown = $entry->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -74,6 +83,7 @@ final class StackEntry
             count: $entry->optionalInt('count'),
             align: $entry->has('align') ? $entry->requireEnum('align', LayoutMode::class) : null,
             mixWith: self::readMixWith($entry),
+            rollMirror: $entry->optionalFloat('roll_mirror'),
         );
     }
 
@@ -93,6 +103,15 @@ final class StackEntry
             if ($other === $this->device) {
                 $messages[] = sprintf("stack.from '%s': mix_with names itself", $this->device);
             }
+        }
+        if ($this->rollMirror !== null && fmod(abs($this->rollMirror), 180.0) !== 90.0) {
+            // Same line {@see Lattice} draws: only a quarter turn puts the body off to one side, which is
+            // what a mirror is made of.
+            $messages[] = sprintf(
+                "stack.from '%s': roll_mirror must be 90 or 270, got %s",
+                $this->device,
+                $this->rollMirror,
+            );
         }
 
         return $messages;

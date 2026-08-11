@@ -388,6 +388,73 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * A device asked to lie on its side is **fitted and stacked by its rolled dimensions**.
+     *
+     * A Flexy is 591 × 763 upright and 763 × 591 on its side, so four fill a 3.70 m stage where six stand up,
+     * and a tier of them raises what is above by 591 mm rather than 763. Every one of those numbers has to come
+     * from the rolled box: fitting rolled cabinets by their nominal 591 mm put 3.895 m of cabinet on a 3.70 m
+     * stage and reported it as a width failure afterwards.
+     */
+    public function testARolledDeviceIsFittedByItsRolledWidth(): void
+    {
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
+            new Stack(
+                from: [
+                    new StackEntry('flexy-folded-horn-hybrid', rollMirror: 90.0),
+                    new StackEntry('achenbach-18'),
+                    new StackEntry('tecnare-m2122'),
+                    new StackEntry('eighteensound-2way-15'),
+                ],
+                maxWidthM: 3.70,
+                interfaceHeightM: 2.0,
+                gapM: 0.02,
+            ),
+        );
+
+        self::assertSame([], $result['problems']);
+
+        $tiers = $result['tiers'];
+        self::assertSame([4, 4, 4, 4, 5], array_map(static fn (Tier $t): int => $t->count(), $tiers));
+        // Four rolled Flexys: 4 × 0.763 + 3 × 0.02 = 3.112, against 3.646 for six standing up.
+        self::assertEqualsWithDelta(3.112, $tiers[0]->widthM(0.02), 1e-9);
+        // Three rolled tiers reach 3 × 0.591, where three upright ones would be 2.289.
+        self::assertEqualsWithDelta(1.773, $this->subHeight(array_slice($tiers, 0, 3)), 1e-9);
+    }
+
+    /**
+     * And the row is mirrored about its own centre, not about each segment.
+     *
+     * The half past the middle takes the stated quarter turn and the half before it the mirror image, so the
+     * rig is symmetric about its centre line. A mixed row is the case that makes the distinction real: mirroring
+     * each segment about itself would turn the two middle cabinets one way each and break the symmetry.
+     */
+    public function testARolledTierIsMirroredAboutTheRowsOwnCentre(): void
+    {
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
+            new Stack(
+                from: [
+                    new StackEntry('flexy-folded-horn-hybrid', rollMirror: 90.0),
+                    new StackEntry('achenbach-18'),
+                    new StackEntry('tecnare-m2122'),
+                    new StackEntry('eighteensound-2way-15'),
+                ],
+                maxWidthM: 3.70,
+                interfaceHeightM: 2.0,
+                gapM: 0.02,
+            ),
+        );
+
+        self::assertSame(
+            '2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°',
+            $result['tiers'][0]->label(),
+        );
+        // The Achenbachs above were not asked to turn, and did not.
+        self::assertSame('4× achenbach-18', $result['tiers'][3]->label());
+    }
+
+    /**
      * A sub tier narrower than the one below it is **flanked from below** to close the step.
      *
      * The rule that builds the mixed bottom row asks whether a row would be narrower than the row coming to
