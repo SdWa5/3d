@@ -79,30 +79,57 @@ So the boxes are *reconstructions*, derived two ways and marked `provenance: est
 
 | Device | m | kg | Basis |
 |--------|---|----|-------|
-| `gmss-turbo-sub` | 0.600 × 0.750 × 0.900 | 66 | Our measured `flexy-folded-horn-hybrid` (0.591 × 0.763 × 0.964), the same class of single-18″ folded horn |
-| `gmss-middle-sub` | 0.700 × 1.200 × 1.000 | 100 | ~1.4× a turbo sub's height, the ratio the photo shows; sits just above our SKRAM's 90 kg |
-| `gmss-mid-bass` | 0.700 × 0.500 × 0.700 | 53 | Shortest cabinet in the rig; as wide as the column of turbo subs standing on it |
-| `gmss-turbo-top` | 0.460 × 1.100 × 0.650 | 66 | A little under the Turbosound TMS-4's published 502 × 1143 × 730 and 74.8 kg |
+| `gmss-turbo-sub` | 0.510 × 0.637 × 0.765 | 54 | Set ratio off the photo; driver not stated, so nothing forces an 18″ into it |
+| `gmss-middle-sub` | 0.595 × 1.020 × 0.850 | 81 | **Its 595 mm baffle fixes the set's scale** — see below. Tallest sub in the repository |
+| `gmss-mid-bass` | 0.595 × 0.425 × 0.595 | 45 | Shortest cabinet in the rig; carries a column of three turbo subs |
+| `gmss-turbo-top` | 0.391 × 0.935 × 0.552 | 56 | Set ratio. Well under the TMS-4's 502 × 1143 × 730 — the one place set and outside evidence disagree |
 
 Weights are calculated rather than guessed, the same way the estimates above are: plywood skin area at 18 mm and
 ~680 kg/m³, plus internal panels, drivers and hardware.
 
-**Absolute scale is the weak point, and it is not derived from the photograph.** There is no scale reference in the
-picture, so nothing in it can settle how big the cabinets are. An earlier pass tried: it read the blue illuminated
-logo on the sub faces as a ~60 mm badge, got roughly 3 mm per pixel, and produced the numbers in the row below.
-Standing that rig beside our own in `scenes/both-systems-side-by-side.yaml` showed it was much too big — fourteen
-GMSS cabinets made a wider *and* taller wall than our twenty-three, which is not credible. So the sizes now come
-from **comparison with cabinets somebody has actually measured**, chiefly the Flexy, and the whole set shrank:
+### What the photograph can and cannot give
 
-| Device | photo-derived (0.52–0.54) | measured-comparison (now) |
-|--------|---------------------------|---------------------------|
-| `gmss-turbo-sub` | 0.800 × 0.950 × 0.900, 84 kg | 0.600 × 0.750 × 0.900, 66 kg |
-| `gmss-middle-sub` | 0.900 × 1.350 × 1.100, 125 kg | 0.700 × 1.200 × 1.000, 100 kg |
-| `gmss-mid-bass` | 0.900 × 0.600 × 0.850, 68 kg | 0.700 × 0.500 × 0.700, 53 kg |
-| `gmss-turbo-top` | 0.460 × 1.150 × 0.700, 70 kg | 0.460 × 1.100 × 0.650, 66 kg |
+This is the crux of the whole GMSS set. The photograph gives **ratios** well — how tall a middle sub is against a
+turbo sub, how many cabinets to a column, which cabinet is wider than it is tall. It gives **absolute size** not at
+all: there is nothing in the frame of known length. Those two have to be sourced separately, and conflating them is
+what went wrong twice.
 
-The turbo top barely moved, and that is the tell: it was the one cabinet whose size never came from the photograph
-in the first place — it came from the TMS-4's published figures. The stack went from 3.66 × 3.450 m to 2.86 × 3.000.
+**The ratios come from the photo. The scale is calculated from the one physical fact GMSS stated: the middle sub's
+18″ driver.** An 18″ is a fixed object — a ~460 mm frame, a 416 mm cut-out on our own Achenbach — so the cabinet
+around it cannot be any size at all:
+
+| | mm |
+|---|---|
+| 18″ driver frame | 460 |
+| + 18 mm walls, both sides | 36 |
+| + ~15 mm mounting margin, both sides | 30 |
+| **minimum external baffle** | **526** |
+
+Below a set scale of **0.751** the stated 18″ physically will not mount, whatever the photograph seems to show. The
+set scale is **0.85**, and that is fixed by the same driver rather than chosen: it puts the middle sub's baffle at
+**595 mm**, between the two 18″-loaded cabinets somebody here has actually measured — the Flexy at 591 and the
+Achenbach at 600. An 18″ cabinet in this repository is about 595 mm across because an 18″ needs about that much, and
+GMSS's 18″ cabinet now is too.
+
+**One factor across all four cabinets** is the other half of it: it sets how big GMSS is without disturbing the
+proportions between its own cabinets, which is the part the photograph genuinely supports. An attempt to fix one
+cabinet on its own — bringing the middle sub from 1.200 to 1.000 while leaving the rest — was reverted for exactly
+that reason.
+
+Two earlier attempts, for the record. The first read the blue illuminated logo on the sub faces as a ~60 mm badge
+for ~3 mm per pixel. The second matched the turbo sub to our Flexy. Both left GMSS reading too large beside our own
+gear in `scenes/both-systems-side-by-side.yaml`:
+
+| Device | logo-scale (0.52–0.54) | Flexy-matched (0.55) | 18″-driver scale (now) |
+|--------|------------------------|----------------------|------------------------|
+| `gmss-turbo-sub` | 0.800 × 0.950 × 0.900 | 0.600 × 0.750 × 0.900 | 0.510 × 0.637 × 0.765 |
+| `gmss-middle-sub` | 0.900 × 1.350 × 1.100 | 0.700 × 1.200 × 1.000 | 0.595 × 1.020 × 0.850 |
+| `gmss-mid-bass` | 0.900 × 0.600 × 0.850 | 0.700 × 0.500 × 0.700 | 0.595 × 0.425 × 0.595 |
+| `gmss-turbo-top` | 0.460 × 1.150 × 0.700 | 0.460 × 1.100 × 0.650 | 0.391 × 0.935 × 0.552 |
+| stack | 3.66 × 3.450 m | 2.86 × 3.000 m | 2.44 × 2.550 m |
+
+The GMSS cabinets are now **smaller than ours** one for one, which is a deliberate consequence of the driver
+calculation rather than an oversight.
 
 **One real measurement off any GMSS cabinet would correct the whole set in a single pass.** Depths remain the least
 certain of the three axes either way: the side faces are foreshortened past reading, so they are inferred from the

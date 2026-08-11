@@ -13,16 +13,22 @@
 #     driver size and it is recorded in `audio.drivers`.
 #   - The class is fixed by the photo: a wide mouth divided by three or four vertical fins, which is a folded
 #     horn mouth rather than a ported baffle.
-#   - THESE ARE THE BIGGEST CABINETS IN THE STACK, which the photo shows plainly: the middle pair runs from the
-#     ground to above the second cabinet of the outer columns, about 455 px of height where an outer cabinet is
-#     320 — so roughly 1.4 times a turbo sub's height, whatever the absolute scale turns out to be.
-#   - 0.700 x 1.200 x 1.000, which is that ratio applied to the turbo sub's 0.750. The turbo sub in turn is
-#     anchored to our measured Flexy rather than to the photograph — see `gmss-turbo-sub.yaml` for why an earlier
-#     absolute scale read off a blue logo was abandoned, and note that these were 0.900 x 1.350 x 1.100 under it.
+#   - THIS IS THE BIGGEST CABINET IN THE STACK, which the photo shows plainly: the middle pair runs from the ground
+#     to above the second cabinet of the outer columns, about 455 px of height where an outer cabinet is 320.
+#     That RATIO is what the photograph is good for — 1.6 times a turbo sub's height — and it is kept exactly. What
+#     the photograph cannot give is absolute size, so the whole GMSS set is scaled as one; see `gmss-turbo-sub.yaml`.
+#   - 0.595 x 1.020 x 0.850. Its 595 mm baffle is what FIXES the whole set's scale, because this is the cabinet with
+#     the stated 18" driver: 595 mm is what an 18" needs, and it is what our own Flexy (591) and Achenbach (600) use.
+#     See `gmss-turbo-sub.yaml`. Still the tallest sub in the repository,
+#     ours included — our SKRAM is 0.914 — which is what the photo supports. It was 0.700 x 1.200 x 1.000 before the
+#     set was scaled, and 0.900 x 1.350 x 1.100 before that under an absolute scale read off the photo.
+#   - A brief attempt to fix this cabinet ALONE, by bringing it from 1.200 to 1.000 while leaving the others, was
+#     wrong and was reverted: it broke the one thing the photograph does establish, which is how these cabinets
+#     compare with each other. Scaling the set uniformly is the correction that keeps that intact.
 #   - Depth is inferred from the class, since the photo shows the mouth and not the box behind it.
-#   - The weight follows: 5.48 m2 of skin at 18 mm and ~680 kg/m3 is 67.1 kg, plus ~18 kg of internal horn panels
-#     (a folded horn is mostly internal panels), plus ~12 kg for the 18", plus ~3 kg of hardware. 100 kg is a
-#     two-person lift, which is worth knowing before a load-in, and it sits just above our SKRAM's 90.
+#   - The weight follows: 3.96 m2 of skin at 18 mm and ~680 kg/m3 is 48.5 kg, plus ~18 kg of internal horn panels
+#     (a folded horn is mostly internal panels), plus ~12 kg for the 18", plus ~3 kg of hardware. 81 kg, against our
+#     SKRAM's 90 for a cabinet of much the same size.
 #
 # NO PASSBAND. The 1600 W RMS is a power rating and says nothing about where the cabinet is crossed over.
 # Frequencies are exactly the kind of number this repository refuses to invent.
@@ -39,7 +45,7 @@ provenance: estimated
 geometry:
   # Block-level outer box; the fold is not modelled.
   shape: box
-  dimensions_m: { width: 0.700, height: 1.200, depth: 1.000 }
+  dimensions_m: { width: 0.595, height: 1.020, depth: 0.850 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -48,7 +54,7 @@ appearance:
 
 physical:
   # ESTIMATE, calculated not guessed — see the header for the arithmetic.
-  weight_kg: 100.0
+  weight_kg: 81.0
   handles: [ left, right ]
 
 rigging:

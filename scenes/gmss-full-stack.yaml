@@ -7,10 +7,10 @@
 #
 # THE ARRANGEMENT:
 #
-#   each outer column   1 mid-bass on the ground, 3 turbo subs on top of it        0.500 + 2.250 = 2.750 m
-#   middle bay, row 1   2 middle subs side by side                                         1.200 m
-#   middle bay, row 2   1 middle sub ON ITS SIDE, across both of them              1.200 + 0.700 = 1.900 m
-#   on top of that      the 3 turbo tops, side by side in ONE ROW                  1.900 + 1.100 = 3.000 m
+#   each outer column   1 mid-bass on the ground, 3 turbo subs on top of it        0.425 + 1.911 = 2.336 m
+#   middle bay, row 1   2 middle subs side by side                                         1.020 m
+#   middle bay, row 2   1 middle sub ON ITS SIDE, across both of them              1.020 + 0.595 = 1.615 m
+#   on top of that      the 3 turbo tops, side by side in ONE ROW                  1.615 + 0.935 = 2.550 m
 #
 # SIX TURBO SUBS, NOT EIGHT. GMSS states eight and only six are in this photograph — three to a column — so this
 # scene builds the six that can be seen and leaves the other two out. `scene:build` warns about over-using gear,
@@ -24,26 +24,27 @@
 #
 # ROW 2 IS A MIDDLE SUB LAID ON ITS SIDE, and that is the one genuinely speculative placement in the rig. What
 # the photograph shows between the middle subs and the tops is a cross-braced horn mouth, distinctly WIDER THAN
-# IT IS TALL, where a middle sub standing up is 0.700 wide and 1.200 tall. Rolled a quarter turn it is 1.200 wide
-# and 0.700 tall, which is that shape — and it also carries the tops: the row of three is 1.420 m across, and on a
-# cabinet standing up it would have 0.700 m under it with each outer top hanging half off, where rolled there is
-# 1.200 m and each outer top keeps 76% of itself on the cabinet. That was not aimed for, and it is the reason to
+# IT IS TALL, where a middle sub standing up is 0.595 wide and 1.020 tall. Rolled a quarter turn it is 1.020 wide
+# and 0.595 tall, which is that shape — and it also carries the tops: the row of three is 1.213 m across, and on a
+# cabinet standing up it would have 0.595 m under it with each outer top hanging half off, where rolled there is
+# 1.020 m and each outer top keeps 75% of itself on the cabinet. That was not aimed for, and it is the reason to
 # believe the roll — but it remains a reading of a photograph, and could be a cabinet type GMSS never listed.
 #
 # EVERY POSITION IS DERIVED, none is chosen:
 #
-#   middle subs   2 x 0.700 + 0.02 = 1.420 m, so the middle bay runs to 0.710 either side of centre
-#   row 2         1.200 m rolled, centred — hence `at: -0.600`, because a rolled cabinet's body lies to one
+#   middle subs   2 x 0.595 + 0.02 = 1.210 m, so the middle bay runs to 0.605 either side of centre
+#   row 2         1.020 m rolled, centred — hence `at: -0.510`, because a rolled cabinet's body lies to one
 #                 side of its placement point rather than around it
-#   turbo tops    3 x 0.460 + 2 x 0.02 = 1.420 m, centred over that 1.200
-#   columns       0.710 + 0.020 gap + 0.350 (half a mid-bass) puts each column's centre at 1.080
+#   turbo tops    3 x 0.391 + 2 x 0.02 = 1.213 m, centred over that 1.020
+#   columns       0.605 + 0.020 gap + 0.298 (half a mid-bass) puts each column's centre at 0.922
 #
-# CLEARANCES: the mid-bass at each foot reaches inward to 0.730 against the middle subs' 0.710, which is 20 mm and
-# the tightest fit in the rig. Above 0.500 m the columns are turbo subs, whose inner faces are at 0.780, against
-# row 2's 0.600 and the tops' 0.710 — so nothing above the ground row comes near anything.
+# CLEARANCES: the mid-bass at each foot reaches inward to 0.625 against the middle subs' 0.605, which is 20 mm and
+# the tightest fit in the rig. Above 0.425 m the columns are turbo subs, whose inner faces are at 0.667, against
+# row 2's 0.510 and the tops' 0.607 — so nothing above the ground row comes near anything.
 #
-# THE TOPS FINISH 250 mm ABOVE THE COLUMNS, at 3.000 m against 2.750. In the photograph they look closer to level
-# than that. It is the residue of a set of estimates rather than a placement error, and the item below is why.
+# THE TOPS FINISH 214 mm ABOVE THE COLUMNS, at 2.550 m against 2.336. In the photograph they look closer to level
+# than that, so something in the middle bay is still a little tall — most likely the rolled cabinet, which is the
+# most speculative placement in the rig anyway.
 #
 # WHAT IS STILL GUESSED: every depth, since the side faces are foreshortened past reading; the counts of middle
 # subs and mid-bass cabinets, which GMSS never stated; and above all THE ABSOLUTE SCALE. There is no scale
@@ -62,7 +63,7 @@ focus:
 
 placements:
   # THE MIDDLE BAY, bottom up. The folded horns go on the ground because they are the heaviest thing in the rig
-  # at 100 kg each, and because in the photo they are what the whole centre stands on.
+  # at 81 kg each, and because in the photo they are what the whole centre stands on.
   - id: middle-subs
     device: gmss-middle-sub
     at: [ 0.0, 0.0 ]
@@ -71,11 +72,11 @@ placements:
       gap_m: 0.02
 
   # The third middle sub, a quarter turn onto its side — see the header. `at` is -0.600 rather than 0 because a
-  # rolled cabinet's body lies to one side of its placement point, so this is what centres its 1.200 m.
+  # rolled cabinet's body lies to one side of its placement point, so this is what centres its 1.020 m.
   - id: middle-sub-upper
     device: gmss-middle-sub
     on: middle-subs
-    at: [ -0.600, 0.0 ]
+    at: [ -0.510, 0.0 ]
     roll_deg: 90
 
   # THE THREE TOPS, ONE ROW, on the rolled cabinet.
@@ -90,23 +91,23 @@ placements:
   # THE OUTER COLUMNS. A mid-bass on the ground with three turbo subs standing on it.
   - id: small-sub-left
     device: gmss-mid-bass
-    at: [ -1.080, 0.0 ]
+    at: [ -0.922, 0.0 ]
 
   - id: column-left
     device: gmss-turbo-sub
     on: small-sub-left
-    at: [ -1.080, 0.0 ]
+    at: [ -0.922, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
   - id: small-sub-right
     device: gmss-mid-bass
-    at: [ 1.080, 0.0 ]
+    at: [ 0.922, 0.0 ]
 
   - id: column-right
     device: gmss-turbo-sub
     on: small-sub-right
-    at: [ 1.080, 0.0 ]
+    at: [ 0.922, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
@@ -131,7 +132,9 @@ notes: |
     wider and taller wall than our twenty-three. A photograph with no scale reference cannot fix absolute size,
     and that 60 mm was carrying all of it. The cabinets are now sized against our own MEASURED gear instead: a
     turbo sub next to the Flexy's 0.591 x 0.763 x 0.964, both being single-18" folded horn subs. The rig went from
-    3.66 x 3.450 m to 2.86 x 3.000.
+    3.66 x 3.450 m to 2.86 x 3.000. A sixth pass then brought the middle sub from 1.200 to 1.000 tall: at 1.200 it
+    was still 31% taller than the tallest sub anybody here has measured, which showed up beside the rest of the
+    inventory in `both-systems-per-owner-center.yaml` rather than in this scene.
 
   What this scene does NOT guess at: no passbands, no crossover points and — apart from the middle sub's stated
   18" — no driver sizes.

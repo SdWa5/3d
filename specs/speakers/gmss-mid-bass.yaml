@@ -15,11 +15,11 @@
 #     there because a mouth that wide would otherwise flex.
 #   - The proportions come from the photo rather than from another cabinet, because the mouth's aspect ratio is
 #     directly visible: distinctly wider than it is tall, and not as deep as the folded horn subs below it.
-#     0.700 x 0.500 x 0.700 — round numbers, deliberately. It is the shortest cabinet in the rig and stands on the
-#     ground with a column of three turbo subs on top of it, so it is as wide as they are and no wider.
-#   - Sized with the rest of the GMSS set against our own measured cabinets rather than off the photograph — see
-#     `gmss-turbo-sub.yaml`. It was 0.900 x 0.600 x 0.850 under the earlier photo-derived scale.
-#   - The weight is calculated as everywhere else: 2.38 m2 of skin at 18 mm and ~680 kg/m3 is 29.1 kg, plus
+#     0.595 x 0.425 x 0.595. It is the shortest cabinet in the rig and stands on the ground with a column of three
+#     turbo subs on top of it, so it is wider than they are and not by much.
+#   - Sized with the rest of the GMSS set, at the one shared scale factor the whole set carries rather than off the
+#     photograph — see `gmss-turbo-sub.yaml`. It was 0.900 x 0.600 x 0.850 under the earlier photo-derived scale.
+#   - The weight is calculated as everywhere else: 1.72 m2 of skin at 18 mm and ~680 kg/m3 is 21.1 kg, plus
 #     ~8 kg of horn flare panels, plus ~14 kg for two mid-bass drivers, plus ~2 kg of hardware.
 #
 # TWO DRIVERS IS STATED, THEIR SIZE IS NOT — AND THE SCHEMA CANNOT SAY THAT. "2x 700rms" gives the count and
@@ -40,7 +40,7 @@ geometry:
   # Block-level outer box. The horn flare and its cross brace are visible in the photo and are not modelled —
   # the model is a block, as it is for every horn in this repository.
   shape: box
-  dimensions_m: { width: 0.700, height: 0.500, depth: 0.700 }
+  dimensions_m: { width: 0.595, height: 0.425, depth: 0.595 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -49,7 +49,7 @@ appearance:
 
 physical:
   # ESTIMATE, calculated not guessed — see the header for the arithmetic.
-  weight_kg: 53.0
+  weight_kg: 45.0
   handles: [ left, right ]
 
 rigging:

@@ -17,13 +17,15 @@
 #   - Proportions from the photo: distinctly tall and narrow, a convex curved grille across the front. All three
 #     stand side by side IN ONE ROW on top of the middle section — not spread across the outer columns, which is
 #     how the first pass had them and which the photograph plainly contradicts.
-#   - 0.460 x 1.100 x 0.650, a little under the TMS-4 on all three axes. This is the ONE GMSS cabinet whose size
-#     did not move much when the rest of the set was rescaled against our own measured gear, and that is because
-#     it never depended on the photograph's scale: it came from the TMS-4's published figures. Our own
-#     `tecnare-m2122` top is 0.50 x 0.96 x 0.52, so a 1.100 m tall top is a big one but not an outlandish one.
-#   - Weight: a calculated skin of 3.04 m2 at 18 mm and ~680 kg/m3 is 37.2 kg, plus horn, drivers and hardware,
-#     giving 66 kg — against the TMS-4's published 74.8 for a slightly larger box. Two routes landing close
-#     together is the reason to believe it at all.
+#   - 0.391 x 0.935 x 0.552, which is well under the TMS-4. AND THIS IS THE ONE PLACE THE GMSS SET AND ITS OUTSIDE
+#     EVIDENCE DISAGREE, so it is worth stating rather than smoothing over. Left to the TMS-4 alone this cabinet
+#     would be 0.502 x 1.143 x 0.730. But it belongs to a set whose proportions come from one photograph, and the
+#     set as a whole had to come down to sit credibly beside our own measured gear — so this cabinet carries the
+#     same 0.85 the other three do. Our `tecnare-m2122` is 0.50 x 0.96 x 0.52, and 0.935 m tall sits just under it.
+#   - Which is right? A measurement would say. Until then the set is kept internally consistent, because the
+#     photograph supports the cabinets' proportions to each other far better than it supports any absolute size.
+#   - Weight: a calculated skin of 2.20 m2 at 18 mm and ~680 kg/m3 is 26.9 kg, plus horn, drivers and hardware,
+#     giving 56 kg — where the TMS-4's published figure is 74.8 for a distinctly larger box.
 #
 # NO PASSBAND AND NO DRIVERS. 2500 W RMS is a power rating. The photo shows a grille and tells us nothing about
 # what is behind it, and the TMS-4's own 18" + 10" + 1" belongs to the TMS-4, not to this cabinet.
@@ -41,7 +43,7 @@ geometry:
   # Block-level outer box. The curved front visible in the photo is not modelled — `shape: box` is what the
   # repository draws, and a curve would be a claim about a radius nobody has measured.
   shape: box
-  dimensions_m: { width: 0.460, height: 1.100, depth: 0.650 }
+  dimensions_m: { width: 0.391, height: 0.935, depth: 0.552 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -50,7 +52,7 @@ appearance:
 
 physical:
   # ESTIMATE — the TMS-4's published 74.8 kg and a calculated plywood skin agreeing, see the header.
-  weight_kg: 66.0
+  weight_kg: 56.0
   handles: [ left, right ]
 
 rigging:

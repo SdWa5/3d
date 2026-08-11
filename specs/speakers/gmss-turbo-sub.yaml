@@ -17,12 +17,26 @@
 #     is a single-18" folded horn sub in this repository at 0.591 x 0.763 x 0.964, and its numbers come from the
 #     design's own CAD. A GMSS turbo sub is the same kind of box doing the same job, so 0.600 x 0.750 x 0.900 —
 #     within 40 mm of the Flexy on every axis.
-#   - THIS REPLACED A SCALE READ OFF THE PHOTO, and the reason is worth recording. An earlier pass measured the
-#     blue illuminated logo on the front face, assumed a ~60 mm badge, and derived 0.800 x 0.950 x 0.900 from
-#     3 mm per pixel. Standing that rig beside our own in `both-systems-side-by-side.yaml` showed it was much too
-#     big: it made fourteen GMSS cabinets a wider, taller wall than our twenty-three. A photograph with no scale
-#     reference in it cannot settle absolute size, and the 60 mm was doing all the work. Comparison against a
-#     cabinet somebody has actually measured is the better anchor, so that is what this now uses.
+#   - WHAT THE PHOTOGRAPH CAN AND CANNOT GIVE, because the whole GMSS set turns on this. It gives RATIOS well: how
+#     tall a middle sub is against a turbo sub, how many cabinets to a column, which is wider than it is tall. It
+#     gives ABSOLUTE SIZE not at all — there is nothing in the frame of known length. An early pass tried anyway,
+#     reading the blue logo on the front face as a ~60 mm badge for 3 mm per pixel, and produced 0.800 x 0.950 x
+#     0.900. That was much too big: seen beside our own rig in `both-systems-side-by-side.yaml`, fourteen GMSS
+#     cabinets made a wider and taller wall than our twenty-three.
+#   - SO THE RATIOS COME FROM THE PHOTO AND THE SCALE IS CALCULATED FROM THE ONE PHYSICAL FACT GMSS STATED: the
+#     middle sub's 18" driver. An 18" is a fixed object — roughly a 460 mm frame, a 416 mm cut-out on our own
+#     Achenbach — so the cabinet around it cannot be any size at all. Allow 18 mm walls and ~15 mm of mounting
+#     margin each side and the baffle cannot be narrower than 460 + 36 + 30 = 526 mm. Below a set scale of 0.751 the
+#     stated 18" physically will not go in, whatever the photograph seems to show.
+#   - THE SET SCALE IS 0.85, and it is fixed by that same driver rather than chosen: at 0.85 the middle sub's baffle
+#     is 595 mm, which lands between the two 18"-loaded cabinets somebody here has actually measured — the Flexy at
+#     591 and the Achenbach at 600. An 18" cabinet in this repository is about 595 mm across because an 18" driver
+#     needs about that much, and GMSS's 18" cabinet now is too.
+#   - ONE FACTOR ACROSS ALL FOUR CABINETS is the other half of it. It sets how big GMSS is without touching the
+#     proportions between its own cabinets, which is the part the photograph genuinely supports. An attempt to fix
+#     one cabinet on its own was reverted for exactly that reason.
+#   - 0.510 x 0.637 x 0.765 is therefore SMALLER than our Flexy, a cabinet of the same class — this one's driver is
+#     not stated, so nothing forces it to hold an 18", and it follows the set scale.
 #   - Depth is the least certain of the three. The side face is heavily foreshortened, so 0.900 is inferred from
 #     the class rather than measured off the photo at all.
 #   - The weight is calculated rather than guessed, the same way `achenbach-18` and `eighteensound-2way-15` do
@@ -47,7 +61,7 @@ geometry:
   # Block-level outer box, which is all an estimate can honestly describe. Whatever the loading is inside, it
   # is not modelled and nothing here claims to know it.
   shape: box
-  dimensions_m: { width: 0.600, height: 0.750, depth: 0.900 }
+  dimensions_m: { width: 0.510, height: 0.637, depth: 0.765 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -57,7 +71,7 @@ appearance:
 
 physical:
   # ESTIMATE, calculated not guessed — see the header for the arithmetic.
-  weight_kg: 66.0
+  weight_kg: 54.0
   handles: [ left, right ]
 
 rigging:

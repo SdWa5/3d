@@ -26,16 +26,15 @@
 #   * the subs reach 1.800 m against the 2.000 m interface asked for, so the tops sit 200 mm lower than ideal —
 #     1.800 m is the most they reach while every tier is still carried
 #
-# main-gmss — gmss, 16 cabinets in 5 rows:
+# main-gmss — gmss, 16 cabinets in 4 rows:
 #
-#   1  4× gmss-turbo-sub                                                         2.55 m wide
-#   2  4× gmss-turbo-sub                                                         2.55 m wide
-#   3  3× gmss-middle-sub                                                         2.2 m wide
-#   4  2× gmss-mid-bass                                                          1.45 m wide
-#   5  3× gmss-turbo-top                                                         1.48 m wide
+#   1  6× gmss-turbo-sub                                                         3.31 m wide
+#   2  1× gmss-turbo-sub + 3× gmss-middle-sub + 1× gmss-turbo-sub             3.005 m wide
+#   3  2× gmss-mid-bass                                                          1.24 m wide
+#   4  3× gmss-turbo-top                                                        1.273 m wide
 #
-# Subs reach 3.2 m against a 2.0 m interface. The stack is 4.3 m of cabinet.
-#   * the 3× gmss-turbo-top row is 1.480 m on a 1.450 m row, so it overhangs 15 mm each side
+# Subs reach 2.082 m against a 2.0 m interface. The stack is 3.017 m of cabinet.
+#   * the 3× gmss-turbo-top row is 1.273 m on a 1.240 m row, so it overhangs 17 mm each side
 #
 id: both-systems-per-owner-center
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -51,7 +50,7 @@ focus:
 placements:
   # sdwa5, 17 cabinets in 4 rows
   - id: main-sdwa5
-    at: [-2.702, 0.0]
+    at: [-3.082, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
@@ -64,7 +63,7 @@ placements:
 
   # sepp, 8 cabinets in 4 rows
   - id: main-sepp
-    at: [0.0005, 0.0]
+    at: [-0.3795, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
@@ -74,7 +73,7 @@ placements:
         - achenbach-18
         - eighteensound-2way-15
 
-  # gmss, 16 cabinets in 5 rows
+  # gmss, 16 cabinets in 4 rows
   - id: main-gmss
     at: [2.4005, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

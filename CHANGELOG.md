@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.57.0] - 2026-08-11
+
+### Fixed
+
+- **The GMSS cabinets were still too big beside ours, and the scale is now calculated rather than chosen.** The
+  photograph gives **ratios** well — how tall a middle sub is against a turbo sub, how many to a column — and gives
+  **absolute size** not at all, since nothing in the frame has a known length. Conflating the two is what went wrong
+  in 0.52.0 (a ~60 mm logo read as ~3 mm/px) and again in 0.55.0 (matching the turbo sub to our Flexy)
+- **The scale comes from the one physical fact GMSS stated: the middle sub's 18″ driver.** A 460 mm frame plus 18 mm
+  walls plus ~15 mm of mounting margin each side means the baffle cannot be under 526 mm, so **below a set scale of
+  0.751 the stated 18″ will not physically mount**. The set scale is **0.85**, fixed by the same driver: it puts the
+  middle sub's baffle at **595 mm**, between the two 18″-loaded cabinets measured here — Flexy 591, Achenbach 600
+- **One factor across all four cabinets**, which sets how big GMSS is without disturbing the proportions between its
+  own cabinets — the part the photograph does support:
+  - `gmss-turbo-sub` → **0.510 × 0.637 × 0.765**, 54 kg
+  - `gmss-middle-sub` → **0.595 × 1.020 × 0.850**, 81 kg
+  - `gmss-mid-bass` → **0.595 × 0.425 × 0.595**, 45 kg
+  - `gmss-turbo-top` → **0.391 × 0.935 × 0.552**, 56 kg
+  - stack 2.86 × 3.000 m → **2.44 × 2.550 m**
+- **Reverted a wrong fix from this same session**: bringing the middle sub from 1.200 to 1.000 while leaving the
+  others alone. It treated the one thing the photograph establishes — how the cabinets compare with each other — as
+  the thing to change. A uniform factor was the correction
+
+### Notes
+
+- The GMSS cabinets are now **smaller than ours one for one**, which follows from the driver calculation rather than
+  being an oversight. `gmss-turbo-top` is where the set and its outside evidence disagree: left to the Turbosound
+  TMS-4 alone it would be 0.502 × 1.143 × 0.730, but it belongs to a set with one scale. A measurement would settle
+  it; until then internal consistency wins, because the photo supports proportions far better than absolute size
+- `docs/sources.md` gains a *What the photograph can and cannot give* section with the driver arithmetic and all
+  three scale attempts side by side
+
 ## [0.56.0] - 2026-08-11
 
 ### Fixed

@@ -90,7 +90,7 @@ placements:
 
   # ─── GMSS, centred at +2.600 ───────────────────────────────────────────────────────────────────────────────
   # Copied from `gmss-full-stack.yaml` with 2.600 added to every x. The rolled cabinet keeps its offset: its
-  # -0.600 becomes 2.000, because a rolled cabinet's body lies to one side of its placement point.
+  # -0.510 becomes 2.090, because a rolled cabinet's body lies to one side of its placement point.
   - id: gmss-middle-subs
     device: gmss-middle-sub
     at: [ 2.600, 0.0 ]
@@ -101,7 +101,7 @@ placements:
   - id: gmss-middle-sub-upper
     device: gmss-middle-sub
     on: gmss-middle-subs
-    at: [ 2.000, 0.0 ]
+    at: [ 2.090, 0.0 ]
     roll_deg: 90
 
   - id: gmss-tops
@@ -114,23 +114,23 @@ placements:
 
   - id: gmss-small-sub-left
     device: gmss-mid-bass
-    at: [ 1.520, 0.0 ]
+    at: [ 1.678, 0.0 ]
 
   - id: gmss-column-left
     device: gmss-turbo-sub
     on: gmss-small-sub-left
-    at: [ 1.520, 0.0 ]
+    at: [ 1.678, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
   - id: gmss-small-sub-right
     device: gmss-mid-bass
-    at: [ 3.680, 0.0 ]
+    at: [ 3.522, 0.0 ]
 
   - id: gmss-column-right
     device: gmss-turbo-sub
     on: gmss-small-sub-right
-    at: [ 3.680, 0.0 ]
+    at: [ 3.522, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
