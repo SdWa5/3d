@@ -72,10 +72,14 @@ final class Envelope
      * deliberately not applied here — under `outside` the inset is the target of the solve rather than something
      * taken off an envelope, so folding it in would count it twice.
      *
+     * Returned as a **span** rather than a width, because where it is matters as much as how big it is: a lone
+     * fill sits on one side of it and has to clear that side, while a pair straddles it and has to clear both.
+     * A width alone was enough only while the arrangement was assumed symmetric, and a single cabinet is not.
+     *
      * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
-     * @return float|string
+     * @return array{float, float}|string
      */
-    public static function obstacleFor(Alignment $align, array $placedById): float|string
+    public static function obstacleFor(Alignment $align, array $placedById): array|string
     {
         /** @var string $reference */
         $reference = $align->outside;
@@ -85,7 +89,15 @@ final class Envelope
             return sprintf("align.outside: '%s' must name an earlier placement", $reference);
         }
 
-        return self::extentOf($cabinets);
+        $min = INF;
+        $max = -INF;
+        foreach ($cabinets as $cabinet) {
+            $box = $cabinet->worldBox();
+            $min = min($min, $box['min'][0]);
+            $max = max($max, $box['max'][0]);
+        }
+
+        return $min === INF ? [0.0, 0.0] : [$min, $max];
     }
 
     /**

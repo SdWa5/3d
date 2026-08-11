@@ -673,6 +673,28 @@ so block and stereo alignment have nothing left to spread it into.
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 
+**A near-field fill goes to the outer stacks, on the inner side, aimed at the near focus.** Three rules that only
+make sense together:
+
+* A device with fewer than one per stack goes to the **middle** if it is a sub — weight belongs low and central,
+  and a sub has to be part of a row that carries something — and to the **outermost stacks, in pairs** if it is a
+  top, because the tops too few to give every stack one are the small boxes. Two 2-ways across three stacks come
+  out one, none, one.
+* The **widest top is the long throw** and every narrower one is fill, which is the same choice `topRow` already
+  makes when it centres the widest and puts the smaller boxes outboard. A fill takes `aim: near`; the long throw
+  keeps the placement's own aim. Before this, one `aim` covered every top a stack carried, so a 2-way beside an
+  M2122 was thrown at the far focus instead of at the front row.
+* A fill is solved `align.outside` the nearest long-throw run **on its own side**, with the working gap as the
+  clearance. That is what a nominal gap cannot do: two tops aimed at one focus from different x take different
+  *yaws*, the outer one turns more, and it turns *into* its neighbour. At the far focus that cost 7.9 mm of the
+  stated 20 in a one-stack rig and bit **1.7 mm** in a three-stack rig's right stack; at the near focus, with the
+  fill toed in 36°, it bit **117 mm**.
+
+The long throw is therefore emitted **first** within its tier, because `outside` can only name a placement that
+already exists. Only the order changes; which segment is which does not. And the long throw may itself land in
+several runs — a stepped tier below splits three M2122s into two — so each fill is solved against whichever is
+nearest on its side, which clears the rest by construction.
+
 `--stacks=N` deals the inventory out **evenly, and mirrors if it can**. Two strategies are tried — split every
 device evenly, which makes the stacks identical, or keep a device whole in the middle stack when there are too
 few of it to go round — and the one that stands up **more cabinets** wins, with the even split breaking a tie.
@@ -896,9 +918,16 @@ cabinets, less the obstacle's extent, halved — per side, because the arrangeme
 bisection as every other alignment, against the same rotated boxes, so the spacing it lands on is the spacing
 that actually clears.
 
-**Refused rather than solved when the cabinets already clear by more than asked.** Pulling them *in* would need a
-bracket below the starting parameter, and every mode's parameter is bounded below by zero — every cabinet on `at`,
-the tightest arrangement there is. A row already too wide is an over-wide row, not a spacing to solve.
+**`inset_m` is a minimum, not a target.** Cabinets already further out are left exactly where they are rather than
+pulled back in, and that is the reading that keeps other decisions intact: a fill that gravity re-seated onto a
+shoulder for its bearing sits 517 mm clear, and dragging it back to 20 mm would undo a repair made for a reason.
+Where the natural spacing does bite — which is every contiguous tops row once toe-in is applied — the solve pushes
+out until the air is really there.
+
+**A single cabinet needs `side: left` or `side: right`.** Every other case reads its side from the sign of the
+copy's own offset, which *is* the column split. A lone cabinet sits at offset 0, so there is no sign to read and
+nothing can say which way outboard is. A stack knows — its fill is the segment beside the long throw — and states
+it.
 
 ## Line arrays — a hang rather than a fan
 

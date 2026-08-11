@@ -74,12 +74,23 @@ final class Alignment
         /** Taken off the envelope on **each** side — "20 mm inside the outer tops". Or, with `outside`, the
          * clearance to keep beyond it. */
         public readonly float $insetM = 0.0,
+        /**
+         * Which way a cabinet **on the centre line** is pushed: `-1` left, `+1` right, `0` to work it out from
+         * where the cabinet already sits.
+         *
+         * Only ever needed for a lone cabinet, and only under `outside`. Every other case derives its side from
+         * the sign of the copy's own offset — that *is* the column split, which is why a row of four gives two
+         * columns of two without anybody counting. A single copy sits at offset 0, so there is no sign to read
+         * and the arrangement cannot say which way "outboard" is. A stack knows: its fill is the segment beside
+         * the long throw, and which side of it is a fact about the tier.
+         */
+        public readonly float $side = 0.0,
     ) {
     }
 
     public static function fromReader(ArrayReader $reader): self
     {
-        $allowed = ['mode', 'width_m', 'across', 'inside', 'outside', 'inset_m'];
+        $allowed = ['mode', 'width_m', 'across', 'inside', 'outside', 'inset_m', 'side'];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -96,6 +107,14 @@ final class Alignment
             inside: $reader->optionalString('inside'),
             outside: $reader->optionalString('outside'),
             insetM: $reader->optionalFloat('inset_m', 0.0) ?? 0.0,
+            side: match ($reader->optionalString('side')) {
+                'left' => -1.0,
+                'right' => 1.0,
+                null => 0.0,
+                default => throw new InvalidSpecException(
+                    sprintf("align.side: expected 'left' or 'right', got '%s'", (string)$reader->optionalString('side')),
+                ),
+            },
         );
     }
 
@@ -133,7 +152,7 @@ final class Alignment
             return $this;
         }
 
-        return new self($this->mode, null, $placementId, null, null, $this->insetM);
+        return new self($this->mode, null, $placementId, null, null, $this->insetM, $this->side);
     }
 
     /**
@@ -150,7 +169,7 @@ final class Alignment
             return $this;
         }
 
-        return new self($this->mode, $widthM, null, null, null, $this->insetM);
+        return new self($this->mode, $widthM, null, null, null, $this->insetM, $this->side);
     }
 
     private function hasEnvelope(): bool
@@ -217,7 +236,7 @@ final class Alignment
             fn (PlacementCopy $copy): PlacementCopy => $copy->movedInX(
                 $this->mode === LayoutMode::Block
                     ? $copy->offset[0] * $t
-                    : $copy->offset[0] + self::column($copy->offset[0]) * $t,
+                    : $copy->offset[0] + $this->columnOf($copy->offset[0]) * $t,
             ),
             $copies,
         );
@@ -263,8 +282,14 @@ final class Alignment
         $lattice = $levels[0];
         $messages = [];
 
-        if ($lattice->count[0] < 2) {
+        if ($lattice->count[0] < 2 && !$this->isClearance()) {
+            // Under `outside` one cabinet is the ordinary case: there is no spacing to solve between cabinets,
+            // only air to keep beyond something else, and a lone fill beside a long throw is exactly that.
             $messages[] = 'align needs more than one cabinet across x to space';
+        }
+        if ($lattice->count[0] < 2 && $this->isClearance() && $this->side === 0.0) {
+            $messages[] = "align.outside on a single cabinet needs align.side: 'left' or 'right' — a cabinet on "
+                .'the centre line has no sign to say which way out is';
         }
         if ($lattice->stepM[0] !== 0.0) {
             // Only `step_m`. `gap_m` stays legal: it is the natural spacing the solve starts from, it is
@@ -282,12 +307,14 @@ final class Alignment
      * For `stereo` this *is* the column split, and it falls out of the natural offsets rather than being
      * counted: a row of four has two copies each side, a row of five has two each side and one on zero.
      */
-    private static function column(float $x): float
+    private function columnOf(float $x): float
     {
-        if (abs($x) < self::CENTRE_EPSILON_M) {
-            return 0.0;
+        if (abs($x) >= self::CENTRE_EPSILON_M) {
+            return $x < 0.0 ? -1.0 : 1.0;
         }
 
-        return $x < 0.0 ? -1.0 : 1.0;
+        // On the centre line, so there is no sign to read — a stated side is the only thing that can say which
+        // way out is, and without one the cabinet stays where it is.
+        return $this->side;
     }
 }

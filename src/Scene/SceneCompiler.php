@@ -451,15 +451,13 @@ final class SceneCompiler
             $obstacle,
         );
 
-        $tightest = $clearanceAt($align->startParameter());
-        if ($tightest > $align->insetM + StepSolver::TOLERANCE_M) {
-            return sprintf(
-                'align.outside: these cabinets already clear %s by %.4f m at their natural spacing, more than the '
-                .'%.4f m asked for — there is nothing to solve, tighten the row instead',
-                (string)$align->outside,
-                $tightest,
-                $align->insetM,
-            );
+        // **`inset_m` is a minimum, not a target.** Cabinets already further out than asked are left exactly where
+        // they are rather than pulled back in, and that is the useful reading as well as the safe one: a fill that
+        // {@see Gravity} re-seated onto a shoulder for its bearing is 517 mm clear, and dragging it back to 20 mm
+        // would undo a repair that was made for a reason. Where the natural spacing does bite — which is every
+        // contiguous tops row, once toe-in is applied — the solve pushes out until the air is really there.
+        if ($clearanceAt($align->startParameter()) >= $align->insetM - StepSolver::TOLERANCE_M) {
+            return $copies;
         }
 
         $parameter = StepSolver::solve($clearanceAt, $align->insetM, $align->startParameter());
@@ -517,11 +515,27 @@ final class SceneCompiler
         ?array $target,
         ?Orientation $hangAim,
         float $pitchDeg,
-        float $obstacle,
+        array $obstacle,
     ): float {
         $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
+        if ($placed === []) {
+            return 0.0;
+        }
 
-        return $placed === [] ? 0.0 : (Envelope::freeSpanOf($placed) - $obstacle) / 2;
+        [$low, $high] = $obstacle;
+
+        // The **tightest** gap any one of my cabinets leaves, so a pair straddling the obstacle is judged on
+        // whichever side is worse and a lone cabinet on the only side it has. Negative while a cabinet still
+        // overlaps, which is what gives the bisection somewhere below the target to start from.
+        $worst = INF;
+        foreach ($placed as $cabinet) {
+            $box = $cabinet->worldBox();
+            $worst = min($worst, $box['min'][0] >= $high || $box['max'][0] <= $low
+                ? max($low - $box['max'][0], $box['min'][0] - $high)
+                : -(min($box['max'][0], $high) - max($box['min'][0], $low)));
+        }
+
+        return $worst;
     }
 
     /**

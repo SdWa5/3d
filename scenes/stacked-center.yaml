@@ -39,5 +39,6 @@ placements:
         - flexy-folded-horn-hybrid
         - achenbach-18
         - tecnare-m2122
-        - eighteensound-2way-15
+        - device: eighteensound-2way-15
+          aim: near
 

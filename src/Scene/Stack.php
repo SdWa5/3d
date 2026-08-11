@@ -189,6 +189,11 @@ final class Stack
             $tier = $tiers[$index];
             $isTop = $index === count($tiers) - 1;
 
+            // The long throw first, then the fills beside it — because a fill is solved `outside` the long
+            // throw, and `outside` has to name a placement that already exists. Order is otherwise irrelevant:
+            // a placement's geometry does not depend on when it was emitted, only its references do.
+            [$runs, $throw] = $isTop ? self::throwFirst($runs) : [$runs, null];
+
             foreach ($runs as $run) {
                 $own = $this->entryFor($run['device']->id)?->aim;
 
@@ -235,14 +240,145 @@ final class Stack
                     //
                     // A tier that landed in several places is left alone: each run has its own support and
                     // its own width, and there is no single envelope to justify them into.
-                    align: !$isTop || $index === 0 || count($runs) > 1 || $run['count'] < 2 || $run['on'] === null
-                        ? null
-                        : self::envelopeFor($this->alignFor($tier, $placement->align), [$run['on'], null]),
+                    align: $this->alignmentFor($tier, $placement, $run, $runs, $throw, $isTop, $index),
                 );
             }
         }
 
         return $placements;
+    }
+
+    /**
+     * A top tier's runs with the **long throw** first, and which one that is.
+     *
+     * The long throw is the widest top in the row — the same choice {@see StackSolver::topRow} makes when it
+     * centres the widest and puts "the smaller boxes, which are fills, outboard of it". Emitting it first is what
+     * lets the fills be solved against it: `align.outside` names a placement, and a placement can only be named
+     * once it has been resolved.
+     *
+     * The long throw may itself land in **several** runs — a stepped tier below splits the three M2122s of a tops
+     * row into two — so this returns all of them and each fill is later solved against whichever is nearest on its
+     * own side. Clearing the nearest one clears the rest, since the others are further away by construction.
+     *
+     * Null when there are no fills at all: a row of one kind of top has nothing to solve outboard of.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
+     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>, list<array{id: string, lo: float, hi: float}>|null}
+     */
+    private static function throwFirst(array $runs): array
+    {
+        if (count($runs) < 2) {
+            return [$runs, null];
+        }
+
+        $widest = null;
+        foreach ($runs as $run) {
+            $width = RolledBox::widthOf($run['device'], $run['roll']);
+            if ($widest === null || $width > RolledBox::widthOf($widest['device'], $widest['roll']) + 1e-9) {
+                $widest = $run;
+            }
+        }
+        if ($widest === null) {
+            return [$runs, null];
+        }
+
+        $throwRuns = array_values(array_filter(
+            $runs,
+            static fn (array $run): bool => $run['device'] === $widest['device'],
+        ));
+        $rest = array_values(array_filter($runs, static fn (array $run): bool => $run['device'] !== $widest['device']));
+        if ($rest === []) {
+            return [$runs, null];
+        }
+
+        return [
+            [...$throwRuns, ...$rest],
+            array_map(
+                static fn (array $run): array => ['id' => $run['id'], 'lo' => $run['lo'], 'hi' => $run['hi']],
+                $throwRuns,
+            ),
+        ];
+    }
+
+    /**
+     * What this run is justified against, or null for the spacing the tier already gives it.
+     *
+     * Two different jobs share the key, and they are worth telling apart:
+     *
+     * * **A fill beside the long throw** is solved `outside` it, with the working gap as the clearance. This is
+     *   what a nominal gap cannot do: two tops aimed at one focus from different x take different *yaws*, the
+     *   outer one turns more, and it turns *into* its neighbour — 1.7 mm at the far focus and 80 mm at the near
+     *   one, on a 20 mm gap. The solve pushes the fill out until the air is really there.
+     * * **A whole top tier that landed in one run** is spread across its own support, which is the older rule and
+     *   unchanged: only a tier nothing stands on may be spread, and only as wide as what holds it up.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
+     * @param array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float} $run
+     * @param list<array{id: string, lo: float, hi: float}>|null $throw
+     */
+    private function alignmentFor(
+        Tier $tier,
+        Placement $placement,
+        array $run,
+        array $runs,
+        ?array $throw,
+        bool $isTop,
+        int $index,
+    ): ?Alignment {
+        if (!$isTop || $index === 0) {
+            return null;
+        }
+
+        $nearest = $throw === null ? null : self::nearestThrow($throw, $run);
+        if ($nearest !== null) {
+            return new Alignment(
+                mode: LayoutMode::Stereo,
+                outside: $nearest['id'],
+                insetM: $this->gapM,
+                side: $nearest['side'],
+            );
+        }
+
+        if (count($runs) > 1 || $run['count'] < 2 || $run['on'] === null) {
+            return null;
+        }
+
+        return self::envelopeFor($this->alignFor($tier, $placement->align), [$run['on'], null]);
+    }
+
+    /**
+     * The long-throw run this fill has to clear, and which way out is — or null when this run *is* a long throw.
+     *
+     * Nearest on the fill's own side, because clearing that one clears every other: the rest of the long throw
+     * lies further away in the same direction. Which side comes out of the geometry rather than being stated,
+     * since a fill is either left or right of the cluster it flanks and nothing else is possible in a row.
+     *
+     * @param list<array{id: string, lo: float, hi: float}> $throw
+     * @param array{id: string, lo: float, hi: float, ...} $run
+     * @return array{id: string, side: float}|null
+     */
+    private static function nearestThrow(array $throw, array $run): ?array
+    {
+        $centre = ($run['lo'] + $run['hi']) / 2;
+        $best = null;
+        $distance = INF;
+
+        foreach ($throw as $candidate) {
+            if ($candidate['id'] === $run['id']) {
+                return null;
+            }
+
+            $own = abs($centre - ($candidate['lo'] + $candidate['hi']) / 2);
+            if ($own < $distance) {
+                $distance = $own;
+                $best = [
+                    'id' => $candidate['id'],
+                    'side' => $centre < ($candidate['lo'] + $candidate['hi']) / 2 ? -1.0 : 1.0,
+                ];
+            }
+        }
+
+        return $best;
     }
 
     /**

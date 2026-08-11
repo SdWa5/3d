@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Scene\LayoutMode;
+use App\Scene\RolledBox;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneSpec;
 use App\Scene\Stack;
@@ -35,6 +36,14 @@ final class SceneStackCommand extends BaseCommand
 {
     /** Enough to compare a handful of rigs; past this something is being enumerated by accident. */
     private const DEFAULT_MAX_SCENES = 24;
+
+    /**
+     * The focus a near-field fill is turned towards — one of the two {@see StackSceneWriter} always writes.
+     *
+     * Named here rather than in {@see Stack} because only the writer guarantees the focus exists: a hand-written
+     * scene need not define `near`, and aiming at a focus that is not there is an error.
+     */
+    private const NEAR_FOCUS = 'near';
 
     protected function configure(): void
     {
@@ -306,7 +315,7 @@ final class SceneStackCommand extends BaseCommand
 
         $firstProblem = null;
         foreach ($candidates as $attempt) {
-            $stack = $this->stackFor($attempt, $input, 2 * $index < $of - 1);
+            $stack = $this->stackFor($attempt, $input, $devices, 2 * $index < $of - 1);
             $problems = $stack->problems();
             if ($problems !== []) {
                 return $problems[0];
@@ -347,13 +356,17 @@ final class SceneStackCommand extends BaseCommand
      * later one — and the middle stack of an odd-numbered rig — solve exactly as they do without it.
      *
      * @param list<string> $ids
+     * @param array<string, DeviceSpec> $devices
      */
-    private function stackFor(array $ids, InputInterface $input, bool $mirror = false): Stack
+    private function stackFor(array $ids, InputInterface $input, array $devices, bool $mirror = false): Stack
     {
         // Named outright rather than inferred from the cabinets, because **no spec field says which are
         // horn-loaded** — and adding one to drive a rotation would be inventing a property to serve a layout.
         /** @var list<string> $turned */
         $turned = $input->getOption('roll-mirror');
+
+        // The widest top is the long throw; every narrower one is fill and is aimed at the near focus.
+        $fills = $this->nearFieldFills($devices, $ids);
 
         return new Stack(
             // Otherwise the shorthand form — one device id per entry. Anything wanting `count`, `align` or
@@ -362,6 +375,7 @@ final class SceneStackCommand extends BaseCommand
                 static fn (string $id): StackEntry => new StackEntry(
                     $id,
                     rollMirror: in_array($id, $turned, true) ? 90.0 : null,
+                    aim: in_array($id, $fills, true) ? self::NEAR_FOCUS : null,
                 ),
                 $ids,
             ),
@@ -411,13 +425,72 @@ final class SceneStackCommand extends BaseCommand
                 // top, so one Tecnare per stack is a perfectly good top row, and applying the rule to them made
                 // the middle stack hoard every one and left the outer stacks a row of subs with nothing above.
                 if ($share < 1 || (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub')) {
-                    return [$devices[$id], $index === $middle ? $quantity : 0];
+                    // A **sub** goes to the middle: weight belongs low and central, and a sub has to be part of a
+                    // row that carries something. A **top** goes to the outermost stacks instead, because the tops
+                    // too few to give every stack one are the small boxes — near-field fill, which belongs at the
+                    // edges of the rig rather than stacked in its centre.
+                    return $devices[$id]->subtype === 'sub'
+                        ? [$devices[$id], $index === $middle ? $quantity : 0]
+                        : [$devices[$id], self::outerShare($quantity, $index, $of)];
                 }
 
                 return [$devices[$id], $share];
             },
             $ids,
         );
+    }
+
+    /**
+     * How many of `$quantity` this stack gets when they are dealt **outermost first, in pairs**.
+     *
+     * Pairs, so the rig stays symmetric: `(0, of-1)`, then `(1, of-2)`, and so on. An odd one left at the end goes
+     * to the middle stack of an odd-numbered rig rather than to one side, since a lone fill on the left is worse
+     * than a lone fill in the centre. Two 2-ways across three stacks come out one, none, one.
+     */
+    private static function outerShare(int $quantity, int $index, int $of): int
+    {
+        for ($pair = 0; $quantity >= 2 && $pair < intdiv($of, 2); ++$pair) {
+            if ($index === $pair || $index === $of - 1 - $pair) {
+                return 1;
+            }
+            $quantity -= 2;
+        }
+
+        return $quantity > 0 && $of % 2 === 1 && $index === intdiv($of, 2) ? $quantity : 0;
+    }
+
+    /**
+     * The tops that are fill rather than long throw: every one narrower than the widest top in the stack.
+     *
+     * Not a new idea — {@see StackSolver::topRow} already centres the widest and puts "the smaller boxes, which
+     * are fills, outboard of it". This gives them the *aim* to match, which a stack could not express before: one
+     * `aim` covered every top it carried, so a 2-way beside an M2122 was thrown at the same far focus as the long
+     * throw instead of at the front row.
+     *
+     * Measured on the rolled box like everything else, so a turned cabinet is judged as it will stand. A stack
+     * with one kind of top has no fills — there is nothing for it to be narrower than, and calling the only top a
+     * fill would aim the whole rig at the crowd two metres away.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     * @return list<string>
+     */
+    private function nearFieldFills(array $devices, array $ids): array
+    {
+        $tops = array_values(array_filter($ids, static fn (string $id): bool => $devices[$id]->subtype !== 'sub'));
+        if (count($tops) < 2) {
+            return [];
+        }
+
+        $widest = 0.0;
+        foreach ($tops as $id) {
+            $widest = max($widest, RolledBox::widthOf($devices[$id], 0.0));
+        }
+
+        return array_values(array_filter(
+            $tops,
+            static fn (string $id): bool => RolledBox::widthOf($devices[$id], 0.0) < $widest - 1e-9,
+        ));
     }
 
     /**

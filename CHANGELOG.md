@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.44.0] - 2026-08-11
+
+### Added
+
+- **Near-field fills go to the outer stacks, on the inner side, aimed at the near focus.** Two 2-ways across three
+  stacks come out one, none, one — a top too few to give every stack one is a small box and belongs at the edges of
+  the rig, where a *sub* too few to go round belongs in the middle with the weight. The widest top is the long
+  throw and keeps the placement's aim; every narrower one is fill and takes `aim: near`
+- **A fill is solved `align.outside` the nearest long-throw run on its own side.** What a nominal gap cannot do:
+  two tops aimed at one focus from different x take different *yaws*, the outer one turns more, and it turns *into*
+  its neighbour. At the far focus that ate 7.9 mm of the stated 20 in the one-stack rig and bit **1.7 mm** in a
+  three-stack rig's right stack; at the near focus, toed in 36°, it bit **117 mm**
+- `align.side` — a lone cabinet has no offset sign to read, so nothing else can say which way outboard is
+
+### Changed
+
+- **`inset_m` is a minimum, not a target.** Cabinets already further out are left where they are rather than
+  pulled back in: a fill gravity re-seated onto a shoulder for its bearing sits 517 mm clear, and dragging it to
+  20 mm would undo a repair made for a reason
+- A top tier emits its **long throw first**, because `outside` can only name a placement that already exists. Only
+  the order changes, not which segment is which
+- The one-stack rig's fills move 12.4 mm out. `StackTest` recorded that toe-in was already eating the stated 20 mm
+  down to **7.9 mm** of real air; it is now 20 mm of real air
+- All six `stacked-*` rigs regenerated
+
 ## [0.43.0] - 2026-08-11
 
 ### Added

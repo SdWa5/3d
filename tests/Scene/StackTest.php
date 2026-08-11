@@ -102,17 +102,21 @@ final class StackTest extends TestCase
             $ids[preg_replace('/-\d+$/', '', $entry->placementId)] = true;
         }
 
-        self::assertSame(['main/1', 'main/2', 'main/3', 'main/4a', 'main/4b', 'main/4c'], array_keys($ids));
+        // `4b` before `4a`: the top tier emits its **long throw first**, because the fills either side of it are
+        // solved `align.outside` it and `outside` can only name a placement that already exists. Which segment is
+        // which is unchanged — only the order they are written in.
+        self::assertSame(['main/1', 'main/2', 'main/3', 'main/4b', 'main/4a', 'main/4c'], array_keys($ids));
     }
 
     /**
      * The segments of a mixed row sit side by side, spaced on their nominal widths plus one working gap —
      * including across a segment boundary, because a 2-way beside an M2122 needs the same air as two M2122s.
      *
-     * Checked on the **slot positions**, not the rotated boxes, and that distinction is the point: these are
-     * aimed cabinets, so toe-in eats into the gap and the boxes measure 7.9 mm apart where the layout put
-     * 20 mm. The layout is what this test is about; whether the turned boxes still clear each other is
-     * {@see ShippedScenesTest}'s job, and it does check it.
+     * Checked on the **slot positions**, not the rotated boxes. The fills are no longer one nominal gap from the
+     * long throw, and that is the change rather than a regression: toe-in used to eat the stated 20 mm down to
+     * 7.9 mm of real air, so a fill is now solved `outside` the M2122 beside it and the 20 mm is the air that is
+     * actually there. It costs 12.4 mm of slot position per side. 7.9 mm still cleared here; the same mechanism
+     * bit 1.7 mm in a three-stack rig's right stack, which is what made it worth solving rather than tolerating.
      */
     public function testTheSegmentsOfAMixedRowSitSideBySideWithOneGapBetweenThem(): void
     {
@@ -127,10 +131,10 @@ final class StackTest extends TestCase
             return array_sum($xs) / count($xs);
         };
 
-        // Row is 2.5112 m centred on -0.302: a 2-way at each end, three M2122s in the middle.
-        self::assertEqualsWithDelta(-1.3248, $centre('main/4a'), 1e-9);
+        // Three M2122s centred on -0.302, with a 2-way solved 20 mm clear of each end of them.
         self::assertEqualsWithDelta(-0.302, $centre('main/4b'), 1e-9);
-        self::assertEqualsWithDelta(0.7208, $centre('main/4c'), 1e-9);
+        self::assertEqualsWithDelta(-1.337232, $centre('main/4a'), 1e-6);
+        self::assertEqualsWithDelta(0.733232, $centre('main/4c'), 1e-6);
     }
 
     /**

@@ -61,6 +61,7 @@ placements:
           count: 1
         - device: eighteensound-2way-15
           count: 1
+          aim: near
 
   # 2, 13 cabinets in 5 rows
   - id: main-2
@@ -80,4 +81,5 @@ placements:
           count: 1
         - device: eighteensound-2way-15
           count: 1
+          aim: near
 

@@ -183,25 +183,23 @@ final class AlignmentTest extends TestCase
     }
 
     /**
-     * And it is refused rather than solved when the cabinets already clear by more than asked.
+     * `inset_m` is a **minimum**, so cabinets already further out are left exactly where they are.
      *
-     * Pulling them *in* would need a bracket below the starting parameter, and every mode's parameter is bounded
-     * below by zero — every cabinet on `at`, the tightest arrangement there is. A row already too wide is an
-     * over-wide row, not a spacing to solve, and saying so beats returning the natural spacing as if it fitted.
+     * Not merely permissive — it is the reading that keeps other decisions intact. A fill that gravity re-seated
+     * onto a shoulder because its bearing demanded it sits 517 mm clear, and pulling it back to 20 mm would undo
+     * that repair. Where the natural spacing does bite, the solve still pushes out until the air is really there.
      */
-    public function testOutsideRefusesCabinetsThatAlreadyClearByMoreThanAsked(): void
+    public function testOutsideLeavesCabinetsThatAlreadyClearByMoreThanAsked(): void
     {
-        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+        $placed = $this->compile([
             ['id' => 'tops', 'device' => 'top', 'at' => [0.0, 0.0], 'row' => ['count' => 1]],
             ['id' => 'fills', 'device' => 'sub', 'at' => [0.0, 0.0],
                 'align' => ['mode' => 'stereo', 'outside' => 'tops', 'inset_m' => 0.02],
                 'row' => ['count' => 2, 'gap_m' => 6.0]],
-        ]));
+        ]);
 
-        self::assertStringContainsString(
-            'already clear',
-            implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
-        );
+        // Two 0.6 m subs 6 m apart: 7.2 m across, untouched.
+        self::assertEqualsWithDelta(7.2, $this->extent(array_slice($placed, 1)), 1e-6);
     }
 
     /**
