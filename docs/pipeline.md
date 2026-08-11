@@ -79,14 +79,28 @@ passed, so a 1600×900 studio render used to stay "current" against a request fo
 had not changed — only the instructions had. Since only the camera and the scene id appear in a PNG's filename,
 that covered nearly every setting there is.
 
-So `scene:render` writes the settings beside each picture, in a hidden `.<name>.png.built-with.json`, and compares
-them on the next run: camera, lighting, samples, resolution, ground plane, aim mode. Change any one and that
-render redraws; change none and it does not.
+So `scene:render` records the settings each picture was made with and compares them on the next run: camera,
+lighting, samples, resolution, ground plane, aim mode. Change any one and that render redraws; change none and it
+does not.
 
-A picture with **no** stamp counts as changed, which is what makes this self-healing — everything rendered before
-stamps existed redraws once, at whatever is now being asked for, and carries a stamp afterwards. The stamp is
-written only after Blender succeeds: one written ahead of a failed render would claim the old picture was made
-with the new settings, which is the single way this could rebuild too little.
+**One file for the whole tree** — `build/renders/built-with.json` — keyed by each picture's path relative to it:
+
+```json
+{
+  "detail-check-three-quarter.png":        { "lighting": "studio", "samples": 16,  "resolution": [960, 540] },
+  "studio/full-rig-arc-three-quarter.png": { "lighting": "studio", "samples": 128, "resolution": [1920, 1080] }
+}
+```
+
+One manifest rather than a stamp beside every picture, which would mean several hundred hidden files interleaved
+with several hundred PNGs. Relative keys so the entries stay readable and stay true if the build tree moves.
+Recording one render leaves every other entry alone, and the stages are sequential, so there is no writer to race.
+
+A picture **absent from the manifest** counts as changed, which is what makes this self-healing — everything
+rendered before the manifest existed redraws once, at whatever is now being asked for, and is recorded afterwards.
+A manifest nobody can parse means everything in its tree redraws, rather than being trusted. Entries are written
+only after Blender succeeds: one written ahead of a failed render would claim the old picture was made with the new
+settings, which is the single way this could rebuild too little.
 
 `--force` on `build:all`, `scene:build` or `scene:render` rebuilds anyway. On `build:all` it now reaches
 **every** stage — it used to reach only `models:build`, so a forced run still reused stale scenes and renders.

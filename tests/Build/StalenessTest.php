@@ -95,10 +95,14 @@ final class StalenessTest extends TestCase
     public function testAnOutputBuiltWithOtherSettingsIsStale(): void
     {
         $output = $this->write('out.png', 200);
-        Staleness::recordSettings($output, ['samples' => 64, 'resolution' => [1600, 900]]);
+        Staleness::recordSettings($this->manifest(), $output, ['samples' => 64, 'resolution' => [1600, 900]]);
 
-        self::assertFalse(Staleness::settingsChanged($output, ['samples' => 64, 'resolution' => [1600, 900]]));
-        self::assertTrue(Staleness::settingsChanged($output, ['samples' => 128, 'resolution' => [1920, 1080]]));
+        self::assertFalse(
+            Staleness::settingsChanged($this->manifest(), $output, ['samples' => 64, 'resolution' => [1600, 900]]),
+        );
+        self::assertTrue(
+            Staleness::settingsChanged($this->manifest(), $output, ['samples' => 128, 'resolution' => [1920, 1080]]),
+        );
     }
 
     /** Any one setting differing is enough; there is no such thing as a difference that does not show. */
@@ -106,34 +110,37 @@ final class StalenessTest extends TestCase
     {
         $output = $this->write('out.png', 200);
         $settings = ['lighting' => 'studio', 'samples' => 128, 'ground' => true, 'aim_lines' => 'none'];
-        Staleness::recordSettings($output, $settings);
+        Staleness::recordSettings($this->manifest(), $output, $settings);
 
         foreach (['lighting' => 'stage', 'samples' => 129, 'ground' => false, 'aim_lines' => 'tops'] as $key => $value) {
             self::assertTrue(
-                Staleness::settingsChanged($output, [$key => $value] + $settings),
+                Staleness::settingsChanged($this->manifest(), $output, [$key => $value] + $settings),
                 "a changed {$key} should be stale",
             );
         }
     }
 
     /**
-     * What makes it self-healing. Every render made before stamps existed has none, so each re-renders once at
-     * whatever is now being asked for and carries a stamp afterwards — no `--force` sweep needed.
+     * What makes it self-healing. Every render made before the manifest existed is absent from it, so each
+     * redraws once at whatever is now being asked for and is recorded after — no `--force` sweep needed.
      */
-    public function testAnOutputWithNoStampAtAllIsStale(): void
+    public function testAnOutputAbsentFromTheManifestIsStale(): void
     {
-        $output = $this->write('unstamped.png', 200);
+        $recorded = $this->write('recorded.png', 200);
+        Staleness::recordSettings($this->manifest(), $recorded, ['samples' => 128]);
 
-        self::assertTrue(Staleness::settingsChanged($output, ['samples' => 128]));
+        $unrecorded = $this->write('unrecorded.png', 200);
+
+        self::assertTrue(Staleness::settingsChanged($this->manifest(), $unrecorded, ['samples' => 128]));
     }
 
-    /** A stamp nobody can read tells us nothing, so rebuild rather than trust it. */
-    public function testAnUnreadableStampIsStale(): void
+    /** A manifest nobody can parse tells us nothing, so everything in its tree redraws rather than be trusted. */
+    public function testAnUnreadableManifestMakesEverythingStale(): void
     {
         $output = $this->write('out.png', 200);
-        file_put_contents(Staleness::stampFor($output), '{ this is not json');
+        file_put_contents($this->manifest(), '{ this is not json');
 
-        self::assertTrue(Staleness::settingsChanged($output, ['samples' => 128]));
+        self::assertTrue(Staleness::settingsChanged($this->manifest(), $output, ['samples' => 128]));
     }
 
     /**
@@ -142,34 +149,77 @@ final class StalenessTest extends TestCase
      */
     public function testAMissingOutputIsNotThisRulesBusiness(): void
     {
-        self::assertFalse(Staleness::settingsChanged($this->path('gone.png'), ['samples' => 128]));
+        self::assertFalse(Staleness::settingsChanged($this->manifest(), $this->path('gone.png'), ['samples' => 1]));
     }
 
     /** The order the caller built the array in is not a change worth re-rendering for. */
     public function testKeyOrderIsNotADifference(): void
     {
         $output = $this->write('out.png', 200);
-        Staleness::recordSettings($output, ['samples' => 128, 'lighting' => 'studio']);
+        Staleness::recordSettings($this->manifest(), $output, ['samples' => 128, 'lighting' => 'studio']);
 
-        self::assertFalse(Staleness::settingsChanged($output, ['lighting' => 'studio', 'samples' => 128]));
-    }
-
-    /** Hidden, and beside the file it describes, so nothing that lists renders trips over it. */
-    public function testTheStampSitsBesideItsOutputAndIsHidden(): void
-    {
-        $stamp = Staleness::stampFor('/build/renders/studio/full-rig-three-quarter.png');
-
-        self::assertSame('/build/renders/studio', dirname($stamp));
-        self::assertStringStartsWith('.', basename($stamp));
-    }
-
-    /** Two renders in one folder must not share a stamp, or each would report the other's settings. */
-    public function testEachOutputGetsItsOwnStamp(): void
-    {
-        self::assertNotSame(
-            Staleness::stampFor('/r/full-rig-side.png'),
-            Staleness::stampFor('/r/full-rig-three-quarter.png'),
+        self::assertFalse(
+            Staleness::settingsChanged($this->manifest(), $output, ['lighting' => 'studio', 'samples' => 128]),
         );
+    }
+
+    /**
+     * The whole point of one manifest: recording one output must leave every other entry alone, or a sweep would
+     * forget everything it rendered before the last picture.
+     */
+    public function testRecordingOneOutputLeavesTheOthersAlone(): void
+    {
+        $first = $this->write('first.png', 200);
+        $second = $this->write('second.png', 200);
+
+        Staleness::recordSettings($this->manifest(), $first, ['samples' => 16]);
+        Staleness::recordSettings($this->manifest(), $second, ['samples' => 384]);
+
+        self::assertFalse(Staleness::settingsChanged($this->manifest(), $first, ['samples' => 16]));
+        self::assertFalse(Staleness::settingsChanged($this->manifest(), $second, ['samples' => 384]));
+    }
+
+    /** Two renders must not share an entry, or each would report the other's settings. */
+    public function testTwoOutputsInOneFolderDoNotShareAnEntry(): void
+    {
+        $side = $this->write('full-rig-side.png', 200);
+        $threeQuarter = $this->write('full-rig-three-quarter.png', 200);
+
+        Staleness::recordSettings($this->manifest(), $side, ['camera' => 'side']);
+
+        self::assertFalse(Staleness::settingsChanged($this->manifest(), $side, ['camera' => 'side']));
+        self::assertTrue(
+            Staleness::settingsChanged($this->manifest(), $threeQuarter, ['camera' => 'side']),
+            'the other camera has no entry of its own yet',
+        );
+    }
+
+    /**
+     * One manifest covers a whole tree, so a render in a variant subfolder is keyed by its path relative to the
+     * root — readable, and still true if the build directory moves to another machine.
+     */
+    public function testAnOutputInASubfolderIsKeyedRelativeToTheManifest(): void
+    {
+        mkdir($this->path('studio'));
+        $output = $this->write('studio/full-rig-side.png', 200);
+
+        Staleness::recordSettings($this->manifest(), $output, ['lighting' => 'studio']);
+
+        $entries = json_decode((string)file_get_contents($this->manifest()), true);
+
+        self::assertSame(['studio/full-rig-side.png'], array_keys($entries));
+    }
+
+    /** One file for the tree, at its root, named so that opening it explains itself. */
+    public function testTheManifestSitsAtTheRootOfTheTree(): void
+    {
+        self::assertSame('/build/renders/built-with.json', Staleness::manifestIn('/build/renders'));
+        self::assertSame('/build/renders/built-with.json', Staleness::manifestIn('/build/renders/'));
+    }
+
+    private function manifest(): string
+    {
+        return Staleness::manifestIn($this->dir);
     }
 
     private function path(string $name): string

@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.51.0] - 2026-08-11
+
+### Changed
+
+- **One `build/renders/built-with.json` for the whole render tree**, replacing 0.50.0's hidden stamp beside every
+  picture — which in practice meant several hundred hidden files interleaved with several hundred PNGs. Entries are
+  keyed by each render's path relative to the manifest (`studio/full-rig-side.png`), so they stay readable and stay
+  true if the build tree moves. Recording one render leaves every other entry alone, and the render stages are
+  sequential, so there is no writer to race
+- `Staleness::manifestIn()` replaces `stampFor()`; `settingsChanged()` and `recordSettings()` take the manifest as
+  their first argument. A render **absent from the manifest** is what now counts as changed, and a manifest that
+  cannot be parsed makes everything in its tree redraw rather than be trusted
+
+### Notes
+
+- 57 stamps written by 0.50.0 were removed from `build/`; they are gitignored and every render they described is
+  recorded in the manifest on its next pass. Nothing needs `--force`
+
 ## [0.50.0] - 2026-08-11
 
 ### Fixed

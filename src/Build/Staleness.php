@@ -24,70 +24,108 @@ namespace App\Build;
  * with the *settings being asked for now*. Nothing on disk moves when the default resolution is raised or
  * `--lighting=stage` is passed, so a 1600×900 studio render stayed "current" against a request for a Full HD
  * one — the inputs really had not changed, only the instructions had. {@see settingsChanged} closes that by
- * writing the settings beside the output and comparing them, which is a change to how freshness is *keyed*
- * rather than to what it watches.
+ * recording the settings in one `built-with.json` per output tree and comparing them, which is a change to how
+ * freshness is *keyed* rather than to what it watches.
  */
 final class Staleness
 {
     /**
-     * Where an output's settings are recorded — hidden, and beside the file it describes.
+     * The one file a tree of outputs records its settings in — `built-with.json` at the root of that tree.
      *
-     * Beside it rather than in a manifest so that nothing has to be read-modify-written, and so that moving or
-     * deleting an output cannot leave a lie behind: a stamp with no output is never consulted, because a missing
-     * output is already stale.
+     * One manifest rather than a stamp beside every output, because the per-output form meant 381 hidden files
+     * interleaved with 381 pictures. A single readable record of how everything in the tree was made is worth
+     * more than the read-modify-write it costs, and the stages are sequential so there is no writer to race.
      */
-    public static function stampFor(string $output): string
+    public static function manifestIn(string $directory): string
     {
-        return dirname($output).'/.'.basename($output).'.built-with.json';
+        return rtrim($directory, '/').'/built-with.json';
     }
 
     /**
      * Whether an output exists but was built with settings other than these.
      *
-     * An output with **no stamp** counts as changed, which is what makes this self-healing: everything built
-     * before stamps existed re-renders once, at whatever it is now being asked for, and carries a stamp
-     * afterwards. A missing output is not this rule's business — {@see outOfDate} already says so.
+     * An output **absent from the manifest** counts as changed, which is what makes this self-healing:
+     * everything built before the manifest existed rebuilds once, at whatever it is now being asked for, and is
+     * recorded afterwards. A missing output is not this rule's business — {@see outOfDate} already says so.
      *
      * @param array<string, mixed> $settings must be JSON-encodable, and is compared after a round trip so that
      *                                       an int and a float that read the same in JSON are the same settings
      */
-    public static function settingsChanged(string $output, array $settings): bool
+    public static function settingsChanged(string $manifest, string $output, array $settings): bool
     {
         if (!is_file($output)) {
             return false;
         }
 
-        $stamp = self::stampFor($output);
-        if (!is_file($stamp)) {
-            return true;
-        }
-
-        try {
-            $recorded = json_decode((string)file_get_contents($stamp), true, flags: JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            // A stamp nobody can read is a stamp that tells us nothing, so rebuild rather than trust it.
-            return true;
-        }
+        $recorded = self::manifest($manifest)[self::keyFor($manifest, $output)] ?? null;
 
         return $recorded !== self::normalised($settings);
     }
 
     /**
-     * Record what an output was built with, so the next run can tell instructions apart from inputs.
+     * Record what one output was built with, leaving every other entry in the manifest alone.
      *
-     * Called after the build succeeds, never before: a stamp written ahead of a render that then failed would
+     * Called after the build succeeds, never before: an entry written ahead of a render that then failed would
      * claim the old picture was made with the new settings, which is the one way this could rebuild too little.
      *
      * @param array<string, mixed> $settings
      */
-    public static function recordSettings(string $output, array $settings): bool
+    public static function recordSettings(string $manifest, string $output, array $settings): bool
     {
-        $json = json_encode(
-            self::normalised($settings),
-            JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
-        );
+        $entries = self::manifest($manifest);
+        $entries[self::keyFor($manifest, $output)] = self::normalised($settings);
+        ksort($entries);
 
-        return @file_put_contents(self::stampFor($output), $json."\n") !== false;
+        $json = json_encode($entries, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        $dir = dirname($manifest);
+        if (!is_dir($dir) && !@mkdir($dir, 0o775, true) && !is_dir($dir)) {
+            return false;
+        }
+
+        return @file_put_contents($manifest, $json."\n") !== false;
+    }
+
+    /**
+     * The manifest as it stands, or empty when there is none — or when it cannot be read.
+     *
+     * A manifest nobody can parse tells us nothing, so everything in its tree reads as changed and rebuilds,
+     * rather than being trusted. That is the safe direction: too eager costs a re-render, too lazy costs a
+     * picture that does not match what was asked for.
+     *
+     * @return array<string, mixed>
+     */
+    private static function manifest(string $path): array
+    {
+        if (!is_file($path)) {
+            return [];
+        }
+
+        try {
+            $entries = json_decode((string)file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return [];
+        }
+
+        return is_array($entries) ? $entries : [];
+    }
+
+    /**
+     * How one output is named inside the manifest: its path relative to the manifest's own directory.
+     *
+     * Relative so the entries stay readable and stay true if the build tree moves — `studio/full-rig-side.png`
+     * rather than an absolute path from whichever machine last rendered. An output somewhere else entirely, which
+     * `--out` allows, keeps its full path, since there is nothing to be relative to.
+     */
+    private static function keyFor(string $manifest, string $output): string
+    {
+        $root = realpath(dirname($manifest)) ?: rtrim(dirname($manifest), '/');
+        // `realpath` on the output itself is no use: it has to work for a file about to be written. Its
+        // directory does exist, which is enough to compare the two.
+        $directory = realpath(dirname($output)) ?: rtrim(dirname($output), '/');
+        $full = $directory.'/'.basename($output);
+
+        return str_starts_with($full, $root.'/') ? substr($full, strlen($root) + 1) : $full;
     }
 
     /**

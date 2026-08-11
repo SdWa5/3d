@@ -168,6 +168,11 @@ final class SceneRenderCommand extends BaseCommand
             $target = $input->getOption('out')
                 ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
 
+            // One manifest for the whole render tree, at its root — never one per variant folder, so that
+            // `build:all`'s eight subfolders share a single record keyed `studio/full-rig-side.png` and so that
+            // reading "what was everything drawn with" is opening one file.
+            $manifest = Staleness::manifestIn($builder->buildDir().'/renders');
+
             // The flag if it was given, otherwise whatever the scene asks for. Resolved before the freshness
             // check rather than after, because the aim mode is part of what is being *asked for* and the check
             // now compares that too.
@@ -197,7 +202,7 @@ final class SceneRenderCommand extends BaseCommand
                     [$target],
                     [$sceneBlend, ...Staleness::blenderInputs($this->projectDir(), self::SCRIPT)],
                 )
-                && !Staleness::settingsChanged($target, $builtWith)
+                && !Staleness::settingsChanged($manifest, $target, $builtWith)
             ) {
                 $this->io->text(sprintf('<comment>up to date</comment> %s', $this->relative($target)));
                 continue;
@@ -242,9 +247,10 @@ final class SceneRenderCommand extends BaseCommand
             // the old picture was drawn with the new settings, and that is the one way this could rebuild too
             // little. A stamp that cannot be written is a warning rather than a failure — the picture is good, and
             // the only cost is that it re-renders once more than it needed to.
-            if (!Staleness::recordSettings($target, $builtWith)) {
+            if (!Staleness::recordSettings($manifest, $target, $builtWith)) {
                 $this->io->warning(sprintf(
-                    'Rendered, but could not record the settings beside %s — it will re-render next time',
+                    'Rendered, but could not record the settings in %s — %s will re-render next time',
+                    $this->relative($manifest),
                     $this->relative($target),
                 ));
             }
