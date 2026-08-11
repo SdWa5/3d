@@ -193,7 +193,10 @@ final class StackSceneWriter
                 );
             }
             foreach ($block->omitted as $deviceId => $why) {
-                foreach (self::wrap(sprintf('#   * LEFT OUT %s — %s', $deviceId, $why), 118) as $wrapped) {
+                // The note carries its own verb: a device can be left out of the rig entirely, or kept whole in
+                // one stack because it could not be split. Prefixing everything with "LEFT OUT" read as a
+                // contradiction on the second.
+                foreach (self::wrap(sprintf('#   * %s: %s', $deviceId, $why), 118) as $wrapped) {
                     $lines[] = $wrapped;
                 }
             }

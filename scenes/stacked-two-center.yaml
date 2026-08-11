@@ -13,8 +13,11 @@
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
 # Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
-#   * LEFT OUT tecnare-m2122 — 1 of 3 left out — 2 stacks take 1 each, and an odd cabinet would make one stack a
-#     different rig from the others
+#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
 #   * the 3× achenbach-18 row is 1.840 m on a 1.813 m row, so it overhangs 13 mm each side
 #
 # main-2 — 2, 13 cabinets in 5 rows:
@@ -26,8 +29,11 @@
 #   5  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
 #
 # Subs reach 3.04 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
-#   * LEFT OUT tecnare-m2122 — 1 of 3 left out — 2 stacks take 1 each, and an odd cabinet would make one stack a
-#     different rig from the others
+#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
 #   * the 3× flexy-folded-horn-hybrid row is 1.813 m on a 1.240 m row, so it overhangs 286 mm each side
 #   * the 3× achenbach-18 row is 1.840 m on a 1.813 m row, so it overhangs 13 mm each side
 #

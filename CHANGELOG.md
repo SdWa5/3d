@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.45.1] - 2026-08-11
+
+### Fixed
+
+- **A generated rig said nothing about a device it kept whole.** `stacked-two-center` shows both SKRAMs in one
+  stack and gave no hint that one-per-stack had been tried and refused, which is the single thing anyone asks
+  about a split rig. The header now says so, and names the way out: turning them makes the split work, which is
+  what `stacked-two-turned-center` does — one SKRAM centred in each stack, twelve cabinets each
+- Notes carry their own verb (`LEFT OUT, …` / `KEPT TOGETHER, …`) instead of the writer prefixing everything with
+  "LEFT OUT", which read as a contradiction on a device that was kept rather than dropped
+
 ## [0.45.0] - 2026-08-11
 
 ### Added

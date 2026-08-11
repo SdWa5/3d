@@ -331,7 +331,8 @@ final class SceneStackCommand extends BaseCommand
             }
 
             foreach (array_diff($ids, $attempt) as $dropped) {
-                $omitted[$dropped] = 'it cannot be carried in this stack — '.($firstProblem ?? 'no supported arrangement');
+                $omitted[$dropped] = 'LEFT OUT, it cannot be carried in this stack — '
+                    .($firstProblem ?? 'no supported arrangement');
             }
 
             return new StackBlock(
@@ -514,14 +515,28 @@ final class SceneStackCommand extends BaseCommand
             // The same condition {@see inventoryFor} keeps a device whole on: those are all placed, in one
             // stack, so there is no remainder to report. Guarding on the share alone skipped the tops with one
             // per stack, which is exactly the case this exists for — the odd third M2122.
-            if ($share < 1 || (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub')) {
+            if ($share < 1) {
+                continue;
+            }
+
+            // A sub kept whole because it could not be split. Said out loud, because the header otherwise shows
+            // both SKRAMs in one stack and gives no hint that the other arrangement was tried and refused — which
+            // is the single thing about a split rig people ask about.
+            if (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub') {
+                $left[$id] = sprintf(
+                    'KEPT TOGETHER, all %d in one stack — %d stacks would take one each, and one on its own cannot be '
+                    .'flanked into a row that carries anything: the row above it ends up half off its support. '
+                    .'Turning them makes the split work, which is what the -turned rig does',
+                    $quantity,
+                    $of,
+                );
                 continue;
             }
 
             $over = $quantity - $share * $of;
             if ($over > 0) {
                 $left[$id] = sprintf(
-                    '%d of %d left out — %d stacks take %d each, and an odd cabinet would make one stack '
+                    'LEFT OUT, %d of %d — %d stacks take %d each, and an odd cabinet would make one stack '
                     .'a different rig from the others',
                     $over,
                     $quantity,
