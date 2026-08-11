@@ -65,11 +65,28 @@ output is stale when it is missing, or older than any of its inputs.
 |-------|--------|-------------------|
 | `models:build` | `build/glb/<id>.glb` + `build/blend/<id>.blend` | the spec, `blender/build_model.py`, all of `blender/lib`, any mesh override |
 | `scene:build` | `build/scenes/<id>.blend` | the scene file, `blender/build_scene.py`, `blender/lib`, **and the model of every cabinet the scene places** |
-| `scene:render` | the PNG | the scene's `.blend`, `blender/render_scene.py`, `blender/lib` |
+| `scene:render` | the PNG | the scene's `.blend`, `blender/render_scene.py`, `blender/lib`, **and the settings it was drawn with** |
 
 Mtimes rather than hashes, and that choice is what makes the *chain* work with no bookkeeping: a spec is newer
 than its model, so the model rebuilds; the model is then newer than the scene, so the scene reassembles; the
 scene is then newer than the render, so the render redraws. Each stage only ever compares its own neighbours.
+
+### What mtimes cannot see
+
+An input moving is one question. **Whether an output was made with the settings now being asked for** is another,
+and no mtime can answer it: nothing on disk moves when the default resolution is raised or `--lighting=stage` is
+passed, so a 1600×900 studio render used to stay "current" against a request for a Full HD one. The inputs really
+had not changed — only the instructions had. Since only the camera and the scene id appear in a PNG's filename,
+that covered nearly every setting there is.
+
+So `scene:render` writes the settings beside each picture, in a hidden `.<name>.png.built-with.json`, and compares
+them on the next run: camera, lighting, samples, resolution, ground plane, aim mode. Change any one and that
+render redraws; change none and it does not.
+
+A picture with **no** stamp counts as changed, which is what makes this self-healing — everything rendered before
+stamps existed redraws once, at whatever is now being asked for, and carries a stamp afterwards. The stamp is
+written only after Blender succeeds: one written ahead of a failed render would claim the old picture was made
+with the new settings, which is the single way this could rebuild too little.
 
 `--force` on `build:all`, `scene:build` or `scene:render` rebuilds anyway. On `build:all` it now reaches
 **every** stage — it used to reach only `models:build`, so a forced run still reused stale scenes and renders.
@@ -112,9 +129,9 @@ The two changes compound: eight variants at 2.9× a frame makes a full sweep abo
 That is the intended trade, but it is worth knowing before starting one on a laptop — `--quick-preview` brings
 the same sweep back under today's cost.
 
-**Raising the default does not make existing renders stale.** Staleness is by mtime against a render's scene and
-script, not against the settings it was made with, so the PNGs already on disk are still "current" at the old
-1600×900. One `build:all --force` re-renders them at the new default.
+**Raising the default does make existing renders stale**, as of the settings stamp above — so the PNGs still on
+disk at the old 1600×900 redraw themselves on the next `build:all`, without a `--force` sweep. It costs the same
+either way; the difference is that nobody has to know to ask.
 
 Add `-v` to any build command to see Blender's own output; without it only one line per model is
 printed, because Blender is extremely chatty.

@@ -99,10 +99,4 @@
        schema has no provenance field for rigging, so the estimate is stated in a comment in the spec — worth adding one
        if more flyable gear arrives
 18. fly through renderings + combine with new project from existing audio routing table
-19. make endfire setup two rows vertically too and add tops
-20. **staleness ignores the settings a render was made with.** `Staleness` compares a PNG's mtime against its
-    scene `.blend` and the Blender scripts, so changing `--samples`, `--resolution` or the default quality level
-    leaves every existing render "current" at the settings it happened to be drawn with. Raising the default to
-    Full HD therefore needed a one-off `build:all --force`. The honest fix is folding the render settings into
-    the freshness key — writing them beside the PNG and comparing them, rather than comparing mtimes alone —
-    which is a change to how staleness is *keyed* rather than to what it watches, so it is its own piece of work
+19. endfire setup add other sub and tops

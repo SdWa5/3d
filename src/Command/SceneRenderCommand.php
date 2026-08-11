@@ -168,25 +168,40 @@ final class SceneRenderCommand extends BaseCommand
             $target = $input->getOption('out')
                 ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
 
+            // The flag if it was given, otherwise whatever the scene asks for. Resolved before the freshness
+            // check rather than after, because the aim mode is part of what is being *asked for* and the check
+            // now compares that too.
+            $aimLines = $settings['aimLines'] ?? $scene->aimLines;
+
+            // What this picture was drawn with, against what is being asked for now. Only the settings that can
+            // differ for one path belong here — and that is most of them, since only the camera and the scene id
+            // are in the filename. Two variants of a scene under different lighting are the same path, which is
+            // why `build:all` puts them in separate folders.
+            $builtWith = [
+                'camera' => $settings['camera']->value,
+                'lighting' => $settings['lighting']->value,
+                'samples' => $settings['samples'],
+                'resolution' => $settings['resolution'],
+                'ground' => !$settings['noGround'],
+                'aim_lines' => $aimLines ?? RenderPlan::AIM_NONE,
+            ];
+
             // Only redraw what has changed. A render is the most expensive thing in the pipeline — and `build:all`
             // now sweeps eight variants of every scene at Full HD by default — so a rig nobody has touched should
-            // cost nothing. What this does *not* watch is the settings the render was made with: raising the
-            // default resolution leaves every existing PNG "current" at the old one, and only `--force` redraws
-            // it. Folding the settings into the key is its own piece of work. The `.blend` is the input, and it
-            // carries the whole chain with it: `scene:build` only rewrites it when the scene file or one of
-            // the cabinet models moved, so a spec edit still reaches the PNG.
+            // cost nothing. Two questions, because mtimes can only answer the first: did an *input* move, and is
+            // this picture drawn with the settings now being asked for. The `.blend` answers the first for the
+            // whole chain — `scene:build` only rewrites it when the scene file or one of the cabinet models
+            // moved, so a spec edit still reaches the PNG.
             if (!$input->getOption('force')
                 && !Staleness::outOfDate(
                     [$target],
                     [$sceneBlend, ...Staleness::blenderInputs($this->projectDir(), self::SCRIPT)],
                 )
+                && !Staleness::settingsChanged($target, $builtWith)
             ) {
                 $this->io->text(sprintf('<comment>up to date</comment> %s', $this->relative($target)));
                 continue;
             }
-
-            // The flag if it was given, otherwise whatever the scene asks for.
-            $aimLines = $settings['aimLines'] ?? $scene->aimLines;
 
             $plan = RenderPlan::forScene(
                 $placed,
@@ -221,6 +236,17 @@ final class SceneRenderCommand extends BaseCommand
                 $this->io->error($e->getMessage());
                 $exit = self::FAILURE;
                 continue;
+            }
+
+            // After the render, never before: a stamp written ahead of a Blender run that then failed would claim
+            // the old picture was drawn with the new settings, and that is the one way this could rebuild too
+            // little. A stamp that cannot be written is a warning rather than a failure — the picture is good, and
+            // the only cost is that it re-renders once more than it needed to.
+            if (!Staleness::recordSettings($target, $builtWith)) {
+                $this->io->warning(sprintf(
+                    'Rendered, but could not record the settings beside %s — it will re-render next time',
+                    $this->relative($target),
+                ));
             }
 
             $this->io->success('Wrote '.$this->relative($target));

@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.50.0] - 2026-08-11
+
+### Fixed
+
+- **A render was never redrawn when only the *settings* changed.** Staleness compared a PNG's mtime against its
+  scene `.blend` and the Blender scripts, and no mtime can answer "was this drawn the way I am now asking for" —
+  nothing on disk moves when the default resolution is raised or `--lighting=stage` is passed. The inputs really
+  had not changed, only the instructions had. Since only the camera and the scene id appear in a PNG's filename,
+  that covered nearly every setting there is: `scene:render --lighting=stage` reported a studio render as up to
+  date and returned without drawing anything
+
+### Added
+
+- **`scene:render` records what each picture was drawn with**, in a hidden `.<name>.png.built-with.json` beside
+  it, and compares on the next run — camera, lighting, samples, resolution, ground plane, aim mode. Change one and
+  that render redraws; change none and it does not
+- `Staleness::settingsChanged()` / `recordSettings()` / `stampFor()`, as a second rule beside `outOfDate()` rather
+  than a class of their own, since "is this current" should stay one question with one answer. Beside each output
+  rather than in a manifest so nothing is read-modify-written and a moved or deleted PNG cannot leave a lie behind
+- The aim mode now resolves *before* the freshness check, because it is part of what is being asked for
+
+### Notes
+
+- **This supersedes 0.49.0's note that a one-off `build:all --force` was needed.** A picture with no stamp counts
+  as changed, so every render still on disk at the old 1600×900 redraws itself on the next `build:all` and carries
+  a stamp afterwards. Same cost either way — the difference is that nobody has to know to ask
+- The stamp is written only after Blender succeeds. One written ahead of a failed render would claim the old
+  picture was made with the new settings, which is the single way this could rebuild too little. A stamp that
+  cannot be written is a warning, not a failure: the picture is good and the only cost is one extra re-render
+- Unreadable stamps are treated as changed rather than trusted
+
 ## [0.49.0] - 2026-08-11
 
 ### Changed
