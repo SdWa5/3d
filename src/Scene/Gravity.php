@@ -34,11 +34,19 @@ final class Gravity
     /**
      * How much of a cabinet has to be over its support before it counts as carried.
      *
-     * Half. It is the companion of {@see StackSolver::OVERHANG_TOLERANCE_M}'s half-a-cabinet rule rather than a
-     * second opinion: that one refuses a *tier* more than half off the tier below, this one refuses a *cabinet*
-     * more than half off whatever it personally landed on. A stepped row needs the second.
+     * **A third**, and where it sits is the whole point. It used to be a half, chosen as the companion of the
+     * half-a-cabinet overhang rule — and a half falls exactly between the two arrangements it has to separate,
+     * which is the worst possible place for a boundary:
+     *
+     * * a Flexy resting on a SKRAM with the rest of it cantilevered outward bears **49.9 %** — marginal, and
+     *   buildable: crews stack and strap exactly this, and the row's own mass is over its support
+     * * a 2-way perched on a 163 mm shoulder, touching by one corner, bears **1.2 %**
+     *
+     * Forty times apart, and a half refused both. A third refuses the perch and passes the cantilever, and
+     * anywhere from 5 % to 45 % gives the same answers on every arrangement this inventory can build. Whether
+     * the *row* then stands is a different question, asked by {@see Stability::tips}.
      */
-    public const MIN_BEARING = 0.5;
+    public const MIN_BEARING = 1 / 3;
 
     /**
      * How close to the landing height a second support has to be before it carries the cabinet too.

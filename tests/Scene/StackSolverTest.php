@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Scene;
 
 use App\Scene\Stack;
+use App\Scene\Gravity;
 use App\Scene\StackChecks;
 use App\Scene\StackEntry;
 use App\Scene\StackSolver;
@@ -606,27 +607,35 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * A cabinet that would come to rest **out of level** is an error — the tilt, not the fraction.
+     * A cabinet only **touching** what carries it is an error — a third of it has to be on there.
      *
-     * The geometry that found it. A single SKRAM between two Flexys makes a row 151 mm taller in its middle, and
-     * a two-Flexy row on top of it has each cabinet half on the SKRAM and half over a Flexy 151 mm below. It
-     * would rock 27° until it touched. The old rule called this "50 % of its own width" and could not tell it
-     * apart from a Flexy left 19 mm proud by a turned SKRAM, which is the same fraction and 1.7° — a shim.
+     * The case is a 2-way perched on a 163 mm shoulder, catching it by one corner: **1.2 %**. What makes the
+     * boundary a third rather than a half is the arrangement it must *not* refuse — a Flexy resting on a SKRAM
+     * with the rest cantilevered outward bears **49.9 %**, which crews stack and strap, and a half fell exactly
+     * between the two. Forty times apart, and the old rule refused both.
+     *
+     * Note what this deliberately does **not** ask: whether a lower surface sits under the overhang. A surface
+     * below can only catch a cabinet that tilts — it cannot make one less stable than the same cabinet over thin
+     * air. An earlier version treated it as a hazard and refused a Flexy row on a mixed Flexy-and-SKRAM bottom
+     * row while allowing the identical row on a lone SKRAM, which is backwards.
      */
-    public function testACabinetThatWouldRestOutOfLevelIsAnError(): void
+    public function testACabinetOnlyTouchingItsSupportIsAnError(): void
     {
         $flexy = $this->devices['flexy-folded-horn-hybrid'];
-        $tiers = [
+        $stack = new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 0.0, gapM: 0.02);
+
+        // The boundary itself: above the perch, below the cantilever. Both figures are measured in `GravityTest`
+        // — 1.2 % for a 2-way catching a 163 mm shoulder by one corner, 49.9 % for a Flexy on a SKRAM with the
+        // rest of it hanging outward.
+        self::assertGreaterThan(0.012, Gravity::MIN_BEARING, 'the perch is refused');
+        self::assertLessThan(0.499, Gravity::MIN_BEARING, 'the cantilever is not');
+
+        // And the arrangement that matters: Flexys and a SKRAM side by side, carrying a Flexy row.
+        $mixed = [
             new Tier([[$flexy, 1], [$this->devices['skram'], 1], [$flexy, 1]]),
             Tier::of($flexy, 2),
         ];
-
-        $stack = new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 0.0, gapM: 0.02);
-        $problems = StackChecks::supportChecks($tiers, $stack)['problems'];
-
-        self::assertStringContainsString('out of level', implode("\n", $problems));
-        self::assertStringContainsString('27.0°', implode("\n", $problems));
-        self::assertSame([], StackChecks::supportChecks([$tiers[0]], $stack)['problems'], 'the row itself is fine');
+        self::assertSame([], StackChecks::supportChecks($mixed, $stack)['problems']);
     }
 
     /**

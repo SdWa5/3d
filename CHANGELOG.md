@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.47.0] - 2026-08-11
+
+### Fixed
+
+- **A surface below an overhang was being treated as a hazard instead of a safety net.** It can only ever catch a
+  cabinet that tilts; it cannot make one less stable than the same cabinet cantilevered over thin air. 0.46.0's
+  settle-angle rule refused a Flexy row standing on a mixed Flexy-and-SKRAM bottom row while allowing the
+  identical row on a lone SKRAM — the same cabinets, the same support, the same 49.9 % bearing, and the only
+  difference was that something harmless sat 151 mm below. The settle angle is gone
+- **The bearing floor moved from a half to a third**, which is where the cases actually are. A half falls exactly
+  between the two arrangements it must separate: a Flexy on a SKRAM with the rest hanging outward bears 49.9 %,
+  and a 2-way perched on a 163 mm shoulder bears 1.2 %. Forty times apart, and a half refused both
+
+### Changed
+
+- **`stacked-two-center`'s bottom row is now `2× flexy + 1× skram + 2× flexy`** — Flexys and the SKRAM side by
+  side, upright, one SKRAM per stack. It also stopped being a tower: **3.280 m** tall against 0.46.0's 4.856 m,
+  in four tiers rather than six
+- `stacked-center` is 4.072 m instead of 4.690 m, and every rig still places what it did
+
 ## [0.46.0] - 2026-08-11
 
 ### Added

@@ -634,15 +634,17 @@ to be one proxy:
   reaching past the support and held by the neighbours they lean on. The old rule refused that by **half a
   millimetre**, because "half the outer cabinet off the edge" turns out to *be* the per-cabinet centre-of-mass
   rule — 916.5 mm out against a support edge at 916.0.
-* **A cabinet settles out of level** when its own weight is off its support *and* the overhang catches a lower
-  surface: `atan(drop / overhang)`, refused past 5°. That is the only thing that tells a shim from a cantilever —
-  a Flexy left 19 mm proud over a 630 mm overhang is **1.7°**, one half off with the rest over a surface 151 mm
-  down is **27°**, and a 2-way perched on a 163 mm shoulder is **19.5°**. A fraction of a footprint reads all
-  three as "about half off".
+* **A cabinet must have a third of itself** over what it landed on. Where that boundary sits is the point: it was
+  a half, and a half falls exactly between the two arrangements it has to separate. A Flexy resting on a SKRAM
+  with the rest cantilevered outward bears **49.9 %** — marginal, and what crews actually stack and strap — while
+  a 2-way perched on a 163 mm shoulder and touching by one corner bears **1.2 %**. Forty times apart, and a half
+  refused both.
 
-The gate matters as much as the formula: a cabinet whose centre is over its support **sits flat**, whatever is
-beside it. Without that, a 20 mm sliver hanging over a 19 mm step reads 43.5° — geometrically true and physically
-nonsense.
+**A surface below an overhang is a safety net, not a hazard**, and getting that backwards cost two attempts. It
+can only ever catch a cabinet that tilts; it cannot make one less stable than the same cabinet cantilevered over
+thin air. A rule that measured the tilt onto it refused a Flexy row standing on a mixed Flexy-and-SKRAM bottom row
+while allowing the identical row on a lone SKRAM — the same cabinets, the same support, the same 49.9 %, and the
+only difference was that something harmless sat 151 mm below.
 
 **Bearing is checked per cabinet, not just per tier.** How much of a cabinet is over the thing it landed on, as
 a fraction of its own width; under half is an error. Comparing tier widths cannot see this and neither can the

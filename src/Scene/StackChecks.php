@@ -271,19 +271,20 @@ final class StackChecks
                     );
                     continue;
                 }
-                // **How far out of level it ends up**, not what fraction of it is over its support. A cabinet
-                // whose weight is off its support and whose overhang catches a lower surface tilts until it
-                // touches, and that angle tells a shim from a cantilever: 1.7° where a turned SKRAM leaves a
-                // Flexy 19 mm proud, 19.5° where a 2-way is perched on a 163 mm shoulder. A footprint fraction
-                // reads both as "about half off" and cannot choose between them.
-                if ($run['settle'] > Stability::MAX_SETTLE_DEG) {
+                // How much of it is over what it landed on. A **third**, not a half: see
+                // {@see Gravity::MIN_BEARING} for why the boundary moved, and note what this is *not* asking —
+                // whether a lower surface sits under the overhang is irrelevant here. A surface below can only
+                // ever catch a cabinet that tilts; it cannot make one less stable than the same cabinet
+                // cantilevered over thin air. Treating it as a hazard refused a Flexy row on a mixed
+                // Flexy-and-SKRAM bottom row while allowing the identical row on a lone SKRAM, which is
+                // backwards.
+                if ($run['bearing'] + self::EPSILON_M < Gravity::MIN_BEARING) {
                     $problems[] = sprintf(
-                        'a %s in the %s row would come to rest %.1f° out of level: its weight is off its support '
-                        .'and the overhang catches a lower surface, so it stands on a corner. Line the segments '
-                        .'up with what carries them',
+                        'a %s in the %s row would land on only %.0f%% of its own width — it is touching what '
+                        .'carries it rather than sitting on it. Line the segments up with what carries them',
                         $run['device']->id,
                         $tiers[$index]->label(),
-                        $run['settle'],
+                        $run['bearing'] * 100,
                     );
                 }
             }
