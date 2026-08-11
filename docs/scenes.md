@@ -757,6 +757,18 @@ so the row is symmetric about itself; the two are one character apart at a call 
 result. A symmetric row is its own mirror image, so the flip only shows where a row is lopsided — a tops row of
 `M2122 + 2-way`, or an odd-count mixed row whose middle cabinet had to pick a side.
 
+**The interface height decides how the subs are arranged, not just how tall the rig is.** Worth knowing because
+it produces two genuinely different two-stack rigs out of the same 24 cabinets:
+
+* asking for **2.0 m** puts the Achenbachs in a row of their own — `1.832 / 2.424 / 1.840` and the tops at
+  2.277 m, over a standing crowd
+* asking for **1.6 m** lets two Flexys move up beside them instead — `3.054 / 3.062`, a flat wall in two rows, and
+  the tops 600 mm lower at 1.677 m
+
+Both are shipped (`stacked-two-center` and `stacked-two-flat-center`) because neither is strictly better. Six
+Flexys either form a row *under* the Achenbachs or lend two of themselves to flank them; there is no third
+arrangement, and which you want depends on whether the tops have to clear heads.
+
 A generated scene is **re-solved on every build**, so everything the solve decided has to be in the file. A split
 rig therefore writes each stack's share as `count:`, and a turned one writes `roll_mirror:`. Both were once left
 out, and a share left out is the worse of the two: a rig reported as two stacks of eleven was *built* with every

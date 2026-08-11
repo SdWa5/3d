@@ -5,31 +5,27 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 12 cabinets in 4 rows:
+# main-1 — 1, 12 cabinets in 3 rows:
 #
-#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
-#   2  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   3  3× achenbach-18                                                           1.84 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
+#   1  2× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid    3.054 m wide
+#   2  1× flexy-folded-horn-hybrid + 3× achenbach-18 + 1× flexy-folded-horn-hybrid    3.062 m wide
+#   3  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
-# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.237 m of cabinet.
+# Subs reach 1.677 m against a 1.6 m interface. The stack is 2.637 m of cabinet.
 #   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
 #     rig from the others
-#   * the 4× flexy-folded-horn-hybrid row is 2.424 m on a 1.832 m row, so it overhangs 296 mm each side
 #
-# main-2 — 2, 12 cabinets in 4 rows:
+# main-2 — 2, 12 cabinets in 3 rows:
 #
-#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
-#   2  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   3  3× achenbach-18                                                           1.84 m wide
-#   4  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
+#   1  2× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid    3.054 m wide
+#   2  1× flexy-folded-horn-hybrid + 3× achenbach-18 + 1× flexy-folded-horn-hybrid    3.062 m wide
+#   3  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
 #
-# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.237 m of cabinet.
+# Subs reach 1.677 m against a 1.6 m interface. The stack is 2.637 m of cabinet.
 #   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
 #     rig from the others
-#   * the 4× flexy-folded-horn-hybrid row is 2.424 m on a 1.832 m row, so it overhangs 296 mm each side
 #
-id: stacked-two-center
+id: stacked-two-flat-center
 name: "Solved rig — 2 stacks side by side, tiers centred"
 
 focus:
@@ -41,13 +37,13 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 12 cabinets in 4 rows
+  # 1, 12 cabinets in 3 rows
   - id: main-1
-    at: [-1.764, 0.0]
+    at: [-2.083, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.0
+      interface_height_m: 1.6
       gap_m: 0.02
       mirror: true             # the mirror image of stack 1
       from:
@@ -63,13 +59,13 @@ placements:
           count: 1
           aim: near
 
-  # 2, 12 cabinets in 4 rows
+  # 2, 12 cabinets in 3 rows
   - id: main-2
-    at: [1.16, 0.0]
+    at: [1.479, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.0
+      interface_height_m: 1.6
       gap_m: 0.02
       from:
         - device: skram

@@ -362,9 +362,22 @@ final class StackSolver
                 break;
             }
 
-            $support = self::lastRowWidth($source, $sourceCount - 2 * ($lift + 1), $stack, $perRow);
-            if (($width - $support) / 2 > $candidate->outerWidthM() / 2) {
-                break;
+            // What is under the flanked row once the flanks are taken out of it. When the promotion uses up the
+            // source device entirely there is no row of it left, and the flanked tier comes to sit on whatever
+            // was under *that* — the mixed bottom row, typically, which is wider than the flanked row rather
+            // than narrower. `lastRowWidth` answers 0 for "none left", which read as "supported by nothing" and
+            // refused the promotion outright: it is what kept the Achenbachs in a row of their own above a
+            // 1.202 m pair of Flexys instead of sharing a row with them. Nothing here can judge that support, so
+            // it does not try — the arrangement is handed to {@see StackChecks::supportChecks}, which is the
+            // authority on it either way.
+            $left = $sourceCount - 2 * ($lift + 1);
+            if ($left > 0) {
+                $support = self::lastRowWidth($source, $left, $stack, $perRow);
+                if (($width - $support) / 2 > $candidate->outerWidthM() / 2) {
+                    break;
+                }
+            } else {
+                $support = INF;
             }
 
             ++$lift;

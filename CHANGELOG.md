@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.48.0] - 2026-08-11
+
+### Fixed
+
+- **A tier could not be flanked from below when the promotion used up every spare cabinet.** The rule asks "if I
+  take these Flexys away, is what is left underneath wide enough to hold the row up" — and when it takes *all* of
+  them there is no row of them left, so `lastRowWidth` answered `0` and that read as "standing on nothing". The
+  row is in fact standing on the **bottom row**, which at 3.054 m is wider than the row being promoted. It now
+  hands the arrangement to `StackChecks::supportChecks`, which knows what is actually underneath and passes it
+  with 4 mm to spare. This is what kept the Achenbachs in a row of their own above a 1.202 m pair of Flexys
+
+### Added
+
+- **`scenes/stacked-two-flat-center.yaml`** — the same 24 cabinets as `stacked-two-center` with the Achenbachs
+  sharing the second row: `1× flexy + 3× achenbach + 1× flexy`, a flat wall of `3.054 / 3.062` in two rows
+  instead of a stepped `1.832 / 2.424 / 1.840` in three
+- Both are shipped because neither is better. The interface height decides which: asking for 2.0 m keeps the
+  Achenbachs separate and the tops at 2.277 m, over a standing crowd; asking for 1.6 m lets two Flexys move up
+  beside them and drops the tops to 1.677 m. Six Flexys either form a row under the Achenbachs or lend two of
+  themselves to flank them, and there is no third arrangement
+
 ## [0.47.1] - 2026-08-11
 
 ### Changed
