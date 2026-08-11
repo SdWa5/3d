@@ -14,9 +14,12 @@
 # `clone_of: Turbosound` would claim a lineage nobody stated. The TMS-4 is used here only as evidence that a
 # cabinet of this proportion exists at this size — which is a far better anchor than the photo alone gives.
 #
-#   - Proportions from the photo: distinctly tall and narrow, a convex curved grille across the front, standing
-#     on the columns of subs rather than flown.
-#   - 0.500 x 1.140 x 0.700, rounded from the TMS-4's 502 x 1143 x 730.
+#   - Proportions from the photo: distinctly tall and narrow, a convex curved grille across the front. All three
+#     stand side by side IN ONE ROW on top of the middle section — not spread across the outer columns, which is
+#     how the first pass had them and which the photograph plainly contradicts.
+#   - 0.460 x 1.150 x 0.700. The TMS-4's 502 x 1143 x 730 is the anchor and the height is essentially its own;
+#     the width is trimmed to 0.460 because at the tops' depth in the photo they measure about 130 px against a
+#     near-column cabinet's 260 for twice the real width, which reads narrower than a TMS-4.
 #   - Weight: the TMS-4's own 74.8 kg, taken down to 70 kg because these are plywood self-builds rather than a
 #     factory cabinet, and because a calculated skin — 3.55 m2 at 18 mm and ~680 kg/m3, so 43.4 kg, plus horn,
 #     drivers and hardware — lands in the same place. Two routes agreeing is the reason to believe it at all.
@@ -37,7 +40,7 @@ geometry:
   # Block-level outer box. The curved front visible in the photo is not modelled — `shape: box` is what the
   # repository draws, and a curve would be a claim about a radius nobody has measured.
   shape: box
-  dimensions_m: { width: 0.500, height: 1.140, depth: 0.700 }
+  dimensions_m: { width: 0.460, height: 1.150, depth: 0.700 }
   origin: bottom-center
   chamfer_m: 0.012
 

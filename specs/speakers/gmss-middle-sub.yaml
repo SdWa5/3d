@@ -13,13 +13,17 @@
 #     driver size and it is recorded in `audio.drivers`.
 #   - The class is fixed by the photo: a wide mouth divided by three or four vertical fins, which is a folded
 #     horn mouth rather than a ported baffle.
-#   - The size is scaled off `flexy-folded-horn-hybrid`, a single-18" folded horn in this repository whose
-#     0.591 x 0.763 x 0.964 comes from the design's own CAD. This cabinet reads a little wider and a little
-#     taller than that in the photo, hence 0.600 x 0.800 x 0.950 — round numbers, deliberately.
-#   - The weight is calculated the same way the rest of the repository does it: 3.62 m2 of skin at 18 mm and
-#     ~680 kg/m3 is 44.3 kg, plus ~15 kg of internal horn panels (a folded horn is mostly internal panels),
-#     plus ~12 kg for the 18", plus ~3 kg of hardware. The Flexy's 85 kg for a bigger box of the same kind is
-#     the sanity check.
+#   - THESE ARE THE BIGGEST CABINETS IN THE STACK and the first pass badly undersold them. Scaled off the
+#     Flexy's 0.591 x 0.763 x 0.964 they came out at 0.600 x 0.800 x 0.950, but in the photo the middle pair
+#     runs from the ground to well above the second cabinet of the outer columns — about 455 px of height where
+#     an outer cabinet is 320. At the ~3 mm per pixel the logo anchor gives (see `gmss-turbo-sub.yaml`) that is
+#     about 1.35 m tall, not 0.80.
+#   - 0.900 x 1.350 x 1.100. Width is the pair's share of the middle bay; depth is inferred from the class,
+#     since the photo shows the mouth and not the box behind it.
+#   - The weight follows and it is a big number: 7.38 m2 of skin at 18 mm and ~680 kg/m3 is 90.3 kg, plus ~20 kg
+#     of internal horn panels (a folded horn is mostly internal panels), plus ~12 kg for the 18", plus ~3 kg of
+#     hardware. 125 kg is a two-person lift at best, which is worth knowing before a load-in — and is exactly
+#     the kind of consequence a 74 kg guess would have hidden.
 #
 # NO PASSBAND. The 1600 W RMS is a power rating and says nothing about where the cabinet is crossed over.
 # Frequencies are exactly the kind of number this repository refuses to invent.
@@ -36,7 +40,7 @@ provenance: estimated
 geometry:
   # Block-level outer box; the fold is not modelled.
   shape: box
-  dimensions_m: { width: 0.600, height: 0.800, depth: 0.950 }
+  dimensions_m: { width: 0.900, height: 1.350, depth: 1.100 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -45,7 +49,7 @@ appearance:
 
 physical:
   # ESTIMATE, calculated not guessed — see the header for the arithmetic.
-  weight_kg: 74.0
+  weight_kg: 125.0
   handles: [ left, right ]
 
 rigging:

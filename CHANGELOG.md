@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.53.0] - 2026-08-11
+
+### Fixed
+
+- **The three GMSS tops are one row**, side by side on top of the middle section. 0.52.0 split them — one on each
+  outer column and one in the notch — which produced a silhouette the reference photo does not have
+- **Every GMSS cabinet was far too small, and the subs were the wrong shape.** They were estimated as ~0.700 m
+  near-cubes; the photo shows them clearly taller than wide, about 4:5. The stack came out 2.66 m wide and 3.94 m
+  tall — a narrow tower — where the photograph is a **broad wall**. It is now 3.46 × 1.10 m and 3.800 m tall
+  - `gmss-turbo-sub` 0.700 × 0.700 × 0.850 → **0.800 × 0.950 × 0.900**, 66 → 84 kg
+  - `gmss-middle-sub` 0.600 × 0.800 × 0.950 → **0.900 × 1.350 × 1.100**, 74 → 125 kg
+  - `gmss-mid-bass` 0.800 × 0.550 × 0.750 → **0.900 × 0.600 × 0.850**, 58 → 68 kg
+  - `gmss-turbo-top` 0.500 × 1.140 × 0.700 → **0.460 × 1.150 × 0.700**, 70 kg unchanged
+  - The rig's weight goes 1002 → 1268 kg on the back of it
+- **The two low boxes at the foot of the outer columns are cabinets, not plinths** — each carries the same
+  recessed oval logo as the cabinets above it. Reading them as risers left the scene two subs short of the stated
+  eight; four per column is now exactly the eight GMSS listed
+
+### Changed
+
+- The mid-bass pair stands side by side rather than stacked. At 0.800 wide a pair would have driven into the
+  columns, which is why 0.52.0 stacked them; at 0.900 on the 1.820 m bay they sit inside it with 20 mm to the
+  columns, and their flat 1.820 m top is what gives the three tops one row to stand on
+
+### Notes
+
+- **The whole scale rests on one assumption**: there is no scale reference in the photograph, so the anchor is the
+  blue illuminated logo on the sub faces, taken as a ~60 mm badge measuring about 20 px — roughly 3 mm per pixel
+  at the near column. Every dimension is downstream of that 60 mm. **One real measurement off any GMSS cabinet
+  would correct the whole set in a single pass**
+- Depths are the least certain of the three axes and did not move much: the side faces are foreshortened past
+  reading, so they are inferred from the cabinet class rather than measured off the photo at all
+- **One thing still disagrees with the photo:** the columns finish at 3.800 m and the tops at 3.100, so the tops
+  sit 0.700 m below the shoulders where the photograph shows them closer to level. Something in the middle
+  section is still too short — most likely it stands on a riser, and the low boxes under the middle bay are not
+  modelled because nothing is known about them
+
 ## [0.52.0] - 2026-08-11
 
 ### Added

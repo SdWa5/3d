@@ -7,14 +7,23 @@
 #
 # HOW THE NUMBERS WERE ARRIVED AT, so the next person can judge them rather than trust them:
 #
-#   - The class is fixed by the photo: a grille across the whole front, a roughly square face, deep enough to
-#     be horn or bandpass loaded rather than a plain reflex box. Four stand in each of the two outer columns.
-#   - The size is scaled off `achenbach-18`, which is a MEASURED single-18" horn sub in this same repository at
-#     600 x 600 x 700. Against the tops beside it in the photo this cabinet reads slightly larger than that, so
-#     0.700 x 0.700 x 0.850 — round numbers, because a round number is honest about being a guess where
-#     0.7124 would pretend to be a measurement.
+#   - The class is fixed by the photo: a grille across the whole front, deep enough to be horn or bandpass
+#     loaded rather than a plain reflex box. Four stand in each of the two outer columns, which is the stated
+#     eight — the low box at the foot of each column that reads as a plinth carries the same recessed oval logo
+#     as the cabinets above it, so it is one of them rather than a riser.
+#   - THE PROPORTIONS ARE THE THING THE FIRST PASS GOT WRONG. These are visibly TALLER THAN WIDE in the photo,
+#     roughly 4:5, where the first estimate made them a 0.700 cube scaled off `achenbach-18`. A cube was never
+#     what the photograph showed.
+#   - The size comes from a scale anchor ON the cabinet face: the blue illuminated logo, which on cabinets of
+#     this kind is a badge of roughly 60 mm and which measures about 20 px in the photo. That puts one pixel at
+#     about 3 mm at the front face of the near column, and the cabinet at about 780 x 960. Rounded to
+#     0.800 x 0.950 x 0.900 — round numbers, because a round number is honest about being a guess where
+#     0.7124 would pretend to be a measurement. THE 60 mm IS ITSELF AN ASSUMPTION: get one real dimension off
+#     any GMSS cabinet and every number in this file can be corrected in one pass.
+#   - Depth is the least certain of the three. The side face is heavily foreshortened, so 0.900 is inferred from
+#     the class rather than measured off the photo at all.
 #   - The weight is calculated rather than guessed, the same way `achenbach-18` and `eighteensound-2way-15` do
-#     it: 3.36 m2 of skin at 18 mm and ~680 kg/m3 is 41.1 kg, plus ~10 kg of internal horn panels, plus ~12 kg
+#     it: 4.67 m2 of skin at 18 mm and ~680 kg/m3 is 57.2 kg, plus ~12 kg of internal horn panels, plus ~12 kg
 #     for an 18" driver, plus ~3 kg of hardware.
 #
 # WHAT IS DELIBERATELY ABSENT: there is no `audio` block. The driver complement and the passband are not known
@@ -35,7 +44,7 @@ geometry:
   # Block-level outer box, which is all an estimate can honestly describe. Whatever the loading is inside, it
   # is not modelled and nothing here claims to know it.
   shape: box
-  dimensions_m: { width: 0.700, height: 0.700, depth: 0.850 }
+  dimensions_m: { width: 0.800, height: 0.950, depth: 0.900 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -45,7 +54,7 @@ appearance:
 
 physical:
   # ESTIMATE, calculated not guessed — see the header for the arithmetic.
-  weight_kg: 66.0
+  weight_kg: 84.0
   handles: [ left, right ]
 
 rigging:

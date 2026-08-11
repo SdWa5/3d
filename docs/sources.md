@@ -30,11 +30,11 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `achenbach-18` | Achenbach 18 | `cad` | `Achenbach 18/Achenbach 18.FCStd` | Panel geometry: 600 × 700 × 18 top/bottom, 18 × 700 × 564 sides → 0.600 × 0.600 × 0.700 m |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 4, owner, driver B&C 18TBW100, 35–1000 Hz, 1000 W |
 | `gmss-turbo-sub` | — (GMSS self-build) | — | A message from GMSS | Count 8 and 3000 W RMS. **Nothing else** |
-| | | | `GMSS.jpeg`, one site photo, no scale reference | The class — grille-fronted, roughly square, four to an outer column |
+| | | | `GMSS.jpeg`, one site photo, no scale reference | The class — grille-fronted and taller than wide, four to an outer column. The low box at each column's foot carries the same recessed logo, so it is a cabinet and not a riser |
 | `gmss-middle-sub` | — (GMSS self-build) | — | A message from GMSS | An 18″ driver and 1600 W RMS. The count is **not** stated |
-| | | | `GMSS.jpeg` | A fin-mouthed folded horn; two of them, side by side in the middle |
+| | | | `GMSS.jpeg` | A fin-mouthed folded horn; two side by side in the middle, and the tallest cabinets in the stack |
 | `gmss-mid-bass` | — (GMSS self-build) | — | A message from GMSS | Two drivers at 700 W RMS. Their size is not stated, nor is what "USB" refers to |
-| | | | `GMSS.jpeg` | A front-loaded horn with a cross-braced mouth, wider than it is tall |
+| | | | `GMSS.jpeg` | A front-loaded horn with a cross-braced mouth, wider than it is tall; the pair carries the row of three tops |
 | `gmss-turbo-top` | — (GMSS self-build) | — | A message from GMSS | Count 3 and 2500 W RMS |
 | | | | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), [manual](https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt) | 1143 × 502 × 730 mm and 74.8 kg for a documented cabinet of the same class — a **size sanity check, not a lineage** |
 
@@ -79,13 +79,24 @@ So the boxes are *reconstructions*, derived two ways and marked `provenance: est
 
 | Device | m | kg | Basis |
 |--------|---|----|-------|
-| `gmss-turbo-sub` | 0.700 × 0.700 × 0.850 | 66 | Scaled from `achenbach-18`, a single-18″ horn of the same class, against the photo |
-| `gmss-middle-sub` | 0.600 × 0.800 × 0.950 | 74 | Scaled from `flexy-folded-horn-hybrid`, a single-18″ folded horn |
-| `gmss-mid-bass` | 0.800 × 0.550 × 0.750 | 58 | Mouth aspect ratio read off the photo; weight calculated from the skin |
-| `gmss-turbo-top` | 0.500 × 1.140 × 0.700 | 70 | Rounded from the Turbosound TMS-4's published 502 × 1143 × 730 and 74.8 kg |
+| `gmss-turbo-sub` | 0.800 × 0.950 × 0.900 | 84 | Logo anchor: ~780 × 960 at the near column's front face |
+| `gmss-middle-sub` | 0.900 × 1.350 × 1.100 | 125 | Logo anchor: ~455 px of height against an outer cabinet's 320 |
+| `gmss-mid-bass` | 0.900 × 0.600 × 0.850 | 68 | Mouth aspect ratio off the photo; width set so the pair spans the middle bay |
+| `gmss-turbo-top` | 0.460 × 1.150 × 0.700 | 70 | Height essentially the Turbosound TMS-4's published 1143 mm; width trimmed per the photo |
 
 Weights are calculated rather than guessed, the same way the estimates above are: plywood skin area at 18 mm and
 ~680 kg/m³, plus internal panels, drivers and hardware.
+
+**The scale rests on one assumption, and it is worth stating on its own line.** There is no scale reference in the
+photograph, so the anchor is the blue illuminated logo on the sub faces, taken as a **~60 mm badge** measuring
+about 20 px — which puts a pixel at roughly 3 mm at the near column's front face. Every dimension above is
+downstream of that 60 mm. **One real measurement off any GMSS cabinet would correct the whole set in a single
+pass**, and until somebody takes one, that is the number to be sceptical of.
+
+A first pass had these cabinets far smaller — the subs as 0.700 m near-cubes — which made the stack a 2.66 m
+narrow tower where the photograph shows a 3.46 m wide wall. Depths remain the least certain dimension of the
+three: the side faces are foreshortened past reading, so they are inferred from the cabinet class rather than
+measured off the photo at all.
 
 **What is deliberately absent is as important as what is there.** No passbands, no crossover points, and no
 driver sizes except the middle sub's stated 18″ — those are the numbers this repository refuses to invent, so

@@ -15,8 +15,10 @@
 #     there because a mouth that wide would otherwise flex.
 #   - The proportions come from the photo rather than from another cabinet, because the mouth's aspect ratio is
 #     directly visible: distinctly wider than it is tall, and not as deep as the folded horn subs below it.
-#     0.800 x 0.550 x 0.750 — round numbers, deliberately.
-#   - The weight is calculated as everywhere else: 2.91 m2 of skin at 18 mm and ~680 kg/m3 is 35.6 kg, plus
+#     0.900 x 0.600 x 0.850 — round numbers, deliberately. Widened from a first pass at 0.800 x 0.550 x 0.750 so
+#     that the pair spans the same 1.820 m as the middle subs they stand on, which is what the photo shows and
+#     what lets the three tops sit in one row on top of them.
+#   - The weight is calculated as everywhere else: 3.63 m2 of skin at 18 mm and ~680 kg/m3 is 44.4 kg, plus
 #     ~8 kg of horn flare panels, plus ~14 kg for two mid-bass drivers, plus ~2 kg of hardware.
 #
 # TWO DRIVERS IS STATED, THEIR SIZE IS NOT — AND THE SCHEMA CANNOT SAY THAT. "2x 700rms" gives the count and
@@ -37,7 +39,7 @@ geometry:
   # Block-level outer box. The horn flare and its cross brace are visible in the photo and are not modelled —
   # the model is a block, as it is for every horn in this repository.
   shape: box
-  dimensions_m: { width: 0.800, height: 0.550, depth: 0.750 }
+  dimensions_m: { width: 0.900, height: 0.600, depth: 0.850 }
   origin: bottom-center
   chamfer_m: 0.012
 
@@ -46,7 +48,7 @@ appearance:
 
 physical:
   # ESTIMATE, calculated not guessed — see the header for the arithmetic.
-  weight_kg: 58.0
+  weight_kg: 68.0
   handles: [ left, right ]
 
 rigging:
