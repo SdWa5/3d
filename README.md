@@ -79,9 +79,9 @@ camera. See [docs/scenes.md](docs/scenes.md).
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
 | `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. `--per-owner` gives each owner its own stack, `--stacks=N` splits into a stereo pair, `--roll-mirror=ID` lays a device on its side mirrored about the centre line, `--dry-run` prints, `--force` overwrites |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
-| `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them |
+| `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them. Quality is Full HD at 128 samples, with `--quick-preview` (960×540/16) and `--high-quality` (4K/384) either side; an explicit `--samples`/`--resolution` wins over both |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
-| `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. Every stage skips what is already current; `--force` rebuilds anyway. `--dry-run` lists the stages; `--aim-line-variants` and `--lighting-variants` sweep a folder per combination |
+| `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. Every stage skips what is already current; `--force` rebuilds anyway. `--dry-run` lists the stages. Renders **every** variant — four lighting presets × two aim modes, a folder each; `--lighting=X` or `--aim-lines=X` narrows the sweep to one |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device

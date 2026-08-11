@@ -32,6 +32,15 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 final class BuildAllCommand extends BaseCommand
 {
+    /**
+     * Every aim mode `--aim-lines` accepts, in the order `scene:render` lists them.
+     *
+     * Only the first two are swept by default. `all` draws a line off every cabinet rather than off the tops
+     * alone, which is a diagnostic for one rig rather than something worth a folder in every sweep — so it is
+     * nameable but never automatic.
+     */
+    private const AIM_MODES = [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS, RenderPlan::AIM_ALL];
+
     protected function configure(): void
     {
         $this
@@ -40,22 +49,15 @@ final class BuildAllCommand extends BaseCommand
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Rebuild everything, even what looks up to date')
             ->addOption('skip-render', null, InputOption::VALUE_NONE, 'Stop after the scenes are assembled')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'List the stages and variants without running any')
-            ->addOption(
-                'aim-line-variants',
-                null,
-                InputOption::VALUE_NONE,
-                'Render every scene twice, with and without aim lines, into separate folders',
-            )
-            ->addOption(
-                'lighting-variants',
-                null,
-                InputOption::VALUE_NONE,
-                'Render every scene under every lighting preset, one folder each',
-            )
             ->addOption('camera', 'c', InputOption::VALUE_REQUIRED, 'Camera preset to render with')
-            ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, 'Lighting preset, unless --lighting-variants')
+            // Naming one narrows the sweep to it. That is the whole of the opt-out: there is no
+            // `--no-lighting-variants`, because "just this lighting" is what stating a lighting already means.
+            ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, 'Render this lighting only, instead of every preset')
+            ->addOption('aim-lines', 'a', InputOption::VALUE_REQUIRED, 'Render this aim mode only (none, tops), instead of both')
             ->addOption('samples', null, InputOption::VALUE_REQUIRED, 'Cycles samples')
-            ->addOption('resolution', 'r', InputOption::VALUE_REQUIRED, 'WIDTHxHEIGHT');
+            ->addOption('resolution', 'r', InputOption::VALUE_REQUIRED, 'WIDTHxHEIGHT')
+            ->addOption('quick-preview', null, InputOption::VALUE_NONE, 'Render every variant at preview quality')
+            ->addOption('high-quality', null, InputOption::VALUE_NONE, 'Render every variant at full quality');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -74,6 +76,20 @@ final class BuildAllCommand extends BaseCommand
             ['library:build', []],
             ['scene:build', $force],
         ];
+
+        // Checked here rather than left to `scene:render`, because a sweep is the one place a typo is expensive:
+        // `--dry-run` runs no stage at all, so an unvalidated value would list a plausible pass and only be
+        // caught when the real sweep reached the render an hour later.
+        $aimLines = $input->getOption('aim-lines');
+        if ($aimLines !== null && !in_array($aimLines, self::AIM_MODES, true)) {
+            $this->io->error(sprintf(
+                "Unknown --aim-lines value '%s'. Available: %s",
+                (string)$aimLines,
+                implode(', ', self::AIM_MODES),
+            ));
+
+            return self::FAILURE;
+        }
 
         $renders = $input->getOption('skip-render') ? [] : $this->renderVariants($input);
 
@@ -131,17 +147,26 @@ final class BuildAllCommand extends BaseCommand
             '--resolution' => $input->getOption('resolution'),
         ], static fn (mixed $value): bool => $value !== null);
 
+        foreach (['quick-preview', 'high-quality'] as $level) {
+            if ($input->getOption($level)) {
+                $shared['--'.$level] = true;
+            }
+        }
+
         if ($input->getOption('force')) {
             $shared['--force'] = true;
         }
 
-        $lightings = $input->getOption('lighting-variants')
-            ? array_map(static fn (LightingPreset $p): string => $p->value, LightingPreset::cases())
-            : [$input->getOption('lighting')];
+        // **Every variant, unless one is named.** These used to be opt-in flags that every invocation passed, so
+        // the useful default was the one nobody got by default. Four lighting presets times two aim modes is eight
+        // renders per scene — which is why the quality level matters as much as it does.
+        $lightings = $input->getOption('lighting') !== null
+            ? [$input->getOption('lighting')]
+            : array_map(static fn (LightingPreset $p): string => $p->value, LightingPreset::cases());
 
-        $aimModes = $input->getOption('aim-line-variants')
-            ? [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS]
-            : [null];
+        $aimModes = $input->getOption('aim-lines') !== null
+            ? [$input->getOption('aim-lines')]
+            : [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS];
 
         $plain = count($lightings) === 1 && count($aimModes) === 1;
 

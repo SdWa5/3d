@@ -47,30 +47,36 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
-     * With no variant asked for the output tree is exactly where `scene:render` always wrote, so the plain
-     * case does not quietly move anybody's renders into a subfolder.
+     * The whole sweep with nothing asked for: four lighting presets times two aim modes, each into a folder
+     * named after what makes it different. These were opt-in flags that every invocation in the repository
+     * passed, so the useful behaviour was the one nobody got by default.
      */
-    public function testThePlainCaseRendersWhereItAlwaysDidWithNoOutDir(): void
+    public function testEveryVariantIsRenderedWithNoFlagsAtAll(): void
     {
         $display = $this->dryRun(['--dry-run' => true]);
 
-        self::assertStringContainsString('1 render pass', $display);
-        self::assertStringNotContainsString('--out-dir', $display);
+        self::assertStringContainsString('8 render passes', $display);
+        self::assertStringContainsString('build/renders/studio-aim', $display);
+        self::assertStringContainsString('build/renders/flat', $display);
     }
 
-    public function testAimLineVariantsRenderTwiceIntoSeparateFolders(): void
+    /**
+     * Naming a lighting narrows the sweep to it — which is the whole of the opt-out. There is no
+     * `--no-lighting-variants`, because "just this lighting" is what stating a lighting already means.
+     */
+    public function testNamingALightingLeavesOnlyItsTwoAimModes(): void
     {
-        $display = $this->dryRun(['--dry-run' => true, '--aim-line-variants' => true]);
+        $display = $this->dryRun(['--dry-run' => true, '--lighting' => 'studio']);
 
         self::assertStringContainsString('2 render passes', $display);
         self::assertStringContainsString('--aim-lines=none', $display);
         self::assertStringContainsString('--aim-lines=tops', $display);
-        self::assertStringContainsString('build/renders/default-aim', $display);
+        self::assertStringNotContainsString('build/renders/flat', $display);
     }
 
-    public function testLightingVariantsRenderOneFolderPerPreset(): void
+    public function testNamingAnAimModeLeavesOneFolderPerLightingPreset(): void
     {
-        $display = $this->dryRun(['--dry-run' => true, '--lighting-variants' => true]);
+        $display = $this->dryRun(['--dry-run' => true, '--aim-lines' => 'none']);
 
         self::assertStringContainsString('4 render passes', $display);
         foreach (['studio', 'stage', 'daylight', 'flat'] as $preset) {
@@ -78,13 +84,39 @@ final class BuildAllCommandTest extends TestCase
         }
     }
 
-    public function testBothKindsOfVariantMultiply(): void
+    /**
+     * Narrowed to one pass, the output goes exactly where `scene:render` always put it — so the single-variant
+     * case does not quietly move anybody's renders into a subfolder.
+     */
+    public function testNarrowingToASinglePassWritesToThePlainFolder(): void
     {
-        $display = $this->dryRun(['--dry-run' => true, '--lighting-variants' => true, '--aim-line-variants' => true]);
+        $display = $this->dryRun(['--dry-run' => true, '--lighting' => 'studio', '--aim-lines' => 'none']);
 
-        self::assertStringContainsString('8 render passes', $display);
-        self::assertStringContainsString('build/renders/studio-aim', $display);
-        self::assertStringContainsString('build/renders/flat', $display);
+        self::assertStringContainsString('1 render pass', $display);
+        self::assertStringNotContainsString('--out-dir', $display);
+    }
+
+    /**
+     * A dry run runs no stage, so nothing downstream would catch the typo — and by the time the real sweep
+     * reached `scene:render` it would have spent every earlier stage first.
+     */
+    public function testAnUnknownAimModeIsRefusedBeforeAnythingRuns(): void
+    {
+        $display = $this->invoke(['--dry-run' => true, '--aim-lines' => 'top'], Command::FAILURE);
+
+        self::assertStringContainsString("Unknown --aim-lines value 'top'", $display);
+        self::assertStringNotContainsString('render pass', $display);
+    }
+
+    /**
+     * A quality level reaches every pass in the sweep, since choosing preview quality is a statement about the
+     * run rather than about one variant of it.
+     */
+    public function testAQualityLevelIsForwardedToEveryPass(): void
+    {
+        $display = $this->dryRun(['--dry-run' => true, '--quick-preview' => true]);
+
+        self::assertSame(8, substr_count($display, '--quick-preview'));
     }
 
     public function testSkipRenderLeavesTheRenderStageOut(): void
@@ -105,6 +137,14 @@ final class BuildAllCommandTest extends TestCase
      */
     private function dryRun(array $arguments): string
     {
+        return $this->invoke($arguments, Command::SUCCESS);
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     */
+    private function invoke(array $arguments, int $expected): string
+    {
         $application = new Application('sdwa5-3d', 'test');
         $application->addCommands([
             new SpecsValidateCommand(),
@@ -119,7 +159,7 @@ final class BuildAllCommandTest extends TestCase
         $tester = new CommandTester($application->find('build:all'));
         $exit = $tester->execute($arguments);
 
-        self::assertSame(Command::SUCCESS, $exit, $tester->getDisplay());
+        self::assertSame($expected, $exit, $tester->getDisplay());
 
         return $tester->getDisplay();
     }

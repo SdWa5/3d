@@ -46,8 +46,30 @@ final class SceneRenderCommand extends BaseCommand
             ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id or path; omit to render every scene')
             ->addOption('camera', 'c', InputOption::VALUE_REQUIRED, "Camera preset ({$cameras})", CameraPreset::ThreeQuarter->value)
             ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, "Lighting preset ({$lightings})", LightingPreset::Studio->value)
-            ->addOption('samples', null, InputOption::VALUE_REQUIRED, 'Cycles samples', (string)RenderPlan::DEFAULT_SAMPLES)
-            ->addOption('resolution', 'r', InputOption::VALUE_REQUIRED, 'WIDTHxHEIGHT', implode('x', RenderPlan::DEFAULT_RESOLUTION))
+            // No defaults on these two: the level flags below supply them, and a default here could not be told
+            // apart from a value somebody typed — which is what decides whether it overrules the level.
+            ->addOption('samples', null, InputOption::VALUE_REQUIRED, sprintf(
+                'Cycles samples (default %d, --quick-preview %d, --high-quality %d)',
+                RenderPlan::DEFAULT_SAMPLES,
+                RenderPlan::QUICK_SAMPLES,
+                RenderPlan::HIGH_SAMPLES,
+            ))
+            ->addOption('resolution', 'r', InputOption::VALUE_REQUIRED, sprintf(
+                'WIDTHxHEIGHT (default %s, --quick-preview %s, --high-quality %s)',
+                implode('x', RenderPlan::DEFAULT_RESOLUTION),
+                implode('x', RenderPlan::QUICK_RESOLUTION),
+                implode('x', RenderPlan::HIGH_RESOLUTION),
+            ))
+            ->addOption('quick-preview', null, InputOption::VALUE_NONE, sprintf(
+                'Least that answers "is this the rig I meant" — %s at %d samples',
+                implode('x', RenderPlan::QUICK_RESOLUTION),
+                RenderPlan::QUICK_SAMPLES,
+            ))
+            ->addOption('high-quality', null, InputOption::VALUE_NONE, sprintf(
+                'Most worth spending on a still — %s at %d samples',
+                implode('x', RenderPlan::HIGH_RESOLUTION),
+                RenderPlan::HIGH_SAMPLES,
+            ))
             ->addOption('no-ground', null, InputOption::VALUE_NONE, 'Leave out the ground plane')
             ->addOption(
                 'aim-lines',
@@ -146,9 +168,11 @@ final class SceneRenderCommand extends BaseCommand
             $target = $input->getOption('out')
                 ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
 
-            // Only redraw what has changed. A render is the most expensive thing in the pipeline — eight
-            // seconds a frame, and `build:all --lighting-variants --aim-line-variants` asks for eight per
-            // scene — so a rig nobody has touched should cost nothing. The `.blend` is the input, and it
+            // Only redraw what has changed. A render is the most expensive thing in the pipeline — and `build:all`
+            // now sweeps eight variants of every scene at Full HD by default — so a rig nobody has touched should
+            // cost nothing. What this does *not* watch is the settings the render was made with: raising the
+            // default resolution leaves every existing PNG "current" at the old one, and only `--force` redraws
+            // it. Folding the settings into the key is its own piece of work. The `.blend` is the input, and it
             // carries the whole chain with it: `scene:build` only rewrites it when the scene file or one of
             // the cabinet models moved, so a spec edit still reaches the PNG.
             if (!$input->getOption('force')
@@ -232,16 +256,29 @@ final class SceneRenderCommand extends BaseCommand
             return null;
         }
 
-        $samples = (int)$input->getOption('samples');
+        $level = $this->qualityLevel($input);
+        if ($level === null) {
+            return null;
+        }
+
+        // A stated `--samples` or `--resolution` wins over the level, so the levels are a shorthand rather than a
+        // constraint. That matters for the one thing a level cannot say — a 4K frame at 16 samples to check
+        // framing, or a 960×540 one at 384 to look at a chamfer.
+        $samples = $input->getOption('samples') !== null
+            ? (int)$input->getOption('samples')
+            : $level['samples'];
         if ($samples < 1) {
             $this->io->error('--samples must be at least 1');
 
             return null;
         }
 
-        $resolution = $this->resolution((string)$input->getOption('resolution'));
-        if ($resolution === null) {
-            return null;
+        $resolution = $level['resolution'];
+        if ($input->getOption('resolution') !== null) {
+            $resolution = $this->resolution((string)$input->getOption('resolution'));
+            if ($resolution === null) {
+                return null;
+            }
         }
 
         // Whether the flag was *given* has to be told apart from the value it defaults to, because a
@@ -272,6 +309,33 @@ final class SceneRenderCommand extends BaseCommand
             'noGround' => (bool)$input->getOption('no-ground'),
             'aimLines' => $aimLines,
         ];
+    }
+
+    /**
+     * The samples and resolution the named level asks for, or the default when none is named.
+     *
+     * Both levels together is a contradiction rather than a precedence question — there is no sensible reading of
+     * "the least that answers a question, and also the most worth spending" — so it is refused the same way
+     * `align` refuses two envelopes.
+     *
+     * @return array{samples: int, resolution: array{int, int}}|null
+     */
+    private function qualityLevel(InputInterface $input): ?array
+    {
+        $quick = (bool)$input->getOption('quick-preview');
+        $high = (bool)$input->getOption('high-quality');
+
+        if ($quick && $high) {
+            $this->io->error('--quick-preview and --high-quality ask for opposite things — pick one');
+
+            return null;
+        }
+
+        return RenderPlan::quality(match (true) {
+            $quick => RenderPlan::QUICK,
+            $high => RenderPlan::HIGH,
+            default => null,
+        });
     }
 
     /**

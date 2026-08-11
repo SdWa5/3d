@@ -344,4 +344,70 @@ final class RenderPlanTest extends TestCase
 
         self::assertCount(2, RenderPlan::forScene($placed, aimLines: RenderPlan::AIM_ALL)['aim_lines']);
     }
+
+    /**
+     * The quality ladder, level by level. Each named level resolves to its own pair, and no level means the
+     * default pair — which is what makes the flags a shorthand for numbers written down in one place.
+     */
+    public function testEachQualityLevelResolvesToItsOwnResolutionAndSamples(): void
+    {
+        self::assertSame(
+            ['samples' => 16, 'resolution' => [960, 540]],
+            RenderPlan::quality(RenderPlan::QUICK),
+        );
+        self::assertSame(
+            ['samples' => 128, 'resolution' => [1920, 1080]],
+            RenderPlan::quality(null),
+        );
+        self::assertSame(
+            ['samples' => 384, 'resolution' => [3840, 2160]],
+            RenderPlan::quality(RenderPlan::HIGH),
+        );
+    }
+
+    /**
+     * The ladder has to *be* a ladder in both axes at once, since a level that raised samples while lowering
+     * pixels would not be a level at all.
+     */
+    public function testTheLevelsAscendInBothSamplesAndPixels(): void
+    {
+        $levels = array_map(
+            static fn (?string $level): array => RenderPlan::quality($level),
+            [RenderPlan::QUICK, null, RenderPlan::HIGH],
+        );
+
+        $samples = array_column($levels, 'samples');
+        $pixels = array_map(static fn (array $l): int => $l['resolution'][0] * $l['resolution'][1], $levels);
+
+        $sorted = $samples;
+        sort($sorted);
+        self::assertSame($sorted, $samples, 'samples should ascend');
+
+        $sortedPixels = $pixels;
+        sort($sortedPixels);
+        self::assertSame($sortedPixels, $pixels, 'pixels should ascend');
+    }
+
+    public function testAnUnknownQualityLevelIsRefusedRatherThanSilentlyDefaulted(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        RenderPlan::quality('medium');
+    }
+
+    /**
+     * A level's numbers have to reach the plan Blender is handed, which is the whole point of the flags — the
+     * 4K case is otherwise only checkable by rendering a frame that takes minutes.
+     */
+    public function testALevelsNumbersReachThePlan(): void
+    {
+        $sub = SpecFactory::spec(['id' => 'sub', 'subtype' => 'sub']);
+        $placed = [new PlacedDevice('a', $sub, [0.0, 0.0, 1.0], new Orientation())];
+
+        $high = RenderPlan::quality(RenderPlan::HIGH);
+        $plan = RenderPlan::forScene($placed, samples: $high['samples'], resolution: $high['resolution']);
+
+        self::assertSame([3840, 2160], $plan['render']['resolution']);
+        self::assertSame(384, $plan['render']['samples']);
+    }
 }

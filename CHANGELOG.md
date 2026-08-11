@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.49.0] - 2026-08-11
+
+### Changed
+
+- **`build:all` renders every variant by default.** Four lighting presets × two aim modes — eight passes into
+  eight folders under `build/renders/`. These were opt-in flags, and every invocation in the repository passed
+  both, so the useful behaviour was the one nobody got by default
+- **Render quality is Full HD at 128 samples**, raised from 1600×900 at 64, which was the only quality there was
+
+### Added
+
+- **`--quick-preview` (960×540, 16 samples) and `--high-quality` (3840×2160, 384 samples)** on `scene:render` and
+  on `build:all`, which forwards the level to every pass in its sweep. Three levels exist because the same command
+  does two jobs: checking a rig is arranged the way you meant, and producing something to look at. An explicit
+  `--samples` or `--resolution` wins over a level, so the levels are a shorthand rather than a constraint — that
+  matters for the one thing a level cannot say, a 4K frame at 16 samples to check framing. Both levels at once is
+  refused rather than given a precedence, since there is no reading of "the least that answers a question, and
+  also the most worth spending"
+- **`--aim-lines=none|tops|all` on `build:all`**, mirroring `--lighting`: naming one narrows the sweep to it. An
+  unknown value is refused *before any stage runs*, because `--dry-run` runs nothing and a real sweep would
+  otherwise spend every earlier stage before `scene:render` caught the typo
+- `RenderPlan::quality()` resolves a level to its samples and resolution, next to the constants it names, so a
+  level cannot drift from the numbers it is meant to stand for
+
+### Removed
+
+- **`--aim-line-variants` and `--lighting-variants`**, rather than kept as no-ops — a flag that silently does
+  nothing is worse than Symfony's own "unknown option". `--lighting=X` / `--aim-lines=X` narrow instead
+
+### Notes
+
+- The two changes compound: eight variants at 2.9× a frame makes a full sweep about **23×** what it used to cost.
+  Intended, but worth knowing before starting one on a laptop — `--quick-preview` brings the same sweep back under
+  today's cost
+- **Raising the default does not make the existing renders stale.** Staleness is by mtime against a render's scene
+  and scripts, not against the settings it was drawn with, so every PNG on disk is still "current" at the old
+  1600×900. One `build:all --force` re-renders them. Folding the settings into the freshness key is TODO 20
+
 ## [0.48.0] - 2026-08-11
 
 ### Fixed

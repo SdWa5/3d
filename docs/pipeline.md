@@ -53,7 +53,8 @@ ddev exec bin/console catalog --write     # also write docs/catalog.md
 
 ddev exec bin/console build:all           # every stage above, in order
 ddev exec bin/console build:all --dry-run # ...list what it would run, and run nothing
-ddev exec bin/console build:all --aim-line-variants --lighting-variants
+ddev exec bin/console build:all --lighting=studio       # ...one lighting only, both aim modes
+ddev exec bin/console build:all --quick-preview         # ...the whole sweep at preview quality
 ```
 
 **Every stage skips what is already current**, so a rebuild after touching one scene costs that scene and its
@@ -81,10 +82,39 @@ remembering five commands and which of them the edit had invalidated.
 It delegates rather than reimplements, so each stage's own staleness rules, reporting and refusals are the
 ones that apply, and a failing stage stops the run.
 
-The variant options are what make it more than a shell alias. `--lighting-variants` renders every scene
-under each of the four lighting presets and `--aim-line-variants` renders each with and without aim lines;
-together that is eight passes into eight folders under `build/renders/`. With no variant asked for, output
-goes exactly where `scene:render` always put it.
+The variant sweep is what makes it more than a shell alias, and it is the **default**: every scene under each of
+the four lighting presets, each with and without aim lines — eight passes into eight folders under
+`build/renders/`. These were opt-in flags once, but every invocation in this repository passed both, so the
+useful behaviour was the one nobody got by default.
+
+Narrowing is how you opt out, and there is no negative flag for it: `--lighting=studio` renders that lighting
+only, `--aim-lines=none` that aim mode only. Naming *both* leaves one pass, which writes exactly where
+`scene:render` always put it rather than into a subfolder. An unknown `--aim-lines` value is refused before any
+stage runs — a dry run runs nothing, so nothing downstream would catch the typo.
+
+### Quality
+
+One quality was fixed at 1600×900 and 64 samples. Three levels now, because the same command does two different
+jobs — checking that a rig is arranged the way you meant, and producing something to look at:
+
+| level | resolution | samples | per frame |
+|---|---|---|---|
+| `--quick-preview` | 960 × 540 | 16 | 0.09× |
+| default | 1920 × 1080 | 128 | 2.9× |
+| `--high-quality` | 3840 × 2160 | 384 | 17× |
+
+Both on `scene:render` and on `build:all`, which forwards the level to every pass in its sweep. An explicit
+`--samples` or `--resolution` wins over a level, so the levels are a shorthand rather than a constraint — that
+matters for the one thing a level cannot say, like a 4K frame at 16 samples to check framing. Asking for both
+levels at once is refused.
+
+The two changes compound: eight variants at 2.9× a frame makes a full sweep about **23×** what it used to cost.
+That is the intended trade, but it is worth knowing before starting one on a laptop — `--quick-preview` brings
+the same sweep back under today's cost.
+
+**Raising the default does not make existing renders stale.** Staleness is by mtime against a render's scene and
+script, not against the settings it was made with, so the PNGs already on disk are still "current" at the old
+1600×900. One `build:all --force` re-renders them at the new default.
 
 Add `-v` to any build command to see Blender's own output; without it only one line per model is
 printed, because Blender is extremely chatty.

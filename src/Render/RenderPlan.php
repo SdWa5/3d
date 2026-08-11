@@ -16,15 +16,70 @@ use App\Scene\PlacedDevice;
  */
 final class RenderPlan
 {
-    public const DEFAULT_SAMPLES = 64;
+    /**
+     * The quality a render gets when nothing asks for anything else — **Full HD at 128 samples**.
+     *
+     * Raised from 1600×900/64, which was the only quality there was. Two named levels sit either side of it, and
+     * the three exist because the same command is used for two different jobs: checking that a rig is arranged
+     * the way you meant, and producing something to look at.
+     *
+     * The numbers are per-frame costs relative to the old default, and they compound with `build:all`'s eight
+     * variants — a full sweep at the default is around 23× what it used to be. That is the intended trade rather
+     * than an accident, and {@see \App\Command\BuildAllCommand} is where the eight comes from.
+     */
+    public const DEFAULT_SAMPLES = 128;
 
-    public const DEFAULT_RESOLUTION = [1600, 900];
+    public const DEFAULT_RESOLUTION = [1920, 1080];
+
+    /**
+     * `--quick-preview`: the least that still answers "is this the rig I meant" — 0.09× a default frame.
+     *
+     * Sixteen samples is visibly noisy and 960×540 is small, and neither matters for the question it is for. It
+     * is the level to use while iterating on a scene file.
+     */
+    public const QUICK_SAMPLES = 16;
+
+    public const QUICK_RESOLUTION = [960, 540];
+
+    /**
+     * `--high-quality`: 4K at 384 samples, 17× a default frame.
+     *
+     * The most that is worth spending on a still of a grey rig. Past a few hundred samples Cycles is chasing
+     * noise nobody can see on matte plywood, and past 4K the cabinets are not modelled finely enough to reward
+     * it — the chamfers are 12 mm and the handles are plain cuts.
+     */
+    public const HIGH_SAMPLES = 384;
+
+    public const HIGH_RESOLUTION = [3840, 2160];
+
+    public const QUICK = 'quick';
+
+    public const HIGH = 'high';
 
     public const AIM_NONE = 'none';
 
     public const AIM_TOPS = 'tops';
 
     public const AIM_ALL = 'all';
+
+    /**
+     * The samples and resolution a named level asks for; the default pair when none is named.
+     *
+     * Here rather than in the command because this is where the three pairs are written down, and a level that
+     * resolved somewhere else could drift from the constants it is meant to name. The command's own job is only
+     * turning two flags into one of these three answers — and refusing both flags at once.
+     *
+     * @return array{samples: int, resolution: array{int, int}}
+     */
+    public static function quality(?string $level): array
+    {
+        return match ($level) {
+            self::QUICK => ['samples' => self::QUICK_SAMPLES, 'resolution' => self::QUICK_RESOLUTION],
+            self::HIGH => ['samples' => self::HIGH_SAMPLES, 'resolution' => self::HIGH_RESOLUTION],
+            null => ['samples' => self::DEFAULT_SAMPLES, 'resolution' => self::DEFAULT_RESOLUTION],
+            default => throw new \InvalidArgumentException("Unknown quality level '{$level}'"),
+        };
+    }
 
     /** Subtypes that are aimed at an audience; subs are omnidirectional enough not to bother. */
     private const AIMED_SUBTYPES = ['top', 'monitor', 'line-array-element'];
