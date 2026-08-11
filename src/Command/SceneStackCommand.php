@@ -8,6 +8,8 @@ use App\Scene\LayoutMode;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneSpec;
 use App\Scene\Stack;
+use App\Scene\StackBlock;
+use App\Scene\StackEntry;
 use App\Scene\StackSceneWriter;
 use App\Scene\StackSolver;
 use App\Spec\DeviceSpec;
@@ -48,6 +50,9 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('at', null, InputOption::VALUE_REQUIRED, 'Where the rig is centred, as X,Y', '-0.302,0')
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
+            ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
+            ->addOption('stacks', null, InputOption::VALUE_REQUIRED, 'Split each group into this many stacks', '1')
+            ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
             ->addOption('max-scenes', null, InputOption::VALUE_REQUIRED, 'Refuse to write more than this many', (string)self::DEFAULT_MAX_SCENES)
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print the scenes instead of writing them')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite an existing scene file');
@@ -137,39 +142,30 @@ final class SceneStackCommand extends BaseCommand
         LayoutMode $mode,
         InputInterface $input,
     ): array|string {
-        $stack = new Stack(
-            from: $from,
-            maxWidthM: $this->readFloat($input, 'max-width'),
-            minWidthM: $this->readFloat($input, 'min-width'),
-            maxHeightM: $this->readFloat($input, 'max-height'),
-            interfaceHeightM: (float)$input->getOption('interface-height'),
-            gapM: (float)$input->getOption('gap'),
-        );
-
-        $problems = $stack->problems();
-        if ($problems !== []) {
-            return $problems[0];
+        $groups = $this->groups($devices, $from, $input);
+        if (is_string($groups)) {
+            return $groups;
         }
 
-        $inventory = array_map(
-            static fn (string $id): array => [$devices[$id], $devices[$id]->quantity],
-            $from,
-        );
-
-        $solved = StackSolver::solve($inventory, $stack);
-        if ($solved['problems'] !== []) {
-            return $solved['problems'][0];
+        $blocks = [];
+        foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
+            // Cast, because PHP turns an array key that looks like a number into one — `--stacks=2` without
+            // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
+            $label = (string)$key;
+            $block = $this->solveGroup($devices, $ids, $label, $mode, $input, count($groups) > 1, $index, $of);
+            if (is_string($block)) {
+                return $label === '' ? $block : sprintf('%s: %s', $label, $block);
+            }
+            $blocks[] = $block;
         }
 
+        $clearance = (float)$input->getOption('clearance');
         $yaml = StackSceneWriter::yaml(
             id: 'placeholder',
-            name: $this->describe($mode),
-            stack: $stack,
-            tiers: $solved['tiers'],
-            warnings: $solved['warnings'],
+            name: $this->describe($mode, count($blocks)),
+            blocks: $blocks,
             at: $at,
-            from: $from,
-            align: $mode === LayoutMode::Center ? null : $mode,
+            clearanceM: $clearance,
         );
 
         // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
@@ -180,6 +176,166 @@ final class SceneStackCommand extends BaseCommand
         }
 
         return ['yaml' => $yaml] + $compiled;
+    }
+
+    /**
+     * The device ids to build each stack from, in order.
+     *
+     * `--per-owner` groups by {@see DeviceSpec::$owner} and adds **no new concept**: who owns a cabinet is
+     * already recorded, and for this collective it is exactly the split between the rigs — `sdwa5` runs the
+     * Flexys, SKRAMs and M2122s, `sepp` the Achenbachs and 2-ways. A `system:` field would have duplicated it
+     * value for value.
+     *
+     * `--stacks=N` then splits each group into that many, evenly, which is how a stereo pair is asked for.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $from
+     * @return array<string, array{ids: list<string>, index: int, of: int}>|string
+     */
+    private function groups(array $devices, array $from, InputInterface $input): array|string
+    {
+        $stacks = (int)$input->getOption('stacks');
+        if ($stacks < 1) {
+            return '--stacks must be at least 1';
+        }
+        if ((float)$input->getOption('clearance') < 0.0) {
+            return '--clearance must not be negative';
+        }
+
+        $groups = [];
+        if ($input->getOption('per-owner')) {
+            foreach ($from as $id) {
+                $groups[$devices[$id]->owner][] = $id;
+            }
+        } else {
+            $groups[''] = $from;
+        }
+
+        // Splitting shares each device out rather than each *group*, so both halves of a stereo pair get some
+        // of every cabinet instead of one taking the subs and the other the tops. The index and count travel
+        // with the group so the share can be worked out **without losing the remainder**: three M2122s over two
+        // stacks is 2 + 1, not one each with the third quietly unplaced.
+        $split = [];
+        foreach ($groups as $label => $ids) {
+            for ($stack = 0; $stack < $stacks; ++$stack) {
+                $key = $stacks === 1
+                    ? (string)$label
+                    : ($label === '' ? (string)($stack + 1) : $label.'-'.($stack + 1));
+                $split[$key] = ['ids' => $ids, 'index' => $stack, 'of' => $stacks];
+            }
+        }
+
+        return $split;
+    }
+
+    /**
+     * One group solved into a block, dropping whatever cannot be carried and saying so.
+     *
+     * The dropping is the judgement call worth naming. `--per-owner` puts the two SKRAMs in the `sdwa5` group,
+     * and they cannot be in a stack at all: nothing shares their height so they cannot be mixed into a row,
+     * and a row of the two of them is 1.240 m and carries nothing above it. Refusing the whole seventeen-cabinet
+     * rig over that would be far less useful than building it and saying plainly what was left out — which is
+     * also what the solver's own error already advises.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     * @return StackBlock|string
+     */
+    private function solveGroup(
+        array $devices,
+        array $ids,
+        string $label,
+        LayoutMode $mode,
+        InputInterface $input,
+        bool $named,
+        int $index,
+        int $of,
+    ): StackBlock|string {
+        $omitted = [];
+
+        // Try the whole group, then the group with one device removed, smallest holding first — the cabinet
+        // most likely to be the odd one out is the one there are fewest of.
+        $candidates = [$ids];
+        $bySize = $ids;
+        usort($bySize, static fn (string $a, string $b): int => $devices[$a]->quantity <=> $devices[$b]->quantity);
+        foreach ($bySize as $drop) {
+            $rest = array_values(array_filter($ids, static fn (string $id): bool => $id !== $drop));
+            if ($rest !== []) {
+                $candidates[] = $rest;
+            }
+        }
+
+        $firstProblem = null;
+        foreach ($candidates as $attempt) {
+            $stack = $this->stackFor($attempt, $input);
+            $problems = $stack->problems();
+            if ($problems !== []) {
+                return $problems[0];
+            }
+
+            $solved = StackSolver::solve($this->inventoryFor($devices, $attempt, $index, $of), $stack);
+            if ($solved['problems'] !== []) {
+                $firstProblem ??= $solved['problems'][0];
+                continue;
+            }
+
+            foreach (array_diff($ids, $attempt) as $dropped) {
+                $omitted[$dropped] = 'it cannot be carried in this stack — '.($firstProblem ?? 'no supported arrangement');
+            }
+
+            return new StackBlock(
+                placementId: $named ? 'main-'.$label : 'main',
+                label: $label,
+                stack: $stack,
+                tiers: $solved['tiers'],
+                from: $attempt,
+                warnings: $solved['warnings'],
+                omitted: $omitted,
+                align: $mode === LayoutMode::Center ? null : $mode,
+            );
+        }
+
+        return $firstProblem ?? 'no workable arrangement';
+    }
+
+    /**
+     * @param list<string> $ids
+     */
+    private function stackFor(array $ids, InputInterface $input): Stack
+    {
+        return new Stack(
+            // The command only ever generates the shorthand form — one device id per entry, no per-tier
+            // options. Anything wanting those is edited into the written file afterwards.
+            from: array_map(static fn (string $id): StackEntry => new StackEntry($id), $ids),
+            maxWidthM: $this->readFloat($input, 'max-width'),
+            minWidthM: $this->readFloat($input, 'min-width'),
+            maxHeightM: $this->readFloat($input, 'max-height'),
+            interfaceHeightM: (float)$input->getOption('interface-height'),
+            gapM: (float)$input->getOption('gap'),
+        );
+    }
+
+    /**
+     * This stack's share of each device.
+     *
+     * The remainder goes to the earlier stacks rather than nowhere: three M2122s over two stacks is 2 + 1.
+     * Dividing and discarding would have left the third cabinet silently unplaced, and a generator that
+     * quietly drops gear is worse than one that refuses.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     * @return list<array{DeviceSpec, int}>
+     */
+    private function inventoryFor(array $devices, array $ids, int $index, int $of): array
+    {
+        return array_map(
+            static function (string $id) use ($devices, $index, $of): array {
+                $quantity = $devices[$id]->quantity;
+
+                return [$devices[$id], intdiv($quantity, $of) + ($index < $quantity % $of ? 1 : 0)];
+            },
+            $ids,
+        );
     }
 
     /**
@@ -401,12 +557,16 @@ final class SceneStackCommand extends BaseCommand
     }
 
 
-    private function describe(LayoutMode $mode): string
+    private function describe(LayoutMode $mode, int $blocks): string
     {
-        return 'Solved rig — tiers '.match ($mode) {
-            LayoutMode::Center => 'centred',
-            LayoutMode::Block => 'justified',
-            LayoutMode::Stereo => 'split left and right',
-        };
+        return sprintf(
+            'Solved rig — %s, tiers %s',
+            $blocks === 1 ? 'one stack' : $blocks.' stacks side by side',
+            match ($mode) {
+                LayoutMode::Center => 'centred',
+                LayoutMode::Block => 'justified',
+                LayoutMode::Stereo => 'split left and right',
+            },
+        );
     }
 }

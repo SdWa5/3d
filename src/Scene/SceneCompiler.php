@@ -290,13 +290,21 @@ final class SceneCompiler
                 $problems[] = 'stack needs `at` for the x and y the rig is centred on';
             }
             $inventory = [];
-            foreach ($placement->stack->from as $deviceId) {
-                $device = $this->devicesById[$deviceId] ?? null;
+            foreach ($placement->stack->from as $entry) {
+                $device = $this->devicesById[$entry->device] ?? null;
                 if ($device === null) {
-                    $problems[] = "stack.from: unknown device '{$deviceId}'";
+                    $problems[] = "stack.from: unknown device '{$entry->device}'";
                     continue;
                 }
-                $inventory[] = [$device, $device->quantity];
+                foreach ($entry->mixWith as $other) {
+                    if (!isset($this->devicesById[$other])) {
+                        $problems[] = "stack.from '{$entry->device}': mix_with names unknown device '{$other}'";
+                    }
+                }
+                // A stated `count` over-books deliberately — six Achenbachs against the four we own, to see
+                // whether the rig would work if two more were borrowed. The report already says so:
+                // `SceneReport::summarise()` returns `over_inventory` and `scene:build` warns on it.
+                $inventory[] = [$device, $entry->count ?? $device->quantity];
             }
 
             if ($problems === []) {

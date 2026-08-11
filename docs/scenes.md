@@ -491,9 +491,9 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 
 | Key | Meaning |
 |-----|---------|
-| `from` | device ids, **low frequency first**. How many of each comes from the spec's `quantity` — a stack deals out what the inventory says is in the building |
+| `from` | the devices, **low frequency first**. Each entry is a bare id, or a mapping with `count` / `align` / `mix_with` — see below |
 | `max_width_m` | how wide the stage or the truss lets the rig be. The row count falls out of it |
-| `interface_height_m` | how high the sub stack's top face must reach, so the tops fire over a standing crowd. **Defaults to 2.0** — state `0` for a rig that deliberately sits low |
+| `interface_height_m` | how high the sub stack's top face should reach, so the tops fire over a standing crowd. **Defaults to 2.0**, and it is an **optimum rather than a requirement** — missing it warns; state `0` to stop aiming for it |
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
 | `max_height_m` | a ceiling or a rigging limit |
 | `gap_m` | working gap between neighbours in a row |
@@ -525,6 +525,30 @@ the moment an Achenbach or a SKRAM is in the same stack.
 **With no `max_width_m`,** the row count is the widest that still reaches the interface height: narrower
 rows mean more of them, so the sub stack grows as the count falls, and the answer is the largest count that
 still clears.
+
+### What a `from` entry can say
+
+Most entries are just a device id. The mapping form is for the occasional tier that needs something:
+
+```yaml
+from:
+  - flexy-folded-horn-hybrid          # the shorthand, and what a generated scene writes
+  - device: achenbach-18
+    count: 6                          # six against the four we own
+    align: block                      # this tier's own alignment
+    mix_with: skram                   # share a row with these
+```
+
+* **`count`** overrides the spec's `quantity`. This is how a stack over-books deliberately — six Achenbachs
+  against four owned, to see whether the rig would work if two more were borrowed, which is what
+  `full-rig-all-tops` says by hand. It needs no new warning: `scene:build` already reports
+  *"uses 6, we own 4"*.
+* **`align`** is this tier's alignment instead of the whole stack's. It says *which* alignment, not *how many*
+  tiers may spread — only a tier nothing stands on can be spread at all, so in a plain tower that is the top
+  one.
+* **`mix_with`** names devices to share the row with, at whatever height that device sits. It still has to pass
+  the height gate, and a mix that cannot be honoured is **refused rather than quietly dropped** — a row that is
+  silently not the row you asked for is the worst outcome available, because the rig still builds.
 
 **`from` must list subs before tops.** The fill is bottom-up, so a top listed first would put a Tecnare
 under a Flexy and still satisfy every height check.
@@ -583,6 +607,9 @@ bin/console scene:stack --max-width=3.70 --interface-height=2.0
 | Option | Meaning |
 |--------|---------|
 | `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use) — lowest driven corner first, subs before tops |
+| `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here |
+| `--stacks=N` | split each group into N stacks — how a stereo pair is asked for. The remainder goes to the earlier stacks, so three M2122s over two is 2 + 1 and never 1 + 1 with the third dropped |
+| `--clearance=M` | air between neighbouring stacks. Default 0.5 |
 | `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints |
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
@@ -594,6 +621,11 @@ bin/console scene:stack --max-width=3.70 --interface-height=2.0
 How many scenes you get is a parameter, not a decision baked in: `--align=block --subs=mixed` is exactly one,
 the default is three. Going over `--max-scenes` is **refused rather than truncated** — a silent cap reads as
 "that is every possibility" when it is not.
+
+**A cabinet that cannot be carried is left out, and the scene says so.** The two SKRAMs are the case: nothing
+shares their height so they cannot be mixed into a row, and a row of the two of them carries nothing above it.
+Refusing the whole twenty-three-cabinet rig over that is far less useful than placing the twenty-one that work
+and naming the omission in the file's own header — which is what the solver's error already advises.
 
 Every candidate is **compiled before it is written**, and arrangements that resolve to the same rig are
 written once. A worked refusal, which is also a real answer about our gear:

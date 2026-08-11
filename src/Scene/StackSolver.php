@@ -61,12 +61,13 @@ final class StackSolver
             ];
         }
 
-        ['problems' => $unsupported, 'warnings' => $warnings] = self::supportChecks($tiers, $stack);
+        ['problems' => $unsupported, 'warnings' => $support] = self::supportChecks($tiers, $stack);
+        ['problems' => $bounds, 'warnings' => $missedInterface] = self::boundsProblems($tiers, $stack);
 
         return [
             'tiers' => $tiers,
-            'problems' => [...self::boundsProblems($tiers, $stack), ...$unsupported],
-            'warnings' => $warnings,
+            'problems' => [...$bounds, ...$unsupported, ...self::mixProblems($inventory, $stack)],
+            'warnings' => [...$missedInterface, ...$support],
         ];
     }
 
@@ -115,6 +116,13 @@ final class StackSolver
      * reach forever. Narrowing the rows is the only way to gain height out of a fixed pile of cabinets, and
      * refusing to narrow made a wide stage strictly worse than a narrow one.
      *
+     * **Support outranks the interface**, and the order of those two preferences is the whole design. The
+     * interface height is an optimum; a tier standing on air is impossible. Narrowing far enough to chase a
+     * tall interface eventually leaves the tops overhanging a one-wide sub column — at a 12 m interface the
+     * Flexys go to single columns and the three-wide Tecnare row ends up 470 mm off each edge. So an
+     * arrangement with an unsupported tier is never chosen while any supported one exists, even if the
+     * unsupported one would have reached the height.
+     *
      * @param list<array{DeviceSpec, int}> $inventory
      * @return list<Tier>
      */
@@ -125,30 +133,39 @@ final class StackSolver
             $widest = max($widest, min($count, self::perTier($device, $stack->maxWidthM, $stack->gapM)));
         }
 
-        $tallest = [];
-        $tallestSubs = -INF;
+        $tallestCarried = [];
+        $tallestCarriedSubs = -INF;
+        $widestAttempt = [];
 
         for ($perRow = $widest; $perRow >= 1; --$perRow) {
             $flanking = self::flankingPairs($inventory, $stack, $perRow);
             for ($pairs = $flanking; $pairs >= 0; --$pairs) {
                 $tiers = self::fillWith($inventory, $stack, $perRow, $pairs);
+                $widestAttempt = $widestAttempt === [] ? $tiers : $widestAttempt;
 
+                if (self::supportChecks($tiers, $stack)['problems'] !== []) {
+                    continue;
+                }
                 if (self::reachesInterface($tiers, $stack)) {
                     return $tiers;
                 }
 
                 $subs = self::subHeight($tiers);
-                if ($subs > $tallestSubs) {
-                    $tallestSubs = $subs;
-                    $tallest = $tiers;
+                if ($subs > $tallestCarriedSubs) {
+                    $tallestCarriedSubs = $subs;
+                    $tallestCarried = $tiers;
                 }
             }
         }
+        if ($tallestCarried !== []) {
+            // Stands up but sits lower than asked for, which is a warning.
+            return $tallestCarried;
+        }
 
-        // Nothing reaches it, so hand back the **tallest** arrangement rather than the widest. The failure
-        // message is then the useful one: not "it got to 2.126 m" — which reads as though one more tier would
-        // fix it — but the ceiling of this inventory however the rows are cut.
-        return $tallest;
+        // Nothing stands up at any row width. Hand back the **widest** attempt rather than the tallest, so the
+        // error names the most favourable case there was: "even at its widest it overhangs 610 mm" tells you
+        // the rig is impossible, where the narrowest attempt's 956 mm would just look like a bad guess.
+        return $widestAttempt;
     }
 
     /**
@@ -175,10 +192,20 @@ final class StackSolver
         // Subs stack; tops do not. A sub row carries the row above it, so running out of width means another
         // tier. Tops carry nothing and stand side by side on the sub stack — putting a 2-way *on* a Tecnare
         // is what produced a fill hovering over the middle of the rig, and it is not how anybody rigs a PA.
-        foreach ($remaining as [$device, $count]) {
+        foreach ($remaining as $index => [$device, $count]) {
             if ($count < 1 || $device->subtype !== 'sub') {
                 continue;
             }
+
+            // A tier that asked to share its row does so here, wherever it sits — mixing used to be the
+            // bottom row's privilege alone, decided by a heuristic. `mix_with` names it outright, and the
+            // same two gates still apply: matching heights, and the devices have to exist and be free.
+            $stated = self::statedMix($remaining, $index, $stack, $perRow);
+            if ($stated !== null) {
+                [$tiers[], $remaining] = $stated;
+                continue;
+            }
+
             $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM));
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
@@ -194,6 +221,112 @@ final class StackSolver
         }
 
         return $tiers;
+    }
+
+    /**
+     * Every `mix_with` that cannot be honoured, so it is refused rather than quietly ignored.
+     *
+     * A mix that silently does not happen is the worst outcome available: the rig still builds, the row is
+     * just not the row that was asked for, and nothing in a render says so.
+     *
+     * @param list<array{DeviceSpec, int}> $inventory
+     * @return list<string>
+     */
+    private static function mixProblems(array $inventory, Stack $stack): array
+    {
+        $heights = [];
+        foreach ($inventory as [$device, $count]) {
+            $heights[$device->id] = $device->dimensions->height;
+        }
+
+        $messages = [];
+        foreach ($inventory as [$device, $count]) {
+            foreach ($stack->entryFor($device->id)?->mixWith ?? [] as $otherId) {
+                if (!isset($heights[$otherId])) {
+                    $messages[] = sprintf(
+                        "stack.from '%s': mix_with names '%s', which is not in this stack",
+                        $device->id,
+                        $otherId,
+                    );
+                    continue;
+                }
+                if (abs($heights[$otherId] - $device->dimensions->height) > self::EPSILON_M) {
+                    $messages[] = sprintf(
+                        "stack.from '%s': cannot share a row with %s — %.3f m against %.3f m tall, and a row "
+                        .'with a step through it has two top faces, so whatever stands on it hangs in the air '
+                        .'over the short half',
+                        $device->id,
+                        $otherId,
+                        $device->dimensions->height,
+                        $heights[$otherId],
+                    );
+                }
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * The tier `$index` asked for by name with `mix_with`, or null when it asked for nothing.
+     *
+     * The difference from {@see mixedBottomRow} is who decided. That one is a heuristic and only ever fires on
+     * the bottom row, to rescue a device whose own row would be narrower than the row above it. This one is
+     * the scene author saying "these share a row", at whatever height that device sits — which is what lifts
+     * mixing off the bottom.
+     *
+     * The **height gate still applies**, and it is not negotiable: a row whose cabinets are not all the same
+     * height has two top faces, so whatever stands on it rests on the tall ones and hangs in the air over the
+     * short ones. Naming a mix explicitly does not make that buildable, so a mismatched `mix_with` is ignored
+     * here and reported by {@see mixProblems}.
+     *
+     * @param list<array{DeviceSpec, int}> $remaining
+     * @return array{Tier, list<array{DeviceSpec, int}>}|null
+     */
+    private static function statedMix(array $remaining, int $index, Stack $stack, int $perRow): ?array
+    {
+        [$device, $count] = $remaining[$index];
+        $wanted = $stack->entryFor($device->id)?->mixWith ?? [];
+        if ($wanted === []) {
+            return null;
+        }
+
+        $segments = [];
+        foreach ($wanted as $otherId) {
+            foreach ($remaining as $other => [$otherDevice, $otherCount]) {
+                if ($other === $index || $otherDevice->id !== $otherId || $otherCount < 1) {
+                    continue;
+                }
+                if (abs($otherDevice->dimensions->height - $device->dimensions->height) > self::EPSILON_M) {
+                    continue;
+                }
+                $segments[$other] = [$otherDevice, $otherCount];
+            }
+        }
+        if ($segments === []) {
+            return null;
+        }
+
+        // The named device in the middle, the rest split symmetrically around it — the same shape a mixed
+        // bottom row and a top row both take, because the biggest cluster belongs in the middle.
+        $left = [];
+        $right = [];
+        foreach ($segments as $other => [$otherDevice, $otherCount]) {
+            $share = intdiv($otherCount, 2) + ($otherCount % 2);
+            if ($share > 0) {
+                $left[] = [$otherDevice, $share];
+            }
+            if ($otherCount - $share > 0) {
+                $right[] = [$otherDevice, $otherCount - $share];
+            }
+            $remaining[$other] = [$otherDevice, 0];
+        }
+        $remaining[$index] = [$device, 0];
+
+        return [
+            new Tier([...array_reverse($left), [$device, $count], ...$right]),
+            $remaining,
+        ];
     }
 
     /**
@@ -499,11 +632,12 @@ final class StackSolver
      * Every bound the finished stack misses, each naming the number it reached and the number it needed.
      *
      * @param list<Tier> $tiers
-     * @return list<string>
+     * @return array{problems: list<string>, warnings: list<string>}
      */
     private static function boundsProblems(array $tiers, Stack $stack): array
     {
         $messages = [];
+        $warnings = [];
 
         $subHeight = 0.0;
         $totalHeight = 0.0;
@@ -523,13 +657,29 @@ final class StackSolver
             }
         }
 
-        // Nothing to fire over anybody's head means nothing to check: a stack of subs alone has no
-        // interface, and demanding one would refuse a perfectly good sub wall.
+        // The interface height is an **optimum, not a requirement**, so missing it is a warning.
+        //
+        // The solver already does everything it can to reach it — it tries the widest row first and narrows,
+        // because narrower rows mean more of them — and hands back the tallest arrangement it managed when
+        // none reach. What is left over is a rig lower than ideal, which is a judgement about coverage rather
+        // than something impossible. Refusing it outright made small rigs unbuildable for no good reason:
+        // four Achenbachs one-wide reach 2.400 m and two-wide only 1.200 m, and neither is absurd.
+        //
+        // An **unsupported** tier stays an error ({@see supportChecks}), and that is the line: a cabinet
+        // hanging off the edge of its support cannot be built at any price, while tops a bit low can.
+        //
+        // Nothing to fire over anybody's head means nothing to say: a stack of subs alone has no interface,
+        // and mentioning one would be noise.
         if ($hasTop && $stack->interfaceHeightM > 0.0 && $subHeight + self::EPSILON_M < $stack->interfaceHeightM) {
-            $messages[] = sprintf(
-                'stack.interface_height_m (%.3f): the subs stack %.3f m high, so the tops would fire into the '
-                .'crowd — add a sub tier, narrow the rig with max_width_m, or state a lower interface',
+            // "while every tier is still carried" and not "at all": narrowing the rows further would stack
+            // higher, but it would also leave the tops overhanging a one-wide column, and support outranks
+            // the interface. Claiming this is the inventory's ceiling would be untrue.
+            $warnings[] = sprintf(
+                'the subs reach %.3f m against the %.3f m interface asked for, so the tops sit %.0f mm lower '
+                .'than ideal — %.3f m is the most they reach while every tier is still carried',
+                $subHeight,
                 $stack->interfaceHeightM,
+                ($stack->interfaceHeightM - $subHeight) * 1000,
                 $subHeight,
             );
         }
@@ -558,7 +708,7 @@ final class StackSolver
             );
         }
 
-        return $messages;
+        return ['problems' => $messages, 'warnings' => $warnings];
     }
 
     /**
@@ -580,8 +730,13 @@ final class StackSolver
         $problems = [];
         $warnings = [];
 
+        $topmost = count($tiers) - 1;
+
         foreach ($tiers as $index => $tier) {
-            if ($tier->isMixed() && $tier->heightStepM() > self::EPSILON_M) {
+            // A step only matters if something stands on the row. The **top** row is allowed to be as uneven
+            // as it likes — the tops row mixes an 0.960 m M2122 with an 0.836 m 2-way and always will, and
+            // warning about that was a false positive on every rig we own: nothing rests on it to bridge.
+            if ($index < $topmost && $tier->isMixed() && $tier->heightStepM() > self::EPSILON_M) {
                 $warnings[] = sprintf(
                     'the %s row is stepped by %.0f mm, so whatever stands on it rests on the tall cabinets '
                     .'and bridges the short ones',

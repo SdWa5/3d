@@ -6,6 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-08-11
+
+### Added
+
+- **`stack.from` entries can carry per-tier options.** A bare device id is still the shorthand; the mapping form
+  takes `count`, `align` and `mix_with`. `src/Scene/StackEntry.php`, `src/Spec/ArrayReader::entryList()`
+- **`count`** over-books deliberately — six Achenbachs against the four owned, which a stack could not express
+  before. Reported by the existing `over_inventory` check, so nothing new warns
+- **`align` per tier** instead of one setting for the whole rig. It chooses *which* alignment a tier uses; the
+  rule that only a tier carrying nothing may be spread is unchanged
+- **`mix_with` per tier**, lifting mixing off the bottom row — it fires wherever the device that asked for it
+  sits. A mix that cannot be honoured is refused, not silently dropped
+- **`scene:stack --per-owner`** — one stack per `owner`, side by side. No new spec field: for this collective
+  who owns a cabinet already *is* the split between the rigs, so a `system:` field would have duplicated
+  `owner` value for value
+- **`--stacks=N`** splits each group into N stacks (a stereo pair), remainder to the earlier stacks so three
+  M2122s over two is 2 + 1 and never 1 + 1 with the third dropped. **`--clearance=M`** is the air between them
+- `src/Scene/StackBlock.php` — one solved stack on its way to a file, so the writer can emit several
+- `tests/Scene/StackEntryTest.php`
+
+### Changed
+
+- **`interface_height_m` is an optimum, not a requirement.** Missing it is a warning naming how far short it
+  fell; it used to be an error. Refusing outright made small rigs unbuildable for no good reason — four
+  Achenbachs one-wide reach 2.400 m and two-wide only 1.200 m, and neither is absurd
+- **Support outranks the interface.** An arrangement with an unsupported tier is never chosen while a supported
+  one exists, even if the unsupported one would have reached the height. Chasing a tall interface used to
+  narrow the rows until the tops overhung a one-wide column
+- A cabinet that cannot be carried is **left out and named** in the generated scene's header, rather than the
+  whole rig being refused. The two SKRAMs are the case
+- When nothing stands up at any row width, the error now names the **widest** attempt — the most favourable
+  case — rather than the narrowest
+
+### Fixed
+
+- **A step in the top row was warned about falsely.** A step only matters if something stands on the row, and
+  the tops row always mixes an 0.960 m M2122 with an 0.836 m 2-way with nothing above it. That warning fired on
+  every rig we own
+- An unreachable interface no longer claims to name the inventory's ceiling when it is really the ceiling of
+  arrangements that still stand up
+
 ## [0.32.0] - 2026-08-11
 
 ### Added

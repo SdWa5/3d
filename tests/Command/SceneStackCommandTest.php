@@ -125,23 +125,73 @@ final class SceneStackCommandTest extends TestCase
             ]);
 
             self::assertSame(0, $tester->getStatusCode(), 'a wide or unbounded stage still solves');
-            self::assertStringContainsString('clear the 2.0 m interface', $tester->getDisplay());
+            self::assertStringContainsString('against a 2.0 m interface', $tester->getDisplay());
         }
     }
 
     /**
-     * Every arrangement it rules out says why, and the SKRAMs are the honest case for it: two cabinets whose
-     * height nothing else shares, so they cannot be mixed into a row, and whose own row is too narrow to
-     * carry the tops. Asked for the whole inventory, the command refuses and names the fix.
+     * Asked for the whole inventory, the command now **builds the rig and says what it left out** rather than
+     * refusing everything.
+     *
+     * The two SKRAMs cannot be in a stack: nothing shares their height so they cannot be mixed into a row, and
+     * a row of the two of them is 1.240 m and carries nothing above it. Refusing all twenty-three cabinets
+     * over that was far less useful than placing the twenty-one that work and naming the omission — which is
+     * what the solver's own error already advised doing.
      */
-    public function testAnArrangementThatCannotBeSolvedIsSkippedWithAReason(): void
+    public function testCabinetsThatCannotBeCarriedAreLeftOutAndReported(): void
     {
         $tester = $this->invoke(['--max-width' => '3.70', '--interface-height' => '2.0', '--dry-run' => true]);
 
-        self::assertSame(1, $tester->getStatusCode(), 'nothing workable is a failure, not a silent success');
-        self::assertStringContainsString('skipped', $tester->getDisplay());
-        self::assertStringContainsString('stands on nothing', $tester->getDisplay());
-        self::assertStringContainsString('take the odd cabinets out of the stack', $tester->getDisplay());
+        self::assertSame(0, $tester->getStatusCode(), 'the rig that does work still gets written');
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('LEFT OUT skram', $output);
+        self::assertStringContainsString('cannot be carried', $output);
+    }
+
+    /**
+     * `--per-owner` groups by {@see \App\Spec\DeviceSpec::$owner} and adds no new concept: for this
+     * collective, who owns a cabinet *is* the split between the rigs. Each group becomes its own stack, and
+     * the stacks stand side by side rather than merging into one pile.
+     */
+    public function testPerOwnerWritesOneStackPerOwnerSideBySide(): void
+    {
+        $tester = $this->invoke([
+            '--per-owner' => true, '--max-width' => '3.70',
+            '--align' => ['center'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('- id: main-sdwa5', $output);
+        self::assertStringContainsString('- id: main-sepp', $output);
+        self::assertStringContainsString('2 stacks side by side', $output);
+    }
+
+    /** `--stacks=2` is how a stereo pair is asked for: each group split evenly into two. */
+    public function testStacksSplitsAGroupIntoThatManyStacks(): void
+    {
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--stacks' => '2', '--align' => ['center'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('- id: main-1', $output);
+        self::assertStringContainsString('- id: main-2', $output);
+        // Six Flexys each rather than twelve in one, because the split shares every device out.
+        self::assertStringContainsString('2 stacks side by side', $output);
+    }
+
+    public function testAStackCountBelowOneIsRejected(): void
+    {
+        $tester = $this->invoke(['--stacks' => '0', '--dry-run' => true]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('--stacks must be at least 1', $tester->getDisplay());
     }
 
     /**

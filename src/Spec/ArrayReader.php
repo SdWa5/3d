@@ -195,6 +195,47 @@ final class ArrayReader
     }
 
     /**
+     * A list whose entries are each **either** a bare string or a nested mapping.
+     *
+     * The counterpart of {@see isList} one level down, and it exists for the same reason: a field where the
+     * common case wants no ceremony and the awkward case needs keys. `stack.from` is that field — most
+     * entries are just a device id, and the occasional one needs a count or an alignment — and neither
+     * {@see stringList} (all strings) nor {@see sectionList} (all mappings) can read a list holding both.
+     *
+     * Strings come back as strings; mappings come back as readers, so their own errors keep the full key path.
+     *
+     * @return list<string|self>
+     */
+    public function entryList(string $key): array
+    {
+        if (!$this->has($key)) {
+            return [];
+        }
+        $value = $this->data[$key];
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new InvalidSpecException("{$this->keyPath($key)}: expected a list");
+        }
+
+        $entries = [];
+        foreach ($value as $index => $entry) {
+            if (is_string($entry)) {
+                $entries[] = $entry;
+                continue;
+            }
+            if (is_array($entry) && !array_is_list($entry)) {
+                $entries[] = new self($entry, "{$this->keyPath($key)}[{$index}]");
+                continue;
+            }
+
+            throw new InvalidSpecException(
+                "{$this->keyPath($key)}[{$index}]: expected a name or a mapping",
+            );
+        }
+
+        return $entries;
+    }
+
+    /**
      * List of plain strings (e.g. `handles: [left, right]`).
      *
      * @return list<string>

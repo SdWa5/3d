@@ -47,7 +47,7 @@ final class Stack
     public const DEFAULT_INTERFACE_HEIGHT_M = 2.0;
 
     /**
-     * @param list<string> $from device ids, **low frequency first** — the order is the fill order
+     * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      */
     public function __construct(
         public readonly array $from,
@@ -71,13 +71,13 @@ final class Stack
             ));
         }
 
-        $from = $reader->stringList('from');
-        if ($from === []) {
+        $entries = $reader->entryList('from');
+        if ($entries === []) {
             throw new InvalidSpecException('stack.from: expected a list of device ids, low frequency first');
         }
 
         return new self(
-            from: $from,
+            from: array_map(StackEntry::fromValue(...), $entries),
             maxWidthM: $reader->optionalFloat('max_width_m'),
             minWidthM: $reader->optionalFloat('min_width_m'),
             maxHeightM: $reader->optionalFloat('max_height_m'),
@@ -95,6 +95,10 @@ final class Stack
     public function problems(): array
     {
         $messages = [];
+
+        foreach ($this->from as $entry) {
+            $messages = [...$messages, ...$entry->problems()];
+        }
 
         if ($this->maxWidthM === null && $this->interfaceHeightM <= 0.0) {
             // With neither, nothing decides how many cabinets go in a row, and a stack of one-wide tiers
@@ -118,6 +122,46 @@ final class Stack
         }
 
         return $messages;
+    }
+
+    /**
+     * How this tier is distributed: its own `align` if its entry states one, otherwise the stack's.
+     *
+     * Worth knowing what per-tier alignment can and cannot do here. It **states** which tier the alignment
+     * belongs to, at the point that tier is declared, instead of one setting for the whole rig whose effect
+     * you have to work out. What it cannot do is spread a tier that carries another one — that rule is
+     * unchanged and absolute, because spreading a tier turns it into gaps and the tier above then stands over
+     * air. In a plain tower only the top tier carries nothing, so today exactly one tier can actually be
+     * spread; per-tier `align` decides *which alignment* that tier uses, not *how many* tiers may spread.
+     */
+    private function alignFor(Tier $tier, ?Alignment $fallback): ?Alignment
+    {
+        foreach ($tier->segments as [$device, $count]) {
+            $mode = $this->entryFor($device->id)?->align;
+            if ($mode !== null) {
+                return new Alignment($mode);
+            }
+        }
+
+        return $fallback;
+    }
+
+    /**
+     * The entry naming `$deviceId`, so the solver and the expansion can ask what that tier wants without
+     * either of them carrying a copy of the list.
+     *
+     * Null when the stack was built without entries at all, which is how the solver's own tests construct it —
+     * and the fallbacks that answers are exactly the behaviour there was before per-tier options existed.
+     */
+    public function entryFor(string $deviceId): ?StackEntry
+    {
+        foreach ($this->from as $entry) {
+            if ($entry->device === $deviceId) {
+                return $entry;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -182,7 +226,10 @@ final class Stack
                     // to spread.
                     align: $index === 0 || $index !== count($tiers) - 1 || $tier->isMixed() || $count < 2
                         ? null
-                        : self::envelopeFor($placement->align, self::supportEnvelope($tiers, $index, $this->gapM, $placement->id)),
+                        : self::envelopeFor(
+                            $this->alignFor($tier, $placement->align),
+                            self::supportEnvelope($tiers, $index, $this->gapM, $placement->id),
+                        ),
                 );
 
                 if ($device->dimensions->height > $tallestHeight) {

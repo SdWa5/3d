@@ -1,26 +1,25 @@
-1. wheres the difference in full rig all speakers and stacked center? if one of them is auto generated delete the other
-   one
-2. alignments of speakers and object groups
+1. alignments of speakers and object groups
     1. **`align` on nested groups.** `align` takes a single `row`/`lattice` today and refuses anything nested, because
        scaling a nested arrangement's x would stretch the inner group's spacing along with the outer one's. Telling the
        two apart needs the level named — a key nothing shipped wants yet. Same for `arc`
        and `line_array`, which own their own spacing and are refusals rather than gaps
-    2. **`stack` cannot over-book.** Counts come from each spec's `quantity`, so a stack places what exists.
-       `full-rig-all-tops` deliberately asks for six Achenbachs against four owned, to see whether the rig would work if
-       two more were borrowed — a `counts:` override would let a stack say the same thing
-    3. **`stereo` splits into halves only.** Column size is `floor(n/2)`; asking for 2 + 2 out of six with two in the
+    2. **`stereo` splits into halves only.** Column size is `floor(n/2)`; asking for 2 + 2 out of six with two in the
        middle needs a `columns:` key. Nothing shipped wants it yet
-    4. **`scene:stack` cannot vary the alignment per tier.** It writes one scene per alignment — `center`,
-       `block`, `stereo`, only the possible ones, de-duplicated — because `stack.align` is one setting for the whole
-       rig. One scene per (tier × alignment) needs either a per-tier `align` inside `stack:`, or a
-       `--form=tiers` output mode that writes the solved rows out explicitly — and that second one costs the re-solving
-       that makes a generated scene worth generating
-    5. **only the bottom row can be mixed.** Enough for the SKRAMs, which are the only cabinets we own in a quantity too
-       small for a row of their own. A second short-supply device higher up the stack would want the same treatment, and
-       would need the mix to be chosen per tier rather than once
-3. make the tetris stacking scene generation command take info about which speakers belong to which sound system (so
-   each sound system gets its own stack or multiple stacks per sound system)
-4. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
+    3. **only the top tier can be spread**, because spreading a load-bearing tier turns it into gaps and the tier above
+       stands over air. So per-tier `align` decides *which* alignment the top tier uses, never *how many* tiers spread.
+       A rig with siblings rather than a pure tower would change that
+2. **the SKRAMs are in no rig scene.** 180 kg, appearing only in `detail-check.yaml`. They cannot be in a stack —
+   nothing shares their 0.914 m height so they cannot be mixed into a row, and a row of the two of them carries
+   nothing — so `scene:stack` leaves them out and says so. An **end-fire pair** would use exactly two and mirror
+   `end-fire.yaml`; the spacing is a quarter wavelength at a target frequency, `343 / (4f)` — 1.715 m at 50 Hz,
+   2.144 m at 40 Hz — and which frequency is a decision, not a derivation
+3. **a stack is never checked for stability.** `--per-owner` gives `sdwa5` a rig 1.8 m wide and 4.9 m tall, because
+   chasing the 2 m interface narrows the rows until the tiers are single columns. Geometrically valid, physically
+   tippy. Related: the half-a-cabinet support rule passes a 286 mm overhang on a 1.240 m base, which is marginal —
+   an aspect-ratio or centre-of-mass check would catch both
+4. **the floating-cabinet test only covers `scenes/`.** A rig that exists only as a `scene:stack` invocation is
+   checked for support by the solver but never by the separating-axis and support sweeps in `ShippedScenesTest`
+5. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a
            general feature)

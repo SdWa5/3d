@@ -179,6 +179,52 @@ final class StackTest extends TestCase
         self::assertStringContainsString('overhangs 26 mm each side', $messages);
     }
 
+    /**
+     * A tier's own `align` overrides the stack's for that tier.
+     *
+     * What per-tier alignment can and cannot do is worth stating: it says *which* alignment a tier uses, at
+     * the point that tier is declared. It does not let a load-bearing tier be spread — that rule is unchanged,
+     * because spreading a tier turns it into gaps and the tier above then stands over air. In a plain tower
+     * only the top tier carries nothing, so that is the one this reaches.
+     */
+    public function testATiersOwnAlignmentOverridesTheStacks(): void
+    {
+        $placements = [
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
+                'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
+                'from' => [
+                    'flexy-folded-horn-hybrid',
+                    'achenbach-18',
+                    ['device' => 'tecnare-m2122', 'align' => 'block'],
+                ],
+            ]],
+        ];
+
+        $placed = $this->compile($placements);
+
+        // The Tecnare row is spread onto the Achenbach row carrying it: 2.460 m, not the 1.514 m it occupies
+        // unaligned. The delta is the solver's own tolerance — `align` bisects a fixed point to 1e-6 m,
+        // because these cabinets are aimed and their outer edge moves as they toe in.
+        $tops = $this->edgesOf($placed, 'main/4');
+        self::assertEqualsWithDelta(2.460, $tops['max'] - $tops['min'], 1e-5);
+    }
+
+    /** Without a per-tier alignment the tier keeps its natural spacing. */
+    public function testWithoutAnAlignmentATierKeepsItsNaturalSpacing(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'stack' => [
+                'max_width_m' => 3.70, 'interface_height_m' => 2.0, 'gap_m' => 0.02,
+                'from' => ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
+            ]],
+        ]);
+
+        // 1.514 m, not the 1.540 m of three 0.500 m cabinets plus two gaps: they are aimed, and a toed-in
+        // trapezoid's outermost point is its *back* bottom corner, which sits inside its half-width.
+        $tops = $this->edgesOf($placed, 'main/4');
+        self::assertEqualsWithDelta(1.5137, $tops['max'] - $tops['min'], 1e-4);
+    }
+
     public function testAnUnknownDeviceInFromIsReported(): void
     {
         $violations = $this->violations([
@@ -190,19 +236,31 @@ final class StackTest extends TestCase
         self::assertStringContainsString("stack.from: unknown device 'nope'", implode("\n", $violations));
     }
 
-    /** A stack that cannot be solved contributes nothing and says why; the rest of the scene still builds. */
-    public function testAStackThatCannotBeSolvedReportsAndPlacesNothing(): void
+    /**
+     * A stack that cannot be solved contributes nothing and says why; the rest of the scene still builds.
+     *
+     * "Cannot be solved" now means **cannot stand up**, not "cannot reach the interface height" — a low rig is
+     * a warning. The whole inventory is the case: a two-wide SKRAM row is unmixable (nothing shares its
+     * height) and too narrow to carry the Achenbach row above it, at any row width.
+     */
+    public function testAStackThatCannotStandUpReportsAndPlacesNothing(): void
     {
         $result = (new SceneCompiler($this->devices))->compile($this->scene([
             ['id' => 'main', 'at' => [0.0, 0.0], 'stack' => [
-                'max_width_m' => 3.7, 'interface_height_m' => 9.0,
-                'from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'],
+                'max_width_m' => 3.7, 'interface_height_m' => 2.0,
+                'from' => [
+                    'flexy-folded-horn-hybrid', 'skram', 'achenbach-18',
+                    'tecnare-m2122', 'eighteensound-2way-15',
+                ],
             ]],
             ['id' => 'elsewhere', 'device' => 'skram', 'at' => [8.0, 0.0]],
         ]));
 
         self::assertCount(1, $result['placed'], 'only the SKRAM, which has nothing to do with the stack');
-        self::assertNotSame([], \App\Spec\Violation::errorsIn($result['violations']));
+        self::assertStringContainsString(
+            'stands on nothing',
+            implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
+        );
     }
 
     public function testAStackRefusesADeviceOfItsOwn(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Scene;
 
 use App\Scene\Stack;
+use App\Scene\StackEntry;
 use App\Scene\StackSolver;
 use App\Scene\Tier;
 use App\Spec\DeviceSpec;
@@ -253,22 +254,167 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * A height nothing we own can reach is refused, naming how far it got.
+     * A stated `count` over-books deliberately, which a stack could not do at all before.
+     *
+     * `full-rig-all-tops` asks for six Achenbachs against the four we own — to see whether the rig would work
+     * if two more were borrowed — and a stack had no way to say the same thing. Nothing new reports it:
+     * `SceneReport::summarise()` already returns `over_inventory` and `scene:build` already warns on it.
+     */
+    public function testAStatedCountOverridesWhatTheInventoryHolds(): void
+    {
+        $achenbach = $this->devices['achenbach-18'];
+        self::assertSame(4, $achenbach->quantity, 'four owned, which is what makes six a claim');
+
+        $result = StackSolver::solve(
+            [[$this->devices['flexy-folded-horn-hybrid'], 12], [$achenbach, 6], [$this->devices['tecnare-m2122'], 3]],
+            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
+        );
+
+        self::assertSame([], $result['problems']);
+        self::assertSame([6, 6, 6, 3], array_map(static fn (Tier $t): int => $t->count(), $result['tiers']));
+    }
+
+    /**
+     * `mix_with` lifts mixing off the bottom row: it fires wherever the device that asked for it sits.
+     *
+     * On fixtures, because nothing we own can be mixed — five cabinets, five heights. Two same-height subs
+     * placed *above* a third are the case the old code could not express: `mixedBottomRow` only ever looked at
+     * the bottom.
+     */
+    public function testATierHigherUpTheStackCanBeMixedToo(): void
+    {
+        $base = SpecFactory::spec([
+            'id' => 'base-sub',
+            'subtype' => 'sub',
+            'geometry' => ['dimensions_m' => ['width' => 0.6, 'height' => 0.5, 'depth' => 0.8]],
+            'physical' => ['weight_kg' => 90.0],
+        ]);
+        $wide = SpecFactory::spec([
+            'id' => 'wide-sub',
+            'subtype' => 'sub',
+            'geometry' => ['dimensions_m' => ['width' => 0.8, 'height' => 0.6, 'depth' => 0.8]],
+            'physical' => ['weight_kg' => 90.0],
+        ]);
+        $narrow = SpecFactory::spec([
+            'id' => 'narrow-sub',
+            'subtype' => 'sub',
+            'geometry' => ['dimensions_m' => ['width' => 0.5, 'height' => 0.6, 'depth' => 0.8],
+            ],
+            'physical' => ['weight_kg' => 60.0],
+        ]);
+
+        $result = StackSolver::solve(
+            [[$base, 6], [$wide, 2], [$narrow, 2], [$this->devices['tecnare-m2122'], 1]],
+            new Stack(
+                from: [
+                    new StackEntry('base-sub'),
+                    new StackEntry('wide-sub', mixWith: ['narrow-sub']),
+                    new StackEntry('narrow-sub'),
+                    new StackEntry('tecnare-m2122'),
+                ],
+                maxWidthM: 3.70,
+                interfaceHeightM: 0.0,
+                gapM: 0.02,
+            ),
+        );
+
+        self::assertSame([], $result['problems']);
+        // The second tier is the mixed one — not the bottom, which is what this is about.
+        self::assertFalse($result['tiers'][0]->isMixed(), 'the bottom row is plain');
+        self::assertSame('1× narrow-sub + 2× wide-sub + 1× narrow-sub', $result['tiers'][1]->label());
+    }
+
+    /**
+     * A `mix_with` across different heights is **refused**, not quietly dropped.
+     *
+     * Naming a mix does not make it buildable: a row whose cabinets differ in height has two top faces, so
+     * whatever stands on it rests on the tall ones and hangs over the short ones — the bug that left four
+     * Flexys 151 mm in the air. And a mix that silently does not happen is the worst outcome available, since
+     * the rig still builds and nothing in a render says the row is not the row that was asked for.
+     */
+    public function testMixingStillRefusesCabinetsOfDifferentHeights(): void
+    {
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'skram', 'achenbach-18', 'tecnare-m2122']),
+            new Stack(
+                from: [
+                    new StackEntry('flexy-folded-horn-hybrid', mixWith: ['skram']),
+                    new StackEntry('skram'),
+                    new StackEntry('achenbach-18'),
+                    new StackEntry('tecnare-m2122'),
+                ],
+                maxWidthM: 3.70,
+                interfaceHeightM: 2.0,
+                gapM: 0.02,
+            ),
+        );
+
+        $problems = implode("\n", $result['problems']);
+        self::assertStringContainsString('cannot share a row with skram', $problems);
+        self::assertStringContainsString('0.763 m against 0.914 m tall', $problems);
+    }
+
+    /** Naming a device that is not in this stack at all is refused rather than ignored. */
+    public function testMixingWithADeviceOutsideTheStackIsRefused(): void
+    {
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'tecnare-m2122']),
+            new Stack(
+                from: [new StackEntry('flexy-folded-horn-hybrid', mixWith: ['skram']), new StackEntry('tecnare-m2122')],
+                maxWidthM: 3.70,
+                interfaceHeightM: 2.0,
+                gapM: 0.02,
+            ),
+        );
+
+        self::assertStringContainsString(
+            "mix_with names 'skram', which is not in this stack",
+            implode("\n", $result['problems']),
+        );
+    }
+
+    /**
+     * The **top** row may be as uneven as it likes, because nothing stands on it to bridge the step.
+     *
+     * Warning about it was a false positive on every rig we own: the tops row always mixes an 0.960 m M2122
+     * with an 0.836 m 2-way, and there is nothing above it.
+     */
+    public function testAStepInTheTopRowIsNotWarnedAbout(): void
+    {
+        $result = StackSolver::solve(
+            $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15']),
+            new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 2.0, gapM: 0.02),
+        );
+
+        self::assertStringNotContainsString('stepped by', implode("\n", $result['warnings']));
+    }
+
+    /**
+     * The interface height is an **optimum, not a requirement**: a height nothing we own can reach is a
+     * warning naming the ceiling, not a refusal.
+     *
+     * Refusing was wrong, and it made small rigs unbuildable for no good reason — four Achenbachs one-wide
+     * reach 2.400 m and two-wide only 1.200 m, and neither is absurd. Tops sitting lower than ideal is a
+     * judgement about coverage; a cabinet hanging off its support is not, and that one stays an error.
      *
      * 12 m rather than a rounder number on purpose: every Flexy in a one-wide column is 9.156 m and the
      * Achenbachs add 2.4, so 11.556 m is the ceiling of this inventory however the rows are cut. Anything
-     * under that the solver can reach by narrowing, which is what it should do.
+     * under that the solver reaches by narrowing, which is what it should do.
      */
-    public function testAStackThatCannotReachTheInterfaceHeightSaysHowFarItGot(): void
+    public function testAnUnreachableInterfaceHeightWarnsAndNamesTheCeiling(): void
     {
         $result = StackSolver::solve(
             $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122']),
             new Stack(from: [], maxWidthM: 3.70, interfaceHeightM: 12.0, gapM: 0.02),
         );
 
-        $problems = implode("\n", $result['problems']);
-        self::assertStringContainsString('stack.interface_height_m (12.000)', $problems);
-        self::assertStringContainsString('11.556 m high', $problems);
+        self::assertSame([], $result['problems'], 'a low rig is buildable, just not ideal');
+
+        $warnings = implode("\n", $result['warnings']);
+        // 5.778 m, not the 11.556 m of one-wide columns: narrowing that far would leave the three-wide
+        // Tecnare row 470 mm off each edge of a single Flexy, and support outranks the interface.
+        self::assertStringContainsString('5.778 m against the 12.000 m interface', $warnings);
+        self::assertStringContainsString('while every tier is still carried', $warnings);
     }
 
     public function testAStackTallerThanItsCeilingSaysSo(): void
@@ -342,7 +488,12 @@ final class StackSolverTest extends TestCase
     {
         $result = StackSolver::solve(
             $this->inventory($from),
-            new Stack(from: $from, maxWidthM: $maxWidthM, interfaceHeightM: $interfaceHeightM, gapM: 0.02),
+            new Stack(
+                from: array_map(static fn (string $id): StackEntry => new StackEntry($id), $from),
+                maxWidthM: $maxWidthM,
+                interfaceHeightM: $interfaceHeightM,
+                gapM: 0.02,
+            ),
         );
 
         self::assertSame([], $result['problems']);
