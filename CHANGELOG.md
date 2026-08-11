@@ -6,6 +6,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.60.0] - 2026-08-12
+
+### Added
+
+- **`specs/racks/rack-amp-12u.yaml`** (quantity 2) and **`rack-power-12u.yaml`** — the amp and distribution racks.
+  The first non-speaker devices that needed **no new geometry at all**: a rack case really is a box
+- `Category::Rack` gains a **`power`** subtype. It had `amp` / `network` / `shipping` and a distribution rack is none
+  of them — a gap filed when the truss landed and closed by the spec that needed it
+- Both racks in `detail-check.yaml` (sixteen of seventeen devices) and all three behind the sub wall in
+  `full-rig-truss.yaml`, 43 mm off its back face — where amp racks actually live
+
+### Notes
+
+- **The amp rack's weight is derived from published figures for every amplifier in it**, which is unusual for a rack:
+  3× Gisen MM14K (2U, 12 kg), 1× Behringer EP4000 (2U, 16.6 kg), 1× FP10000Q (2U, 12 kg) and 1× Gisen M60-series DSP
+  (1U, ~13 kg) — **11U and 77.6 kg**. Two of those datasheets are in our own Drive under
+  `Hardware/Amps _ Verstärker _ DSP/`, which is what TODO 11.1 meant by "documented in Drive"
+- **The arithmetic explains why there are two amp racks, and it is not space.** Eleven rack units fits a single 12U
+  rack by height. But 77.6 kg of amplifier plus ~30 kg of case is a **108 kg rack**, which two people cannot lift;
+  split across two it is 69 kg each. So this is one rack type with `quantity: 2` and half the complement in each,
+  rather than one full rack and one empty
+- **12U of rails is exactly 533.4 mm** — 12 × 44.45, the one thing about a rack that is never in doubt. What is
+  estimated is the case around them: ~0.700 × 0.600 × 0.750 m once shock mounts and lids are allowed, and the ~30 kg
+  an empty 12U shock-mount weighs
+- **The amplifiers get no specs of their own**, deliberately: invisible inside a closed rack, and five more boxes in
+  `detail-check` that nobody can see. Their figures are in the rack's header and `docs/sources.md`, which is where a
+  weight is meant to be traceable to. Filed as TODO 26
+- **Two loose ends, both settled by looking at the rack** (TODO 25): the fourth amp is either the EP4000 or the
+  Proline 3000 and the owner is not sure which — the Proline is 3U and 37 kg, which takes each rack to 79 kg — and
+  "gisen md60" matches no Gisen product, though their M60-series DSP fits the description at 1HE and under 13 kg
+- **`rack-power-12u` is the weakest spec in the repository** and says so: its case follows the amp racks and its 15 kg
+  of contents is a guess at breakers, socket panels and cable, with no component list to add up. Filed as TODO 27,
+  along with the fact that nothing in this schema can record electrical load — and the rig's amplifiers are rated in
+  the tens of kilowatts
+
 ## [0.59.0] - 2026-08-12
 
 ### Added

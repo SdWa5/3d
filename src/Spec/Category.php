@@ -27,7 +27,7 @@ enum Category: string
         return match ($this) {
             self::Speaker => ['top', 'sub', 'monitor', 'line-array-element'],
             self::Truss => ['straight', 'corner', 'base', 'tower'],
-            self::Rack => ['amp', 'network', 'shipping'],
+            self::Rack => ['amp', 'network', 'power', 'shipping'],
             self::Stand => ['speaker-pole', 'tripod', 'riser', 'scaffold'],
             self::Other => null,
         };

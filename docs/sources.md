@@ -47,6 +47,14 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | | A message from GMSS | That they have **4 of them** — "4pcs Martin mac performance 2", read as the Performance II |
 | `geruest-krause-ah7` | — (factory scaffold) | `datasheet` | [Krause Plattformgerüst AH7](https://www.bauhaus.at/kleingerueste/krause-plattformgeruest-ah7/p/29059229) | Arbeitshöhe 7 m, platform 1.50 × 0.60 m rated 200 kg, frame field 1.50 × 0.65 m, ~84 kg |
 | | | | The owner | That we have **2 of them**, and the AH7 convention: 7 m working height means a **5 m platform** |
+| `rack-amp-12u` | — (flightcase) | — | The owner | That there are **2 amp racks and 1 distro rack**, and what is in them |
+| | | | 19″ standard | 12U of rails is exactly 12 × 44.45 = 533.4 mm. The case around them is estimated |
+| | | | `Hardware/Amps _ Verstärker _ DSP/behringer europower 4000.pdf` (Drive) | EP4000: ca. 88 × 482.6 × 402 mm, ca. **16.6 kg** |
+| | | | `Hardware/Amps _ Verstärker _ DSP/t.amp proline 3000.pdf` (Drive) | Proline 3000: 482 × 460.5 × 132 mm, **37 kg** |
+| | | | [Gisen MM14K](https://www.gisenaudio-europe.com/en/m-serie) via dealer listings | 19″, 2HE, 396 mm deep, **12 kg**, 2-ch Class-TD, 14 000 W bridged at 4 Ω |
+| | | | [FP10000Q datasheet](https://www.fullcompass.com/common/files/4660-FP10000QDatasheet.pdf) | 88 × 483 × 396 mm, **12 kg**, 4 channels |
+| | | | Gisen M-series DSP listings | 1HE, under 13 kg — the "md60", whose exact model is **not pinned down** |
+| `rack-power-12u` | — (flightcase) | — | The owner | That one rack is for power distribution. **Nothing about its contents** |
 
 ### The 18sound drawings are partial dimensions
 
@@ -148,6 +156,40 @@ and like a truss's bay pitch they change the picture and nothing else.
 the platform stands at **5 m** and that is what `dimensions_m.height` carries. A spec that put 7 in the box would
 clear a truss it does not clear, which is why `SpecValidator` refuses a platform above the frame. Guardrails and rungs
 are not modelled, so the box stops at the deck and understates the standing structure by roughly a guardrail.
+
+### The amp racks: derived weights, estimated cases
+
+The rack specs invert the usual balance one more time. A rack case IS a box, so there is no geometry to argue about —
+what matters is the **weight**, and that comes from published amplifier figures rather than a guess.
+
+The stated complement is "3× gisen mm14k, 1× ep4000 or proline (not sure), 1× fp1000q, 1× gisen md60". Two of those
+datasheets are in our own Drive under `Hardware/Amps _ Verstärker _ DSP/` — the Behringer and t.amp manuals, both
+with a *Technische Daten* table — and the other three are published by their makers:
+
+| amp | rack units | weight |
+|---|---|---|
+| Gisen MM14K × 3 | 2U each | 12.0 kg each |
+| Behringer EP4000 | 2U | 16.6 kg |
+| FP10000Q | 2U | 12.0 kg |
+| Gisen M60-series DSP | 1U | ~13 kg |
+| **total** | **11U** | **77.6 kg** |
+
+**Two independent numbers explain why there are two amp racks, and it is not space.** Eleven rack units fits a
+single 12U rack by height. But 77.6 kg of amplifier plus about 30 kg of case is a **108 kg rack**, which two people
+cannot lift; split across two it is 69 kg each. The second rack exists for the weight.
+
+**Two things are unresolved and both are in the specs.** The fourth amp is either the EP4000 or the Proline 3000 —
+the owner is not sure — and the Proline is 3U and 37 kg where the EP4000 is 2U and 16.6, which takes the complement
+to 12U and 98 kg and each rack to 79 kg. And "md60" matches no Gisen product: their **M60-series DSP** amplifiers fit
+the description at 1HE and under 13 kg, but M60Q-DSP and M60.12 are both plausible and the name on the front panel
+would settle it.
+
+**The amplifiers have no specs of their own**, deliberately: they are invisible inside a closed rack and would put
+five boxes nobody can see into `detail-check`. Their figures are recorded here and in the rack's own header, which is
+where a weight is supposed to be traceable to.
+
+`rack-power-12u` is the weakest spec in the repository. Its case follows the amp racks, and its 15 kg of contents is
+a guess at breakers, socket panels and cable — there is no component list to add up.
 
 ### GMSS is estimated end to end
 

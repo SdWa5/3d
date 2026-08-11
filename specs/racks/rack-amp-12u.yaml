@@ -1,0 +1,89 @@
+# Amp rack, 12U shock-mount — two of them, and the amplifiers live in these.
+#
+# WHAT WE OWN, stated by the owner: "3x gisen mm14k, 1x ep4000 or proline (not sure which), 1x fp1000q,
+# 1x gisen md60", in two amp racks. Every one of those amplifiers has published figures, which is what makes this
+# rack's weight derived rather than guessed:
+#
+#   3x Gisen MM14K          2U each, 12.0 kg each   -> 6U, 36.0 kg   19", 396 mm deep, 2-ch Class-TD
+#   1x Behringer EP4000     2U,      16.6 kg        -> 2U, 16.6 kg   88 x 482.6 x 402 mm
+#   1x FP10000Q             2U,      12.0 kg        -> 2U, 12.0 kg   88 x 483 x 396 mm, 4-ch
+#   1x Gisen M60-series DSP 1U,      ~13.0 kg       -> 1U, 13.0 kg   the "md60"; see the notes
+#                                                     11U, 77.6 kg
+#
+# The Behringer and t.amp figures come from the manuals in our own Drive
+# (`Hardware/Amps _ Verstärker _ DSP/`); the Gisen and FP10000Q figures are published by their makers.
+# See docs/sources.md.
+#
+# WHY THERE ARE TWO RACKS, and the arithmetic answers it. Eleven rack units of amplifier FITS a single 12U rack by
+# height — so the second rack is not there for space. It is there for WEIGHT: 77.6 kg of amplifier in one case plus
+# about 30 kg of case is a 108 kg rack, which two people cannot lift and a ramp will not save. Split across two it
+# is 69 kg each, which is a two-person lift. That is why this spec is one rack type with `quantity: 2` and half the
+# complement in each rather than one full rack and one empty one.
+#
+# THE UNCERTAIN AMPLIFIER. The owner is not sure whether the fourth amp is the Behringer EP4000 or the t.amp
+# Proline 3000. The EP4000 is assumed here because it is the lighter and smaller of the two; if it is the Proline
+# instead, that amp is 3U rather than 2U and 37 kg rather than 16.6, so the complement becomes 12U and 98 kg and
+# each rack goes to 79 kg. One look at the rack settles it.
+#
+# THE CASE IS THE ESTIMATED PART. 12U of rails is 12 x 44.45 = 533.4 mm exactly — the 19" standard, which is the
+# one thing about a rack that is never in doubt. What is estimated is the case around them: a shock-mount rack
+# suspends the rail frame inside an outer shell, and with lids that is roughly 0.700 m tall, 0.600 wide and 0.750
+# deep. Also estimated is the ~30 kg the empty case weighs, which is ordinary for a 12U shock-mount but is not a
+# figure anybody published for OUR cases.
+#
+# `shape: box`, and for once with no apology: a rack case IS a box. This is the first non-speaker device in the
+# library that needed no new geometry at all.
+id: rack-amp-12u
+name: "Amp rack — 12U shock-mount"
+category: rack
+subtype: amp
+quantity: 2
+owner: sdwa5
+build: original
+
+provenance:
+  # The 19" rail pitch is standard and the amplifiers are all published; the case around them is not.
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  # 12U of rails is 533.4 mm; the rest is shock mounts and lids. See the header.
+  dimensions_m: { width: 0.600, height: 0.700, depth: 0.750 }
+  origin: bottom-center
+  chamfer_m: 0.008
+
+appearance:
+  # Black textured plywood flightcase, as the cabinets.
+  color: "#141414"
+
+physical:
+  # DERIVED: ~30 kg of empty 12U shock-mount case plus half the stated amplifier complement (77.6 / 2 = 38.8).
+  # Add 10.2 kg per rack if the fourth amp turns out to be the Proline rather than the EP4000.
+  weight_kg: 69.0
+  # A rack this heavy is carried by its case handles, and on castors more often than carried at all.
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+notes: |
+  Two 12U shock-mount amp racks holding, between them: 3× Gisen MM14K, 1× Behringer EP4000 *or* t.amp Proline 3000,
+  1× FP10000Q and 1× Gisen M60-series DSP.
+
+  THE AMPLIFIERS ARE NOT SEPARATE SPECS, deliberately. They are invisible inside a closed rack, they never appear in
+  a scene on their own, and adding five specs would put five boxes nobody can see into `detail-check`. What they are
+  for here is the weight, and every one of their published figures is recorded above and in docs/sources.md — which
+  is where a spec's numbers are supposed to be traceable to. If an amp ever needs to be placed on its own, it gets
+  its own spec then.
+
+  "1x gisen md60" IS NOT PINNED DOWN. Gisen publishes no MD60. Their M60-series DSP amplifiers match the
+  description — 4× 900 W at 8 Ω, DSP on the front panel and over USB, 1HE and under 13 kg — and the M60Q-DSP and
+  M60.12 are both plausible. 1U and 13 kg are taken from that series, which is enough for a rack fill and not
+  enough to call the model. The name on the front panel settles it.
+
+  Power totals, from the same figures: the three MM14Ks alone are 3 × 14 000 W bridged at 4 Ω. There is no field for
+  electrical load in this schema and it is the number a distro has to carry — see `rack-power-12u.yaml`.
+
+  NOT MODELLED: the rails, the amplifiers, the castors and the lids. The box is the case's outer envelope.

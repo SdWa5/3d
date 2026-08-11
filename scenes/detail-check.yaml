@@ -71,13 +71,23 @@ placements:
     device: geruest-krause-ah7
     at: [ 11.0, 0.0 ]
 
+  # The two rack types. Nothing to inspect in the geometry — a rack case IS a box, and these are the first
+  # non-speaker devices that needed no new shape at all. They are here because the sheet is the inventory.
+  - id: rack-amp-12u
+    device: rack-amp-12u
+    at: [ 12.4, 0.0 ]
+
+  - id: rack-power-12u
+    device: rack-power-12u
+    at: [ 13.2, 0.0 ]
+
 notes: |
   Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is
   expected here, and that it leans on un-measured cabinets, which is the four GMSS boxes.
 
   One of every device in the repository, which is the whole point of the file: if a device exists and is not on
-  this sheet, the sheet is broken. Fourteen of the fifteen are here — five speakers of ours, four of GMSS's, a truss
-  segment, two towers, a moving head and a scaffold.
+  this sheet, the sheet is broken. Sixteen of the seventeen are here — five speakers of ours, four of GMSS's, a truss
+  segment, two towers, a moving head, a scaffold and the two rack types.
 
   THE ONE DELIBERATE OMISSION is `gmss-truss-9m`. It is the same geometry as `truss-f33-2m` at four and a half
   times the length, so it shows nothing new, and including it would stretch this sheet past 20 m and leave every

@@ -117,6 +117,24 @@ placements:
     device: geruest-krause-ah7
     at: [ 5.698, 0.0 ]
 
+  # ─── THE RACKS ────────────────────────────────────────────────────────────────────────────────────────────────
+  # Behind the sub wall, which is where amp racks actually live: short speaker runs, out of the audience's way, and
+  # reachable from behind. The wall's back face is at y = 0.482, and a rack centred at y = 0.900 is 0.750 deep, so
+  # its front face is at 0.525 — 43 mm clear of the wall.
+  #
+  # Two amp racks and one distro, in a row. 3 x 0.600 + 2 x 0.05 = 1.900 m of rack, and it is worth seeing next to
+  # the rig it powers: the whole amplifier complement for a 23-cabinet PA is a metre and a half of floor.
+  - id: amp-racks
+    device: rack-amp-12u
+    at: [ -0.902, 0.900 ]
+    row:
+      count: 2
+      gap_m: 0.05
+
+  - id: power-rack
+    device: rack-power-12u
+    at: [ 0.298, 0.900 ]
+
 notes: |
   `full-rig-arc` with a goalpost over it: 8 m of F33 on two 4 m crank stands. The first scene here that places
   something other than a loudspeaker.
@@ -131,5 +149,8 @@ notes: |
 
   Both Gerüste stand outboard, platform at 5.000 m against the truss at 4.000 — so the platforms look down on the
   rig. That is the frame height and not the 7 m Arbeitshöhe; see `geruest-krause-ah7.yaml`.
+
+  The three racks stand behind the sub wall, 43 mm off its back face. Two amp racks rather than one because 77.6 kg
+  of amplifier in a single case would be a 108 kg rack — see `rack-amp-12u.yaml`.
 
   The truss sits 875 mm above the highest thing under it. Worth keeping if anything is ever slung below it.

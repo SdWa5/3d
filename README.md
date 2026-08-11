@@ -116,7 +116,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 ## Repository layout
 
 ```
-specs/          one YAML file per device — speakers/, truss/, lighting/, stands/
+specs/          one YAML file per device — speakers/, truss/, lighting/, stands/, racks/
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/
