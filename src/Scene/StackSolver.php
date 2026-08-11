@@ -53,6 +53,11 @@ final class StackSolver
         }
 
         $tiers = self::fill($inventory, $stack);
+        if ($stack->mirror) {
+            // Reflected before anything is checked, and it changes none of the answers: every check reads widths,
+            // heights and labels, and a mirror image has exactly the ones its original had.
+            $tiers = array_map(static fn (Tier $tier): Tier => $tier->flipped(), $tiers);
+        }
         if ($tiers === []) {
             return [
                 'tiers' => [],

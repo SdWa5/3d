@@ -5,14 +5,16 @@
 #
 # What it deals out today:
 #
-#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
+#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
 #   2  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   3  1× flexy-folded-horn-hybrid + 4× achenbach-18 + 1× flexy-folded-horn-hybrid    3.682 m wide
+#   3  6× achenbach-18                                                            3.7 m wide
 #   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
-#   * the 1× flexy-folded-horn-hybrid + 4× achenbach-18 + 1× flexy-folded-horn-hybrid row is 3.682 m on a 3.646 m
-#     row, so it overhangs 18 mm each side
+# Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
+#   * LEFT OUT skram — it cannot be carried in this stack — the 6× achenbach-18 row is 3.700 m on a 2.424 m row,
+#     so it overhangs 638 mm each side — more than half of the outer cabinet is off the edge, so it stands on nothing.
+#     Narrow the tier, widen what carries it, or take the odd cabinets out of the stack
+#   * the 6× achenbach-18 row is 3.700 m on a 3.646 m row, so it overhangs 27 mm each side
 #
 id: stacked-center
 name: "Solved rig — one stack, tiers centred"
@@ -30,13 +32,12 @@ placements:
     at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
+      max_width_m: 3.7
       interface_height_m: 2.0
       gap_m: 0.02
       from:
-        - skram
         - flexy-folded-horn-hybrid
-        - device: achenbach-18
-          count: 4
+        - achenbach-18
         - tecnare-m2122
         - eighteensound-2way-15
 

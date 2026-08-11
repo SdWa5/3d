@@ -229,6 +229,46 @@ final class SceneStackCommandTest extends TestCase
         self::assertStringNotContainsString('count:', $output);
     }
 
+    /**
+     * One stack of a side-by-side pair is the **mirror image** of the other, not a second copy of it.
+     *
+     * An unmirrored pair is the same rig built twice: both SKRAM mouths facing the same way, both tops rows in the
+     * same left-to-right order, and the two fills therefore on the same side of their stacks instead of both
+     * facing the middle. It measures identically to a mirrored pair, which is why nothing caught it.
+     */
+    public function testOneStackOfEachPairIsTheMirrorImageOfTheOther(): void
+    {
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--stacks' => '2', '--align' => ['center'], '--dry-run' => true,
+            '--roll-mirror' => ['skram', 'flexy-folded-horn-hybrid'],
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+
+        $output = $tester->getDisplay();
+        self::assertStringContainsString('mirror: true', $output);
+        self::assertSame(1, substr_count($output, 'mirror: true'), 'only the earlier stack of the pair flips');
+
+        // The 2-way ends up on the inner side of each stack: right of the M2122 in the left stack, left of it in
+        // the right one.
+        self::assertStringContainsString('1× tecnare-m2122 + 1× eighteensound-2way-15', $output);
+        self::assertStringContainsString('1× eighteensound-2way-15 + 1× tecnare-m2122', $output);
+
+        // And the SKRAM is handed the other way in the mirrored stack.
+        self::assertStringContainsString('1× skram rolled 270°', $output);
+        self::assertStringContainsString('1× skram rolled 90°', $output);
+    }
+
+    /** A single stack has no pair to mirror against, so it never claims one. */
+    public function testASingleStackIsNeverMirrored(): void
+    {
+        $tester = $this->invoke([
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['center'], '--dry-run' => true,
+        ]);
+
+        self::assertStringNotContainsString('mirror:', $tester->getDisplay());
+    }
+
     public function testAStackCountBelowOneIsRejected(): void
     {
         $tester = $this->invoke(['--stacks' => '0', '--dry-run' => true]);

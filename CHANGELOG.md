@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.41.0] - 2026-08-11
+
+### Added
+
+- **`stack.mirror` — one stack of a side-by-side pair is now the mirror image of the other.** An unmirrored pair
+  was the same rig built twice: both SKRAM mouths facing the same way, both tops rows in the same left-to-right
+  order, and the two 2-ways therefore on the same side of their stacks rather than both facing the middle. It
+  measures identically to a mirrored pair, which is why nothing caught it. Correct-by-default for any
+  `--stacks=N`, not an opt-in
+- `Tier::flipped()` — reverse a row's segments and hand every quarter turn the other way. Sibling of
+  `Tier::mirrored()`, which splits a row at its own middle instead; a symmetric row is its own mirror image, so
+  the flip only shows where a row is lopsided
+- `StackEntry::$aim` — a tier may name a focus of its own. A stack applies one aim to every top it carries, which
+  is wrong for the row every rig builds: the long throw wants the far focus and the fills are near-field. Since a
+  mixed row expands into one placement per segment anyway, each can carry its own
+- **All six generated rigs** (TODO 2): one, two and three stacks, upright and on their sides —
+  `stacked-center`, `stacked-turned-center`, `stacked-two-center`, `stacked-two-turned-center`,
+  `stacked-three-center`, `stacked-three-turned-center`. The three-stack rigs place all 25 cabinets
+
+### Changed
+
+- `stacked-center.yaml` no longer pins `count: 4` on its Achenbachs, so it tracks the spec — and
+  `stacked-6-achenbach-center.yaml`, which only existed because the pin froze the original, is deleted. One
+  generated rig per arrangement
+- **The one-stack rig now leaves the SKRAMs out at a 3.70 m stage.** Six Achenbachs make a row exactly 3.700 m
+  wide, so including the SKRAMs narrows the Flexy row beneath it to 2.424 m and a 3.700 m row overhangs it by
+  638 mm each side. Not a regression in the solver — the stage is the constraint. `--max-width=5.50` takes all 25
+  in one stack, and the three-stack rig takes all 25 at 3.70
+
 ## [0.40.1] - 2026-08-11
 
 ### Fixed

@@ -22,6 +22,8 @@ use App\Spec\InvalidSpecException;
  *     mix_with: skram                   # share a row with these
  *   - device: flexy-folded-horn-hybrid
  *     roll_mirror: 90                   # on their sides, mirrored about the rig centre line
+ *   - device: eighteensound-2way-15
+ *     aim: near                         # this tier turned towards a different focus
  * ```
  *
  * The keys exist because a stack had exactly one setting for the whole rig and that was too coarse:
@@ -40,6 +42,10 @@ use App\Spec\InvalidSpecException;
  *   763 × 591 rather than 591 × 763, so the wall comes out wider and lower out of the same cabinets. Named per
  *   device rather than inferred, because **no spec field says which cabinets are horn-loaded** and adding one
  *   to drive a rotation would be inventing a property to serve a layout.
+ * * **`aim`** turns this tier towards a focus of its own rather than the placement's. A stack applies one aim to
+ *   every top it carries, which is wrong for the row every rig actually builds: the long throw in the middle
+ *   wants the far focus and the small boxes outboard of it are near-field fill. Since a mixed row expands into
+ *   one placement per segment anyway, each segment can carry its own.
  */
 final class StackEntry
 {
@@ -47,6 +53,7 @@ final class StackEntry
      * @param int|null $count null means "however many the spec says we own"
      * @param list<string> $mixWith device ids to share this tier with
      * @param float|null $rollMirror the quarter turn given to this device's right-hand half, null for upright
+     * @param string|null $aim the scene focus this tier is turned towards, null to follow the placement's own
      */
     public function __construct(
         public readonly string $device,
@@ -54,6 +61,7 @@ final class StackEntry
         public readonly ?LayoutMode $align = null,
         public readonly array $mixWith = [],
         public readonly ?float $rollMirror = null,
+        public readonly ?string $aim = null,
     ) {
     }
 
@@ -68,7 +76,7 @@ final class StackEntry
             return new self($entry);
         }
 
-        $allowed = ['device', 'count', 'align', 'mix_with', 'roll_mirror'];
+        $allowed = ['device', 'count', 'align', 'mix_with', 'roll_mirror', 'aim'];
         $unknown = $entry->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -84,6 +92,7 @@ final class StackEntry
             align: $entry->has('align') ? $entry->requireEnum('align', LayoutMode::class) : null,
             mixWith: self::readMixWith($entry),
             rollMirror: $entry->optionalFloat('roll_mirror'),
+            aim: $entry->optionalString('aim'),
         );
     }
 

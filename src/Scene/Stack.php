@@ -48,6 +48,8 @@ final class Stack
 
     /**
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
+     * @param bool $mirror build this stack as the mirror image of how it solves, so one of a side-by-side pair
+     *     reflects the other instead of duplicating it — see {@see Tier::flipped}
      */
     public function __construct(
         public readonly array $from,
@@ -56,12 +58,13 @@ final class Stack
         public readonly ?float $maxHeightM = null,
         public readonly float $interfaceHeightM = self::DEFAULT_INTERFACE_HEIGHT_M,
         public readonly float $gapM = 0.0,
+        public readonly bool $mirror = false,
     ) {
     }
 
     public static function fromReader(ArrayReader $reader): self
     {
-        $allowed = ['from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m'];
+        $allowed = ['from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror'];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -84,6 +87,7 @@ final class Stack
             interfaceHeightM: $reader->optionalFloat('interface_height_m', self::DEFAULT_INTERFACE_HEIGHT_M)
                 ?? self::DEFAULT_INTERFACE_HEIGHT_M,
             gapM: $reader->optionalFloat('gap_m', 0.0) ?? 0.0,
+            mirror: $reader->optionalBool('mirror'),
         );
     }
 
@@ -186,6 +190,8 @@ final class Stack
             $isTop = $index === count($tiers) - 1;
 
             foreach ($runs as $run) {
+                $own = $this->entryFor($run['device']->id)?->aim;
+
                 $placements[] = new Placement(
                     id: $run['id'],
                     deviceId: $run['device']->id,
@@ -203,8 +209,11 @@ final class Stack
                     yawDeg: $placement->yawDeg,
                     pitchDeg: $placement->pitchDeg,
                     rollDeg: $placement->rollDeg + $run['roll'],
-                    aimAt: $tier->isSub() ? null : $placement->aimAt,
-                    aimFocus: $tier->isSub() ? null : $placement->aimFocus,
+                    // A tier may name a focus of its own — the long throw in the middle of a top row wants the
+                    // far one and the fills outboard of it are near-field. A stated focus replaces the
+                    // placement's aim outright, `aim_at` included: they are two ways of saying the same thing.
+                    aimAt: $tier->isSub() || $own !== null ? null : $placement->aimAt,
+                    aimFocus: $tier->isSub() ? null : ($own ?? $placement->aimFocus),
                     on: $run['on'],
                     fly: null,
                     // Plain uniform spacing: every cabinet in a run shares one roll, so their bodies do step

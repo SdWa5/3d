@@ -1,5 +1,12 @@
-1. /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/plan.md
-2. generate the one two and three stack scenes both in normal orientation and 90 degree rotation
+1. **near-field fills need the room outboard of a placement.** A fill aimed at the 2 m focus toes in 38-45° and
+   cuts 80 mm into the M2122 beside it; two tops merely aimed at the *same* focus from different x take different
+   yaws and bite 1.7 mm. Both are one gap: a tops row is spaced on nominal widths, not on what its cabinets
+   occupy once aimed. `align` can measure a placement's extent or the gap between its outermost cabinets but not
+   the room *outboard* of it — which is also the one stated number left in `full-rig-arc` (`width_m: 2.60`). An
+   `outside:` alignment mode solved with `StepSolver` covers all three
+2. **the 2-ways sit in the middle stack of a three-stack rig, not the outer ones.** They belong on the inner side
+   of the outer stacks; the distribution rule for that is written and backed out, because putting a second top in
+   an outer stack is what triggers the 1.7 mm bite above
 3. alignments of speakers and object groups
     1. **`align` on nested groups.** `align` takes a single `row`/`lattice` today and refuses anything nested, because
        scaling a nested arrangement's x would stretch the inner group's spacing along with the outer one's. Telling the

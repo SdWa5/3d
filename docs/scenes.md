@@ -694,6 +694,20 @@ The remainder of an even split is **left out and named** rather than dealt to th
 over two stacks are 1 + 1 with the third reported, because 2 + 1 makes a stereo pair that is not a pair — one
 side would get a wider top row, a different interface height and a different rig.
 
+**One stack of each pair is the mirror image of the other**, and that is correct-by-default rather than an
+option: an unmirrored pair is the same rig built twice, with both SKRAM mouths facing the same way, both tops rows
+in the same left-to-right order, and the two fills therefore on the same side of their stacks instead of both
+facing the middle. It measures identically to a mirrored pair, which is why nothing caught it for so long.
+`stack.mirror: true` says a stack is built reflected; `2 * index < of - 1` picks the earlier stack of each pair,
+so the later one — and the middle stack of an odd-numbered rig — solve exactly as they would without it.
+
+The reflection itself is `Tier::flipped()`: reverse a row's segments and hand every quarter turn the other way.
+Both halves are needed — reversing alone moves the cabinets and leaves them facing as they were, negating alone
+turns them without moving them. It is the sibling of `Tier::mirrored()`, which splits a row at its **own** middle
+so the row is symmetric about itself; the two are one character apart at a call site and a whole rig apart in the
+result. A symmetric row is its own mirror image, so the flip only shows where a row is lopsided — a tops row of
+`M2122 + 2-way`, or an odd-count mixed row whose middle cabinet had to pick a side.
+
 A generated scene is **re-solved on every build**, so everything the solve decided has to be in the file. A split
 rig therefore writes each stack's share as `count:`, and a turned one writes `roll_mirror:`. Both were once left
 out, and a share left out is the worse of the two: a rig reported as two stacks of eleven was *built* with every

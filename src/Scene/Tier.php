@@ -184,6 +184,34 @@ final class Tier
     }
 
     /**
+     * This row as its own **mirror image** — segment order reversed, every quarter turn handed the other way.
+     *
+     * The sibling of {@see mirrored}, and the difference is where the axis sits. `mirrored()` splits a row at its
+     * *own* middle, so each row comes out symmetric about itself. This reflects the whole row end to end, which
+     * is what one stack of a side-by-side pair needs: without it, `--stacks=2` builds the same rig twice and
+     * calls it stereo, with both stacks' SKRAM ports facing the same way and both tops rows in the same
+     * left-to-right order. Two duplicates measure identically to a mirrored pair and read wrong immediately.
+     *
+     * Upright segments pass through untouched — there is no handedness to reverse in a cabinet that is not on its
+     * side, only a position, and the reversal takes care of that.
+     */
+    public function flipped(): self
+    {
+        return new self(array_values(array_map(
+            static function (array $segment): array {
+                $roll = self::rollOf($segment);
+
+                return [
+                    $segment[0],
+                    $segment[1],
+                    fmod(abs($roll), 180.0) === 90.0 ? fmod(360.0 - $roll, 360.0) : $roll,
+                ];
+            },
+            array_reverse($this->segments),
+        )));
+    }
+
+    /**
      * Each segment with the x offset of its own centre, relative to the row's centre.
      *
      * This is what lets a mixed row expand into one placement per segment: each segment is a plain `row`

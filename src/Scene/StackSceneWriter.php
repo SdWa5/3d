@@ -61,6 +61,11 @@ final class StackSceneWriter
             foreach (self::constraints($block->stack) as $key => $value) {
                 $lines[] = sprintf('      %s: %s', $key, self::number($value));
             }
+            if ($block->stack->mirror) {
+                // Only when true, the same "say something only when there is something to say" the entry keys
+                // follow — and it has to be said at all because the tiers are re-solved on every build.
+                $lines[] = '      mirror: true             # the mirror image of stack '.$block->label;
+            }
             $lines[] = '      from:';
             $counts = $block->counts();
             $owned = $block->owned();
@@ -78,7 +83,7 @@ final class StackSceneWriter
 
                 // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
                 $share = $count !== ($owned[$deviceId] ?? $count) ? $count : null;
-                if ($roll === null && $share === null) {
+                if ($roll === null && $share === null && $block->stack->entryFor($deviceId)?->aim === null) {
                     $lines[] = sprintf('        - %s', $deviceId);
                     continue;
                 }
@@ -89,6 +94,10 @@ final class StackSceneWriter
                 }
                 if ($roll !== null) {
                     $lines[] = sprintf('          roll_mirror: %s', self::number($roll));
+                }
+                $aim = $block->stack->entryFor($deviceId)?->aim;
+                if ($aim !== null) {
+                    $lines[] = sprintf('          aim: %s', $aim);
                 }
             }
             $lines[] = '';

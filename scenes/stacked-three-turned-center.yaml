@@ -7,34 +7,39 @@
 #
 # main-1 — 1, 7 cabinets in 4 rows:
 #
-#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
 #   4  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
+# Subs reach 1.782 m against a 2.0 m interface. The stack is 2.742 m of cabinet.
+#   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
+#     1.782 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 11 cabinets in 4 rows:
+# main-2 — 2, 11 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid + 2× skram + 1× flexy-folded-horn-hybrid    2.462 m wide
-#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15   1.4712 m wide
+#   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  2× achenbach-18                                                           1.22 m wide
+#   5  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15   1.4712 m wide
 #
-# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.237 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 #   * the 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 row is 1.471 m on a 1.220 m row,
 #     so it overhangs 126 mm each side
 #
 # main-3 — 3, 7 cabinets in 4 rows:
 #
-#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
 #   4  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
+# Subs reach 1.782 m against a 2.0 m interface. The stack is 2.742 m of cabinet.
+#   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
+#     1.782 m is the most they reach while every tier is still carried
 #
-id: stacked-three-center
+id: stacked-three-turned-center
 name: "Solved rig — 3 stacks side by side, tiers centred"
 
 focus:
@@ -48,7 +53,7 @@ focus:
 placements:
   # 1, 7 cabinets in 4 rows
   - id: main-1
-    at: [-2.643, 0.0]
+    at: [-2.499, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
@@ -58,12 +63,13 @@ placements:
       from:
         - device: flexy-folded-horn-hybrid
           count: 4
+          roll_mirror: 90.0
         - device: achenbach-18
           count: 2
         - device: tecnare-m2122
           count: 1
 
-  # 2, 11 cabinets in 4 rows
+  # 2, 11 cabinets in 5 rows
   - id: main-2
     at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -72,9 +78,11 @@ placements:
       interface_height_m: 2.0
       gap_m: 0.02
       from:
-        - skram
+        - device: skram
+          roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 4
+          roll_mirror: 90.0
         - device: achenbach-18
           count: 2
         - device: tecnare-m2122
@@ -83,7 +91,7 @@ placements:
 
   # 3, 7 cabinets in 4 rows
   - id: main-3
-    at: [2.039, 0.0]
+    at: [1.895, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
@@ -92,6 +100,7 @@ placements:
       from:
         - device: flexy-folded-horn-hybrid
           count: 4
+          roll_mirror: 90.0
         - device: achenbach-18
           count: 2
         - device: tecnare-m2122

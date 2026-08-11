@@ -306,7 +306,7 @@ final class SceneStackCommand extends BaseCommand
 
         $firstProblem = null;
         foreach ($candidates as $attempt) {
-            $stack = $this->stackFor($attempt, $input);
+            $stack = $this->stackFor($attempt, $input, 2 * $index < $of - 1);
             $problems = $stack->problems();
             if ($problems !== []) {
                 return $problems[0];
@@ -341,9 +341,14 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
+     * **One stack of each pair is mirrored**, and that is not a style choice: an unmirrored pair is the same rig
+     * built twice, with both SKRAM mouths facing the same way and both tops rows in the same order. The rule
+     * `2 * $index < $of - 1` pairs stack `i` with `of - 1 - i` and flips only the earlier of each pair, so the
+     * later one — and the middle stack of an odd-numbered rig — solve exactly as they do without it.
+     *
      * @param list<string> $ids
      */
-    private function stackFor(array $ids, InputInterface $input): Stack
+    private function stackFor(array $ids, InputInterface $input, bool $mirror = false): Stack
     {
         // Named outright rather than inferred from the cabinets, because **no spec field says which are
         // horn-loaded** — and adding one to drive a rotation would be inventing a property to serve a layout.
@@ -365,6 +370,7 @@ final class SceneStackCommand extends BaseCommand
             maxHeightM: $this->readFloat($input, 'max-height'),
             interfaceHeightM: (float)$input->getOption('interface-height'),
             gapM: (float)$input->getOption('gap'),
+            mirror: $mirror,
         );
     }
 
