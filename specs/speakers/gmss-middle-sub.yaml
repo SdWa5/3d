@@ -1,0 +1,67 @@
+# GMSS "middle sub" — the pair of fin-mouthed folded horns in the centre of the stack in GMSS.jpeg.
+#
+# EVERY DIMENSION HERE IS AN ESTIMATE AND NONE OF THEM HAS BEEN MEASURED. See `gmss-turbo-sub.yaml` for the
+# whole of what GMSS supplied and why there is no datasheet to fall back on.
+#
+# "MIDDLE" IS A POSITION, NOT A PASSBAND. GMSS's wording is "Middle subs are 18/1600rms", and in the photo
+# these are the cabinets in the middle of the stack, between the two outer columns — not a mid-range box. The
+# mid-bass is a separate cabinet, `gmss-mid-bass`.
+#
+# HOW THE NUMBERS WERE ARRIVED AT:
+#
+#   - The 18" IS stated data — "18/1600rms" — so unlike the other three GMSS cabinets this one has a real
+#     driver size and it is recorded in `audio.drivers`.
+#   - The class is fixed by the photo: a wide mouth divided by three or four vertical fins, which is a folded
+#     horn mouth rather than a ported baffle.
+#   - The size is scaled off `flexy-folded-horn-hybrid`, a single-18" folded horn in this repository whose
+#     0.591 x 0.763 x 0.964 comes from the design's own CAD. This cabinet reads a little wider and a little
+#     taller than that in the photo, hence 0.600 x 0.800 x 0.950 — round numbers, deliberately.
+#   - The weight is calculated the same way the rest of the repository does it: 3.62 m2 of skin at 18 mm and
+#     ~680 kg/m3 is 44.3 kg, plus ~15 kg of internal horn panels (a folded horn is mostly internal panels),
+#     plus ~12 kg for the 18", plus ~3 kg of hardware. The Flexy's 85 kg for a bigger box of the same kind is
+#     the sanity check.
+#
+# NO PASSBAND. The 1600 W RMS is a power rating and says nothing about where the cabinet is crossed over.
+# Frequencies are exactly the kind of number this repository refuses to invent.
+id: gmss-middle-sub
+name: "GMSS Middle Sub"
+category: speaker
+subtype: sub
+quantity: 2
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box; the fold is not modelled.
+  shape: box
+  dimensions_m: { width: 0.600, height: 0.800, depth: 0.950 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#141414"
+
+physical:
+  # ESTIMATE, calculated not guessed — see the header for the arithmetic.
+  weight_kg: 74.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+audio:
+  # The one piece of driver data GMSS actually stated. No passband: see the header.
+  drivers:
+    - { size_in: 18, type: woofer, count: 1 }
+
+notes: |
+  Stated by GMSS: "Middle subs are 18/1600rms". An 18" driver, 1600 W RMS.
+
+  The count is NOT stated. Two of these are visible side by side in the middle of GMSS.jpeg, so `quantity: 2`
+  is read off the photograph. If GMSS owns more than the two that were stacked that day, this is wrong.
+
+  NOT MEASURED. The 18" is real; the box around it is an estimate scaled from the measured folded horns in this
+  repository. Needs a tape measure before it plans a real load-in.

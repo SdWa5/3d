@@ -6,6 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.52.0] - 2026-08-11
+
+### Added
+
+- **GMSS (Gena Made Sound System) as a second documented system** — four speaker specs, their models,
+  `scenes/gmss-full-stack.yaml` and quick-preview renders from three cameras. 15 cabinets, 1002 kg, 3.940 m tall,
+  a 2.66 × 0.95 m footprint
+  - `gmss-turbo-sub` (8, 3000 W RMS), `gmss-middle-sub` (2, 18″, 1600 W RMS), `gmss-mid-bass` (2, 2× 700 W RMS),
+    `gmss-turbo-top` (3, 2500 W RMS)
+- The scene reproduces the photo's silhouette: two outer columns of four subs to 2.800 m with the middle section
+  stopping at 1.900, which is the notch that makes the mid-bass horn mouth visible at all. Every cabinet is fully
+  supported — the mid-bass pair is stacked rather than side by side because side by side they would drive 180 mm
+  into the columns, not merely overhang
+- `docs/sources.md` gains a *GMSS is estimated end to end* section with the derivation of every number
+
+### Notes
+
+- **Not one GMSS dimension or weight is sourced.** What GMSS supplied was counts, power ratings and one site
+  photograph with no scale reference; searching for the system online returns nothing, as expected for a locally
+  built rig rather than a product. All four specs are `provenance: estimated`, `catalog` lists them in the
+  measuring backlog and `scene:build` warns that the positions rely on un-measured cabinets
+- Dimensions are reconstructions scaled off this repository's own measured cabinets — `achenbach-18` and
+  `flexy-folded-horn-hybrid` for the subs — and off the Turbosound TMS-4's published 1143 × 502 × 730 mm and
+  74.8 kg for the tops. The TMS-4 is a size sanity check and **not** a `clone_of`: GMSS never said these are
+  Turbosounds, and 2500 W RMS is five times a TMS-4's rating
+- **No passbands, no crossover points and no driver sizes** beyond the middle sub's stated 18″. Those are the
+  numbers this repository refuses to invent, so the `audio` block is absent from three of the four specs
+- Round numbers throughout, deliberately: 0.700 is honest about being a guess where 0.7124 would pretend to be a
+  measurement
+- The counts of the middle subs and mid-bass cabinets are read off the photograph, not stated. The plinths under
+  the whole stack are real and not modelled. Truss, towers and the Martin MAC lights were out of scope
+
+### Changed
+
+- `SceneStackCommandTest` names the collective's own gear via a new `OWN_GEAR` constant where it used to rely on
+  "every spec in the repository". That stopped meaning one rig once a second system was documented, and
+  `--per-owner` now yields three stacks rather than two — which is the case that option exists for
+
+### Fixed
+
+- `docs/scenes.md` still described `end-fire-lattice` as `count: [2, 3, 2]`; it has been `[3, 2, 2]` since 0.48.0
+
 ## [0.51.0] - 2026-08-11
 
 ### Changed

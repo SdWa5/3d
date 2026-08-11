@@ -27,10 +27,21 @@
    Achenbachs + tops come out at 94 % worst bearing). A shim, or a `bearing` rule that weighed the *drop* rather than
    only the overlap, would be the way in
 6. **an odd mirrored row is lopsided by one cabinet** — `intdiv(n, 2)` go left and the rest right
-7. model GMSS (Gena Made Sound System) full stack
-    1. 1.Middle subs are 18/1600rms USB 2x 700rms mid bass 8 turbo subs 3000rms 3 turbo top 2500rms And 4pcs Martin mac
-       performance 2 and many more 9m truss 2 pcs towers max 5.2m
-    2. /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.jpeg
+7. **finish GMSS.** The four speakers, their models, `scenes/gmss-full-stack.yaml` and its renders are done —
+   all `provenance: estimated` and all in the measuring backlog. What is left:
+    1. **measure the four cabinets.** Nothing in them is sourced: the dimensions are reconstructions scaled off
+       our own measured cabinets and off a Turbosound TMS-4, and the weights are calculated skins. A tape measure
+       replaces the lot. See [docs/sources.md](docs/sources.md#gmss-is-estimated-end-to-end)
+    2. **confirm the counts that were not stated.** 8 turbo subs and 3 turbo tops are stated; the 2 middle subs
+       and 2 mid-bass cabinets are read off the photograph and are guesses
+    3. resolve what "USB" means in "USB 2x 700rms mid bass", and the two drivers' size
+    4. the tier heights in the middle of the stack, and whether the mid-bass cabinets really stand stacked. The
+       plinths visible under everything in the photo are not modelled because nothing is known about them
+    5. the 9 m truss and the two 5.2 m towers — `category: truss` with subtype `straight`/`tower` already exists,
+       and both numbers are stated, so this needs less invention than the cabinets did
+    6. the 4 Martin MAC Performance 2 moving heads, as `category: other`. Real datasheet dimensions are published
+       for these, so they would be the only GMSS items with solid provenance
+    7. reference photo: /home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.jpeg
 8. detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device))
     1. tecnare top
         1. add the high frequency horns mounting braces vertically and horizontally each (this is probably not worth a
@@ -100,3 +111,15 @@
        if more flyable gear arrives
 18. fly through renderings + combine with new project from existing audio routing table
 19. endfire setup add other sub and tops
+20. **`scene:stack` with no `--from` now mixes two sound systems.** The default is "every speaker, subs before
+    tops", and since the GMSS cabinets arrived that includes another system's gear: the tops row comes out
+    `1× eighteensound + 2× tecnare + 3× gmss-turbo-top + 1× tecnare + 1× eighteensound` at 4.071 m and the solve
+    refuses. It refuses with a clear reason rather than writing a wrong rig, so this is degraded and not broken,
+    and `--per-owner` (which now yields three stacks) or an explicit `--from` both work. The fix is for the
+    default to mean "one system's gear" — either an `--owner` narrowing option or owner-awareness in
+    `everySpeaker()`. Owner is not quite the right discriminator, since the repository deliberately supports
+    borrowing gear between owners, so this needs a decision before it needs code
+21. **`audio.drivers` cannot record a count without a size.** `size_in` is required on every entry, so a cabinet
+    known to have two drivers of unknown size — `gmss-mid-bass`, from "USB 2x 700rms" — has to omit the whole
+    `audio` block and put the count in its notes. Making `size_in` optional would let the schema hold what is
+    actually known instead of forcing a choice between inventing a size and recording nothing

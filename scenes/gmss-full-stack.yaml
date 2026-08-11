@@ -1,0 +1,112 @@
+# GMSS (Gena Made Sound System) — one side of the full stack, reconstructed from GMSS.jpeg.
+#
+# READ THIS BEFORE TRUSTING ANYTHING IN IT. Every cabinet here is an `estimated` spec: GMSS supplied counts and
+# power ratings and one site photograph with no scale reference, so the boxes are derived from the measured
+# cabinets already in this repository and from a documented Turbosound TMS-4 of the same class as the tops.
+# `scene:build` will warn that this scene uses gear from an owner other than sdwa5, which is correct and expected.
+# The arrangement is a reconstruction of a photograph; the dimensions are estimates. Neither is a measurement.
+#
+# WHAT THE PHOTO SHOWS, and how the counts confirm the reading:
+#
+#   two outer columns   grille-fronted cabinets, four to a side      8 — matches "8 turbo subs 3000rms"
+#   lower middle        a pair of fin-mouthed folded horns           the 18" "middle subs"
+#   upper middle        a cross-braced horn mouth                    the "USB 2x 700rms mid bass"
+#   across the top      tall curved-front cabinets                   3 — matches "3 turbo top 2500rms"
+#
+# The counts are what make this reading more than a guess. Four cabinets per outer column is eight, and there
+# are eight turbo subs; there are three curved cabinets on top and three turbo tops. Two independent numbers
+# agreeing with the photograph is the reason to believe the grille boxes are the subs and the curved ones the
+# tops, rather than the other way round.
+#
+# THE NOTCH IS THE POINT OF THE SHAPE. The outer columns run to 2.800 m and the middle section stops at 1.900,
+# which leaves the middle lower than the sides — exactly the silhouette in the photo, and the reason the
+# mid-bass horn mouth is visible at all rather than buried. It is also why the middle can be a different depth
+# from the columns without anything hanging in the air.
+#
+# EVERY CABINET IS FULLY SUPPORTED, which was a constraint on the layout rather than an accident of it:
+#
+#   middle subs   2 x 0.600 + 0.02 = 1.220 m wide on the ground
+#   mid bass      0.800 wide, stacked two high, centred inside that 1.220
+#   turbo tops    0.500 wide — one on each column's 0.700 top, one on the mid bass's 0.800 top
+#
+# The three tops therefore sit at two different heights: 2.800 m on the columns and 1.900 m in the notch. In the
+# photo they look closer to level than that, which is the clearest sign that some tier height here is wrong —
+# most likely the middle section, which probably stands on a plinth. THE PLINTHS ARE NOT MODELLED: low black
+# boxes are visible under the whole stack in the photo, and there is no spec for them because nothing is known
+# about them beyond that they exist. Adding one would mean inventing a cabinet outright.
+#
+# NOT MODELLED, DELIBERATELY: the 9 m truss and the two 5.2 m towers, and the 4 Martin MAC Performance 2 moving
+# heads. Lights are not speakers, and truss was out of scope for this pass.
+id: gmss-full-stack
+name: "GMSS — full stack, one side"
+
+focus:
+  distance_m: 10.0
+  height_m: 1.8
+
+placements:
+  # The two outer columns. Four turbo subs each, which is the whole holding of eight.
+  #
+  # x is not a chosen number: the middle pair is 1.220 m across, so its edge is at 0.610, and a 0.700-wide
+  # column beside it with a 20 mm working gap has its centre at 0.610 + 0.020 + 0.350 = 0.980.
+  - id: column-left
+    device: gmss-turbo-sub
+    at: [ -0.980, 0.0 ]
+    lattice:
+      count: [ 1, 1, 4 ]
+
+  - id: column-right
+    device: gmss-turbo-sub
+    at: [ 0.980, 0.0 ]
+    lattice:
+      count: [ 1, 1, 4 ]
+
+  # The middle, bottom up. The 18" folded horns go on the ground because they are the heaviest thing here at
+  # 74 kg each, and because in the photo they are what everything else in the centre stands on.
+  - id: middle-subs
+    device: gmss-middle-sub
+    at: [ 0.0, 0.0 ]
+    row:
+      count: 2
+      gap_m: 0.02
+
+  # Both mid-bass cabinets, stacked rather than side by side — and stacked because they have to be, not because
+  # it looks better. Side by side they are 1.620 m across, reaching to 0.810 either side of centre, and the
+  # inner face of each column is at 0.630. They would not overhang the pair below; they would drive 180 mm into
+  # the columns. Stacked, each sits wholly inside the 1.220 m below it and clear of everything.
+  - id: mid-bass
+    device: gmss-mid-bass
+    on: middle-subs
+    at: [ 0.0, 0.0 ]
+    lattice:
+      count: [ 1, 1, 2 ]
+
+  # The three tops. Two on the shoulders, one in the notch — see the header for why they are not level.
+  - id: top-left
+    device: gmss-turbo-top
+    on: column-left
+    at: [ -0.980, 0.0 ]
+
+  - id: top-right
+    device: gmss-turbo-top
+    on: column-right
+    at: [ 0.980, 0.0 ]
+
+  - id: top-middle
+    device: gmss-turbo-top
+    on: mid-bass
+    at: [ 0.0, 0.0 ]
+
+notes: |
+  A reconstruction of GMSS.jpeg, not a measured rig. Every GMSS spec is `provenance: estimated` and every one of
+  them is in the measuring backlog — `catalog` lists them.
+
+  Stated by GMSS, verbatim and in full: "Middle subs are 18/1600rms USB 2x 700rms mid bass 8 turbo subs 3000rms
+  3 turbo top 2500rms And 4pcs Martin mac performance 2 and many more 9m truss 2 pcs towers max 5.2m".
+
+  What that leaves undecided, and this scene guesses at: the tier heights in the middle section, whether the
+  mid-bass cabinets stand side by side or stacked, and how the tops are actually carried across the top. The
+  plinths under everything are real and are not modelled.
+
+  What it does NOT guess at: no passbands, no crossover points and — apart from the middle sub's stated 18" — no
+  driver sizes. Those are the numbers this repository refuses to invent, so they are simply absent.

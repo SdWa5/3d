@@ -1,0 +1,67 @@
+# GMSS mid-bass — the cross-braced horn mouth sitting above the middle subs in GMSS.jpeg.
+#
+# EVERY DIMENSION HERE IS AN ESTIMATE AND NONE OF THEM HAS BEEN MEASURED. See `gmss-turbo-sub.yaml` for the
+# whole of what GMSS supplied.
+#
+# "USB" IS UNRESOLVED AND LEFT UNRESOLVED. GMSS's wording is "USB 2x 700rms mid bass". The "USB" is recorded
+# verbatim in the notes and guessed at nowhere: it may be a driver brand, a cabinet model or a typo, and
+# picking one would be inventing a manufacturer. `clone_of` is therefore absent rather than filled in with a
+# plausible name — a wrong `clone_of` is worse than none, because the whole point of that block is provenance.
+#
+# HOW THE NUMBERS WERE ARRIVED AT:
+#
+#   - The class is fixed by the photo, and this is the most clearly readable cabinet in it: a big rectangular
+#     horn mouth with a single cross brace across the middle. That is a front-loaded horn, and the brace is
+#     there because a mouth that wide would otherwise flex.
+#   - The proportions come from the photo rather than from another cabinet, because the mouth's aspect ratio is
+#     directly visible: distinctly wider than it is tall, and not as deep as the folded horn subs below it.
+#     0.800 x 0.550 x 0.750 — round numbers, deliberately.
+#   - The weight is calculated as everywhere else: 2.91 m2 of skin at 18 mm and ~680 kg/m3 is 35.6 kg, plus
+#     ~8 kg of horn flare panels, plus ~14 kg for two mid-bass drivers, plus ~2 kg of hardware.
+#
+# TWO DRIVERS IS STATED, THEIR SIZE IS NOT — AND THE SCHEMA CANNOT SAY THAT. "2x 700rms" gives the count and
+# only the count, but `audio.drivers` requires a `size_in` on every entry, so the choice is to invent a size or
+# to leave the whole block out. It is left out, and the count lives in the notes instead. A mid-bass horn of
+# this size is usually 12" or 15", but usually is not a source. Recorded in TODO.md as a schema gap.
+id: gmss-mid-bass
+name: "GMSS Mid Bass"
+category: speaker
+subtype: sub
+quantity: 2
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box. The horn flare and its cross brace are visible in the photo and are not modelled —
+  # the model is a block, as it is for every horn in this repository.
+  shape: box
+  dimensions_m: { width: 0.800, height: 0.550, depth: 0.750 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#141414"
+
+physical:
+  # ESTIMATE, calculated not guessed — see the header for the arithmetic.
+  weight_kg: 58.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by GMSS, verbatim: "USB 2x 700rms mid bass". Two drivers, 700 W RMS each. What "USB" refers to is not
+  known and is not guessed at here.
+
+  `subtype: sub` because the schema's speaker subtypes are top / sub / monitor / line-array-element and there is
+  no mid-bass among them. `achenbach-18` sits in the same place for the same reason — it is driven from 38 Hz
+  and reaches 1500 Hz, and it is a `sub` because that is the nearest thing the taxonomy has.
+
+  The count is NOT stated. One is clearly visible in GMSS.jpeg and a second is assumed for the other side of a
+  symmetrical stack, which is what `quantity: 2` records. Confirm before trusting it.
+
+  NOT MEASURED. Needs a tape measure before it plans a real load-in.

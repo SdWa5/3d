@@ -1,0 +1,64 @@
+# GMSS "turbo sub" — the eight cabinets that make up the two outer columns in GMSS.jpeg.
+#
+# EVERY DIMENSION HERE IS AN ESTIMATE AND NONE OF THEM HAS BEEN MEASURED. What GMSS actually supplied was a
+# count and a power rating — "8 turbo subs 3000rms" — and one photograph taken on site with no scale reference
+# in it. There is no datasheet: GMSS (Gena Made Sound System) is a self-built system and searching for it
+# online returns nothing, which is expected for a locally built rig rather than a product.
+#
+# HOW THE NUMBERS WERE ARRIVED AT, so the next person can judge them rather than trust them:
+#
+#   - The class is fixed by the photo: a grille across the whole front, a roughly square face, deep enough to
+#     be horn or bandpass loaded rather than a plain reflex box. Four stand in each of the two outer columns.
+#   - The size is scaled off `achenbach-18`, which is a MEASURED single-18" horn sub in this same repository at
+#     600 x 600 x 700. Against the tops beside it in the photo this cabinet reads slightly larger than that, so
+#     0.700 x 0.700 x 0.850 — round numbers, because a round number is honest about being a guess where
+#     0.7124 would pretend to be a measurement.
+#   - The weight is calculated rather than guessed, the same way `achenbach-18` and `eighteensound-2way-15` do
+#     it: 3.36 m2 of skin at 18 mm and ~680 kg/m3 is 41.1 kg, plus ~10 kg of internal horn panels, plus ~12 kg
+#     for an 18" driver, plus ~3 kg of hardware.
+#
+# WHAT IS DELIBERATELY ABSENT: there is no `audio` block. The driver complement and the passband are not known
+# — 3000 W RMS is a power rating, and on a locally built cabinet it usually describes the amplifier channel
+# rather than the driver — so stating a passband or a driver count here would be inventing data, not estimating
+# it. An 18" is *likely* from the size and the class, but likely is not a source. See docs/measuring.md.
+id: gmss-turbo-sub
+name: "GMSS Turbo Sub"
+category: speaker
+subtype: sub
+quantity: 8
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box, which is all an estimate can honestly describe. Whatever the loading is inside, it
+  # is not modelled and nothing here claims to know it.
+  shape: box
+  dimensions_m: { width: 0.700, height: 0.700, depth: 0.850 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # Black textured finish, as every cabinet in the photo has.
+  color: "#141414"
+
+physical:
+  # ESTIMATE, calculated not guessed — see the header for the arithmetic.
+  weight_kg: 66.0
+  handles: [ left, right ]
+
+rigging:
+  # Ground-stacked in the photo, on a plinth. Nothing suggests fly points and none are visible.
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by GMSS: "8 turbo subs 3000rms". Eight cabinets, 3000 W RMS. Whether that figure is per cabinet or
+  for the group of eight is not stated; per cabinet is the ordinary reading and is what is assumed here.
+
+  The repository has no field for power handling, so the rating lives in this note rather than in `audio`.
+
+  NOT MEASURED, NOT FROM A DATASHEET. Dimensions and weight are estimates derived from the photograph and from
+  the measured cabinets already in this repository. Everything about this cabinet needs a tape measure before it
+  is used to plan a real load-in — the numbers are good enough to see the shape of the rig and no better.

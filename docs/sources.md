@@ -29,6 +29,14 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 2, owner, 60–20000 Hz, 550 W |
 | `achenbach-18` | Achenbach 18 | `cad` | `Achenbach 18/Achenbach 18.FCStd` | Panel geometry: 600 × 700 × 18 top/bottom, 18 × 700 × 564 sides → 0.600 × 0.600 × 0.700 m |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 4, owner, driver B&C 18TBW100, 35–1000 Hz, 1000 W |
+| `gmss-turbo-sub` | — (GMSS self-build) | — | A message from GMSS | Count 8 and 3000 W RMS. **Nothing else** |
+| | | | `GMSS.jpeg`, one site photo, no scale reference | The class — grille-fronted, roughly square, four to an outer column |
+| `gmss-middle-sub` | — (GMSS self-build) | — | A message from GMSS | An 18″ driver and 1600 W RMS. The count is **not** stated |
+| | | | `GMSS.jpeg` | A fin-mouthed folded horn; two of them, side by side in the middle |
+| `gmss-mid-bass` | — (GMSS self-build) | — | A message from GMSS | Two drivers at 700 W RMS. Their size is not stated, nor is what "USB" refers to |
+| | | | `GMSS.jpeg` | A front-loaded horn with a cross-braced mouth, wider than it is tall |
+| `gmss-turbo-top` | — (GMSS self-build) | — | A message from GMSS | Count 3 and 2500 W RMS |
+| | | | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), [manual](https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt) | 1143 × 502 × 730 mm and 74.8 kg for a documented cabinet of the same class — a **size sanity check, not a lineage** |
 
 ### The 18sound drawings are partial dimensions
 
@@ -59,6 +67,33 @@ The whole Shared Drive was searched for weight data — 1166 files, no hits in a
 document or filename. Eighteen Sound publishes no finished-cabinet weight either, since the 15″
 2 Ways is a DIY kit whose weight depends on the builder. These three need the hanging scale; see
 [measuring.md](measuring.md).
+
+### GMSS is estimated end to end
+
+The four `gmss-*` cabinets are a different case from everything above, and worth stating plainly: **not one
+dimension or weight in them is sourced.** GMSS (Gena Made Sound System) is a self-built system, searching for it
+online returns nothing — which is what you would expect for a locally built rig rather than a product — and what
+GMSS actually supplied was counts, power ratings and one site photograph with no scale reference in it.
+
+So the boxes are *reconstructions*, derived two ways and marked `provenance: estimated`:
+
+| Device | m | kg | Basis |
+|--------|---|----|-------|
+| `gmss-turbo-sub` | 0.700 × 0.700 × 0.850 | 66 | Scaled from `achenbach-18`, a single-18″ horn of the same class, against the photo |
+| `gmss-middle-sub` | 0.600 × 0.800 × 0.950 | 74 | Scaled from `flexy-folded-horn-hybrid`, a single-18″ folded horn |
+| `gmss-mid-bass` | 0.800 × 0.550 × 0.750 | 58 | Mouth aspect ratio read off the photo; weight calculated from the skin |
+| `gmss-turbo-top` | 0.500 × 1.140 × 0.700 | 70 | Rounded from the Turbosound TMS-4's published 502 × 1143 × 730 and 74.8 kg |
+
+Weights are calculated rather than guessed, the same way the estimates above are: plywood skin area at 18 mm and
+~680 kg/m³, plus internal panels, drivers and hardware.
+
+**What is deliberately absent is as important as what is there.** No passbands, no crossover points, and no
+driver sizes except the middle sub's stated 18″ — those are the numbers this repository refuses to invent, so
+the `audio` block is simply missing from three of the four specs. The schema cannot record "two drivers, size
+unknown" either, since `audio.drivers` requires a `size_in`, so the mid-bass driver count lives in its notes.
+
+Round numbers throughout, deliberately: 0.700 is honest about being a guess where 0.7124 would pretend to be a
+measurement. Every one of the four needs a tape measure before it plans a real load-in.
 
 ### Not owned
 

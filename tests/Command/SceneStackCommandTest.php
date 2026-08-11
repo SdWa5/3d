@@ -34,6 +34,27 @@ final class SceneStackCommandTest extends TestCase
      */
     private const STACKABLE = ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122', 'eighteensound-2way-15'];
 
+    /**
+     * Everything the collective itself owns, SKRAMs included — the whole of what one rig could be built from.
+     *
+     * This used to be expressed as passing no `--from` at all, which meant "every spec in the repository". That
+     * stopped being the same thing when the GMSS cabinets arrived: those describe a **different sound system**
+     * that this repository only documents, they are all `provenance: estimated`, and a rig solved out of two
+     * systems' gear at once is not something anybody would build. So the gear is named now rather than implied.
+     *
+     * **The order matters and is not alphabetical.** `--from` is taken as given — "low frequency first" — where
+     * the default sorts subs before tops and each by its driven corner. This list reproduces that sort: SKRAM
+     * (15 Hz) then Flexy (38, up to 200) then Achenbach (driven from 38, up to 1500, so the high corner breaks
+     * the tie), then the tops. Shuffle it and the solver deals a different rig.
+     */
+    private const OWN_GEAR = [
+        'skram',
+        'flexy-folded-horn-hybrid',
+        'achenbach-18',
+        'eighteensound-2way-15',
+        'tecnare-m2122',
+    ];
+
     protected function tearDown(): void
     {
         foreach (glob(dirname(__DIR__, 2).'/scenes/'.self::THROWAWAY_ID.'*.yaml') ?: [] as $file) {
@@ -140,11 +161,14 @@ final class SceneStackCommandTest extends TestCase
      * 5.0 m rather than 3.70 m: six real Achenbachs are their own row's full 3.70 m stage width, so a SKRAM
      * row flanked by three Flexys either side (4.906 m) no longer fits under the 3.70 m bound and the command
      * falls back to leaving the SKRAMs out. Widen the stage and the flanked arrangement is reachable again.
+     *
+     * The gear is named via {@see OWN_GEAR} rather than left to the default, which is what "the whole
+     * inventory" meant before a second sound system was documented in this repository.
      */
-    public function testTheWholeInventoryGoesIntoOneStack(): void
+    public function testEverythingTheCollectiveOwnsGoesIntoOneStack(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '5.0', '--interface-height' => '2.0',
+            '--max-width' => '5.0', '--interface-height' => '2.0', '--from' => self::OWN_GEAR,
             '--align' => ['center'], '--dry-run' => true,
         ]);
 
@@ -159,6 +183,9 @@ final class SceneStackCommandTest extends TestCase
      * `--per-owner` groups by {@see \App\Spec\DeviceSpec::$owner} and adds no new concept: for this
      * collective, who owns a cabinet *is* the split between the rigs. Each group becomes its own stack, and
      * the stacks stand side by side rather than merging into one pile.
+     *
+     * Three owners now, not two — GMSS is the third, and it is exactly the case this option is for: a second
+     * sound system's gear must not end up in the same pile as the collective's own.
      */
     public function testPerOwnerWritesOneStackPerOwnerSideBySide(): void
     {
@@ -172,7 +199,8 @@ final class SceneStackCommandTest extends TestCase
         $output = $tester->getDisplay();
         self::assertStringContainsString('- id: main-sdwa5', $output);
         self::assertStringContainsString('- id: main-sepp', $output);
-        self::assertStringContainsString('2 stacks side by side', $output);
+        self::assertStringContainsString('- id: main-gmss', $output);
+        self::assertStringContainsString('3 stacks side by side', $output);
     }
 
     /** `--stacks=2` is how a stereo pair is asked for: each group split evenly into two. */

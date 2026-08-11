@@ -409,10 +409,12 @@ positions.
   it is applied to the outline of the *turned* cabinet; it is only a step you state yourself that has to
   account for the turn. **Do not state one — use [`align`](#align) and let it be solved.**
 
-`scenes/end-fire-lattice.yaml` says the same thing in one lattice instead of two: `count: [2, 3, 2]` is two
-columns across, three deep and two tiers up — twelve Flexys, which is the whole holding, where the
-four-by-three form asks for twelve and only eight exist. The frequency decision is still the only stated
-number; x derives from the cabinet's own width plus a working gap, and z says nothing at all.
+`scenes/end-fire-lattice.yaml` says the same thing in one lattice instead of two: `count: [3, 2, 2]` is three
+columns across, two deep and two tiers up — twelve Flexys, which is the whole holding, where the
+four-by-three form asks for twelve and only eight exist. Two deep rather than three is the trade: depth is what
+buys rear rejection, so this spends a cabinet of cancellation on a column of width and a tier of height. The
+frequency decision is still the only stated number; x derives from the cabinet's own width plus a working gap,
+and z says nothing at all.
 
 ### align
 

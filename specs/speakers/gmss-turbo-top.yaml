@@ -1,0 +1,66 @@
+# GMSS "turbo top" — the three tall curved-front cabinets across the top of the stack in GMSS.jpeg.
+#
+# EVERY DIMENSION HERE IS AN ESTIMATE AND NONE OF THEM HAS BEEN MEASURED. See `gmss-turbo-sub.yaml` for the
+# whole of what GMSS supplied.
+#
+# THIS IS THE ONE GMSS CABINET WITH AN OUTSIDE SANITY CHECK, and it is worth being precise about what that check
+# is and is not. "Turbo" in this kind of system usually points at Turbosound's cabinets or at designs copied
+# from them, and the Turbosound TMS-4 — a documented, tall, horn-loaded three-way of exactly this class — is
+# 45" x 19.75" x 28.75" and 165 lb, so 1143 x 502 x 730 mm and 74.8 kg. That is a real published figure and it
+# is what the numbers below are rounded from.
+#
+# IT IS NOT A CLONE_OF. GMSS never said these are Turbosounds, and 2500 W RMS is far beyond a TMS-4's 450 W
+# RMS, so these are locally built cabinets of a similar shape and a much later generation of drivers. Writing
+# `clone_of: Turbosound` would claim a lineage nobody stated. The TMS-4 is used here only as evidence that a
+# cabinet of this proportion exists at this size — which is a far better anchor than the photo alone gives.
+#
+#   - Proportions from the photo: distinctly tall and narrow, a convex curved grille across the front, standing
+#     on the columns of subs rather than flown.
+#   - 0.500 x 1.140 x 0.700, rounded from the TMS-4's 502 x 1143 x 730.
+#   - Weight: the TMS-4's own 74.8 kg, taken down to 70 kg because these are plywood self-builds rather than a
+#     factory cabinet, and because a calculated skin — 3.55 m2 at 18 mm and ~680 kg/m3, so 43.4 kg, plus horn,
+#     drivers and hardware — lands in the same place. Two routes agreeing is the reason to believe it at all.
+#
+# NO PASSBAND AND NO DRIVERS. 2500 W RMS is a power rating. The photo shows a grille and tells us nothing about
+# what is behind it, and the TMS-4's own 18" + 10" + 1" belongs to the TMS-4, not to this cabinet.
+id: gmss-turbo-top
+name: "GMSS Turbo Top"
+category: speaker
+subtype: top
+quantity: 3
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box. The curved front visible in the photo is not modelled — `shape: box` is what the
+  # repository draws, and a curve would be a claim about a radius nobody has measured.
+  shape: box
+  dimensions_m: { width: 0.500, height: 1.140, depth: 0.700 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#141414"
+
+physical:
+  # ESTIMATE — the TMS-4's published 74.8 kg and a calculated plywood skin agreeing, see the header.
+  weight_kg: 70.0
+  handles: [ left, right ]
+
+rigging:
+  # Ground-stacked on the sub columns in the photo. A cabinet of this class often has fly points, but none are
+  # visible and none are stated, so this claims none.
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by GMSS: "3 turbo top 2500rms". Three cabinets, 2500 W RMS.
+
+  Size sanity-checked against the Turbosound TMS-4 (1143 x 502 x 730 mm, 74.8 kg — 45" x 19.75" x 28.75",
+  165 lb), a documented cabinet of the same class. That is a comparison, NOT a claim that these are Turbosounds:
+  GMSS did not say so, and 2500 W RMS is five times a TMS-4's rating.
+  See https://www.warehousesound.com/turtms4.php and https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt
+
+  NOT MEASURED. Needs a tape measure before it plans a real load-in.
