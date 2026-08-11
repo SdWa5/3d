@@ -1,0 +1,159 @@
+# Both sound systems on one site: our full rig beside the GMSS stack, each as it actually stands.
+#
+# WHY THIS FILE EXISTS. Nothing else in the repository puts the two systems in one picture. `detail-check.yaml`
+# lines every cabinet up as a contact sheet, `full-rig-arc.yaml` is ours alone and `gmss-full-stack.yaml` is
+# theirs alone. What a shared load-in looks like — how much ground it takes, how the two rigs compare standing
+# next to each other — had no scene until this one.
+#
+# NEITHER RIG IS RE-ARRANGED HERE. Both are copied from their own scenes with nothing changed but the x they are
+# centred on, because the point is to compare what each system actually is rather than to invent a merged rig:
+#
+#   ours   `full-rig-arc.yaml`      12 Flexys in two rows, 6 Achenbachs, an arc of 3 M2122s, 2 side-fills
+#   GMSS   `gmss-full-stack.yaml`   6 turbo subs on 2 small subs, 3 middle subs, 3 turbo tops in one row
+#
+# THE SEPARATION IS DERIVED, not chosen. Our Achenbach row is the widest thing on our side at 3.700 m, so centred
+# at -2.600 it reaches to -0.750. The GMSS stack is 2.860 m wide, so centred at +2.600 it starts at +1.170. That
+# leaves 1.920 m of walkway between the two rigs — more than enough to get a cabinet through on a trolley, which is
+# the constraint that actually matters on a site.
+#
+# THIS SCENE IS WHY THE GMSS CABINETS ARE THE SIZE THEY ARE. It was built to compare the two rigs and it
+# immediately did a job nobody asked it to: the GMSS boxes, sized off the photograph by reading a logo as a ~60 mm
+# badge, came out so large that FOURTEEN of them made a wider and taller wall than our TWENTY-THREE. That is not
+# credible, and it is invisible in the GMSS scene on its own — there is nothing in that picture to judge it
+# against. Every GMSS cabinet was rescaled against our own measured gear as a result. Standing an estimate next to
+# a measurement is the cheapest sanity check available, and it only exists in this file.
+#
+# WHAT THE COMPARISON SHOWS NOW: ours is 3.700 m wide and 3.125 tall in 23 cabinets, GMSS 2.860 and 3.000 in 14.
+# So their boxes are bigger than ours one for one — 14 of them nearly reach the height of our 23 — while the rig as
+# a whole is narrower. Bear in mind that every GMSS dimension is an `estimate` and ours are measured or from plans,
+# so this is a reconstruction being compared with the real thing, and the reconstruction is the one that moves.
+#
+# ONLY OUR TOPS ARE AIMED. `focus` is ours, and the arc and the side-fills use it exactly as they do in
+# `full-rig-arc.yaml`. The GMSS tops fire straight ahead because that is how they stand in their own scene and
+# nothing is known about how GMSS aims them. Two rigs parked beside each other is what this file says; for both
+# systems aimed at one audience see `both-systems-stereo.yaml`.
+id: both-systems-side-by-side
+name: "Both systems — ours beside GMSS"
+
+focus:
+  distance_m: 10.0
+  height_m: 1.8
+
+placements:
+  # ─── OURS, centred at -2.600 ───────────────────────────────────────────────────────────────────────────────
+  # Copied from `full-rig-arc.yaml`; every `at` is the middle of the wall rather than its left edge, and the
+  # -0.302 that file uses becomes -2.600 here. Nothing else differs.
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [ -2.600, 0.0 ]
+    roll_deg: 180
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [ -2.600, 0.0 ]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-row-top
+    at: [ -2.600, 0.0 ]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [ -2.600, 0.0 ]
+    aim: focus
+    arc:
+      mode: convex
+      count: 3
+
+  - id: side-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [ -2.600, 0.0 ]
+    aim: focus
+    align:
+      mode: stereo
+      outside: tops
+      inset_m: 0.020
+    row:
+      count: 2
+
+  # ─── GMSS, centred at +2.600 ───────────────────────────────────────────────────────────────────────────────
+  # Copied from `gmss-full-stack.yaml` with 2.600 added to every x. The rolled cabinet keeps its offset: its
+  # -0.600 becomes 2.000, because a rolled cabinet's body lies to one side of its placement point.
+  - id: gmss-middle-subs
+    device: gmss-middle-sub
+    at: [ 2.600, 0.0 ]
+    row:
+      count: 2
+      gap_m: 0.02
+
+  - id: gmss-middle-sub-upper
+    device: gmss-middle-sub
+    on: gmss-middle-subs
+    at: [ 2.000, 0.0 ]
+    roll_deg: 90
+
+  - id: gmss-tops
+    device: gmss-turbo-top
+    on: gmss-middle-sub-upper
+    at: [ 2.600, 0.0 ]
+    row:
+      count: 3
+      gap_m: 0.02
+
+  - id: gmss-small-sub-left
+    device: gmss-mid-bass
+    at: [ 1.520, 0.0 ]
+
+  - id: gmss-column-left
+    device: gmss-turbo-sub
+    on: gmss-small-sub-left
+    at: [ 1.520, 0.0 ]
+    lattice:
+      count: [ 1, 1, 3 ]
+
+  - id: gmss-small-sub-right
+    device: gmss-mid-bass
+    at: [ 3.680, 0.0 ]
+
+  - id: gmss-column-right
+    device: gmss-turbo-sub
+    on: gmss-small-sub-right
+    at: [ 3.680, 0.0 ]
+    lattice:
+      count: [ 1, 1, 3 ]
+
+notes: |
+  Two systems, one site. `scene:build` reports gear from three owners and warns that the positions lean on
+  un-measured cabinets — the four GMSS boxes, all `provenance: estimated`. Both warnings are correct.
+
+  Neither rig is altered. Ours is `full-rig-arc.yaml` and GMSS's is `gmss-full-stack.yaml`, each shifted along x
+  and nothing more, so anything learned here about either one is also true in its own scene.
+
+  The 1.920 m between them is what is left once the widest row on each side is placed: our Achenbach row is
+  3.700 m and the GMSS stack is 2.860 m.
+
+  This file is why every GMSS cabinet was rescaled. Sized off the photograph they made a bigger wall out of 14
+  boxes than our 23 — not credible, and not visible in the GMSS scene alone, because that picture has nothing in it
+  to judge against. See the header.
+
+  THE RENDER SHOWS THE PROVENANCE, which was not planned and is the most useful thing about this scene. Our
+  cabinets come out with cones, horn mouths and grille insets because their specs carry an `audio.layout` read off
+  CAD or a datasheet. The GMSS cabinets are featureless blocks, because nothing is known about their baffles and
+  the repository will not draw a driver it cannot cite. Which system is measured and which is reconstructed is
+  visible at a glance, without reading a single provenance field.
+
+  Compare `both-systems-per-owner-center.yaml`, which solves a stack per owner from constraints instead of
+  copying the arrangements, and `both-systems-stereo.yaml`, which aims both systems at one audience rather than
+  standing them side by side.

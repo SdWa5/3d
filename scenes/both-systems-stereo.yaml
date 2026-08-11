@@ -1,0 +1,157 @@
+# Both sound systems as ONE PA: GMSS left, ours right, both aimed at the same audience.
+#
+# The difference from `both-systems-side-by-side.yaml` is not the spacing, it is the aiming. Side by side, the two
+# rigs are two rigs that happen to be parked next to each other and only ours is aimed at anything. Here both
+# systems' tops toe in on one focus, which is what makes them a stereo pair rather than two neighbours.
+#
+# LEFT AND RIGHT ARE DELIBERATE. GMSS is the left-hand stack and ours the right. Which way round is arbitrary, but
+# it has to be one way, and naming it is better than leaving it to the order the placements happen to be in.
+#
+# WHAT A STEREO PAIR OUT OF TWO DIFFERENT SYSTEMS ACTUALLY IS, and it is worth being blunt: acoustically this is
+# not a matched pair. Ours is 12 Flexys and an arc of M2122s, theirs is horn subs and turbo tops, and the two
+# sides will not sound the same however they are aimed and delayed. What this scene is good for is the geometry —
+# how far apart the stacks stand, how much ground the pair needs, whether the tops clear the subs on both sides,
+# where the toe-in puts the near edges. It is not a claim that the rig would be coherent.
+#
+# THE SEPARATION IS STATED, and it is the one number here that is a decision rather than a derivation: 7.000 m
+# between stack centres, so GMSS at -3.500 and ours at +3.500. That is a stage width, chosen because it is a
+# plausible one — nothing in the inventory implies it. With the widest row on each side at 3.700 and 2.860 m, their
+# inner edges land at -2.070 and +1.650, leaving 3.720 m of stage between the two rigs.
+#
+# THE FOCUS IS A LONGER THROW than either rig uses alone: 15 m rather than the 10 both their own scenes state,
+# because a pair spread 7 m apart covers a deeper room than one stack does, and a 10 m focus on a 7 m base toes
+# the stacks in hard enough to cross in front of the audience. 15 m is still a decision, and it is the other one.
+#
+# HEIGHTS DIFFER BY 125 mm between the two sides — 3.000 GMSS against 3.125 ours — which a real stereo pair would
+# not have, though it is close enough not to matter much. Nothing here corrects for it: the rigs are what they are,
+# and shimming one side to match is a decision for a load-in rather than something this file should invent.
+id: both-systems-stereo
+name: "Both systems — one stereo pair, GMSS left"
+
+focus:
+  distance_m: 15.0
+  height_m: 1.8
+
+placements:
+  # ─── GMSS, stage left, centred at -3.500 ───────────────────────────────────────────────────────────────────
+  # As in `gmss-full-stack.yaml`, with one change beyond the offset: the tops row is aimed. In its own scene it
+  # fires straight ahead, because nothing is known about how GMSS aims it; here it has to be aimed or the scene
+  # is not a stereo pair at all. The rolled cabinet keeps its own offset — its -0.600 becomes -4.100, because a
+  # rolled cabinet's body lies to one side of its placement point.
+  - id: gmss-middle-subs
+    device: gmss-middle-sub
+    at: [ -3.500, 0.0 ]
+    row:
+      count: 2
+      gap_m: 0.02
+
+  - id: gmss-middle-sub-upper
+    device: gmss-middle-sub
+    on: gmss-middle-subs
+    at: [ -4.100, 0.0 ]
+    roll_deg: 90
+
+  # gap_m is 0.040 here where every other row in the repository uses 0.020, and the reason is the aiming. Each
+  # cabinet in an aimed row toes in on the focus from its OWN position, so the three do not share a yaw: at a 15 m
+  # focus and a 0.500 m spacing they come out 14.93°, 13.13° and 11.31°, about 1.8° apart. Two boxes at slightly
+  # different angles rotate into each other, and at 0.020 the outer pair bit 4 mm into the middle one — caught by
+  # the overlap sweep in ShippedScenesTest, not by eye. 0.040 clears it.
+  - id: gmss-tops
+    device: gmss-turbo-top
+    on: gmss-middle-sub-upper
+    at: [ -3.500, 0.0 ]
+    aim: focus
+    row:
+      count: 3
+      gap_m: 0.040
+
+  # The columns stand 1.130 m either side of the stack centre here, where `gmss-full-stack.yaml` puts them at
+  # 1.080 — 50 mm further out, and the aiming is why. An aimed cabinet is wider across x than it is wide: the outer
+  # top toes in 14.93° and a 0.460 x 0.650 box at that angle occupies 0.460 x cos + 0.650 x sin = 0.612 m. At 1.080
+  # the outer top rotated 27 mm INTO the column beside it. The overlap sweep in ShippedScenesTest caught it; the
+  # render did not show it.
+  - id: gmss-small-sub-left
+    device: gmss-mid-bass
+    at: [ -4.630, 0.0 ]
+
+  - id: gmss-column-left
+    device: gmss-turbo-sub
+    on: gmss-small-sub-left
+    at: [ -4.630, 0.0 ]
+    lattice:
+      count: [ 1, 1, 3 ]
+
+  - id: gmss-small-sub-right
+    device: gmss-mid-bass
+    at: [ -2.370, 0.0 ]
+
+  - id: gmss-column-right
+    device: gmss-turbo-sub
+    on: gmss-small-sub-right
+    at: [ -2.370, 0.0 ]
+    lattice:
+      count: [ 1, 1, 3 ]
+
+  # ─── OURS, stage right, centred at +3.500 ──────────────────────────────────────────────────────────────────
+  # `full-rig-arc.yaml` unchanged apart from the offset — the arc and the side-fills already aim at the focus,
+  # which is the whole reason that rig transplants into a stereo pair without being rethought.
+  - id: sub-row-bottom
+    device: flexy-folded-horn-hybrid
+    at: [ 3.500, 0.0 ]
+    roll_deg: 180
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: sub-row-top
+    device: flexy-folded-horn-hybrid
+    on: sub-row-bottom
+    at: [ 3.500, 0.0 ]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: achenbach-row
+    device: achenbach-18
+    on: sub-row-top
+    at: [ 3.500, 0.0 ]
+    row:
+      count: 6
+      gap_m: 0.02
+
+  - id: tops
+    device: tecnare-m2122
+    on: achenbach-row
+    at: [ 3.500, 0.0 ]
+    aim: focus
+    arc:
+      mode: convex
+      count: 3
+
+  - id: side-fills
+    device: eighteensound-2way-15
+    on: achenbach-row
+    at: [ 3.500, 0.0 ]
+    aim: focus
+    align:
+      mode: stereo
+      outside: tops
+      inset_m: 0.020
+    row:
+      count: 2
+
+notes: |
+  Both systems aimed at one audience, 7.000 m between stack centres and a 15 m focus. `scene:build` reports gear
+  from three owners and warns about un-measured cabinets — the four GMSS boxes.
+
+  Two numbers here are decisions rather than derivations, which is unusual for a scene in this repository and is
+  called out on purpose: the 7.000 m separation and the 15 m focus. Nothing in the inventory implies either. Every
+  other number falls out of the cabinets.
+
+  This is a geometric study, not an acoustic proposal. A stereo pair built from two different systems will not
+  sound matched however it is delayed, and the two sides are not even the same height — 3.000 m against 3.125.
+  What it answers is how much stage the pair needs and whether everything clears.
+
+  Compare `both-systems-side-by-side.yaml`, the same two rigs parked next to each other with only ours aimed, and
+  `both-systems-per-owner-center.yaml`, which solves a stack per owner from constraints instead of copying either
+  arrangement.

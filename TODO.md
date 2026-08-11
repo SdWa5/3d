@@ -32,11 +32,15 @@
     1. **measure the four cabinets.** Nothing in them is sourced: the dimensions are reconstructions scaled off
        our own measured cabinets and off a Turbosound TMS-4, and the weights are calculated skins. A tape measure
        replaces the lot. See [docs/sources.md](docs/sources.md#gmss-is-estimated-end-to-end)
-    2. **confirm the counts that were not stated.** 8 turbo subs and 3 turbo tops are stated; the 2 middle subs
-       and 2 mid-bass cabinets are read off the photograph and are guesses
+    2. **confirm the counts that were not stated.** 8 turbo subs and 3 turbo tops are stated; the 3 middle subs
+       and 2 mid-bass cabinets are read off the photograph and are guesses. Only 6 of the 8 turbo subs are in the
+       photo, so `gmss-full-stack.yaml` builds six — where the other two go is unknown
     3. resolve what "USB" means in "USB 2x 700rms mid bass", and the two drivers' size
-    4. the tier heights in the middle of the stack, and whether the mid-bass cabinets really stand stacked. The
-       plinths visible under everything in the photo are not modelled because nothing is known about them
+    4. **whether the third middle sub really lies on its side** in the middle bay's second row. What the photo
+       shows there is a cross-braced horn mouth, wider than it is tall; a middle sub rolled a quarter turn fits
+       that shape, carries the 1.420 m tops row at 92% bearing and lands the tops 50 mm off level with the
+       columns — three things agreeing, but still a reading of a photograph rather than a fact. It could be a
+       cabinet type GMSS never listed. The low boxes under the middle bay are not modelled either
     5. the 9 m truss and the two 5.2 m towers — `category: truss` with subtype `straight`/`tower` already exists,
        and both numbers are stated, so this needs less invention than the cabinets did
     6. the 4 Martin MAC Performance 2 moving heads, as `category: other`. Real datasheet dimensions are published
@@ -123,3 +127,13 @@
     known to have two drivers of unknown size — `gmss-mid-bass`, from "USB 2x 700rms" — has to omit the whole
     `audio` block and put the count in its notes. Making `size_in` optional would let the schema hold what is
     actually known instead of forcing a choice between inventing a size and recording nothing
+22. **`scene:stack` spaces an aimed row on the cabinet's flat width and ignores the toe-in.** Every cabinet in an
+    aimed row toes in on the focus from its OWN position, so a row does not share one yaw — and two boxes at
+    different angles need about `depth x sin(yaw difference)` more room than two parallel ones. The solver gives
+    them the stack's plain `gap_m`, so a stack far enough off the centre line writes a scene whose own cabinets
+    overlap: `both-systems-per-owner-center.yaml`'s GMSS stack sits 2.65 m out, its three tops toe in at 17.4,
+    14.8 and 12.25 degrees, and at `gap_m: 0.02` two of them were **22.8 mm inside each other**. Caught by the
+    overlap sweep in `ShippedScenesTest`, not by eye. That file carries a hand-edited `gap_m: 0.05` for the GMSS
+    stack, which regenerating it would undo. The fix is for the row spacing to account for the neighbour's yaw the
+    way `align` already accounts for a toed-in cabinet being wider across x than it is wide. It is not
+    GMSS-specific — any `--per-owner` or `--stacks=N` rig whose outer stacks sit far enough out can hit it

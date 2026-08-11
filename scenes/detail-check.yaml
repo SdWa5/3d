@@ -23,6 +23,30 @@ placements:
     device: eighteensound-2way-15
     at: [ 1.2, 0.0 ]
 
+  # The GMSS cabinets, to the right of our own with a wider break before them. They are `estimated` boxes rather
+  # than measured ones, so what this sheet shows for them is the reconstruction — which is worth being able to
+  # look at beside real cabinets, because that comparison is the quickest way to see whether an estimate is
+  # plausible at all. They are also the biggest things here: the middle sub is 1.350 m tall against a SKRAM's
+  # 0.914, and the spacing below is set from their widths rather than kept at the 1.0 m the others use.
+  - id: gmss-mid-bass
+    device: gmss-mid-bass
+    at: [ 2.2, 0.0 ]
+
+  - id: gmss-turbo-sub
+    device: gmss-turbo-sub
+    at: [ 3.2, 0.0 ]
+
+  - id: gmss-middle-sub
+    device: gmss-middle-sub
+    at: [ 4.2, 0.0 ]
+
+  - id: gmss-turbo-top
+    device: gmss-turbo-top
+    at: [ 5.1, 0.0 ]
+
 notes: |
   Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is
-  expected here.
+  expected here, and that it leans on un-measured cabinets, which is the four GMSS boxes.
+
+  One of every device in the repository, which is the whole point of the file: if a device exists and is not on
+  this sheet, the sheet is broken. All nine are here — five of ours, four of GMSS's.

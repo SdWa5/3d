@@ -32,7 +32,7 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `gmss-turbo-sub` | — (GMSS self-build) | — | A message from GMSS | Count 8 and 3000 W RMS. **Nothing else** |
 | | | | `GMSS.jpeg`, one site photo, no scale reference | The class — grille-fronted and taller than wide, **three** to an outer column, so six of the stated eight are in the photo |
 | `gmss-middle-sub` | — (GMSS self-build) | — | A message from GMSS | An 18″ driver and 1600 W RMS. The count is **not** stated |
-| | | | `GMSS.jpeg` | A fin-mouthed folded horn, and the tallest cabinet in the stack. Two side by side on the ground plus a third laid **on its side** across them, which is both the wide low shape the photo shows there and what carries the row of three tops — hence quantity 3, a count GMSS never gave |
+| | | | `GMSS.jpeg` | A fin-mouthed folded horn, and the tallest cabinet in the stack — about 1.4× a turbo sub's height. Two side by side on the ground plus a third laid **on its side** across them, which is both the wide low shape the photo shows there and what carries the row of three tops — hence quantity 3, a count GMSS never gave |
 | `gmss-mid-bass` | — (GMSS self-build) | — | A message from GMSS | Two drivers at 700 W RMS. Their size is not stated, nor is what "USB" refers to |
 | | | | `GMSS.jpeg` | The short wide box at the foot of each column, carrying the same recessed oval logo as the cabinets above it — so a cabinet and not a riser. The turbo subs stand on it |
 | `gmss-turbo-top` | — (GMSS self-build) | — | A message from GMSS | Count 3 and 2500 W RMS |
@@ -79,24 +79,34 @@ So the boxes are *reconstructions*, derived two ways and marked `provenance: est
 
 | Device | m | kg | Basis |
 |--------|---|----|-------|
-| `gmss-turbo-sub` | 0.800 × 0.950 × 0.900 | 84 | Logo anchor: ~780 × 960 at the near column's front face |
-| `gmss-middle-sub` | 0.900 × 1.350 × 1.100 | 125 | Logo anchor: ~455 px of height against an outer cabinet's 320 |
-| `gmss-mid-bass` | 0.900 × 0.600 × 0.850 | 68 | Mouth aspect ratio off the photo; wide enough to carry a column of turbo subs |
-| `gmss-turbo-top` | 0.460 × 1.150 × 0.700 | 70 | Height essentially the Turbosound TMS-4's published 1143 mm; width trimmed per the photo |
+| `gmss-turbo-sub` | 0.600 × 0.750 × 0.900 | 66 | Our measured `flexy-folded-horn-hybrid` (0.591 × 0.763 × 0.964), the same class of single-18″ folded horn |
+| `gmss-middle-sub` | 0.700 × 1.200 × 1.000 | 100 | ~1.4× a turbo sub's height, the ratio the photo shows; sits just above our SKRAM's 90 kg |
+| `gmss-mid-bass` | 0.700 × 0.500 × 0.700 | 53 | Shortest cabinet in the rig; as wide as the column of turbo subs standing on it |
+| `gmss-turbo-top` | 0.460 × 1.100 × 0.650 | 66 | A little under the Turbosound TMS-4's published 502 × 1143 × 730 and 74.8 kg |
 
 Weights are calculated rather than guessed, the same way the estimates above are: plywood skin area at 18 mm and
 ~680 kg/m³, plus internal panels, drivers and hardware.
 
-**The scale rests on one assumption, and it is worth stating on its own line.** There is no scale reference in the
-photograph, so the anchor is the blue illuminated logo on the sub faces, taken as a **~60 mm badge** measuring
-about 20 px — which puts a pixel at roughly 3 mm at the near column's front face. Every dimension above is
-downstream of that 60 mm. **One real measurement off any GMSS cabinet would correct the whole set in a single
-pass**, and until somebody takes one, that is the number to be sceptical of.
+**Absolute scale is the weak point, and it is not derived from the photograph.** There is no scale reference in the
+picture, so nothing in it can settle how big the cabinets are. An earlier pass tried: it read the blue illuminated
+logo on the sub faces as a ~60 mm badge, got roughly 3 mm per pixel, and produced the numbers in the row below.
+Standing that rig beside our own in `scenes/both-systems-side-by-side.yaml` showed it was much too big — fourteen
+GMSS cabinets made a wider *and* taller wall than our twenty-three, which is not credible. So the sizes now come
+from **comparison with cabinets somebody has actually measured**, chiefly the Flexy, and the whole set shrank:
 
-A first pass had these cabinets far smaller — the subs as 0.700 m near-cubes — which made the stack a 2.66 m
-narrow tower where the photograph shows a 3.46 m wide wall. Depths remain the least certain dimension of the
-three: the side faces are foreshortened past reading, so they are inferred from the cabinet class rather than
-measured off the photo at all.
+| Device | photo-derived (0.52–0.54) | measured-comparison (now) |
+|--------|---------------------------|---------------------------|
+| `gmss-turbo-sub` | 0.800 × 0.950 × 0.900, 84 kg | 0.600 × 0.750 × 0.900, 66 kg |
+| `gmss-middle-sub` | 0.900 × 1.350 × 1.100, 125 kg | 0.700 × 1.200 × 1.000, 100 kg |
+| `gmss-mid-bass` | 0.900 × 0.600 × 0.850, 68 kg | 0.700 × 0.500 × 0.700, 53 kg |
+| `gmss-turbo-top` | 0.460 × 1.150 × 0.700, 70 kg | 0.460 × 1.100 × 0.650, 66 kg |
+
+The turbo top barely moved, and that is the tell: it was the one cabinet whose size never came from the photograph
+in the first place — it came from the TMS-4's published figures. The stack went from 3.66 × 3.450 m to 2.86 × 3.000.
+
+**One real measurement off any GMSS cabinet would correct the whole set in a single pass.** Depths remain the least
+certain of the three axes either way: the side faces are foreshortened past reading, so they are inferred from the
+cabinet class rather than measured off the photo at all.
 
 **What is deliberately absent is as important as what is there.** No passbands, no crossover points, and no
 driver sizes except the middle sub's stated 18″ — those are the numbers this repository refuses to invent, so
