@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.40.1] - 2026-08-11
+
+### Fixed
+
+- **`scenes/full-rig-arc.yaml` stood four Achenbachs where six are owned** — the one hand-written three-tier rig
+  0.40.0 missed, because it was the only one asking for the real count rather than over-claiming, and correcting
+  the spec turned that from right into short. It said so in three places too ("Four is what we own, so four is
+  what stands here"). All five hand-written rigs now stand six
+- Its notes pointed at `full-rig-all-speakers.yaml`, deleted several releases ago, and claimed that scene
+  refuses the SKRAMs — the solver finds a place for them
+
+### Changed
+
+- The Achenbach row in `full-rig-arc` goes from 2.460 m to 3.700 m, so it sits 27 mm proud of the 3.646 m sub
+  wall each side — the same 27 mm `full-rig-all-tops` carries, with the outer cabinet keeping 95.5 % of itself
+  on the wall. The arc above is untouched: the row's top face is 2.126 m whether four or six stand in it.
+  **Nothing warns about the overhang**, and the file now says why — the support check belongs to `stack:`, and a
+  hand-written row is never support-checked; `ShippedScenesTest`'s bearing sweep is what covers it
+
 ## [0.40.0] - 2026-08-11
 
 ### Added

@@ -11,12 +11,17 @@
 # WHAT IS UNDER AND BESIDE THE ARC:
 #
 #   sub wall        12 Flexys, two rows of six          3.646 m wide, 1.526 m tall
-#   achenbach row   4 on top of the wall                lifts the arc's bottom edge to 2.126 m
+#   achenbach row   6 on top of the wall                lifts the arc's bottom edge to 2.126 m
 #   tops            3 M2122s in the fan                 aimed long
 #   side-fills      2 18sound 2-ways beside the fan     same row as the tops, same focus
 #
 # The Achenbach row is what earns its place: without it the arc's bottom edge sits at 1.526 m and the tops
-# fire into the crowd. Four of them — the number that exists — reach 2.126 m, which clears head height.
+# fire into the crowd. One row of them reaches 2.126 m, which clears head height — and the height is the same
+# whether four or six stand there, since a row is a row. Six is the whole holding, so six stand here, and at
+# 3.700 m the row is 27 mm proud of the 3.646 m wall under it — the same 27 mm full-rig-all-tops carries, and
+# what feet and working gaps absorb. Nothing warns: the overhang check belongs to `stack:`, which solves its
+# own tiers, and a hand-written row like this one is never support-checked. The bearing sweep in
+# ShippedScenesTest is what actually covers it — the outer Achenbach keeps 95% of itself on the wall.
 #
 # NO SKRAMS. They were in the bottom row of this scene and they had to come out. A SKRAM is 0.914 m tall
 # against a Flexy's 0.763, so a row containing both has two top faces: the row above rested on the SKRAMs and
@@ -47,13 +52,13 @@ placements:
       count: 6
       gap_m: 0.02
 
-  # The 18" row that gets the arc above head height. Four is what we own, so four is what stands here.
+  # The 18" row that gets the arc above head height. Six is what we own, so six is what stands here.
   - id: achenbach-row
     device: achenbach-18
     on: sub-row-top
     at: [-0.302, 0.0]
     row:
-      count: 4
+      count: 6
       gap_m: 0.02
 
   # Fronts fanning outward, back edges meeting. `mode` has no default on purpose: an arc bent the wrong
@@ -96,8 +101,8 @@ notes: |
   `radius_m` states the arc the front faces sit on instead — and note that for a convex arc a *larger*
   radius is a *flatter* fan, so it is bounded above rather than below.
 
-  Compare full-rig-all-speakers.yaml: the same 23 cabinets solved from constraints rather than arranged by
-  hand. It reaches the same conclusion about the SKRAMs — middle of the bottom row — from the geometry
-  alone, and its Flexys end up in three tiers rather than two.
+  Compare stacked-6-achenbach-center.yaml: the same cabinets solved from constraints rather than arranged by
+  hand. It reaches the opposite conclusion about the SKRAMs — it finds a place for them, in the middle of the
+  bottom row, from the geometry alone — and its Flexys end up in three tiers rather than two.
 
   Mixes owners — the Achenbachs and the 2-ways are Sepp's — which `scene:build` reports.

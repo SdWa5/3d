@@ -15,7 +15,7 @@ use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('sdwa5-3d', '0.40.0'); # todo dynamically get version from composer.json
+$app = new Application('sdwa5-3d', '0.40.1'); # todo dynamically get version from composer.json
 $app->addCommands([
         new SpecsValidateCommand(),
         new ModelsBuildCommand(),
