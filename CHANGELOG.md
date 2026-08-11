@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.56.0] - 2026-08-11
+
+### Fixed
+
+- **`both-systems-per-owner-center.yaml` was the one scene 0.55.0's rescale did not fully reach.** Its cabinets were
+  right — a `stack:` block is re-solved on every build, so the rig always follows the current specs — but two things
+  around it were not:
+  - its **baked `at:` positions** were computed when the GMSS stacks were wider, so the 0.5 m clearance the
+    generator intended had quietly become more than that
+  - its **comment table still described the pre-rescale solve**: rows of 3.26 m that now build as 2.55, and a
+    five-row GMSS stack that now builds as four
+- Regenerated, and generated with **`--gap=0.05`** rather than carrying a hand-edited gap for one stack. That
+  removes the hand edit 0.55.0 introduced, so the file is now internally consistent — its comments match what it
+  builds, and `scene:stack` can rewrite it without reintroducing an overlap. 7.96 × 1.06 m, 4.399 m tall
+- The aimed-row overlap recurred on regeneration at the new sizes — 16.2 mm between two GMSS tops — which is
+  TODO 22 confirmed live rather than anything new
+
+### Notes
+
+- **A generated scene's comment table goes stale while the scene itself stays correct**, because `scene:stack`
+  writes the row summary once and the compiler re-solves the block on every build. The rig is never wrong; the
+  documentation beside it can be, which is worse than none because it reads as authoritative. Filed as TODO 23
+- 0.55.0's note that this file "carries a hand-edited `gap_m: 0.05`" no longer applies — that is what this release
+  removes
+
 ## [0.55.0] - 2026-08-11
 
 ### Fixed

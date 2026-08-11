@@ -7,19 +7,20 @@
 #
 # main-sdwa5 — sdwa5, 17 cabinets in 4 rows:
 #
-#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
-#   2  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   3  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   4  3× tecnare-m2122                                                          1.54 m wide
+#   1  1× flexy-folded-horn-hybrid + 2× skram + 1× flexy-folded-horn-hybrid    2.552 m wide
+#   2  5× flexy-folded-horn-hybrid                                              3.155 m wide
+#   3  5× flexy-folded-horn-hybrid                                              3.155 m wide
+#   4  3× tecnare-m2122                                                           1.6 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
+#   * the 5× flexy-folded-horn-hybrid row is 3.155 m on a 2.552 m row, so it overhangs 302 mm each side
 #
 # main-sepp — sepp, 8 cabinets in 4 rows:
 #
-#   1  2× achenbach-18                                                           1.22 m wide
-#   2  2× achenbach-18                                                           1.22 m wide
-#   3  2× achenbach-18                                                           1.22 m wide
-#   4  2× eighteensound-2way-15                                                0.9512 m wide
+#   1  2× achenbach-18                                                           1.25 m wide
+#   2  2× achenbach-18                                                           1.25 m wide
+#   3  2× achenbach-18                                                           1.25 m wide
+#   4  2× eighteensound-2way-15                                                0.9812 m wide
 #
 # Subs reach 1.8 m against a 2.0 m interface. The stack is 2.636 m of cabinet.
 #   * the subs reach 1.800 m against the 2.000 m interface asked for, so the tops sit 200 mm lower than ideal —
@@ -27,13 +28,14 @@
 #
 # main-gmss — gmss, 16 cabinets in 5 rows:
 #
-#   1  4× gmss-turbo-sub                                                         3.26 m wide
-#   2  4× gmss-turbo-sub                                                         3.26 m wide
-#   3  3× gmss-middle-sub                                                        2.74 m wide
-#   4  2× gmss-mid-bass                                                          1.82 m wide
-#   5  3× gmss-turbo-top                                                         1.42 m wide
+#   1  4× gmss-turbo-sub                                                         2.55 m wide
+#   2  4× gmss-turbo-sub                                                         2.55 m wide
+#   3  3× gmss-middle-sub                                                         2.2 m wide
+#   4  2× gmss-mid-bass                                                          1.45 m wide
+#   5  3× gmss-turbo-top                                                         1.48 m wide
 #
-# Subs reach 3.85 m against a 2.0 m interface. The stack is 5.0 m of cabinet.
+# Subs reach 3.2 m against a 2.0 m interface. The stack is 4.3 m of cabinet.
+#   * the 3× gmss-turbo-top row is 1.480 m on a 1.450 m row, so it overhangs 15 mm each side
 #
 id: both-systems-per-owner-center
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -49,12 +51,12 @@ focus:
 placements:
   # sdwa5, 17 cabinets in 4 rows
   - id: main-sdwa5
-    at: [-3.042, 0.0]
+    at: [-2.702, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
       interface_height_m: 2.0
-      gap_m: 0.02
+      gap_m: 0.05
       from:
         - skram
         - flexy-folded-horn-hybrid
@@ -62,29 +64,23 @@ placements:
 
   # sepp, 8 cabinets in 4 rows
   - id: main-sepp
-    at: [-0.09, 0.0]
+    at: [0.0005, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
       interface_height_m: 2.0
-      gap_m: 0.02
+      gap_m: 0.05
       from:
         - achenbach-18
         - eighteensound-2way-15
 
   # gmss, 16 cabinets in 5 rows
   - id: main-gmss
-    at: [2.65, 0.0]
+    at: [2.4005, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7
       interface_height_m: 2.0
-      # 0.05 rather than the 0.02 the other two stacks use, and this is a HAND EDIT to a generated file.
-      # `scene:stack` wrote 0.02 and the result overlapped: this stack sits 2.65 m off the centre line, so its
-      # three aimed tops toe in on the focus at 17.4, 14.8 and 12.25 degrees — about 2.6 apart — and two boxes at
-      # different angles need roughly depth x sin(difference), so 0.70 x sin(2.6) = 32 mm, more than the 20 mm
-      # they were given. They bit 22.8 mm into each other. The solver spaces an aimed row on the cabinet's flat
-      # width and does not account for the toe-in at all; see TODO.md. Regenerating this file reintroduces it.
       gap_m: 0.05
       from:
         - gmss-turbo-sub

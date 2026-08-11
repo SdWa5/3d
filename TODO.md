@@ -131,9 +131,19 @@
     aimed row toes in on the focus from its OWN position, so a row does not share one yaw — and two boxes at
     different angles need about `depth x sin(yaw difference)` more room than two parallel ones. The solver gives
     them the stack's plain `gap_m`, so a stack far enough off the centre line writes a scene whose own cabinets
-    overlap: `both-systems-per-owner-center.yaml`'s GMSS stack sits 2.65 m out, its three tops toe in at 17.4,
-    14.8 and 12.25 degrees, and at `gap_m: 0.02` two of them were **22.8 mm inside each other**. Caught by the
-    overlap sweep in `ShippedScenesTest`, not by eye. That file carries a hand-edited `gap_m: 0.05` for the GMSS
-    stack, which regenerating it would undo. The fix is for the row spacing to account for the neighbour's yaw the
-    way `align` already accounts for a toed-in cabinet being wider across x than it is wide. It is not
-    GMSS-specific — any `--per-owner` or `--stacks=N` rig whose outer stacks sit far enough out can hit it
+    overlap: `both-systems-per-owner-center.yaml`'s GMSS stack sits 2.65 m out and its three aimed tops came out
+    **16.2 mm inside each other** at `gap_m: 0.02`. Caught by the overlap sweep in `ShippedScenesTest`, not by eye.
+    That scene is generated with `--gap=0.05` as a workaround, which is honest but blunt — it widens every gap in
+    every stack to fix a problem in one row of one of them. The fix is for the row spacing to account for the
+    neighbour's yaw the way `align` already accounts for a toed-in cabinet being wider across x than it is wide.
+    It is not GMSS-specific — any `--per-owner` or `--stacks=N` rig whose outer stacks sit far enough out can hit
+    it, and the wider the rig the worse it gets
+23. **a generated scene's comment table goes stale while the scene itself stays correct.** `scene:stack` writes a
+    row-by-row summary into the file as comments — "1  4x gmss-turbo-sub  2.55 m wide" — but the `stack:` block
+    below it is re-solved by the compiler on every build. So the picture always follows the current specs while the
+    comments describe the solve as it stood when the file was written. Rescaling the GMSS cabinets in 0.55.0 left
+    `both-systems-per-owner-center.yaml` claiming rows of 3.26 m that build as 2.55 m, and a five-row stack that
+    builds as four. Nothing is wrong with the rig; the documentation beside it is wrong, which is worse than no
+    documentation because it reads as authoritative. Options: regenerate the summary at build time, have
+    `scene:build` warn when a generated scene's comments disagree with what it just solved, or drop the table and
+    print it from `scene:build` instead. Regenerating the file by hand is the workaround today
