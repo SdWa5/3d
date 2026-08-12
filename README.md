@@ -89,6 +89,12 @@ theirs with a real datasheet — and [`specs/stands/`](specs/stands) the two Kra
 [`scenes/gmss-full-stack-truss.yaml`](scenes/gmss-full-stack-truss.yaml) hangs the fixtures under their 9 m truss and
 reports the bar total, **195.2 kg**, which is the number a truss's capacity is checked against.
 
+**Owner is not a constraint.** [`scenes/all-speakers-*.yaml`](scenes) deal both systems' 41 cabinets into one, two
+and three stacks regardless of whose they are, and [`scenes/everything.yaml`](scenes/everything.yaml) is the only
+place every device in the repository stands in one picture — 55 cabinets, 3237 kg, speakers under 10 m of truss with
+the lights hung, both scaffold towers and all three racks
+([docs/scenes.md](docs/scenes.md#all-speakers-owner-ignored)).
+
 ## Commands
 
 | Command          | Does                                                                                                                             |

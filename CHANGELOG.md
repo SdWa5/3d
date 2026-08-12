@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.62.0] - 2026-08-12
+
+### Added
+
+- **Four scenes dealing both systems' speakers into stacks with owner ignored** — the comparison the per-owner
+  scenes cannot make:
+  - `all-speakers-one-center` — 38 cabinets in one stack, 6.804 m tall
+  - `all-speakers-two-center` — 39 cabinets, everything in and asymmetric: 16 beside 23
+  - `all-speakers-two-matched-center` — a true 14 + 14 pair, at the cost of 13 cabinets
+  - `all-speakers-three-center` — 39 cabinets in three stacks, the widest of the set
+- **`scenes/everything.yaml`** — every device in the repository in one picture: the three-stack speakers, 10 m of
+  truss with all four MACs hung, both Gerüste and all three racks. 55 cabinets, 3237.5 kg, 15.50 × 2.16 m
+
+### Notes
+
+- **One stack is hand-written and the other three are generated**, because `scene:stack --stacks=1` refuses this
+  inventory at every width and — after 0.61.0 — that refusal is arithmetic, not a limitation. Three middle subs pin
+  a 1.825 m tier that no row count widens; the bearing rule caps everything above near 2.5 m; eight tops in one row
+  are 3.744 m and cannot be split. So the scene *states* which five tops go up and leaves the three Tecnares out.
+  Still solver-solved — a `stack:` block re-dealt every build — with a human choosing the list
+- **Two stacks cannot be symmetric here, so both answers ship.** I had this wrong when planning: I thought symmetry
+  cost 3 cabinets. It costs 13 — devices with two or three units are kept together because a lone cabinet cannot be
+  flanked, so a true pair drops every odd-quantity device including all the Tecnares and turbo tops, leaving 2 tops
+  for a 28-cabinet rig
+- **A new defect, found by the overlap sweep: aiming a mixed tops row places two cabinets coincident** — 391 mm
+  inside each other, exactly one turbo top's width, and a wider `gap_m` barely moves it so it is not toe-in. None of
+  these scenes aims its tops, and three carry a hand edit that regenerating would undo. `topRow()` builds the row
+  correctly; the fault is downstream in distributing an aimed mixed row. Filed as TODO 28
+- **A finding worth more than the scene: our 4 m crank stands cannot clear a combined rig.** Three stacks of 39
+  cabinets reach 4.085 m, so a truss at 4.000 m hung its MACs 285 mm inside stack 1. `everything.yaml` stands the
+  goalpost on GMSS's 5.2 m towers. The stands are fine for our own 3.125 m rig and not for both systems together.
+  Filed as TODO 29
+
+
 ## [0.61.0] - 2026-08-12
 
 ### Fixed

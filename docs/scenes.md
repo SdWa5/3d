@@ -1055,6 +1055,44 @@ elements grow *downwards* from their anchor, so anchoring one on the floor puts 
   be told to sit above the floor and still end up below it, so it is worth saying out loud rather than
   leaving to a render.
 
+## All speakers, owner ignored
+
+Four scenes deal both systems' cabinets into stacks without caring whose they are — the comparison the per-owner
+scenes cannot make:
+
+| scene | cabinets | what it is |
+|---|---|---|
+| `all-speakers-one-center` | 38 | one stack, 6.8 m tall. Hand-written — see below |
+| `all-speakers-two-center` | 39 | everything in, asymmetric: 16 cabinets beside 23 |
+| `all-speakers-two-matched-center` | 28 | a true pair, 14 + 14, at the cost of 13 cabinets |
+| `all-speakers-three-center` | 39 | three stacks, the widest of the set |
+
+**One stack is the only one written by hand, and not for want of trying.** `scene:stack --stacks=1` refuses this
+inventory at every width from 3.70 m to 10 m, and since the fill was fixed to size rows against their support that
+refusal is arithmetic rather than a limitation: three GMSS middle subs make a 1.825 m tier and there are only three
+of them, so no row count widens it; every tier above is bounded to two thirds of a cabinet's overhang by
+`Gravity::MIN_BEARING`, capping the stack's top near 2.5 m; and eight tops in one row are 3.744 m, with no second
+row available because nothing stands on a top. So the scene **states which five tops go up** and leaves the three
+Tecnares out. It is still solver-solved — a `stack:` block re-dealt on every build — with a human choosing the list.
+
+**Two stacks cannot be symmetric with this inventory, so both answers ship.** Devices with two or three units are
+kept together because a lone cabinet cannot be flanked, which piles them into one stack; forcing a true pair means
+dropping every odd-quantity device — 13 of 41, including all the Tecnares and turbo tops. Neither is better, which
+is why `stacked-two-center` and `stacked-two-flat-center` already coexist for the same reason.
+
+**None of these aims its tops.** Aiming a mixed tops row of more than a couple of device types places two cabinets
+391 mm inside each other — one turbo top's width — and a wider `gap_m` barely moves it, so it is not toe-in. The
+overlap sweep in `ShippedScenesTest` catches it; the aim is removed until the underlying fault is fixed.
+
+### everything.yaml
+
+`scenes/everything.yaml` is the only place every device in the repository stands in one picture: the three-stack
+speakers, 10 m of truss with all four MACs hung, both Gerüste and all three racks. 55 cabinets, 3237 kg.
+
+It also produced a fact worth having: **our 4 m crank stands cannot clear this rig.** Three stacks of 39 cabinets
+reach 4.085 m, so a truss at 4.000 m hangs its fixtures inside the stacks — the sweep caught a MAC 285 mm inside
+stack 1. The scene stands the goalpost on GMSS's 5.2 m towers instead.
+
 ## Truss over a rig
 
 `scenes/full-rig-truss.yaml` is `full-rig-arc` with a goalpost over it: 8 m of three-point truss on two 4 m
