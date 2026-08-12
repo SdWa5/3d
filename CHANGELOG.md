@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.65.0] - 2026-08-12
+
+### Added
+
+- **`scene:stack --mix=DEVICE:OTHER[,OTHER]`** — states a `mix_with` from the command line, and `StackSceneWriter`
+  now emits `mix_with` into the generated file. Both halves were missing: the code's own comment said "anything
+  wanting `count`, `align` or `mix_with` is edited into the written file afterwards", and a hand edit to a generated
+  scene is undone the next time the command writes it
+- **`scenes/all-speakers-three-low-center.yaml`** — all 41 speakers in three stacks with **every sub/top transition
+  under 3 m**: 1.363, 2.037 and 1.445 m
+
+### Notes
+
+- **What decides a stack's height is which device types are in it, not the stage width.** Each type costs at least one
+  row and the sub height is the sum of the rows, so a stack holding six sub types is six rows tall however wide the
+  stage. `scene:stack` splits by count and keeps small-quantity devices together, which lands one stack with most of
+  the types and makes it the tall one — and that split is the one thing `--from` cannot override, which is why the new
+  scene states its contents per stack
+- **The generated scenes are already at their floor.** 3.146 m for the three-stack and 4.359 m for the two-stack's
+  second stack are not settings: an interface target of zero — which makes the solver take the widest rows and so the
+  shortest stack — gives exactly the same, and six `--mix` combinations across two to five stacks and every width from
+  3.70 to 8 m gave the same or worse. `--mix` is still the right feature to have; it just does not move these
+- **A mix can make a stack taller**, which is worth knowing before reaching for it: a shorter stack makes the solver
+  narrow rows to get back above the interface target, so mixing with a 2.5 m target took the three-stack from 3.146 m
+  to 3.783. With the target at 2.0 the same mix gives 2.42
+- **A low rig and a truss over it are not both available with this much gear.** Two or three types per stack means
+  they stand side by side: 10.59 m across against the generated 6.77. Ten metres is every truss segment we own, so no
+  goalpost spans outboard of it — the Gerüst supports land inside a stack, which the overlap sweep caught. So
+  `everything.yaml` keeps the taller, narrower arrangement
+
+
 ## [0.64.0] - 2026-08-12
 
 ### Fixed

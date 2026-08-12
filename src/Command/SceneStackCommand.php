@@ -60,6 +60,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
+            ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
             ->addOption('stacks', null, InputOption::VALUE_REQUIRED, 'Split each group into this many stacks', '1')
             ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
@@ -369,13 +370,17 @@ final class SceneStackCommand extends BaseCommand
         // The widest top is the long throw; every narrower one is fill and is aimed at the near focus.
         $fills = $this->nearFieldFills($devices, $ids);
 
+        $mixes = $this->readMixes($input);
+
         return new Stack(
-            // Otherwise the shorthand form — one device id per entry. Anything wanting `count`, `align` or
-            // `mix_with` is edited into the written file afterwards.
+            // Otherwise the shorthand form — one device id per entry. Anything wanting `count` or `align` is edited
+            // into the written file afterwards; `mix_with` used to be too, and `--mix` exists because a hand edit to
+            // a generated scene is undone the next time this command writes it.
             from: array_map(
                 static fn (string $id): StackEntry => new StackEntry(
                     $id,
                     rollMirror: in_array($id, $turned, true) ? 90.0 : null,
+                    mixWith: $mixes[$id] ?? [],
                     aim: in_array($id, $fills, true) ? self::NEAR_FOCUS : null,
                 ),
                 $ids,
@@ -387,6 +392,33 @@ final class SceneStackCommand extends BaseCommand
             gapM: (float)$input->getOption('gap'),
             mirror: $mirror,
         );
+    }
+
+    /**
+     * `--mix=DEVICE:OTHER[,OTHER]` as a map of device id to the ids it shares a row with.
+     *
+     * The point of stating it on the command line rather than editing the written file is that a generated scene is
+     * re-solved on every build and rewritten whenever this command runs — a `mix_with` edited in by hand survives
+     * neither. And it is the one lever that lowers a stack: a mixed row is as tall as its tallest member, so merging
+     * a short device into a tall device's row removes the short one's row from the sum.
+     *
+     * @return array<string, list<string>>
+     */
+    private function readMixes(InputInterface $input): array
+    {
+        $mixes = [];
+        /** @var list<string> $stated */
+        $stated = $input->getOption('mix');
+        foreach ($stated as $pair) {
+            [$device, $others] = array_pad(explode(':', $pair, 2), 2, '');
+            $ids = array_values(array_filter(array_map('trim', explode(',', $others))));
+            if ($device === '' || $ids === []) {
+                continue;
+            }
+            $mixes[trim($device)] = [...($mixes[trim($device)] ?? []), ...$ids];
+        }
+
+        return $mixes;
     }
 
     /**

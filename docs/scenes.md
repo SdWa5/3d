@@ -1066,6 +1066,7 @@ scenes cannot make:
 | `all-speakers-two-center` | 41 | everything in, asymmetric: two stacks of unequal height |
 | `all-speakers-two-matched-center` | 28 | a true pair, 14 + 14, at the cost of 13 cabinets |
 | `all-speakers-three-center` | 39 | three stacks, the widest of the set |
+| `all-speakers-three-low-center` | 41 | three stacks, **every transition under 3 m** |
 
 **One stack needs a stated `mix_with`, and that is the only reason it is hand-written** — `--from` on the command
 line can only name devices, not say which of them share a row.
@@ -1111,7 +1112,19 @@ fewer cabinets in it, or wider rows; and wider rows are capped by the 1.825 m mi
 mixing it with a neighbouring device, which `mix_with` now does correctly — it took the one-stack transition from
 6.546 m to 4.163 m and let all 41 cabinets in.
 
-**It does not reach a 2–3 m band, and that part is arithmetic rather than a setting.** Each device type costs at least
+**A transition under 3 m needs the stack CONTENTS stated, which is what `all-speakers-three-low-center.yaml` does**
+— 1.363, 2.037 and 1.445 m across three stacks, with all 41 cabinets. Each device type costs at least one row, so a
+stack holding six sub types is six rows tall however wide the stage; giving each stack two or three types keeps all
+three low. That split is the one thing `scene:stack` decides for itself and `--from` cannot override, which is why the
+scene is hand-written. Its `from` lists are **widest-row-first**, which is load-bearing rather than cosmetic: the fill
+is bottom-up, so a wide row listed after a narrow one lands on top of it and fails the bearing check.
+
+The trade is width. Two or three types per stack means they stand side by side rather than piling up — 10.59 m across
+against the generated version's 6.77 — and ten metres is every truss segment we own, so no goalpost spans outboard of
+it. **A low rig and a truss over it are not both available with this much gear**, which is why `everything.yaml` keeps
+the taller, narrower arrangement.
+
+**The generated scenes do not reach the band, and that part is arithmetic rather than a setting.** Each device type costs at least
 one row, and a mixed row is as tall as its *tallest* member — so merging two types only buys height when it removes a
 row outright, which needs the whole flanking stock to fit in one row and the support cap decides that. A stack holding
 seven device types is about seven rows tall whatever the stage width.

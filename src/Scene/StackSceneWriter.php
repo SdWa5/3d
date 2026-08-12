@@ -83,7 +83,10 @@ final class StackSceneWriter
 
                 // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
                 $share = $count !== ($owned[$deviceId] ?? $count) ? $count : null;
-                if ($roll === null && $share === null && $block->stack->entryFor($deviceId)?->aim === null) {
+                // `mix_with` belongs in the same list as the roll and the share: it is part of what the solve
+                // decided, and a mix left out comes back as separate tiers — which is a taller stack, quietly.
+                $mixWith = $block->stack->entryFor($deviceId)?->mixWith ?? [];
+                if ($roll === null && $share === null && $mixWith === [] && $block->stack->entryFor($deviceId)?->aim === null) {
                     $lines[] = sprintf('        - %s', $deviceId);
                     continue;
                 }
@@ -94,6 +97,9 @@ final class StackSceneWriter
                 }
                 if ($roll !== null) {
                     $lines[] = sprintf('          roll_mirror: %s', self::number($roll));
+                }
+                if ($mixWith !== []) {
+                    $lines[] = sprintf('          mix_with: [ %s ]', implode(', ', $mixWith));
                 }
                 $aim = $block->stack->entryFor($deviceId)?->aim;
                 if ($aim !== null) {
