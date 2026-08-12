@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-08-12
+
+### Fixed
+
+- **A stated `mix_with` placed the flanking device's cabinets twice.** `fillWith()` iterated
+  `foreach ($remaining as [$device, $count])`, which destructures a snapshot taken before the first iteration — so a
+  mix that consumed the flanking device zeroed it in `$remaining` while the loop, still holding the stale count, dealt
+  the same cabinets again into rows of their own. **Eight GMSS turbo subs became sixteen out of a stock of eight**,
+  and `scene:build`'s over-use warning was the only thing downstream that noticed. The loop now iterates
+  `array_keys()` and re-reads each count
+- **And it took the whole flanking stock rather than what fits.** All eight either side of three middle subs is a
+  6.065 m row on a 5 m stage, so the mix meant to *widen* a narrow tier had the bounds check refuse the whole
+  arrangement instead. `statedMix()` now adds flankers in pairs while they fit the support and `$perRow` — which it
+  received all along and never used — and leaves the rest in `$remaining` for their own rows
+
+### Changed
+
+- **`all-speakers-one-center` now holds all 41 cabinets, up from 38**, and its sub/top transition drops from 6.546 m
+  to **4.163 m**. Stating `mix_with: [gmss-turbo-sub]` on the middle subs takes their tier from 1.825 m to 2.885 m;
+  every tier above widens with it — six turbo subs at 3.160, six Achenbachs at 3.700 — so the 3.744 m tops row is
+  carried and the three Tecnares no longer have to be left out. Nine tiers became seven
+- `all-speakers-two-center` also reaches all 41 cabinets with the same mixes stated, and drops the `gap_m: 0.05`
+  workaround: its tops are un-aimed, so it never needed the wider gap
+
+### Notes
+
+- **The 2–3 m band is still not reachable for every stack, and that is arithmetic rather than a setting.** Each device
+  type costs at least one row, and a mixed row is as tall as its *tallest* member — so merging two types only buys
+  height when it removes a row outright, which needs the whole flanking stock in one row and the support cap decides
+  that. A stack holding seven device types is about seven rows tall whatever the stage width, which is why
+  `all-speakers-two-center`'s second stack stays at 4.359 m
+- The `gap_m: 0.05` workaround matters more than it looks: on the one-stack scene it grew the eight-top row by 210 mm
+  and dropped the outer top's bearing to 33%, a hair under the third the checker requires. A workaround carried into a
+  scene that did not need it nearly refused it
+
+
 ## [0.63.0] - 2026-08-12
 
 ### Changed

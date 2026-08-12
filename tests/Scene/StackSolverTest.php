@@ -191,6 +191,52 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * A stated mix takes only as many flanking cabinets as fit, and consumes exactly those.
+     *
+     * Two bugs met in this one row, and both shipped rigs that could not be built:
+     *
+     * **The flanking stock was placed twice.** `fillWith()` iterated `foreach ($remaining as [$device, $count])`,
+     * which destructures a snapshot taken before the first iteration — so a mix that consumed the flanking device
+     * zeroed it in `$remaining` and the loop, still holding the stale count, dealt the same cabinets again into rows
+     * of their own. Eight GMSS turbo subs became sixteen out of a stock of eight, and only `scene:build`'s over-use
+     * warning noticed.
+     *
+     * **And it took the whole stock rather than what fits.** All eight either side of three middle subs is a 6.065 m
+     * row on a 5 m stage, so the mix meant to widen a narrow tier had the bounds check refuse the arrangement
+     * instead.
+     */
+    public function testAStatedMixTakesOnlyTheFlankersThatFitAndConsumesExactlyThose(): void
+    {
+        $result = StackSolver::solve(
+            [[$this->devices['flexy-folded-horn-hybrid'], 2], [$this->devices['achenbach-18'], 6]],
+            new Stack(
+                from: [
+                    new StackEntry('flexy-folded-horn-hybrid', mixWith: ['achenbach-18']),
+                    new StackEntry('achenbach-18'),
+                ],
+                maxWidthM: 2.50,
+                interfaceHeightM: 0.0,
+                gapM: 0.02,
+            ),
+        );
+
+        self::assertSame([], $result['problems'], 'the row has to fit the stage it is given');
+
+        // Every cabinet placed exactly once: 2 Flexys and 6 Achenbachs, never more.
+        $placed = [];
+        foreach ($result['tiers'] as $tier) {
+            foreach ($tier->seats(0.02) as [$device, $count]) {
+                $placed[$device->id] = ($placed[$device->id] ?? 0) + $count;
+            }
+        }
+        self::assertSame(2, $placed['flexy-folded-horn-hybrid'] ?? 0);
+        self::assertSame(6, $placed['achenbach-18'] ?? 0, 'the flanking stock is placed once, not twice');
+
+        // The mixed row fits, so the Achenbachs it could not take are still dealt their own rows.
+        self::assertGreaterThan(1, count($result['tiers']), 'the leftovers get rows of their own');
+    }
+
+    /**
      * Balanced, not greedy — and this is a support rule wearing arithmetic's clothes. Eight leftover Flexys
      * at six-per-row used to come out 6 + 2, and the 1.222 m row could not carry the 2.460 m Achenbach row
      * above it. As 4 + 4 at 2.444 m it can.

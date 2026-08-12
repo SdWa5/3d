@@ -171,11 +171,18 @@
     whether everything switches on at once
 28. **aiming a mixed tops row places two of them coincident.** With more than a couple of top device types in one
     row, `aim` puts two cabinets 391 mm inside each other — exactly one turbo top's width — and widening `gap_m`
-    barely moves it, so it is not the toe-in of item 22. Found by the overlap sweep on the new `all-speakers-*`
-    scenes, which is why **none of them aims its tops** and why three of them carry a hand edit that regenerating
-    would undo. `topRow()` is not the culprit: it builds the row correctly and the fault is downstream in how an
-    aimed mixed row is distributed, which is the same family as item 3 ("align cannot spread a mixed row")
+    barely moves it, so it is not the toe-in of item 22. Found by the overlap sweep on the `all-speakers-*` scenes,
+    which is why **none of them aims its tops** and why three carry a hand edit that regenerating would undo.
+    `topRow()` is not the culprit: it builds the row correctly and the fault is downstream in how an aimed mixed row
+    is distributed, which is the same family as item 3 ("align cannot spread a mixed row"). The `mix_with` half of
+    this item is FIXED in 0.64.0 — that was two separate bugs in `statedMix` and `fillWith`, not the aiming
 29. **our 4 m crank stands cannot clear a full three-stack rig.** All 39 speakers in three stacks reach 4.085 m, so
     a truss on `truss-tower-4m` sits below the tops of the rig it spans — the sweep caught a MAC hanging 285 mm
     inside a stack. `scenes/everything.yaml` uses GMSS's 5.2 m towers instead. Worth knowing before hiring a stage:
     the stands are fine for our own 3.125 m rig and not for a combined one
+30. **a stack holding many device types cannot reach a 2–3 m sub/top transition.** Each device type costs at least one
+    row, and a mixed row is as tall as its tallest member — so merging two types only buys height when it removes a
+    row outright, which needs the whole flanking stock to fit in one row and the support cap decides that. Seven types
+    is about seven rows whatever the stage width, which is why `all-speakers-two-center`'s second stack sits at
+    4.359 m and the one-stack scene at 4.163. Lowering it further means fewer cabinets per stack, not more mixes —
+    or a rule that lets a mixed row take its flankers from more than one device at a time

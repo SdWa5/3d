@@ -1062,12 +1062,20 @@ scenes cannot make:
 
 | scene | cabinets | what it is |
 |---|---|---|
-| `all-speakers-one-center` | 38 | one stack, 6.8 m tall. Hand-written — see below |
-| `all-speakers-two-center` | 39 | everything in, asymmetric: 16 cabinets beside 23 |
+| `all-speakers-one-center` | 41 | one stack, every cabinet. Hand-written — see below |
+| `all-speakers-two-center` | 41 | everything in, asymmetric: two stacks of unequal height |
 | `all-speakers-two-matched-center` | 28 | a true pair, 14 + 14, at the cost of 13 cabinets |
 | `all-speakers-three-center` | 39 | three stacks, the widest of the set |
 
-**One stack is the only one written by hand, and not for want of trying.** `scene:stack --stacks=1` refuses this
+**One stack needs a stated `mix_with`, and that is the only reason it is hand-written** — `--from` on the command
+line can only name devices, not say which of them share a row.
+
+Without the mix, three GMSS middle subs pin a 1.825 m tier that no row count widens; the bearing rule then caps
+everything above near 2.5 m, while all eight tops in one row are 3.744 m and cannot be split. `scene:stack --stacks=1`
+refuses it at every width from 3.70 m to 10 m. Mixing one turbo sub either side of the middle subs takes that tier to
+2.885 m and the whole stack widens with it — **nine tiers become seven and every cabinet goes in**.
+
+**The old text below is kept because the arithmetic still explains the shape of the answer:** `scene:stack --stacks=1` refuses this
 inventory at every width from 3.70 m to 10 m, and since the fill was fixed to size rows against their support that
 refusal is arithmetic rather than a limitation: three GMSS middle subs make a 1.825 m tier and there are only three
 of them, so no row count widens it; every tier above is bounded to two thirds of a cabinet's overhang by
@@ -1094,14 +1102,19 @@ Where that lands, and why not every stack can be in a 2–3 m band:
 | `all-speakers-two-matched-center` | 2.763 / 2.763 | in band |
 | `all-speakers-two-center` | 2.763 / **4.359** | one stack in band |
 | `all-speakers-three-center` | 3.146 / 3.122 / 3.146 | 122–146 mm over, and this is its floor |
-| `all-speakers-one-center` | **6.546** | 33 subs in one stack cannot be under 3 m |
+| `all-speakers-one-center` | **4.163** | 33 subs in one stack cannot be under 3 m |
 
 **A stack that is too tall cannot be brought down by width or by stack count.** More stacks does not help either:
 the devices with two or three units are kept together because a lone cabinet cannot be flanked, so one stack always
 inherits them and goes tall — at four stacks it is 3.722 m and at five, 4.833. The only things that lower a stack are
 fewer cabinets in it, or wider rows; and wider rows are capped by the 1.825 m middle-sub tier. Widening *that* means
-mixing it with a neighbouring device, which is the row the `mix_with` path currently over-fills — so the route to a
-2–3 m transition everywhere runs through that fix, not through the stage width.
+mixing it with a neighbouring device, which `mix_with` now does correctly — it took the one-stack transition from
+6.546 m to 4.163 m and let all 41 cabinets in.
+
+**It does not reach a 2–3 m band, and that part is arithmetic rather than a setting.** Each device type costs at least
+one row, and a mixed row is as tall as its *tallest* member — so merging two types only buys height when it removes a
+row outright, which needs the whole flanking stock to fit in one row and the support cap decides that. A stack holding
+seven device types is about seven rows tall whatever the stage width.
 
 **None of these aims its tops.** Aiming a mixed tops row of more than a couple of device types places two cabinets
 391 mm inside each other — one turbo top's width — and a wider `gap_m` barely moves it, so it is not toe-in. The

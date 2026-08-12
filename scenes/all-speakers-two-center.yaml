@@ -89,13 +89,14 @@ placements:
     stack:
       max_width_m: 5.0
       interface_height_m: 2.5
-      gap_m: 0.05
+      gap_m: 0.02
       mirror: true             # the mirror image of stack 1
       from:
         - device: flexy-folded-horn-hybrid
           count: 6
         - device: achenbach-18
           count: 3
+          mix_with: [ gmss-turbo-sub ]
         - device: gmss-turbo-sub
           count: 4
         - device: tecnare-m2122
@@ -111,17 +112,20 @@ placements:
     stack:
       max_width_m: 5.0
       interface_height_m: 2.5
-      gap_m: 0.05
+      gap_m: 0.02
       from:
         - skram
         - device: flexy-folded-horn-hybrid
           count: 6
         - device: achenbach-18
           count: 3
+          mix_with: [ gmss-turbo-sub ]
         - device: gmss-turbo-sub
           count: 4
-        - gmss-middle-sub
-        - gmss-mid-bass
+        - device: gmss-middle-sub
+          mix_with: [ gmss-turbo-sub ]
+        - device: gmss-mid-bass
+          mix_with: [ flexy-folded-horn-hybrid ]
         - device: tecnare-m2122
           count: 1
         - device: gmss-turbo-top

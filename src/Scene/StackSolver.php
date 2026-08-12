@@ -207,7 +207,13 @@ final class StackSolver
         // Subs stack; tops do not. A sub row carries the row above it, so running out of width means another
         // tier. Tops carry nothing and stand side by side on the sub stack — putting a 2-way *on* a Tecnare
         // is what produced a fill hovering over the middle of the rig, and it is not how anybody rigs a PA.
-        foreach ($remaining as $index => [$device, $count]) {
+        // Indices, not values. A stated mix consumes the cabinets of the device it flanks WITH as well as its own,
+        // so `$remaining` changes underneath this loop — and `foreach ($remaining as [$device, $count])` destructures
+        // a snapshot taken before the first iteration. That is what dealt eight GMSS turbo subs into a mixed row and
+        // then eight more into rows of their own, out of a stock of eight: the mix zeroed them, the stale count did
+        // not know, and `scene:build`'s over-use warning was the only thing downstream that noticed.
+        foreach (array_keys($remaining) as $index) {
+            [$device, $count] = $remaining[$index];
             if ($count < 1 || $device->subtype !== 'sub') {
                 continue;
             }
@@ -215,7 +221,7 @@ final class StackSolver
             // A tier that asked to share its row does so here, wherever it sits — mixing used to be the
             // bottom row's privilege alone, decided by a heuristic. `mix_with` names it outright, and the
             // same two gates still apply: matching heights, and the devices have to exist and be free.
-            $stated = self::statedMix($remaining, $index, $stack, $perRow);
+            $stated = self::statedMix($remaining, $index, $stack, $perRow, self::supportOf($tiers, $stack));
             if ($stated !== null) {
                 [$tiers[], $remaining] = $stated;
                 continue;
@@ -480,10 +486,13 @@ final class StackSolver
      * Heights need not match: a mixed row simply has an uneven top, and {@see Stack::runsFor} lands each
      * cabinet above it on whatever is actually under that cabinet.
      *
+     * Takes only as many flanking cabinets as fit the row, in pairs, and leaves the rest in `$remaining`. `$perRow`
+     * bounds the count and the support bounds the width, the same two limits an ordinary row answers to.
+     *
      * @param list<array{DeviceSpec, int}> $remaining
      * @return array{Tier, list<array{DeviceSpec, int}>}|null
      */
-    private static function statedMix(array $remaining, int $index, Stack $stack, int $perRow): ?array
+    private static function statedMix(array $remaining, int $index, Stack $stack, int $perRow, float $supportM = INF): ?array
     {
         [$device, $count] = $remaining[$index];
         $wanted = $stack->entryFor($device->id)?->mixWith ?? [];
@@ -504,24 +513,57 @@ final class StackSolver
             return null;
         }
 
-        // The named device in the middle, the rest split symmetrically around it — the same shape a mixed
-        // bottom row and a top row both take, because the biggest cluster belongs in the middle.
+        // AS MANY FLANKERS AS FIT, IN PAIRS — not the whole stock. Taking every cabinet of the flanking device put
+        // all eight GMSS turbo subs either side of three middle subs and made a 6.065 m row on a 5 m stage, which
+        // the bounds check then refused; the mix that was supposed to widen a narrow tier killed the whole
+        // arrangement instead. Pairs, because a row with one more cabinet on the left than the right is not the
+        // symmetric shape this is for, and whatever does not fit stays in `$remaining` for its own rows.
+        $roll = self::rollFor($device, $stack);
+        $gap = $stack->gapM;
+        $budget = self::ceilingFor($device, $stack, $roll, $supportM) ?? INF;
+
+        $rowWidth = $count * RolledBox::widthOf($device, $roll) + ($count - 1) * $gap;
+        $rowCount = $count;
+        $used = [];
+
+        $added = true;
+        while ($added) {
+            $added = false;
+            foreach ($segments as $other => [$otherDevice, $otherCount]) {
+                $taken = $used[$other] ?? 0;
+                if ($otherCount - $taken < 2 || $rowCount + 2 > $perRow) {
+                    continue;
+                }
+                $width = $rowWidth + 2 * (RolledBox::widthOf($otherDevice, self::rollFor($otherDevice, $stack)) + $gap);
+                if ($width > $budget + self::EPSILON_M) {
+                    continue;
+                }
+                $used[$other] = $taken + 2;
+                $rowWidth = $width;
+                $rowCount += 2;
+                $added = true;
+            }
+        }
+
+        // Nothing fitted, so this is not a mixed row at all — hand the device back and let the ordinary path deal
+        // it. Emitting a "mix" of one segment would be a row with a misleading label and no flanks.
+        if ($used === []) {
+            return null;
+        }
+
         $left = [];
         $right = [];
-        foreach ($segments as $other => [$otherDevice, $otherCount]) {
-            $share = intdiv($otherCount, 2) + ($otherCount % 2);
-            if ($share > 0) {
-                $left[] = [$otherDevice, $share, self::rollFor($otherDevice, $stack)];
-            }
-            if ($otherCount - $share > 0) {
-                $right[] = [$otherDevice, $otherCount - $share, self::rollFor($otherDevice, $stack)];
-            }
-            $remaining[$other] = [$otherDevice, 0];
+        foreach ($used as $other => $take) {
+            $otherDevice = $segments[$other][0];
+            $half = intdiv($take, 2);
+            $left[] = [$otherDevice, $half, self::rollFor($otherDevice, $stack)];
+            $right[] = [$otherDevice, $half, self::rollFor($otherDevice, $stack)];
+            $remaining[$other] = [$otherDevice, $segments[$other][1] - $take];
         }
         $remaining[$index] = [$device, 0];
 
         return [
-            new Tier([...array_reverse($left), [$device, $count, self::rollFor($device, $stack)], ...$right]),
+            new Tier([...array_reverse($left), [$device, $count, $roll], ...$right]),
             $remaining,
         ];
     }
