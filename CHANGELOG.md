@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.61.0] - 2026-08-12
+
+### Fixed
+
+- **The stack fill proposed rows its own checker rejects.** `StackChecks::bearingProblems` requires every cabinet to
+  keep `Gravity::MIN_BEARING` — a third of its width — on what carries it, while `StackSolver::fillWith()` sized each
+  row from `perRow` and `max_width_m` and knew nothing about the tier below it. `perRow` is a **count, not a width**:
+  six Achenbachs at 0.600 m is 3.700 m where four Flexys at 0.591 m is 2.424 m. With five device types that never
+  bit; with nine it does, and `scene:stack` reported "no workable arrangement" for rows it had generated itself
+- A row is now sized against the tier carrying it. The bound is `MIN_BEARING` rearranged rather than a new rule:
+  `rowWidth ≤ S + (4/3)·w`, two thirds of a cabinet past the support each side, which is exactly the overhang the
+  checker already permits. Capping harder would refuse rigs this repository ships — `full-rig-arc`'s Achenbach row
+  stands 27 mm proud of its sub wall on purpose
+
+### Notes
+
+- **The stage still bounds the widening, and that ordering matters.** `rowSizeFor()` exists to widen a row rather
+  than strand a one-wide pillar, and bounding that loop by the *support* instead of the stage turned twelve Flexys
+  into six rows of two. A pillar is a worse failure than an overhang, so the support decides where a row starts and
+  the stage still decides how far it may widen
+- `ceilingFor()` returns `?float`, not `INF`. `perTier()` short-circuits on `null`, so handing it `INF` reached
+  `(int)floor(INF)` — undefined in PHP — and came out as a row of one: every tier a pillar, in a stack with no
+  stated width at all
+- No regressions: 612 green, and all eight scenes that re-solve a `stack:` block on every build still build
+- **One stack from all nine speaker types is still refused, and it is now provably impossible rather than a
+  solver limitation.** Three middle subs pin a 1.825 m waist, so with the bearing rule nothing above it can exceed
+  about 2.5 m — while eight tops in one row are 3.744 m, and tops cannot be split across rows. Every remaining
+  problem names a top. A scene that states which tops go up solves cleanly; see TODO
+
+
 ## [0.60.0] - 2026-08-12
 
 ### Added

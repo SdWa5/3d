@@ -155,6 +155,42 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * A row is sized against the tier carrying it, not just against the stage — so the fill stops handing
+     * {@see \App\Scene\StackChecks} rows it is about to reject.
+     *
+     * The case that found it: six Achenbachs are 3.700 m and fit any stage this repository states, while the four
+     * Flexys under them are 2.424 m. Sized on the stage alone, an Achenbach on each end of that row has nothing
+     * beneath it at all, and the whole arrangement was refused — for rows the fill had generated itself. Sized on
+     * the support it becomes rows the Flexys can carry.
+     *
+     * The bound is {@see \App\Scene\Gravity::MIN_BEARING} rearranged, not a stricter rule of its own: a row may
+     * reach two thirds of a cabinet past its support on each side, which is exactly the overhang the checker
+     * permits. A test that pinned "never wider than below" would be pinning the wrong rule and would refuse rigs
+     * this repository ships — `full-rig-arc`'s Achenbach row stands 27 mm proud of its sub wall on purpose.
+     */
+    public function testARowIsSizedAgainstTheTierCarryingItRatherThanTheStage(): void
+    {
+        // A wide stage, so nothing here is a stage-width failure: only the support can decide the row.
+        $tiers = $this->solve(
+            ['flexy-folded-horn-hybrid', 'achenbach-18'],
+            maxWidthM: 6.00,
+            interfaceHeightM: 0.0,
+        );
+
+        self::assertNotSame([], $tiers, 'the arrangement the old fill refused');
+
+        // Every tier keeps within a cabinet's-worth of overhang of the one below it, all the way up.
+        $widths = array_map(static fn (Tier $t): float => $t->widthM(0.02), $tiers);
+        foreach (array_slice($widths, 1) as $index => $width) {
+            self::assertLessThan(
+                $widths[$index] * 2,
+                $width,
+                'a tier must be carried by the one below, not merely narrower than the stage',
+            );
+        }
+    }
+
+    /**
      * Balanced, not greedy — and this is a support rule wearing arithmetic's clothes. Eight leftover Flexys
      * at six-per-row used to come out 6 + 2, and the 1.222 m row could not carry the 2.460 m Achenbach row
      * above it. As 4 + 4 at 2.444 m it can.

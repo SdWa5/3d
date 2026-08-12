@@ -33,6 +33,21 @@ final class StackSolver
     /** Float slack when comparing a fit — a micrometre, far below anything a cabinet is measured to. */
     private const EPSILON_M = 1e-9;
 
+    /**
+     * How far a row may reach past the tier carrying it, as a multiple of one cabinet's width.
+     *
+     * **Derived from {@see Gravity::MIN_BEARING}, not chosen.** A row of `n` cabinets of width `w` centred on a
+     * support `S` wide puts its outer cabinet's inner edge at `rowHalf − w`. That cabinet keeps a third of itself
+     * on the support while `S/2 − (rowHalf − w) ≥ w/3`, which rearranges to `rowWidth ≤ S + (4/3)·w` — two thirds
+     * of a cabinet hanging off each end.
+     *
+     * So this is the *checker's* rule expressed as a width the fill can size a row against, and it is deliberately
+     * no stricter. {@see StackChecks::bearingProblems} enforces the same bound afterwards; a fill capped harder
+     * than that would refuse rigs the repository already ships, and one capped softer hands the checker rows it is
+     * about to reject — which is exactly the bug this exists to fix.
+     */
+    private const OVERHANG_PER_SIDE = 2 / 3;
+
 
     /**
      * @param list<array{DeviceSpec, int}> $inventory device and how many of it, low frequency first
@@ -219,7 +234,7 @@ final class StackSolver
             }
 
             $roll = self::rollFor($device, $stack);
-            $perTier = self::rowSizeFor($device, $count, $stack, $perRow, $roll);
+            $perTier = self::rowSizeFor($device, $count, $stack, $perRow, $roll, self::supportOf($tiers, $stack));
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
             $rows = (int)ceil($count / $perTier);
@@ -855,23 +870,76 @@ final class StackSolver
      * exceed `max_width_m`, and a device with fewer than two cabinets is left alone because a single cabinet *is*
      * a single column and there is nothing else it could be.
      */
-    private static function rowSizeFor(DeviceSpec $device, int $count, Stack $stack, int $perRow, float $roll): int
-    {
-        $byWidth = self::perTier($device, $stack->maxWidthM, $stack->gapM, $roll);
-        $perTier = min($perRow, $byWidth);
+    private static function rowSizeFor(
+        DeviceSpec $device,
+        int $count,
+        Stack $stack,
+        int $perRow,
+        float $roll,
+        float $supportM = INF,
+    ): int {
+        // Two ceilings, and which one bounds what matters. The SUPPORT decides how wide a row starts, so the fill
+        // stops handing {@see StackChecks} rows it is about to reject. The STAGE still bounds the widening below,
+        // because a pillar is a worse failure than an overhang — the rule this method already existed for — and a
+        // row narrowed to one cabinet by its support is exactly the pillar it is meant to avoid.
+        $byStage = self::perTier($device, $stack->maxWidthM, $stack->gapM, $roll);
+        $bySupport = self::perTier($device, self::ceilingFor($device, $stack, $roll, $supportM), $stack->gapM, $roll);
+        $perTier = min($perRow, $bySupport);
 
         if ($count < 2 || $perTier >= $count) {
             return $perTier;
         }
 
         // Widen only while the balanced split would still strand a row of one.
-        for ($size = $perTier; $size <= min($count, $byWidth); ++$size) {
+        for ($size = $perTier; $size <= min($count, $byStage); ++$size) {
             if (!in_array(1, self::share($count, (int)ceil($count / $size)), true)) {
                 return $size;
             }
         }
 
         return $perTier;
+    }
+
+    /**
+     * The widest a row of this device may be: the stated stage width, and what the tier below can carry.
+     *
+     * The second half is the fix for rows the fill used to hand its own checker to reject. Six Achenbachs are
+     * 3.700 m and fit any stage this repository states; four Flexys under them are 2.424 m, and an Achenbach on the
+     * end of that row has nothing beneath it at all. Capping by the support turns one six-wide row into rows the
+     * tier below can actually carry.
+     *
+     * `INF` support means the bottom tier, where only the stage width applies — there is nothing under it but floor,
+     * and floor carries anything.
+     *
+     * Returns `null` for "no bound at all", which is what {@see perTier} understands. Handing it `INF` instead casts
+     * to `(int)floor(INF)` in there, which is undefined in PHP and came out as a row of one — every tier a pillar,
+     * from a stack with no stated width at all.
+     */
+    private static function ceilingFor(DeviceSpec $device, Stack $stack, float $roll, float $supportM): ?float
+    {
+        if (is_infinite($supportM)) {
+            return $stack->maxWidthM;
+        }
+
+        $allowed = $supportM + 2 * self::OVERHANG_PER_SIDE * RolledBox::widthOf($device, $roll);
+
+        return $stack->maxWidthM === null ? $allowed : min($allowed, $stack->maxWidthM);
+    }
+
+    /**
+     * How wide the tier a new row would stand on is, or `INF` when there is none yet.
+     *
+     * Reads the tiers already dealt rather than being threaded through every branch, because tiers arrive from four
+     * places — the mixed bottom row, a lift, a stated mix and a plain row — and the last one appended is the support
+     * whichever of them produced it. One question asked in one place cannot fall out of step with them.
+     *
+     * @param list<Tier> $tiers
+     */
+    private static function supportOf(array $tiers, Stack $stack): float
+    {
+        $last = end($tiers);
+
+        return $last === false ? INF : $last->widthM($stack->gapM);
     }
 
     /**
