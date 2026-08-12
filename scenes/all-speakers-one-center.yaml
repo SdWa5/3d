@@ -43,7 +43,7 @@ placements:
     at: [-0.302, 0.0]
     stack:
       max_width_m: 5.0
-      interface_height_m: 2.0
+      interface_height_m: 2.5
       gap_m: 0.05
       # Low frequency first, which is the fill order — the same order `scene:stack` derives for itself.
       from:

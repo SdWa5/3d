@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.63.0] - 2026-08-12
+
+### Changed
+
+- **All four all-speaker scenes state `interface_height_m: 2.5`** rather than 2.0, to bring the sub/top transition
+  towards a 2–3 m band. `all-speakers-two-center`'s first stack goes 2.163 → 2.763 m and
+  `all-speakers-two-matched-center` sits at 2.763 on both stacks
+- **`everything.yaml`'s truss now rests on the two Gerüste**, whose 5.000 m platforms are the tallest thing we own.
+  The GMSS towers still stand, outboard and carrying nothing, which is honest for a scene whose point is showing the
+  whole inventory — at 5.200 m they could take the truss instead
+
+### Notes
+
+- **Widening the stage does not move the sub/top transition at all**, which was the assumption behind this change and
+  is worth writing down: every width from 3.70 m to 8 m deals the same rows. What forces the row count is the cabinet
+  counts and the support cap, not the stage. `interface_height_m` is the only lever — it is a height the tops must
+  clear, and the solver picks the widest row that still reaches it
+- **Two stacks are still outside the band and cannot be brought in by width or stack count**:
+  `all-speakers-three-center` sits at 3.122–3.146 m, which is its floor, and `all-speakers-one-center` at 6.546 m —
+  33 subs in one stack need eight rows at the capped widths, so a 2–3 m transition there is arithmetic, not a setting
+- More stacks does not help: devices with two or three units are kept together because a lone cabinet cannot be
+  flanked, so one stack always inherits them and goes tall — 3.722 m at four stacks, 4.833 m at five
+- **The route to a 2–3 m transition everywhere runs through the mixed-row fix**, not the stage width: the only way to
+  widen rows is to widen the 1.825 m middle-sub tier, and that means mixing it with a neighbour — the path whose
+  `mix_with` fill currently over-fills a row. Filed with TODO 28
+
+
 ## [0.62.0] - 2026-08-12
 
 ### Added

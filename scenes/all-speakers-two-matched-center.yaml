@@ -13,7 +13,7 @@
 #   4  3× achenbach-18                                                            1.9 m wide
 #   5  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 2.763 m against a 2.0 m interface. The stack is 3.599 m of cabinet.
+# Subs reach 2.763 m against a 2.5 m interface. The stack is 3.599 m of cabinet.
 #   * the 4× gmss-turbo-sub row is 2.190 m on a 1.873 m row, so it overhangs 158 mm each side
 #
 # main-2 — 2, 14 cabinets in 5 rows:
@@ -24,7 +24,7 @@
 #   4  3× achenbach-18                                                            1.9 m wide
 #   5  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 2.763 m against a 2.0 m interface. The stack is 3.599 m of cabinet.
+# Subs reach 2.763 m against a 2.5 m interface. The stack is 3.599 m of cabinet.
 #   * the 4× gmss-turbo-sub row is 2.190 m on a 1.873 m row, so it overhangs 158 mm each side
 #
 #
@@ -34,6 +34,11 @@
 # barely moves it because it is not toe-in. Un-aimed the row is correct and the overlap sweep in ShippedScenesTest
 # passes. The defect is pre-existing and in the aiming of a mixed row, not in the fill; regenerating this file
 # reintroduces it. See TODO.md.
+#
+# `interface_height_m` IS 2.5 RATHER THAN 2.0, and it is the only lever that moves the sub/top transition. Widening
+# the stage does nothing at all — every width from 3.70 m to 8 m gives the same rows, because what forces the row
+# count is the cabinet counts and the support cap, not the stage. The interface is a height the tops must CLEAR, and
+# the solver picks the widest row that still reaches it, so raising it raises the transition.
 #
 id: all-speakers-two-matched-center
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -51,8 +56,8 @@ placements:
   - id: main-1
     at: [-1.647, 0.0]
     stack:
-      max_width_m: 3.7
-      interface_height_m: 2.0
+      max_width_m: 5.0
+      interface_height_m: 2.5
       gap_m: 0.05
       mirror: true             # the mirror image of stack 1
       from:
@@ -69,8 +74,8 @@ placements:
   - id: main-2
     at: [1.043, 0.0]
     stack:
-      max_width_m: 3.7
-      interface_height_m: 2.0
+      max_width_m: 5.0
+      interface_height_m: 2.5
       gap_m: 0.05
       from:
         - device: flexy-folded-horn-hybrid

@@ -1080,6 +1080,29 @@ kept together because a lone cabinet cannot be flanked, which piles them into on
 dropping every odd-quantity device — 13 of 41, including all the Tecnares and turbo tops. Neither is better, which
 is why `stacked-two-center` and `stacked-two-flat-center` already coexist for the same reason.
 
+### The sub/top transition, and what actually moves it
+
+**Widening the stage does not move it at all.** Every width from 3.70 m to 8 m deals the same rows, because what
+forces the row count is the cabinet counts and the support cap — not the stage. The lever is `interface_height_m`:
+it is a height the tops must *clear*, and the solver picks the widest row that still reaches it, so raising it raises
+the transition. All four scenes now state 2.5 m rather than 2.0.
+
+Where that lands, and why not every stack can be in a 2–3 m band:
+
+| scene | sub/top transition | |
+|---|---|---|
+| `all-speakers-two-matched-center` | 2.763 / 2.763 | in band |
+| `all-speakers-two-center` | 2.763 / **4.359** | one stack in band |
+| `all-speakers-three-center` | 3.146 / 3.122 / 3.146 | 122–146 mm over, and this is its floor |
+| `all-speakers-one-center` | **6.546** | 33 subs in one stack cannot be under 3 m |
+
+**A stack that is too tall cannot be brought down by width or by stack count.** More stacks does not help either:
+the devices with two or three units are kept together because a lone cabinet cannot be flanked, so one stack always
+inherits them and goes tall — at four stacks it is 3.722 m and at five, 4.833. The only things that lower a stack are
+fewer cabinets in it, or wider rows; and wider rows are capped by the 1.825 m middle-sub tier. Widening *that* means
+mixing it with a neighbouring device, which is the row the `mix_with` path currently over-fills — so the route to a
+2–3 m transition everywhere runs through that fix, not through the stage width.
+
 **None of these aims its tops.** Aiming a mixed tops row of more than a couple of device types places two cabinets
 391 mm inside each other — one turbo top's width — and a wider `gap_m` barely moves it, so it is not toe-in. The
 overlap sweep in `ShippedScenesTest` catches it; the aim is removed until the underlying fault is fixed.

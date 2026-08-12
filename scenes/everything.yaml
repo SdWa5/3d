@@ -15,9 +15,9 @@
 #
 # EVERY POSITION OUTSIDE THE STACKS IS COPIED FROM A SCENE THAT ALREADY PROVED IT, rather than derived again:
 #
-#   truss and towers   `full-rig-truss.yaml` — but on GMSS's 5.2 m towers, because ours cannot clear this rig
+#   the truss          `full-rig-truss.yaml`, but carried by the GERÜSTE — ours cannot clear this rig, see below
 #   the lights         `gmss-full-stack-truss.yaml` — `roll_deg: 180`, and `fly.height_m` is the fixture's TOP
-#   the Gerüste        `full-rig-truss.yaml` — outboard of the goalpost, platform at 5.000 m
+#   the Gerüste        moved under the truss ends, because their 5.000 m platforms are what can carry it
 #   the racks          `full-rig-truss.yaml` — behind the wall, 43 mm off its back face
 #
 # WHAT IS DIFFERENT HERE, and both differences are the rig's size rather than choices. The stacks are 6.77 m across
@@ -41,7 +41,7 @@ placements:
     at: [-2.9355, 0.0]
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.0
+      interface_height_m: 2.5
       gap_m: 0.05
       mirror: true             # the mirror image of stack 1
       from:
@@ -65,7 +65,7 @@ placements:
     at: [-0.302, 0.0]
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.0
+      interface_height_m: 2.5
       gap_m: 0.05
       from:
         - skram
@@ -88,7 +88,7 @@ placements:
     at: [2.3315, 0.0]
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.0
+      interface_height_m: 2.5
       gap_m: 0.05
       from:
         - device: flexy-folded-horn-hybrid
@@ -110,23 +110,39 @@ placements:
   # Five 2 m segments — every one we own — so 10 m of span, with a tower under each end at 5 m either side of the
   # rig's centre line. `gap_m: 0.0` because truss bolts up flush.
   #
-  # GMSS'S 5.2 m TOWERS RATHER THAN OUR 4 m STANDS, and that is a finding rather than a preference: three stacks of
-  # all 39 cabinets reach 4.085 m, so a truss on our 4 m crank stands sits BELOW the tops of the rig it is supposed
-  # to span — the overlap sweep caught a MAC hanging 285 mm inside stack 1. Our stands cannot clear this rig. GMSS's
-  # towers can, at 5.200 m, which leaves the fixtures 302 mm above the tallest cabinet.
+  # THE TRUSS RESTS ON THE TWO GERÜSTE, whose platforms are at 5.000 m — which is the neatest answer to a problem
+  # this scene turned up. Three stacks of all 39 cabinets reach 4.106 m, so a truss on our 4 m crank stands sits
+  # BELOW the tops of the rig it spans: the overlap sweep caught a MAC hanging 285 mm inside stack 1. The scaffold
+  # towers are the tallest thing we own and they are already in the scene, so they carry it. Nothing was bought and
+  # nothing was invented — the Gerüste simply moved to where the span needs support.
+  #
+  # `fly` rather than `on:`, for the reason `full-rig-truss.yaml` gives: `on:` would claim the truss stands on ONE
+  # named Gerüst, where it spans between two.
+  #
+  # THE GMSS TOWERS STILL STAND, outboard of the Gerüste. They are not carrying anything here and that is honest for
+  # a scene whose whole point is showing everything we own: at 5.200 m they could take the truss instead, and the
+  # Gerüste would then be work platforms rather than structure.
+  - id: geruest-left
+    device: geruest-krause-ah7
+    at: [ -5.302, 0.0 ]
+
+  - id: geruest-right
+    device: geruest-krause-ah7
+    at: [ 4.698, 0.0 ]
+
   - id: tower-left
     device: gmss-tower-5m
-    at: [ -5.302, 0.0 ]
+    at: [ -7.302, 0.0 ]
 
   - id: tower-right
     device: gmss-tower-5m
-    at: [ 4.698, 0.0 ]
+    at: [ 6.698, 0.0 ]
 
   - id: truss
     device: truss-f33-2m
     at: [ -0.302, 0.0 ]
     fly:
-      height_m: 5.200
+      height_m: 5.000
     row:
       count: 5
       gap_m: 0.0
@@ -138,21 +154,11 @@ placements:
     at: [ -0.302, 0.0 ]
     roll_deg: 180
     fly:
-      height_m: 5.130
+      height_m: 4.930
       id: truss
     row:
       count: 4
       gap_m: 1.800
-
-  # ─── THE SCAFFOLD TOWERS ──────────────────────────────────────────────────────────────────────────────────────
-  # Outboard of the stands, platform at 5.000 m — above the truss at 4.000, so somebody up there looks down on it.
-  - id: geruest-left
-    device: geruest-krause-ah7
-    at: [ -7.302, 0.0 ]
-
-  - id: geruest-right
-    device: geruest-krause-ah7
-    at: [ 6.698, 0.0 ]
 
   # ─── THE RACKS ────────────────────────────────────────────────────────────────────────────────────────────────
   # Behind the stacks, where amp racks live: short speaker runs and out of the audience's way.

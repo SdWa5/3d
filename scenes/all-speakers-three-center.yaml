@@ -13,7 +13,7 @@
 #   4  1× gmss-turbo-sub + 1× gmss-middle-sub + 1× gmss-turbo-sub             1.715 m wide
 #   5  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× gmss-turbo-top       1.4566 m wide
 #
-# Subs reach 3.146 m against a 2.0 m interface. The stack is 4.106 m of cabinet.
+# Subs reach 3.146 m against a 2.5 m interface. The stack is 4.106 m of cabinet.
 #   * gmss-turbo-sub: LEFT OUT, 2 of 8 — 3 stacks take 2 each, and an odd cabinet would make one stack a different
 #     rig from the others
 #   * the 1× gmss-turbo-sub + 1× gmss-middle-sub + 1× gmss-turbo-sub row is 1.715 m on a 1.250 m row, so it
@@ -27,7 +27,7 @@
 #   4  2× gmss-mid-bass                                                          1.24 m wide
 #   5  1× gmss-turbo-top + 1× tecnare-m2122                                    0.941 m wide
 #
-# Subs reach 3.122 m against a 2.0 m interface. The stack is 4.082 m of cabinet.
+# Subs reach 3.122 m against a 2.5 m interface. The stack is 4.082 m of cabinet.
 #   * gmss-turbo-sub: LEFT OUT, 2 of 8 — 3 stacks take 2 each, and an odd cabinet would make one stack a different
 #     rig from the others
 #
@@ -39,7 +39,7 @@
 #   4  1× gmss-turbo-sub + 1× gmss-middle-sub + 1× gmss-turbo-sub             1.715 m wide
 #   5  1× gmss-turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122       1.4566 m wide
 #
-# Subs reach 3.146 m against a 2.0 m interface. The stack is 4.106 m of cabinet.
+# Subs reach 3.146 m against a 2.5 m interface. The stack is 4.106 m of cabinet.
 #   * gmss-turbo-sub: LEFT OUT, 2 of 8 — 3 stacks take 2 each, and an odd cabinet would make one stack a different
 #     rig from the others
 #   * the 1× gmss-turbo-sub + 1× gmss-middle-sub + 1× gmss-turbo-sub row is 1.715 m on a 1.250 m row, so it
@@ -52,6 +52,11 @@
 # barely moves it because it is not toe-in. Un-aimed the row is correct and the overlap sweep in ShippedScenesTest
 # passes. The defect is pre-existing and in the aiming of a mixed row, not in the fill; regenerating this file
 # reintroduces it. See TODO.md.
+#
+# `interface_height_m` IS 2.5 RATHER THAN 2.0, and it is the only lever that moves the sub/top transition. Widening
+# the stage does nothing at all — every width from 3.70 m to 8 m gives the same rows, because what forces the row
+# count is the cabinet counts and the support cap, not the stage. The interface is a height the tops must CLEAR, and
+# the solver picks the widest row that still reaches it, so raising it raises the transition.
 #
 id: all-speakers-three-center
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -69,8 +74,8 @@ placements:
   - id: main-1
     at: [-2.9355, 0.0]
     stack:
-      max_width_m: 3.7
-      interface_height_m: 2.0
+      max_width_m: 5.0
+      interface_height_m: 2.5
       gap_m: 0.05
       mirror: true             # the mirror image of stack 1
       from:
@@ -93,8 +98,8 @@ placements:
   - id: main-2
     at: [-0.302, 0.0]
     stack:
-      max_width_m: 3.7
-      interface_height_m: 2.0
+      max_width_m: 5.0
+      interface_height_m: 2.5
       gap_m: 0.05
       from:
         - skram
@@ -116,8 +121,8 @@ placements:
   - id: main-3
     at: [2.3315, 0.0]
     stack:
-      max_width_m: 3.7
-      interface_height_m: 2.0
+      max_width_m: 5.0
+      interface_height_m: 2.5
       gap_m: 0.05
       from:
         - device: flexy-folded-horn-hybrid
