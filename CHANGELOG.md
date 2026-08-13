@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.71.3] - 2026-08-13
+
+### Changed
+
+- `TODO.md` GEO-3 carries the worked-out implementation recipe rather than only the diagnosis, since the mechanism it
+  needs already exists: `SceneCompiler::clearedOutside()` solves the identical shape for run-to-obstacle clearance, and
+  the within-run version is the same three lines with `Interpenetration::worst()` as the objective and `placedFor()`
+  materialising the copies. It records the guard to copy from `Alignment` — one plain row, nothing nested, two or more
+  copies, placement aimed — and the **no-op contract that the two reverted attempts this release lacked**: every one of
+  the 19 shipped scenes must come out byte-identical, because none of them contains an overlapping pair for the fix to
+  correct, so a regenerate followed by an empty `git diff` is the check that the change is safe before the refusal
+  count is even looked at
+
 ## [0.71.2] - 2026-08-13
 
 ### Changed

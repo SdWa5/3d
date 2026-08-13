@@ -101,6 +101,37 @@ the library, so the solve has to be a no-op wherever the nominal pitch already c
 another and the second row is placed against yawed cabinets; GEO-4 needs GEO-2. Fixing it is the one that unblocks two
 P1 rows.
 
+**The recipe, worked out and not yet applied.** `SceneCompiler::clearedOutside()` is the template — it solves exactly
+this shape of problem for the clearance between a run and *another placement*, and the within-run version is the same
+three lines against a different objective:
+
+```php
+$clearanceAt = fn (float $t): float => Interpenetration::worst(
+    $this->placedFor($placement, $device, self::scaledInX($copies, $t), $base, $target, $hangAim, $pitchDeg),
+)['separation'];
+
+// Already clear: left exactly alone, which is what keeps every shipped scene byte-identical.
+if ($clearanceAt(1.0) >= $stack->gapM - StepSolver::TOLERANCE_M) {
+    return $copies;
+}
+$t = StepSolver::solve($clearanceAt, $stack->gapM, 1.0, 1.0);
+```
+
+* `placedFor()` already materialises copies into `PlacedDevice`s for `spanOf()` and `clearanceOf()`, so the objective is
+  measured on the same geometry the scene ships rather than on a second opinion about it.
+* `Interpenetration::worst()` returns the worst separation across the placed set, which for one placement's copies is
+  the adjacent-pair question asked exactly once.
+* Scaling x by `t ≥ 1` is `Alignment`'s `block` mechanism, and the monotonicity argument in `StepSolver`'s header covers
+  it: spacing grows linearly while a yawed box grows by at most `R·Δ/D`, so clearance strictly increases for any focus
+  further away than the cabinet is large.
+* **Guard it as narrowly as `Alignment` guards itself**: one plain `row`, nothing nested, at least two copies, and the
+  placement aimed. An arc or a lattice owns its own spacing and scaling x would stretch the wrong level.
+
+**The contract that makes this verifiable, and the one the two reverted attempts lacked.** The 19 shipped scenes contain
+no overlapping pair, since `ShippedScenesTest` passes on them, so the no-op branch above must fire for every one of them.
+Regenerate and `git diff --stat` on `scenes/generated/` must come back empty. If a single file moves, the guard is wrong
+and the change is not ready. The by-type refusals are the other half: 12 today, and they should fall.
+
 #### GEO-4 — resolved extents, and the row that may not move
 
 Where: `Gravity::slidSeats()` (bounded by `Stack::$slideWithinM`), `Stack::spreadApart()`, `SceneCompiler`.
