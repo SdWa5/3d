@@ -42,7 +42,7 @@ row understands its support's plateau makes things worse, measured as 6 "nothing
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | Tops row stands on its support's **plateau** — the split is diagnosed and measured, and needs the clearance chain to cover a tops row on a tops row first | P1 | 3h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
-| GEO-5 | The **pyramid cap** does not reach `reserveLifts`, `statedMix` or the mixed bottom row | P2 | 1h 30m | 7 of 9 pyramid stacks still step outward (the V shape) | — | partial |
+| GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
@@ -273,6 +273,116 @@ speakers/. A rack needed no new geometry at all: a case is a box.
    not acted on:** it could mean each stand has a three-leg base, where the spec's comment describes a square
    1.499 × 1.499 m outrigger spread, or that we own three stands rather than two. The first reading fits where it sits;
    the second changes `truss-tower-4m`'s quantity. One answer settles it.
+
+## LOAD · transporters and packing
+
+**The gear side of this is finished and the vehicle side is empty.** Two transporters exist, one Stefan Ripper's and one
+Sepp Fronz's, and their make, model, internal load bay and legal payload are all unsourced — so every cabinet can be
+weighed and measured out of `specs/` today, and there is nothing to pack it into.
+
+| ID | Item | Prio | Effort | Buys | Needs | State |
+|----|------|------|--------|------|-------|-------|
+| LOAD-1 | Where a **vehicle** belongs in the schema — a transporter is not a speaker, and a load bay is not a bounding box | P2 | 1h 30m | — | decision | decision |
+| LOAD-2 | Specs for the **two transporters**, Stefan's and Sepp's — make, model, internal load bay and legal payload are all unsourced. Zulassungsbescheinigung for the payload, tape measure for the bay | P2 | phys | provenance for the only two objects a pack is ever checked against | LOAD-1 | open |
+| LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both — this is bin packing, so a named heuristic rather than an implied optimal solver | P3 | 6h | a load plan, which nothing produces today | LOAD-1, LOAD-2 | open |
+| LOAD-4 | **Report space and weight separately** — a pack can fit the bay and still be overloaded, and a payload overrun is a legal problem rather than an inconvenience | P3 | 2h | — | LOAD-3 | open |
+
+#### LOAD-1 — a vehicle is not a speaker
+
+Where: `src/Spec/Category.php`, `src/Spec/DeviceSpec.php`, `src/Spec/SpecValidator.php`, `docs/spec-format.md`.
+
+Three questions, and none of them is settled:
+
+1. **Does a transporter belong in `specs/` at all?** Every spec in there is a thing that gets built, placed in a scene
+   and exported as a `.glb`. A van is none of that. It is the container the rest goes into, so it may want its own
+   directory and its own loader rather than a sixth category beside speakers, truss, racks, stands and lighting.
+2. **If it is a category, which one?** `Category::Other` accepts any subtype and is the documented escape hatch, so
+   `other/vehicle` needs no schema change at all. A real `vehicle` case with `van`/`trailer` subtypes is the honest
+   version and costs a validator pass and a docs pass.
+3. **What is a load bay in schema terms?** `geometry.dimensions_m` is defined as the true outer bounding box, which for
+   a van is the wrong number entirely — what a pack reads is the **inside**: length, width, height at the wheel arches
+   and height at the door aperture, which is usually the binding one. That is a second dimension set on one device, and
+   the schema has nothing like it. Payload is the same shape of problem: `physical.weight_kg` is what the object weighs,
+   and a van also carries what it is *allowed* to weigh, which is a different field.
+
+Also part of the call: `owner`. The vans are personal property, and `owner` already carries `sdwa5`, `sepp` and `gmss`,
+so Sepp's is `sepp` and Stefan's is either `sdwa5` or a new personal value. CVR-3 is the same discriminator problem seen
+from the rig side.
+
+#### LOAD-2 — nothing about either vehicle is known
+
+Where: `specs/` (a new directory or category, per LOAD-1), and a row each in [docs/sources.md](docs/sources.md).
+
+**No dimension, payload or weight for either transporter may be invented, and that is not a style preference here.**
+Every number in this repository points at a row in `sources.md`, and the GMSS reconstruction is the worked example of
+what happens when it does not: a photograph got a cabinet's depth wrong by 205 mm and its weight by 139 kg, and the
+whole apparatus had to be thrown away when the builder finally stated his figures. A guessed payload is worse than that,
+because a wrong cabinet weight makes a bad render and a wrong payload makes an overloaded van.
+
+What is needed, per vehicle:
+
+1. **Make and model**, which pins the class and nothing else.
+2. **The legal payload**, from the **Zulassungsbescheinigung**. Field F.2 is the permitted gross weight and G is the kerb
+   weight, and the payload is the difference. That is the citable number, and it is stated on a document rather than
+   derived from a brochure figure for a different trim level.
+3. **The internal load bay**, with a tape measure. Length at the floor, width between the walls and width between the
+   wheel arches, height under the roof and height through the door aperture.
+4. Whether either vehicle has anything fixed in the bay that never comes out.
+
+Until those exist, `provenance` for both is `estimated` at best, and a pack that reports "it fits" is reporting nothing.
+
+#### LOAD-3 — packing, and what a heuristic can honestly claim
+
+Where: reads `DeviceSpec::$dimensions` and `physical.weight_kg` straight out of `SpecLoader`; `CatalogRenderer::summary()`
+already sums weight and volume across the library.
+
+**The gear side needs no new data.** Every spec carries `geometry.dimensions_m` and a required `physical.weight_kg`, and
+`bin/console catalog` already totals both — total weight, total volume and a per-owner weight and unit count. A packer
+reuses that loader and those totals wholesale; what it adds is the vehicle, an ordering and a fit test.
+
+**The catalog's volume total is not a packing figure.** It is the sum of bounding-box volumes times quantity, so it
+ignores that boxes do not tessellate, that a load bay has a fixed shape, and that a horn mouth is not a brick. It is a
+lower bound on the space needed and can never say a load fits. (`docs/catalog.md` as shipped also predates the GMSS
+rename — it still lists `gmss-turbo-sub` and `gmss-middle-sub` — so any total quoted from it wants a `catalog --write`
+first.)
+
+**3D bin packing is NP-hard, so what gets built is a heuristic with its ordering written down**, not a solver that
+claims an optimum. Heaviest and largest first into the deepest free space is the usual shape of it, and the ordering is
+part of the output so a load plan can be argued with. Two transporters make it a bin-packing problem with two bins of
+different sizes, which is the same heuristic run twice with a rule for which bin a device is offered to first.
+
+The constraints a naive box packer misses are the ones that decide whether a plan is usable:
+
+* **Heavy low.** A 220 kg wall bass or a 90 kg SKRAM goes on the floor. Nothing stacks on top of a cabinet it would
+  crush, and no cabinet is stacked higher than two people can lift it.
+* **What a cabinet can carry** is already modelled on the rig side, in `Stability` and the stack checks, and a load has
+  the same rule with a different ceiling.
+* **Irregular shapes.** A Tecnare top is a trapezoid, a Flexy is mostly folded horn, and the truss towers report the
+  mast's footprint rather than their unfolded outriggers, which
+  [docs/sources.md](docs/sources.md#the-towers-are-placeholders-and-look-it) calls the one number in those specs to be
+  careful with. A bounding box overstates some of these and understates none.
+* **Racks roll**, cabinets do not, and the two amp racks are already split by weight rather than by height at 69 kg
+  each.
+
+#### LOAD-4 — two constraints, two verdicts
+
+Where: report shaped like `CatalogRenderer::renderMarkdown()`; `SceneReport` is the precedent for naming every refusal
+rather than failing silently.
+
+**Space and weight are independent, and a pack can pass one while failing the other.** The output therefore has to state
+both outcomes separately, with the numbers behind each: cubic metres used against the bay, and kilogrammes against the
+payload from the Zulassungsbescheinigung. Reporting one figure, or a single pass/fail, hides exactly the case that
+matters — a load that fits the bay comfortably and is 300 kg over the axle.
+
+**An overrun on payload is a legal problem.** It is a fine, a liability question after an accident and a refused
+insurance claim, so it is reported as a refusal with the overrun in kilogrammes, never as a warning to be scrolled past.
+A space overrun is an inconvenience by comparison, and it is fixed by a second run.
+
+**How much the payload verdict can be trusted is bounded by SPEC-5.** No weight in the library is `measured` — the
+catalog reports 0 of 17 — and several are estimates by arithmetic or by the builder's own hedging, including the mid
+bass's 120 kg, which the cabinet's own volume argues against. So the report states the provenance of the weights it
+summed alongside the total, the same way the catalog flags what still needs the hanging scale. A payload check against
+994 kg of `estimated` GMSS cabinets is a planning aid, not a clearance.
 
 ## TOOL · tooling and CI
 

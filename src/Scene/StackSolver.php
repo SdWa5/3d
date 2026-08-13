@@ -295,7 +295,17 @@ final class StackSolver
             // A tier that asked to share its row does so here, wherever it sits — mixing used to be the
             // bottom row's privilege alone, decided by a heuristic. `mix_with` names it outright, and the
             // same two gates still apply: matching heights, and the devices have to exist and be free.
-            $stated = self::statedMix($remaining, $index, $stack, $perRow, self::supportOf($tiers, $stack));
+            // Capped like every other row-building path, which it was not: a stated `mix_with` built its row from the
+            // raw width and so could come out holding more cabinets than the row under it, which is the V the pyramid
+            // exists to forbid. {@see reserveLifts} cannot be capped the same way, because it reserves its flanks before
+            // any tier exists and {@see perRowCap} has nothing to measure against then.
+            $stated = self::statedMix(
+                $remaining,
+                $index,
+                $stack,
+                self::perRowCap($tiers, $stack, $perRow),
+                self::supportOf($tiers, $stack),
+            );
             if ($stated !== null) {
                 [$tiers[], $remaining] = $stated;
                 continue;

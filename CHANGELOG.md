@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.2] - 2026-08-13
+
+### Fixed
+
+- **A stated `mix_with` row is capped by the pyramid rule like every other row-building path**, which it was not: it built
+  its row from the raw width and could come out holding more cabinets than the row under it, which is the V the shape
+  exists to forbid. A verified no-op on the library, since no generated scene passes `--mix` and every scene file came out
+  byte-identical, so this closes a gap rather than changing a rig
+
+### Added
+
+- `TODO.md` gains a **`LOAD` group for the two transporters and packing**: where a vehicle belongs in the schema, specs
+  for Stefan's and Sepp's vans, a packer for the whole inventory or a stated subset across one van or both, and a report
+  that keeps space and weight separate. Nothing about either vehicle is sourced yet, and a load bay is the inside where
+  `geometry.dimensions_m` is an outer bounding box, so the schema question is marked as needing a decision
+
+### Notes
+
+- `reserveLifts` still escapes the pyramid cap and cannot be fixed the same way, because it reserves its flanks before any
+  tier exists and `perRowCap()` has nothing to measure against at that point. It needs the cap where those rows are
+  emitted. **9 of the 13 pyramid-shaped stacks** still step outward
+- `docs/catalog.md` is stale as shipped, still listing `gmss-turbo-sub` and `gmss-middle-sub`, which no longer exist under
+  `specs/speakers/`. Any total quoted from it needs a `catalog --write` first. Recorded, not fixed
+
 ## [0.72.1] - 2026-08-13
 
 ### Changed
