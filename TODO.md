@@ -367,9 +367,9 @@ reuses that loader and those totals wholesale; what it adds is the vehicle, an o
 
 **The catalog's volume total is not a packing figure.** It is the sum of bounding-box volumes times quantity, so it
 ignores that boxes do not tessellate, that a load bay has a fixed shape, and that a horn mouth is not a brick. It is a
-lower bound on the space needed and can never say a load fits. (`docs/catalog.md` as shipped also predates the GMSS
-rename — it still lists `gmss-turbo-sub` and `gmss-middle-sub` — so any total quoted from it wants a `catalog --write`
-first.)
+lower bound on the space needed and can never say a load fits. (`docs/catalog.md` had also gone stale against the GMSS
+rename, still listing `gmss-turbo-sub` and `gmss-middle-sub`. It was regenerated in 0.72.4 and the totals moved by
+61 kg. It is a generated file, so re-run `catalog --write` rather than trusting a figure quoted from it.)
 
 **3D bin packing is NP-hard, so what gets built is a heuristic with its ordering written down**, not a solver that
 claims an optimum. Heaviest and largest first into the deepest free space is the usual shape of it, and the ordering is
