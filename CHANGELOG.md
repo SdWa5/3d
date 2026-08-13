@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.70.1] - 2026-08-13
+
+### Changed
+
+- `TODO.md` restructured as grouped tables — stable IDs, priority, an effort estimate to 5 minutes, what each row buys
+  in measured refusals, blocking IDs and state, with detail prose in per-item blocks under each group's table. Plain
+  numbers had broken every cross-reference twice in one session, once when an item was inserted at the top and once when
+  a resolved one was deleted
+- seven claims in `TODO.md` that the implementation had overtaken were corrected against measurement — among them "no
+  multi-stack stereo rig survives the checks" (5 ship), "16 of 30 multi-stack scenes not height-symmetric" (3 of 13),
+  and a `--per-owner` example that cannot be reproduced because `--per-owner` now writes nothing at all
+- two contradictions recorded rather than quietly resolved: spreading sub clusters is asked for by the stereo item and
+  forbidden by the alignment rule that only the top tier may spread, and "outermost tops as wide as possible" competes
+  with "all tops spaced evenly" whenever a row does not exactly fill its envelope
+
 ## [0.70.0] - 2026-08-13
 
 ### Added
