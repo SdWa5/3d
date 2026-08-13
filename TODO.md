@@ -34,16 +34,14 @@ Where that stands: bare `scene:stack` writes **11 scenes of 132 candidates**, ev
 ## GEO · placement geometry
 
 **One root cause across this group:** a row is positioned and spaced as if its cabinets were unrotated and centred, and
-neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. GEO-1 is
-done, which cleared all 8 interpenetration refusals and all 6 spread-envelope refusals. What is left needs **GEO-2
-first**: sliding a sub row moves what the tops row stands on, so enabling it before the tops row understands its
-support's plateau makes things worse, measured as 6 "nothing under it" refusals becoming 12.
+neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. GEO-1 and GEO-3
+are done, which cleared all 8 interpenetration refusals, all 6 spread-envelope refusals and the 12 by-type overlaps.
+What is left needs **GEO-2 first**: sliding a sub row moves what the tops row stands on, so enabling it before the tops
+row understands its support's plateau makes things worse, measured as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | Tops row stands on its support's **plateau** — the split is diagnosed and measured, and needs the clearance chain to cover a tops row on a tops row first | P1 | 3h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-3 | partial |
-| GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
-| GEO-3 | **A run's internal pitch is nominal while its copies are aimed** — the chain spaces runs, nothing spaces copies within a run | P1 | 2h 30m | 12 by-type refusals, and it gates GEO-2 and so GEO-4 | — | open |
+| GEO-2 | Tops row stands on its support's **plateau** — the split is diagnosed and measured, and needs the clearance chain to cover a tops row on a tops row first | P1 | 3h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-5 | The **pyramid cap** does not reach `reserveLifts`, `statedMix` or the mixed bottom row | P2 | 1h 30m | 7 of 9 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
@@ -74,57 +72,8 @@ Greedy widest-first, budgeted by `ceilingFor()`, every row budgeted rather than 
 So the split fixes what it was aimed at and breaks something else: **two aimed tops rows toe into each other.** The
 clearance chain covers the runs of one tier (`throwFirst()` chains each run outside the one inboard of it) and has no
 notion of a tops row standing on another tops row, so the second row is placed with nominal spacing against cabinets
-that are yawed. That is the same root as GEO-3, one tier higher. Fix the chain first, then the split lands.
-
-#### GEO-3 — the toe-in inside a run
-
-Where: `Tier::seats()` sets the pitch from nominal widths; `Stack::throwFirst()` chains runs; `StepSolver` is the
-precedent for the solve this needs.
-
-Re-measured after GEO-1, and both halves moved. The per-owner free-shape stack that overlapped by 22.5 mm **is fixed and
-writes**. `--stacks=3 --split=by-type --max-width=3.80` still refuses every variant, but the numbers are much smaller
-than they were: `block` fell from **135.6 mm to 17.6 mm** once it stopped compressing, `center` is the same 17.6 mm,
-`free` is 7.4 mm and the two `stereo` variants are 4.6 mm and 3.7 mm. The envelope refusal `stereo` used to get is gone.
-
-**The ids say where it lives.** `main-2/3-2` and `main-2/3-3` are the second and third *copies of one placement*, not two
-runs. `throwFirst()` chains each run outside the one inboard of it and `SceneCompiler::clearedOutside()` bisects real
-rotated boxes for that, so run-to-run clearance is solved properly. Nothing asks the same question *inside* a run: its
-copies sit at `gap_m` computed from nominal widths, and an aimed cabinet's rotated box is wider than the cabinet, so
-neighbours overlap by up to 18 mm on a 2 m near focus.
-
-The pitch that clears is a fixed point, since spreading the copies moves them further from the focus and changes the yaw
-that made them wide — the same shape of problem `StepSolver` already solves for an envelope, and it wants the same
-treatment rather than an arithmetic allowance on the gap. Adding air unconditionally would also widen every aimed row in
-the library, so the solve has to be a no-op wherever the nominal pitch already clears.
-
-**This is now the keystone of the group.** GEO-2's tops-row split needs it, because splitting puts one aimed row on
-another and the second row is placed against yawed cabinets; GEO-4 needs GEO-2. Fixing it is the one that unblocks two
-P1 rows.
-
-**The recipe, corrected by an attempt that was reverted.** `SceneCompiler::clearedOutside()` is still the template and
-the hook still belongs in `compile()` after the `align` handling, guarded as narrowly as `Alignment` guards itself: one
-plain row or lattice, nothing nested, two or more across x, placement aimed. Two things were tried and one of them was
-simply wrong.
-
-* **`Interpenetration::worst()` cannot be the objective.** It starts at `0.0` and only ever goes negative, so it reports
-  overlap and never clearance. A bisection towards a positive gap never finds an upper bracket, gives up after forty
-  doublings and returns null, which is a silent no-op. Measured: the twelve refusals stayed exactly as they were.
-* **An axis-aligned x-gap cannot be the objective either, and this is the trap.** It looks conservative and is not
-  merely imprecise, it is wrong in direction for the cabinets that matter. `StackTest` pins a three-Tecnare tops row at
-  **1.5137 m rather than the nominal 1.540 m**, because a toed-in trapezoid's outermost point is its back bottom corner
-  and moves *inward*. Its bounding box moves the other way, growing by `depth × sin θ`, which for a 0.520 m deep Tecnare
-  at a few degrees is about 26 mm. So an AABB measure invents overlaps that do not exist and spread that row by 32 mm.
-* **What it needs is the true shell separation.** `Interpenetration::separation()` already computes it and is positive
-  when two hulls are disjoint, but it **breaks at the first separating axis it finds**, so the positive value it returns
-  is whichever axis separated them rather than the minimum clearance. Correct as a boolean, useless as a metric. Add a
-  sibling that takes the max over *every* axis without the early break — that is the true SAT distance — and make the
-  objective the minimum of it over x-adjacent pairs.
-
-**The contract, which did hold.** All 19 shipped scenes must regenerate byte-identical, since none contains an
-overlapping pair, and a regenerate plus an empty `git diff` is the check. The attempt satisfied it: nothing in the
-library moved, only `StackTest`'s fixture, which is what exposed the AABB error. **And the win is real and measured**:
-with the wrong-but-firing objective, `--stacks=3 --split=by-type` went from 0 scenes written and 12 overlap refusals to
-**6 written and 0 overlaps**. So the mechanism works and only the measure was wrong.
+that are yawed. **GEO-3 has since landed**, so a row of tops standing on another row of tops now keeps the working gap
+between its own cabinets, and the split is worth re-trying against that.
 
 #### GEO-4 — resolved extents, and the row that may not move
 

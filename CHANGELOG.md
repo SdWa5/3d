@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.0] - 2026-08-13
+
+### Fixed
+
+- **A row keeps the working gap between its own cabinets, and not only on paper.** Three mechanisms space a run against
+  something else, namely `align` into an envelope, `align.outside` clear of a named neighbour, and the tier chain outside
+  the run inboard of it. None of them asked whether a run's own copies clear each other. The row is laid out at `gap_m`
+  from nominal widths and then every cabinet is yawed at the focus, which swings its front corners towards its neighbour:
+  17.6 mm of one cabinet inside the next on the by-type tops row, 7.4 mm free-shape, 4.6 and 3.7 mm stereo.
+  `--stacks=3 --split=by-type` goes from **0 scenes written with 12 overlap refusals to 6 written and none**
+- **`Interpenetration::narrowestGap()`** is the measure it needed. `worst()` clamps at zero and reports overlap rather
+  than clearance, so a bisection chasing a positive gap never brackets and gives up silently. This one stays signed
+  through zero. It also takes the separating distance across **every** axis, where `separation()` stops at the first axis
+  that separates a pair, which is right for a yes-or-no answer and useless as a metric
+
+### Notes
+
+- **The measure is the shell and never the bounding box**, and one attempt was spent learning it. A box grows by
+  `depth x sin` as a cabinet toes in, about 26 mm on a 0.520 m deep Tecnare, while a tapered cabinet's outermost point is
+  its back bottom corner and moves inward: three aimed Tecnares span 1.5137 m where nominal widths and gaps give 1.540.
+  A box measure invents overlaps that do not exist, and it spread a correct row by 32 mm
+- Two `StackTest` assertions were re-pinned rather than worked around. They recorded a row whose aimed cabinets sat closer
+  than the 20 mm they were given, which the row narrowing overall had hidden. It is 1.5427 m now, just past the
+  unrotated 1.540
+- Clearance outranks the envelope where the two conflict, because bearing has slack, two thirds of a cabinet past each
+  end and 600 mm on that row, while interpenetration has none
+- The safety contract held throughout: all 19 shipped scenes regenerate byte-identical, since none of them contained an
+  overlapping pair for this to correct
+
 ## [0.71.4] - 2026-08-13
 
 ### Changed

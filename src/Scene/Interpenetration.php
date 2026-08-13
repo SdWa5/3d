@@ -124,6 +124,79 @@ final class Interpenetration
      * @param list<array{float, float, float}> $a
      * @param list<array{float, float, float}> $b
      */
+    /**
+     * The narrowest air gap between any two x-adjacent cabinets, positive when there is room.
+     *
+     * **The companion to {@see worst}, and the two are not interchangeable.** `worst()` answers "how far inside each
+     * other are they", starts at zero and only ever goes negative, which makes it a fine test and a useless metric:
+     * nothing that clamps at zero can tell a solver how much air it has bought, so a bisection chasing a positive gap
+     * never finds an upper bracket. This reads the same geometry the other way round and stays signed throughout, so it
+     * is continuous through zero and a solve can chase it.
+     *
+     * **Measured on the shells, never on their bounding boxes**, and that is not a refinement but the whole
+     * correctness of it. A bounding box grows by `depth × sin θ` as a cabinet toes in — about 26 mm on a 0.520 m deep
+     * Tecnare at a few degrees — while a *tapered* cabinet's outermost point is its back bottom corner and moves the
+     * other way: three aimed Tecnares span 1.5137 m where their nominal widths and gaps would give 1.540. An
+     * axis-aligned measure therefore invents overlaps that do not exist, and reading it as "conservative" is wrong in
+     * direction rather than merely imprecise.
+     *
+     * Adjacent pairs only, because a row is a sequence and no cabinet can be closer to a stranger than to its
+     * neighbour. Sorted on the box because that is only deciding *who* is adjacent, which no rotation changes.
+     *
+     * @param list<PlacedDevice> $placed
+     */
+    public static function narrowestGap(array $placed): float
+    {
+        if (count($placed) < 2) {
+            return INF;
+        }
+
+        $sorted = $placed;
+        usort(
+            $sorted,
+            static fn (PlacedDevice $a, PlacedDevice $b): int
+                => $a->worldBox()['min'][0] <=> $b->worldBox()['min'][0],
+        );
+
+        $narrowest = INF;
+        for ($i = 1; $i < count($sorted); ++$i) {
+            $narrowest = min(
+                $narrowest,
+                self::distance(self::corners($sorted[$i - 1]), self::corners($sorted[$i])),
+            );
+        }
+
+        return $narrowest;
+    }
+
+    /**
+     * The separating distance between two hulls across **every** axis, with no early exit.
+     *
+     * {@see separation} stops at the first axis that separates the pair, which is right for a yes-or-no answer and
+     * wrong for a measurement: the positive number it returns is whichever axis happened to separate them rather than
+     * the narrowest gap between them. This takes the maximum over all of them, which is the distance itself.
+     *
+     * @param list<array{float, float, float}> $a
+     * @param list<array{float, float, float}> $b
+     */
+    private static function distance(array $a, array $b): float
+    {
+        $widest = -INF;
+        foreach (self::axes($a, $b) as $axis) {
+            $length = sqrt($axis[0] ** 2 + $axis[1] ** 2 + $axis[2] ** 2);
+            if ($length < 1e-9) {
+                continue;
+            }
+
+            $unit = [$axis[0] / $length, $axis[1] / $length, $axis[2] / $length];
+            [$aMin, $aMax] = self::project($a, $unit);
+            [$bMin, $bMax] = self::project($b, $unit);
+            $widest = max($widest, max($bMin - $aMax, $aMin - $bMax));
+        }
+
+        return $widest;
+    }
+
     private static function separation(array $a, array $b): float
     {
         $widest = -INF;

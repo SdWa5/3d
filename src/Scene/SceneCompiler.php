@@ -141,6 +141,15 @@ final class SceneCompiler
                 $copies = $aligned;
             }
 
+            // **AND THEN THE ROW IS SPACED AGAINST ITS OWN TOE-IN**, which is the one relationship nothing above asks
+            // about: a run's copies against each other. See {@see clearedWithin}.
+            $copies = $this->clearedWithin(
+                $placement, $device, $copies, $base, $target, $hangAim, $pitch,
+                static function (string $message) use ($warn, $placement): void {
+                    $warn("placement '{$placement->id}': {$message}");
+                },
+            );
+
             // A group can put part of itself below its own base — turning a multi-tier cell over maps its
             // offsets `z → −z` — so the whole arrangement is raised back onto the slot, exactly as one
             // rotated cabinet is. A hang is exempt: it belongs below its anchor.
@@ -441,6 +450,112 @@ final class SceneCompiler
      * @param array<string, list<PlacedDevice>> $placedById
      * @return list<PlacementCopy>|string
      */
+    /**
+     * The copies pushed apart until they clear **each other**, or exactly as they were when they already do.
+     *
+     * **The last gap in the spacing model.** Three mechanisms space a run against something else: `align` justifies it
+     * into an envelope, `align.outside` holds it clear of a named neighbour, and {@see Stack::throwFirst} chains every
+     * run of a tier outside the one inboard of it. None of them asks whether a run's own copies clear each other, and
+     * they need not: the row is laid out at `gap_m` from *nominal* widths and then every cabinet in it is yawed towards
+     * the focus. Where the cabinet is boxy the yaw widens it, and neighbours bite in — 17.6 mm on the by-type
+     * three-stack tops row, 7.4 mm on its free-shape sibling, 4.6 and 3.7 mm on the stereo ones, twelve refused
+     * candidates in all.
+     *
+     * **Clearance outranks the envelope, and the asymmetry is why.** A row solved onto its support's carryable width and
+     * then pushed apart here ends a few millimetres wider than that width. The bearing rule has room for it and then
+     * some, since its allowance is two thirds of a cabinet past each end, which on that row is 600 mm. Interpenetration
+     * has no slack at all: a cabinet 17 mm inside its neighbour cannot be built. So the air is taken and the envelope is
+     * reported as missed rather than the other way round.
+     *
+     * **The no-op is checked before anything moves**, and it is the safety property rather than an optimisation. Every
+     * scene in the library is already clear, since `ShippedScenesTest` sweeps them all for interpenetration and passes,
+     * so this may not move a single cabinet in any of them — which a regenerate and an empty `git diff` confirms.
+     *
+     * Guarded as narrowly as {@see Alignment::problems} guards itself: one plain row or lattice, nothing nested, at
+     * least two across x. Scaling x is only "changing that level's step" when there is one level, and an arc owns its
+     * spacing in its radius while a hang owns its in the splay.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     * @param callable(string):void $warn
+     * @return list<PlacementCopy>
+     */
+    private function clearedWithin(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+        callable $warn,
+    ): array {
+        // Unaimed cabinets are as wide as their widths, so there is nothing for a yaw to have taken.
+        $levels = $placement->group->groups;
+        if (
+            $target === null
+            || count($copies) < 2
+            || count($levels) !== 1
+            || !$levels[0] instanceof Lattice
+            || $levels[0]->count[0] < 2
+        ) {
+            return $copies;
+        }
+
+        $gapM = $levels[0]->gapM[0];
+        $clearanceAt = fn (float $parameter): float => Interpenetration::narrowestGap($this->placedFor(
+            $placement,
+            $device,
+            self::scaledInX($copies, $parameter),
+            $base,
+            $target,
+            $hangAim,
+            $pitchDeg,
+        ));
+
+        if ($clearanceAt(1.0) >= $gapM - StepSolver::TOLERANCE_M) {
+            return $copies;
+        }
+
+        // The floor is 1.0, so this only ever adds air: pulling an aimed row tighter than the spacing it was given is
+        // the mistake {@see Alignment::minParameter} exists to prevent.
+        $parameter = StepSolver::solve($clearanceAt, $gapM, 1.0, 1.0);
+        if ($parameter === null) {
+            $warn(sprintf(
+                'the %d aimed cabinets never clear each other by %.0f mm however far they are spread, so the row keeps '
+                .'its own spacing',
+                count($copies),
+                $gapM * 1000,
+            ));
+
+            return $copies;
+        }
+
+        $warn(sprintf(
+            'the aimed cabinets toe into each other at their own spacing, so the row is spread %.1f%% wider to keep '
+            .'%.0f mm between them',
+            ($parameter - 1.0) * 100,
+            $gapM * 1000,
+        ));
+
+        return self::scaledInX($copies, $parameter);
+    }
+
+    /**
+     * The copies with every x offset scaled, which is `block`'s mechanism reused — see {@see Alignment::apply}.
+     *
+     * @param list<PlacementCopy> $copies
+     * @return list<PlacementCopy>
+     */
+    private static function scaledInX(array $copies, float $parameter): array
+    {
+        return array_map(
+            static fn (PlacementCopy $copy): PlacementCopy => $copy->movedInX($copy->offset[0] * $parameter),
+            $copies,
+        );
+    }
+
     private function clearedOutside(
         Placement $placement,
         DeviceSpec $device,

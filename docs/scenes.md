@@ -749,6 +749,20 @@ the one below is a **warning** with the overhang in millimetres — what feet an
 more than half that cabinet's footprint is off the edge: it is standing on air, and that is an **error**.
 Neither shows up anywhere else, because `on:` only reads a top face and never asks whether anything is there.
 
+**And a row keeps the working gap between its own cabinets.** Three mechanisms space a run against something else:
+`align` justifies it into an envelope, `align.outside` holds it clear of a named neighbour, and the tier chain spaces
+each run outside the one inboard of it. None of them asked whether a run's *own* cabinets clear each other, and at
+`gap_m` computed from nominal widths they need not: yawing a cabinet towards the focus swings its front corners towards
+its neighbour, so the air asked for is not the air there is. That was 17.6 mm of one cabinet inside the next on a by-type
+tops row, and twelve refused candidates. The row is now spread just far enough to restore the gap, reported as a warning
+because the rig is a few millimetres wider than the spacing it was written with. Bearing has room for that — its
+allowance is two thirds of a cabinet past each end — and interpenetration has none, so clearance wins.
+
+The measure is the **shell**, never the bounding box, and the difference is not a refinement. A bounding box grows by
+`depth × sin θ` as a cabinet toes in, about 26 mm on a 0.520 m deep Tecnare, while a *tapered* cabinet's outermost point
+is its back bottom corner and moves the other way: three aimed Tecnares span 1.5137 m where their nominal widths and gaps
+give 1.540. A box measure therefore invents overlaps that do not exist.
+
 **A row wider than its envelope keeps its own spacing.** `block`'s parameter is a factor on each cabinet's offset, so
 a solve below 1 would pull the row *tighter* than the working gap it already has — which is what it used to do, and what
 put 92 mm of one cabinet inside the next on every `-block` variant the sweep refused. The floor is now the arrangement's

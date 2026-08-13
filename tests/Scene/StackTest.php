@@ -131,10 +131,13 @@ final class StackTest extends TestCase
             return array_sum($xs) / count($xs);
         };
 
-        // Three M2122s centred on -0.302, with a 2-way solved 20 mm clear of each end of them.
+        // Three M2122s centred on -0.302, with a 2-way solved 20 mm clear of each end of them. The flanking centres
+        // moved out by 15 mm when the M2122s themselves stopped sitting closer than their own working gap: they are
+        // aimed, and their front corners were 20 mm apart in nominal widths but not in fact. The middle segment does
+        // not move, because spreading a row scales its offsets about its own centre.
         self::assertEqualsWithDelta(-0.302, $centre('main/4b'), 1e-9);
-        self::assertEqualsWithDelta(-1.337232, $centre('main/4a'), 1e-6);
-        self::assertEqualsWithDelta(0.733232, $centre('main/4c'), 1e-6);
+        self::assertEqualsWithDelta(-1.352076, $centre('main/4a'), 1e-6);
+        self::assertEqualsWithDelta(0.748076, $centre('main/4c'), 1e-6);
     }
 
     /**
@@ -223,10 +226,14 @@ final class StackTest extends TestCase
             ]],
         ]);
 
-        // 1.514 m, not the 1.540 m of three 0.500 m cabinets plus two gaps: they are aimed, and a toed-in
-        // trapezoid's outermost point is its *back* bottom corner, which sits inside its half-width.
+        // 1.5427 m. Two effects, pulling opposite ways, and the row used to record only the first of them. A toed-in
+        // trapezoid's outermost point is its *back* bottom corner and sits inside its half-width, which is why the row
+        // is not simply the 1.540 m of three 0.500 m cabinets plus two gaps. But the same yaw swings each cabinet's
+        // *front* corners towards its neighbour, so at nominal spacing the air between them fell under the 20 mm the
+        // row was given, and 1.5137 m was a row whose cabinets were closer together than asked. The spacing solve now
+        // restores the gap, which costs 29 mm of width and lands just past the unrotated 1.540.
         $tops = $this->edgesOf($placed, 'main/4');
-        self::assertEqualsWithDelta(1.5137, $tops['max'] - $tops['min'], 1e-4);
+        self::assertEqualsWithDelta(1.5427, $tops['max'] - $tops['min'], 1e-4);
     }
 
     public function testAnUnknownDeviceInFromIsReported(): void

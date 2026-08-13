@@ -89,6 +89,53 @@ final class AlignmentTest extends TestCase
         );
     }
 
+    /**
+     * **An aimed row keeps the working gap it was given, between the cabinets and not just on paper.**
+     *
+     * The last relationship nothing used to space. `align` justifies a row into an envelope, `align.outside` holds it
+     * clear of a neighbour and the tier chain spaces each run outside the one inboard of it — every one of them about a
+     * run and something *else*. A row is laid out at `gap_m` from nominal widths and then every cabinet is yawed towards
+     * the focus, which swings its front corners towards its neighbour, so the air asked for is not the air there is. On
+     * the real rigs that was 17.6 mm of one cabinet inside the next and twelve refused candidates.
+     *
+     * Asserted on the gap rather than on positions, because the gap is the promise and the positions are how it is kept.
+     * A 2 m focus is chosen to toe the cabinets in hard enough that nominal spacing is definitely not enough.
+     */
+    public function testAnAimedRowKeepsItsWorkingGapBetweenNeighbours(): void
+    {
+        // Compiled directly rather than through the helper, because keeping the gap is *reported*: the row was given
+        // 20 mm and could not have it at the spacing it was laid out with, which is worth a line in the build output.
+        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+            ['id' => 'row', 'device' => 'top', 'at' => [0.0, 0.0], 'aim' => 'focus',
+                'row' => ['count' => 4, 'gap_m' => 0.02]],
+        ], ['distance_m' => 2.0, 'height_m' => 1.4]));
+
+        $errors = array_filter(
+            $result['violations'],
+            static fn ($v): bool => $v->severity !== \App\Spec\Violation::WARNING,
+        );
+        self::assertSame([], array_map(static fn ($v): string => $v->message, $errors));
+        self::assertGreaterThanOrEqual(0.02 - 1e-6, \App\Scene\Interpenetration::narrowestGap($result['placed']));
+        self::assertStringContainsString(
+            'toe into each other',
+            implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
+        );
+    }
+
+    /**
+     * And the no-op that keeps it safe: an **unaimed** row is not touched, because nothing turned its cabinets and
+     * their boxes are their widths. Every scene in the library depends on this, so it is pinned rather than assumed.
+     */
+    public function testAnUnaimedRowIsLeftExactlyWhereItWas(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'row', 'device' => 'sub', 'at' => [0.0, 0.0], 'row' => ['count' => 4, 'gap_m' => 0.02]],
+        ]);
+
+        // Four 0.6 m cabinets at a 0.02 m gap: centres 0.62 apart, and not a micrometre more.
+        self::assertEqualsWithDelta([-0.93, -0.31, 0.31, 0.93], $this->positions($placed), 1e-9);
+    }
+
     /** The no-op guarantee: writing `center` has to mean exactly what writing nothing means. */
     public function testCenterIsWhatEveryRowAlreadyDid(): void
     {
