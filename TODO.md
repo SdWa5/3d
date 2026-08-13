@@ -47,33 +47,33 @@ row understands its support's plateau makes things worse, measured as 6 "nothing
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
 
-#### GEO-2 — the tops row and the plateau
+#### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 
-Where: `StackSolver::topRows()` / `rowOfTops()`, `Gravity::outboardSeats()`, and the clearance chain in
-`Stack::throwFirst()`.
+Where: `StackSolver::topRow()`; the rule already exists in `swallows()`.
 
-The diagnosis is exact. Both systems' eight tops come out **3.921 m in one row on a 2.420 m sub wall**, so the outer
-turbo top at each end is over air entirely (`main/7a` and `main/7g`, `on = NOTHING`) and two more sit at 0.20 and 0.29
-bearing, under the 1/3 the rule requires. The carryable width is `2.420 + 2 × ⅔ × 0.450 = 3.020 m`, so a 6 + 2 split
-fits. Every one of the 12 tops-on-nothing, 6 nothing-under-at-all and 5 bearing refusals is a tops row on a wall
-narrower than itself, and all of them are `all-*` rigs.
+The diagnosis is exact and unchanged. Both systems' eight tops come out **3.921 m in one row on a 2.420 m sub wall**, so
+the outer turbo top at each end is over air entirely and two more sit at 0.20 and 0.29 bearing, under the third the rule
+requires. Twelve tops-on-nothing, six nothing-under-at-all and five bearing refusals, every one of them an `all-*` rig.
 
-**A split was implemented and reverted, and this is what it measured**, so the next attempt does not have to repeat it.
-Greedy widest-first, budgeted by `ceilingFor()`, every row budgeted rather than only the first:
+**Splitting the tops across two rows has now been tried three times and it never nets positive.** Measured against a
+baseline of 10 scenes written and 23 refusals across the three families:
 
-| family | before | after the split |
-|---|---|---|
-| cabinet with nothing under it at all | 6 | **0** |
-| bearing under a third | 5 | **0** |
-| top standing on nothing across x | 12 | 14 |
-| interpenetration | 0 | **12** |
-| scenes written | 10 | 9 |
+| attempt | written | interpen | top-on-nothing | nothing-under | bearing |
+|---|---|---|---|---|---|
+| baseline | 10 | 0 | 12 | 6 | 5 |
+| unbounded loop | 9 | 12 | 14 | 0 | 0 |
+| capped at two rows | 9 | 2 | 16 | 4 | 4 |
 
-So the split fixes what it was aimed at and breaks something else: **two aimed tops rows toe into each other.** The
-clearance chain covers the runs of one tier (`throwFirst()` chains each run outside the one inboard of it) and has no
-notion of a tops row standing on another tops row, so the second row is placed with nominal spacing against cabinets
-that are yawed. **GEO-3 has since landed**, so a row of tops standing on another row of tops now keeps the working gap
-between its own cabinets, and the split is worth re-trying against that.
+The unbounded version cascaded: each row becomes the next one's support, so each budget is narrower and takes fewer
+cabinets, and eight tops became seven ever-thinner rows — a 7-tier rig grew to 13 and gravity broke those rows into runs
+overlapping by 203 mm. Capping at two rows fixes the cascade and still loses: it trades `nothing-under` and `bearing` for
+`top-on-nothing` and costs a scene.
+
+**So the lever is the shape of the wall, not the tops row.** This rig's rows read **2.730 / 1.890 / 2.420 / 1.200 m going
+up**, which is neither a pyramid nor a V but an accident, and it lands the tops on the narrowest row in the stack. A wall
+that actually tapers, or a `tower` whose rows are all about one width, gives the tops a support wide enough to hold them
+in one row and this item disappears rather than being worked around. Do the shapes first — see the shapes row below and
+GEO-5 — and then re-measure this before writing any more splitting code.
 
 #### GEO-4 — resolved extents, and the row that may not move
 

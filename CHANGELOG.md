@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.1] - 2026-08-13
+
+### Changed
+
+- `TODO.md` GEO-2 records that **splitting the tops across two rows is the wrong lever**, measured three times against a
+  baseline of 10 scenes and 23 refusals. An unbounded split cascaded, since each row becomes the next one's support and
+  each budget is narrower than the last: eight tops became seven ever-thinner rows, a 7-tier rig grew to 13, and gravity
+  broke those rows into runs overlapping by 203 mm. Capped at two rows it stops cascading and still loses, trading
+  `nothing-under` 6 to 4 and `bearing` 5 to 4 for `top-on-nothing` 12 to 16, two new interpenetrations and one scene.
+  The real cause is that the wall's rows read 2.730 / 1.890 / 2.420 / 1.200 m going up, so the tops land on the narrowest
+  row in the stack. The lever is the wall's shape, so GEO-2 now waits on GEO-5 and the shapes row and drops to P2
+
 ## [0.72.0] - 2026-08-13
 
 ### Fixed
