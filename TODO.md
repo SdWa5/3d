@@ -46,6 +46,7 @@ row understands its support's plateau makes things worse, measured as 6 "nothing
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
+| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. `pyramid` and `free` cannot express the wall people build | P1 | 4h | GEO-2's 23 refusals, by giving the tops a support as wide as the wall | — | open |
 
 #### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 
@@ -72,8 +73,32 @@ overlapping by 203 mm. Capping at two rows fixes the cascade and still loses: it
 **So the lever is the shape of the wall, not the tops row.** This rig's rows read **2.730 / 1.890 / 2.420 / 1.200 m going
 up**, which is neither a pyramid nor a V but an accident, and it lands the tops on the narrowest row in the stack. A wall
 that actually tapers, or a `tower` whose rows are all about one width, gives the tops a support wide enough to hold them
-in one row and this item disappears rather than being worked around. Do the shapes first — see the shapes row below and
-GEO-5 — and then re-measure this before writing any more splitting code.
+in one row and this item disappears rather than being worked around. Do the shapes first — see GEO-9 and
+GEO-5 and GEO-9 — and then re-measure this before writing any more splitting code.
+
+#### GEO-9 — the two shapes that are missing
+
+Where: `src/Scene/StackShape.php`, `StackSolver::perRowCap()` and `rowSizeFor()`.
+
+`pyramid` narrows going up and `free` lets the bearing rule decide, and neither expresses a wall of constant width. That
+is what leaves this rig reading **2.730 / 1.890 / 2.420 / 1.200 m going up** and landing its tops on the narrowest row in
+the stack, which is GEO-2 and which no amount of splitting the tops fixes.
+
+* **`tower`** — every row about one width, so the top of the wall is as usable as its base.
+* **`mixed`** — a tower base with a tapering top, which is the common real rig and the only shape that makes a wide
+  bottom and a usable top face compatible.
+
+**Adding the enum cases is free**, since `Stack::shapeFrom()` goes through `StackShape::tryFrom()` and lists
+`StackShape::cases()` in its own error, so a new case parses and documents itself. **The rule is not free, and the reason
+is worth knowing before starting.** `perRowCap()` is where the shape speaks and it expresses `pyramid` as
+`min($perRow, $last->count())` — a **ceiling**. A tower needs a **floor**: it must insist on the equal count that
+`rowSizeFor()`'s divisor balancing would otherwise reduce, since that balancing exists to avoid leaving a stub row at the
+top. So `tower` cannot be added to `perRowCap()` alone; it needs a minimum threaded into `rowSizeFor()` beside the
+maximum, and the two have to be reconciled where they conflict — which is exactly when the remaining cabinets cannot fill
+another equal row.
+
+Watch the candidate count when this lands. Four shapes times three alignments times two mirror styles is 24 variants per
+rig against today's 12, and `DEFAULT_MAX_SCENES` is 80.
 
 #### GEO-4 — resolved extents, and the row that may not move
 

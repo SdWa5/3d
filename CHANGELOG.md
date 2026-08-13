@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.3] - 2026-08-13
+
+### Changed
+
+- `TODO.md` gains **GEO-9 for the `tower` and `mixed` shapes** at P1, since GEO-2 waits on it: `pyramid` and `free` cannot
+  express a wall of constant width, which is why this rig reads 2.730 / 1.890 / 2.420 / 1.200 m going up and lands its
+  tops on its own narrowest row. It records the part that is not obvious from outside the code — adding the enum cases is
+  free, because `shapeFrom()` goes through `tryFrom()` and lists `cases()` in its error, but the *rule* is not:
+  `perRowCap()` expresses `pyramid` as a **ceiling** (`min($perRow, $last->count())`) and a tower needs a **floor**,
+  insisting on the equal count that `rowSizeFor()`'s divisor balancing would otherwise reduce. So it needs a minimum
+  threaded into `rowSizeFor()` beside the maximum, not a line in `perRowCap()`
+- a dangling cross-reference in GEO-2 pointing at a shapes row that had never been written is now pointed at GEO-9
+
 ## [0.72.2] - 2026-08-13
 
 ### Fixed
