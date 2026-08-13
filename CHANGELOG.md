@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.71.1] - 2026-08-13
+
+### Changed
+
+- `TODO.md` GEO-2 carries its diagnosis and the result of an attempt that was reverted, so the next pass starts from
+  evidence. Both systems' eight tops are 3.921 m in one row on a 2.420 m sub wall, the carryable width is 3.020 m and a
+  6 + 2 split fits. Splitting took "nothing under it at all" from 6 refusals to 0 and bearing from 5 to 0, and took
+  interpenetration from 0 to **12**, because two aimed tops rows toe into each other and the clearance chain has no
+  notion of a tops row standing on another one. GEO-2 now depends on GEO-3 rather than on nothing
+
 ## [0.71.0] - 2026-08-13
 
 ### Fixed

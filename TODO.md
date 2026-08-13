@@ -41,7 +41,7 @@ support's plateau makes things worse, measured as 6 "nothing under it" refusals 
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | Tops row stands on its support's **plateau**, not its extent — split it across two rows when the plateau cannot carry it | P1 | 4h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | — | open |
+| GEO-2 | Tops row stands on its support's **plateau** — the split is diagnosed and measured, and needs the clearance chain to cover a tops row on a tops row first | P1 | 3h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-3 | partial |
 | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-3 | An aimed row is still spaced on flat widths outside the default sweep — **re-measure**, GEO-1 may have closed it | P2 | 45m | was 17.6 mm / 135.6 mm overlaps + 1 envelope refusal under `--split=by-type` | — | open |
 | GEO-5 | The **pyramid cap** does not reach `reserveLifts`, `statedMix` or the mixed bottom row | P2 | 1h 30m | 7 of 9 pyramid stacks still step outward (the V shape) | — | partial |
@@ -51,14 +51,30 @@ support's plateau makes things worse, measured as 6 "nothing under it" refusals 
 
 #### GEO-2 — the tops row and the plateau
 
-Where: `StackSolver::topRow()`, `stereoTopRow()`; the rule already exists in `StackSolver::swallows()`.
+Where: `StackSolver::topRows()` / `rowOfTops()`, `Gravity::outboardSeats()`, and the clearance chain in
+`Stack::throwFirst()`.
 
-Not a too-wide row — the case traced is a 1.456 m tops row on a 1.900 m support — but a *stepped* support:
-`wall-bass + skram + nuke` is 1.400, 0.914 and 0.590 m tall, so the outer tops drop to a lower face and overhang
-nothing. `swallows()` encodes this for packed sub rows and has never guarded the tops row. Splitting the tops across two
-rows where the plateau cannot carry them fixes it, and means correcting `topRow()`'s "not split across tiers" comment —
-written when width was the only failure mode. Expect this one to grow: it changes what `topRow()` produces for every
-scene, so `StackSolverTest` is the gate and any fill that moves wants reading rather than renumbering.
+The diagnosis is exact. Both systems' eight tops come out **3.921 m in one row on a 2.420 m sub wall**, so the outer
+turbo top at each end is over air entirely (`main/7a` and `main/7g`, `on = NOTHING`) and two more sit at 0.20 and 0.29
+bearing, under the 1/3 the rule requires. The carryable width is `2.420 + 2 × ⅔ × 0.450 = 3.020 m`, so a 6 + 2 split
+fits. Every one of the 12 tops-on-nothing, 6 nothing-under-at-all and 5 bearing refusals is a tops row on a wall
+narrower than itself, and all of them are `all-*` rigs.
+
+**A split was implemented and reverted, and this is what it measured**, so the next attempt does not have to repeat it.
+Greedy widest-first, budgeted by `ceilingFor()`, every row budgeted rather than only the first:
+
+| family | before | after the split |
+|---|---|---|
+| cabinet with nothing under it at all | 6 | **0** |
+| bearing under a third | 5 | **0** |
+| top standing on nothing across x | 12 | 14 |
+| interpenetration | 0 | **12** |
+| scenes written | 10 | 9 |
+
+So the split fixes what it was aimed at and breaks something else: **two aimed tops rows toe into each other.** The
+clearance chain covers the runs of one tier (`throwFirst()` chains each run outside the one inboard of it) and has no
+notion of a tops row standing on another tops row, so the second row is placed with nominal spacing against cabinets
+that are yawed. That is the same root as GEO-3, one tier higher. Fix the chain first, then the split lands.
 
 #### GEO-4 — resolved extents, and the row that may not move
 
