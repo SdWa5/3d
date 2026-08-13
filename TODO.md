@@ -36,12 +36,14 @@ Where that stands: bare `scene:stack` writes **11 scenes of 132 candidates**, ev
 **One root cause across this group:** a row is positioned and spaced as if its cabinets were unrotated and centred, and
 neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. GEO-1 and GEO-3
 are done, which cleared all 8 interpenetration refusals, all 6 spread-envelope refusals and the 12 by-type overlaps.
-What is left needs **GEO-2 first**: sliding a sub row moves what the tops row stands on, so enabling it before the tops
-row understands its support's plateau makes things worse, measured as 6 "nothing under it" refusals becoming 12.
+What is left runs in a chain: **GEO-9 gives the wall a usable top face, which is what GEO-2 actually needs, and GEO-4
+waits on GEO-2** — sliding a sub row moves what the tops row stands on, so enabling it first made things worse, measured
+as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | Tops row stands on its support's **plateau** — the split is diagnosed and measured, and needs the clearance chain to cover a tops row on a tops row first | P1 | 3h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
+| GEO-2 | Tops land on the narrowest row in the stack — **splitting is the wrong lever, measured three times**; fix the wall's shape instead | P2 | 30m | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-9, GEO-5 | partial |
+| GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
@@ -73,8 +75,8 @@ overlapping by 203 mm. Capping at two rows fixes the cascade and still loses: it
 **So the lever is the shape of the wall, not the tops row.** This rig's rows read **2.730 / 1.890 / 2.420 / 1.200 m going
 up**, which is neither a pyramid nor a V but an accident, and it lands the tops on the narrowest row in the stack. A wall
 that actually tapers, or a `tower` whose rows are all about one width, gives the tops a support wide enough to hold them
-in one row and this item disappears rather than being worked around. Do the shapes first — see GEO-9 and
-GEO-5 and GEO-9 — and then re-measure this before writing any more splitting code.
+in one row and this item disappears rather than being worked around. Do the shapes first, which is GEO-9 and GEO-5, and
+then re-measure this before writing any more splitting code.
 
 #### GEO-9 — the two shapes that are missing
 

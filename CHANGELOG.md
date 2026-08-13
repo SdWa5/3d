@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.5] - 2026-08-13
+
+### Fixed
+
+- **`TODO.md`'s GEO table was corrupt and is repaired.** A scripted edit two releases ago deleted the GEO-3 row and took
+  the newline with it, merging GEO-2 and GEO-4 into one 7-column row that read as GEO-2 with GEO-4's text inside its
+  `Needs` cell. GEO-4 had therefore stopped existing as a row, and GEO-2 still carried text superseded by the measurement
+  that demoted it. Both are rows again, with the chain stated in the group intro: GEO-9 gives the wall a usable top face,
+  which is what GEO-2 needs, and GEO-4 waits on GEO-2
+- a cross-reference that read "see GEO-9 and GEO-5 and GEO-9", from two replacements both matching, now names each once
+
 ## [0.72.4] - 2026-08-13
 
 ### Fixed
