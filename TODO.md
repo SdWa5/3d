@@ -101,36 +101,30 @@ the library, so the solve has to be a no-op wherever the nominal pitch already c
 another and the second row is placed against yawed cabinets; GEO-4 needs GEO-2. Fixing it is the one that unblocks two
 P1 rows.
 
-**The recipe, worked out and not yet applied.** `SceneCompiler::clearedOutside()` is the template — it solves exactly
-this shape of problem for the clearance between a run and *another placement*, and the within-run version is the same
-three lines against a different objective:
+**The recipe, corrected by an attempt that was reverted.** `SceneCompiler::clearedOutside()` is still the template and
+the hook still belongs in `compile()` after the `align` handling, guarded as narrowly as `Alignment` guards itself: one
+plain row or lattice, nothing nested, two or more across x, placement aimed. Two things were tried and one of them was
+simply wrong.
 
-```php
-$clearanceAt = fn (float $t): float => Interpenetration::worst(
-    $this->placedFor($placement, $device, self::scaledInX($copies, $t), $base, $target, $hangAim, $pitchDeg),
-)['separation'];
+* **`Interpenetration::worst()` cannot be the objective.** It starts at `0.0` and only ever goes negative, so it reports
+  overlap and never clearance. A bisection towards a positive gap never finds an upper bracket, gives up after forty
+  doublings and returns null, which is a silent no-op. Measured: the twelve refusals stayed exactly as they were.
+* **An axis-aligned x-gap cannot be the objective either, and this is the trap.** It looks conservative and is not
+  merely imprecise, it is wrong in direction for the cabinets that matter. `StackTest` pins a three-Tecnare tops row at
+  **1.5137 m rather than the nominal 1.540 m**, because a toed-in trapezoid's outermost point is its back bottom corner
+  and moves *inward*. Its bounding box moves the other way, growing by `depth × sin θ`, which for a 0.520 m deep Tecnare
+  at a few degrees is about 26 mm. So an AABB measure invents overlaps that do not exist and spread that row by 32 mm.
+* **What it needs is the true shell separation.** `Interpenetration::separation()` already computes it and is positive
+  when two hulls are disjoint, but it **breaks at the first separating axis it finds**, so the positive value it returns
+  is whichever axis separated them rather than the minimum clearance. Correct as a boolean, useless as a metric. Add a
+  sibling that takes the max over *every* axis without the early break — that is the true SAT distance — and make the
+  objective the minimum of it over x-adjacent pairs.
 
-// Already clear: left exactly alone, which is what keeps every shipped scene byte-identical.
-if ($clearanceAt(1.0) >= $stack->gapM - StepSolver::TOLERANCE_M) {
-    return $copies;
-}
-$t = StepSolver::solve($clearanceAt, $stack->gapM, 1.0, 1.0);
-```
-
-* `placedFor()` already materialises copies into `PlacedDevice`s for `spanOf()` and `clearanceOf()`, so the objective is
-  measured on the same geometry the scene ships rather than on a second opinion about it.
-* `Interpenetration::worst()` returns the worst separation across the placed set, which for one placement's copies is
-  the adjacent-pair question asked exactly once.
-* Scaling x by `t ≥ 1` is `Alignment`'s `block` mechanism, and the monotonicity argument in `StepSolver`'s header covers
-  it: spacing grows linearly while a yawed box grows by at most `R·Δ/D`, so clearance strictly increases for any focus
-  further away than the cabinet is large.
-* **Guard it as narrowly as `Alignment` guards itself**: one plain `row`, nothing nested, at least two copies, and the
-  placement aimed. An arc or a lattice owns its own spacing and scaling x would stretch the wrong level.
-
-**The contract that makes this verifiable, and the one the two reverted attempts lacked.** The 19 shipped scenes contain
-no overlapping pair, since `ShippedScenesTest` passes on them, so the no-op branch above must fire for every one of them.
-Regenerate and `git diff --stat` on `scenes/generated/` must come back empty. If a single file moves, the guard is wrong
-and the change is not ready. The by-type refusals are the other half: 12 today, and they should fall.
+**The contract, which did hold.** All 19 shipped scenes must regenerate byte-identical, since none contains an
+overlapping pair, and a regenerate plus an empty `git diff` is the check. The attempt satisfied it: nothing in the
+library moved, only `StackTest`'s fixture, which is what exposed the AABB error. **And the win is real and measured**:
+with the wrong-but-firing objective, `--stacks=3 --split=by-type` went from 0 scenes written and 12 overlap refusals to
+**6 written and 0 overlaps**. So the mechanism works and only the measure was wrong.
 
 #### GEO-4 — resolved extents, and the row that may not move
 

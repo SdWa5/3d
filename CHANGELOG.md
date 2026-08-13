@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.71.4] - 2026-08-13
+
+### Changed
+
+- `TODO.md` GEO-3's recipe corrected by an attempt that was implemented, measured and reverted. The mechanism is right
+  and the win is real — `--split=by-type` went from 0 scenes written with 12 overlap refusals to **6 written and 0
+  overlaps** — but both objectives tried were wrong. `Interpenetration::worst()` clamps at 0 and reports overlap rather
+  than clearance, so the solve silently no-ops. An axis-aligned x-gap is wrong in *direction* for tapered cabinets: a
+  toed-in trapezoid's outermost point is its back bottom corner and moves inward, while its bounding box grows by
+  `depth × sin θ`, about 26 mm on a Tecnare, so it invents overlaps and spread a pinned row by 32 mm. What is needed is
+  `Interpenetration::separation()` without its early break, which is the true SAT distance. The no-op contract held
+  throughout: no shipped scene moved
+
 ## [0.71.3] - 2026-08-13
 
 ### Changed
