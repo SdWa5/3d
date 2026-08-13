@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.71.2] - 2026-08-13
+
+### Changed
+
+- `TODO.md` GEO-3 re-measured after 0.71.0 and sharpened from "an aimed row is spaced on flat widths" to where it
+  actually lives. The per-owner 22.5 mm overlap **is fixed and writes**; `--split=by-type` still refuses every variant
+  but `block` fell from 135.6 mm to 17.6 mm and `stereo`'s envelope refusal is gone, leaving 17.6, 7.4, 4.6 and 3.7 mm.
+  The refusing ids are copies of one placement rather than two runs, so the defect is a run's **internal** pitch: it is
+  nominal while its copies are aimed, and the chain that solves run-to-run clearance never asks the same question inside
+  a run. Raised to P1, because GEO-2 depends on it and GEO-4 depends on GEO-2
+
 ## [0.71.1] - 2026-08-13
 
 ### Changed

@@ -43,7 +43,7 @@ support's plateau makes things worse, measured as 6 "nothing under it" refusals 
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | Tops row stands on its support's **plateau** — the split is diagnosed and measured, and needs the clearance chain to cover a tops row on a tops row first | P1 | 3h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-3 | partial |
 | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
-| GEO-3 | An aimed row is still spaced on flat widths outside the default sweep — **re-measure**, GEO-1 may have closed it | P2 | 45m | was 17.6 mm / 135.6 mm overlaps + 1 envelope refusal under `--split=by-type` | — | open |
+| GEO-3 | **A run's internal pitch is nominal while its copies are aimed** — the chain spaces runs, nothing spaces copies within a run | P1 | 2h 30m | 12 by-type refusals, and it gates GEO-2 and so GEO-4 | — | open |
 | GEO-5 | The **pyramid cap** does not reach `reserveLifts`, `statedMix` or the mixed bottom row | P2 | 1h 30m | 7 of 9 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
@@ -75,6 +75,31 @@ So the split fixes what it was aimed at and breaks something else: **two aimed t
 clearance chain covers the runs of one tier (`throwFirst()` chains each run outside the one inboard of it) and has no
 notion of a tops row standing on another tops row, so the second row is placed with nominal spacing against cabinets
 that are yawed. That is the same root as GEO-3, one tier higher. Fix the chain first, then the split lands.
+
+#### GEO-3 — the toe-in inside a run
+
+Where: `Tier::seats()` sets the pitch from nominal widths; `Stack::throwFirst()` chains runs; `StepSolver` is the
+precedent for the solve this needs.
+
+Re-measured after GEO-1, and both halves moved. The per-owner free-shape stack that overlapped by 22.5 mm **is fixed and
+writes**. `--stacks=3 --split=by-type --max-width=3.80` still refuses every variant, but the numbers are much smaller
+than they were: `block` fell from **135.6 mm to 17.6 mm** once it stopped compressing, `center` is the same 17.6 mm,
+`free` is 7.4 mm and the two `stereo` variants are 4.6 mm and 3.7 mm. The envelope refusal `stereo` used to get is gone.
+
+**The ids say where it lives.** `main-2/3-2` and `main-2/3-3` are the second and third *copies of one placement*, not two
+runs. `throwFirst()` chains each run outside the one inboard of it and `SceneCompiler::clearedOutside()` bisects real
+rotated boxes for that, so run-to-run clearance is solved properly. Nothing asks the same question *inside* a run: its
+copies sit at `gap_m` computed from nominal widths, and an aimed cabinet's rotated box is wider than the cabinet, so
+neighbours overlap by up to 18 mm on a 2 m near focus.
+
+The pitch that clears is a fixed point, since spreading the copies moves them further from the focus and changes the yaw
+that made them wide — the same shape of problem `StepSolver` already solves for an envelope, and it wants the same
+treatment rather than an arithmetic allowance on the gap. Adding air unconditionally would also widen every aimed row in
+the library, so the solve has to be a no-op wherever the nominal pitch already clears.
+
+**This is now the keystone of the group.** GEO-2's tops-row split needs it, because splitting puts one aimed row on
+another and the second row is placed against yawed cabinets; GEO-4 needs GEO-2. Fixing it is the one that unblocks two
+P1 rows.
 
 #### GEO-4 — resolved extents, and the row that may not move
 
