@@ -59,15 +59,16 @@ final class Stack
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      * @param bool $mirror build this stack as the mirror image of how it solves, so one of a side-by-side pair
      *     reflects the other instead of duplicating it — see {@see Tier::flipped}
-     * @param float|null $slideWithinM how wide a span a badly-carried row may be slid inside — the stage, in practice
-     *     — or null for "it may not move". **This is a statement about neighbours, not about gravity.** A row does not
-     *     have to be centred on what carries it, and refusing to move it refuses rigs that stand up: GMSS's only
-     *     arrangement inside the sub height band puts a 2.400 m packed row on a 1.310 m support, where centred the
-     *     outboard nuke lands on 45 mm of its 590 and slid 150 mm both ends are carried. What makes moving it unsafe is
-     *     everything *else* in the scene: stacks are spaced on their widest tier and their envelopes deliberately
-     *     overlap in x — tiers at the same height are each centred and narrower — so a row that slides reaches into the
-     *     stack beside it, measured as 180 mm of interpenetration in five `all-3` scenes. So only a stack with nothing
-     *     beside it names a span here, and the span is the stage rather than infinity: {@see Gravity::resolve}
+     * @param float|null $slideSlackM how far sideways a badly-carried row may be moved, or null for "it may not
+     *     move". **This is a statement about neighbours, not about gravity.** A row does not have to be centred on what
+     *     carries it, and refusing to move it refuses rigs that stand up: GMSS's only arrangement inside the sub height
+     *     band puts a 2.400 m packed row on a 1.310 m support, where centred the outboard nuke lands on 45 mm of its
+     *     590 and slid 150 mm both ends are carried. What makes moving it unsafe is everything *else* in the scene:
+     *     stacks are spaced on their widest tier and their envelopes deliberately overlap in x, so an unbounded slide
+     *     reaches into the stack beside it — measured as 180 mm of interpenetration across five `all-3` scenes.
+     *     **A stack in a rig therefore gets half the clearance to its neighbour, less a working gap**, so two rows
+     *     sliding towards each other still leave air between them. A stack with nothing beside it is bounded only by
+     *     the stage. See {@see Gravity::resolve}
      */
     public function __construct(
         public readonly array $from,
@@ -80,7 +81,7 @@ final class Stack
         public readonly ?float $maxSubHeightM = null,
         public readonly StackShape $shape = StackShape::Free,
         public readonly MirrorStyle $mirrorStyle = MirrorStyle::Alternate,
-        public readonly ?float $slideWithinM = null,
+        public readonly ?float $slideSlackM = null,
     ) {
     }
 
@@ -259,7 +260,7 @@ final class Stack
         $at = $placement->at ?? [0.0, 0.0];
         $placements = [];
 
-        $resolved = Gravity::resolve($tiers, $this->gapM, $placement->id, $this->slideWithinM);
+        $resolved = Gravity::resolve($tiers, $this->gapM, $placement->id, $this->slideSlackM, $this->maxWidthM);
 
         foreach ($resolved as $index => $runs) {
             $tier = $tiers[$index];

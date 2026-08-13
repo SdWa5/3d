@@ -66,15 +66,21 @@ final class Gravity
      *
      * @param list<Tier> $tiers
      * @param string $prefix the placement id the run ids hang off
-     * @param float|null $slideWithinM the span a badly-carried row may be slid inside, or null for "it may not move".
-     *     See {@see Stack::$slideWithinM} — it is a statement about what else is in the scene, not about gravity.
+     * @param float|null $slideSlackM how far sideways a badly-carried row may be moved, or null for "it may not
+     *     move". See {@see Stack::$slideSlackM} — it is a statement about what else is in the scene, not about gravity.
+     * @param float|null $stageM the width the stack itself may occupy, which a slid row also stays inside
      * @return list<list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
      *     top: float, on: string|null, bearing: float, settle: float, roll: float
      * }>> one entry per tier, in the same order
      */
-    public static function resolve(array $tiers, float $gapM, string $prefix, ?float $slideWithinM = null): array
-    {
+    public static function resolve(
+        array $tiers,
+        float $gapM,
+        string $prefix,
+        ?float $slideSlackM = null,
+        ?float $stageM = null,
+    ): array {
         /** @var list<array{id: string, lo: float, hi: float, top: float}> $below what the next tier lands on */
         $below = [];
         $resolved = [];
@@ -97,7 +103,7 @@ final class Gravity
             if (self::worstBearing($runs) < self::MIN_BEARING) {
                 foreach ([
                     self::outboardSeats($tier->seats($gapM), $below, $gapM),
-                    self::slidSeats($tier->seats($gapM), $below, $gapM, $slideWithinM),
+                    self::slidSeats($tier->seats($gapM), $below, $gapM, $slideSlackM, $stageM),
                 ] as $repair) {
                     $rescued = $repair === null ? null : self::runs($repair, $below, $gapM);
                     if ($rescued !== null && self::worstBearing($rescued) > self::worstBearing($runs)) {
@@ -159,10 +165,10 @@ final class Gravity
      * over the support and the mid-bass, being 1.200 m wide, still has 42 % of its own. Nothing about the rig changed
      * but where the row sits, which is what a crew would do without discussing it.
      *
-     * Bounded by `$withinM` — the stage, in practice — and **null means it may not move at all**, which is the case for
-     * any stack with a neighbour: see {@see Stack::$slideWithinM} for why gravity is not what makes this unsafe. Within
-     * the bound the row also stays over its support, since the scan runs between "left edges flush" and "right edges
-     * flush" and no further.
+     * Bounded twice, and **null slack means it may not move at all**: by `$slackM`, how far the neighbouring stacks
+     * leave it room to move, and by `$stageM`, the width the stack itself may occupy. See {@see Stack::$slideSlackM}
+     * for why gravity is not what makes this unsafe. Within both bounds the row also stays over its support, since the
+     * scan runs between "left edges flush" and "right edges flush" and no further.
      *
      * Scanned in 5 mm steps rather than solved, because the objective is a min over segments of a piecewise-linear
      * function — the closed form is a case analysis per segment pair, and the scan is a few hundred evaluations on a row
@@ -170,11 +176,18 @@ final class Gravity
      *
      * @param list<array{DeviceSpec, int, float, float}> $seats
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     * @param float|null $slackM how far the row may move sideways, or null for not at all
+     * @param float|null $stageM the width the stack may occupy, or null for unbounded
      * @return list<array{DeviceSpec, int, float, float}>|null
      */
-    private static function slidSeats(array $seats, array $below, float $gapM, ?float $withinM): ?array
-    {
-        if ($withinM === null || $below === [] || $seats === []) {
+    private static function slidSeats(
+        array $seats,
+        array $below,
+        float $gapM,
+        ?float $slackM,
+        ?float $stageM,
+    ): ?array {
+        if ($slackM === null || $slackM <= 0.0 || $below === [] || $seats === []) {
             return null;
         }
 
@@ -186,9 +199,10 @@ final class Gravity
             $rowHi = max($rowHi, $centre + $own / 2);
         }
 
-        // The row arrives centred on the stack's own origin, so the room it has each way is what is left of the span
-        // once the row itself is taken out of it.
-        $slack = max(0.0, ($withinM - ($rowHi - $rowLo)) / 2);
+        // The row arrives centred on the stack's own origin, so the room the stage leaves it each way is what is left
+        // once the row itself is taken out of the stage width. The neighbours' allowance bounds it as well, and the
+        // tighter of the two wins.
+        $slack = $stageM === null ? $slackM : min($slackM, max(0.0, ($stageM - ($rowHi - $rowLo)) / 2));
         $ends = [$below[0]['lo'] - $rowLo, $below[count($below) - 1]['hi'] - $rowHi];
         $from = max(min($ends), -$slack);
         $to = min(max($ends), $slack);

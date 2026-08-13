@@ -128,7 +128,12 @@ final class SceneCompiler
             // anything is placed: the solve needs the arrangement the group made, and everything downstream
             // needs the spread one. Only x offsets move, so the stacking below is unaffected.
             if ($placement->align !== null) {
-                $aligned = $this->aligned($placement, $device, $copies, $base, $target, $hangAim, $pitch, $placedById);
+                $aligned = $this->aligned(
+                    $placement, $device, $copies, $base, $target, $hangAim, $pitch, $placedById,
+                    static function (string $message) use ($warn, $placement): void {
+                        $warn("placement '{$placement->id}': {$message}");
+                    },
+                );
                 if (is_string($aligned)) {
                     $add("placement '{$placement->id}': {$aligned}");
                     continue;
@@ -343,6 +348,7 @@ final class SceneCompiler
      * @param array{float, float, float} $base
      * @param array{float, float, float}|null $target
      * @param array<string, list<PlacedDevice>> $placedById
+     * @param callable(string):void $warn
      * @return list<PlacementCopy>|string
      */
     private function aligned(
@@ -354,6 +360,7 @@ final class SceneCompiler
         ?Orientation $hangAim,
         float $pitchDeg,
         array $placedById,
+        callable $warn,
     ): array|string {
         $align = $placement->align;
         if ($align === null || !$align->mode->isSolved()) {
@@ -382,21 +389,29 @@ final class SceneCompiler
             $pitchDeg,
         );
 
-        // The only genuinely unachievable case, and it is worth its own message: by monotonicity the
-        // tightest the tier can ever be is every cabinet on `at`, so if that is already too wide, no
-        // spacing exists and the scene has asked for something that does not fit.
-        $tightest = $spanAt(0.0);
-        if ($tightest > $width + StepSolver::TOLERANCE_M) {
-            return sprintf(
-                'align has a %.4f m envelope to fill and these %d cabinets are %.4f m across '
-                .'even stacked on one spot — widen it or drop a cabinet',
+        // **A ROW WIDER THAN ITS ENVELOPE HAS NOTHING TO JUSTIFY, AND THAT IS NOT AN ERROR.** This used to compute
+        // the span at parameter 0 and call it "the tightest the tier can ever be", which was wrong in both modes:
+        // for `block` a factor below 1 pulls the copies into each other, and for `stereo` 0 is already the natural
+        // spacing rather than every cabinet on one spot. So the floor is the arrangement's own spacing
+        // ({@see Alignment::minParameter}), and a row that already exceeds the envelope there keeps that spacing and
+        // says so. Refusing instead would throw the rig away over a row that stands up perfectly well unspread, and
+        // compressing — what the old bound allowed — put 92 mm of one cabinet inside the next.
+        $minimum = $align->minParameter();
+        $natural = $spanAt($minimum);
+        if ($natural > $width + StepSolver::TOLERANCE_M) {
+            $warn(sprintf(
+                "align.mode '%s' has a %.4f m envelope and these %d cabinets are %.4f m across at their own "
+                .'spacing, so there is nothing to spread — the row keeps that spacing',
+                $align->mode->value,
                 $width,
                 count($copies),
-                $tightest,
-            );
+                $natural,
+            ));
+
+            return $align->apply($copies, $minimum);
         }
 
-        $parameter = StepSolver::solve($spanAt, $width, $align->startParameter());
+        $parameter = StepSolver::solve($spanAt, $width, $align->startParameter(), $minimum);
         if ($parameter === null) {
             return sprintf(
                 'align cannot be solved: the tier never reaches its %.4f m envelope, however far it is spread',

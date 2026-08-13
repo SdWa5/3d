@@ -55,6 +55,40 @@ final class AlignmentTest extends TestCase
         self::assertEqualsWithDelta(4.0, $this->extent($placed), 1e-6);
     }
 
+    /**
+     * **A row wider than its envelope keeps its own spacing and warns.** It is not compressed and not refused.
+     *
+     * This is the assertion that pins the bug `block` shipped with. Its parameter is a factor on each copy's x
+     * offset, and the solver was allowed to search below 1, so an envelope narrower than the row was met by pulling
+     * the cabinets *into each other* — measured on the real rig, a tops row of three aimed turbo tops at 1.406 m
+     * asked to fit the 1.200 m nuke row beneath it, and neighbours ended up 92 mm inside each other. Every
+     * interpenetration refusal in the sweep was this.
+     *
+     * Three 0.6 m cabinets at a 0.02 m gap are 1.84 m across, and 0.3 m is far narrower, so there is nothing to
+     * spread. Natural spacing is the answer, and the round numbers say so: centres at −0.62, 0 and +0.62.
+     */
+    public function testARowWiderThanItsEnvelopeKeepsItsOwnSpacing(): void
+    {
+        $result = (new SceneCompiler($this->devices))->compile($this->scene([
+            ['id' => 'row', 'device' => 'sub', 'at' => [0.0, 0.0],
+                'align' => ['mode' => 'block', 'width_m' => 0.3],
+                'row' => ['count' => 3, 'gap_m' => 0.02]],
+        ]));
+
+        self::assertEqualsWithDelta([-0.62, 0.0, 0.62], $this->positions($result['placed']), 1e-6);
+        self::assertEqualsWithDelta(1.84, $this->extent($result['placed']), 1e-6);
+
+        $errors = array_filter(
+            $result['violations'],
+            static fn ($v): bool => $v->severity !== \App\Spec\Violation::WARNING,
+        );
+        self::assertSame([], array_map(static fn ($v): string => $v->message, $errors), 'a warning, not an error');
+        self::assertStringContainsString(
+            'there is nothing to spread',
+            implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
+        );
+    }
+
     /** The no-op guarantee: writing `center` has to mean exactly what writing nothing means. */
     public function testCenterIsWhatEveryRowAlreadyDid(): void
     {
@@ -280,9 +314,9 @@ final class AlignmentTest extends TestCase
             $base + ['align' => ['mode' => 'block', 'across' => 'later'], 'row' => ['count' => 3]],
             "align.across: 'later' must name an earlier placement",
         ];
-        yield 'an envelope narrower than the cabinets' => [
-            $base + ['align' => ['mode' => 'block', 'width_m' => 0.3], 'row' => ['count' => 3]],
-            'even stacked on one spot',
+        yield 'a forward reference on a clearance solve' => [
+            $base + ['align' => ['mode' => 'block', 'outside' => 'later', 'inset_m' => 0.02], 'row' => ['count' => 3]],
+            "align.outside: 'later' must name an earlier placement",
         ];
         yield 'an inset that eats the envelope' => [
             $base + ['align' => ['mode' => 'block', 'width_m' => 4.0, 'inset_m' => 3.0], 'row' => ['count' => 3]],

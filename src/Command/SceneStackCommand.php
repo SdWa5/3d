@@ -978,11 +978,18 @@ final class SceneStackCommand extends BaseCommand
             maxSubHeightM: $this->readFloat($input, 'max-sub-height'),
             shape: $shape,
             mirrorStyle: $style,
-            // **Only a stack with nothing beside it may slide a badly-carried row**, and then only inside the stage.
-            // A rig of one stack has the whole stage to itself, so a row that has to sit off-centre to be carried can;
-            // the moment there are two, the space between them is what the neighbour is standing in. See
-            // {@see Stack::$slideWithinM} — the unbounded version put cabinets 180 mm into the next stack.
-            slideWithinM: $solo ? $maxWidthM : null,
+            // **STILL ONLY A SOLO STACK, AND THE LANE IS READY FOR WHEN THAT CHANGES.** The bound a multi-stack rig
+            // needs is `clearance / 2 - gap`, since {@see StackSceneWriter::centres} leaves exactly `--clearance`
+            // between two envelopes and half of it each, less a working gap, keeps two rows sliding towards each other
+            // apart. That was measured and it is safe — no interpenetration appeared anywhere — and it is **not yet an
+            // improvement**, which is why it is not switched on.
+            //
+            // Sliding a *sub* row moves what the tops row above it stands on. Enabling it for every stack took
+            // "a cabinet with nothing under it at all" from 6 refusals to 12 and cost `stacked-all-2-center`, which is
+            // a worse trade than the `gmss-mid-bass: LEFT OUT` it fixes there. So the tops row has to learn to stand on
+            // its support's plateau first, and then this becomes `max(0.0, clearance / 2 - gap)` and nothing else.
+            // `TODO.md` records the same dependency, and it was right where this comment's first version was not.
+            slideSlackM: $solo ? INF : null,
         );
     }
 

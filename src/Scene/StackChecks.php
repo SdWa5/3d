@@ -274,7 +274,7 @@ final class StackChecks
     {
         $problems = [];
 
-        $resolved = Gravity::resolve($tiers, $stack->gapM, 'stack', $stack->slideWithinM);
+        $resolved = Gravity::resolve($tiers, $stack->gapM, 'stack', $stack->slideSlackM, $stack->maxWidthM);
         foreach ($resolved as $index => $runs) {
             foreach ($runs as $run) {
                 // Nothing underneath at all. Falling puts it on the floor, which for a tier above the bottom

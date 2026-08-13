@@ -246,12 +246,36 @@ final class Alignment
      * Where the doubling search starts looking for a bracket.
      *
      * `block`'s parameter is a factor, so 1 is the arrangement as the group made it; `stereo`'s is a
-     * distance, so 0 is. Both are bounded below by 0 — the tightest either mode can be, every cabinet on
-     * `at` — which is what gives the solver a lower end it never has to search for.
+     * distance, so 0 is. Both are also the tightest either mode may legitimately be, which is what
+     * {@see minParameter} is for.
      */
     public function startParameter(): float
     {
         return $this->mode === LayoutMode::Block ? 1.0 : 0.0;
+    }
+
+    /**
+     * The tightest parameter this mode may be solved to — **the arrangement's own spacing, in both modes.**
+     *
+     * This used to be 0 for both, on the reasoning that 0 is "every cabinet on `at`" and so the tightest anything
+     * could be. That is true of `block`, whose parameter multiplies each copy's offset, and it is exactly the bug:
+     * a factor below 1 pulls the copies *into each other*, below the working gap the group already left between
+     * them. Measured on `stacked-gmss-1-block`, a tops row of three aimed turbo tops is 1.406 m across and the nuke
+     * row carrying it is 1.200 m, so the solver found the factor that makes the span 1.200 — pitch 470 mm squeezed
+     * to about 390 — and neighbouring cabinets ended up **92 mm inside each other**. Every interpenetration refusal
+     * in the sweep was this, and every one was a `-block` variant.
+     *
+     * For `stereo` the old bound was harmless but described wrongly: its parameter is a distance *added* to each
+     * column's offset, so 0 leaves the arrangement exactly as the group made it rather than stacking it on one spot.
+     * Both modes therefore have the same floor, their own natural spacing, and neither can be asked to go below it.
+     *
+     * A row already wider than its envelope at this parameter has nothing to justify. That is not an error and
+     * {@see SceneCompiler::aligned} says so with a warning, because the honest answer is the spacing the solver
+     * already chose.
+     */
+    public function minParameter(): float
+    {
+        return $this->startParameter();
     }
 
     /**

@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.71.0] - 2026-08-13
+
+### Fixed
+
+- **`block` no longer compresses a row below its own spacing, which is what every interpenetration refusal was.**
+  `StepSolver` bracketed from `0.0`, and `block`'s parameter is a factor on each copy's x offset, so any solve below
+  `1.0` pulled the cabinets *into each other*. Only `spanAt(0.0)` was guarded, which catches nothing but the absurd end.
+  Measured on `stacked-gmss-1-block`: a tops row of three aimed turbo tops spans 1.406 m once the toe-in is counted and
+  the nuke row carrying it is 1.200 m, so the solver squeezed the pitch from 470 mm to about 390 and neighbours ended up
+  **92 mm inside each other**. `Alignment::minParameter()` now names the floor — the arrangement's own spacing, in both
+  modes — and `StepSolver::solve()` brackets from there
+- **A row wider than its envelope keeps its spacing and warns, instead of erroring.** The old message said the cabinets
+  were too wide "even stacked on one spot", which was only ever true of `block`: `stereo`'s parameter is a distance
+  added to each column's offset, so its 0 is already the natural spacing rather than every cabinet on one point.
+  Refusing a rig over a row that stands up perfectly well unspread was the wrong answer either way
+- **8 interpenetration refusals and 6 spread-envelope refusals are gone**, all 14 of them. The written count moves from
+  11 to 10 because `stacked-sdwa5-2-free-stereo` and `-free-block` turn out to be one rig: their `at:` values were
+  already identical and only the `mode:` line differed, so `block` no longer compressing makes the duplicate visible
+
+### Changed
+
+- `Gravity::resolve()` takes a slide **slack** plus a stage bound rather than one span, so how far a row may move and
+  how wide the stack may be are separate questions. `Stack::$slideWithinM` becomes `Stack::$slideSlackM`
+
+### Notes
+
+- **Multi-stack sliding is measured, safe and deliberately still off.** The bound a rig needs is `clearance / 2 - gap`,
+  since `StackSceneWriter::centres()` leaves exactly `--clearance` between two envelopes, and switching it on produced
+  no interpenetration anywhere. It is not an improvement yet: sliding a *sub* row moves what the tops row above it
+  stands on, so enabling it took "a cabinet with nothing under it at all" from 6 refusals to 12 and cost
+  `stacked-all-2-center` entirely, against the one `gmss-mid-bass: LEFT OUT` it fixes there. The tops row has to stand
+  on its support's plateau first. `TODO.md` recorded that dependency and was right where the plan overrode it
+
 ## [0.70.1] - 2026-08-13
 
 ### Changed

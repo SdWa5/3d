@@ -55,24 +55,25 @@ final class StepSolver
      * The parameter at which the arrangement spans exactly `$targetM`, or null when there is none.
      *
      * `$spanAt` is the arrangement's x extent at a given parameter — a factor for `block`, a distance for
-     * `stereo`. Both are zero at their tightest, which is why the lower end of the bracket is known
-     * outright and only the upper end has to be searched for.
+     * `stereo`. `$minT` is the tightest the mode may legitimately be, which is where the bracket starts, so only
+     * the upper end has to be searched for. **It is not 0**: see {@see Alignment::minParameter}, where searching
+     * below the arrangement's own spacing is what drove `block`'s cabinets 92 mm into each other.
      *
-     * Null means one of two things, and the caller can tell them apart by asking `$spanAt(0.0)` itself:
-     * the envelope is narrower than the cabinets at their tightest, or the span never reaches it however
+     * Null means one of two things, and the caller can tell them apart by asking `$spanAt($minT)` itself:
+     * the envelope is narrower than the arrangement at its own spacing, or the span never reaches it however
      * far the tier is spread — which is what a degenerate arrangement (every copy at the same x) looks
      * like from here.
      *
      * @param callable(float): float $spanAt
      */
-    public static function solve(callable $spanAt, float $targetM, float $startT): ?float
+    public static function solve(callable $spanAt, float $targetM, float $startT, float $minT = 0.0): ?float
     {
-        $low = 0.0;
+        $low = $minT;
         if ($spanAt($low) > $targetM + self::TOLERANCE_M) {
             return null;
         }
 
-        $high = max($startT, self::TOLERANCE_M);
+        $high = max($startT, $minT + self::TOLERANCE_M);
         for ($doubling = 0; $spanAt($high) < $targetM; ++$doubling) {
             if ($doubling >= self::MAX_DOUBLINGS) {
                 return null;

@@ -27,35 +27,27 @@ Where that stands: bare `scene:stack` writes **11 scenes of 132 candidates**, ev
   worth keeping, not a task).
 * Resolved rows are **deleted**, not ticked. Measured figures are re-measured when touched, never carried forward on
   trust — several were wrong for two releases.
+* **GEO, SYM and ALN together are the highest priority** — geometry, symmetry and alignment are the same placement
+  problem seen from three sides. While working inside any of the three: fix every bug hit immediately, and implement
+  every related TODO it turns up immediately, rather than filing it for later.
 
 ## GEO · placement geometry
 
-**One root cause across GEO-1…4:** a row is positioned and spaced as if its cabinets were unrotated and centred, and
-neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. Fixing that
-is the single largest coverage win available and unblocks the multi-stack half of everything else.
+**One root cause across this group:** a row is positioned and spaced as if its cabinets were unrotated and centred, and
+neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. GEO-1 is
+done, which cleared all 8 interpenetration refusals and all 6 spread-envelope refusals. What is left needs **GEO-2
+first**: sliding a sub row moves what the tops row stands on, so enabling it before the tops row understands its
+support's plateau makes things worse, measured as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | Tops row stands on its support's **plateau**, not its extent — split it across two rows when the plateau cannot carry it | P1 | 4h | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | — | open |
-| GEO-1 | `block` emits **overlapping geometry** on an aimed row — a bug in the `StepSolver` justification path, not a missing feature | P1 | 3h | all 8 interpenetration refusals | — | open |
-| GEO-4 | Space neighbouring stacks from **resolved extents** instead of centred tier widths, so a multi-stack rig may slide a row too | P1 | 2h 30m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-1, GEO-2 | open |
-| GEO-3 | An aimed row is still spaced on flat widths outside the default sweep | P2 | 1h 30m | 17.6 mm / 135.6 mm overlaps + 1 envelope refusal under `--split=by-type` | GEO-1 | partial |
+| GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
+| GEO-3 | An aimed row is still spaced on flat widths outside the default sweep — **re-measure**, GEO-1 may have closed it | P2 | 45m | was 17.6 mm / 135.6 mm overlaps + 1 envelope refusal under `--split=by-type` | — | open |
 | GEO-5 | The **pyramid cap** does not reach `reserveLifts`, `statedMix` or the mixed bottom row | P2 | 1h 30m | 7 of 9 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
-
-#### GEO-1 — `block` overlaps on an aimed row
-
-Where: `Stack::alignmentFor()` → `Alignment` → `StepSolver`.
-
-0.69.0's clearance chain covers every run of a tops row rather than the fills only, which fixed the 360 mm class where a
-split long throw was never spaced against itself, and made `block` write 5 scenes where it wrote none. What is left is
-sharper: **all 8 interpenetration refusals in the sweep are `-block` variants and every one is same-tier** —
-`stacked-gmss-2-block` 360 mm, `stacked-sdwa5-1-block` 149 mm, `stacked-gmss-1-block` 92 mm, each with its
-`upright`/`free` sibling. Justifying an *aimed* row across its support is exactly the fixed point `StepSolver` exists
-for, and something in that path is not accounting for the toe-in. The generator refuses the output, so nothing broken
-ships.
 
 #### GEO-2 — the tops row and the plateau
 
@@ -80,18 +72,6 @@ the real gap to the neighbour instead of "no movement at all". **This is the con
 fewer speakers":** `stacked-all-2-center` ships with `gmss-mid-bass: LEFT OUT, it cannot be carried in this stack`, for
 exactly the bearing failure a slide fixes.
 
-## CVR · coverage of the height band
-
-**121 of 132 candidates are refused, and the two height bounds account for 72 of them.** Not because the band is wrong
-but because the model has no way to raise tops other than stacking subs under them.
-
-| ID | Item | Prio | Effort | Buys | Needs | State |
-|----|------|------|--------|------|-------|-------|
-| CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one | P1 | 6h | 54 refusals — every `sepp` rig, `gmss-3`, `sdwa5-3` | — | open |
-| CVR-3 | The default `--from` means both sound systems in one stack; make it mean one system — an `--owner` narrowing, or owner-awareness in `everySpeaker()` | P2 | 1h | the one-stack mixed rigs, once GEO-2 lands | decision, GEO-2 | decision |
-| CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P2 | 4h | "actually used in praxis", which nothing covers today | — | open |
-| CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes | decision | decision |
-
 #### GEO-8 — the rig as one body
 
 Where: `Stability::tips()`.
@@ -101,22 +81,6 @@ The "nothing weighs the rig" version of this item is out of date: `tips()` does 
 missing is the **stack** as one body: 2 200 kg of cabinets on a 1.34 m base is never compared against anything. A
 tipping angle for the whole pile has no citable limit to compare against either, so this wants reporting rather than
 refusing.
-
-#### CVR-1 — tops that do not stand on the sub wall
-
-18 of the 132 candidates cannot get under 3 m on any stage in the ladder; **54 cannot fill a 2 m wall out of the
-cabinets they are given** — `sepp`'s eight cabinets cannot, however they are stacked. In reality you solve that with a
-riser or a pair of stands, and neither is modelled: support in the solver is always another cabinet. This is the gap,
-not the band. Related: SCN-1 wants the Tecnare tops flown from truss, which is the same missing concept from the other
-end, and INFO-1 is what the stands can actually reach.
-
-#### CVR-3 — `owner` is standing in for "system"
-
-`owner` is not quite the right discriminator: the repository deliberately supports borrowing gear between owners, so a
-rig can legitimately mix them. It separates the two systems in practice, and inventing a `system:` field to serve a
-sweep would be inventing a property to serve a layout. **Decide the discriminator before writing code.** Note the
-refusal this item used to cite has moved: the one-stack mixed rig now fails on the tops row (`2× turbo-top + 1× 2-way +
-3× tecnare`) and one top floating at 4.196 m — that is GEO-2, not a `--from` problem.
 
 ## SYM · symmetry, stereo and mono
 
@@ -153,7 +117,7 @@ The taller stacks go to the middle in mono and the ends in stereo, ordered by so
 exercised now — 5 multi-stack stereo scenes ship. Symmetry is *improved* rather than delivered: equal flanks depend on
 the split giving each stack similar contents, so `stacked-gmss-2-stereo` reads 2.74 | 2.07 and `stacked-all-2-center`
 2.033 | 2.833. `--per-owner` can never be symmetric — three owners are three different systems — and currently writes
-nothing at all, every variant refused by GEO-1/GEO-2.
+nothing at all: 6 variants refused by GEO-2's family and the rest by the sub height band.
 
 ## ALN · alignment features
 
@@ -163,6 +127,34 @@ nothing at all, every variant refused by GEO-1/GEO-2.
 | ALN-4 | Only the top tier can be spread — per-tier `align` picks *which* alignment the top tier uses, never how many tiers spread | P2 | — | — | decision |
 | ALN-2 | `align` on **nested** groups — scaling x would stretch the inner group's spacing with the outer one's; needs the level named. Same for `arc` and `line_array`, which own their spacing | P3 | 2h | — | — | known |
 | ALN-3 | `stereo` splits into halves only — `floor(n/2)`; 2 + 2 out of six with two in the middle needs a `columns:` key | P3 | 1h | — | — | known |
+
+## CVR · coverage of the height band
+
+**121 of 132 candidates are refused, and the two height bounds account for 72 of them.** Not because the band is wrong
+but because the model has no way to raise tops other than stacking subs under them.
+
+| ID | Item | Prio | Effort | Buys | Needs | State |
+|----|------|------|--------|------|-------|-------|
+| CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one | P2 | 6h | 54 refusals — every `sepp` rig, `gmss-3`, `sdwa5-3` | — | open |
+| CVR-3 | The default `--from` means both sound systems in one stack; make it mean one system — an `--owner` narrowing, or owner-awareness in `everySpeaker()` | P3 | 1h | the one-stack mixed rigs, once GEO-2 lands | decision, GEO-2 | decision |
+| CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
+| CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes — pinned at floor, scale has no P4 | decision | decision |
+
+#### CVR-1 — tops that do not stand on the sub wall
+
+18 of the 132 candidates cannot get under 3 m on any stage in the ladder; **54 cannot fill a 2 m wall out of the
+cabinets they are given** — `sepp`'s eight cabinets cannot, however they are stacked. In reality you solve that with a
+riser or a pair of stands, and neither is modelled: support in the solver is always another cabinet. This is the gap,
+not the band. Related: SCN-1 wants the Tecnare tops flown from truss, which is the same missing concept from the other
+end, and INFO-1 is what the stands can actually reach.
+
+#### CVR-3 — `owner` is standing in for "system"
+
+`owner` is not quite the right discriminator: the repository deliberately supports borrowing gear between owners, so a
+rig can legitimately mix them. It separates the two systems in practice, and inventing a `system:` field to serve a
+sweep would be inventing a property to serve a layout. **Decide the discriminator before writing code.** Note the
+refusal this item used to cite has moved: the one-stack mixed rig now fails on the tops row (`2× turbo-top + 1× 2-way +
+3× tecnare`) and one top floating at 4.196 m — that is GEO-2, not a `--from` problem.
 
 ## SCN · scenes and renders
 

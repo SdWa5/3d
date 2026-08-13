@@ -749,6 +749,13 @@ the one below is a **warning** with the overhang in millimetres — what feet an
 more than half that cabinet's footprint is off the edge: it is standing on air, and that is an **error**.
 Neither shows up anywhere else, because `on:` only reads a top face and never asks whether anything is there.
 
+**A row wider than its envelope keeps its own spacing.** `block`'s parameter is a factor on each cabinet's offset, so
+a solve below 1 would pull the row *tighter* than the working gap it already has — which is what it used to do, and what
+put 92 mm of one cabinet inside the next on every `-block` variant the sweep refused. The floor is now the arrangement's
+own spacing, and a row that already exceeds its envelope there is left alone with a warning naming both widths. In the
+generated rigs that row is then identical to what `center` produces, so the variant is dropped as a duplicate rather
+than refused, and the "the same rig as …-center" line is where you see it.
+
 **Also `align` only ever spreads the top tier, and only as wide as the tier carrying it.** Spreading a tier
 turns it into gaps, so a tier with load on it has to stay tight; and spreading even the top tier to the bottom
 row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
