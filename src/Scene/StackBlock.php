@@ -100,6 +100,38 @@ final class StackBlock
         return $count;
     }
 
+    /**
+     * How high the sub stack's top face reaches — where the tops start, and the number every complaint about a rig
+     * being "too high" is actually about.
+     *
+     * Here rather than worked out again at each call site, because three of them want it and they must agree: the
+     * writer prints it in the header, {@see \App\Command\SceneStackCommand} breaks a tie between two arrangements on
+     * it, and the block ordering decides which stack goes in the middle by it. Three copies of one sum is how a
+     * header ends up disagreeing with the rig it describes.
+     */
+    public function subHeightM(): float
+    {
+        $height = 0.0;
+        foreach ($this->tiers as $tier) {
+            if ($tier->isSub()) {
+                $height += $tier->heightM();
+            }
+        }
+
+        return $height;
+    }
+
+    /** The whole pile, tops included — what a truss has to clear. */
+    public function heightM(): float
+    {
+        $height = 0.0;
+        foreach ($this->tiers as $tier) {
+            $height += $tier->heightM();
+        }
+
+        return $height;
+    }
+
     public function describe(): string
     {
         return sprintf(

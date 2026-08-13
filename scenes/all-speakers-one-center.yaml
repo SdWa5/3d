@@ -1,68 +1,94 @@
-# Every speaker both systems own, in ONE stack — all 41 cabinets, and the arrangement `scene:stack` cannot reach.
+# Every speaker both systems own bar one, in ONE stack — 38 of 39 cabinets on an 8 m stage.
 #
-# WHY THIS FILE IS HAND-WRITTEN where its two- and three-stack siblings are generated: it states a `mix_with`, and
-# `--from` on the command line can only name devices, not say which of them share a row. Everything else here is
-# solver-solved — the `stack:` block is re-dealt on every build.
+# WHY IT IS STILL HAND-WRITTEN, now that `scene:stack` can do the arrangement: nothing here is a row the solver
+# could not find, but the *combination* is a deliberate demonstration rather than a rig anybody would build, and the
+# header is the point of the file. `scene:stack --stacks=1 --max-sub-height=3.0 --max-width=8.0` reaches the same
+# thing.
 #
-# THE MIX IS WHAT MAKES ONE STACK POSSIBLE AT ALL. Without it the three GMSS middle subs make a tier 1.825 m wide and
-# there are only three of them, so no row count widens it; every tier above is then bounded to two thirds of a
-# cabinet's overhang by `Gravity::MIN_BEARING`, which caps the top of the stack near 2.5 m — while all eight tops in
-# one row are 3.744 m, and tops cannot be split across rows because nothing stands on a top. The stack was refused at
-# every stage width from 3.70 m to 10 m.
+# IT NO LONGER STATES A `mix_with`, AND THAT IS THE CHANGE. This file used to exist because `--from` could name
+# devices but not say which of them shared a row, and one stack of everything was impossible without saying it: the
+# three GMSS middle subs pinned a 1.825 m tier that no row count widened, `Gravity::MIN_BEARING` then capped
+# everything above it near 2.5 m, and the tops row had nothing to stand on. Stating `mix_with` on the middle subs
+# widened that tier to 2.885 m and nine tiers became seven.
 #
-# Stating `mix_with: [gmss-turbo-sub]` on the middle subs puts one turbo sub either side of them, which widens that
-# tier from 1.825 to 2.885 m. Everything above widens with it — six turbo subs at 3.160, six Achenbachs at 3.700 —
-# and the 3.744 m tops row is then carried. NINE TIERS BECAME SEVEN and every cabinet went in.
+# `max_sub_height_m` supersedes all of it. Under a ceiling a row may hold as many device types as it takes, chosen by
+# the solver, so the hand-stated mix is no longer the only way to merge a tier — and the result is better than the
+# hand-tuned one was: FOUR ROWS against seven, and 3.077 m of sub against 4.163 m.
 #
-# THE SUB/TOP TRANSITION IS 4.163 m. That is 1.2 m lower than the 6.546 m this scene had when it left three Tecnares
-# out, and it is still above a 2–3 m band: one stack of 33 subs is a festival wall, and each device type costs at
-# least one row. A mixed row's height is its TALLEST member, so merging two types only buys height when it removes a
-# row outright — which needs the whole flanking stock to fit in one row, and the support cap decides that.
+# THE STAGE IS 8 m WIDE, WHERE THIS SCENE USED TO ASK FOR 5. Not a preference — 5 m no longer solves. When GMSS gave
+# real figures the wall basses came out 1.400 m tall and 0.660 m wide against the 1.020 × 0.595 that had been guessed
+# from the photo, and a nuke beside two of them lands on 17 % of itself on any row narrow enough to fit 5 m. One
+# stack of 31 subs was always a festival wall; it is now a wider one.
 #
+# THE CEILING IS MISSED BY 77 mm, and the file states it anyway rather than rounding the target up to hide that. The
+# solver reports the miss in millimetres, and 3.077 m is the floor for 30 subs in one stack — every arrangement that
+# stands up is at least this tall.
+#
+# THE MID BASS IS LEFT OUT, and it is the one cabinet that cannot go in this rig. It is 1.200 m wide against the next
+# widest sub's 0.660, so it fits no row here without pushing the tops row onto a shoulder — a Tecnare ends up on 12 %
+# of its own width. `scene:stack --stacks=1` drops it for the same reason and says so; the two- and three-stack rigs
+# place it, because there it can have a row of its own without the whole wall having to be that wide. One stack of
+# everything is the arrangement with no room to absorb an odd shape.
 id: all-speakers-one-center
 name: "All speakers — one stack, tiers centred"
 
 focus:
   far:
-    distance_m: 10.0
+    distance_m: 12.0
     height_m: 1.8
   near:
     distance_m: 2.0
     height_m: 1.8
 
 placements:
-  # 38 cabinets: every sub both systems own, and five of the eight tops.
+  # Every cabinet both systems own, in one pile.
   - id: main
     at: [-0.302, 0.0]
+    aim: far
     stack:
-      max_width_m: 5.0
-      interface_height_m: 2.5
-      gap_m: 0.02
-      # Low frequency first, which is the fill order — the same order `scene:stack` derives for itself.
+      max_width_m: 8.0
+      interface_height_m: 0
+      max_sub_height_m: 3.0
+      gap_m: 0.05
+      # Low frequency first, which is the fill order — the same order `scene:stack` derives for itself. A packed row
+      # may only combine types that are ADJACENT in this list, so the order is what keeps the deepest cabinets on the
+      # floor: shuffle it and the solver builds a different, worse wall.
+      #
+      # THE NUKES STAY UPRIGHT HERE, and this is the one scene where they do. Everywhere else they are rolled a
+      # quarter turn, because a 0.770 x 0.590 foot is wider and lower and carries what stands on it better. In ONE
+      # stack it backfires: the wider pair changes what the packer can fit in the rows around them and the subs go
+      # from 3.077 m to 3.747 — 670 mm worse against the ceiling — and picks up two overhangs of 177 and 271 mm on
+      # the way. Measured both ways rather than assumed, because the same change helps every other rig in the
+      # library. Roll them here and this scene gets worse; that is the whole reason for the exception.
       from:
         - skram
         - flexy-folded-horn-hybrid
-        - gmss-mid-bass
-        # The mix is what makes one stack possible at all — see the header.
-        - device: gmss-middle-sub
-          mix_with: [ gmss-turbo-sub ]
-        - gmss-turbo-sub
         - achenbach-18
-        - eighteensound-2way-15
-        - gmss-turbo-top
+        - gmss-iq-sub
+        - gmss-wall-bass
+        # gmss-mid-bass is deliberately NOT here — see the note below.
+        - gmss-nuke
         - tecnare-m2122
+        - gmss-turbo-top
+        - eighteensound-2way-15
 
 notes: |
-  Every speaker both systems own in one stack: all 41 cabinets, 33 subs and 8 tops, owner ignored.
+  Every speaker both systems own bar one, in one stack, owner ignored — 38 of 39 cabinets on an 8 m stage.
 
-  It needs one stated `mix_with`. Without it the three middle subs pin a 1.825 m tier that no row count widens, the
-  bearing rule caps everything above near 2.5 m, and the 3.744 m tops row has nothing to stand on — `scene:stack`
-  refuses this inventory at every width from 3.70 m to 10 m. Mixing one turbo sub either side of the middle subs takes
-  that tier to 2.885 m, and the whole stack widens with it: nine tiers become seven and nothing is left out.
+  THE MID BASS IS LEFT OUT. At 1.200 m it is nearly twice the width of the next widest sub, and in one stack there is
+  no row it fits without pushing the tops onto a shoulder: a Tecnare lands on 12 % of itself. The three-stack rigs
+  place it — there it gets a row of its own without the whole wall having to be 1.2 m wide.
 
-  Sub/top transition 4.163 m, down from 6.546 m when three Tecnares were left out. Still above a 2–3 m band, and that
-  is arithmetic rather than a setting: 33 subs in one stack is a wall, each device type costs at least one row, and a
-  mixed row is as tall as its tallest member — so merging types only buys height when it removes a row outright.
+  It states a ceiling rather than a mix now. `max_sub_height_m: 3.0` lets a row hold as many device types as it takes,
+  which is what the hand-stated `mix_with` used to do for one tier only, and the solver picks the merges itself. Four
+  rows where the hand-tuned version needed seven, and 3.077 m of sub where it reached 4.163.
 
-  Compare `all-speakers-two-center.yaml` (also all 41, in two), `all-speakers-two-matched-center.yaml` (a true pair at
-  the cost of 13 cabinets) and `all-speakers-three-center.yaml`.
+  THE CEILING IS MISSED BY 77 mm and that is reported rather than hidden: 3.077 m is the floor for 31 subs in one
+  stack. Every arrangement that stands up is at least this tall, and the solver walked the whole search to say so.
+
+  8 m of stage, not the 5 this scene used to ask for. With the re-measured GMSS wall basses — 1.400 m tall against the
+  1.020 m guessed off the photo — a nuke beside two of them lands on 17 % of itself on any row narrow enough for 5 m.
+
+  For a rig anybody would actually build, `scenes/generated/all-speakers-three-low-center.yaml` puts the same cabinets
+  in three stacks at 1.526 / 1.684 / 2.070 m, and `all-speakers-three-stated-low.yaml` does it with the groupings
+  chosen by hand.

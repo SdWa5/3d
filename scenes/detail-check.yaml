@@ -24,25 +24,35 @@ placements:
     at: [ 1.2, 0.0 ]
 
   # The GMSS cabinets, to the right of our own with a wider break before them. They are `estimated` boxes rather
-  # than measured ones, so what this sheet shows for them is the reconstruction — which is worth being able to
-  # look at beside real cabinets, because that comparison is the quickest way to see whether an estimate is
-  # plausible at all. They are also the biggest things here: the middle sub is 1.350 m tall against a SKRAM's
-  # 0.914, and the spacing below is set from their widths rather than kept at the 1.0 m the others use.
-  - id: gmss-mid-bass
-    device: gmss-mid-bass
+  # than measured ones — the builder's own stated figures, which the enum has no case for — so what this sheet
+  # shows for them is the reconstruction. That comparison is worth being able to make beside real cabinets,
+  # because it is the quickest way to see whether an estimate is plausible at all: it is what showed the first
+  # reconstruction had the tops half a metre too tall.
+  #
+  # They are also the biggest things here. The wall bass is 1.400 m tall against a SKRAM's 0.914, and the mid bass
+  # is 1.200 m **wide** — wider than any other cabinet in the library and the reason the spacing along this row is
+  # set from their own widths rather than kept at the 1.0 m the others use.
+  - id: gmss-nuke
+    device: gmss-nuke
     at: [ 2.2, 0.0 ]
 
-  - id: gmss-turbo-sub
-    device: gmss-turbo-sub
-    at: [ 3.2, 0.0 ]
+  - id: gmss-iq-sub
+    device: gmss-iq-sub
+    at: [ 3.0, 0.0 ]
 
-  - id: gmss-middle-sub
-    device: gmss-middle-sub
-    at: [ 4.2, 0.0 ]
+  - id: gmss-wall-bass
+    device: gmss-wall-bass
+    at: [ 3.9, 0.0 ]
+
+  # A metre of clearance either side of this one, not the 0.8 the rest of the row uses: at 1.200 m across it would
+  # otherwise touch both neighbours.
+  - id: gmss-mid-bass
+    device: gmss-mid-bass
+    at: [ 5.2, 0.0 ]
 
   - id: gmss-turbo-top
     device: gmss-turbo-top
-    at: [ 5.1, 0.0 ]
+    at: [ 6.4, 0.0 ]
 
   # The non-speaker gear, further right again. The truss segment is the point of interest here: it is the only
   # device in the library that is not a hexahedron, so this is where its chords and bracing can be looked at
@@ -50,44 +60,48 @@ placements:
   # result of not having a telescoping-mast shape yet.
   - id: truss-f33-2m
     device: truss-f33-2m
-    at: [ 6.6, 0.0 ]
+    at: [ 7.8, 0.0 ]
 
   - id: truss-tower-4m
     device: truss-tower-4m
-    at: [ 8.0, 0.0 ]
+    at: [ 9.2, 0.0 ]
 
   - id: gmss-tower-5m
     device: gmss-tower-5m
-    at: [ 8.6, 0.0 ]
+    at: [ 9.8, 0.0 ]
 
   # A moving head and a scaffold tower, the two shapes that are neither cabinet nor truss. The MAC is the only
   # GMSS device with a datasheet behind it, and the Gerüst at 5 m is the tallest thing in the library — which is
   # what makes this sheet worth rendering from the front: everything is to the same scale.
   - id: gmss-mac-2000-performance-ii
     device: gmss-mac-2000-performance-ii
-    at: [ 9.6, 0.0 ]
+    at: [ 10.8, 0.0 ]
 
   - id: geruest-krause-ah7
     device: geruest-krause-ah7
-    at: [ 11.0, 0.0 ]
+    at: [ 12.2, 0.0 ]
 
   # The two rack types. Nothing to inspect in the geometry — a rack case IS a box, and these are the first
   # non-speaker devices that needed no new shape at all. They are here because the sheet is the inventory.
   - id: rack-amp-12u
     device: rack-amp-12u
-    at: [ 12.4, 0.0 ]
+    at: [ 13.6, 0.0 ]
 
   - id: rack-power-12u
     device: rack-power-12u
-    at: [ 13.2, 0.0 ]
+    at: [ 14.4, 0.0 ]
 
 notes: |
   Not a real setup — `scene:build` will warn that it uses gear from more than one owner, which is
-  expected here, and that it leans on un-measured cabinets, which is the four GMSS boxes.
+  expected here, and that it leans on un-measured cabinets, which is the five GMSS boxes.
 
   One of every device in the repository, which is the whole point of the file: if a device exists and is not on
-  this sheet, the sheet is broken. Sixteen of the seventeen are here — five speakers of ours, four of GMSS's, a truss
-  segment, two towers, a moving head, a scaffold and the two rack types.
+  this sheet, the sheet is broken. Seventeen of the eighteen are here — five speakers of ours, five of GMSS's, a
+  truss segment, two towers, a moving head, a scaffold and the two rack types.
+
+  GMSS went from four cabinets to five when the builder gave real figures: what had been modelled as one eight-strong
+  "turbo sub" is two different boxes, six IQ subs and two nukes, and the mid bass turned out to be a single 1.200 m
+  cabinet rather than a pair. That is 300 mm of extra sheet, which is why everything right of the mid bass moved.
 
   THE ONE DELIBERATE OMISSION is `gmss-truss-9m`. It is the same geometry as `truss-f33-2m` at four and a half
   times the length, so it shows nothing new, and including it would stretch this sheet past 20 m and leave every

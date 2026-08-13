@@ -3,21 +3,25 @@
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
 #
+# Regenerate it with:
+#
+#   bin/console scene:stack --max-width=3.7 --roll-mirror=flexy-folded-horn-hybrid --roll-mirror=skram --from=skram
+#     --from=flexy-folded-horn-hybrid --from=tecnare-m2122 --stacks=1 --align=center --shape=free --mirror-style=alternate
+#     --id=stacked-sdwa5-1-turned
+#
 # What it deals out today:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   1  1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    2.631 m wide
 #   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   4  6× achenbach-18                                                            3.7 m wide
-#   5  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   4  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   5  3× tecnare-m2122                                                          1.54 m wide
 #
-# Subs reach 2.373 m against a 2.0 m interface. The stack is 3.333 m of cabinet.
-#   * skram: LEFT OUT, it cannot be carried in this stack — a flexy-folded-horn-hybrid in the 2×
-#     flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row would land on only 17% of its own
-#     width — it is touching what carries it rather than sitting on it. Line the segments up with what carries them
-#   * the 6× achenbach-18 row is 3.700 m on a 3.112 m row, so it overhangs 294 mm each side
+# Subs reach 2.383 m against a 2.0 m interface. The stack is 3.343 m of cabinet.
+#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
+#     2.631 m row, so it overhangs 240 mm each side
 #
-id: stacked-turned-center
+id: stacked-sdwa5-1-turned-free-center
 name: "Solved rig — one stack, tiers centred"
 
 focus:
@@ -35,12 +39,12 @@ placements:
     stack:
       max_width_m: 3.7
       interface_height_m: 2.0
+      max_sub_height_m: 3.0
       gap_m: 0.02
       from:
+        - device: skram
+          roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           roll_mirror: 90.0
-        - achenbach-18
         - tecnare-m2122
-        - device: eighteensound-2way-15
-          aim: near
 

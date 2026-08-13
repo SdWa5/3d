@@ -6,6 +6,330 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.70.0] - 2026-08-13
+
+### Added
+
+- **A generated scene must meet its sub height band, and one outside it is not written.** `interface_height_m` (2.0 m)
+  and `max_sub_height_m` (3.0 m) have bounded the sub/top transition all along, and the solver treated both as
+  preferences — reporting a miss as a warning and building the rig anyway. Right for a scene somebody wrote; wrong for
+  one the sweep generates, and measurably so: of the **54 scenes that shipped, only 16 had every stack between 2 and
+  3 m**, the rest including `stacked-all-3-turned-center` at 5.73 m and `stacked-sepp-2-center` at 0.60 m — a rig whose
+  tops fire at knee height. Refusals name the measurement, the bound and the millimetre miss, because "no workable
+  arrangement" for a rig that is 40 mm too tall sends somebody hunting for a geometry fault
+- **The sweep moves a rig onto a stage that fits it rather than skipping it.** A sub wall gets shorter as the stage gets
+  wider, so a miss points in a direction: too tall widens, too short narrows, along a ladder of real stage widths
+  (2.00–6.00 m). The width it settles on is written into the recorded command — a replay that inherited the default
+  would rebuild the rig that missed. `stacked-all-2-center` is the case: refused at 3.70 m, 2.033 and 2.833 m of subs
+  at 4.40 m
+
+### Changed
+
+- **`--max-width` is a starting width in a sweep rather than the width.** Threaded through the solve explicitly instead
+  of being read from the option deep inside `stackFor()`, so the ladder cannot be silently undone one layer down
+- **The band binds every invocation, not only the sweep.** `build:all` regenerates a generated scene by replaying *its*
+  recorded line, which names `--from` and `--stacks` and so is not a sweep — holding only the sweep to the band would
+  have left every out-of-band file rewritten exactly as it was, for as long as it existed
+- **The scene set is 17 files where it was 54**: 10 from the sweep plus 7 turned siblings. The 44 removed are rigs
+  outside the band — 19 uprights and their 19 turned siblings, plus 6 replaced. Fewer scenes, each one buildable
+
+- **A badly-carried row is slid along its support instead of the rig being thrown away**, where nothing stands beside
+  it. **A row does not have to be centred on what carries it**, and assuming it did was refusing rigs that stand up: the
+  stage-width ladder cannot help a *quantity-bound* rig, and the GMSS cabinets are one — four sub types and at most six
+  of any one of them means the row count is set by the types, so the wall is 3.34 m at every width from 3.70 to 6.00 m.
+  Their one arrangement inside the band packs the nukes and mid-bass into one row, and centred that row put the outboard
+  nuke on 8 % of its own width. Slid, both ends are carried and `stacked-gmss-1-center` writes at **2.84 m** — the
+  system's single-stack coverage back. `Gravity`'s existing repair (`outboardSeats`, seating the ends on a stepped
+  support) returns null here for want of a second support run, so the two are tried best-of and neither is kept unless
+  it improves the worst bearing — which is what keeps every rig that stands up today unchanged
+- **The rescue applies to any tier, not only the top one.** It was written for outboard fills and gated to the last
+  tier, which read as though it were a property of tops rows; a packed *sub* row lands the same way and had no repair
+
+### Notes
+
+- **Sliding is bounded by what else is in the scene, not by gravity.** Only a stack with nothing beside it may move a
+  row, and then only inside the stated stage width. Stacks are spaced on their widest tier and their envelopes
+  deliberately overlap in x — tiers at the same height are each centred and narrower — so an unbounded slide reaches
+  into the stack next door: measured, **180 mm of interpenetration across five `all-3` scenes**. Letting a multi-stack
+  rig slide needs the spacing to work from resolved extents rather than centred tier widths, which is the same root as
+  the two open tops-row items and is recorded in `TODO.md`
+- **A candidate refused for something other than a height miss gets one rung of the ladder, not all of it.** Walking it
+  fully retried each of the 122 refused candidates at four widths and tripled the sweep to recover the one scene a
+  single rung already recovers
+
+## [0.69.0] - 2026-08-12
+
+### Fixed
+
+- **Every run of a tops row is now spaced against its inner neighbour, not just the fills.** The clearance chain
+  handled fill-to-throw only, on the reasoning that the long throw is placed by gravity on its own support and should
+  not be moved. That is true of *one* throw run and wrong the moment the throw lands in several: nothing spaced those
+  against each other, and two runs of the same device came out **360 mm inside each other** — over half a cabinet —
+  because each was placed independently and neither knew the other was there. Chaining fills to a throw and then
+  leaving the throws unspaced is a star with a hole in the middle. The innermost run keeps gravity's position, so the
+  centre of the rig does not move, and ordering by distance from the row's centre is what makes the chain resolvable
+  in one pass — `align.outside` can only name a placement already resolved
+- **`block` writes 5 scenes where it wrote none.** Every `block` variant used to collapse into its `center` sibling,
+  which the TODO recorded as a limitation; with the chain covering all runs it produces genuinely different rigs in
+  five cases. The sweep goes from 25 written to **28**, and interpenetration refusals from 14 to 12
+
+### Notes
+
+- **`block` is worse than "collapses into `center`", and that is now visible.** Of the 12 remaining interpenetration
+  refusals, **every same-tier one is a `-block` variant** — `stacked-gmss-2-block` at 360 mm,
+  `stacked-sdwa5-1-block` at 149 mm, `stacked-gmss-1-block` at 92 mm. Justifying an *aimed* row across its support is
+  the fixed-point problem `StepSolver` exists for, and something in that path is not accounting for the toe-in, so the
+  mode emits overlapping geometry rather than merely failing to spread. Nothing broken ships — the generator refuses
+  it — but the item is a defect rather than a gap, and it is recorded as one
+- **The one remaining cross-tier overlap is a different family**: `stacked-all-2-center` puts a tier-4 run 127 mm
+  inside a tier-3 run, which is the stepped-support case `swallows()` guards for packed sub rows and has never guarded
+  for the tops row
+
+## [0.68.0] - 2026-08-12
+
+### Added
+
+- **`scene:stack` with no options now writes scenes. It wrote none at all before.** The project's stated goal is that
+  as many *sensible* configurations as possible come out of one command in its default settings, and measured against
+  that the command scored zero: `--from` defaulted to every speaker in the repository, which since the GMSS cabinets
+  arrived means two sound systems in one unbounded stack — a rig nobody would build, whose eight tops alone are
+  3.921 m. Every generated scene had to spell four to six flags out. **Absence now means sweep**, over two more axes
+  beside the `--align` × `--shape` the command already swept: **one rig per owner plus one from everything**, and
+  **one, two and three stacks**. 25 scenes out of 132 candidates, the rest being 65 duplicates and 42 named refusals.
+  Naming `--from`, `--stacks` or `--per-owner` collapses it to that point, exactly as naming `--align` does
+- **`--max-width` defaults to 3.70 m and `--max-sub-height` to 3.0 m**, so the bare command has bounds to solve
+  against. 3.0 is the top of the 2–3 m band asked for; a rig that cannot get under it reports the miss in millimetres
+- **`--mirror-style=alternate|upright`**, both generated by default. An odd cabinet in a turned row has no arrangement
+  that is both symmetric and flat: `alternate` sends it to one side and flips which side on the next row up, so the
+  stack balances even though no row does; `upright` leaves it unrolled in the middle, which is a palindrome and stands
+  172 mm proud (763 mm against the rolled 591). `deduplicate()` drops whichever makes no difference
+- **`StackBlock::subHeightM()` and `heightM()`** — one derivation for the three callers that need it: the header, the
+  strategy tiebreak, and the stack ordering. Three copies of one sum is how a header ends up disagreeing with its rig
+
+### Changed
+
+- **The strategy choice breaks a tie on height.** `build()` kept whichever attempt placed the most cabinets — right,
+  since a cabinet in no rig is the worse failure — but had nothing to say between two attempts placing the same
+  number, so the first tried simply won. That is how stating a `max_sub_height_m` could make a rig come out *taller*
+  than not stating one. **The ceiling is monotone at the solver level** — probed across six inventories × two shapes ×
+  two interface heights: 13 shorter, 11 unchanged, **none taller** — so the extra height was never the solve, it was
+  this tie resolved by strategy order. Equal cabinets now take the shorter rig
+- **The taller stacks go where the alignment wants them**: middle in mono, ends in stereo. The same rule as the tops
+  row one level up, and until now the blocks came out in solve order with nothing looking at their heights, so
+  `--per-owner` read `3.34 | 3.20 | 1.80` with the tallest hard left in 7 of 30 multi-stack scenes. It reads
+  `2.44 | 3.61 | 1.80` now. **This improves symmetry and does not deliver it** — ordering places the tall stacks but
+  cannot make the flanks equal, which depends on the split giving each stack similar contents
+- `--max-scenes` defaults to 80, since the sweep legitimately produces dozens; it still refuses rather than truncating
+
+### Fixed
+
+- **`build:all` prunes stale derived files under every `generated/` directory.** The scene ids changed shape wholesale
+  this release, which left 38 orphaned `.blend` files and 11 orphaned renders: every stage only ever added, so the
+  tree accumulated a layer per release and a reader could not tell which pictures belonged to the current rigs. A
+  `.blend`, plan or render whose scene id no longer exists is removed and named. **Generated scene *files* are
+  deliberately not pruned automatically** — deciding one is stale means knowing which files the run wrote, and two
+  attempts at that by timestamp destroyed the scene set outright (`filemtime()` is whole seconds while
+  `microtime(true)` is fractional, so a file written in the same second as the run started read as older than the run).
+  A stale scene file shows up in `git status` and is overwritten by the next `--force`; a deleted one is 25 files of
+  work. Automating it wants `scene:stack` reporting the paths it wrote, not a cleverer clock
+- **A recorded regeneration command now reproduces the scene's own name.** The sweep builds a name from the base id
+  plus which rig it is — `stacked` + `-gmss-1` — but recorded only the base, so every replay wrote `stacked-center`
+  over one file while the real 25 went stale
+- **The generator now refuses a candidate that interpenetrates**, on the same test the shipped-scene sweep applies.
+  The separating-axis geometry moved out of `ShippedScenesTest` into `App\Scene\Interpenetration` so both callers
+  share one answer — it was previously the test's private business, which meant the command could write a scene the
+  sweep would then reject, and the failure surfaced one command later
+- **That check found overlaps that had always been there.** `--dry-run` writes no file and only written scenes reach
+  the sweep, so several rigs asserted on by tests had been interpenetrating unnoticed: the free-shape GMSS per-owner
+  stack by **22.5 mm**, a by-type three-stack aimed tops row by **17.6 mm**, and others between 7 and 23 mm. All are
+  the aimed-row toe-in family. The rigs are refused now rather than written, and the underlying spacing defect is
+  recorded rather than papered over
+
+### Notes
+
+- **No multi-stack stereo rig survives the checks yet**, so the stereo half of the ordering rule is implemented and
+  unexercised: the tops-spread envelope refuses the narrow supports every generated scene has. Asserting it would mean
+  asserting on a refusal
+
+## [0.67.0] - 2026-08-12
+
+### Added
+
+- **`shape:` on a stack, and `scene:stack --shape=pyramid|free`** — both generated by default, one scene each, the
+  way `--align` already writes one per layout mode. **The pyramid keeps the plain scene id** and the other gets a
+  `-free` infix, so the default scene is the good one and no existing id was renamed
+- **`build:all` generates a turned sibling of every generated scene**, laying the horn-loaded cabinets on their
+  sides. **16 of 18 solve**; a refused one is reported with its reason and the build carries on rather than failing —
+  the same treatment `scene:stack` already gives an unbuildable alignment. Which cabinets are turnable is stated in
+  the command, continuing the existing decision not to invent a spec field to serve a layout
+- **The generator refuses a scene the shipped-scene sweep would reject.** Its stated promise was already "a
+  generator that emits a scene the compiler rejects is worse than no generator", but the floating-cabinet check
+  lived only in the test — so it wrote `all-speakers-three-turned` with a top 1.261 m up over open air, compiling
+  cleanly and failing one command later. Same check, same data, in `compileYaml`
+
+### Fixed
+
+- **Generated stacks came out V-shaped and too tall, which was a regression from 0.66.0.** The weight-first fill
+  order put the two wall basses — heavy but narrow, 1.34 m of row between them — on the floor, and `swallows()`
+  then refused to widen that row with the 0.500 m mid bass. A narrow base under wider rows is both the V and the
+  height: five of the twelve generated stacks widened as they rose, one of them 1.34 m → 2.51, and the low
+  three-stack rig had gone from 1.526 / 1.684 / 2.070 m to 1.526 / 2.114 / 3.240. **The pyramid shape is the fix
+  and it is two rules, not one:**
+  - **the fill is ordered for row width, not weight** — six IQ subs on the floor is a 3.28 m base where two wall
+    basses is 1.34, and the same twelve cabinets come out 3.28 → 2.56 → 1.54 in three rows and 2.070 m against
+    1.34 → 1.20 → 1.63 → 1.63 → 1.54 in five and 3.240
+  - **no row may hold more cabinets than the row below it.** A *count*, not a width, and that distinction is the
+    rule working rather than not: capping the width was tried first and refused six Achenbachs' 3.700 m on six
+    Flexys' 3.646 — a 27 mm shoulder per side against an allowance of four hundred — splitting them into two rows
+    of three, whereupon the 1.84 m row could not carry the tops and a 2-way was dropped. A flush wall is not a V
+- **It is an improvement, not a cure, and the number is 21 → 9.** Across the 39 generated stacks, 21 had a row
+  holding more cabinets than the row below it; as pyramids 9 still do. The cap is applied where rows are *dealt* and
+  where they are *packed*, and three other paths build rows without consulting it — a lifted flank
+  (`reserveLifts`), a stated `mix_with`, and the mixed bottom row. The bottom row needs no cap, being first; the
+  other two are the residual and are worth doing next
+- Measured across every representative stack, the pyramid removes the V in **five of six** and is shorter in
+  **four of six**: `everything` 6.871 → 4.966 m, GMSS alone 4.010 → 3.340, the awkward by-type stack 3.240 → 2.070.
+  Two configurations place a cabinet fewer as a pyramid (38 against 39, and 21 against 23), which is the honest
+  cost of the count cap and the reason both shapes are generated
+- **`StackSceneWriter` now emits `shape:`.** A bound left out of a generated file is a bound the rig quietly stops
+  answering to, because the `stack:` block is re-solved on every build — the pyramid variant was rebuilding as its
+  own free-form sibling, which is what made the two indistinguishable and deduplicated away
+- **`commandLine()` no longer freezes the fill order.** Recording the resolved `--from` list meant a scene generated
+  from the default gear kept the order it was written with for ever; it now records `--from` only when one was
+  actually passed
+
+### Notes
+
+- **TODO 22 is resolved and deleted** — `build:all` regenerates every generated scene from its own recorded command,
+  so a comment table cannot go stale while the rig stays right. TODO 4 now carries the measured turned results
+  rather than one example, TODO 29's 4.085 m is corrected to 4.563 (pyramid) and 5.628 (free) — both still above
+  what a 4 m crank stand reaches — and TODO 21 is narrowed to `block`, the one alignment still spaced on flat widths
+- **TODO 5 was deliberately not attempted.** Centring the odd cabinet of a mirrored row is the same idea as the
+  stereo tops row, but it moves cabinets in every mirrored rig in the library and wants its own measured pass
+
+### Known broken
+
+- **Six hand-built scenes still reference the GMSS cabinets as they were before the builder gave real figures**, and
+  fail the overlap and floating sweeps: `all-speakers-one-center`, `both-systems-side-by-side`,
+  `both-systems-stereo`, `everything`, `gmss-full-stack` and `gmss-full-stack-truss`. Each hand-derives a GMSS stack
+  against dimensions that moved by up to 40 % — the wall bass went from 1.020 m to 1.400 m tall, the mid bass from
+  0.595 m to 1.200 m **wide** and from two cabinets to one — so they need their stacks re-derived rather than their
+  device ids renamed. Not attempted here because the arrangement in the photo is what they are models *of*, and
+  because the tops count is still open (see the note below)
+
+## [0.66.0] - 2026-08-12
+
+### Added
+
+- **`max_sub_height_m` on a stack, and `scene:stack --max-sub-height`** — a **ceiling** on the sub/top transition,
+  the mirror of `interface_height_m`'s floor. Stating one inverts what the solver optimises for: instead of returning
+  the first arrangement that *reaches* the interface, it walks the whole search and keeps the **shortest** that stands
+  up. Missing the ceiling is a warning naming the miss in millimetres, not a refusal — the number it reached is the
+  inventory's own floor
+- **A row may hold as many device types as it takes** (`StackSolver::packedRows`). This is the only thing that can
+  make a stack of many types short, and the reason is arithmetic: a row costs the height of its *tallest* cabinet, so
+  two types in one row cost one height rather than two. Our five own cabinets on the 3.70 m stage go from six rows and
+  3.640 m to five rows and 3.040 m; all 39 speakers in three stacks come out at 1.526 / 1.684 / 2.070 m against the
+  3.146 m that was previously the floor. Packing is offered *alongside* the ordinary deal and the shortest that stands
+  up wins — neither is better everywhere: on 2 SKRAMs, 2 wall basses, a mid bass and 2 2-ways the deal finds 1.445 m
+  and the pack 2.465 m
+- **`scene:stack --split=by-type`** — gives each stack whole device types instead of a share of every device, balanced
+  by `quantity × width`. What makes a rig low: a by-count stack holds every type and is as many rows tall as there are
+  types, where a by-type stack holds two or three
+- **`scene:stack --no-asymmetry`** — leaves the odd cabinets out rather than giving one stack more than another,
+  which was the old behaviour
+- **Every generated scene records the command that made it**, as a runnable line in its header. A generated file that
+  cannot say how it was generated has to be reverse-engineered from its own contents first, which is exactly what
+  regenerating eleven scenes after the GMSS re-measure required
+- **`build:all` regenerates the generated scenes first**, by replaying each file's own recorded command. That closes
+  the last gap in "from specs to pictures": every other stage already followed the specs, and these files did not —
+  re-measuring the GMSS cabinets left eleven of them describing rows that no longer existed and a full build noticed
+  nothing. There is deliberately no list of commands in the code, because a second copy would drift from the files.
+  **This is the only stage that writes outside `build/`**, and `--dry-run` says how many files it would rewrite
+
+### Changed
+
+- **The odd cabinets are now placed by default.** Three Tecnares across two stacks were 1 + 1 with the third left out
+  of the rig; they are now 1 + 2, with the unevenness named in the scene header instead of the omission. The stacks
+  stop being identical, which is the price, and `--no-asymmetry` declines to pay it. `stacked-two-center`,
+  `stacked-two-flat-center` and `stacked-two-turned-center` each gain a cabinet; `stacked-turned-center` gains the
+  two SKRAMs
+- **Generated scenes live in `scenes/generated/`, and everything derived from one follows it** into
+  `build/scenes/generated/`, `build/plans/generated/` and `build/renders/generated/`. `SceneLoader::files()` is now
+  recursive — the same `RecursiveDirectoryIterator` `SpecLoader` uses for `specs/`, which its docblock already
+  promised — so `scene:build stacked-center` still resolves by bare id and no command knows the subdirectory exists.
+  Eleven generated scenes moved out of `scenes/`
+- **`scenes/all-speakers-three-low-center.yaml` is now generated**; the hand-written one is
+  `scenes/all-speakers-three-stated-low.yaml`, renamed because two scenes cannot share an id and "stated" is what
+  distinguishes it — a person chose which cabinets share a stack. It states only the contents and the ceiling now,
+  where it used to state a row-height sum per stack that went stale the moment a cabinet was re-measured
+- **The Achenbachs stand on the Flexys**, not under them. `byFrequency` always asked for that — both are driven from
+  38 Hz and the Flexy stops at 200 against the Achenbach's 1500, so the Flexy is the more sub-like of the two — and
+  the low scene's "widest row first" rule turned out not to exist: 3.700 m on 3.646 m is 27 mm proud per side against
+  the two thirds of a cabinet `Gravity::MIN_BEARING` allows
+- **`all-speakers-two-center` is gone.** With the re-measured GMSS cabinets no by-count arrangement of all 39 speakers
+  across two stacks stands up — every width from 4 to 6 m and both interface heights leave the tops row on a stub. The
+  two-stack rig exists as `all-speakers-two-low-center`, split by type
+- `detail-check` gains the fifth GMSS cabinet and 300 mm of sheet; everything right of the 1.200 m mid bass moved
+- **The GMSS nukes are laid on their sides**, mirrored, in every scene where it measures better. Rolled a nuke is
+  0.770 × 0.590 rather than 0.590 × 0.770, so each column stands on a wider, lower foot. In `gmss-full-stack` that
+  drops the columns from 2.780 m to 2.600 — level with the tops to within a centimetre, which is how the photograph
+  reads, where upright they stood 170 mm proud — and widens the rig from 2.560 m to 2.920 m. `gmss-full-stack-truss`,
+  `both-systems-side-by-side` and `both-systems-stereo` follow it hand-placed; `all-speakers-three-stated-low` (110 mm
+  overhang → none) and `everything` (108 mm → 18 mm) follow it through `roll_mirror`. **`all-speakers-one-center` is
+  the deliberate exception**: in one stack the wider pair costs 670 mm of height and adds two overhangs, so it keeps
+  its nukes upright and says why. Measured both ways in every scene rather than assumed
+- **`gmss-full-stack-truss` now hangs its inner two MACs over the cabinets**, because the stack widened to 2.920 m
+  while the fixtures stayed at ±1.050. 1.777 m of vertical clearance, so nothing touches, but it is over gear rather
+  than over floor — and widening the spacing cannot fix it: the outer pair would need ±4.680 on a truss whose half
+  span is 4.500. Recorded in the scene rather than quietly left true-looking
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
+### Fixed
+
+- **Two fills on the same side of a top row were placed inside each other** (TODO 28). Each fill was solved `outside`
+  the long throw, which works for one fill per side and puts the second on top of the first: a GMSS turbo top and a
+  2-way went 99 mm inside each other, which their own toe-in opened to 213 mm. A wider gap was no remedy — four times
+  the gap moved it 35 mm — because they were never spaced against each other at all. The fills are now a **chain**,
+  each solved outboard of the one inboard of it and emitted in that order
+- **`StackSceneWriter` now emits `max_sub_height_m`.** A bound left out of a generated file is a bound the rig quietly
+  stops answering to, because the `stack:` block is re-solved on every build
+
+### Notes
+
+- **TODO 30 is resolved and TODO 22 is what the new header line addresses.** "Each device type costs at least one row"
+  was true and is no longer: that is what packing removes
+- **A stepped row propagates upward, and that is why the pack checks its own candidates.** Two SKRAMs in the bottom
+  row leave the level Flexy row above them sitting at three different heights, and the Achenbach row above *that*
+  straddles the seams and lands on 1.9 % of itself. Nothing local to a row can see that coming, so the packer proposes
+  and `StackChecks` disposes. Sizing rows to the tall segments instead was tried and is wrong — a cabinet outboard of
+  the plateau lands on the shoulder, which is what a stepped wall looks like — and it cost 3.8 m of height
+- **The planned stepped-row bearing check was dropped**: `bearingProblems` already judges every cabinet against what
+  it personally landed on via `Gravity::resolve`, and `Stability::tips` covers the row as a body. A second rule would
+  have duplicated an existing one, which `StackChecks`' own docblock warns against
+- **The planned `pillarProblems` re-derivation was dropped too**: it counts cabinets *in the stack*, so a stack that
+  received a single cabinet has `$held = 1` and is already exempt. Dealing remainders cannot trigger it
+- **GMSS is five cabinets, not four**, and 14 cabinets at 994 kg. The builder's stated figures replace the estimates
+  read off the photo. Still `estimated` provenance, deliberately: there is no datasheet, no plans in hand, and
+  `measured` would claim we taped it. **Open question — the photo appears to show four tops where he said three**
+
 ## [0.65.0] - 2026-08-12
 
 ### Added
@@ -38,6 +362,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ## [0.64.0] - 2026-08-12
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -135,6 +477,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ## [0.61.0] - 2026-08-12
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -302,6 +662,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.57.0] - 2026-08-11
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **The GMSS cabinets were still too big beside ours, and the scale is now calculated rather than chosen.** The
@@ -334,6 +712,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.56.0] - 2026-08-11
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`both-systems-per-owner-center.yaml` was the one scene 0.55.0's rescale did not fully reach.** Its cabinets were
@@ -358,6 +754,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   removes
 
 ## [0.55.0] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -413,6 +827,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.54.0] - 2026-08-11
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **The mid-bass cabinets are the foot of the outer columns, not a row in the middle.** In the photo each column
@@ -445,6 +877,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   as a ~60 mm badge
 
 ## [0.53.0] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -519,6 +969,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   "every spec in the repository". That stopped meaning one rig once a second system was documented, and
   `--per-owner` now yields three stacks rather than two — which is the case that option exists for
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - `docs/scenes.md` still described `end-fire-lattice` as `count: [2, 3, 2]`; it has been `[3, 2, 2]` since 0.48.0
@@ -542,6 +1010,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   recorded in the manifest on its next pass. Nothing needs `--force`
 
 ## [0.50.0] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -612,6 +1098,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.48.0] - 2026-08-11
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **A tier could not be flanked from below when the promotion used up every spare cabinet.** The rule asks "if I
@@ -640,6 +1144,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   rear rejection, so two deep cancels less than three would; the twelve cabinets go on width and height instead
 
 ## [0.47.0] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -693,6 +1215,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   overhang and called a properly built rig 89° out of level
 
 ## [0.45.1] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -761,6 +1301,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Refused rather than solved when the cabinets already clear by more than asked — pulling them *in* would need a
   bracket below the starting parameter, and every mode's parameter is bounded below by zero
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`full-rig-arc`'s `width_m: 2.60` was 18 mm looser than its own comment claimed.** The file said "2.60 puts
@@ -819,6 +1377,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 
 ## [0.40.1] - 2026-08-11
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`scenes/full-rig-arc.yaml` stood four Achenbachs where six are owned** — the one hand-written three-tier rig
@@ -849,6 +1425,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   Achenbach count: each stack now gets two more, since `intdiv(6, 3)` and `intdiv(6, 2)` both split evenly
   and no longer trip the odd-remainder special case
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`specs/speakers/achenbach-18.yaml` `quantity` was 4; six are actually owned.** Every bare `stack.from`
@@ -878,12 +1472,48 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   reported, because 2 + 1 makes a stereo pair that is not a pair
 - The generated-rig sweep covers the turned two- and three-stack rigs
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - `inventoryFor()`'s closure did not capture the flag it branched on, so both split strategies behaved
   identically. PHP only warns about an undefined variable in a boolean, and `!$undefined` is `true`
 
 ## [0.38.0] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -945,6 +1575,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   alternating. Identical footprint (4.68 × 0.96 m), identical tops, identical foci; four of the twelve subs
   change roll and position
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **Bearing counted only one support.** It took the overlap with the single highest thing underneath and called
@@ -997,6 +1645,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   is why the two-stack plan keeps the pair together
 
 ## [0.35.1] - 2026-08-11
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1089,6 +1755,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - When nothing stands up at any row width, the error now names the **widest** attempt — the most favourable
   case — rather than the narrowest
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **A step in the top row was warned about falsely.** A step only matters if something stands on the row, and
@@ -1129,6 +1813,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - `--subs`/`beside` removed. What is in a rig is chosen with `--from`
 - `scene:stack` de-duplicates on **solved geometry** rather than on the emitted file, so alignments that come
   out as the same rig are written once
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1181,6 +1883,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - **Rows are balanced rather than greedy.** Eight leftover Flexys at six-per-row come out 4 + 4, not 6 + 2:
   the same number of rows, but a 1.222 m row could not carry the Achenbachs above it and a 2.424 m one can
 - `scenes/full-rig-all-speakers.yaml` — all 23 cabinets in one stack, which was not expressible before
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1252,6 +1972,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - A placement now **rejects unknown keys**. It used to accept anything, so `algn:` read as "not aligned" and
   `aim_lies:` as "follow the scene mode" — both rendering perfectly plausibly with nothing to see. Same
   argument `arc` and `lattice` already made for their own keys
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1331,6 +2069,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   they overlap. A check that fails on a third of the library gets switched off
 - A test that the check catches a deliberate intersection, so the eighteen passes mean something
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **A hang's joints were solved at plumb and its elements then tilted individually, which drove
@@ -1357,6 +2113,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   build plan where a gap the scene wrote as 2° has to read as 2°
 
 ## [0.28.2] - 2026-08-04
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1416,6 +2190,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   cabinet alone. Three versions of the same 23 cabinets now exist, narrowest to widest, so that trade can be
   looked at rather than argued about
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - Nothing new, but worth recording: the near-fills follow the tops. With the tops out at 2.1185 the old
@@ -1461,6 +2253,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   for every upright cabinet, false for one on its side. Only the pair needs stating; the two levels above it
   derive from what the pair actually occupies
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **The near-fills in `two-foci.yaml` were inside the sub wall.** At `y = -0.6` they overlapped it by
@@ -1470,6 +2280,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   a three-quarter render, which is how it survived
 
 ## [0.26.0] - 2026-08-04
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1594,6 +2422,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   rests on the thing it stands on; a hang has no such thing, and the hardware decides where it is. `fly` now
   implies this for the whole placement, not just for `line_array` elements — a single flown top is flown too
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **A group could put part of itself below its own base with nothing to lift it back.** `PlacedDevice::zLift()`
@@ -1622,6 +2468,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   unlike `--out` it works for a whole run. There was previously *no* way to render every scene somewhere
   else: `--out` is refused for more than one scene
 - `src/Command/BuildAllCommand.php` and `tests/Command/BuildAllCommandTest.php`
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1675,6 +2539,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   the audience. It would also reintroduce, once per group, the circularity the rig-wide front-face pre-pass
   exists to avoid
 - `SceneSpec::$focus` is now `$focusByName`; `Placement::$aimAtFocus` (a bool) is now `$aimFocus` (a name)
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1786,6 +2668,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   word for two different things, and `self-built` against `own-design` says what actually differs — whose
   drawing it was built from. `clone_of` keeps its name, because what it names really is an original
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - Composed offsets are rounded to the nearest picometre. `sin(180°)` is 1.2e-16 rather than zero in binary,
@@ -1845,6 +2745,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   grille frame, and it survives a roll, which the old derivation could not
 - 121 cabinets across the ten shipped scenes are unchanged. Nine values in `full-rig-arc` move by up to
   1e-14 — `atan2(dx, dy)` where the old code divided first, the same angle rounded differently
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -1913,6 +2831,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - Expansion happens in one place. `repeat` and `arc` both produce `PlacementCopy` objects, so the
   placement loop and the front-face walk no longer carry a copy of the arithmetic each
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`PlacedDevice::box()` treated every trapezoid as a full-width box**, against this class's promise of an
@@ -1966,6 +2902,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   `provenance.dimensions` stays `plans`: a confirmed lip is not a tape measure over the whole cabinet
 
 ## [0.15.1] - 2026-07-30
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -2052,6 +3006,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - The generated grille panel is skipped when a spec has a layout: a solid panel across the front would
   hide every horn. The frame bars stay
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`models:build` reported success on a build that had crashed.** Blender can exit 0 after a Python
@@ -2059,6 +3031,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   ones. They now have to be newer than the run that claimed to write them
 
 ## [0.13.1] - 2026-07-30
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -2084,6 +3074,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - `PlacedDevice::frontFaceCentre()` and `frontDirection()`; four new tests (suite now 143)
 - `scenes/aimed-close.yaml` — the same rig aimed at 2 m / 1 m instead of 10 m / 1.8 m: 18–22° of tilt and
   ±36° of toe-in. Kept as a contrast case, with a note that it is not a setup anybody would build
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -2134,6 +3142,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
 - The Achenbach's CAD measures 600 × 700 × 600 mm, matching the spec **exactly** — a third independent
   confirmation after the panel geometry and lsv-achenbach.de's published panel sizes
 
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
+
 ### Fixed
 
 - **`eighteensound-2way-15` outer dimensions were wrong: 0.4656 × 0.836 × 0.4268 m, not
@@ -2174,6 +3200,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   documented in `docs/scenes.md`, having been rendered wrong the first time
 
 ## [0.9.1] - 2026-07-30
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 
@@ -2388,6 +3432,24 @@ No behaviour change: the whole suite passes untouched, which is the only verific
   quantity, because build, provenance and weight all differ and a setup should be able to tell which
   cabinet is which. `Hardware Overview.xlsx` counts only the factory pair
 - Inventory totals are now 6 specs, 25 cabinets, 1834 kg, 8.96 m³
+
+### Changed — the tops row
+
+- **The alignment mode now decides the ORDER of the tops row, not only its spacing.** `stereo` puts the long throws
+  at the outer ends with the near-field fills inboard of them, nearest the centre line — the broadest stereo image
+  the envelope allows, with the fills covering the middle ground between the clusters. `center` and `block` keep the
+  long throw centred with the fills outboard, which is the mono answer. The two orders are mirror opposites and
+  `stereo` is consequently its own rig now: it used to resolve identically to `center` and be deduplicated away
+- **A stereo tops row is now pushed apart until it spans its support**, which is what makes the image broad rather
+  than merely correctly ordered. The slack is handed out between neighbouring groups so each cluster keeps its own
+  spacing and only the air between them grows; the outer tops' edges land on the sub wall's edges and no further,
+  since past that they are over nothing. Five tops on our own rig went from spanning 2.011 m to 3.200 m. This is the
+  `align cannot spread a mixed row` limitation worked around where it matters: there is nothing to *solve* here —
+  {@see Alignment} exists for landing an aimed edge exactly on an envelope, and moving clusters apart can only
+  increase the clearance an aimed cabinet needs
+- **An odd top goes to the centre line in stereo, not to one side**, so the two clusters stay equal. Three M2122s
+  and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`. A true palindrome needs every group's count
+  even or exactly one odd; with two odd groups the centre holds one of each and only that block is uneven
 
 ### Fixed
 

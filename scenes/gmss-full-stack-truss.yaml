@@ -1,7 +1,7 @@
 # GMSS with its truss and lights — the first scene in the library where anything hangs from anything.
 #
 # WHAT IS HERE: the GMSS stack as `gmss-full-stack.yaml` has it, their 9 m truss on their two 5.2 m towers, and all
-# four Martin MAC 2000 Performance II hung from the truss. Every item GMSS listed except the mid-bass count that was
+# four Martin MAC 2000 Performance II hung from the truss. Every item GMSS listed, now that the mid-bass count that was
 # never stated — this is as close to "the whole system" as their own description allows.
 #
 # THE POINT OF THE SCENE IS THE HUNG WEIGHT. Four MACs are 4 x 39.5 = 158 kg on one 9 m truss whose own weight is
@@ -25,8 +25,17 @@
 #
 # THE SPACING IS DERIVED. Four fixtures across a 9 m truss, centred: `align` is not used because a row of four with
 # a stated gap is the simpler statement and there is no envelope to justify into. 2.100 m apart puts them at
-# -3.150, -1.050, 1.050 and 3.150 — inside the truss's 9 m and outside the 2.44 m stack below, so nothing is
-# hanging over the cabinets where a shackle could reach them.
+# -3.150, -1.050, 1.050 and 3.150 — inside the truss's 9 m.
+#
+# THE INNER PAIR NOW HANGS OVER THE STACK, and that changed when the nukes were turned. The rig went from 2.440 m to
+# 2.920 m across, so it reaches ±1.460 where the inner fixtures are at ±1.050: they are over the cabinets, where
+# before nothing was. Vertically there is 1.777 m between them — the heads hang down to 4.387 and the tops finish at
+# 2.610 — so nothing touches, but a dropped shackle or a lamp change is now over gear rather than over floor.
+#
+# WIDENING THE SPACING DOES NOT FIX IT and that is worth writing down so nobody tries: putting the inner pair
+# outboard of 1.460 needs 3.120 m between fixtures, which throws the outer pair to ±4.680 — past the ends of a 9 m
+# truss whose own half-span is 4.500. Four MACs and a 2.920 m stack do not both fit under 9 m of truss with nothing
+# overhanging. The choice is to accept it, hang two fixtures instead of four, or borrow a longer truss.
 #
 # WHAT IS NOT MODELLED: the omega brackets and clamps between fixture and truss, the cabling, and the GMSS towers'
 # outriggers. All three are stated in the specs they belong to rather than drawn here.
@@ -38,47 +47,51 @@ focus:
   height_m: 1.8
 
 placements:
-  # ─── THE STACK, exactly as `gmss-full-stack.yaml` has it ──────────────────────────────────────────────────────
-  - id: middle-subs
-    device: gmss-middle-sub
+  # ─── THE STACK, exactly as `gmss-full-stack.yaml` has it — nukes on their sides included ───────────────────────
+  # Turning the nukes drops the columns from 2.780 m to 2.600, level with the tops, and widens the rig from 2.560 m
+  # to 2.920. The width is what matters in THIS scene rather than the height: it moves the stack out under the
+  # fixtures. See the goalpost note below.
+  - id: wall-basses
+    device: gmss-wall-bass
     at: [ 0.0, 0.0 ]
     row:
       count: 2
       gap_m: 0.02
 
-  - id: middle-sub-upper
-    device: gmss-middle-sub
-    on: middle-subs
-    at: [ -0.510, 0.0 ]
-    roll_deg: 90
+  - id: mid-bass
+    device: gmss-mid-bass
+    on: wall-basses
+    at: [ 0.0, 0.0 ]
 
   - id: tops
     device: gmss-turbo-top
-    on: middle-sub-upper
+    on: mid-bass
     at: [ 0.0, 0.0 ]
     row:
       count: 3
       gap_m: 0.02
 
-  - id: small-sub-left
-    device: gmss-mid-bass
-    at: [ -0.922, 0.0 ]
+  - id: nuke-left
+    device: gmss-nuke
+    at: [ -0.690, 0.0 ]
+    roll_deg: 270
 
   - id: column-left
-    device: gmss-turbo-sub
-    on: small-sub-left
-    at: [ -0.922, 0.0 ]
+    device: gmss-iq-sub
+    on: nuke-left
+    at: [ -1.075, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
-  - id: small-sub-right
-    device: gmss-mid-bass
-    at: [ 0.922, 0.0 ]
+  - id: nuke-right
+    device: gmss-nuke
+    at: [ 0.690, 0.0 ]
+    roll_deg: 90
 
   - id: column-right
-    device: gmss-turbo-sub
-    on: small-sub-right
-    at: [ 0.922, 0.0 ]
+    device: gmss-iq-sub
+    on: nuke-right
+    at: [ 1.075, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 

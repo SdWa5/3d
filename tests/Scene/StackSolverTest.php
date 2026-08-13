@@ -8,6 +8,7 @@ use App\Scene\Stack;
 use App\Scene\Gravity;
 use App\Scene\StackChecks;
 use App\Scene\StackEntry;
+use App\Scene\StackShape;
 use App\Scene\StackSolver;
 use App\Scene\Tier;
 use App\Spec\DeviceSpec;
@@ -25,6 +26,12 @@ use PHPUnit\Framework\TestCase;
  */
 final class StackSolverTest extends TestCase
 {
+    /** Every speaker in the library, in the order the command deals them. */
+    private const EVERY_SPEAKER = [
+        'gmss-wall-bass', 'gmss-mid-bass', 'skram', 'flexy-folded-horn-hybrid', 'gmss-nuke', 'achenbach-18',
+        'gmss-iq-sub', 'tecnare-m2122', 'gmss-turbo-top', 'eighteensound-2way-15',
+    ];
+
     /** @var array<string, DeviceSpec> */
     private array $devices;
 
@@ -881,6 +888,291 @@ final class StackSolverTest extends TestCase
         );
 
         self::assertSame([], $result['problems']);
+    }
+
+    /**
+     * A ceiling packs several device types into one row, and that is the only thing that shortens a stack of
+     * many types.
+     *
+     * Two SKRAMs, twelve Flexys, six Achenbachs and three Tecnares on the 3.70 m stage are six rows and 3.640 m
+     * dealt one type per row. Under a ceiling the same cabinets come out five rows and 3.040 m: the Achenbachs
+     * share a row with the two Flexys left over, so those two cost no row of their own. 600 mm out of nothing but
+     * a different arrangement.
+     */
+    public function testACeilingPacksSeveralDeviceTypesIntoOneRow(): void
+    {
+        $ids = ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'];
+
+        $dealt = $this->solveTo($ids, maxWidthM: 3.70, maxSubHeightM: null);
+        self::assertCount(6, $dealt['tiers']);
+        self::assertEqualsWithDelta(3.640, $this->subHeight($dealt['tiers']), 1e-9);
+
+        $packed = $this->solveTo($ids, maxWidthM: 3.70, maxSubHeightM: 3.0);
+        self::assertSame([], $packed['problems']);
+        self::assertCount(5, $packed['tiers']);
+        self::assertEqualsWithDelta(3.040, $this->subHeight($packed['tiers']), 1e-9);
+        self::assertSame(
+            '2× achenbach-18 + 2× flexy-folded-horn-hybrid + 2× achenbach-18',
+            $packed['tiers'][2]->label(),
+        );
+        self::assertSame($this->cabinets($dealt['tiers']), $this->cabinets($packed['tiers']));
+    }
+
+    /**
+     * A packed row never puts a shallower cabinet below a deeper one, however the cuts fall.
+     *
+     * The property packing could most easily break, and the one thing that makes it safe: a row may only take
+     * types that are **adjacent** in the fill order, so the rows are contiguous runs of that order. Asserted as
+     * "every device's rows are consecutive" rather than by naming the rows, because that is the invariant — the
+     * particular cuts are allowed to change when a cabinet is finally measured.
+     */
+    public function testAPackedStackKeepsTheDeeperCabinetsInTheLowerRows(): void
+    {
+        $ids = ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'];
+        $tiers = $this->solveTo($ids, maxWidthM: 3.70, maxSubHeightM: 3.0)['tiers'];
+
+        $rows = [];
+        foreach ($tiers as $index => $tier) {
+            foreach ($tier->segments as [$device]) {
+                $rows[$device->id][] = $index;
+            }
+        }
+
+        $previous = -1;
+        foreach ($ids as $id) {
+            $own = array_values(array_unique($rows[$id] ?? []));
+            self::assertNotSame([], $own, $id.' is not in the stack at all');
+            self::assertSame(range(min($own), max($own)), $own, $id.' appears in rows that are not consecutive');
+            self::assertGreaterThanOrEqual($previous, min($own), $id.' starts below the type that should be under it');
+            $previous = min($own);
+        }
+    }
+
+    /**
+     * A device with one cabinet in the stack stands under a ceiling, where the deal refuses it.
+     *
+     * One SKRAM and three Achenbachs dealt one type per row leave a lone Achenbach on top, which
+     * {@see StackChecks::pillarProblems} refuses as a pillar. Packed, the SKRAM shares the bottom row with an
+     * Achenbach and the other two stand on it — same four cabinets, same 1.514 m, and a rig rather than a column.
+     */
+    public function testASingleCabinetStandsUnderACeilingWhereTheDealRefusesIt(): void
+    {
+        $dealt = $this->solveTo(
+            ['skram', 'achenbach-18'],
+            maxWidthM: 3.70,
+            maxSubHeightM: null,
+            skramCount: 1,
+            achenbachCount: 3,
+        );
+        self::assertStringContainsString('is a single column', $dealt['problems'][0] ?? '');
+
+        $packed = $this->solveTo(
+            ['skram', 'achenbach-18'],
+            maxWidthM: 3.70,
+            maxSubHeightM: 3.0,
+            skramCount: 1,
+            achenbachCount: 3,
+        );
+        self::assertSame([], $packed['problems']);
+        self::assertSame(['1× skram + 1× achenbach-18', '2× achenbach-18'], array_map(
+            static fn (Tier $t): string => $t->label(),
+            $packed['tiers'],
+        ));
+        self::assertEqualsWithDelta(1.514, $this->subHeight($packed['tiers']), 1e-9);
+    }
+
+    /**
+     * The Achenbachs stand **on** the Flexys, which is what the fill order asks for and the bearing rule permits.
+     *
+     * Worth pinning because the low-rig scene was written the other way round on a "widest row first" rule that
+     * does not exist: six Achenbachs are 3.700 m on six Flexys' 3.646 m and stand 27 mm proud per side, against
+     * the two thirds of a cabinet {@see Gravity::MIN_BEARING} allows. Five Flexys and three Achenbachs is the
+     * same shape with the numbers further apart.
+     */
+    public function testTheAchenbachsStandOnTheFlexysRatherThanUnderThem(): void
+    {
+        foreach ([null, 3.0] as $ceiling) {
+            $result = $this->solveTo(
+                ['flexy-folded-horn-hybrid', 'achenbach-18'],
+                maxWidthM: 3.70,
+                maxSubHeightM: $ceiling,
+                flexyCount: 5,
+                achenbachCount: 3,
+            );
+
+            self::assertSame([], $result['problems']);
+            self::assertSame(['5× flexy-folded-horn-hybrid', '3× achenbach-18'], array_map(
+                static fn (Tier $t): string => $t->label(),
+                $result['tiers'],
+            ));
+        }
+    }
+
+    /**
+     * A ceiling the inventory cannot come under is a warning naming the miss, not a refusal.
+     *
+     * The mirror of the interface warning and a warning for the mirror reason: the solver already keeps the
+     * shortest arrangement that stands up, so the number it reached *is* the inventory's floor. Refusing would
+     * make the key unusable on the rigs it exists for.
+     */
+    public function testACeilingTheStackCannotMeetWarnsAndNamesTheMiss(): void
+    {
+        $result = $this->solveTo(
+            ['flexy-folded-horn-hybrid', 'achenbach-18'],
+            maxWidthM: 3.70,
+            maxSubHeightM: 1.0,
+            flexyCount: 5,
+            achenbachCount: 3,
+        );
+
+        self::assertSame([], $result['problems']);
+        self::assertContains(
+            'the subs reach 1.363 m against the 1.000 m ceiling asked for, so they stand 363 mm too high — '
+            .'1.363 m is the shortest arrangement in which every tier is still carried',
+            $result['warnings'],
+        );
+    }
+
+    /**
+     * An interface height above the stack's own sub ceiling is refused rather than resolved by precedence.
+     *
+     * The two keys say opposite things about one number, and obeying either would silently ignore the other.
+     */
+    public function testAnInterfaceHeightAboveItsOwnSubCeilingIsRefused(): void
+    {
+        $problems = (new Stack(
+            from: [new StackEntry('flexy-folded-horn-hybrid')],
+            maxWidthM: 3.70,
+            interfaceHeightM: 2.0,
+            maxSubHeightM: 1.5,
+        ))->problems();
+
+        self::assertCount(1, $problems);
+        self::assertStringContainsString('interface_height_m (2) is above stack.max_sub_height_m (1.5)', $problems[0]);
+    }
+
+    /**
+     * The invariant `pyramid` exists for: **no row holds more cabinets than the row below it.**
+     *
+     * A count rather than a width, because that is the rule — six Achenbachs at 3.700 m on six Flexys' 3.646 is a
+     * 27 mm shoulder per side and flush, and capping the width refused it, split them into two rows of three and left
+     * the tops with a 1.84 m row that could not carry them.
+     */
+    public function testAPyramidNeverWidensAsItRises(): void
+    {
+        foreach ([['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'], self::EVERY_SPEAKER] as $ids) {
+            $tiers = $this->solveTo($ids, maxWidthM: 3.80, maxSubHeightM: 3.0, shape: StackShape::Pyramid)['tiers'];
+
+            $below = PHP_INT_MAX;
+            foreach ($tiers as $tier) {
+                if (!$tier->isSub()) {
+                    // Nothing stands on the tops, so their row is bounded by `max_width_m` and reported, not tapered.
+                    continue;
+                }
+                self::assertLessThanOrEqual(
+                    $below,
+                    $tier->count(),
+                    sprintf('%s holds more cabinets than the row below it', $tier->label()),
+                );
+                $below = $tier->count();
+            }
+        }
+    }
+
+    /**
+     * The pyramid puts the type that makes the widest row on the floor, and that is what shortens the stack.
+     *
+     * Two wall basses are the heaviest cabinets in either system and 1.34 m of row between them; six IQ subs are
+     * 3.28 m. Weight order puts the wall basses down and needs five rows; width order puts the IQ subs down and needs
+     * three. The same twelve cabinets either way.
+     */
+    public function testAPyramidPutsTheWidestRowMakingTypeOnTheFloor(): void
+    {
+        $ids = ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'tecnare-m2122'];
+
+        $free = $this->solveTo($ids, maxWidthM: 3.80, maxSubHeightM: 3.0, shape: StackShape::Free);
+        $pyramid = $this->solveTo($ids, maxWidthM: 3.80, maxSubHeightM: 3.0, shape: StackShape::Pyramid);
+
+        self::assertSame([], $pyramid['problems']);
+        self::assertStringContainsString('gmss-wall-bass', $free['tiers'][0]->label());
+        self::assertStringContainsString('gmss-iq-sub', $pyramid['tiers'][0]->label());
+
+        self::assertEqualsWithDelta(3.240, $this->subHeight($free['tiers']), 1e-9);
+        self::assertEqualsWithDelta(2.070, $this->subHeight($pyramid['tiers']), 1e-9);
+        self::assertLessThan(count($free['tiers']), count($pyramid['tiers']));
+
+        // Same cabinets both ways — the shape is not bought by leaving one out.
+        self::assertSame($this->cabinets($free['tiers']), $this->cabinets($pyramid['tiers']));
+    }
+
+    /**
+     * A crater is still refused, and a shoulder is not — both directions, or the narrowing is untested.
+     *
+     * The crater: two 1.400 m wall basses either side of the 0.500 m mid bass leave the row above over a 900 mm void,
+     * and an IQ sub landing in it came out 130 mm inside a wall bass. The shoulder: a Flexy flanking Achenbachs is a
+     * 163 mm step and the row above rises clear of it, which is what the flanking rule exists to build.
+     */
+    public function testACraterIsRefusedAndAShoulderIsNot(): void
+    {
+        $crater = $this->solveTo(
+            ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub'],
+            maxWidthM: 3.80,
+            maxSubHeightM: null,
+        );
+        foreach ($crater['tiers'] as $tier) {
+            // The mid bass never ends up flanked on both sides by a wall bass.
+            self::assertDoesNotMatchRegularExpression(
+                '/gmss-wall-bass.*gmss-mid-bass.*gmss-wall-bass/',
+                $tier->label(),
+            );
+        }
+
+        $shoulder = $this->solveTo(
+            ['flexy-folded-horn-hybrid', 'achenbach-18'],
+            maxWidthM: 3.70,
+            maxSubHeightM: null,
+            flexyCount: 6,
+            achenbachCount: 4,
+        );
+        self::assertSame([], $shoulder['problems']);
+    }
+
+    /**
+     * Like {@see self::solve()} but hands back the whole result, so a test can read the warnings or assert on a
+     * refusal, and takes the counts the scenario needs rather than the whole inventory.
+     *
+     * @param list<string> $ids
+     * @return array{tiers: list<Tier>, problems: list<string>, warnings: list<string>}
+     */
+    private function solveTo(
+        array $ids,
+        ?float $maxWidthM,
+        ?float $maxSubHeightM,
+        ?int $skramCount = null,
+        ?int $flexyCount = null,
+        ?int $achenbachCount = null,
+        StackShape $shape = StackShape::Free,
+    ): array {
+        $counts = array_filter([
+            'skram' => $skramCount,
+            'flexy-folded-horn-hybrid' => $flexyCount,
+            'achenbach-18' => $achenbachCount,
+        ], static fn (?int $count): bool => $count !== null);
+
+        return StackSolver::solve(
+            array_map(
+                fn (string $id): array => [$this->devices[$id], $counts[$id] ?? $this->devices[$id]->quantity],
+                $ids,
+            ),
+            new Stack(
+                from: array_map(static fn (string $id): StackEntry => new StackEntry($id), $ids),
+                maxWidthM: $maxWidthM,
+                interfaceHeightM: 0.0,
+                gapM: 0.02,
+                maxSubHeightM: $maxSubHeightM,
+                shape: $shape,
+            ),
+        );
     }
 
     /**

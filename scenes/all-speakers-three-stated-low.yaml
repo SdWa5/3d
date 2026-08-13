@@ -1,0 +1,127 @@
+# All 39 speakers in three stacks, every sub/top transition under 3 m — with the contents of each stack stated.
+#
+# `gap_m: 0.05` RATHER THAN THE USUAL 0.02, and it is the aimed tops that need it. Two tops in one row at different
+# x take different yaws, the outer one turns more, and it turns *into* its neighbour: at a 20 mm gap two segments of
+# stack C's top row bit 9 mm into each other. A tier is spaced on its cabinets' unaimed boxes, so the toe-in has to
+# be paid for in the gap. 50 mm clears it; 30 mm does not.
+#
+# NAMED FOR WHAT MAKES IT DIFFERENT rather than for the rig: `all-speakers-three-low-center` is the generated one,
+# and two scenes cannot share an id. "Stated" is the distinction — here a person chose which cabinets share a stack.
+#
+# WHAT THIS IS FOR, now that `scene:stack` can generate a low rig on its own. It used to be hand-written because it
+# had to be: a stack's sub height is the sum of its rows, each device type cost at least one row, and the one thing
+# `--from` could not override was which types shared a stack. Both halves of that are gone —
+# `max_sub_height_m` lets a row hold as many types as it takes, and `--split=by-type` decides which stack each type
+# goes in — so the generated `scenes/generated/all-speakers-three-low-center.yaml` reaches 1.526 / 1.684 / 2.070 m
+# without being told anything about rows.
+#
+# This file is the **stated** version of the same rig, and it earns its place by being the one where a person chose
+# the groupings. The generator balances by linear metres and puts the Flexys with the 2-ways; a person would rather
+# keep each system's own cabinets together and hand the odd boxes their own stack. Both are three stacks under 3 m;
+# they are different rigs, and having both is how you can tell which of the two rules is doing the work.
+#
+# HOW IT IS EXPRESSED HAS CHANGED with the ceiling. It used to state a row-height sum per stack and rely on the fill
+# order to build them; now it states only the **contents** and `max_sub_height_m: 3.0`, and the solver arranges the
+# rows. That is strictly better: the arithmetic in a comment goes stale the moment a cabinet is re-measured, which
+# is exactly what happened when GMSS gave real figures and every number in the old header became wrong.
+#
+# THE ACHENBACHS STAND ON THE FLEXYS, which is the fill order `byFrequency` already asks for — both are driven from
+# 38 Hz and the Flexy stops at 200 against the Achenbach's 1500, so the Flexy is the more sub-like of the two and
+# belongs lower. The old header claimed the opposite on a "widest row first" rule, and that rule does not exist: six
+# Achenbachs are 3.700 m on six Flexys' 3.646 m and stand 27 mm proud per side, well inside the two thirds of a
+# cabinet `Gravity::MIN_BEARING` allows. `full-rig-arc` has shipped that exact pair all along.
+id: all-speakers-three-stated-low
+name: "All speakers — three stacks, stated contents, sub transition under 3 m"
+
+focus:
+  far:
+    distance_m: 12.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  # ─── A: the Flexys with the Achenbachs on top, and our long throw above them ──────────────────────────────────
+  - id: main-a
+    at: [ -4.200, 0.0 ]
+    aim: far
+    stack:
+      max_width_m: 3.80
+      interface_height_m: 0
+      max_sub_height_m: 3.0
+      gap_m: 0.05
+      from:
+        - device: flexy-folded-horn-hybrid
+          count: 6
+        - device: achenbach-18
+          count: 6
+        - device: tecnare-m2122
+          count: 3
+
+  # ─── B: the other half of the Flexys and the whole GMSS bottom row ────────────────────────────────────────────
+  # The IQ subs and nukes together, because that is what they are in the photo: six grille-fronted boxes with a
+  # nuke at the foot of each outer column. Splitting them across stacks would take the rig further from the thing
+  # it is a model of for no gain in height.
+  - id: main-b
+    at: [ 0.0, 0.0 ]
+    aim: far
+    stack:
+      max_width_m: 3.80
+      interface_height_m: 0
+      max_sub_height_m: 3.0
+      gap_m: 0.05
+      from:
+        - device: flexy-folded-horn-hybrid
+          count: 6
+        - device: gmss-iq-sub
+          count: 6
+        # ON THEIR SIDES, as in `gmss-full-stack.yaml`. Rolled, a nuke is 0.770 x 0.590 rather than 0.590 x 0.770,
+        # so the pair makes a wider and lower row — which is what carries the tops above them. Upright, the 1.450 m
+        # top row stood on a 1.230 m row and overhung 110 mm each side; turned, nothing in this stack overhangs.
+        - device: gmss-nuke
+          count: 2
+          roll_mirror: 90
+        - device: gmss-turbo-top
+          count: 3
+
+  # ─── C: everything that comes in ones and twos ────────────────────────────────────────────────────────────────
+  # The small holdings in one stack on purpose, and this is the stack the whole change was needed for: it holds a
+  # **single** mid bass, which the old split would have left out of the rig entirely, and two wall basses at 220 kg
+  # each, the heaviest cabinets in either system. A one-cabinet holding is no longer a problem to route around —
+  # `StackChecks::pillarProblems` only refuses a one-wide row when the stack holds *more* of that device.
+  - id: main-c
+    at: [ 3.300, 0.0 ]
+    aim: far
+    stack:
+      max_width_m: 3.80
+      interface_height_m: 0
+      max_sub_height_m: 3.0
+      gap_m: 0.05
+      from:
+        - device: skram
+          count: 2
+        - device: gmss-wall-bass
+          count: 2
+        - device: gmss-mid-bass
+          count: 1
+        - device: eighteensound-2way-15
+          count: 2
+
+notes: |
+  All 39 speakers both systems own, in three stacks, with every sub/top transition under the 3 m ceiling each stack
+  states. The rows are not written down anywhere: `max_sub_height_m` is what the solver answers to, and it packs as
+  many device types into a row as the width allows — which is the only thing that can make a stack of several types
+  short, since a row costs the height of its tallest cabinet rather than the sum of them.
+
+  IT IS THE STATED SIBLING of `scenes/generated/all-speakers-three-low-center.yaml`. That one is generated with
+  `--split=by-type --max-sub-height=3.0` and balances the stacks by linear metres; this one groups them the way a
+  person would — each system's own cabinets together, the odd boxes in a stack of their own. Both come in under 3 m.
+
+  The Achenbachs stand ON the Flexys here, which is what the fill order asks for and what the bearing rule permits:
+  3.700 m on 3.646 m is 27 mm proud per side against an allowance of two thirds of a cabinet. The previous version
+  of this file had them underneath, on a "widest row first" rule that turned out not to exist.
+
+  Stack C is the reason single cabinets had to start working. It holds one mid bass — the 1.200 m horn that lies
+  across the wall basses in the photo — and an even split across three stacks would have left it out of the rig
+  rather than give one stack more than another.

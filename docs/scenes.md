@@ -53,7 +53,7 @@ placements:
 | `placements[].row` | `{ count, axis, gap_m, step_m, roll_cycle }` — a lattice with one open axis; `axis` defaults to `x` |
 | `placements[].line_array` | `{ count, splay_deg, gap_m }` — a hang: elements chained below one another, each tilted further than the last. `splay_deg` is one angle or one per gap |
 | `placements[].align` | `{ mode, width_m, across, inside, inset_m }` — how this tier is spread across a width, instead of stating `step_m`. See [align](#align) |
-| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, gap_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
+| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, max_sub_height_m, gap_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
 | `placements[].in` | list of groups this one is nested **inside**, innermost first: `in[0]` wraps the sibling group, `in[1]` wraps that |
 | `placements[].arc` | `{ mode, count, splay_deg, radius_m, gap_m }` — a group seated on an arc. Exclusive with `repeat`; see below |
 | `placements[].arc.gap_m` | working gap between neighbours, in metres. Default 0 — cabinets touching |
@@ -501,7 +501,9 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 |-----|---------|
 | `from` | the devices, **low frequency first**. Each entry is a bare id, or a mapping with `count` / `align` / `mix_with` — see below |
 | `max_width_m` | how wide the stage or the truss lets the rig be. The row count falls out of it |
-| `interface_height_m` | how high the sub stack's top face should reach, so the tops fire over a standing crowd. **Defaults to 2.0**, and it is an **optimum rather than a requirement** — missing it warns; state `0` to stop aiming for it |
+| `interface_height_m` | how high the sub stack's top face should reach, so the tops fire over a standing crowd. **Defaults to 2.0**, and in a hand-written scene it is an **optimum rather than a requirement** — missing it warns; state `0` to stop aiming for it. In a scene `scene:stack` writes it is binding, together with `max_sub_height_m`: see [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes) |
+| `shape` | `pyramid` (no row wider than the one below, and the fill ordered for row width) or `free` (as wide as the bearing rule allows). Default `free`, so an existing scene keeps the rig it had. See [the two shapes](#the-two-shapes) |
+| `max_sub_height_m` | how high the sub stack's top face is *allowed* to reach — the **mirror** of `interface_height_m`. Stating one changes what the solver optimises for and lets a row hold several device types. See [a ceiling on the sub height](#a-ceiling-on-the-sub-height). Missing it warns in a hand-written scene and **refuses the rig in a generated one**, like its floor — see [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes). A ceiling below the stack's own `interface_height_m` is an error: the two say opposite things about one number |
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
 | `max_height_m` | a ceiling or a rigging limit |
 | `gap_m` | working gap between neighbours in a row |
@@ -529,6 +531,84 @@ reached from the constraint rather than chosen, so it follows the specs when a c
 two of them multiples of anything. Every row count is worked out per cabinet and every height is summed
 rather than multiplied — a fill that assumed a module would look right on the Flexys alone and fall apart
 the moment an Achenbach or a SKRAM is in the same stack.
+
+### Which way round the tops go
+
+The alignment mode decides the **order** of the tops row, not just its spacing, and the two orders are mirror
+opposites:
+
+* **`stereo`** — the widest tops (the long throw) at the **outer ends**, the near-field fills **inboard of them,
+  nearest the centre line**. The point of a stereo rig is the width of its image, so the main clusters go as far
+  apart as the envelope allows and the fills cover the middle ground between them, which is also the shortest throw
+  they make. An **odd cabinet goes to the centre line**, not to one side, so the two clusters stay equal: three
+  M2122s and two 2-ways come out `M2122 + 2-way + [M2122] + 2-way + M2122`, a palindrome.
+* **`center` / `block`** — the long throw **centred** with the fills outboard. The mono answer: one cluster carrying
+  the room from the middle, fills widening the coverage. `block` then justifies the spacing so the row is spread as
+  broad and as evenly as the width allows.
+
+**The clusters are pushed apart until the row spans what carries it.** The slack — how much wider the support is
+than the row — is handed out equally between neighbouring groups, so each cluster keeps its own internal spacing and
+only the air between clusters grows. Bounded by the **support**, not by `max_width_m`: the outer tops' edges land on
+the sub wall's edges and no further, because past that they are over nothing. Five tops on our own rig go from
+spanning 2.011 m to 3.200 m. Before this a stereo row came out at natural spacing in the middle of the rig — the
+ordering was right and the image was still narrow, because `align` cannot spread a tier that landed in several runs
+and a mixed row always does.
+
+**A true palindrome needs every top group's count to be even, or exactly one of them odd.** With two odd groups —
+three M2122s and three turbo tops — the centre holds one of each and the row is symmetric everywhere except inside
+that block. That is the least imbalance the counts allow: a centimetre in the middle rather than a whole cabinet at
+one end.
+
+### The two shapes
+
+The bearing rule permits a row to be **wider** than the one carrying it — two thirds of a cabinet past each end —
+and for a long time nothing said it should not be. That is how a stack ends up widening as it rises: 1.34 m on the
+floor under 1.82, 1.84, 2.32, 2.18 and 2.51 m. Every one of those rows is legally carried and the rig reads
+top-heavy, a V balanced on its point.
+
+`shape: pyramid` is two rules together, and it needs both:
+
+* **the fill is ordered for row width rather than weight** — the type that can make the widest row goes on the floor,
+  because the taper can only ever *narrow* a wall and so a pyramid is decided by how wide its bottom row is;
+* **no row may hold more cabinets than the row below it.** A count, not a width: six Achenbachs are 3.700 m on six
+  Flexys' 3.646, a 27 mm shoulder per side that is flush rather than a V, and capping the width refused it.
+
+The price is stated rather than hidden: a wide-but-shallow type can end up *under* a deeper one, which is the
+inversion the fill order otherwise exists to prevent. That is why **both shapes are generated** — `free` keeps the
+deepest and heaviest cabinets on the floor and accepts the V, `pyramid` takes the shape and the height and gives up
+the ordering. On the GMSS cabinets that is 2.070 m against 3.240 for the same twelve boxes.
+
+### A ceiling on the sub height
+
+`interface_height_m` is a **floor** and the solver chases it by narrowing rows — narrower rows mean more of them,
+which is the only way to buy height out of a fixed pile of cabinets. `max_sub_height_m` is the **ceiling**, and
+stating one inverts the search: instead of returning the first arrangement that reaches the interface, the solver
+walks the whole space and keeps the *shortest* arrangement that still stands up.
+
+It also switches on the thing that actually makes a stack of many types short: **a row may hold as many device types
+as it takes.** A row costs the height of its *tallest* cabinet, so two types in one row cost one height rather than
+two. Without that, each type costs at least one row and a stack holding six sub types is six rows tall however wide
+the stage — which is why all 39 speakers in three stacks could not get under 3.146 m before, at any width.
+
+```yaml
+    stack:
+      max_width_m: 3.80
+      interface_height_m: 0
+      max_sub_height_m: 3.0     # a row may now hold several device types to get under this
+      gap_m: 0.05
+```
+
+Two rules keep a packed row honest, and both are worth knowing:
+
+* **Lower frequencies stay in lower rows.** A row may only combine types that are *adjacent* in the fill order, so
+  the rows are contiguous runs of it and a frequency inversion is unreachable rather than merely avoided.
+* **Within a row the tallest cabinet is central**, with the rest stepping down outboard of it. What stands on a mixed
+  row lands on its tall segments, so where those sit decides whether the next row is carried at all: a 1.020 m cabinet
+  either side of a 0.637 m one leaves the row above two pads a metre apart to bridge, and it lands on 14 % of itself.
+
+Packing is offered **alongside** the ordinary one-type-per-row deal and the shortest arrangement that stands up wins.
+Neither is better everywhere — on 2 SKRAMs, 2 wall basses, a mid bass and 2 2-ways the deal finds 1.445 m and the pack
+2.465 m — so `mix_with` keeps working under a ceiling too.
 
 **With no `max_width_m`,** the row count is the widest that still reaches the interface height: narrower
 rows mean more of them, so the sub stack grows as the count falls, and the answer is the largest count that
@@ -675,6 +755,69 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 ### scene:stack — writing the scene for you
 
+**The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
+configuration it can stand up: one rig per owner plus one from everything, by one, two and three stacks, in both
+shapes and all three alignments — 11 scenes on the current inventory, with every refusal printed and its reason
+given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
+required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
+naming `--align` narrows it to one mode.
+
+Read the skipped list as well as the scenes. A sweep that writes twenty and silently drops fifteen would look like
+"that is all there is"; the reasons are how you find out which rigs the inventory cannot build.
+
+#### The sub height band, and why it writes fewer scenes
+
+**A generated scene has to meet its sub height, not merely aim at it.** `interface_height_m` (2.0 m by default) and
+`max_sub_height_m` (3.0 m) have always bounded the sub/top transition, and for a scene somebody wrote by hand they are
+preferences: the solver reports a miss as a warning and builds the rig anyway, because you asked for that gear in that
+space and the near miss is yours to judge. For a scene this command *generates* that is wrong, and it was measurably
+wrong: of the 54 scenes that shipped before the band bound, only 16 had every stack between 2 and 3 m. Among the rest
+were a 5.73 m wall — over any truss we own — and a 0.60 m one, tops firing at knee height.
+
+So a rig outside the band is **not written**, and the refusal names the measurement:
+
+```text
+skipped stacked-gmss-1-center — the stack's subs reach 3.340 m against the 3.000 m ceiling asked for
+  — 340 mm too high, and a rig that misses its sub height is not one of the possibilities
+skipped stacked-sepp-2-center — the sepp stack's subs reach only 1.246 m against the 2.000 m interface
+  asked for — 754 mm short, so the tops would fire below head height
+```
+
+**The two bounds are the control, so there is no third option.** `--interface-height=0 --max-sub-height=99` accepts
+anything, which is what the hand-written low rigs state for themselves; narrow the band and the sweep writes less. A
+flag to switch the check off would only be a way of asking for rigs nobody would build.
+
+**And the band binds every invocation, not just the sweep.** That is deliberate rather than incidental: `build:all`
+regenerates a generated scene by replaying *its* recorded line, which names `--from` and `--stacks` and so is not a
+sweep at all. Holding only the sweep to the band would have left every out-of-band file in the repository rewritten
+exactly as it was, for as long as it existed. What the sweep does differently is try to *avoid* the miss.
+
+**The stage width is the lever it avoids the miss with.** A sub wall gets shorter as the stage gets wider, so a rig
+over the ceiling is often not an impossible rig but a rig on the wrong stage. When a candidate misses, the sweep walks a
+ladder of real stage widths — 2.00, 2.40, 2.80, 3.20, 3.70, 4.40, 5.20, 6.00 m — in the direction the miss points:
+too tall widens, too short narrows, and the first width that lands inside the band wins. The width it settled on is
+written into the recorded command, because a replay that inherited the default would rebuild the rig that missed.
+Both systems' gear across two stacks is the case: refused at 3.70 m, and at 4.40 m it is 2.033 and 2.833 m of subs.
+
+Two things the ladder does not do, both measured rather than assumed. It does not help a **quantity-bound** rig: the
+GMSS cabinets come out 3.34 m at every width from 3.70 to 6.00, because with four sub types and at most six of any one
+of them the row count is set by the types and not by the stage. And a candidate refused for something *other* than a
+height miss gets one rung, not the ladder — walking all of it retried all 122 refused candidates at four widths and
+tripled the sweep to recover one scene that a single rung already recovers.
+
+**For a quantity-bound rig the lever is where the row sits, not how wide the stage is.** A row does not have to be
+centred on what carries it: centring is only optimal when the row overhangs a symmetric amount of cabinet at each end,
+and a mixed row is asymmetric by construction. GMSS's one arrangement inside the band packs the nukes and mid-bass into a
+single row — 2.42 m on a 1.89 m support — and centred, the outboard nuke lands on 8 % of its own width and the whole rig
+is refused. Slid along the support, both ends are carried and `stacked-gmss-1-center` writes at 2.84 m.
+
+**Sliding is bounded by what else is in the scene rather than by gravity**, and that bound is the whole of its safety.
+Stacks are spaced on their widest tier and their envelopes deliberately overlap in x — tiers at the same height are each
+centred and narrower — so a row that slides in a multi-stack rig reaches into the stack beside it: unbounded, 180 mm of
+interpenetration across five `all-3` scenes. So only a stack with **nothing beside it** may move a row, and only inside
+the stated stage width. A row that is already carried is never moved, and a slide that does not improve the
+worst-carried cabinet is discarded, so every rig that stood up before stands up unchanged.
+
 `stack:` still has to be typed into a file. `scene:stack` is the step before that: give it the gear and the
 bounds and it writes one scene per arrangement that works, with a reason for every one it left out.
 
@@ -694,11 +837,20 @@ so block and stereo alignment have nothing left to spread it into.
 |--------|---------|
 | `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use) — lowest driven corner first, subs before tops |
 | `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here |
-| `--stacks=N` | split each group into N stacks — how a stereo pair is asked for. The remainder goes to the earlier stacks, so three M2122s over two is 2 + 1 and never 1 + 1 with the third dropped |
+| `--stacks=N` | split each group into N stacks — how a stereo pair is asked for |
+| `--split=MODE` | `by-count` (default) gives every stack a share of every device; `by-type` gives each stack whole device types, balanced by `quantity × width`. **`by-type` is what makes a rig low** — a by-count stack holds every type and is as many rows tall as there are types, where a by-type stack holds two or three. It needs at least one type per stack and says so otherwise |
+| `--max-sub-height=M` | **defaults to 3.0 m**, the top of the band a sub/top transition must sit in — with `--interface-height` as its floor, and **a rig that misses either is not written**. See [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes). Passed straight to the stack's [`max_sub_height_m`](#a-ceiling-on-the-sub-height). Independent of `--split`: either alone is useful, and together is how a low rig out of the whole inventory is generated |
+| `--no-asymmetry` | leave the odd cabinets out rather than giving one stack more than another. **By default every cabinet that can be placed is placed**: three M2122s over two stacks are 1 + 2 with the unevenness named in the scene header, where they used to be 1 + 1 with the third reported as left out |
 | `--clearance=M` | air between neighbouring stacks. Default 0.5 |
-| `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints |
+| `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints. `--max-width` is a *starting* width in a sweep: a candidate that misses the sub height band is retried up and down a ladder of real stage widths, and the one it settles on is what gets recorded |
+| — | **`build:all` replays these commands** as its first stage, so a generated scene follows the specs the way the models and renders already do. It is the only stage that writes outside `build/`; `build:all --dry-run` says how many files it would rewrite |
+| — | **Scenes are written to `scenes/generated/`**, and everything derived from one follows it: `build/scenes/generated/`, `build/plans/generated/`, `build/renders/generated/`. Nothing has to know — `SceneLoader` reads `scenes/` recursively and an id is still the file's basename, so `scene:build stacked-center` resolves as before. Each file also carries the **command that made it**, so regenerating it needs no archaeology |
+| — | **`build:all` prunes as well as writes**: a `.blend`, plan or render under a `generated/` directory whose scene id no longer exists is removed and named. Generated *scene* files are left alone — they are tracked, cheap to regenerate and expensive to lose |
+| — | **`build:all` replays those commands as its first stage**, so a generated scene follows the specs the way the models and renders already do. It is the only stage that writes outside `build/` — `build:all --dry-run` says how many files it would rewrite. A file under `generated/` with no recorded command is skipped and named, never guessed at |
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
-| `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each** |
+| `--mirror-style=MODE` | repeatable: `alternate`, `upright`. Default both. What a turned row does with its odd cabinet — see [the two shapes](#the-two-shapes) for why neither is free |
+| `--shape=MODE` | repeatable: `pyramid`, `free`. Default both — **one scene each**, and the pyramid keeps the plain id while `free` gets a `-free` infix |
+| `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 
 **A near-field fill goes to the outer stacks, on the inner side, aimed at the near focus.** Three rules that only
@@ -777,7 +929,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. Default 24 |
+| `--max-scenes=N` | refuse past this many. **Default 80** — a fuse against an axis added by mistake, not a cap on the sweep, which writes 11 of the 132 candidates it tries. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 
 How many scenes you get is a parameter, not a decision baked in: `--align=block --subs=mixed` is exactly one,

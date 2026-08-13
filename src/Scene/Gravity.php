@@ -58,33 +58,51 @@ final class Gravity
      */
     private const LEVEL_TOLERANCE_M = 0.01;
 
+    /** How finely {@see slidSeats} scans for the offset that carries the worst-carried cabinet best. */
+    private const SLIDE_STEP_M = 0.005;
+
     /**
      * The runs of every tier, bottom up, each one already knowing what it stands on and how well.
      *
      * @param list<Tier> $tiers
      * @param string $prefix the placement id the run ids hang off
+     * @param float|null $slideWithinM the span a badly-carried row may be slid inside, or null for "it may not move".
+     *     See {@see Stack::$slideWithinM} — it is a statement about what else is in the scene, not about gravity.
      * @return list<list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
      *     top: float, on: string|null, bearing: float, settle: float, roll: float
      * }>> one entry per tier, in the same order
      */
-    public static function resolve(array $tiers, float $gapM, string $prefix): array
+    public static function resolve(array $tiers, float $gapM, string $prefix, ?float $slideWithinM = null): array
     {
         /** @var list<array{id: string, lo: float, hi: float, top: float}> $below what the next tier lands on */
         $below = [];
         $resolved = [];
 
         foreach ($tiers as $index => $tier) {
-            $isTop = $index === count($tiers) - 1;
             $runs = self::runs($tier->seats($gapM), $below, $gapM);
 
             // Only when the ordinary row would leave a cabinet hanging. Rearranging a tier that is already
             // carried would be a change for its own sake, and every rig that stands up today keeps its layout.
-            if ($isTop && self::worstBearing($runs) < self::MIN_BEARING) {
-                $outboard = self::outboardSeats($tier->seats($gapM), $below, $gapM);
-                $rescued = $outboard === null ? null : self::runs($outboard, $below, $gapM);
-                if ($rescued !== null && self::worstBearing($rescued) > self::worstBearing($runs)) {
-                    $runs = $rescued;
+            //
+            // **ANY TIER, NOT ONLY THE TOP ONE.** The rescue was written for outboard fills and gated to the last tier,
+            // which read as though it were a property of tops rows. It is not: a *packed sub* row lands the same way and
+            // had no repair at all, which is what refused GMSS's one arrangement inside the sub height band.
+            //
+            // **Two repairs, best of**, because they answer different shapes and neither subsumes the other: seating the
+            // ends outboard needs a stepped support with at least two runs to seat onto, and sliding needs nothing but
+            // room beside the row — so the packed row `outboardSeats` returns null for is exactly the one the slide
+            // carries. Both are discarded unless they improve the worst bearing, which is what keeps this safe rather
+            // than the tier index.
+            if (self::worstBearing($runs) < self::MIN_BEARING) {
+                foreach ([
+                    self::outboardSeats($tier->seats($gapM), $below, $gapM),
+                    self::slidSeats($tier->seats($gapM), $below, $gapM, $slideWithinM),
+                ] as $repair) {
+                    $rescued = $repair === null ? null : self::runs($repair, $below, $gapM);
+                    if ($rescued !== null && self::worstBearing($rescued) > self::worstBearing($runs)) {
+                        $runs = $rescued;
+                    }
                 }
             }
 
@@ -131,7 +149,73 @@ final class Gravity
     }
 
     /**
-     * The top tier laid out **fills outboard**: the end segments over the end supports, the rest centred on
+     * The same row, slid along its support to wherever the worst-carried cabinet is carried best.
+     *
+     * **A ROW DOES NOT HAVE TO BE CENTRED ON WHAT CARRIES IT**, and assuming it did was refusing rigs that stand up.
+     * Centring is only optimal when the row overhangs a *symmetric* amount of cabinet at each end; a mixed row is
+     * asymmetric by construction, so its two ends need different amounts of support and the middle is the wrong place
+     * for it. GMSS's packed `2× nuke + 1× mid-bass` row is 2.400 m on a 1.310 m support: centred, the outboard nuke
+     * lands on 45 mm of its 590 mm — 8 %, refused. Slid 150 mm towards the mid-bass end, the nuke has a third of itself
+     * over the support and the mid-bass, being 1.200 m wide, still has 42 % of its own. Nothing about the rig changed
+     * but where the row sits, which is what a crew would do without discussing it.
+     *
+     * Bounded by `$withinM` — the stage, in practice — and **null means it may not move at all**, which is the case for
+     * any stack with a neighbour: see {@see Stack::$slideWithinM} for why gravity is not what makes this unsafe. Within
+     * the bound the row also stays over its support, since the scan runs between "left edges flush" and "right edges
+     * flush" and no further.
+     *
+     * Scanned in 5 mm steps rather than solved, because the objective is a min over segments of a piecewise-linear
+     * function — the closed form is a case analysis per segment pair, and the scan is a few hundred evaluations on a row
+     * that is otherwise refused outright.
+     *
+     * @param list<array{DeviceSpec, int, float, float}> $seats
+     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     * @return list<array{DeviceSpec, int, float, float}>|null
+     */
+    private static function slidSeats(array $seats, array $below, float $gapM, ?float $withinM): ?array
+    {
+        if ($withinM === null || $below === [] || $seats === []) {
+            return null;
+        }
+
+        $rowLo = INF;
+        $rowHi = -INF;
+        foreach ($seats as [$device, $count, $centre, $roll]) {
+            $own = $count * RolledBox::widthOf($device, $roll) + ($count - 1) * $gapM;
+            $rowLo = min($rowLo, $centre - $own / 2);
+            $rowHi = max($rowHi, $centre + $own / 2);
+        }
+
+        // The row arrives centred on the stack's own origin, so the room it has each way is what is left of the span
+        // once the row itself is taken out of it.
+        $slack = max(0.0, ($withinM - ($rowHi - $rowLo)) / 2);
+        $ends = [$below[0]['lo'] - $rowLo, $below[count($below) - 1]['hi'] - $rowHi];
+        $from = max(min($ends), -$slack);
+        $to = min(max($ends), $slack);
+
+        if ($to - $from < self::CONTACT_EPSILON_M) {
+            return null;
+        }
+
+        $best = null;
+        $bestBearing = -INF;
+        for ($offset = $from; $offset <= $to + self::SLIDE_STEP_M / 2; $offset += self::SLIDE_STEP_M) {
+            $slid = array_map(
+                static fn (array $seat): array => [$seat[0], $seat[1], $seat[2] + $offset, $seat[3]],
+                $seats,
+            );
+            $bearing = self::worstBearing(self::runs($slid, $below, $gapM));
+            if ($bearing > $bestBearing) {
+                $bestBearing = $bearing;
+                $best = $slid;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * A tier laid out **fills outboard**: the end segments over the end supports, the rest centred on
      * what is between them.
      *
      * This is what makes flanking a load-bearing row usable at all. A mixed Achenbach row is 163 mm lower in

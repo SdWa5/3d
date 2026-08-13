@@ -308,7 +308,9 @@ final class SceneCompiler
             }
 
             if ($problems === []) {
-                $solved = StackSolver::solve($inventory, $placement->stack);
+                // The placement's own alignment decides the ORDER of the tops row as well as its spacing:
+                // stereo puts the long throws at the ends, everything else centres them. See StackSolver::topRow.
+                $solved = StackSolver::solve($inventory, $placement->stack, $placement->align?->mode);
                 $problems = $solved['problems'];
                 if ($problems === []) {
                     // Buildable, but worth saying out loud: a stepped row, or a tier standing slightly

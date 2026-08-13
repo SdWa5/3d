@@ -24,6 +24,15 @@ use App\Spec\InvalidSpecException;
  *   that deliberately sits low. Against what we own, two Flexy tiers reach 1.526 m and miss, and two Flexy
  *   tiers plus an Achenbach row reach 2.126 m and clear — which is exactly what the three-tier rig
  *   arrived at by hand.
+ * * **`max_sub_height_m`** — how high the sub stack's top face is allowed to reach, which is the *mirror* of
+ *   `interface_height_m` and the reason both exist. An interface height is a floor and the solver chases it by
+ *   narrowing rows; this is a ceiling, and stating one changes what the solver optimises for — the **shortest**
+ *   arrangement that stands up rather than the tallest that fits. It also lets a row hold more than one device
+ *   type, which is the only thing that can make a stack of many types short: see {@see StackSolver::packedRows}.
+ * * **`shape`** — `pyramid` forbids a row from being wider than the row below it, `free` (the default, and what
+ *   the solver always did) lets the bearing rule decide. Worth stating because the bearing rule permits *growth*:
+ *   two thirds of a cabinet past each end, which is legally carried and reads as a V balanced on its point. See
+ *   {@see StackShape}.
  * * **`min_width_m` / `max_height_m`** — the other two bounds. A minimum width is how you ask for a wide
  *   short wall rather than a tall narrow one out of the same cabinets; a maximum height is a ceiling or a
  *   rigging limit.
@@ -50,6 +59,15 @@ final class Stack
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      * @param bool $mirror build this stack as the mirror image of how it solves, so one of a side-by-side pair
      *     reflects the other instead of duplicating it — see {@see Tier::flipped}
+     * @param float|null $slideWithinM how wide a span a badly-carried row may be slid inside — the stage, in practice
+     *     — or null for "it may not move". **This is a statement about neighbours, not about gravity.** A row does not
+     *     have to be centred on what carries it, and refusing to move it refuses rigs that stand up: GMSS's only
+     *     arrangement inside the sub height band puts a 2.400 m packed row on a 1.310 m support, where centred the
+     *     outboard nuke lands on 45 mm of its 590 and slid 150 mm both ends are carried. What makes moving it unsafe is
+     *     everything *else* in the scene: stacks are spaced on their widest tier and their envelopes deliberately
+     *     overlap in x — tiers at the same height are each centred and narrower — so a row that slides reaches into the
+     *     stack beside it, measured as 180 mm of interpenetration in five `all-3` scenes. So only a stack with nothing
+     *     beside it names a span here, and the span is the stage rather than infinity: {@see Gravity::resolve}
      */
     public function __construct(
         public readonly array $from,
@@ -59,12 +77,19 @@ final class Stack
         public readonly float $interfaceHeightM = self::DEFAULT_INTERFACE_HEIGHT_M,
         public readonly float $gapM = 0.0,
         public readonly bool $mirror = false,
+        public readonly ?float $maxSubHeightM = null,
+        public readonly StackShape $shape = StackShape::Free,
+        public readonly MirrorStyle $mirrorStyle = MirrorStyle::Alternate,
+        public readonly ?float $slideWithinM = null,
     ) {
     }
 
     public static function fromReader(ArrayReader $reader): self
     {
-        $allowed = ['from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror'];
+        $allowed = [
+            'from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
+            'max_sub_height_m', 'shape', 'mirror_style',
+        ];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -88,7 +113,40 @@ final class Stack
                 ?? self::DEFAULT_INTERFACE_HEIGHT_M,
             gapM: $reader->optionalFloat('gap_m', 0.0) ?? 0.0,
             mirror: $reader->optionalBool('mirror'),
+            maxSubHeightM: $reader->optionalFloat('max_sub_height_m'),
+            shape: self::shapeFrom($reader->optionalString('shape')),
+            mirrorStyle: MirrorStyle::tryFrom($reader->optionalString('mirror_style') ?? MirrorStyle::Alternate->value)
+                ?? throw new InvalidSpecException(sprintf(
+                    "stack.mirror_style: unknown value '%s' (allowed: %s)",
+                    (string)$reader->optionalString('mirror_style'),
+                    implode(', ', array_column(MirrorStyle::cases(), 'value')),
+                )),
         );
+    }
+
+    /**
+     * The stated shape, or the default when a scene says nothing.
+     *
+     * An unknown value is **refused rather than defaulted**, because the two shapes differ in what they build and a
+     * silently-ignored `shape: pyramide` would ship the other rig with nothing to say so. `free` is the default
+     * because it is what the solver always did, so an existing scene keeps the rig it had.
+     */
+    private static function shapeFrom(?string $stated): StackShape
+    {
+        if ($stated === null) {
+            return StackShape::Free;
+        }
+
+        $shape = StackShape::tryFrom($stated);
+        if ($shape === null) {
+            throw new InvalidSpecException(sprintf(
+                "stack.shape: unknown value '%s' (allowed: %s)",
+                $stated,
+                implode(', ', array_column(StackShape::cases(), 'value')),
+            ));
+        }
+
+        return $shape;
     }
 
     /**
@@ -109,10 +167,26 @@ final class Stack
             // is not what anybody meant by leaving both out.
             $messages[] = 'stack needs either max_width_m or interface_height_m to decide how wide a tier is';
         }
-        foreach (['max_width_m' => $this->maxWidthM, 'min_width_m' => $this->minWidthM, 'max_height_m' => $this->maxHeightM] as $key => $value) {
+        foreach ([
+            'max_width_m' => $this->maxWidthM,
+            'min_width_m' => $this->minWidthM,
+            'max_height_m' => $this->maxHeightM,
+            'max_sub_height_m' => $this->maxSubHeightM,
+        ] as $key => $value) {
             if ($value !== null && $value <= 0.0) {
                 $messages[] = sprintf('stack.%s must be positive, got %s', $key, $value);
             }
+        }
+        if ($this->maxSubHeightM !== null && $this->interfaceHeightM > $this->maxSubHeightM) {
+            // A floor above its own ceiling. Not a preference to resolve quietly in either direction: the two keys
+            // say opposite things about the same number, and picking one would ship a rig whose author asked for
+            // the other. Named with both numbers, because which one is the mistake is the author's to decide.
+            $messages[] = sprintf(
+                'stack.interface_height_m (%s) is above stack.max_sub_height_m (%s) — the tops cannot be required '
+                .'to clear a height the subs are forbidden to reach',
+                $this->interfaceHeightM,
+                $this->maxSubHeightM,
+            );
         }
         if ($this->gapM < 0.0) {
             $messages[] = sprintf('stack.gap_m must not be negative, got %s', $this->gapM);
@@ -185,9 +259,25 @@ final class Stack
         $at = $placement->at ?? [0.0, 0.0];
         $placements = [];
 
-        foreach (Gravity::resolve($tiers, $this->gapM, $placement->id) as $index => $runs) {
+        $resolved = Gravity::resolve($tiers, $this->gapM, $placement->id, $this->slideWithinM);
+
+        foreach ($resolved as $index => $runs) {
             $tier = $tiers[$index];
             $isTop = $index === count($tiers) - 1;
+
+            // **A STEREO TOPS ROW IS PUSHED APART**, and until now it was not. `align` cannot spread a tier that
+            // landed in several runs — a mixed row always does — so a stereo tops row came out at natural spacing in
+            // the middle of the rig: five tops spanning 2.011 m over an Achenbach row spanning 3.100. The ordering
+            // was right and the image was still narrow, which is the opposite of what stereo is for.
+            //
+            // Spread here rather than through {@see Alignment} because there is nothing to *solve*. Alignment exists
+            // for landing an aimed cabinet's edge exactly on an envelope, which is a fixed point; this only has to
+            // hand out the slack between the clusters, and moving them apart can only increase the clearance an
+            // aimed cabinet needs. Each run keeps its own internal spacing, which is what `stereo` means — "natural
+            // spacing kept within each column".
+            if ($isTop && $index > 0 && $this->alignFor($tier, $placement->align)?->mode === LayoutMode::Stereo) {
+                $runs = self::spreadApart($runs, $resolved[$index - 1]);
+            }
 
             // The long throw first, then the fills beside it — because a fill is solved `outside` the long
             // throw, and `outside` has to name a placement that already exists. Order is otherwise irrelevant:
@@ -249,21 +339,83 @@ final class Stack
     }
 
     /**
-     * A top tier's runs with the **long throw** first, and which one that is.
+     * A stereo tops row's runs pushed apart until they span what carries them.
      *
-     * The long throw is the widest top in the row — the same choice {@see StackSolver::topRow} makes when it
-     * centres the widest and puts "the smaller boxes, which are fills, outboard of it". Emitting it first is what
-     * lets the fills be solved against it: `align.outside` names a placement, and a placement can only be named
-     * once it has been resolved.
+     * The slack — how much wider the support is than the row — is handed out equally between **neighbouring runs**,
+     * so each cluster keeps its own internal spacing and only the air between clusters grows. That is what `stereo`
+     * has always meant ({@see LayoutMode::Stereo}: "natural spacing kept within each column"); the only thing new is
+     * that a row which landed in several runs can now do it, where {@see alignmentFor} had to give up on one.
      *
-     * The long throw may itself land in **several** runs — a stepped tier below splits the three M2122s of a tops
-     * row into two — so this returns all of them and each fill is later solved against whichever is nearest on its
-     * own side. Clearing the nearest one clears the rest, since the others are further away by construction.
+     * **Bounded by the support, not by `max_width_m`.** The row is spread until its outer edges reach the edges of
+     * the tier below and no further, so every top stays over something. Spreading to a stage bound instead would put
+     * the outer cabinets past the sub wall — the exact failure {@see StackChecks::bearingProblems} exists to catch,
+     * and there is no point proposing it. A row already as wide as its support, or a row of one run, is returned
+     * untouched.
      *
-     * Null when there are no fills at all: a row of one kind of top has nothing to solve outboard of.
+     * The centre of the row does not move, which keeps {@see SceneCompiler::frontCentre}'s focus resolution and the
+     * rig's centre line where they were.
      *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
-     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>, list<array{id: string, lo: float, hi: float}>|null}
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $below
+     * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>
+     */
+    private static function spreadApart(array $runs, array $below): array
+    {
+        if (count($runs) < 2 || $below === []) {
+            return $runs;
+        }
+
+        usort($runs, static fn (array $a, array $b): int => $a['lo'] <=> $b['lo']);
+
+        $rowLo = $runs[0]['lo'];
+        $rowHi = $runs[count($runs) - 1]['hi'];
+        $supportLo = min(array_column($below, 'lo'));
+        $supportHi = max(array_column($below, 'hi'));
+
+        $slack = ($supportHi - $supportLo) - ($rowHi - $rowLo);
+        if ($slack <= 1e-9) {
+            return $runs;
+        }
+
+        // Equal air between each neighbouring pair, and the whole row re-centred on the support afterwards so the
+        // spread is symmetric however the runs happened to be sized.
+        $step = $slack / (count($runs) - 1);
+        $centre = ($rowLo + $rowHi) / 2;
+
+        foreach ($runs as $position => $run) {
+            $shift = ($position - (count($runs) - 1) / 2) * $step
+                + (($supportLo + $supportHi) / 2 - $centre);
+            $runs[$position]['lo'] = $run['lo'] + $shift;
+            $runs[$position]['hi'] = $run['hi'] + $shift;
+        }
+
+        return array_values($runs);
+    }
+
+    /**
+     * A top tier's runs in emission order, and what each one is spaced against.
+     *
+     * **EVERY RUN AFTER THE INNERMOST IS SOLVED AGAINST ITS INNER NEIGHBOUR**, and that uniformity is the fix rather
+     * than an aesthetic. This used to chain the *fills* only, on the reasoning that the long throw is positioned by
+     * gravity on its own support and should not be moved. True of one throw run, and wrong the moment the throw lands
+     * in several: nothing spaced those against each other at all, and two runs of the same device came out **360 mm
+     * inside each other** — over half a cabinet — because each was placed independently and neither knew the other
+     * was there. Chaining fills to a throw and then leaving the throws unspaced is a star with a hole in the middle.
+     *
+     * The mechanism is the one that already worked for fills: `align.outside` names an earlier placement and
+     * {@see SceneCompiler::clearedOutside} bisects the **real rotated boxes** until the working gap is genuinely
+     * there. That is what nominal widths cannot do — two tops aimed at one focus from different x take different
+     * yaws, the outer one turns further, and it turns *into* its neighbour.
+     *
+     * **The innermost run keeps gravity's position**, so the centre of the row does not move and the cluster the rig
+     * is built around stays where the solver put it. Ordering by distance from the row's centre is what makes the
+     * chain buildable in one pass: `align.outside` can only name a placement that has already been resolved, and
+     * everything inboard of a run sorts before it.
+     *
+     * Null when there is nothing to chain — a row that landed in one run has no neighbour to clear.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
+     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>, array<string, array{id: string, side: float}>|null} the runs in emission order, and what each is spaced against
      */
     private static function throwFirst(array $runs): array
     {
@@ -271,33 +423,60 @@ final class Stack
             return [$runs, null];
         }
 
-        $widest = null;
-        foreach ($runs as $run) {
-            $width = RolledBox::widthOf($run['device'], $run['roll']);
-            if ($widest === null || $width > RolledBox::widthOf($widest['device'], $widest['roll']) + 1e-9) {
-                $widest = $run;
+        $lo = min(array_column($runs, 'lo'));
+        $hi = max(array_column($runs, 'hi'));
+        $centre = ($lo + $hi) / 2;
+
+        // Innermost first. Ties broken by position so the order is deterministic rather than dependent on how the
+        // tier happened to be segmented.
+        usort($runs, static function (array $a, array $b) use ($centre): int {
+            $byDistance = abs(($a['lo'] + $a['hi']) / 2 - $centre) <=> abs(($b['lo'] + $b['hi']) / 2 - $centre);
+
+            return $byDistance !== 0 ? $byDistance : $a['lo'] <=> $b['lo'];
+        });
+
+        $ordered = array_values($runs);
+        $references = [[
+            'id' => $ordered[0]['id'],
+            'lo' => $ordered[0]['lo'],
+            'hi' => $ordered[0]['hi'],
+        ]];
+
+        $chain = [];
+        foreach (array_slice($ordered, 1) as $run) {
+            $against = self::nearest($references, $run);
+            $chain[$run['id']] = ['id' => $against['id'], 'side' => $against['side']];
+            $references[] = ['id' => $run['id'], 'lo' => $run['lo'], 'hi' => $run['hi']];
+        }
+
+        return [$ordered, $chain];
+    }
+
+    /**
+     * The reference run this one has to clear: the nearest already-placed run, and which way out is.
+     *
+     * Nearest, because clearing that one clears every other on the same side — the rest lie further away in the
+     * same direction by construction. Which side comes out of the geometry rather than being stated, since a fill
+     * is either left or right of what it flanks and nothing else is possible in a row.
+     *
+     * @param non-empty-list<array{id: string, lo: float, hi: float}> $references
+     * @param array{lo: float, hi: float, ...} $run
+     * @return array{id: string, side: float, distance: float}
+     */
+    private static function nearest(array $references, array $run): array
+    {
+        $centre = ($run['lo'] + $run['hi']) / 2;
+
+        $best = null;
+        foreach ($references as $reference) {
+            $own = ($reference['lo'] + $reference['hi']) / 2;
+            $distance = abs($centre - $own);
+            if ($best === null || $distance < $best['distance']) {
+                $best = ['id' => $reference['id'], 'side' => $centre < $own ? -1.0 : 1.0, 'distance' => $distance];
             }
         }
-        if ($widest === null) {
-            return [$runs, null];
-        }
 
-        $throwRuns = array_values(array_filter(
-            $runs,
-            static fn (array $run): bool => $run['device'] === $widest['device'],
-        ));
-        $rest = array_values(array_filter($runs, static fn (array $run): bool => $run['device'] !== $widest['device']));
-        if ($rest === []) {
-            return [$runs, null];
-        }
-
-        return [
-            [...$throwRuns, ...$rest],
-            array_map(
-                static fn (array $run): array => ['id' => $run['id'], 'lo' => $run['lo'], 'hi' => $run['hi']],
-                $throwRuns,
-            ),
-        ];
+        return $best ?? ['id' => $references[0]['id'], 'side' => 1.0, 'distance' => INF];
     }
 
     /**
@@ -314,7 +493,7 @@ final class Stack
      *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
      * @param array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float} $run
-     * @param list<array{id: string, lo: float, hi: float}>|null $throw
+     * @param array<string, array{id: string, side: float}>|null $throw what each fill clears, from {@see throwFirst}
      */
     private function alignmentFor(
         Tier $tier,
@@ -329,7 +508,7 @@ final class Stack
             return null;
         }
 
-        $nearest = $throw === null ? null : self::nearestThrow($throw, $run);
+        $nearest = $throw[$run['id']] ?? null;
         if ($nearest !== null) {
             return new Alignment(
                 mode: LayoutMode::Stereo,
@@ -344,41 +523,6 @@ final class Stack
         }
 
         return self::envelopeFor($this->alignFor($tier, $placement->align), [$run['on'], null]);
-    }
-
-    /**
-     * The long-throw run this fill has to clear, and which way out is — or null when this run *is* a long throw.
-     *
-     * Nearest on the fill's own side, because clearing that one clears every other: the rest of the long throw
-     * lies further away in the same direction. Which side comes out of the geometry rather than being stated,
-     * since a fill is either left or right of the cluster it flanks and nothing else is possible in a row.
-     *
-     * @param list<array{id: string, lo: float, hi: float}> $throw
-     * @param array{id: string, lo: float, hi: float, ...} $run
-     * @return array{id: string, side: float}|null
-     */
-    private static function nearestThrow(array $throw, array $run): ?array
-    {
-        $centre = ($run['lo'] + $run['hi']) / 2;
-        $best = null;
-        $distance = INF;
-
-        foreach ($throw as $candidate) {
-            if ($candidate['id'] === $run['id']) {
-                return null;
-            }
-
-            $own = abs($centre - ($candidate['lo'] + $candidate['hi']) / 2);
-            if ($own < $distance) {
-                $distance = $own;
-                $best = [
-                    'id' => $candidate['id'],
-                    'side' => $centre < ($candidate['lo'] + $candidate['hi']) / 2 ? -1.0 : 1.0,
-                ];
-            }
-        }
-
-        return $best;
     }
 
     /**

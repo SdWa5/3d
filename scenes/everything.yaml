@@ -41,7 +41,8 @@ placements:
     at: [-2.9355, 0.0]
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.5
+      interface_height_m: 0
+      max_sub_height_m: 3.0
       gap_m: 0.05
       mirror: true             # the mirror image of stack 1
       from:
@@ -49,9 +50,14 @@ placements:
           count: 4
         - device: achenbach-18
           count: 2
-        - device: gmss-turbo-sub
+        - device: gmss-iq-sub
           count: 2
-        - device: gmss-middle-sub
+        # ON THEIR SIDES, as in `gmss-full-stack.yaml` — 0.770 x 0.590 rather than 0.590 x 0.770. A wider, lower
+        # foot carries the tops row better: upright it overhung 108 mm each side, turned it overhangs 18.
+        - device: gmss-nuke
+          count: 1
+          roll_mirror: 90
+        - device: gmss-wall-bass
           count: 1
         - device: tecnare-m2122
           count: 1
@@ -65,7 +71,8 @@ placements:
     at: [-0.302, 0.0]
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.5
+      interface_height_m: 0
+      max_sub_height_m: 3.0
       gap_m: 0.05
       from:
         - skram
@@ -73,10 +80,8 @@ placements:
           count: 4
         - device: achenbach-18
           count: 2
-        - device: gmss-turbo-sub
+        - device: gmss-iq-sub
           count: 2
-        - device: gmss-middle-sub
-          count: 1
         - gmss-mid-bass
         - device: tecnare-m2122
           count: 1
@@ -88,16 +93,22 @@ placements:
     at: [2.3315, 0.0]
     stack:
       max_width_m: 3.7
-      interface_height_m: 2.5
+      interface_height_m: 0
+      max_sub_height_m: 3.0
       gap_m: 0.05
       from:
         - device: flexy-folded-horn-hybrid
           count: 4
         - device: achenbach-18
           count: 2
-        - device: gmss-turbo-sub
+        - device: gmss-iq-sub
           count: 2
-        - device: gmss-middle-sub
+        # ON THEIR SIDES, as in `gmss-full-stack.yaml` — 0.770 x 0.590 rather than 0.590 x 0.770. A wider, lower
+        # foot carries the tops row better: upright it overhung 108 mm each side, turned it overhangs 18.
+        - device: gmss-nuke
+          count: 1
+          roll_mirror: 90
+        - device: gmss-wall-bass
           count: 1
         - device: tecnare-m2122
           count: 1

@@ -151,33 +151,56 @@ final class Tier
      * Upright segments are left alone, so a row that mixes rolled and upright cabinets keeps the upright ones
      * where they were — the heights differ and gravity deals with that, exactly as it does for any stepped row.
      *
-     * An **odd** cabinet count cannot be mirrored exactly: `intdiv(n, 2)` go left and the rest right, so the
-     * middle cabinet joins the right-hand half.
+     * An **odd** cabinet count cannot be mirrored exactly, and `$style` decides what happens to the one that is left
+     * over — see {@see MirrorStyle} for why neither answer is free. `alternate` sends it to one side and expects the
+     * row above to send it to the other, which `$row` selects; `upright` leaves it standing in the middle, which is
+     * symmetric and 172 mm proud.
+     *
+     * @param int $row this tier's index in the stack, so `alternate` can flip sides as the wall rises
      */
-    public function mirrored(): self
+    public function mirrored(MirrorStyle $style = MirrorStyle::Alternate, int $row = 0): self
     {
-        $midpoint = intdiv($this->count(), 2);
+        $count = $this->count();
+        $odd = $count % 2 === 1;
+
+        // Which half the extra cabinet joins. Even counts split exactly, so the flip has nothing to act on; odd ones
+        // alternate with the row index, which is what makes the *stack* balanced when no single row can be.
+        $midpoint = $odd && $row % 2 === 1 ? intdiv($count, 2) + 1 : intdiv($count, 2);
+
+        // `upright` keeps the middle cabinet unrolled, so both halves are the same size and the row is a palindrome.
+        $centre = $odd && $style === MirrorStyle::Upright ? intdiv($count, 2) : null;
+        if ($centre !== null) {
+            $midpoint = $centre;
+        }
 
         $segments = [];
         $index = 0;
         foreach ($this->segments as $segment) {
-            [$device, $count] = $segment;
+            [$device, $take] = $segment;
             $roll = self::rollOf($segment);
 
             if (fmod(abs($roll), 180.0) !== 90.0) {
                 $segments[] = $segment;
-                $index += $count;
+                $index += $take;
                 continue;
             }
 
-            $left = max(0, min($count, $midpoint - $index));
+            $left = max(0, min($take, $midpoint - $index));
             if ($left > 0) {
                 $segments[] = [$device, $left, fmod(360.0 - $roll, 360.0)];
             }
-            if ($count - $left > 0) {
-                $segments[] = [$device, $count - $left, $roll];
+
+            $rest = $take - $left;
+            // The middle cabinet, when this style asks for one and it falls inside this segment: emitted upright
+            // between the two mirrored halves rather than joining either.
+            if ($centre !== null && $rest > 0 && $index + $left === $centre) {
+                $segments[] = [$device, 1, 0.0];
+                --$rest;
             }
-            $index += $count;
+            if ($rest > 0) {
+                $segments[] = [$device, $rest, $roll];
+            }
+            $index += $take;
         }
 
         return new self($segments);

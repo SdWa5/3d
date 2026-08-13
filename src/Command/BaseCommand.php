@@ -6,6 +6,8 @@ namespace App\Command;
 
 use App\Process\ProcessRunner;
 use App\Process\ProcOpenProcessRunner;
+use App\Scene\SceneLoader;
+use App\Scene\SceneSpec;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use App\Spec\SpecValidator;
@@ -48,6 +50,19 @@ abstract class BaseCommand extends Command
     protected function scenesDir(): string
     {
         return $this->projectDir().'/scenes';
+    }
+
+    /**
+     * `$directory` for a hand-written scene, and its `generated/` subdirectory for a generated one.
+     *
+     * One rule applied to every directory a scene produces something in — the assembled `.blend`, the build plan,
+     * the renders — so that everything derived from `scenes/generated/x.yaml` lands under a `generated/` of its
+     * own and nothing generated is ever mixed in with work somebody wrote by hand. Composed onto whatever
+     * directory the caller already decided on, `--out-dir` included, rather than replacing it.
+     */
+    protected function derivedDir(string $directory, SceneSpec $scene): string
+    {
+        return rtrim($directory, '/').(SceneLoader::isGenerated($scene) ? '/'.SceneLoader::GENERATED : '');
     }
 
     protected function loader(): SpecLoader

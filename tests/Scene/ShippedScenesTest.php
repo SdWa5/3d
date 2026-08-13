@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
@@ -56,20 +57,7 @@ final class ShippedScenesTest extends TestCase
      * Its vertex order is fixed by that method — front plane then back, −x then +x, bottom then top — so the
      * topology can be written down once instead of running a hull algorithm in a test.
      */
-    private const FACES = [
-        [0, 1, 3, 2], // front
-        [4, 5, 7, 6], // back
-        [0, 1, 5, 4], // left
-        [2, 3, 7, 6], // right
-        [0, 2, 6, 4], // bottom
-        [1, 3, 7, 5], // top
-    ];
 
-    private const EDGES = [
-        [0, 1], [2, 3], [4, 5], [6, 7],  // vertical
-        [0, 2], [1, 3], [4, 6], [5, 7],  // across
-        [0, 4], [1, 5], [2, 6], [3, 7],  // front to back
-    ];
 
     /**
      * @return iterable<string, array{string}>
@@ -289,28 +277,9 @@ final class ShippedScenesTest extends TestCase
     {
         self::assertNotSame([], $placed, "'{$where}' placed nothing");
 
-        $hulls = array_map(fn (PlacedDevice $entry): array => $this->corners($entry), $placed);
-
-        $worst = 0.0;
-        $offenders = '';
-        foreach ($placed as $i => $a) {
-            foreach ($placed as $j => $b) {
-                if ($j <= $i) {
-                    continue;
-                }
-                // Boxes that do not even share a bounding box cannot intersect, and skipping them keeps
-                // this from being the slowest test in the suite.
-                if (!$this->boxesTouch($a, $b)) {
-                    continue;
-                }
-
-                $separation = $this->separation($hulls[$i], $hulls[$j]);
-                if ($separation < $worst) {
-                    $worst = $separation;
-                    $offenders = "{$a->placementId} and {$b->placementId}";
-                }
-            }
-        }
+        // The separating-axis geometry lives in `src/` now, because `scene:stack` refuses a candidate on this same
+        // test before writing it — see {@see \App\Scene\Interpenetration}. Two copies would have drifted.
+        ['separation' => $worst, 'pair' => $offenders] = Interpenetration::worst($placed);
 
         self::assertGreaterThan(
             -self::TOLERANCE_M,
@@ -326,166 +295,18 @@ final class ShippedScenesTest extends TestCase
     public function testTheCheckActuallyDetectsAnIntersection(): void
     {
         $placed = $this->compile('full-rig-all-tops');
-        $hulls = array_map(fn (PlacedDevice $entry): array => $this->corners($entry), $placed);
 
-        // Same cabinet twice, the second shifted a centimetre: unmistakably intersecting.
-        $shifted = array_map(static fn (array $c): array => [$c[0] + 0.01, $c[1], $c[2]], $hulls[0]);
+        // A rig that is known good must read clear...
+        self::assertGreaterThanOrEqual(0.0, Interpenetration::worst($placed)['separation']);
 
-        self::assertLessThan(-0.4, $this->separation($hulls[0], $shifted), 'an overlap must read negative');
-        self::assertGreaterThan(0.0, $this->separation($hulls[0], $hulls[3]), 'and clear air must read positive');
+        // ...and the same cabinet placed twice must not. This is the check checking itself: a detector that always
+        // returns "fine" would pass every scene in the library and mean nothing.
+        $doubled = [...$placed, $placed[0]];
+        $found = Interpenetration::worst($doubled);
+        self::assertLessThan(-0.4, $found['separation'], 'a cabinet inside another must read negative');
+        self::assertNotSame('', $found['pair'], 'and it must name the two');
     }
 
-    /**
-     * Separation of two convex hexahedra: positive is clear air, 0 is touching, negative is how far they
-     * interpenetrate. Exact, because for convex solids some axis among the two sets of face normals and the
-     * cross products of their edge directions is separating whenever they are disjoint.
-     *
-     * @param list<array{float, float, float}> $a
-     * @param list<array{float, float, float}> $b
-     */
-    private function separation(array $a, array $b): float
-    {
-        $widest = -INF;
-        foreach ($this->axes($a, $b) as $axis) {
-            $length = sqrt($axis[0] ** 2 + $axis[1] ** 2 + $axis[2] ** 2);
-            if ($length < 1e-9) {
-                // Parallel edges or a degenerate face give no axis to test.
-                continue;
-            }
-
-            $unit = [$axis[0] / $length, $axis[1] / $length, $axis[2] / $length];
-            [$aMin, $aMax] = $this->project($a, $unit);
-            [$bMin, $bMax] = $this->project($b, $unit);
-
-            $gap = max($bMin - $aMax, $aMin - $bMax);
-            if ($gap > $widest) {
-                $widest = $gap;
-            }
-            if ($widest > 0.0) {
-                // One separating axis is proof enough; the rest cannot make them intersect.
-                break;
-            }
-        }
-
-        return $widest;
-    }
-
-    /**
-     * @param list<array{float, float, float}> $a
-     * @param list<array{float, float, float}> $b
-     * @return list<array{float, float, float}>
-     */
-    private function axes(array $a, array $b): array
-    {
-        $normals = [];
-        $edges = [];
-        foreach ([$a, $b] as $hull) {
-            foreach (self::FACES as $face) {
-                $normals[] = $this->cross(
-                    $this->minus($hull[$face[1]], $hull[$face[0]]),
-                    $this->minus($hull[$face[2]], $hull[$face[0]]),
-                );
-            }
-            $own = [];
-            foreach (self::EDGES as [$from, $to]) {
-                $own[] = $this->minus($hull[$to], $hull[$from]);
-            }
-            $edges[] = $own;
-        }
-
-        // Face normals first: for boxes standing on a floor one of them almost always separates, so the
-        // 144 edge pairs below are rarely reached.
-        $axes = $normals;
-        foreach ($edges[0] as $one) {
-            foreach ($edges[1] as $other) {
-                $axes[] = $this->cross($one, $other);
-            }
-        }
-
-        return $axes;
-    }
-
-    /**
-     * @param list<array{float, float, float}> $hull
-     * @param array{float, float, float} $axis
-     * @return array{float, float}
-     */
-    private function project(array $hull, array $axis): array
-    {
-        $min = INF;
-        $max = -INF;
-        foreach ($hull as $point) {
-            $along = $point[0] * $axis[0] + $point[1] * $axis[1] + $point[2] * $axis[2];
-            $min = min($min, $along);
-            $max = max($max, $along);
-        }
-
-        return [$min, $max];
-    }
-
-    /**
-     * The cabinet's eight corners where they actually stand: the spec's own shape, turned the way the
-     * compiler turned it, at the position it lifted it to.
-     *
-     * @return list<array{float, float, float}>
-     */
-    private function corners(PlacedDevice $entry): array
-    {
-        $origin = $entry->liftedPosition();
-
-        $corners = [];
-        foreach ($entry->device->shellCorners() as $corner) {
-            $rotated = $entry->orientation->apply($corner);
-            $corners[] = [
-                $origin[0] + $rotated[0],
-                $origin[1] + $rotated[1],
-                $origin[2] + $rotated[2],
-            ];
-        }
-
-        return $corners;
-    }
-
-    private function boxesTouch(PlacedDevice $a, PlacedDevice $b): bool
-    {
-        $boxA = $a->worldBox();
-        $boxB = $b->worldBox();
-        for ($axis = 0; $axis < 3; ++$axis) {
-            if ($boxA['min'][$axis] - $boxB['max'][$axis] > 0.0 || $boxB['min'][$axis] - $boxA['max'][$axis] > 0.0) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param array{float, float, float} $a
-     * @param array{float, float, float} $b
-     * @return array{float, float, float}
-     */
-    private function minus(array $a, array $b): array
-    {
-        return [$a[0] - $b[0], $a[1] - $b[1], $a[2] - $b[2]];
-    }
-
-    /**
-     * @param array{float, float, float} $a
-     * @param array{float, float, float} $b
-     * @return array{float, float, float}
-     */
-    private function cross(array $a, array $b): array
-    {
-        return [
-            $a[1] * $b[2] - $a[2] * $b[1],
-            $a[2] * $b[0] - $a[0] * $b[2],
-            $a[0] * $b[1] - $a[1] * $b[0],
-        ];
-    }
-
-    /**
-     * @return list<PlacedDevice>
-     */
     /**
      * The uniform spacing of a placement's cabinets along x, which is what `step_m` used to state outright.
      *

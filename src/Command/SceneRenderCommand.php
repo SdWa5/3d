@@ -153,7 +153,7 @@ final class SceneRenderCommand extends BaseCommand
                 continue;
             }
 
-            $sceneBlend = $builder->buildDir().'/scenes/'.$scene->id.'.blend';
+            $sceneBlend = $this->derivedDir($builder->buildDir().'/scenes', $scene).'/'.$scene->id.'.blend';
             if (!is_file($sceneBlend)) {
                 $this->io->error(sprintf(
                     "No assembled scene at %s\nRun `bin/console scene:build %s` first.",
@@ -164,7 +164,12 @@ final class SceneRenderCommand extends BaseCommand
                 continue;
             }
 
-            $directory = $input->getOption('out-dir') ?? $builder->buildDir().'/renders';
+            // The `generated/` subdirectory is composed onto whatever directory was chosen, `--out-dir` included,
+            // so `build:all`'s camera folders keep their generated renders separate too.
+            $directory = $this->derivedDir(
+                (string)($input->getOption('out-dir') ?? $builder->buildDir().'/renders'),
+                $scene,
+            );
             $target = $input->getOption('out')
                 ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
 

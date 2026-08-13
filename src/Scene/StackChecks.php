@@ -15,8 +15,9 @@ namespace App\Scene;
  * Four of them, and they catch genuinely different failures. Worth keeping straight, because more than once a
  * new rule has been written to catch something an existing one already covered from a different angle:
  *
- * * **{@see boundsProblems}** — the stated bounds: too wide, too tall, and the interface height it reached
- *   against the one it was asked for. Arithmetic against the numbers in the file.
+ * * **{@see boundsProblems}** — the stated bounds: too wide, too tall, and the sub height it reached against both
+ *   the floor `interface_height_m` asks for and the ceiling `max_sub_height_m` allows. Arithmetic against the
+ *   numbers in the file.
  * * **{@see supportChecks}** — a *tier* against the tier below it. Blind to anything within a row.
  * * **{@see bearingProblems}** — a *cabinet* against whatever it personally landed on. This is the one that sees
  *   a stepped row, where tier widths look perfectly sensible and a cabinet is balanced on 5.6 mm of its
@@ -89,6 +90,24 @@ final class StackChecks
                 $subHeight,
                 $stack->interfaceHeightM,
                 ($stack->interfaceHeightM - $subHeight) * 1000,
+                $subHeight,
+            );
+        }
+        // And the same number from the other side. A warning for the same reason its mirror is one: the solver
+        // already walks the whole search and keeps the shortest arrangement that stands up, so a miss here is not
+        // a mistake to refuse but the inventory's own floor — a stack holding six sub types cannot be shorter than
+        // the rows those types need, however they are packed. Refusing would make the key unusable on exactly the
+        // rigs it was added for, where knowing the miss and by how much is the useful answer.
+        //
+        // Reported whether or not there are tops, unlike the interface: `max_sub_height_m` bounds the sub wall
+        // itself, and a sub wing with no tops on it still has to fit under the truss.
+        if ($stack->maxSubHeightM !== null && $subHeight > $stack->maxSubHeightM + self::EPSILON_M) {
+            $warnings[] = sprintf(
+                'the subs reach %.3f m against the %.3f m ceiling asked for, so they stand %.0f mm too high — '
+                .'%.3f m is the shortest arrangement in which every tier is still carried',
+                $subHeight,
+                $stack->maxSubHeightM,
+                ($subHeight - $stack->maxSubHeightM) * 1000,
                 $subHeight,
             );
         }
@@ -255,7 +274,7 @@ final class StackChecks
     {
         $problems = [];
 
-        $resolved = Gravity::resolve($tiers, $stack->gapM, 'stack');
+        $resolved = Gravity::resolve($tiers, $stack->gapM, 'stack', $stack->slideWithinM);
         foreach ($resolved as $index => $runs) {
             foreach ($runs as $run) {
                 // Nothing underneath at all. Falling puts it on the floor, which for a tier above the bottom

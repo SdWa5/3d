@@ -108,12 +108,12 @@ final class SceneBuildCommand extends BaseCommand
                 continue;
             }
             if (!$force && !$this->needsAssembling($scene, $placed, $builder)) {
-                $this->io->text(sprintf('<comment>up to date</comment> %s', $this->relative($this->blendFor($scene->id, $builder))));
+                $this->io->text(sprintf('<comment>up to date</comment> %s', $this->relative($this->blendFor($scene, $builder))));
                 continue;
             }
 
             try {
-                $target = $this->assemble($scene->id, $placed, $builder, $output);
+                $target = $this->assemble($scene, $placed, $builder, $output);
             } catch (RuntimeException $e) {
                 $this->io->error($e->getMessage());
                 $exit = self::FAILURE;
@@ -145,12 +145,12 @@ final class SceneBuildCommand extends BaseCommand
             $seen[$entry->device->id] = $builder->blendPath($entry->device);
         }
 
-        return Staleness::outOfDate([$this->blendFor($scene->id, $builder)], [...$inputs, ...array_values($seen)]);
+        return Staleness::outOfDate([$this->blendFor($scene, $builder)], [...$inputs, ...array_values($seen)]);
     }
 
-    private function blendFor(string $sceneId, ModelBuilder $builder): string
+    private function blendFor(\App\Scene\SceneSpec $scene, ModelBuilder $builder): string
     {
-        return $builder->buildDir().'/scenes/'.$sceneId.'.blend';
+        return $this->derivedDir($builder->buildDir().'/scenes', $scene).'/'.$scene->id.'.blend';
     }
 
     /**
@@ -248,10 +248,16 @@ final class SceneBuildCommand extends BaseCommand
     /**
      * @param list<PlacedDevice> $placed
      */
-    private function assemble(string $sceneId, array $placed, ModelBuilder $builder, OutputInterface $output): string
-    {
-        $target = $builder->buildDir().'/scenes/'.$sceneId.'.blend';
-        $planFile = $builder->buildDir().'/plans/_scene-'.$sceneId.'.json';
+    private function assemble(
+        \App\Scene\SceneSpec $scene,
+        array $placed,
+        ModelBuilder $builder,
+        OutputInterface $output,
+    ): string {
+        // Both the assembled scene and its plan follow the source file into `generated/`, so a regenerated rig
+        // never overwrites the build output of a hand-written scene that happens to share its id.
+        $target = $this->derivedDir($builder->buildDir().'/scenes', $scene).'/'.$scene->id.'.blend';
+        $planFile = $this->derivedDir($builder->buildDir().'/plans', $scene).'/_scene-'.$scene->id.'.json';
 
         $entries = [];
         foreach ($placed as $entry) {
@@ -265,7 +271,7 @@ final class SceneBuildCommand extends BaseCommand
 
         try {
             $json = json_encode(
-                ['plan_version' => 1, 'scene_id' => $sceneId, 'output' => $target, 'placements' => $entries],
+                ['plan_version' => 1, 'scene_id' => $scene->id, 'output' => $target, 'placements' => $entries],
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
             );
         } catch (JsonException $e) {

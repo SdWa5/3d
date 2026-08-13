@@ -1,59 +1,50 @@
-# GMSS (Gena Made Sound System) — the full stack, reconstructed from GMSS.jpeg.
+# GMSS (Gena Made Sound System) — the full stack, as the builder describes it and the photograph shows it.
 #
-# READ THIS BEFORE TRUSTING ANYTHING IN IT. Every cabinet here is an `estimated` spec: GMSS supplied counts and
-# power ratings and one site photograph with no scale reference, so the boxes are reconstructions. `scene:build`
-# warns that this scene uses another owner's gear and that the positions rely on un-measured cabinets. Both
-# warnings are correct and both should stay until somebody takes a tape measure to the rig.
+# READ THIS BEFORE TRUSTING ANYTHING IN IT. Every cabinet is an `estimated` spec, but for a different reason than
+# before: the dimensions are now the **builder's own stated figures** rather than anything read off the photograph.
+# `estimated` is the honest enum case for that — there is no datasheet, no plans in hand, and `measured` would claim
+# we taped it ourselves. Two of his figures he hedged himself ("maybe 220kg", "~120kg"). `scene:build` warns that
+# this scene uses another owner's gear and that the positions rely on un-measured cabinets; both stay.
 #
-# THE ARRANGEMENT:
+# THE ARRANGEMENT, and it is now described rather than deduced — "the outer columns are each three subs in a pillar
+# on top of one other speaker in the bottom":
 #
-#   each outer column   1 mid-bass on the ground, 3 turbo subs on top of it        0.425 + 1.911 = 2.336 m
-#   middle bay, row 1   2 middle subs side by side                                         1.020 m
-#   middle bay, row 2   1 middle sub ON ITS SIDE, across both of them              1.020 + 0.595 = 1.615 m
-#   on top of that      the 3 turbo tops, side by side in ONE ROW                  1.615 + 0.935 = 2.550 m
+#   each outer column   1 nuke ON ITS SIDE, 3 IQ subs stacked on it        0.590 + 3 x 0.670 = 2.600 m
+#   middle bay, row 1   2 wall basses side by side                                            1.400 m
+#   middle bay, row 2   the USB mid bass lying across both of them         1.400 + 0.500     = 1.900 m
+#   on top of that      the 3 turbo tops, side by side in ONE ROW          1.900 + 0.710     = 2.610 m
 #
-# SIX TURBO SUBS, NOT EIGHT. GMSS states eight and only six are in this photograph — three to a column — so this
-# scene builds the six that can be seen and leaves the other two out. `scene:build` warns about over-using gear,
-# never about under-using it, so a rig that spends part of the inventory is a legitimate arrangement rather than
-# an error. When the other two turn up in a photo or a message, they go in.
+# FOURTEEN CABINETS, 994 kg, and every one of them accounted for: 2 nukes + 6 IQ subs + 2 wall basses + 1 mid bass
+# + 3 tops. The "8 turbo subs" of the original message is two different boxes — 6 IQ subs and 2 nukes — which is
+# what made the count read as six in the photo and eight in the sentence. Nothing is left out of this rig any more.
 #
-# THE MID-BASS CABINETS ARE THE FOOT OF THE COLUMNS, not a row in the middle. In the photo each column stands on
-# a short wide box carrying the same recessed oval logo as the cabinets above it. An earlier pass read those as a
-# fourth turbo sub per column, and the one before that as plinths. They are the small subs, they are on the
-# ground, and the turbo subs stand on them.
-#
-# ROW 2 IS A MIDDLE SUB LAID ON ITS SIDE, and that is the one genuinely speculative placement in the rig. What
-# the photograph shows between the middle subs and the tops is a cross-braced horn mouth, distinctly WIDER THAN
-# IT IS TALL, where a middle sub standing up is 0.595 wide and 1.020 tall. Rolled a quarter turn it is 1.020 wide
-# and 0.595 tall, which is that shape — and it also carries the tops: the row of three is 1.213 m across, and on a
-# cabinet standing up it would have 0.595 m under it with each outer top hanging half off, where rolled there is
-# 1.020 m and each outer top keeps 75% of itself on the cabinet. That was not aimed for, and it is the reason to
-# believe the roll — but it remains a reading of a photograph, and could be a cabinet type GMSS never listed.
+# THE MID BASS NEEDS NO ROLL, and that is the correction that matters most here. Earlier passes put a *middle sub* on
+# its side in row 2, because what the photo shows there is distinctly wider than it is tall and no cabinet in the
+# stated list was that shape. The USB is: 1.200 wide and 0.500 tall as it stands. The rolled cabinet was a
+# reconstruction of a box that does not exist, and it is gone.
 #
 # EVERY POSITION IS DERIVED, none is chosen:
 #
-#   middle subs   2 x 0.595 + 0.02 = 1.210 m, so the middle bay runs to 0.605 either side of centre
-#   row 2         1.020 m rolled, centred — hence `at: -0.510`, because a rolled cabinet's body lies to one
-#                 side of its placement point rather than around it
-#   turbo tops    3 x 0.391 + 2 x 0.02 = 1.213 m, centred over that 1.020
-#   columns       0.605 + 0.020 gap + 0.298 (half a mid-bass) puts each column's centre at 0.922
+#   wall basses   2 x 0.660 + 0.02 = 1.340 m, so the middle bay runs to 0.670 either side of centre
+#   mid bass      1.200 m centred over it, which is 0.600 either side — inside the bay, not proud of it
+#   turbo tops    3 x 0.450 + 2 x 0.02 = 1.390 m, centred, so each outer top overhangs the 1.200 m mid bass by
+#                 95 mm and keeps 79% of itself on it
+#   columns       the ROLLED nuke is the widest thing in a column at 0.770, so 0.670 + 0.020 gap + 0.385 puts each
+#                 column's centre at 1.075 — 90 mm further out than an upright nuke needed
 #
-# CLEARANCES: the mid-bass at each foot reaches inward to 0.625 against the middle subs' 0.605, which is 20 mm and
-# the tightest fit in the rig. Above 0.425 m the columns are turbo subs, whose inner faces are at 0.667, against
-# row 2's 0.510 and the tops' 0.607 — so nothing above the ground row comes near anything.
+# CLEARANCES: the nuke at each foot reaches inward to 0.690 against the wall basses' 0.670 — 20 mm, the tightest fit
+# in the rig, and the reason the column centre is where it is. Above 0.590 m the columns are IQ subs, whose inner
+# faces are at 0.810, against the tops' 0.695: 115 mm, so nothing above the ground row comes near anything.
 #
-# THE TOPS FINISH 214 mm ABOVE THE COLUMNS, at 2.550 m against 2.336. In the photograph they look closer to level
-# than that, so something in the middle bay is still a little tall — most likely the rolled cabinet, which is the
-# most speculative placement in the rig anyway.
+# THE COLUMNS FINISH 10 mm BELOW THE TOPS, at 2.600 m against 2.610, and that is what turning the nukes bought. Upright
+# they made the columns 2.780 m and stood 170 mm proud of the tops; on their sides the two are level to within a
+# centimetre, which is how the photograph reads. It also widens the rig from 2.560 m to 2.920 m across — the same
+# trade a folded horn on its side always makes, wider and lower out of the same cabinets.
 #
-# WHAT IS STILL GUESSED: every depth, since the side faces are foreshortened past reading; the counts of middle
-# subs and mid-bass cabinets, which GMSS never stated; and above all THE ABSOLUTE SCALE. There is no scale
-# reference in the photograph, so the cabinets are sized by comparison with our own measured gear — a turbo sub
-# against the Flexy's 0.591 x 0.763 x 0.964 — rather than by measuring anything. ONE REAL DIMENSION off any GMSS
-# cabinet would settle the whole set at once.
-#
-# The low boxes under the middle bay in the photo are not modelled: nothing is known about them beyond that they
-# are there. Nor are the 9 m truss, the two 5.2 m towers or the 4 Martin MAC Performance 2 moving heads.
+# WHAT IS STILL UNKNOWN: every depth is the builder's figure but none is cross-checked; no passbands, no crossover
+# points, and apart from the wall bass's stated 18" no driver sizes. The low boxes under the middle bay in the photo
+# are still not modelled — nothing is known about them beyond that they are there. Nor are the 9 m truss, the two
+# 5.2 m towers or the 4 Martin MAC Performance 2 moving heads: those are in `gmss-full-stack-truss.yaml`.
 id: gmss-full-stack
 name: "GMSS — the full stack"
 
@@ -62,79 +53,95 @@ focus:
   height_m: 1.8
 
 placements:
-  # THE MIDDLE BAY, bottom up. The folded horns go on the ground because they are the heaviest thing in the rig
-  # at 81 kg each, and because in the photo they are what the whole centre stands on.
-  - id: middle-subs
-    device: gmss-middle-sub
+  # THE MIDDLE BAY, bottom up. The wall basses go on the ground because they are far the heaviest thing in the rig at
+  # about 220 kg each — 440 of the stack's 994 kg — and because in the photo they are what the whole centre stands on.
+  - id: wall-basses
+    device: gmss-wall-bass
     at: [ 0.0, 0.0 ]
     row:
       count: 2
       gap_m: 0.02
 
-  # The third middle sub, a quarter turn onto its side — see the header. `at` is -0.600 rather than 0 because a
-  # rolled cabinet's body lies to one side of its placement point, so this is what centres its 1.020 m.
-  - id: middle-sub-upper
-    device: gmss-middle-sub
-    on: middle-subs
-    at: [ -0.510, 0.0 ]
-    roll_deg: 90
+  # The USB mid bass, lying across both of them exactly as it stands: 1.200 wide by 0.500 tall is already the shape
+  # the photograph shows, so there is no roll here and no speculation left in this placement.
+  - id: mid-bass
+    device: gmss-mid-bass
+    on: wall-basses
+    at: [ 0.0, 0.0 ]
 
-  # THE THREE TOPS, ONE ROW, on the rolled cabinet.
+  # THE THREE TOPS, ONE ROW, on the mid bass.
   - id: tops
     device: gmss-turbo-top
-    on: middle-sub-upper
+    on: mid-bass
     at: [ 0.0, 0.0 ]
     row:
       count: 3
       gap_m: 0.02
 
-  # THE OUTER COLUMNS. A mid-bass on the ground with three turbo subs standing on it.
-  - id: small-sub-left
-    device: gmss-mid-bass
-    at: [ -0.922, 0.0 ]
+  # THE OUTER COLUMNS. A nuke on the ground with three IQ subs stacked on it — the builder's own description.
+  #
+  # THE NUKES ARE ON THEIR SIDES, a quarter turn each, so each column stands on a 0.770 × 0.590 foot rather than a
+  # 0.590 × 0.770 one. Mirrored rather than both turned the same way — 270 on the left and 90 on the right — which is
+  # the same convention `roll_mirror` applies inside a solved tier: the rig is meant to be symmetric about its centre
+  # line, and two cabinets rolled the same way are a rig built twice rather than a pair.
+  #
+  # `at` IS NOT THE COLUMN CENTRE for these two, and that is the whole reason the numbers look wrong. A rolled
+  # cabinet's body lies entirely to ONE SIDE of its placement point — at 90 the 0.770 m runs from the point rightward,
+  # at 270 leftward — so centring a body on ±1.075 means placing the point 0.385 m the other way, at ±0.690. The
+  # upright IQ subs above them are ordinary and sit on ±1.075 directly.
+  - id: nuke-left
+    device: gmss-nuke
+    at: [ -0.690, 0.0 ]
+    roll_deg: 270
 
   - id: column-left
-    device: gmss-turbo-sub
-    on: small-sub-left
-    at: [ -0.922, 0.0 ]
+    device: gmss-iq-sub
+    on: nuke-left
+    at: [ -1.075, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
-  - id: small-sub-right
-    device: gmss-mid-bass
-    at: [ 0.922, 0.0 ]
+  - id: nuke-right
+    device: gmss-nuke
+    at: [ 0.690, 0.0 ]
+    roll_deg: 90
 
   - id: column-right
-    device: gmss-turbo-sub
-    on: small-sub-right
-    at: [ 0.922, 0.0 ]
+    device: gmss-iq-sub
+    on: nuke-right
+    at: [ 1.075, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
 notes: |
-  A reconstruction of GMSS.jpeg, not a measured rig. Every GMSS spec is `provenance: estimated` and every one is
-  in the measuring backlog — `catalog` lists them.
+  The GMSS stack as its builder describes it — 14 cabinets, 994 kg, 2.610 m tall and 2.920 m across.
 
-  Stated by GMSS, verbatim and in full: "Middle subs are 18/1600rms USB 2x 700rms mid bass 8 turbo subs 3000rms
-  3 turbo top 2500rms And 4pcs Martin mac performance 2 and many more 9m truss 2 pcs towers max 5.2m".
+  THE TWO NUKES ARE ON THEIR SIDES, mirrored, so each column stands on a 0.770 x 0.590 foot. That is what makes the
+  columns finish level with the tops: upright they reached 2.780 m against the tops' 2.610 and stood 170 mm proud,
+  turned they reach 2.600 and the two are level to within a centimetre — which is how the photograph reads. The rig
+  is 360 mm wider for it, the trade a horn on its side always makes. `gmss-full-stack-truss.yaml` still has them
+  upright; the two files are deliberately one line apart.
 
-  Fifth pass. What each earlier one got wrong, since the corrections are the useful record here:
+  Stated by GMSS, verbatim: "Middle subs are 18/1600rms USB 2x 700rms mid bass 8 turbo subs 3000rms 3 turbo top
+  2500rms And 4pcs Martin mac performance 2 and many more 9m truss 2 pcs towers max 5.2m" — and then, asked what the
+  photo actually shows: "That's the mid bass (usb) and the ones on the outside of the bottom row are also turbo subs",
+  with dimensions and weights for each, and "the outer columns are each three subs in a pillar on top of one other
+  speaker in the bottom".
 
-  - the first split the three tops across the stack instead of putting them in one row
-  - the second read the short wide box at each column's foot as a fourth turbo sub, which left the middle bay to be
-    filled with the mid-bass
-  - the third put the mid-bass where the photo has it, under the columns, and built the six turbo subs the photo
-    shows rather than all eight — but left the middle bay's second row empty, so the tops sat low
-  - the fourth filled that row with a third middle sub on its side, which is the shape the photo shows there
-  - THIS ONE RESCALED EVERY CABINET DOWN. Passes two to four sized the boxes from the photograph, by reading the
-    blue logo on the sub faces as a ~60 mm badge and working out about 3 mm per pixel. Standing the result beside
-    our own rig in `both-systems-side-by-side.yaml` showed it was much too big — fourteen GMSS cabinets made a
-    wider and taller wall than our twenty-three. A photograph with no scale reference cannot fix absolute size,
-    and that 60 mm was carrying all of it. The cabinets are now sized against our own MEASURED gear instead: a
-    turbo sub next to the Flexy's 0.591 x 0.763 x 0.964, both being single-18" folded horn subs. The rig went from
-    3.66 x 3.450 m to 2.86 x 3.000. A sixth pass then brought the middle sub from 1.200 to 1.000 tall: at 1.200 it
-    was still 31% taller than the tallest sub anybody here has measured, which showed up beside the rest of the
-    inventory in `both-systems-per-owner-center.yaml` rather than in this scene.
+  SEVENTH PASS, AND THE FIRST WITH REAL NUMBERS IN IT. Passes one to six sized every box off the photograph and
+  rearranged them six times; this one throws all of that away and uses the builder's figures. What the photo-derived
+  reconstruction got wrong is worth keeping as a record of how far a photograph can mislead:
 
-  What this scene does NOT guess at: no passbands, no crossover points and — apart from the middle sub's stated
-  18" — no driver sizes.
+  - the tops were 0.935 m tall against a real 0.710, and 0.391 wide against 0.450 — too tall AND too narrow, because
+    obliquity compresses apparent width and nothing corrected for it
+  - "8 turbo subs" was modelled as one cabinet type, so six were drawn and two written off as absent from the photo.
+    They are two types: 6 IQ subs and 2 nukes, and all eight are in the picture
+  - the mid bass was modelled as two 0.595 m boxes at the feet of the columns. It is one 1.200 m box lying across the
+    wall basses — the wide cross-braced mouth in the middle of the photo, which four passes tried to explain with a
+    cabinet laid on its side because no listed box had that shape
+  - the wall basses ("middle subs") were 0.595 x 1.020 x 0.850 at 81 kg against a real 0.660 x 1.400 x 1.000 at about
+    220 kg. Nearly three times the mass, and they are what the rig stands on
+
+  What this scene does NOT guess at: no passbands, no crossover points and — apart from the wall bass's stated 18" —
+  no driver sizes. The one thing a tape measure would still settle is whether the builder's centimetres are as round
+  as they look.

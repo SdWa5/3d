@@ -29,6 +29,7 @@ ddev exec bin/console specs:validate      # check every spec (no Blender needed)
 ddev exec bin/console models:build        # build .glb + .blend for whatever changed
 ddev exec bin/console library:build       # assemble the Blender asset library
 ddev exec bin/console scene:stack         # solve a rig from constraints, write it as scene files
+ddev exec bin/console scene:stack         # generate every sensible rig — no flags needed
 ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
 ddev exec bin/console scene:render full-rig-arc --aim-lines     # ...with laser lines showing the aim
@@ -89,7 +90,7 @@ theirs with a real datasheet — and [`specs/stands/`](specs/stands) the two Kra
 [`scenes/gmss-full-stack-truss.yaml`](scenes/gmss-full-stack-truss.yaml) hangs the fixtures under their 9 m truss and
 reports the bar total, **195.2 kg**, which is the number a truss's capacity is checked against.
 
-**Owner is not a constraint.** [`scenes/all-speakers-*.yaml`](scenes) deal both systems' 41 cabinets into one, two
+**Owner is not a constraint.** [`scenes/all-speakers-*.yaml`](scenes) deal both systems' 39 cabinets into one, two
 and three stacks regardless of whose they are, and [`scenes/everything.yaml`](scenes/everything.yaml) is the only
 place every device in the repository stands in one picture — 55 cabinets, 3237 kg, speakers under 10 m of truss with
 the lights hung, both scaffold towers and all three racks
@@ -102,7 +103,7 @@ the lights hung, both scaffold towers and all three racks
 | `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too                                     |
 | `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
-| `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. `--per-owner` gives each owner its own stack, `--stacks=N` splits into a stereo pair, `--roll-mirror=ID` lays a device on its side mirrored about the centre line, `--dry-run` prints, `--force` overwrites |
+| `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. With no flags it sweeps every sensible rig, and **only writes one whose sub/top transition lands in the 2–3 m band**, moving a rig onto a wider or narrower stage to get it there rather than skipping it. `--per-owner` gives each owner its own stack, `--stacks=N` splits into a stereo pair, `--roll-mirror=ID` lays a device on its side mirrored about the centre line, `--dry-run` prints, `--force` overwrites |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them. Quality is Full HD at 128 samples, with `--quick-preview` (960×540/16) and `--high-quality` (4K/384) either side; an explicit `--samples`/`--resolution` wins over both. Redraws when an input moves **or** when the settings differ from the ones recorded in `build/renders/built-with.json` |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |

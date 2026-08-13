@@ -6,9 +6,12 @@ namespace App\Command;
 
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
+use App\Scene\SceneLoader;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -76,6 +79,17 @@ final class BuildAllCommand extends BaseCommand
             ['library:build', []],
             ['scene:build', $force],
         ];
+
+        // The generated scenes are rewritten before anything is built from them, which closes the last gap in
+        // "from specs to pictures". Every other stage already follows the specs; these files did not, so re-measuring
+        // the GMSS cabinets left eleven of them describing rows that no longer existed and nothing noticed.
+        //
+        // **This stage writes to `scenes/generated/`, which is tracked** — the only stage that touches anything
+        // outside `build/`. That is the deliberate trade: a generated scene is build output that happens to be worth
+        // reviewing in a diff, so it has to be regenerated like build output and reviewed like source.
+        if (!$dryRun && $this->regenerate($output) !== self::SUCCESS) {
+            return self::FAILURE;
+        }
 
         // Checked here rather than left to `scene:render`, because a sweep is the one place a typo is expensive:
         // `--dry-run` runs no stage at all, so an unvalidated value would list a plausible pass and only be
@@ -199,7 +213,11 @@ final class BuildAllCommand extends BaseCommand
      */
     private function describe(array $stages, array $renders): void
     {
-        $rows = [];
+        // Listed first because it runs first, and named with the count so a dry run says how many files a real run
+        // would rewrite — which is the one thing about this stage worth knowing before starting it.
+        $generated = glob($this->scenesDir().'/'.SceneLoader::GENERATED.'/*.{yaml,yml}', GLOB_BRACE) ?: [];
+        $rows = [['scene:stack', sprintf('replaying %d generated scenes\' own commands', count($generated))]];
+
         foreach ($stages as [$name, $arguments]) {
             $rows[] = [$name, $this->flags($arguments) ?: '—'];
         }
@@ -232,6 +250,245 @@ final class BuildAllCommand extends BaseCommand
     /**
      * @param array<string, mixed> $arguments
      */
+    /**
+     * Every generated scene rewritten by **replaying the command written in its own header**.
+     *
+     * There is no list of commands anywhere, and there deliberately is not one: a second copy would go out of step
+     * with the files, which is the failure this whole stage exists to prevent. `scene:stack` writes the line that
+     * produced each file, so the file is its own recipe and a scene that stops being generated simply stops being
+     * regenerated.
+     *
+     * A file with no such line is **skipped and named**, not guessed at. Anything under `generated/` that a person
+     * wrote by hand is a mistake worth seeing rather than one to overwrite silently.
+     */
+    /**
+     * The cabinets a turned rig lays on their sides, stated here because **no spec field says which are horn-loaded**.
+     *
+     * That omission is deliberate and predates this: "adding one to drive a rotation would be inventing a property to
+     * serve a layout". So the list lives with the thing that uses it. These two are the ones the hand-made turned
+     * scenes already passed to `--roll-mirror`: a Flexy on its side is 763 × 591 rather than 591 × 763, which is a
+     * wider and lower wall out of the same cabinets, and a SKRAM likewise.
+     *
+     * Turning the *whole* inventory does not work and is not expected to — see TODO 4: a rolled SKRAM is 610 mm tall
+     * against a rolled Flexy's 591, so a bottom row mixing them has a 19 mm step and the row above lands on 17 % of
+     * itself. The turned pass reports which rigs refuse rather than pretending they all work.
+     */
+    private const TURNABLE = ['flexy-folded-horn-hybrid', 'skram'];
+
+    private function regenerate(OutputInterface $output): int
+    {
+        $directory = $this->scenesDir().'/'.SceneLoader::GENERATED;
+        $files = glob($directory.'/*.{yaml,yml}', GLOB_BRACE) ?: [];
+        if ($files === []) {
+            return self::SUCCESS;
+        }
+
+        $application = $this->getApplication();
+        if ($application === null) {
+            $this->io->error('build:all has to run through the application, so it can find the other commands');
+
+            return self::FAILURE;
+        }
+
+        $this->io->section('scene:stack — regenerating '.count($files).' generated scenes');
+
+        sort($files);
+        $turned = [];
+
+        foreach ($files as $file) {
+            $command = self::recordedCommand((string)file_get_contents($file));
+            if ($command === null) {
+                $this->io->text(sprintf(
+                    '  <comment>skipped</comment> %s — no `Regenerate it with:` line, so it is not regenerable',
+                    $this->relative($file),
+                ));
+                continue;
+            }
+
+            // `--force` because the file being replaced is precisely the one this command wrote; without it every
+            // run after the first would refuse itself.
+            $exit = $application->find('scene:stack')->run(new StringInput($command.' --force'), $output);
+            if ($exit !== self::SUCCESS) {
+                $this->io->error('Regenerating '.$this->relative($file).' failed');
+
+                return self::FAILURE;
+            }
+
+            $turned[] = $command;
+        }
+
+        $exit = $this->regenerateTurned($turned, $application, $output);
+
+        return $exit === self::SUCCESS ? $this->prune() : $exit;
+    }
+
+    /**
+     * Every **derived** artifact under a `generated/` directory whose scene no longer exists.
+     *
+     * The scene set changes shape whenever the sweep does, and this release renamed every id — `stacked-center` became
+     * `stacked-sdwa5-2-center` — which left 38 orphaned `.blend` files and 11 orphaned renders behind. Nothing pruned
+     * them, because every stage only ever added, so the tree accumulated a layer per release and a reader could not
+     * tell which pictures belonged to the current rigs.
+     *
+     * **Derived files only, and the reason is that this is a pure set comparison.** A `.blend`, a plan or a render
+     * carries its scene's id in its name, so "no scene of that id exists" is a fact with no timing in it — and
+     * everything under `build/` is disposable and regenerable, which is why it is gitignored.
+     *
+     * **Generated scene files are deliberately NOT pruned automatically.** Deciding a scene file is stale means
+     * knowing which files this run wrote, and two attempts at that by timestamp both destroyed the scene set:
+     * `filemtime()` is whole seconds while `microtime(true)` is fractional, so a file written in the same second as
+     * the run started reads as older than the run and was deleted. A stale scene file is visible in `git status`,
+     * costs nothing, and is overwritten by the next `--force`; a deleted one is 25 files of work. If this is worth
+     * automating later it needs `scene:stack` to report the paths it wrote, not a cleverer clock.
+     */
+    private function prune(): int
+    {
+        $ids = [];
+        foreach (glob($this->scenesDir().'/'.SceneLoader::GENERATED.'/*.{yaml,yml}', GLOB_BRACE) ?: [] as $scene) {
+            $ids[pathinfo($scene, PATHINFO_FILENAME)] = true;
+        }
+        if ($ids === []) {
+            // No generated scenes at all is far more likely to be a bad run than an instruction to empty the tree.
+            return self::SUCCESS;
+        }
+
+        $build = $this->projectDir().'/build';
+        $removed = [];
+        $derived = [
+            ...(glob($build.'/scenes/'.SceneLoader::GENERATED.'/*') ?: []),
+            ...(glob($build.'/plans/'.SceneLoader::GENERATED.'/*') ?: []),
+            ...(glob($build.'/renders/'.SceneLoader::GENERATED.'/*.png') ?: []),
+            ...(glob($build.'/renders/*/'.SceneLoader::GENERATED.'/*.png') ?: []),
+        ];
+
+        foreach ($derived as $file) {
+            $id = self::sceneIdOf($file);
+            if (!is_file($file) || $id === null || isset($ids[$id])) {
+                continue;
+            }
+            if (@unlink($file)) {
+                $removed[] = $this->relative($file);
+            }
+        }
+
+        if ($removed !== []) {
+            $this->io->section(sprintf(
+                'pruned %d stale derived file%s',
+                count($removed),
+                count($removed) === 1 ? '' : 's',
+            ));
+            foreach (array_slice($removed, 0, 12) as $file) {
+                $this->io->text('  <comment>removed</comment> '.$file);
+            }
+            if (count($removed) > 12) {
+                $this->io->text(sprintf('  … and %d more', count($removed) - 12));
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * The scene id a derived file belongs to, or null when its name says nothing.
+     *
+     * The three shapes it has to read are `<id>.blend`, `_scene-<id>.json` and `<id>-<camera>.png`. A camera suffix is
+     * stripped from a known list rather than by taking everything before the last dash, because scene ids contain
+     * dashes themselves — `stacked-sdwa5-2-center-three-quarter.png` would otherwise resolve to a scene called
+     * `stacked-sdwa5-2-center-three`.
+     */
+    private static function sceneIdOf(string $file): ?string
+    {
+        $name = pathinfo($file, PATHINFO_FILENAME);
+        if (str_starts_with($name, '_scene-')) {
+            return substr($name, strlen('_scene-'));
+        }
+        if (str_ends_with($file, '.png')) {
+            foreach (['three-quarter', 'front', 'side', 'top', 'iso'] as $camera) {
+                if (str_ends_with($name, '-'.$camera)) {
+                    return substr($name, 0, -strlen('-'.$camera));
+                }
+            }
+
+            return null;
+        }
+
+        return $name;
+    }
+
+    /**
+     * The same rigs again with the horn-loaded cabinets on their sides.
+     *
+     * **A refusal here is not a build failure**, and that is the whole design of this pass. Turning cabinets changes
+     * the geometry enough that some rigs genuinely cannot be built that way — a bottom row mixing a rolled SKRAM with
+     * a rolled Flexy has a 19 mm step and the row above lands on 17 % of itself — so a turned variant that refuses is
+     * reported with its reason and the build carries on. `scene:stack` already treats an unbuildable alignment the
+     * same way; this only has to not turn that into an error.
+     *
+     * Skipped for a rig that is already turned, since a scene generated with `--roll-mirror` has nothing left to roll
+     * and would just rewrite itself under a longer name.
+     *
+     * @param list<string> $commands the `scene:stack` arguments of each generated scene
+     */
+    private function regenerateTurned(array $commands, Application $application, OutputInterface $output): int
+    {
+        $rolls = implode(' ', array_map(static fn (string $id): string => '--roll-mirror='.$id, self::TURNABLE));
+
+        $turned = array_values(array_filter(
+            $commands,
+            static fn (string $command): bool => !str_contains($command, '--roll-mirror='),
+        ));
+        if ($turned === []) {
+            return self::SUCCESS;
+        }
+
+        $this->io->section(sprintf('scene:stack — %d turned variants (%s)', count($turned), implode(', ', self::TURNABLE)));
+
+        foreach ($turned as $command) {
+            // The id has to change or the turned rig overwrites the upright one. `--id` is always recorded, except
+            // when it was the default, so append to whatever is there rather than assuming a value.
+            $id = preg_match('/--id=(\S+)/', $command, $matches) === 1 ? $matches[1] : 'stacked';
+            $arguments = preg_replace('/--id=\S+/', '', $command).' --id='.$id.'-turned '.$rolls.' --force';
+
+            if ($application->find('scene:stack')->run(new StringInput((string)$arguments), $output) !== self::SUCCESS) {
+                $this->io->text(sprintf(
+                    '  <comment>no turned rig</comment> %s-turned — see the reason above; the upright one is unaffected',
+                    $id,
+                ));
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * The `scene:stack` arguments recorded in a generated scene's header, or null when it records none.
+     *
+     * The line is wrapped across comment lines to keep the header readable, so the continuations — indented further
+     * than the first line — are joined back together here. Matching on the indent rather than on a marker keeps the
+     * writer free to reflow the line at a different width without this having to agree about where.
+     */
+    private static function recordedCommand(string $yaml): ?string
+    {
+        $lines = explode("\n", $yaml);
+        $arguments = null;
+
+        foreach ($lines as $line) {
+            if ($arguments === null) {
+                if (preg_match('/^#\s{3}bin\/console scene:stack (.+)$/', $line, $matches) === 1) {
+                    $arguments = trim($matches[1]);
+                }
+                continue;
+            }
+            if (preg_match('/^#\s{5,}(\S.*)$/', $line, $matches) === 1) {
+                $arguments .= ' '.trim($matches[1]);
+                continue;
+            }
+            break;
+        }
+
+        return $arguments;
+    }
+
     private function delegate(string $name, array $arguments, OutputInterface $output): int
     {
         $application = $this->getApplication();

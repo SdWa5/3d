@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Scene\MirrorStyle;
 use App\Scene\Tier;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
@@ -104,5 +105,52 @@ final class TierTest extends TestCase
             '2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°',
             (new Tier([[$flexy, 4, 90.0]]))->mirrored()->label(),
         );
+    }
+
+    /**
+     * `alternate` flips which side the odd cabinet joins as the wall rises, so the stack balances even though no row
+     * does.
+     *
+     * A row of five rolled cabinets cannot be halved, and there is no arrangement that avoids it — the middle one must
+     * roll one way or the other. Cancelling it row by row is the answer that costs nothing geometric.
+     */
+    public function testAlternateFlipsTheOddCabinetsSideBetweenRows(): void
+    {
+        $row = Tier::of($this->devices['flexy-folded-horn-hybrid'], 5, 90.0);
+
+        $even = $row->mirrored(MirrorStyle::Alternate, 0);
+        $odd = $row->mirrored(MirrorStyle::Alternate, 1);
+
+        // Same cabinets both ways, and every one of them still rolled.
+        self::assertSame(5, $even->count());
+        self::assertSame(5, $odd->count());
+        self::assertStringNotContainsString('rolled 0', $even->label());
+
+        // The extra goes to the right on an even row and to the left on the next one up.
+        self::assertSame('2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°', $even->label());
+        self::assertSame('3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°', $odd->label());
+    }
+
+    /**
+     * `upright` leaves the middle cabinet standing, which makes the row a palindrome and 172 mm taller.
+     *
+     * Both halves of that matter. The symmetry is the point; the step is the price, and it is why the style is offered
+     * rather than adopted — a rolled Flexy is 591 mm tall and an upright one 763, so anything standing on this row has
+     * to bridge it and the bearing rules will usually refuse.
+     */
+    public function testUprightCentresTheOddCabinetAndStandsItProud(): void
+    {
+        $tier = Tier::of($this->devices['flexy-folded-horn-hybrid'], 5, 90.0)->mirrored(MirrorStyle::Upright, 0);
+
+        self::assertSame(5, $tier->count());
+        self::assertSame(
+            '2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid '
+            .'+ 2× flexy-folded-horn-hybrid rolled 90°',
+            $tier->label(),
+        );
+
+        // The row is as tall as its tallest cabinet, which is now the upright one: 763 against the rolled 591.
+        self::assertEqualsWithDelta(0.763, $tier->heightM(), 1e-9);
+        self::assertEqualsWithDelta(0.172, $tier->heightStepM(), 1e-9);
     }
 }
