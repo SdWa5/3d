@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.75.2] - 2026-08-14
+
+### Changed
+
+- **Runtime is recorded as not being a constraint on this project**, stated by the user outright, and it is written into
+  `TODO.md`'s reading rules rather than buried in one item. A sweep that takes ten minutes and a test suite that takes
+  longer are both acceptable if they produce more correct scenes, so no estimate, design or prioritisation may trade
+  coverage away for speed
+- SWP-1's step 3 goes back to **raising `DEFAULT_MAX_SCENES`**, which is the fuse and nothing else. It refuses rather than
+  truncating, so it has to be raised deliberately once a step writes more than 80: step 2 alone writes 61 and fits, and
+  the `impossible` axis turns 55 refusals into written scenes and will not
+- **the reason step 2 was reverted is corrected.** It was recorded as runtime; the honest reason is **8 unread test
+  failures**. The suite ran out of time before their causes could be read, so the axis was reverted rather than committed
+  on a guess. The 5 minute 37 second test class and the 10-minute suite are now recorded as facts about the suite rather
+  than as blockers
+- SWP-1 gains a note on how to rebuild step 2, since it is mechanical and was measured working: one enum, seven pairs
+  built once in `execute()`, an `--orientation` option, and a nullable `?StackOrientation` threaded through five
+  signatures. `commandLine()` records `--orientation=MODE` rather than the resolved cabinet list, so a replay stays
+  correct when a cabinet is measured or added
+
 ## [0.75.1] - 2026-08-14
 
 ### Changed
