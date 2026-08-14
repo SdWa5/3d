@@ -100,13 +100,40 @@ final class Gravity
             // room beside the row — so the packed row `outboardSeats` returns null for is exactly the one the slide
             // carries. Both are discarded unless they improve the worst bearing, which is what keeps this safe rather
             // than the tier index.
+            // **A REPAIR IS JUDGED ON THIS TIER *AND* ON THE ONE IT CARRIES.** Judging it on its own bearing alone is a
+            // local optimum the tier above pays for: a row slides or reseats itself for its own sake and walks out from
+            // under what stands on it, and because this pass runs bottom-up nothing has looked at that tier yet. The
+            // gate below is deliberately still the row's own bearing, so repairs fire exactly where they always did;
+            // only which repair *wins* now accounts for the row above.
+            $above = $tiers[$index + 1] ?? null;
+            $score = static function (array $candidate) use ($above, $gapM): float {
+                $own = self::worstBearing($candidate);
+                if ($above === null) {
+                    return $own;
+                }
+
+                // The worse of the two, so a repair that starves the row above is unattractive rather than forbidden.
+                // Conservative on purpose: that tier may be repaired in its own turn, so this underestimates how well
+                // it ends up carried and never overestimates it.
+                return min($own, self::carriedBearing(
+                    self::runs($above->seats($gapM), self::topFacesOf($candidate), $gapM),
+                ));
+            };
+
             if (self::worstBearing($runs) < self::MIN_BEARING) {
                 foreach ([
                     self::outboardSeats($tier->seats($gapM), $below, $gapM),
-                    self::slidSeats($tier->seats($gapM), $below, $gapM, $slideSlackM, $stageM),
+                    self::slidSeats(
+                        $tier->seats($gapM),
+                        $below,
+                        $gapM,
+                        $slideSlackM,
+                        $stageM,
+                        $above,
+                    ),
                 ] as $repair) {
                     $rescued = $repair === null ? null : self::runs($repair, $below, $gapM);
-                    if ($rescued !== null && self::worstBearing($rescued) > self::worstBearing($runs)) {
+                    if ($rescued !== null && $score($rescued) > $score($runs)) {
                         $runs = $rescued;
                     }
                 }
@@ -143,9 +170,14 @@ final class Gravity
     public static function topFacesOf(array $runs): array
     {
         $faces = [];
-        foreach ($runs as $run) {
+        foreach ($runs as $slot => $run) {
             $faces[] = [
-                'id' => $run['id'],
+                // **A provisional id when the run has none yet, and it has to be distinct rather than pretty.**
+                // {@see resolve} names its runs after it has built them, so a caller looking *ahead* — see the slide's
+                // lookahead — holds runs whose id is still empty. {@see runs} merges neighbours that share a device and
+                // a support, comparing supports by id, so a row of empty ids reads as one support and two runs at
+                // different heights would merge into a single wrongly-carried one.
+                'id' => $run['id'] === '' ? '#'.$slot : $run['id'],
                 'lo' => $run['lo'],
                 'hi' => $run['hi'],
                 // The **rolled** height: a Flexy on its side raises what stands on it by 591 mm, not 763.
@@ -207,6 +239,35 @@ final class Gravity
     }
 
     /**
+     * {@see worstBearing}, except that a run standing on **nothing** scores zero instead of one.
+     *
+     * **`landsOn` reports `bearing => 1.0` for a run with no support at all**, and that is right where it is used:
+     * the bottom tier stands on the floor, the floor carries anything, and a fraction of 1 says so. It is exactly
+     * wrong for any tier above the first, where "nothing underneath" means the cabinet falls rather than that it is
+     * perfectly carried — so `worstBearing` cannot see a floating run, and anything scoring a candidate arrangement
+     * on it is blind to the worst outcome available.
+     *
+     * That blindness is measurable rather than theoretical. Scoring the slide's lookahead on `worstBearing` left the
+     * multi-stack slide costing two scenes while looking like an improvement, because the tops row it walked out from
+     * under reported 1.0 for the cabinets it had abandoned to the air.
+     *
+     * Only for judging a tier that has something below it. {@see resolve} uses it on the tier *above* the one being
+     * repaired, which is never the bottom tier, so a genuine floor landing never reaches this.
+     *
+     * @param list<array{on: string|null, bearing: float, ...}> $runs
+     */
+    private static function carriedBearing(array $runs): float
+    {
+        foreach ($runs as $run) {
+            if ($run['on'] === null) {
+                return 0.0;
+            }
+        }
+
+        return self::worstBearing($runs);
+    }
+
+    /**
      * The same row, slid along its support to wherever the worst-carried cabinet is carried best.
      *
      * **A ROW DOES NOT HAVE TO BE CENTRED ON WHAT CARRIES IT**, and assuming it did was refusing rigs that stand up.
@@ -238,6 +299,7 @@ final class Gravity
         float $gapM,
         ?float $slackM,
         ?float $stageM,
+        ?Tier $above = null,
     ): ?array {
         if ($slackM === null || $slackM <= 0.0 || $below === [] || $seats === []) {
             return null;
@@ -270,7 +332,30 @@ final class Gravity
                 static fn (array $seat): array => [$seat[0], $seat[1], $seat[2] + $offset, $seat[3]],
                 $seats,
             );
-            $bearing = self::worstBearing(self::runs($slid, $below, $gapM));
+
+            // **SCORED ON THE ROW *AND* ON WHAT STANDS ON IT, WHICH IS THE WHOLE DIFFERENCE BETWEEN THIS HELPING AND
+            // HURTING.** Sliding for the row's own bearing alone is a local optimum that the tier above pays for: the
+            // row walks out from under the tier it carries, and because the pass is bottom-up nothing has looked at
+            // that tier yet. Measured with the neighbour bound alone and nothing above it, switching the multi-stack
+            // slide on cleared both `LEFT OUT` cabinets and still cost a scene on balance, losing both
+            // `stacked-all-2-center` and `stacked-all-2-stereo` and doubling "nothing under it at all" from 3 to 6.
+            //
+            // So the score is the **worse** of the two, which makes a slide that starves the row above unattractive
+            // rather than forbidden — a row with nothing above it is unaffected, and a slide that helps both is still
+            // taken. One tier of lookahead is enough because that is the only tier whose support this row is.
+            //
+            // Conservative on purpose: the tier above may itself be repaired later, so this underestimates how well it
+            // ends up carried and never overestimates it.
+            $runs = self::runs($slid, $below, $gapM);
+            $bearing = self::worstBearing($runs);
+            if ($above !== null) {
+                // {@see carriedBearing} rather than {@see worstBearing}, because a run left over air reports a bearing
+                // of 1.0 and this is exactly the case that has to score badly.
+                $bearing = min($bearing, self::carriedBearing(
+                    self::runs($above->seats($gapM), self::topFacesOf($runs), $gapM),
+                ));
+            }
+
             if ($bearing > $bestBearing) {
                 $bestBearing = $bearing;
                 $best = $slid;

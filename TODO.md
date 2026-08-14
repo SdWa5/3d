@@ -8,8 +8,10 @@ settings, with priority on the configurations actually used in praxis as well as
 Not only enforce the subwoofer ceiling strictly (optimum 2–3 m) but improve the existing logic to reach it: **do not
 avoid generating a scene, ignore the ceiling, or use fewer speakers if there is any other possibility to solve it.**
 
-Where that stands: bare `scene:stack` writes **11 scenes of 132 candidates**, every stack's sub/top transition inside
-2–3 m, every refusal named. The 121 refusals are the work — grouped below by what actually causes them.
+Where that stands: bare `scene:stack` writes **11 scenes of 66 candidates**, every stack's sub/top transition inside
+2–3 m, every refusal named. The 55 refusals are the work — grouped below by what actually causes them. (The candidate
+count halved in 0.73.0: the `--mirror-style` axis was being swept when nothing was rolled, where the mirror is a no-op
+and the two styles are byte-identical.)
 
 ## How to read this
 
@@ -36,15 +38,18 @@ Where that stands: bare `scene:stack` writes **11 scenes of 132 candidates**, ev
 **One root cause across this group:** a row is positioned and spaced as if its cabinets were unrotated and centred, and
 neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. GEO-1 and GEO-3
 are done, which cleared all 8 interpenetration refusals, all 6 spread-envelope refusals and the 12 by-type overlaps.
-What is left no longer runs in a chain. **GEO-2 does not depend on GEO-9**, and the entry that said so is refuted in
-GEO-2's own section: the tops row is wider than the widest wall the stage can legally carry, so no shape reaches it.
-**GEO-4 still waits on GEO-2**, because sliding a sub row moves what the tops row stands on, and enabling it first made
-things worse, measured as 6 "nothing under it" refusals becoming 12.
+**GEO-2 is done as well**, and it was neither of the things this section spent three attempts on: two separate movers
+shifted a row after gravity had seated it and neither re-asked what it now stood on. That took floating refusals from 6
+to 1 and the sweep from 10 scenes to 11.
+
+What is left does not run in a chain. **GEO-4 no longer waits on GEO-2** — it was measured again after GEO-2 closed and
+the trade did not move — and **GEO-9 buys GEO-2 nothing**, since the tops row is the same width at every stage on the
+ladder. Both entries record what was measured rather than what was expected.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
-| GEO-4 | Multi-stack row sliding. **Measured twice and still net negative**, most recently after GEO-2 closed, so the blocker is not the tops row. A slide is bounded by the neighbouring stack and by nothing above it, so a sub row walks out from under what it carries | P2 | 3h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
+| GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x — the same split GEO-2 was. Needs the two-pass compile | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
@@ -268,13 +273,27 @@ the answer:
 It gains `stacked-gmss-2-center` and clears both left-out cabinets, and it loses **both** `stacked-all-2-center` and
 `stacked-all-2-stereo`. Net one scene worse.
 
-**So the diagnosis changes, and the old one here was wrong.** It said the tops row had to learn to stand on its support's
-plateau first; `Gravity::reseat()` settled that and the trade did not move. The real gap is that **a slide is bounded by
-the neighbouring stack and by nothing above it.** A sub row slides for its own bearing and walks out from under the tier
-it carries, and no bound expressed in stack clearance can see that. The bound has to be the intersection of two
-constraints — room beside the stack, *and* staying under what stands on the row — which is a change in
-`Gravity::slidSeats()` rather than in the line that switches it on. Re-estimated at ca. 3h and no longer blocked by
-anything.
+**So the diagnosis changes twice, and both earlier versions here were wrong.** The first said the tops row had to learn
+to stand on its support's plateau; `Gravity::reseat()` settled that and the trade did not move. The second said the
+slide needed a bound that also kept the row under what stands on it. **That was built and it did not move the trade
+either**, and why not is the useful part.
+
+A one-tier lookahead was added to `Gravity::slidSeats()` and to the repair-acceptance test in `resolve()`, so a repair is
+now scored on the row *and* on the tier it carries. Two things came out of it:
+
+* **`worstBearing()` could not see a floating cabinet at all.** `landsOn()` answers `bearing => 1.0` for a run with no
+  support, which is right for the bottom tier on the floor and exactly wrong above it. So the first lookahead scored an
+  arrangement that abandoned cabinets to the air as *perfectly carried*. `Gravity::carriedBearing()` now reads `on`
+  rather than the bearing, and `GravityTest` pins the trap.
+* **Even with that fixed, the trade is unchanged: 10 scenes against 11.** Because the lookahead models the tier above as
+  its **nominal seats**, and the real tops row is moved downstream by `throwFirst()`, the `clear_of` fill solves and
+  `spreadApart()` — all in the compiler, after gravity has finished. A slide that is safe against nominal tops starves
+  the tops that actually get built.
+
+**That is the same architectural split GEO-2 turned out to be**, and it is the real blocker: gravity decides support
+before the compiler decides final x. Closing it needs the compiler in the loop — the two-pass compile that was costed at
+ca. 6h and deferred — rather than anything further inside `Gravity`. The lookahead is kept because it is correct and
+inert (11 scenes, no scene file changed, 680 tests green), and it is a prerequisite rather than a fix.
 
 #### GEO-8 — the rig as one body
 

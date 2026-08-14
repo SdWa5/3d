@@ -266,4 +266,38 @@ final class GravityTest extends TestCase
         // And idempotent, so calling it on runs that did not move changes nothing.
         self::assertSame($moved, Gravity::reseat($moved, $below));
     }
+
+    /**
+     * **A run over nothing reports a bearing of 1.0, and anything scoring an arrangement has to know that.**
+     *
+     * Pinned because it is a trap rather than a bug. `landsOn` answers "fully carried" for a run with no support at
+     * all, which is correct where it is used — the bottom tier stands on the floor and the floor carries anything —
+     * and exactly wrong for any tier above the first, where nothing underneath means the cabinet falls. So the
+     * bearing figure alone cannot distinguish *perfectly carried* from *in mid-air*, and `on === null` is the only
+     * thing that can.
+     *
+     * That cost a real measurement: scoring the slide's lookahead on the bearing left a repair looking like an
+     * improvement while it walked a sub row out from under the tops row, because the abandoned cabinets scored 1.0.
+     * `Gravity::carriedBearing()` exists for this and reads `on`, not the bearing.
+     */
+    public function testARunOverNothingReportsFullBearingAndIsOnlyDetectableByItsSupport(): void
+    {
+        $wall = $this->devices['gmss-wall-bass'];
+        $resolved = Gravity::resolve(
+            [Tier::of($wall, 2), Tier::of($this->devices['gmss-turbo-top'], 1)],
+            0.02,
+            'main',
+        );
+
+        $below = Gravity::topFacesOf($resolved[0]);
+        $top = $resolved[1][0];
+        $width = $top['hi'] - $top['lo'];
+
+        // Shoved well clear of anything: ten metres out, where there is certainly no support.
+        $adrift = Gravity::reseat([['lo' => 10.0, 'hi' => 10.0 + $width] + $top], $below);
+
+        self::assertNull($adrift[0]['on'], 'nothing is under it');
+        self::assertSame(0.0, $adrift[0]['top'], 'so it falls to the floor');
+        self::assertSame(1.0, $adrift[0]['bearing'], 'and the bearing figure alone cannot tell you that');
+    }
 }

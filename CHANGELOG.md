@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.3] - 2026-08-14
+
+### Fixed
+
+- **`Gravity`'s repair scoring could not see a cabinet hanging in mid-air.** `landsOn()` answers `bearing => 1.0` for a
+  run with no support at all, which is correct where it is used — the bottom tier stands on the floor and the floor
+  carries anything — and exactly wrong for any tier above the first, where nothing underneath means the cabinet falls.
+  So `worstBearing()` read an arrangement that had abandoned cabinets to the air as *perfectly carried*. The new
+  `carriedBearing()` reads `on` rather than the bearing
+
+### Added
+
+- **a one-tier lookahead in `Gravity`**, so a repair is scored on the row it fixes *and* on the tier that row carries.
+  Judging a repair on its own bearing alone is a local optimum the tier above pays for: a row slides for its own sake
+  and walks out from under what stands on it, and because the pass runs bottom-up nothing has looked at that tier yet.
+  The gate is deliberately still the row's own bearing, so repairs fire exactly where they always did; only which
+  repair wins now accounts for the row above
+- a `GravityTest` case pinning the `bearing => 1.0` trap directly, since it is the sort of thing that gets
+  reintroduced by anyone writing a new scoring function
+
+### Changed
+
+- **GEO-4's diagnosis is corrected a second time, and the lookahead is why.** The previous entry said the slide needed a
+  bound that kept the row under what stands on it. That was built, and the trade did not move: **10 scenes against 11**.
+  The lookahead models the tier above as its *nominal seats*, and the real tops row is moved downstream by
+  `throwFirst()`, the `clear_of` fill solves and `spreadApart()`, all in the compiler after gravity has finished. So a
+  slide that is safe against nominal tops starves the tops that actually get built
+- that is the same architectural split GEO-2 turned out to be — gravity decides support before the compiler decides
+  final x — so GEO-4 is re-estimated at ca. 6h and now depends on the two-pass compile rather than on anything further
+  inside `Gravity`. The multi-stack slide stays off, and the lookahead is kept as a correct and inert prerequisite:
+  11 scenes, no scene file changed, 680 tests green
+
 ## [0.74.2] - 2026-08-14
 
 ### Changed
