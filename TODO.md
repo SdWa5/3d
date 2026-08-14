@@ -107,31 +107,43 @@ offered, which is cosmetic.
 **That leaves 10 real ones, the `all-2` and `all-3` refusals**, where the tops are already spread over two and three
 stacks and a rig that plausibly should work still does not. That is the whole of GEO-2 now.
 
-**Where to start, already narrowed.** Every one of the 10 is reported against the *compiled* scene rather than by
-`StackChecks`, by `SceneStackCommand::floating()` and its helper `coveredFraction()` — a different code path from the
-tier checks, and one nothing in this file had read until now. Eight of the 10 are the same cabinet at the same height, `a
-gmss-turbo-top would stand at 4.668 m with nothing under it across x`, which means `coveredFraction($entry, $placed, 0)`
-returned exactly `0.0`: **no cabinet at all whose box top is within `CONTACT_TOLERANCE_M` of that top's box bottom
-overlaps it in both plan axes.** Not a thin bearing, nothing.
+**DIAGNOSED. The cause is that a near-field fill is moved sideways after gravity has decided how high it sits, and it
+keeps the old height.** Neither the checker nor the tops row's width is at fault, and `Gravity` is not wrong either.
 
-Two things to check first, in this order, and **measure before changing anything**:
+Reproduce with `--stacks=2 --shape=free --align=center` on the whole inventory, which refuses with `a gmss-turbo-top
+would stand at 4.668 m with nothing under it across x`. In stack `main-2`:
 
-1. **Is the top genuinely floating, or is the check wrong?** `coveredFraction()` decides support from `worldBox()`, and
-   an axis-aligned box is the measure this repository has been burnt by twice — see the traps at the end of GEO-3. For
-   *clearance* a box is wrong in direction. For *support* an inflated box would report **more** coverage rather than
-   less, so it should not be able to invent a float, which makes a genuine float the likelier reading. Confirm that
-   before touching the checker.
-2. **The `z` gate is exact equality within a tolerance**, so check it, but expect it to be innocent. Only cabinets whose
-   box top sits within `CONTACT_TOLERANCE_M` of this cabinet's box bottom are considered at all, and anything landing a
-   top a hair off a stepped support would drop every candidate supporter and report zero coverage. **`CONTACT_TOLERANCE_M`
-   is 0.001 m, though**, which is a millimetre rather than a float epsilon, and `Gravity` derives every `z` by summing
-   exact cabinet heights, so the accumulated error should be many orders of magnitude inside it. Print the numbers to be
-   sure and then move on.
+| | position / span | top face |
+| --- | --- | --- |
+| `5a` achenbach | box 0.026 … 0.626 | **4.440** |
+| `5b` 3× iq-sub | box 0.646 … 2.276 | **4.668** |
+| `6a` turbo-top | x = 0.2589, bottom z = **4.668**, box −0.108 … 0.504 | — |
 
-**So the likely answer is that the float is genuine** and the `all-2`/`all-3` tops row really does reach past the stack
-under it, which is the same family as `all-1` and merely less extreme. If that is what the numbers say, the fix is not in
-the checker and the item becomes a question about how the tops are distributed across stacks — at which point re-read
-the splitting table above, because a fourth attempt at splitting would be the fourth.
+`Gravity` seats `6a` at x 0.7732 where it rests on `5b` with **78 % bearing**, cantilevering 78 mm over the step down to
+`5a`. That is sound. The compiled scene then puts it at x 0.2589, which is **514 mm to the left**, over `5a` alone — and
+it still carries `5b`'s 4.668 m. So it hangs 228 mm in the air and `floating()` is right to refuse it.
+
+**Which cabinets move says exactly why.** Measured against their gravity seats:
+
+| run | device | seat x | actual x | moved | role |
+| --- | --- | --- | --- | --- | --- |
+| `6a` | turbo-top | 0.7732 | 0.2589 | **−514 mm** | fill |
+| `6b` | 2-way | 1.2510 | 1.1049 | −146 mm | fill |
+| `6c` | 2× tecnare | 2.0138 | 2.0138 | **0** | **long throw** |
+| `6d` | turbo-top | 2.7688 | 3.0926 | **+324 mm** | fill |
+
+The long throw does not move and every fill does. `nearFieldFills()` calls every top narrower than the widest a fill, and
+a fill is placed with `align.outside` against the long throw, which solves its x to clear that cabinet's **aimed**
+footprint — and the yaws here are large, up to **−53.6°**. `Stack::spreadApart()` is *not* involved, since it only fires
+for `stereo` and this is `center`.
+
+**Two traps cleared on the way, both worth keeping.** The `z` gate is innocent: `CONTACT_TOLERANCE_M` is 0.001 m and the
+measured `dz` was exactly `0.0000`. And comparing *box* centres instead of positions invents displacements that are not
+there, because a yawed trapezoid's box is inflated asymmetrically — the same two turbo-tops show boxes 0.6125 m and
+0.8263 m wide on a 0.45 m cabinet. Compare `liftedPosition()`, never `worldBox()`.
+
+So the defect is that **x comes from an alignment solve and z comes from a gravity seat, and nothing reconciles them.**
+Picking the repair is a decision; the options are in the CHANGELOG for 0.73.3 and were put to the user.
 
 Below is kept for the `all-1` case only, in case the cosmetic half is ever wanted.
 

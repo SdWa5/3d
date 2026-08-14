@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.73.3] - 2026-08-14
+
+### Changed
+
+- **GEO-2 is diagnosed. A near-field fill is moved sideways after gravity has decided how high it sits, and it keeps the
+  old height.** Neither `floating()` nor the tops row's width is at fault, and `Gravity` is not wrong either. In
+  `stacked-all-2-free-center`, `Gravity` seats the outer turbo-top at x 0.7732 resting on the IQ sub run with **78 %
+  bearing**, cantilevering 78 mm over a 228 mm step. The compiled scene then places it at x 0.2589, **514 mm to the
+  left**, over the achenbach alone, while it still carries the IQ subs' 4.668 m. So it hangs 228 mm in the air
+- **which cabinets move says why.** The long throw does not move at all and every near-field fill does: −514 mm, −146 mm
+  and +324 mm against their seats, with the centred 2× tecnare run unmoved. `nearFieldFills()` calls every top narrower
+  than the widest a fill, and a fill is placed with `align.outside` against the long throw, solving its x to clear that
+  cabinet's **aimed** footprint — and the yaws reach −53.6°. `Stack::spreadApart()` is not involved, since it fires only
+  for `stereo` and this is `center`. So **x comes from an alignment solve, z comes from a gravity seat, and nothing
+  reconciles them**
+- two measurement traps are cleared and recorded. The `z` gate is innocent, since `CONTACT_TOLERANCE_M` is 0.001 m and the
+  measured `dz` was exactly `0.0000`. And comparing *box* centres rather than positions invents displacements that do not
+  exist, because a yawed trapezoid's box inflates asymmetrically — the same two turbo-tops show boxes 0.6125 m and
+  0.8263 m wide on a 0.45 m cabinet. Compare `liftedPosition()`, never `worldBox()`
+
 ## [0.73.2] - 2026-08-14
 
 ### Changed
