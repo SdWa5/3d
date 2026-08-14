@@ -44,7 +44,7 @@ things worse, measured as 6 "nothing under it" refusals becoming 12.
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
-| GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
+| GEO-4 | Multi-stack row sliding. **Measured twice and still net negative**, most recently after GEO-2 closed, so the blocker is not the tops row. A slide is bounded by the neighbouring stack and by nothing above it, so a sub row walks out from under what it carries | P2 | 3h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
@@ -247,15 +247,34 @@ share a rolled height is another, and either is a fixed handful of candidates ra
 
 #### GEO-4 — resolved extents, and the row that may not move
 
-Where: `Gravity::slidSeats()` (bounded by `Stack::$slideWithinM`), `Stack::spreadApart()`, `SceneCompiler`.
+Where: `Gravity::slidSeats()` (bounded by `Stack::$slideSlackM`), `Stack::spreadApart()`, `SceneCompiler`.
 
 A row does not have to be centred on what carries it, and 0.70.0 acts on that where nothing stands beside the stack —
-which is what recovered `stacked-gmss-1-center` at 2.84 m. The multi-stack half is blocked: stacks are spaced on their
-widest tier and their envelopes deliberately overlap in x, so a slide there reaches into the neighbour — measured
-unbounded, **180 mm of interpenetration across five `all-3` scenes**. Spacing from resolved extents turns the bound into
-the real gap to the neighbour instead of "no movement at all". **This is the concrete instance of the goal's "do not use
+which is what recovered `stacked-gmss-1-center` at 2.84 m. **This is the concrete instance of the goal's "do not use
 fewer speakers":** `stacked-all-2-center` ships with `gmss-mid-bass: LEFT OUT, it cannot be carried in this stack`, for
 exactly the bearing failure a slide fixes.
+
+**The bound is written, it is safe, and it is not the problem. Measured twice.** `max(0.0, clearance / 2 - gap)` follows
+from `StackSceneWriter::centres` leaving exactly `--clearance` between two envelopes, and with it no interpenetration
+appears anywhere — the unbounded version's **180 mm across five `all-3` scenes** is gone. The second measurement was
+taken deliberately after GEO-2 closed, on the theory that a tops row which could no longer be left hanging would change
+the answer:
+
+| | scenes | `LEFT OUT` | nothing-under-at-all |
+| --- | --- | --- | --- |
+| off (shipped) | **11** | 2 | 3 |
+| on, bounded | 10 | **0** | 6 |
+
+It gains `stacked-gmss-2-center` and clears both left-out cabinets, and it loses **both** `stacked-all-2-center` and
+`stacked-all-2-stereo`. Net one scene worse.
+
+**So the diagnosis changes, and the old one here was wrong.** It said the tops row had to learn to stand on its support's
+plateau first; `Gravity::reseat()` settled that and the trade did not move. The real gap is that **a slide is bounded by
+the neighbouring stack and by nothing above it.** A sub row slides for its own bearing and walks out from under the tier
+it carries, and no bound expressed in stack clearance can see that. The bound has to be the intersection of two
+constraints — room beside the stack, *and* staying under what stands on the row — which is a change in
+`Gravity::slidSeats()` rather than in the line that switches it on. Re-estimated at ca. 3h and no longer blocked by
+anything.
 
 #### GEO-8 — the rig as one body
 

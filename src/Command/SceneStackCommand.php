@@ -990,17 +990,22 @@ final class SceneStackCommand extends BaseCommand
             maxSubHeightM: $this->readFloat($input, 'max-sub-height'),
             shape: $shape,
             mirrorStyle: $style,
-            // **STILL ONLY A SOLO STACK, AND THE LANE IS READY FOR WHEN THAT CHANGES.** The bound a multi-stack rig
-            // needs is `clearance / 2 - gap`, since {@see StackSceneWriter::centres} leaves exactly `--clearance`
+            // **STILL ONLY A SOLO STACK, AND IT IS NOT FOR WANT OF THE BOUND.** The bound a multi-stack rig needs is
+            // `max(0.0, clearance / 2 - gap)`, since {@see StackSceneWriter::centres} leaves exactly `--clearance`
             // between two envelopes and half of it each, less a working gap, keeps two rows sliding towards each other
-            // apart. That was measured and it is safe — no interpenetration appeared anywhere — and it is **not yet an
-            // improvement**, which is why it is not switched on.
+            // apart. It is written out here rather than hidden, it is safe — no interpenetration appears anywhere with
+            // it — and it is **still not an improvement**.
             //
-            // Sliding a *sub* row moves what the tops row above it stands on. Enabling it for every stack took
-            // "a cabinet with nothing under it at all" from 6 refusals to 12 and cost `stacked-all-2-center`, which is
-            // a worse trade than the `gmss-mid-bass: LEFT OUT` it fixes there. So the tops row has to learn to stand on
-            // its support's plateau first, and then this becomes `max(0.0, clearance / 2 - gap)` and nothing else.
-            // `TODO.md` records the same dependency, and it was right where this comment's first version was not.
+            // Measured twice, the second time after GEO-2 closed, on the theory that a tops row which could no longer
+            // be left hanging would change the answer. It did not. Switching it on takes the sweep from 11 scenes to
+            // 10: it gains `stacked-gmss-2-center` and clears both `LEFT OUT` cabinets, and it loses **both**
+            // `stacked-all-2-center` and `stacked-all-2-stereo` while doubling "nothing under it at all" from 3 to 6.
+            //
+            // The reason is not the one this comment used to give. It is not that the tops row cannot find its
+            // support's plateau — {@see Gravity::reseat} settled that — it is that **a slide is bounded by its
+            // neighbouring stack and by nothing above it**. A sub row slides for its own bearing and walks out from
+            // under the tier it carries, which no bound expressed in stack clearance can see. The bound has to include
+            // what stands on the row, and that is the missing piece rather than this line.
             slideSlackM: $solo ? INF : null,
         );
     }

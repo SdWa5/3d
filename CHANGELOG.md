@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.2] - 2026-08-14
+
+### Changed
+
+- **GEO-4's diagnosis is corrected, and the old one was wrong.** It held that multi-stack row sliding was blocked on the
+  tops row learning to stand on its support's plateau. `Gravity::reseat()` settled that in 0.74.1, so the bound was
+  measured again — and the trade did not move. Switching it on takes the sweep from **11 scenes to 10**: it gains
+  `stacked-gmss-2-center` and clears both `LEFT OUT` cabinets, and it loses **both** `stacked-all-2-center` and
+  `stacked-all-2-stereo` while doubling "nothing under it at all" from 3 to 6
+- the real gap is that **a slide is bounded by the neighbouring stack and by nothing above it.** `max(0.0, clearance / 2
+  - gap)` is correct as far as it goes and no interpenetration appears with it, but a sub row slides for its own bearing
+  and walks out from under the tier it carries, which no bound expressed in stack clearance can see. The bound has to be
+  the intersection of room beside the stack *and* staying under what stands on the row, which is a change in
+  `Gravity::slidSeats()` rather than in the line that enables it. GEO-4 is re-estimated at ca. 3h, dropped to P2 and is
+  no longer blocked by anything
+
 ## [0.74.1] - 2026-08-14
 
 ### Fixed
