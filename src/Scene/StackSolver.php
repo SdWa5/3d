@@ -516,6 +516,21 @@ final class StackSolver
                 if (($width - $support) / 2 > $candidate->outerWidthM() / 2) {
                     break;
                 }
+
+                // **THE PYRAMID CAP, PREDICTED HERE RATHER THAN ENFORCED AT EMISSION.** Every other row-building path
+                // asks {@see perRowCap} how many cabinets the row below holds, and a lift cannot: it reserves its flanks
+                // before a single tier exists, so there is nothing yet to measure against. Enforcing it later does not
+                // work either — by the time the flanked tier is emitted the source's own rows are already built, so
+                // handing surplus cabinets back would strand them with nowhere left to go.
+                //
+                // So the count is predicted the same way the width above it already is. The flanked tier stands on the
+                // source's **last** row, {@see share} puts the fuller row at the bottom, and that row's cabinet count is
+                // the cap. Without this a lift was the one way a pyramid could still step outward: two flanks either
+                // side of four Achenbachs is a 6-wide row on the 4-wide Flexy row carrying it.
+                if ($stack->shape === StackShape::Pyramid
+                    && $targetCount + 2 * ($lift + 1) > self::lastRowCount($source, $left, $stack, $perRow)) {
+                    break;
+                }
             } else {
                 $support = INF;
             }
@@ -554,10 +569,29 @@ final class StackSolver
             return 0.0;
         }
 
+        return Tier::of($device, self::lastRowCount($device, $count, $stack, $perRow), self::rollFor($device, $stack))
+            ->widthM($stack->gapM);
+    }
+
+    /**
+     * How many cabinets the source's **last** row holds — the same prediction {@see lastRowWidth} makes, as a count.
+     *
+     * Split out because the pyramid cap is a count rather than a width, for the reason {@see perRowCap} sets out: a
+     * width cap is too blunt and forbids a 27 mm shoulder the bearing rule allows four hundred of. A lift has to
+     * predict its support rather than measure it — see {@see liftPairs} — so both halves of that prediction live here.
+     *
+     * Zero for nothing left, which no caller may treat as a cap.
+     */
+    private static function lastRowCount(DeviceSpec $device, int $count, Stack $stack, int $perRow): int
+    {
+        if ($count < 1) {
+            return 0;
+        }
+
         $perTier = min($perRow, self::perTier($device, $stack->maxWidthM, $stack->gapM, self::rollFor($device, $stack)));
         $shares = self::share($count, (int)ceil($count / $perTier));
 
-        return Tier::of($device, $shares[count($shares) - 1], self::rollFor($device, $stack))->widthM($stack->gapM);
+        return $shares[count($shares) - 1];
     }
 
     /**

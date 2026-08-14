@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.4] - 2026-08-14
+
+### Fixed
+
+- **A lift could still step a pyramid outward, because it was the one row-building path the pyramid cap never reached.**
+  Every other path asks `perRowCap()` how many cabinets the row below holds; a lift cannot, since it reserves its flanks
+  before a single tier exists. Enforcing it at emission is impossible too — by then the source's own rows are built, so
+  handing surplus cabinets back would strand them with nowhere to go. `liftPairs()` now *predicts* the cap the same way
+  it already predicts the support's width, through the new `lastRowCount()`. **Inert on the current inventory**: 11
+  scenes, no scene file changed, 5 overhang warnings before and after, so it guards a shape that can occur rather than
+  fixing one that does
+
+### Changed
+
+- **`perRowCap()`'s stated premise is false and `TODO.md` records it.** It explains at length why the pyramid cap counts
+  cabinets rather than comparing widths, ending "the cabinets are all 0.45–0.66 m wide and a row of `n` is about `n`
+  cabinets across whatever they are". Nine of the ten are in that range and **`gmss-mid-bass` is 1.200 m**, nearly double
+  the widest of the others, so one of them in a row breaks the equivalence between "no more cabinets" and "no wider" and
+  the V returns. Two of the five remaining overhang warnings are exactly that, both legal under the bearing rule and both
+  reading as a V; the other three are the tops row, which `topRow()` deliberately never caps
+- GEO-5 is therefore reduced to a tolerance question and marked `decision`, since both extremes are already measured as
+  wrong: a strict width cap forbids a 27 mm shoulder the bearing rule allows four hundred of, and no width bound at all
+  is what ships today
+
 ## [0.74.3] - 2026-08-14
 
 ### Fixed

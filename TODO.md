@@ -50,12 +50,46 @@ ladder. Both entries record what was measured rather than what was expected.
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x — the same split GEO-2 was. Needs the two-pass compile | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
-| GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
+| GEO-5 | The pyramid cap now reaches `statedMix` **and lifts**. What is left is that the cap is a *count*, and its stated reason — every cabinet 0.45–0.66 m — is false: `gmss-mid-bass` is **1.200 m**. **Needs a decision** on the tolerance | P2 | — | 2 of the 5 remaining overhangs; the other 3 are the deliberately uncapped tops row | decision | decision |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P3 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | — | measured |
 | GEO-10 | A **`mixed` orientation** beside upright and turned — some device types on their sides, the rest standing, rather than the whole inventory one way | P2 | 3h | the 3 refused turned siblings GEO-6 names, and every rig where turning helps one type and ruins another | GEO-6 | open |
+
+#### GEO-5 — the pyramid cap, and the cabinet that breaks its premise
+
+Where: `StackSolver::perRowCap()`, and `liftPairs()` for the half that is now done.
+
+**Done: a lift can no longer step outward.** Every other row-building path asks `perRowCap()` how many cabinets the row
+below holds, and a lift could not, because it reserves its flanks before a single tier exists. Enforcing it at emission
+is not possible either — by then the source's own rows are built, so handing surplus cabinets back would strand them.
+`liftPairs()` therefore *predicts* the cap the same way it already predicts the support's width, through the new
+`lastRowCount()`. **It is inert on today's inventory** (11 scenes, no scene file changed, 5 overhang warnings before and
+after), so it is a guard against a shape that can occur rather than a fix for one that does.
+
+**What is left is that the cap is a count, and its premise is no longer true.** `perRowCap()` explains at length why it
+counts cabinets instead of comparing widths, and the argument ends: *"Width then takes care of itself, because the
+cabinets are all 0.45–0.66 m wide and a row of `n` is about `n` cabinets across whatever they are."* That was true when it
+was written. It is not true now:
+
+| width | cabinets |
+| --- | --- |
+| 0.450 – 0.660 m | nine of the ten |
+| **1.200 m** | `gmss-mid-bass` |
+
+At nearly double the widest of the others, one mid bass in a row breaks the equivalence between "no more cabinets" and
+"no wider", and the V comes straight back. Two of the five remaining overhang warnings are exactly this — the
+`2× gmss-nuke + 1× gmss-mid-bass` row at 2.420 m on a 1.890 m row, and `1× gmss-iq-sub + 1× gmss-mid-bass` at 1.750 m on
+1.080 m. Both are *legal*, since the bearing rule allows ⅔ of a 1.200 m cabinet per side, and both read as a V.
+
+The other three are the **tops row**, which `topRow()` deliberately never caps because nothing stands on it, so those
+belong to GEO-2's family rather than here.
+
+**The decision is the tolerance, and it is a decision because both extremes are already known to be wrong.** A strict
+width cap was tried and is too blunt: it forbids a 27 mm shoulder the bearing rule allows four hundred of, which split
+six Achenbachs into two rows of three and cost a 2-way from the rig. No width bound at all is what ships now. So the
+answer is a stated tolerance, and what it should be derived from is the open question.
 
 #### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 
