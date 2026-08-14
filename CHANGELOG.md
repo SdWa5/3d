@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.1] - 2026-08-14
+
+### Fixed
+
+- **A stereo tops row was spread across its support without being asked again what it stands on**, which is the second
+  half of the same defect 0.74.0 fixed for fills. `Stack::spreadApart()` walks the runs out across the *whole* support
+  span, and that span routinely straddles supports at different heights, so a run pushed outboard kept the height of the
+  support it had left: `stacked-all-2-stereo` hung a tecnare at 2.347 m and `stacked-all-3-free-stereo` a turbo top at
+  4.668 m. No tier check could see it, because the bearings had been computed before the move
+- **`stacked-all-2-stereo` is now written**, taking the sweep from 10 scenes to **11**, with no existing scene changed.
+  Floating refusals fall from 3 to **1**, and that one is `stacked-all-1-stereo` — the rig that cannot reach the height
+  band at any width on the ladder, so it is a correct refusal rather than a defect. GEO-2 is closed
+
+### Added
+
+- **`Gravity::reseat()`** and **`Gravity::topFacesOf()`**, public so a caller that moves finished runs can re-derive
+  what they land on. `Gravity::resolve()` never had this bug because its own repairs hand back *seats* and go through
+  the fill again; this is that discipline made available to callers holding runs. `reseat()` recomputes everything from
+  `lo`/`hi`, so it is idempotent and safe on runs that did not move
+- a `GravityTest` case on a deliberately stepped fixture — a 1.400 m wall bass row beside a 0.500 m mid bass row — that
+  shoves a seated run over the short support and asserts it is reseated onto it, plus that reseating is idempotent
+
 ## [0.74.0] - 2026-08-14
 
 ### Added

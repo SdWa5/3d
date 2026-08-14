@@ -43,7 +43,7 @@ things worse, measured as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | **12 of the 22 refusals are correct behaviour**, since `all-1` puts 41 cabinets in one stack and misses the band at every stage on the ladder. The real item is the remaining **10 `all-2`/`all-3`** refusals, raised by `SceneStackCommand::floating()` rather than by `StackChecks`. Two checks named in the section, measure first | P1 | 2h | 10 refusals; `--per-owner` and the `all-2`/`all-3` rigs writing | — | narrowed |
+| GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
 | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
@@ -143,8 +143,25 @@ measured `dz` was exactly `0.0000`. And comparing *box* centres instead of posit
 there, because a yawed trapezoid's box is inflated asymmetrically — the same two turbo-tops show boxes 0.6125 m and
 0.8263 m wide on a 0.45 m cabinet. Compare `liftedPosition()`, never `worldBox()`.
 
-So the defect is that **x comes from an alignment solve and z comes from a gravity seat, and nothing reconciles them.**
-Picking the repair is a decision; the options are in the CHANGELOG for 0.73.3 and were put to the user.
+So the defect was that **x comes from an alignment solve and z comes from a gravity seat, and nothing reconciled them.**
+
+**FIXED, IN TWO STEPS, AND THE FAMILY IS DOWN TO ONE.** There were two movers, not one, and each needed its own answer.
+
+| | mover | fix | floating refusals |
+| --- | --- | --- | --- |
+| baseline | — | — | 6 |
+| 0.74.0 | `align.outside` on a fill, over-pushing on an inflated span | `align.clear_of`, measured on the shells | 3 |
+| 0.74.1 | `Stack::spreadApart()` on a stereo tops row, never re-asking | `Gravity::reseat()` after the spread | **1** |
+
+Scenes written went **10 → 11**, the new one being `stacked-all-2-stereo`, and no existing scene changed. The one
+remaining refusal is `stacked-all-1-stereo`, which is the rig that cannot stand at any width on the ladder, so it is a
+correct refusal rather than a defect.
+
+**The general lesson is written into `Gravity::reseat()`'s docblock and is worth repeating here.** `Gravity::resolve()`
+never had this bug, because its own two repairs hand back *seats* and go through the fill again, which re-asks what each
+run stands on. Any future code that moves a finished run must call `reseat()` afterwards, and the reason it is easy to
+forget is that nothing downstream notices: the compiler reads the run's stated height, and the tier checks read bearings
+computed before the move.
 
 Below is kept for the `all-1` case only, in case the cosmetic half is ever wanted.
 

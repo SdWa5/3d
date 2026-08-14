@@ -112,31 +112,83 @@ final class Gravity
                 }
             }
 
-            $current = [];
             foreach ($runs as $slot => $run) {
                 // Letters when a tier lands in more than one place, so they cannot be confused with the
                 // numeric `-1`, `-2` suffixes a group appends to every copy it makes.
-                $runs[$slot]['id'] = $id = sprintf(
+                $runs[$slot]['id'] = sprintf(
                     '%s/%d%s',
                     $prefix,
                     $index + 1,
                     count($runs) > 1 ? chr(ord('a') + $slot) : '',
                 );
-
-                $current[] = [
-                    'id' => $id,
-                    'lo' => $run['lo'],
-                    'hi' => $run['hi'],
-                    // The **rolled** height: a Flexy on its side raises what stands on it by 591 mm, not 763.
-                    'top' => $run['top'] + RolledBox::heightOf($run['device'], $run['roll']),
-                ];
             }
 
             $resolved[] = $runs;
-            $below = $current;
+            $below = self::topFacesOf($runs);
         }
 
         return $resolved;
+    }
+
+    /**
+     * The top faces a tier's runs offer to whatever stands on them.
+     *
+     * Public because {@see Stack::expand} needs the same answer when it moves a row after the fact and has to ask
+     * {@see reseat} what the row now stands on. One construction in one place, so the caller cannot get the rolled
+     * height wrong.
+     *
+     * @param list<array{id: string, device: DeviceSpec, lo: float, hi: float, top: float, roll: float, ...}> $runs
+     * @return list<array{id: string, lo: float, hi: float, top: float}>
+     */
+    public static function topFacesOf(array $runs): array
+    {
+        $faces = [];
+        foreach ($runs as $run) {
+            $faces[] = [
+                'id' => $run['id'],
+                'lo' => $run['lo'],
+                'hi' => $run['hi'],
+                // The **rolled** height: a Flexy on its side raises what stands on it by 591 mm, not 763.
+                'top' => $run['top'] + RolledBox::heightOf($run['device'], $run['roll']),
+            ];
+        }
+
+        return $faces;
+    }
+
+    /**
+     * The same runs, asked again what they stand on — for a caller that has moved them sideways.
+     *
+     * **A row that is moved after it has been seated keeps a height it is no longer entitled to**, and that is a
+     * whole family of bugs rather than one. `landsOn` picks the *highest* support a run overlaps, so a run shifted
+     * off that support and over a lower one still carries the taller one's height and hangs in the air. Nothing
+     * downstream notices, because the compiler reads the run's stated height and the tier checks read bearings that
+     * were computed before the move. A GMSS turbo top ended up **228 mm** over the achenbach beneath it that way.
+     *
+     * {@see resolve} never has this problem, because its own two repairs — {@see outboardSeats} and
+     * {@see slidSeats} — hand back *seats* and are re-run through {@see runs}, which re-asks the question. This is
+     * that same discipline for a caller holding finished runs: move them, then reseat them.
+     *
+     * `lo` and `hi` are taken as given and everything derived from them is recomputed, so it is idempotent and safe
+     * to call on runs that did not move.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     * @param list<array{id: string, lo: float, hi: float, top: float}> $below from {@see topFacesOf}
+     * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>
+     */
+    public static function reseat(array $runs, array $below): array
+    {
+        foreach ($runs as $slot => $run) {
+            ['on' => $on, 'top' => $top, 'bearing' => $bearing, 'settle' => $settle]
+                = self::landsOn($below, $run['lo'], $run['hi']);
+
+            $runs[$slot]['on'] = $on;
+            $runs[$slot]['top'] = $top;
+            $runs[$slot]['bearing'] = $bearing;
+            $runs[$slot]['settle'] = $settle;
+        }
+
+        return $runs;
     }
 
     /**

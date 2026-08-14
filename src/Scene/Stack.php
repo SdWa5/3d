@@ -277,7 +277,16 @@ final class Stack
             // aimed cabinet needs. Each run keeps its own internal spacing, which is what `stereo` means — "natural
             // spacing kept within each column".
             if ($isTop && $index > 0 && $this->alignFor($tier, $placement->align)?->mode === LayoutMode::Stereo) {
-                $runs = self::spreadApart($runs, $resolved[$index - 1]);
+                // **RESEATED AFTER THE SPREAD, BECAUSE MOVING A ROW CHANGES WHAT IT STANDS ON.** The spread walks the
+                // runs out across the *whole* support span, and that span routinely straddles supports at different
+                // heights — a stepped wall is the normal case here, not the exception. Without the reseat a run pushed
+                // outboard keeps the height of the support it left: `stacked-all-2-stereo` put a tecnare at 2.347 m
+                // with nothing under it and `stacked-all-3-free-stereo` a turbo top at 4.668 m, both refused by the
+                // sweep and neither visible to the tier checks, which had already read the pre-move bearings.
+                $runs = Gravity::reseat(
+                    self::spreadApart($runs, $resolved[$index - 1]),
+                    Gravity::topFacesOf($resolved[$index - 1]),
+                );
             }
 
             // The long throw first, then the fills beside it — because a fill is solved `outside` the long
