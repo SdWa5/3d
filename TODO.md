@@ -48,7 +48,7 @@ as 6 "nothing under it" refusals becoming 12.
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
-| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. `pyramid` and `free` cannot express the wall people build | P1 | 4h | GEO-2's 23 refusals, by giving the tops a support as wide as the wall | — | open |
+| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P1 | 8h | GEO-2's 23 refusals, by giving the tops a support as wide as the wall | — | measured |
 
 #### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 
@@ -91,13 +91,35 @@ the stack, which is GEO-2 and which no amount of splitting the tops fixes.
   bottom and a usable top face compatible.
 
 **Adding the enum cases is free**, since `Stack::shapeFrom()` goes through `StackShape::tryFrom()` and lists
-`StackShape::cases()` in its own error, so a new case parses and documents itself. **The rule is not free, and the reason
-is worth knowing before starting.** `perRowCap()` is where the shape speaks and it expresses `pyramid` as
-`min($perRow, $last->count())` — a **ceiling**. A tower needs a **floor**: it must insist on the equal count that
-`rowSizeFor()`'s divisor balancing would otherwise reduce, since that balancing exists to avoid leaving a stub row at the
-top. So `tower` cannot be added to `perRowCap()` alone; it needs a minimum threaded into `rowSizeFor()` beside the
-maximum, and the two have to be reconciled where they conflict — which is exactly when the remaining cabinets cannot fill
-another equal row.
+`StackShape::cases()` in its own error, so a new case parses and documents itself.
+
+**A WIDTH BOUND CANNOT MAKE A WALL FLUSH, AND THAT WAS TRIED AND REVERTED.** The cheap version of `tower` is one branch
+in `StackSolver::ceilingFor()`: bound a row by `min($stack->maxWidthM, $supportM)` where the other shapes get
+`$supportM + 2 × OVERHANG_PER_SIDE × RolledBox::widthOf(...)`. It builds, it leaves `pyramid` and `free` regenerating
+byte-identical, and it does not work, because **`ceilingFor()` is an upper bound and a narrow row is not a row that was
+capped — it is a row whose device ran out of cabinets.** Lowering a ceiling cannot add cabinets to a row, so it can only
+ever make a wall narrower.
+
+Measured on the five GMSS types at 5 m, with `widestFirst` extended to `tower` so the floor row is not the two wall
+basses:
+
+| shape | rows, bottom up | sub height |
+| --- | --- | --- |
+| `pyramid` | 2.180 / 2.440 / 1.200 / 1.200 | 3.340 m |
+| `tower`, weight order | 1.340 / 1.200 / 1.200 / 1.080 / 1.080 / 1.080 | 4.680 m |
+| `tower`, width order | 3.280 / 1.340 / 1.200 / 1.200 | 3.340 m |
+
+The best of those tapers by two metres over four rows. Across the whole sweep the branch wrote **0 scenes out of 66
+`tower` candidates**: 36 missed the height band, 12 deduplicated against their `pyramid` or `free` sibling, 12 were
+refused by the shipped-scene sweep and 6 interpenetrated. `SceneStackCommandTest` also caught
+`zz-test-stack-tower-block.yaml` placing 21 of 23 cabinets, so the branch loses gear as well as buying nothing.
+
+**What a flush wall actually needs is a fill, not a bound.** Every row has to be built from *several* device types
+chosen to reach a target width, which is what `StackSolver::packedRows()` already does — and `packedRows` sizes its rows
+through `ceilingFor()` too, so it inherits the same limit. The work is a width **target** carried into `packTo()` beside
+its existing budget, and a pack that keeps taking types until a row reaches it rather than until the next one does not
+fit. That is a change to the packer's objective, not a new enum case, and it is nowhere near the 4h estimated here.
+Re-estimate before starting.
 
 Watch the candidate count when this lands. Four shapes times three alignments times two mirror styles is 24 variants per
 rig against today's 12, and `DEFAULT_MAX_SCENES` is 80.
