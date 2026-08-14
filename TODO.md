@@ -8,15 +8,15 @@ settings, with priority on the configurations actually used in praxis as well as
 Not only enforce the subwoofer ceiling strictly (optimum 2–3 m) but improve the existing logic to reach it: **do not
 avoid generating a scene, ignore the ceiling, or use fewer speakers if there is any other possibility to solve it.**
 
-Where that stands: bare `scene:stack` writes **11 scenes of 66 candidates**, every stack's sub/top transition inside
-2–3 m, every refusal named. The 55 refusals are the work — grouped below by what actually causes them. (The candidate
-count halved in 0.73.0: the `--mirror-style` axis was being swept when nothing was rolled, where the mirror is a no-op
-and the two styles are byte-identical.)
+Where that stands: bare `scene:stack` writes **61 scenes of 426 candidates**, every stack's sub/top transition inside
+2–3 m, every refusal named. The 365 refusals are the work — grouped below by what actually causes them.
 
-**The target is stated once, in SWP-1**, as a six-axis cross product coming to 1323 candidates. Three of its values do
-not exist yet — owner combinations, a `V` shape and a `column` mirror style — and one axis, orientation, is missing
-entirely and is worth more than all the rest put together: turning the subs alone takes the sweep from 11 written scenes
-to 24.
+**The orientation axis landed in 0.77.0 and it was worth more than every other axis put together: 11 scenes became 61.**
+Three-stack rigs are generated for the first time, and `stacked-all-2-turned-centred-stereo` stands **39 cabinets** where
+the upright rig of the same gear stands 38.
+
+**The target is stated once, in SWP-1**, as a six-axis cross product. Two of its values are still missing — owner
+combinations and a `V` shape — plus the `impossible` half of the last axis.
 
 ## How to read this
 
@@ -50,6 +50,11 @@ are done, which cleared all 8 interpenetration refusals, all 6 spread-envelope r
 shifted a row after gravity had seated it and neither re-asked what it now stood on. That took floating refusals from 6
 to 1 and the sweep from 10 scenes to 11.
 
+**GEO-6 and GEO-10 are done, as the orientation axis in 0.77.0** — see SWP-1's step 2. The decision GEO-6 was blocked on
+was settled by the owner of the gear: any sub may be laid on its side and **no top ever is**, because a horn throws its
+pattern in one orientation and rolling the cabinet rolls the pattern with it. `mixed` then fell out of the specs rather
+than needing a rule invented for it, since a sub is worth rolling exactly where rolling makes it wider and shorter.
+
 What is left does not run in a chain. **GEO-4 no longer waits on GEO-2** — it was measured again after GEO-2 closed and
 the trade did not move — and **GEO-9 buys GEO-2 nothing**, since the tops row is the same width at every stage on the
 ladder. Both entries record what was measured rather than what was expected.
@@ -59,11 +64,9 @@ ladder. Both entries record what was measured rather than what was expected.
 | GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x — the same split GEO-2 was. Needs the two-pass compile | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
 | GEO-5 | The pyramid cap reaches `statedMix` and lifts now. Its premise is false — `gmss-mid-bass` is **1.200 m** against 0.45–0.66 for the other nine — and **both pure-width replacements measured worse** (11 scenes → 7 and 8, and both introduce interpenetration). Waits on the fill/gravity reconciliation | P3 | 6h | 2 V rows, and only once the cascade is solvable | GEO-4 | measured |
-| GEO-6 | **Premise refuted.** The whole inventory *can* be turned at once, and turning helps enormously: the default sweep writes **11 scenes and turning every sub writes 24**. The real gap is that the sweep has **no orientation axis at all**. **Needs a decision** on which cabinets may be laid down | P1 | 2h | **+13 scenes**, including the first three-stack rigs ever generated | decision | decision |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P3 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | — | measured |
-| GEO-10 | A **`mixed` orientation** beside upright and turned — some device types on their sides, the rest standing. GEO-6's measurement shows this is the *productive* case rather than an edge one: subs turned and tops upright writes 24 scenes against 11 | P1 | 3h | most of GEO-6's +13, since "subs turned, tops upright" **is** a mixed orientation | GEO-6 | open |
 
 #### GEO-5 — the pyramid cap, and the cabinet that breaks its premise
 
@@ -296,55 +299,10 @@ its existing budget, and a pack that keeps taking types until a row reaches it r
 fit. That is a change to the packer's objective, not a new enum case, and it is nowhere near the 4h estimated here.
 Re-estimate before starting.
 
-Watch the candidate count when this lands. Four shapes times three alignments times two mirror styles is 24 variants per
-rig against today's 12, and `DEFAULT_MAX_SCENES` is 80.
-
-#### GEO-6 — the orientation axis the sweep does not have
-
-Where: `--roll-mirror` in `SceneStackCommand`, `readShapes()`'s sibling for orientation, `StackEntry::$rollMirror`.
-
-**The old entry said the whole inventory cannot be turned at once. It can, and turning is the single largest scene gain
-measured anywhere in this project.** Measured on the same 66-candidate sweep, varying only what `--roll-mirror` names:
-
-| orientation | scenes written | rolled tops? |
-| --- | --- | --- |
-| upright — **what the default sweep does** | **11** | — |
-| flexy + skram turned | 15 | no |
-| every **sub** turned | **24** | **no** |
-| every cabinet turned | 18 | yes, 194 of them |
-
-Turning every sub **more than doubles the output**, and it does something nothing else has managed: `stacked-all-3-*`
-rigs appear. INFO-1 records that "no three-stack rig is generated at present; the band refuses them all" — a turned sub
-wall is shorter, so it lands in the band, and four three-stack rigs write.
-
-Turning *everything* is worse than turning the subs (18 against 24) and the reason is physical rather than geometric: it
-rolls the **tops**, 194 of them across the written scenes. A top's horn is designed for one orientation and rolling it 90°
-rolls its dispersion pattern with it, so those rigs are geometrically valid and acoustically wrong. Low frequency is
-near-omnidirectional, which is why the same objection does not apply to a sub.
-
-**So the sweep is leaving half its output on the table, and the decision is which cabinets may legitimately be laid
-down.** `subtype: sub` already exists in every spec, so "subs only" is derivable rather than invented — but whether *our*
-cabinets are built to sit on their sides is physical knowledge about this gear, and this repository deliberately refuses
-to guess at it. `StackEntry`'s own note says so: *"Named outright rather than inferred from the cabinets, because no spec
-field says which are horn-loaded — and adding one to drive a rotation would be inventing a property to serve a layout."*
-
-#### GEO-10 — a mixed orientation
-
-Where: `--roll-mirror` in `SceneStackCommand`, `StackEntry::$rollMirror`, and whatever the sweep decides to offer.
-
-**The option already exists per device and the sweep does not use it that way.** `--roll-mirror` takes device ids, so a
-mixed orientation is expressible today — the `-turned-` scenes in `scenes/generated` come from an invocation naming
-`flexy-folded-horn-hybrid` and `skram` specifically. What is missing is the sweep ever *choosing* a subset: it offers
-upright, or it offers everything named on the command line turned, and nothing in between.
-
-**This is the answer to GEO-6 rather than a separate feature.** That item records why turning the whole inventory fails —
-a rolled SKRAM is 19 mm taller than a rolled Flexy, so the row above straddles the step — and a subset is exactly the
-escape: turn the types where it buys width, leave the ones that would introduce a step. Read GEO-6 first, since the 19 mm
-measurement is the constraint any subset has to respect.
-
-The open question is what the sweep enumerates, because the subsets are a power set and the candidate count is already a
-concern. Worth measuring before choosing: turning only the types that are *deepest* is one rule, turning the types that
-share a rolled height is another, and either is a fixed handful of candidates rather than 2ⁿ.
+Watch the candidate count when this lands, and the fuse with it. A rig is now 2 shapes × 7 orientation/mirror pairs ×
+3 alignments = **42 variants**, and four shapes make it 84. The sweep writes 61 scenes against
+`DEFAULT_MAX_SCENES = 80`, so doubling the shapes will hit the fuse — which refuses rather than truncating, so it fails
+outright until the limit is raised deliberately.
 
 #### GEO-4 — resolved extents, and the row that may not move
 
@@ -476,12 +434,13 @@ nothing at all: 6 variants refused by GEO-2's family and the rest by the sub hei
 
 ## SWP · the sweep's axes
 
-**What the autogeneration should produce, stated as one cross product.** Today's sweep is 66 candidates writing 11
-scenes; the target below is **1323 candidates**, and most of the work is that three of its values are not implemented.
+**What the autogeneration should produce, stated as one cross product.** Today's sweep is **426 candidates writing 61
+scenes**; the target below is **2646 candidates**, and the work left is that two of its values and one whole half are not
+implemented.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SWP-1 | **The full sweep cross product** — the target set of autogenerated rigs, stated once. Six axes, order in the section below. `column` is done; owner *combinations*, a `V` shape and the `impossible` half are not. **Step 2 is built and reverted over 8 unread test failures**, not over runtime — it writes 61 scenes | P1 | 14h | 2646 candidates against today's 66, so the whole coverage question | GEO-6, GEO-10, CVR-5 | partial |
+| SWP-1 | **The full sweep cross product** — the target set of autogenerated rigs, stated once. Six axes, order in the section below. Steps 1 to 3 are **done**: `column`, the orientation/mirror fold and the fuse. Owner *combinations*, a `V` shape and the `impossible` half are not | P1 | 8h | 2646 candidates against today's 426 | CVR-3, CVR-5 | partial |
 
 #### SWP-1 — the cross product
 
@@ -510,11 +469,21 @@ bug fixed in 0.73.0, where the axis was swept unconditionally and produced 66 ca
 duplicates and 48 refused identically to their twin. Two options stay on the command line, because a hand invocation
 wants `--orientation=turned` without an opinion on the odd cabinet; the *sweep* walks the seven pairs.
 
-**Count.** `3 x 7 x 3 x 3 x 7 x 2` = **2646 candidates**, forty times today's 66.
+**And a pair that rolls nothing in *this* inventory is dropped as well, which is a second rule and not the same one.**
+`mixed` rolls only the cabinets that get wider on their side, so `sepp` — whose subs are all 0.600 × 0.600 Achenbach
+cubes — has nothing for it to turn, and the candidate it would produce is `upright` under another name. Dropping it
+before solving rather than letting `deduplicate()` find it afterwards is what keeps the file names honest: a `-turned-`
+or `-mixed-` file always has something turned in it. Measured: the seven pairs come out as 426 candidates rather than
+`66 × 7 = 462`, and the 36 missing are exactly this.
+
+**Count.** `3 x 7 x 3 x 3 x 7 x 2` = **2646 candidates**, six times today's 426.
 
 The `impossible` half is **CVR-5**: rather than refusing a rig that cannot stand, emit it with every offending cabinet
 coloured red. It is not a variant of a possible rig but its complement — a candidate is one or the other — so as an axis
-it doubles the count rather than multiplying the written output, since today's 55 refusals become 55 written scenes.
+it doubles the count rather than multiplying the written output. **The orientation axis made this much larger**: today's
+365 refusals would become written scenes, where before the axis there were 55. **88 of the 365 are duplicates rather than
+refusals** and would not be written, which still leaves 277 against `DEFAULT_MAX_SCENES = 80`. So CVR-5 is where the fuse
+has to be raised deliberately, and by a lot.
 
 ##### Implementation order
 
@@ -522,32 +491,19 @@ Each step ends green and measured, and the safety check is the same every time: 
 except where a step is meant to change it**, and `ShippedScenesTest` is the gate rather than a scene diff, since scene
 files record the stack spec and not solved positions.
 
-1. **`column`, and `upright` renamed to `centred`** (ca. 1h 30m). Self-contained, no new axis. `column` is two lines —
-   {@see Tier::mirrored} already derives the midpoint from the row parity, so it is that line with the row ignored. The
-   rename touches existing `-upright-` scene filenames, so do it here while the set is small.
-2. **The folded orientation/mirror axis** (ca. 3h) — the enum of seven, `--orientation`, and the sweep walking it. This
-   is the whole payoff: measured on a prototype, turning the subs takes the sweep from 11 written scenes to 24, and
-   including all three orientations wrote **49**. **Settle the id collision first** (see the trap below) — a prototype
-   silently rewrote four committed scenes.
-3. **Raise `DEFAULT_MAX_SCENES` as the count needs it** (ca. 30m). It is a fuse that refuses rather than truncating, so
-   it has to be raised deliberately once a step writes more than 80. Step 2 alone writes 61 and fits; the `impossible`
-   axis turns 55 refusals into written scenes and will not. **Runtime is explicitly not a constraint** — see the reading
-   rules at the top — so this step is the fuse and nothing else.
+1. **DONE in 0.75.0 — `column`, and `upright` renamed to `centred`.** Self-contained, no new axis.
+2. **DONE in 0.77.0 — the folded orientation/mirror axis.** `StackOrientation`, `--orientation`, the seven pairs and a
+   nullable `?StackOrientation` threaded through five signatures. **426 candidates writing 61 scenes against 11**, and
+   every one of the 11 previous ids is still written, so the axis is purely additive.
+3. **DONE — `DEFAULT_MAX_SCENES` stays at 80.** Step 2 writes 61 and fits, so the fuse needed no raise after all. It
+   refuses rather than truncating, which is what makes leaving it alone safe: the next step that writes past 80 fails
+   outright rather than silently shipping a subset. Doubling the shapes (GEO-9) or adding the `impossible` half (CVR-5)
+   is where it will bind.
 4. **Owner combinations** (ca. 2h) — CVR-3. Seven subsets rather than three groups. Expect `sepp`-only to produce
    nothing until CVR-1.
 5. **`V` as a stated shape** (ca. 4h) — last, because it is the one most likely to fail. Read GEO-5 first: both
    pure-width pyramid bounds were measured and both produced interpenetration, because narrow stepped walls make gravity
    split rows into overlapping runs. A V bound hits the same cascade from the other direction.
-
-**Two consequences to settle before building it, because both are load-bearing:**
-
-* **`DEFAULT_MAX_SCENES` is 80 and will be nowhere near enough.** It is a fuse that refuses rather than truncating, which
-  is the right behaviour and means the sweep will simply fail until the number is raised deliberately. A prototype of the
-  orientation axis alone took 66 candidates to 318 and wrote **49** scenes, so 1323 candidates plausibly writes several
-  hundred.
-* **Runtime.** 318 candidates already takes a couple of minutes, and a candidate is a full solve plus a compile plus an
-  interpenetration sweep. 1323 is on the order of ten minutes, and `ShippedScenesTest` compiles every written scene on
-  top of that. The suite is currently 90 seconds. Worth measuring before committing to the whole product.
 
 ##### What exists, per axis
 
@@ -556,11 +512,11 @@ files record the stack spec and not solved positions.
 | stacks | 1, 2, 3 | **done** — hard-coded `[1, 2, 3]` in `SceneStackCommand` |
 | alignment | `center`, `block`, `stereo` | **done** — `LayoutMode`. `center` and `block` are both mono |
 | shape | `pyramid`, `free` | 2 of 3 — **`V` is missing**, see below |
-| orientation | — | **none of it exists**, see GEO-6 and GEO-10 |
-| mirror style | `alternate`, `upright` | 2 of 3 — needs a rename and a third case, see below |
+| orientation | `upright`, `turned`, `mixed` | **done** in 0.77.0 — `StackOrientation`, swept as pairs with the mirror style |
+| mirror style | `alternate`, `centred`, `column` | **done** in 0.75.0 |
 | inventory | `sdwa5`, `gmss`, `all` | 3 of 7 — **combinations are missing**, see CVR-3 |
 
-##### The three missing values
+##### The values still missing
 
 **`V` as a stated shape.** `free` is not it. `free` means "as wide as the bearing rule allows", which *permits* a rig to
 widen going up and does not ask for it — the V is a side effect there, not an intent. A stated `V` would widen
@@ -569,55 +525,47 @@ own bound in `StackSolver::ceilingFor()`, the mirror image of the pyramid's. **R
 pyramid bounds were measured and both produced interpenetration, because narrow stepped walls make gravity split rows
 into overlapping runs. A V bound will hit the same cascade from the other direction.
 
-**`column` as a third mirror style**, and **`upright` renamed to `centred`** with it. The three are then what a rolled
-row can do with an odd cabinet:
-
-| style | the odd cabinet | cost |
-| --- | --- | --- |
-| `alternate` | swaps side each row | stack balanced, seam zig-zags |
-| `centred` (today's `upright`) | left standing in the middle | row symmetric, 172 mm step |
-| `column` | same side on every row | one straight seam, stack lopsided by one cabinet |
-
-The rename is not cosmetic. With an orientation axis whose own values include `upright`, a file called
-`stacked-gmss-1-turned-upright-center` means "every sub turned, odd cabinet left standing" and reads as a contradiction.
-`centred` also describes what it does. It renames existing `-upright-` scene files.
-
-**`column` is two lines.** `Tier::mirrored()` already derives the midpoint from the row parity, so the whole of it is
-ignoring the row: `$midpoint = intdiv($count, 2)` unconditionally. Same heights as `alternate`, so unlike `centred` it
-introduces no step and nothing new can fail on it.
-
 **Owner combinations.** Seven non-empty subsets of `{sdwa5, gmss, sepp}` rather than today's three fixed groups. Note
 that **`sepp` alone cannot currently produce anything** — CVR-1 records that its eight cabinets cannot fill a 2 m wall
 however they are stacked, so every `sepp` rig is refused until a top can stand on something that is not a cabinet. So
 this axis does not pay off on its own.
 
-##### Step 2 was built, measured and reverted — what it cost and what it bought
+##### Step 2 shipped in 0.77.0 — what it cost, what it bought and what the failures were
 
-Worth reading before rebuilding it, because the implementation is straightforward and the *consequences* are not.
+**What it bought.** 426 candidates writing **61 scenes** against 11, and every one of the 11 previous ids is still
+written, so the axis is purely additive. Three-stack rigs appear for the first time, and
+`stacked-all-2-turned-centred-stereo` carries **39 cabinets** where the upright rig of the same gear carries 38.
 
-**What it bought.** The fold works exactly as specified: `66 x 7 = 462` candidates, writing **61 scenes** against 11.
-No doubled suffixes, and the `-turned-turned-` bug from the first prototype was an artefact of that prototype rather than
-of the design.
-
-**The fuse is not the problem.** 61 written is under `DEFAULT_MAX_SCENES = 80`, so no raise is needed at this step.
-
-**The clock got much worse and that is accepted.** `SceneStackCommandTest` alone went from seconds to **5 minutes 37
-seconds**, and the full suite passed 10 minutes without finishing, since a candidate is a solve plus a compile plus an
-interpenetration sweep. **Runtime is not a constraint on this project** — see the reading rules at the top — so this is
-recorded as a fact about the suite rather than as a reason to hold the axis back. It will get four times worse again at
-2646 candidates. Do not spend effort optimising it unless something else asks for that.
-
-**The real reason step 2 was reverted is 8 unread test failures.** The suite ran out of time before their causes could be
-read, so the axis was reverted rather than committed on a guess. They are most likely assertions pinning scene ids or
-counts that the new axis legitimately changes, and that is the first thing to check on picking this up — but they are
-unread, and a reverted branch is the honest state for unread failures.
-
-**Rebuilding step 2 is mechanical**, and worth knowing before starting: one enum (`StackOrientation`, three cases plus
-`rolls()` and `rollsAnything()`), the seven pairs built once in `execute()`, an `--orientation` option, and a nullable
+**The shape of it**, for anything that has to touch it again: one enum (`StackOrientation`, three cases plus `rolls()`
+and `rollsAnything()`), the pairs built once by `orientationPairs()`, an `--orientation` option, and a nullable
 `?StackOrientation` threaded through `buildInBand()`, `build()`, `solveGroup()`, `stackFor()` and `commandLine()`.
-`stackFor()` resolves the rolled set from the orientation, or from `--roll-mirror` when that names it outright;
-`commandLine()` records `--orientation=MODE` rather than the resolved cabinet list, so a replay stays correct when a
-cabinet is measured or added.
+`stackFor()` resolves the rolled set from the orientation, or from `--roll-mirror` when that names it outright.
+`readMirrorStyles()` no longer decides its own default, since which cabinets roll is the orientation's answer.
+
+**The clock got much worse and that is accepted.** The suite is **9 minutes 34 seconds** for 770 tests and 11 229
+assertions, against 88 seconds for 662 before, since a candidate is a solve plus a compile plus an interpenetration sweep
+and `ShippedScenesTest` compiles all 61 written scenes on top. **Runtime is not a constraint on this project** — see the
+reading rules at the top. It will get several times worse again at 2646 candidates. Do not spend effort optimising it
+unless something else asks for that.
+
+**The 10 test failures the first attempt was reverted over are read, and none of them was the axis being wrong.** Worth
+keeping, because six of them are a pattern that will recur on every axis added after this one:
+
+* **6 were tests that name a rig but not the axis**, so they counted scenes across a dimension that had just grown and
+  asserted 1 where 3 or 9 is correct. Fixed by pinning `--orientation=upright`, exactly as those same tests already pin
+  `--shape=pyramid` — and the comment explaining why was already there for the shape axis. **Expect this on steps 4 and
+  5 too**, and read it as arithmetic rather than as a regression.
+* **1 was a latent bug in a test**, found by the axis rather than caused by it. `testASingleStackIsNeverMirrored`
+  asserted the output does not contain `mirror:`, and a rolled cabinet states `roll_mirror: 90.0` — the same seven
+  characters. The loose form passed only for as long as nothing was ever rolled, and would have failed on a perfectly
+  correct stack the moment one was. It asserts `mirror: true` now, which is the key it always meant.
+* **1 is a real difference between rigs and worth knowing.** `mixed` rolls the Flexys, so a sub row is 3.112 m of four
+  cabinets instead of 3.646 m of six, the wall tapers faster and the two 2-ways have nothing left to stand on: 21
+  cabinets carried, and **both of the missing two named in the file**. The test asserted a flat 23 for every scene, which
+  was true only while one gear list produced one rig. It now asserts 23 less whatever the file states it left out, so a
+  *silent* drop still fails and a refusal the file explains is allowed to be one.
+* **2 were the new tests themselves** — a console line wrap splitting `allowed: upright, turned, mixed` across two lines,
+  and a `free` + `turned` combination that legitimately refuses on bearing, so the assertion moved onto a shipped file.
 
 ##### The id collision is resolved: old autogenerated scenes are disposable
 
@@ -927,6 +875,7 @@ summed alongside the total, the same way the catalog flags what still needs the 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
+| TOOL-5 | **`SceneStackCommand` is 1866 lines** and grew 130 with the orientation axis. Worth splitting before it passes 2000: the four `readShapes`/`readModes`/`readOrientations`/`readMirrorStyles` parsers plus `orientationPairs()` are one cluster with no dependency on the solve, and `floating()`/`coveredFraction()` are a second. Neither is a behaviour change | P3 | 2h | — | — | open |
 | TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
 | TOOL-4 | GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so mostly packaging and metadata mapping | P3 | 3h | — | — | open |
@@ -935,4 +884,4 @@ summed alongside the total, the same way the catalog flags what still needs the 
 
 | ID | Item | State |
 |----|------|-------|
-| INFO-1 | **Our 4 m crank stands cannot clear a combined rig.** Every speaker in three stacks reaches 4.563 m as a pyramid and 5.628 m free, both above the 4 m the stands extend to, so a truss on `truss-tower-4m` sits below the tops it spans. `scenes/everything.yaml` uses GMSS's 5.2 m towers instead. Fine for our own 3.125 m rig, not for a combined one — worth knowing before hiring a stage. No three-stack rig is generated at present; the band refuses them all | known |
+| INFO-1 | **Our 4 m crank stands cannot clear a combined rig.** Every speaker in three stacks reaches 4.563 m as a pyramid and 5.628 m free, both above the 4 m the stands extend to, so a truss on `truss-tower-4m` sits below the tops it spans. `scenes/everything.yaml` uses GMSS's 5.2 m towers instead. Fine for our own 3.125 m rig, not for a combined one — worth knowing before hiring a stage. **Three-stack rigs are generated as of 0.77.0** — 10 of them, all `turned` or `mixed`, since a rolled sub wall is short enough for the band where the upright one is not | known |

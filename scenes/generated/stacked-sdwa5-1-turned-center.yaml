@@ -5,20 +5,20 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --max-width=3.7 --orientation=upright --from=skram --from=flexy-folded-horn-hybrid
+#   bin/console scene:stack --max-width=3.7 --orientation=turned --from=skram --from=flexy-folded-horn-hybrid
 #     --from=tecnare-m2122 --stacks=1 --align=center --shape=pyramid --mirror-style=alternate --id=stacked-sdwa5-1
 #
 # What it deals out today:
 #
-#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   2  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   3  2× skram                                                                  1.24 m wide
-#   4  3× tecnare-m2122                                                          1.54 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   5  3× tecnare-m2122                                                          1.54 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
-#   * the 3× tecnare-m2122 row is 1.540 m on a 1.240 m row, so it overhangs 150 mm each side
+# Subs reach 2.383 m against a 2.0 m interface. The stack is 3.343 m of cabinet.
 #
-id: stacked-sdwa5-1-center
+id: stacked-sdwa5-1-turned-center
 name: "Solved rig — one stack, tiers centred"
 
 focus:
@@ -40,7 +40,9 @@ placements:
       gap_m: 0.02
       shape: pyramid
       from:
-        - skram
-        - flexy-folded-horn-hybrid
+        - device: skram
+          roll_mirror: 90.0
+        - device: flexy-folded-horn-hybrid
+          roll_mirror: 90.0
         - tecnare-m2122
 

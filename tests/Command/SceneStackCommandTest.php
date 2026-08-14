@@ -74,12 +74,12 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testAlignmentsThatResolveToTheSameRigAreWrittenOnce(): void
     {
-        // ONE SHAPE NAMED, because this test is about the three alignments and `--shape` now multiplies them the same
-        // way — both shapes are written by default, so leaving it open would make this assert 4 and stop saying
-        // anything about alignment.
+        // ONE SHAPE AND ONE ORIENTATION NAMED, because this test is about the three alignments and both of those axes
+        // multiply them the same way — every value is written by default, so leaving them open would make this assert 4
+        // and then 12, and stop saying anything about alignment.
         $tester = $this->invoke([
             '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--shape' => ['pyramid'], '--dry-run' => true,
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ]);
         $display = $tester->getDisplay();
 
@@ -145,20 +145,20 @@ final class SceneStackCommandTest extends TestCase
     public function testNamingTheGearOrStackCountCollapsesTheSweep(): void
     {
         $display = $this->invoke([
-            '--from' => self::STACKABLE, '--stacks' => '1',
-            '--align' => ['center'], '--shape' => ['pyramid'], '--dry-run' => true,
+            '--from' => self::STACKABLE, '--stacks' => '1', '--align' => ['center'],
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertSame(1, preg_match_all('/^id: /m', $display));
         self::assertStringContainsString('id: stacked-center', $display, 'no owner or stack-count suffix');
     }
 
-    /** The fast path: one alignment and one shape named outright, exactly one scene. */
+    /** The fast path: one alignment, one shape and one orientation named outright, exactly one scene. */
     public function testASingleAlignmentProducesExactlyOneScene(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--align' => ['block'], '--shape' => ['pyramid'], '--dry-run' => true,
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['block'],
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ]);
 
         self::assertSame(1, preg_match_all('/^id: /m', $tester->getDisplay()));
@@ -206,8 +206,8 @@ final class SceneStackCommandTest extends TestCase
         // the tall stacks go: three owners give three deliberately unequal stacks, and the tallest of them is over
         // the 3 m ceiling by construction. Holding it to the band would be asserting on a refusal.
         $shared = ['--per-owner' => true, '--max-width' => '3.70', '--gap' => '0.05',
-            '--interface-height' => '0', '--max-sub-height' => '99',
-            '--shape' => ['pyramid'], '--mirror-style' => ['alternate'], '--dry-run' => true];
+            '--interface-height' => '0', '--max-sub-height' => '99', '--shape' => ['pyramid'],
+            '--orientation' => ['upright'], '--mirror-style' => ['alternate'], '--dry-run' => true];
 
         $mono = $this->heights($this->invoke($shared + ['--align' => ['center']])->getDisplay());
         self::assertCount(3, $mono);
@@ -394,9 +394,11 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testASplitRigWritesEachStacksShareSoItRebuildsTheSame(): void
     {
+        // One shape and one orientation, so the count below is the two stacks of one scene rather than the same two
+        // stacks across every variant of it.
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--stacks' => '2', '--align' => ['center'], '--dry-run' => true,
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--stacks' => '2', '--align' => ['center'],
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -468,14 +470,21 @@ final class SceneStackCommandTest extends TestCase
         self::assertStringContainsString('1× skram rolled 90°', $output);
     }
 
-    /** A single stack has no pair to mirror against, so it never claims one. */
+    /**
+     * A single stack has no pair to mirror against, so it never claims one — at any orientation.
+     *
+     * Asserted on `mirror: true` rather than on `mirror:`, which is the key this test means and not merely a shorter
+     * way of writing it. A turned rig states `roll_mirror: 90.0` on every rolled cabinet, and that ends in the same
+     * seven characters — so the loose form passed only for as long as nothing was ever rolled, and would have failed on
+     * a correct stack the moment one was.
+     */
     public function testASingleStackIsNeverMirrored(): void
     {
         $tester = $this->invoke([
             '--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['center'], '--dry-run' => true,
         ]);
 
-        self::assertStringNotContainsString('mirror:', $tester->getDisplay());
+        self::assertStringNotContainsString('mirror: true', $tester->getDisplay());
     }
 
     public function testAStackCountBelowOneIsRejected(): void
@@ -490,6 +499,15 @@ final class SceneStackCommandTest extends TestCase
      * The one that matters. A generator that emits a scene the compiler rejects is worse than no generator,
      * because the failure then surfaces later and further from its cause — so every candidate is compiled
      * before it is written, and this pins that the check is real by reading the cabinets back.
+     *
+     * **The invariant is that no cabinet goes missing *quietly*, which is not the same as every scene holding all 23.**
+     * It used to be written the second way, and that was only true for as long as one gear list produced one rig. It now
+     * produces seven, and they are genuinely different rigs: `mixed` rolls the Flexys, which makes each sub row 3.112 m
+     * of four cabinets instead of 3.646 m of six, so the wall tapers faster and the two 2-ways have nothing left to
+     * stand on. That rig carries 21 and **names the two it left out**, which is the generator working correctly.
+     *
+     * So the count asserted is 23 less whatever the file says it left out. A silent drop still fails, which is the defect
+     * this test exists for; a refusal the file explains is allowed to be a refusal.
      */
     public function testEveryGeneratedSceneCompilesAndPlacesEveryCabinet(): void
     {
@@ -521,9 +539,16 @@ final class SceneStackCommandTest extends TestCase
                 array_map(static fn ($v): string => $v->message, Violation::errorsIn($result['violations'])),
                 basename($file).' does not compile',
             );
-            // 12 Flexy + 6 Achenbach + 3 Tecnare + 2 2-ways. A generator that quietly dropped cabinets
-            // would pass every other check in this file.
-            self::assertCount(23, $result['placed'], basename($file).' lost cabinets');
+
+            // 12 Flexy + 6 Achenbach + 3 Tecnare + 2 2-ways, less whatever this file states it could not carry. A
+            // generator that quietly dropped cabinets would pass every other check in this file.
+            preg_match_all('/^#\s+\*\s+([a-z0-9-]+): LEFT OUT/m', (string)file_get_contents($file), $omitted);
+            $missing = array_sum(array_map(
+                static fn (string $id): int => $devices[$id]->quantity,
+                array_unique($omitted[1]),
+            ));
+
+            self::assertCount(23 - $missing, $result['placed'], basename($file).' lost cabinets it did not name');
         }
     }
 
@@ -635,7 +660,7 @@ final class SceneStackCommandTest extends TestCase
         $display = $this->invoke([
             '--from' => ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'gmss-nuke', 'gmss-turbo-top'],
             '--max-width' => '3.70', '--stacks' => '1', '--align' => ['center'],
-            '--shape' => ['pyramid'], '--dry-run' => true,
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('id: stacked-center', $display);
@@ -795,27 +820,36 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * The mirror-style axis is only swept when something is actually rolled.
+     * The mirror-style axis is only swept where the orientation actually rolls something.
      *
-     * {@see \App\Scene\Tier::mirrored} acts only on segments lying on a quarter turn, so with no `--roll-mirror` it is a
-     * no-op and `upright` comes out byte-identical to `alternate`. Sweeping it anyway doubled every default run's
-     * candidates for no possible output: 66 `upright` candidates, 0 written, 18 of them recognised as duplicates and the
-     * other 48 refused on the same height and support grounds as their twin.
+     * {@see \App\Scene\Tier::mirrored} acts only on segments lying on a quarter turn, so with nothing rolled `centred`
+     * comes out byte-identical to `alternate`. Sweeping the two axes independently made a third of every candidate a
+     * duplicate by construction: 66 `centred` candidates, 0 written, 18 of them recognised as duplicates afterwards and
+     * the other 48 refused on the same height and support grounds as their twin. Paired, the vacuous combinations cannot
+     * be expressed at all.
      *
      * Asserted on the *ids offered*, not on the files written, because the point is the candidate that is never built
-     * rather than the scene that was never any different.
+     * rather than the scene that was never any different. An id carries no orientation suffix only when it is `upright`,
+     * so "every style suffix sits beside an orientation suffix" is the whole invariant.
      */
-    public function testTheMirrorStyleAxisIsSweptOnlyWhenSomethingIsRolled(): void
+    public function testTheMirrorStyleAxisIsSweptOnlyWhereSomethingIsRolled(): void
     {
-        $plain = $this->invoke(['--dry-run' => true])->getDisplay();
-        self::assertStringNotContainsString('-centred-', $plain);
+        $display = $this->invoke(['--dry-run' => true])->getDisplay();
 
-        $rolled = $this->invoke([
-            '--dry-run' => true,
-            '--roll-mirror' => ['flexy-folded-horn-hybrid'],
-            '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'],
-        ])->getDisplay();
-        self::assertStringContainsString('-centred-', $rolled);
+        preg_match_all('/^\s*(?:skipped|id:)\s*(\S+)/m', $display, $matches);
+        self::assertNotSame([], $matches[1]);
+
+        $vacuous = array_values(array_filter(
+            $matches[1],
+            static fn (string $id): bool => (str_contains($id, '-centred') || str_contains($id, '-column'))
+                && !str_contains($id, '-turned-') && !str_contains($id, '-mixed-'),
+        ));
+
+        self::assertSame([], $vacuous, 'a mirror style was offered with nothing rolled to apply it to');
+
+        // And the pairing is not merely absent — the rolled orientations do get all three styles.
+        self::assertStringContainsString('-turned-centred-', $display);
+        self::assertStringContainsString('-turned-column-', $display);
     }
 
     /**
@@ -824,9 +858,80 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testAnExplicitCentredStyleIsHonouredWithNothingRolled(): void
     {
-        $display = $this->invoke(['--dry-run' => true, '--mirror-style' => ['centred']])->getDisplay();
+        $display = $this->invoke([
+            '--dry-run' => true, '--orientation' => ['upright'], '--mirror-style' => ['centred'],
+        ])->getDisplay();
 
         self::assertStringContainsString('-centred-', $display);
+    }
+
+    /**
+     * **Laying the subs down is the largest single lever the sweep has**, and the tops stay standing whatever it does.
+     *
+     * Pinned as a property of the ids offered rather than as a scene count, which would be a second copy of whatever the
+     * inventory currently happens to build. The two claims are the ones the axis exists for: a `-turned-` candidate is
+     * offered at all, and no orientation ever puts a top on its side.
+     */
+    public function testTheSweepOffersTurnedRigsAndNeverRollsATop(): void
+    {
+        $display = $this->invoke(['--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid']])->getDisplay();
+
+        self::assertStringContainsString('-turned-', $display);
+        self::assertStringContainsString('-mixed-', $display);
+
+        // Every rolled segment the writer names, against the tops there are. A top appears in these scenes constantly;
+        // what may never appear is a top with a roll on it.
+        // Unanchored, because a mixed row names several segments on one comment line and every one of them counts.
+        preg_match_all('/(\S+) rolled \d+°/', $display, $rolled);
+        foreach (array_unique($rolled[1]) as $id) {
+            self::assertContains($id, [
+                'flexy-folded-horn-hybrid', 'skram', 'gmss-iq-sub', 'gmss-nuke', 'gmss-wall-bass', 'gmss-mid-bass',
+                'achenbach-18',
+            ], $id.' is a top and was rolled');
+        }
+        self::assertNotSame([], $rolled[1], 'nothing was rolled at all, so the assertion above proves nothing');
+    }
+
+    /** An unknown `--orientation` names the values there are rather than falling back to one of them. */
+    public function testAnUnknownOrientationIsRefusedAndNamesTheAllowedValues(): void
+    {
+        $tester = $this->invoke([
+            '--from' => self::OWN_GEAR, '--orientation' => ['sideways'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString("--orientation: unknown value 'sideways'", $tester->getDisplay());
+
+        // Whitespace collapsed, because the console wraps the block and puts the last value on the next line.
+        $wrapped = (string)preg_replace('/\s+/', ' ', $tester->getDisplay());
+        self::assertStringContainsString('allowed: upright, turned, mixed', $wrapped);
+    }
+
+    /**
+     * A recorded command line names the **mode**, not the cabinets it resolved to.
+     *
+     * That is what keeps a replay correct across a spec change: `--orientation=turned` means "every sub", so a sub
+     * measured tomorrow joins the rig the file describes, where a frozen list would rebuild yesterday's. The stated form
+     * is only recorded where it is what the caller actually said.
+     *
+     * Read off a shipped file rather than from a run, the same way the stage-width test is: the recorded line is what
+     * `build:all` replays, so a file that failed to carry the mode is the actual defect.
+     */
+    public function testARecordedLineNamesTheOrientationRatherThanTheCabinets(): void
+    {
+        $turned = (string)file_get_contents(
+            dirname(__DIR__, 2).'/scenes/generated/stacked-sdwa5-2-turned-center.yaml',
+        );
+        self::assertStringContainsString('--orientation=turned', $turned);
+        self::assertStringNotContainsString('--roll-mirror=', $turned);
+
+        // And the cabinets it resolved to are in the stack itself, which is where a re-solve reads them from.
+        self::assertStringContainsString('roll_mirror: 90.0', $turned);
+
+        // The upright rigs say so too, rather than leaving the axis to a default that may change under them.
+        $upright = (string)file_get_contents(dirname(__DIR__, 2).'/scenes/generated/stacked-sdwa5-2-center.yaml');
+        self::assertStringContainsString('--orientation=upright', $upright);
+        self::assertStringNotContainsString('roll_mirror', $upright);
     }
 
     /**

@@ -786,8 +786,8 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 **The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
 configuration it can stand up: one rig per owner plus one from everything, by one, two and three stacks, in both
-shapes and all three alignments — 11 scenes on the current inventory, with every refusal printed and its reason
-given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
+shapes, all three alignments and all seven orientation/mirror pairs — **61 scenes of 426 candidates** on the current
+inventory, with every refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
 required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
 naming `--align` narrows it to one mode.
 
@@ -847,6 +847,64 @@ interpenetration across five `all-3` scenes. So only a stack with **nothing besi
 the stated stage width. A row that is already carried is never moved, and a slide that does not improve the
 worst-carried cabinet is discarded, so every rig that stood up before stands up unchanged.
 
+#### The orientation axis, and why laying subs down is the biggest lever there is
+
+**A rolled sub is wider and shorter than a standing one, and both halves of that help.** A wider row fills the stage in
+fewer cabinets, and a shorter row keeps the sub/top transition inside the band above. Measured on the same 66-candidate
+sweep, changing nothing but which cabinets were rolled:
+
+| orientation | scenes written |
+| --- | --- |
+| `upright` | 11 |
+| every sub rolled | 24 |
+| every cabinet rolled, tops included | 18 |
+
+Turning the subs **more than doubles the output**, and it does something no other change has managed: three-stack rigs
+appear at all. A turned sub wall is short enough to land in the band, where the upright version of the same rig is
+refused for being too tall.
+
+So `--orientation` is swept, three values, and it is the largest single axis in the sweep:
+
+| mode | what lies down |
+| --- | --- |
+| `upright` | nothing. What every generated scene was before this axis existed |
+| `turned` | every sub, whatever it measures — the literal reading of "all cabinets on their sides" |
+| `mixed` | only the subs that get **wider and shorter** on their side, which is the whole reason to roll one |
+
+**Tops are never rolled, at any setting.** That is the owner's call about the gear rather than a geometric result, and
+the reason is acoustic: a top's horn throws its pattern in one orientation, and rolling the cabinet rolls the pattern
+with it. The measurement agrees — rolling everything writes 18 against 24 — but the numbers are not why. Low frequency
+is near-omnidirectional, which is why the same objection does not reach a sub.
+
+**`mixed` is read off the specs and states no new fact about the gear.** `subtype` and `dimensions_m` are both recorded
+already, so the rule needs nothing measured: roll a sub where its height exceeds its width. Two cabinets are left
+standing by it and for two different reasons. `gmss-mid-bass` is 1.200 × 0.500, the one sub already wider than it is
+tall, so rolling it would make the wall *taller* and the row narrower; `achenbach-18` is 0.600 × 0.600, where rolling is
+geometrically nothing at all. This matters beyond tidiness — the repository refuses to invent physical properties to
+serve a layout, which is why `--roll-mirror` names cabinets outright rather than deriving them from a "horn-loaded"
+field nobody has measured.
+
+**The orientation and the mirror style are swept as pairs, not as two axes.** The mirror style only decides what a
+*rolled* row does with the odd cabinet it cannot halve, so it is vacuous wherever nothing is rolled. Multiplied out
+independently, a third of every candidate would be a duplicate of another by construction — measured, before the fold:
+66 `centred` candidates and 0 scenes written from them. Paired, the vacuous combinations cannot be expressed:
+
+| # | pair |
+| --- | --- |
+| 1 | `upright` — nothing rolled, so there is no odd cabinet to place |
+| 2–4 | `turned` × (`alternate`, `centred`, `column`) |
+| 5–7 | `mixed` × (`alternate`, `centred`, `column`) |
+
+A mode that rolls nothing in *this* inventory is dropped the same way, which is a different rule and keeps the file
+names honest: `sepp` owns nothing but Achenbach cubes, so `mixed` has nothing to turn there and the candidate it would
+produce is `upright` under another name. A `-turned-` or `-mixed-` file always has something turned in it.
+
+**`--roll-mirror` switches the axis off**, so every hand invocation that names cabinets keeps working exactly as it did.
+The two options answer the same question at different resolutions, and a line saying `--roll-mirror=skram` means those
+cabinets rather than "sweep three modes and ignore what I said". A recorded command line carries `--orientation=MODE`
+rather than the cabinets it resolved to, so a replay stays correct when a new sub is measured or a wrong dimension is
+corrected.
+
 `stack:` still has to be typed into a file. `scene:stack` is the step before that: give it the gear and the
 bounds and it writes one scene per arrangement that works, with a reason for every one it left out.
 
@@ -877,7 +935,8 @@ so block and stereo alignment have nothing left to spread it into.
 | — | **`build:all` prunes as well as writes**: a `.blend`, plan or render under a `generated/` directory whose scene id no longer exists is removed and named. Generated *scene* files are left alone — they are tracked, cheap to regenerate and expensive to lose |
 | — | **`build:all` replays those commands as its first stage**, so a generated scene follows the specs the way the models and renders already do. It is the only stage that writes outside `build/` — `build:all --dry-run` says how many files it would rewrite. A file under `generated/` with no recorded command is skipped and named, never guessed at |
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
-| `--mirror-style=MODE` | repeatable: `alternate`, `centred`, `column`. What a turned row does with the odd cabinet it cannot split in half — `alternate` swaps its side each row so the stack balances, `centred` leaves it standing in the middle so the row is symmetric at the cost of a 172 mm step, `column` sends it to the same side every row so the seam runs straight and the stack is lopsided by one. **Default all three, but only when something is rolled.** With nothing rolled the mirror is a no-op and all three are byte-identical, so only `alternate` is swept. Stating the option explicitly always honours it |
+| `--orientation=MODE` | repeatable: `upright` (nothing rolled), `turned` (every sub) or `mixed` (only the subs that get wider on their side). **Tops never roll at any setting**, and the reason is acoustic — see [the orientation axis](#the-orientation-axis-and-why-laying-subs-down-is-the-biggest-lever-there-is). Default all three, and it is the largest axis in the sweep: `upright` alone writes 11 scenes where every sub rolled writes 24. Naming `--roll-mirror` switches it off |
+| `--mirror-style=MODE` | repeatable: `alternate`, `centred`, `column`. What a turned row does with the odd cabinet it cannot split in half — `alternate` swaps its side each row so the stack balances, `centred` leaves it standing in the middle so the row is symmetric at the cost of a 172 mm step, `column` sends it to the same side every row so the seam runs straight and the stack is lopsided by one. **Default all three, but only where something is rolled.** With nothing rolled the mirror is a no-op and all three are byte-identical, so the orientation and the style are swept as seven pairs rather than as 3 × 3. Stating the option explicitly always honours it |
 | `--shape=MODE` | repeatable: `pyramid`, `free`. Default both — **one scene each**, and the pyramid keeps the plain id while `free` gets a `-free` infix |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
@@ -1108,6 +1167,11 @@ whose shell is a chamfered trapezoid.
 Named per device rather than inferred, because **no spec field says which cabinets are horn-loaded** and adding
 one to drive a rotation would be inventing a property to serve a layout. `scene:stack --roll-mirror=<id>` is the
 command-line form, repeatable.
+
+`--orientation` is the coarser form of the same question and the one the sweep walks — see
+[the orientation axis](#the-orientation-axis-and-why-laying-subs-down-is-the-biggest-lever-there-is). It leans on
+`subtype: sub` and on the recorded dimensions, which are claims the specs already make for their own reasons, and never
+on a property invented for it. Naming `--roll-mirror` switches the axis off, so the two never disagree about one rig.
 
 **A limit worth knowing before planning a turned rig:** a rolled SKRAM is 610 mm tall and a rolled Flexy 591 mm,
 so a bottom row mixing them has a 19 mm step through it and the tier above straddles that step. Gravity lifts

@@ -5,8 +5,8 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --max-width=3.7 --from=skram --from=flexy-folded-horn-hybrid --from=tecnare-m2122
-#     --stacks=1 --align=center --shape=free --mirror-style=alternate --id=stacked-sdwa5-1
+#   bin/console scene:stack --max-width=3.7 --orientation=upright --from=skram --from=flexy-folded-horn-hybrid
+#     --from=tecnare-m2122 --stacks=1 --align=center --shape=free --mirror-style=alternate --id=stacked-sdwa5-1
 #
 # What it deals out today:
 #

@@ -5,9 +5,9 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --max-width=3.7 --from=gmss-wall-bass --from=gmss-mid-bass --from=gmss-nuke
-#     --from=gmss-iq-sub --from=gmss-turbo-top --stacks=1 --align=center --shape=pyramid --mirror-style=alternate
-#     --id=stacked-gmss-1
+#   bin/console scene:stack --max-width=3.7 --orientation=upright --from=gmss-wall-bass --from=gmss-mid-bass
+#     --from=gmss-nuke --from=gmss-iq-sub --from=gmss-turbo-top --stacks=1 --align=center --shape=pyramid
+#     --mirror-style=alternate --id=stacked-gmss-1
 #
 # What it deals out today:
 #

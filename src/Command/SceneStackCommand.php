@@ -14,6 +14,7 @@ use App\Scene\SceneSpec;
 use App\Scene\Stack;
 use App\Scene\StackBlock;
 use App\Scene\StackEntry;
+use App\Scene\StackOrientation;
 use App\Scene\StackSceneWriter;
 use App\Scene\StackShape;
 use App\Scene\StackSolver;
@@ -110,7 +111,8 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
             ->addOption('shape', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'pyramid (rows narrow going up) or free (as wide as bearing allows). Default: both')
-            ->addOption('mirror-style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'What a turned row does with its odd cabinet: alternate (side flips per row) or upright (unrolled in the middle). Default: both')
+            ->addOption('mirror-style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'What a turned row does with its odd cabinet: alternate (side flips per row), centred (unrolled in the middle) or column (same side every row). Default: all three where something is rolled')
+            ->addOption('orientation', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Which cabinets lie on their sides: upright (none), turned (every sub) or mixed (only where it makes them wider). Tops never roll. Default: all three')
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
@@ -157,8 +159,15 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $styles = $this->readMirrorStyles($input->getOption('mirror-style'), $input->getOption('roll-mirror'));
+        $styles = $this->readMirrorStyles($input->getOption('mirror-style'));
         if ($styles === null) {
+            return self::FAILURE;
+        }
+
+        /** @var list<string> $rolled */
+        $rolled = $input->getOption('roll-mirror');
+        $orientations = $this->readOrientations($input->getOption('orientation'), $rolled);
+        if ($orientations === null) {
             return self::FAILURE;
         }
 
@@ -173,23 +182,26 @@ final class SceneStackCommand extends BaseCommand
         $skipped = [];
         foreach ($rigs as $rig) {
             foreach ($shapes as $shape) {
-                foreach ($styles as $style) {
+                foreach ($this->orientationPairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
                         $name = sprintf(
-                            '%s%s%s%s-%s',
+                            '%s%s%s%s%s-%s',
                             (string)$input->getOption('id'),
                             $rig['suffix'],
                             $shape === StackShape::Pyramid ? '' : '-'.$shape->value,
+                            $orientation === null || $orientation === StackOrientation::Upright
+                                ? ''
+                                : '-'.$orientation->value,
                             $style === MirrorStyle::Alternate ? '' : '-'.$style->value,
                             $mode->value,
                         );
                         $built = $sweeping
                             ? $this->buildInBand(
-                                $devices, $rig['from'], $at, $mode, $shape, $style, $rig['stacks'],
+                                $devices, $rig['from'], $at, $mode, $shape, $style, $orientation, $rig['stacks'],
                                 (string)$input->getOption('id').$rig['suffix'], $statedWidth, $input,
                             )
                             : $this->build(
-                                $devices, $rig['from'], $at, $mode, $shape, $style, $rig['stacks'],
+                                $devices, $rig['from'], $at, $mode, $shape, $style, $orientation, $rig['stacks'],
                                 (string)$input->getOption('id').$rig['suffix'], $statedWidth, $input,
                             );
                         if (is_string($built)) {
@@ -334,6 +346,7 @@ final class SceneStackCommand extends BaseCommand
         LayoutMode $mode,
         StackShape $shape,
         MirrorStyle $style,
+        ?StackOrientation $orientation,
         int $stacks,
         string $baseId,
         float $stated,
@@ -352,7 +365,9 @@ final class SceneStackCommand extends BaseCommand
         // At most one pass per ladder rung, plus the stated width: the direction cannot flip without the band having
         // been cleared on the way, and a rig that oscillates would otherwise loop between two rungs forever.
         for ($step = 0; $step <= count($ladder); ++$step) {
-            $built = $this->build($devices, $from, $at, $mode, $shape, $style, $stacks, $baseId, $width, $input);
+            $built = $this->build(
+                $devices, $from, $at, $mode, $shape, $style, $orientation, $stacks, $baseId, $width, $input,
+            );
             if (is_string($built)) {
                 // **A refusal that is not a height miss gets one rung, not the ladder.** It is worth a rung: both
                 // systems across two stacks refuses at 3.70 m with two runs 127 mm inside each other and solves at
@@ -435,32 +450,30 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
-     * The mirror styles to write a scene for, or null when one is misspelled.
+     * The mirror styles somebody named, or `[]` for "sweep whatever the orientation gives them to differ on".
      *
-     * Both by default, like `--align` and `--shape`, and for the same reason: an odd cabinet in a turned row has no
+     * All three by default, like `--align` and `--shape`, and for the same reason: an odd cabinet in a turned row has no
      * arrangement that is both symmetric and flat, so the choice is a trade rather than an answer. See
      * {@see MirrorStyle}.
      *
-     * **UNLESS NOTHING IS ROLLED, IN WHICH CASE THE AXIS CANNOT PRODUCE A DISTINCT RIG AND IS NOT SWEPT.**
-     * {@see Tier::mirrored} acts only on segments lying on a quarter turn, so with no `--roll-mirror` it is a no-op and
-     * the two styles come out byte-identical. The default sweep names no rolled device, and the measurement is
-     * unambiguous: **66 `upright` candidates, 0 written.** 18 of them survived far enough for `deduplicate()` to
-     * recognise their `alternate` twin and the other 48 were refused earlier, on the height band or on support,
-     * identically to that twin. The axis was doubling the candidate count of every default run for no possible output.
+     * **THE DEFAULT IS DECIDED PER ORIENTATION RATHER THAN HERE**, which is why this returns an empty list instead of
+     * every case. {@see Tier::mirrored} acts only on segments lying on a quarter turn, so the styles are *vacuous*
+     * wherever nothing is rolled and come out byte-identical, and the measurement was unambiguous: sweeping the axis
+     * unconditionally gave **66 `centred` candidates, 0 written** — 18 caught afterwards by `deduplicate()` and the
+     * other 48 refused identically to their `alternate` twin. `deduplicate()` catching them is not good enough, because
+     * the cost is not a file, it is *every candidate solved twice*, and a candidate is a full solve plus a compile plus
+     * an interpenetration sweep.
      *
-     * `deduplicate()` catching them afterwards is not good enough, and that is the correction to what this docblock
-     * used to claim. It said the cost was "a file on four of the generated scenes and nothing on the rest", which reads
-     * as a rounding error; the cost is *every candidate solved twice*, and a candidate is a full solve plus a compile
-     * plus an interpenetration sweep.
+     * {@see orientationPairs} is where that judgement now lives, since which cabinets roll is exactly what the
+     * orientation axis decides.
      *
      * @param list<string> $raw
-     * @param list<string> $rolled device ids `--roll-mirror` named, which is what gives the styles anything to differ on
-     * @return list<MirrorStyle>|null
+     * @return list<MirrorStyle>|null null on a misspelling, `[]` when none was named
      */
-    private function readMirrorStyles(array $raw, array $rolled = []): ?array
+    private function readMirrorStyles(array $raw): ?array
     {
         if ($raw === []) {
-            return $rolled === [] ? [MirrorStyle::Alternate] : MirrorStyle::cases();
+            return [];
         }
 
         $styles = [];
@@ -479,6 +492,102 @@ final class SceneStackCommand extends BaseCommand
         }
 
         return $styles;
+    }
+
+    /**
+     * The orientations to write a scene for, or null when one is misspelled.
+     *
+     * All three by default, and this is the axis that pays best of any in the sweep: **the default sweep writes 61 scenes
+     * where upright alone writes 11**, three-stack rigs among them for the first time, because a rolled sub is wider and
+     * shorter and both of those help a wall land inside the sub height band. See {@see StackOrientation}.
+     *
+     * **`--roll-mirror` turns the axis off**, which keeps every hand invocation that names cabinets working exactly as
+     * it did. The two options answer the same question at different resolutions — which cabinets lie down — so a line
+     * naming `--roll-mirror=skram` means *those* and not "sweep three modes and ignore what I said". A `null`
+     * orientation is how that is carried: it says "the rolled set is stated on the command line", and
+     * {@see stackFor} reads `--roll-mirror` in that case.
+     *
+     * @param list<string> $raw
+     * @param list<string> $rolled the device ids `--roll-mirror` named
+     * @return list<StackOrientation|null>|null
+     */
+    private function readOrientations(array $raw, array $rolled): ?array
+    {
+        if ($raw === []) {
+            return $rolled === [] ? StackOrientation::cases() : [null];
+        }
+
+        $orientations = [];
+        foreach ($raw as $value) {
+            $orientation = StackOrientation::tryFrom($value);
+            if ($orientation === null) {
+                $this->io->error(sprintf(
+                    "--orientation: unknown value '%s' (allowed: %s)",
+                    $value,
+                    implode(', ', array_column(StackOrientation::cases(), 'value')),
+                ));
+
+                return null;
+            }
+            $orientations[] = $orientation;
+        }
+
+        return $orientations;
+    }
+
+    /**
+     * The orientation and mirror style **as pairs**, because the two are not independent axes.
+     *
+     * Orientation says which cabinets lie down; mirror style says what a rolled row does with the odd cabinet it cannot
+     * split in half. Different questions, and a turned rig genuinely has three different forms — but the style is
+     * *vacuous* when nothing is rolled, since {@see Tier::mirrored} only ever acts on a segment lying on a quarter turn.
+     * Multiplied out as two axes, one third of every candidate would be a duplicate of another by construction. Paired,
+     * the vacuous combinations are **unrepresentable** rather than guarded:
+     *
+     * | # | pair |
+     * | --- | --- |
+     * | 1 | `upright` — nothing rolled, so no odd cabinet to place |
+     * | 2–4 | `turned` × (`alternate`, `centred`, `column`) |
+     * | 5–7 | `mixed` × (`alternate`, `centred`, `column`) |
+     *
+     * **A mode that rolls nothing in *this* rig is dropped as well**, and that is not the same rule. `mixed` rolls only
+     * the cabinets that get wider on their side, so an inventory of a cube and a top has nothing for it to turn — and
+     * the candidate it would produce is `upright` under another name. Dropping it here rather than letting
+     * `deduplicate()` find it afterwards is what keeps the names honest: a `-turned-` file always has something turned
+     * in it.
+     *
+     * Asked per rig rather than once, because the rigs are different inventories. Asked on the rig's whole device list
+     * rather than per stack, because a split can hand one stack no rollable cabinet while the rig plainly has one, and
+     * the scene is named for the rig.
+     *
+     * @param list<StackOrientation|null> $orientations
+     * @param list<MirrorStyle> $stated the styles somebody named, `[]` to sweep as each orientation allows
+     * @param list<string> $rolled the device ids `--roll-mirror` named, which is what a null orientation defers to
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $from
+     * @return list<array{StackOrientation|null, MirrorStyle}>
+     */
+    private function orientationPairs(
+        array $orientations,
+        array $stated,
+        array $rolled,
+        array $devices,
+        array $from,
+    ): array {
+        $pairs = [];
+        foreach ($orientations as $orientation) {
+            $rolls = $orientation?->rolls($devices, $from) ?? array_values(array_intersect($from, $rolled));
+            if ($rolls === [] && $orientation !== null && $orientation !== StackOrientation::Upright) {
+                continue;
+            }
+
+            $styles = $stated !== [] ? $stated : ($rolls === [] ? [MirrorStyle::Alternate] : MirrorStyle::cases());
+            foreach ($styles as $style) {
+                $pairs[] = [$orientation, $style];
+            }
+        }
+
+        return $pairs;
     }
 
     /**
@@ -587,6 +696,7 @@ final class SceneStackCommand extends BaseCommand
         LayoutMode $mode,
         StackShape $shape,
         MirrorStyle $style,
+        ?StackOrientation $orientation,
         int $stacks,
         string $baseId,
         float $maxWidthM,
@@ -632,8 +742,8 @@ final class SceneStackCommand extends BaseCommand
                 // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
                 $label = (string)$key;
                 $block = $this->solveGroup(
-                    $devices, $ids, $label, $mode, $shape, $style, $maxWidthM, $input, count($groups) > 1, $index, $of,
-                    $evenSplit, $placeAll,
+                    $devices, $ids, $label, $mode, $shape, $style, $orientation, $maxWidthM, $input,
+                    count($groups) > 1, $index, $of, $evenSplit, $placeAll,
                 );
                 if (is_string($block)) {
                     $problem = $label === '' ? $block : sprintf('%s: %s', $label, $block);
@@ -685,7 +795,9 @@ final class SceneStackCommand extends BaseCommand
             blocks: $blocks,
             at: $at,
             clearanceM: $clearance,
-            command: $this->commandLine($input, $mode, $shape, $style, $stacks, $baseId, $maxWidthM, $from),
+            command: $this->commandLine(
+                $input, $mode, $shape, $style, $orientation, $stacks, $baseId, $maxWidthM, $from,
+            ),
         );
 
         // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
@@ -871,6 +983,7 @@ final class SceneStackCommand extends BaseCommand
         LayoutMode $mode,
         StackShape $shape,
         MirrorStyle $style,
+        ?StackOrientation $orientation,
         float $maxWidthM,
         InputInterface $input,
         bool $named,
@@ -897,7 +1010,8 @@ final class SceneStackCommand extends BaseCommand
         $firstProblem = null;
         foreach ($candidates as $attempt) {
             $stack = $this->stackFor(
-                $attempt, $input, $devices, $maxWidthM, $shape, $style, 2 * $index < $of - 1, $of === 1,
+                $attempt, $input, $devices, $maxWidthM, $shape, $style, $orientation,
+                2 * $index < $of - 1, $of === 1,
             );
             $problems = $stack->problems();
             if ($problems !== []) {
@@ -952,13 +1066,20 @@ final class SceneStackCommand extends BaseCommand
         float $maxWidthM,
         StackShape $shape = StackShape::Free,
         MirrorStyle $style = MirrorStyle::Alternate,
+        ?StackOrientation $orientation = null,
         bool $mirror = false,
         bool $solo = false,
     ): Stack {
-        // Named outright rather than inferred from the cabinets, because **no spec field says which are
-        // horn-loaded** — and adding one to drive a rotation would be inventing a property to serve a layout.
+        // **WHICH CABINETS LIE DOWN, resolved here and nowhere else.** An orientation answers it from the specs — every
+        // sub, or only the ones that get wider on their side ({@see StackOrientation}) — and a null orientation means
+        // the caller stated the cabinets outright, which is what `--roll-mirror` is for and what every hand-written
+        // invocation in this repository uses.
+        //
+        // The stated form stays because **no spec field says which cabinets are horn-loaded**, and adding one to drive a
+        // rotation would be inventing a property to serve a layout. `subtype: sub` is a different claim, already
+        // recorded and made for its own reasons, which is why an orientation may lean on it.
         /** @var list<string> $turned */
-        $turned = $input->getOption('roll-mirror');
+        $turned = $orientation?->rolls($devices, $ids) ?? $input->getOption('roll-mirror');
 
         // The widest top is the long throw; every narrower one is fill and is aimed at the near focus.
         $fills = $this->nearFieldFills($devices, $ids);
@@ -1032,6 +1153,7 @@ final class SceneStackCommand extends BaseCommand
         LayoutMode $mode,
         StackShape $shape,
         MirrorStyle $style,
+        ?StackOrientation $orientation,
         int $stacks,
         string $baseId,
         float $maxWidthM,
@@ -1053,10 +1175,18 @@ final class SceneStackCommand extends BaseCommand
                 $parts[] = sprintf('--%s=%s', $option, $value);
             }
         }
-        /** @var list<string> $turned */
-        $turned = $input->getOption('roll-mirror');
-        foreach ($turned as $id) {
-            $parts[] = '--roll-mirror='.$id;
+        // **THE MODE, NOT THE CABINETS IT RESOLVED TO.** `--orientation=turned` means "every sub", and writing the
+        // resolved list out instead would freeze today's inventory into the file: measure a new sub, or correct one whose
+        // height turns out to be under its width, and the replay would rebuild the rig the mode no longer asks for. The
+        // stated form is only recorded where it is what the caller actually said.
+        if ($orientation !== null) {
+            $parts[] = '--orientation='.$orientation->value;
+        } else {
+            /** @var list<string> $turned */
+            $turned = $input->getOption('roll-mirror');
+            foreach ($turned as $id) {
+                $parts[] = '--roll-mirror='.$id;
+            }
         }
         /** @var list<string> $mixes */
         $mixes = $input->getOption('mix');

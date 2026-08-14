@@ -6,6 +6,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.77.0] - 2026-08-14
+
+### Added
+
+- **The orientation axis — which cabinets lie on their sides — as `StackOrientation` and `--orientation`.** SWP-1's step
+  2, and the largest single gain measured anywhere in this project: the bare sweep goes from **11 scenes of 66 candidates
+  to 61 scenes of 426**. Three-stack rigs are generated for the first time, and `stacked-all-2-turned-centred-stereo`
+  stands **39 cabinets** where the upright rig of the same gear stands 38. A rolled sub is wider and shorter, and both
+  halves pay — a wider row fills the stage in fewer cabinets, a shorter row lands inside the 2–3 m sub height band
+- three modes. `upright` rolls nothing, `turned` rolls every sub whatever it measures, and `mixed` rolls a sub only where
+  rolling makes it **wider and shorter**. `mixed` is read off the specs rather than stated, so it needs nothing measured:
+  it leaves `gmss-mid-bass` standing at 1.200 × 0.500, the one sub already wider than tall, where rolling would make the
+  wall *taller*; and it leaves the 0.600 × 0.600 `achenbach-18` standing, where rolling is geometrically nothing
+- **tops are never rolled at any setting.** Settled by the owner of the gear rather than derived, and the reason is
+  acoustic: a top's horn throws its pattern in one orientation and rolling the cabinet rolls the pattern with it. The
+  measurement agrees — rolling everything wrote 18 scenes against 24 for the subs alone — but the numbers are not why
+- the orientation and the mirror style are swept **as seven pairs rather than as 3 × 3**, because the style only decides
+  what a *rolled* row does with the odd cabinet it cannot halve and is vacuous otherwise. Independently multiplied, a
+  third of every candidate would be a duplicate by construction. A pair that rolls nothing in *this* inventory is dropped
+  as well, which keeps the names honest: a `-turned-` file always has something turned in it
+
+### Changed
+
+- `--roll-mirror` **switches the axis off**, so every hand invocation that names cabinets works exactly as it did. The two
+  options answer the same question at different resolutions, and a line saying `--roll-mirror=skram` means those cabinets
+  rather than "sweep three modes and ignore what I said"
+- a recorded command line carries `--orientation=MODE` rather than the cabinets it resolved to, so a replay stays correct
+  when a new sub is measured or a wrong dimension is corrected. **Every one of the 11 previously shipped scenes changed
+  in exactly that one comment line and nothing else**, and all 11 ids are still written — the axis is purely additive
+- `readMirrorStyles()` no longer decides its own default. It returns the styles somebody named, and the new
+  `orientationPairs()` decides what to sweep, since which cabinets roll is exactly what the orientation axis answers
+- six tests now pin `--orientation=upright` where they name a rig and count its scenes, exactly as they already pin
+  `--shape=pyramid`. An axis that grows makes "1 scene" arithmetically wrong rather than regressed
+- `testEveryGeneratedSceneCompilesAndPlacesEveryCabinet` asserts **23 cabinets less whatever the file states it left
+  out**, rather than a flat 23. `mixed` rolls the Flexys, so a sub row is 3.112 m of four cabinets instead of 3.646 m of
+  six, the wall tapers faster and the two 2-ways have nothing to stand on — 21 carried, both missing ones named. A silent
+  drop still fails, which is the defect the test exists for
+
+### Fixed
+
+- **a latent bug in `testASingleStackIsNeverMirrored`**, found by the new axis rather than caused by it. It asserted the
+  output does not contain `mirror:`, and a rolled cabinet states `roll_mirror: 90.0` — the same seven characters. The
+  loose form passed only for as long as nothing was ever rolled and would have failed on a perfectly correct stack the
+  moment one was. It asserts `mirror: true` now, which is the key it always meant
+
+### Notes
+
+- the suite is **770 tests and 11 229 assertions in 9 minutes 34 seconds**, against 662 tests in 88 seconds before. A
+  candidate is a solve plus a compile plus an interpenetration sweep, there are now 426 of them, and `ShippedScenesTest`
+  compiles all 61 written scenes on top. Runtime is explicitly not a constraint on this project, so this is recorded as a
+  fact rather than as a problem
+
 ## [0.76.0] - 2026-08-14
 
 ### Removed
