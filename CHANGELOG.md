@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.6] - 2026-08-14
+
+### Changed
+
+- **GEO-6's premise is refuted and it becomes the highest-value open item measured in this project.** It said the whole
+  inventory cannot be turned at once. It can, and turning is the largest scene gain found anywhere. Measured on the same
+  66-candidate sweep, varying only what `--roll-mirror` names: upright — **which is what the default sweep does** — writes
+  **11**, flexy plus skram turned writes 15, **every sub turned writes 24**, and every cabinet turned writes 18
+- turning every sub **more than doubles the output** and produces `stacked-all-3-*` rigs, the first three-stack rigs ever
+  generated. INFO-1 records that "no three-stack rig is generated at present; the band refuses them all" — a turned sub
+  wall is shorter, so it lands in the band
+- turning *everything* is worse than turning the subs (18 against 24) for a physical rather than geometric reason: it rolls
+  the **tops**, 194 of them across the written scenes. A top's horn is designed for one orientation and rolling it 90°
+  rolls its dispersion with it, so those rigs are geometrically valid and acoustically wrong. Low frequency is
+  near-omnidirectional, which is why the same objection does not apply to a sub
+- **so the real gap is that the sweep has no orientation axis at all**, and GEO-6 is raised to P1 and marked `decision`:
+  which cabinets may legitimately be laid on their side is physical knowledge about this gear, and this repository
+  deliberately refuses to guess it. GEO-10 is raised to P1 with it, since "subs turned, tops upright" *is* a mixed
+  orientation and carries most of the gain
+
 ## [0.74.5] - 2026-08-14
 
 ### Changed

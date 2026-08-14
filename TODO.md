@@ -51,11 +51,11 @@ ladder. Both entries record what was measured rather than what was expected.
 | GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x — the same split GEO-2 was. Needs the two-pass compile | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
 | GEO-5 | The pyramid cap reaches `statedMix` and lifts now. Its premise is false — `gmss-mid-bass` is **1.200 m** against 0.45–0.66 for the other nine — and **both pure-width replacements measured worse** (11 scenes → 7 and 8, and both introduce interpenetration). Waits on the fill/gravity reconciliation | P3 | 6h | 2 V rows, and only once the cascade is solvable | GEO-4 | measured |
-| GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
+| GEO-6 | **Premise refuted.** The whole inventory *can* be turned at once, and turning helps enormously: the default sweep writes **11 scenes and turning every sub writes 24**. The real gap is that the sweep has **no orientation axis at all**. **Needs a decision** on which cabinets may be laid down | P1 | 2h | **+13 scenes**, including the first three-stack rigs ever generated | decision | decision |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P3 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | — | measured |
-| GEO-10 | A **`mixed` orientation** beside upright and turned — some device types on their sides, the rest standing, rather than the whole inventory one way | P2 | 3h | the 3 refused turned siblings GEO-6 names, and every rig where turning helps one type and ruins another | GEO-6 | open |
+| GEO-10 | A **`mixed` orientation** beside upright and turned — some device types on their sides, the rest standing. GEO-6's measurement shows this is the *productive* case rather than an edge one: subs turned and tops upright writes 24 scenes against 11 | P1 | 3h | most of GEO-6's +13, since "subs turned, tops upright" **is** a mixed orientation | GEO-6 | open |
 
 #### GEO-5 — the pyramid cap, and the cabinet that breaks its premise
 
@@ -290,6 +290,35 @@ Re-estimate before starting.
 
 Watch the candidate count when this lands. Four shapes times three alignments times two mirror styles is 24 variants per
 rig against today's 12, and `DEFAULT_MAX_SCENES` is 80.
+
+#### GEO-6 — the orientation axis the sweep does not have
+
+Where: `--roll-mirror` in `SceneStackCommand`, `readShapes()`'s sibling for orientation, `StackEntry::$rollMirror`.
+
+**The old entry said the whole inventory cannot be turned at once. It can, and turning is the single largest scene gain
+measured anywhere in this project.** Measured on the same 66-candidate sweep, varying only what `--roll-mirror` names:
+
+| orientation | scenes written | rolled tops? |
+| --- | --- | --- |
+| upright — **what the default sweep does** | **11** | — |
+| flexy + skram turned | 15 | no |
+| every **sub** turned | **24** | **no** |
+| every cabinet turned | 18 | yes, 194 of them |
+
+Turning every sub **more than doubles the output**, and it does something nothing else has managed: `stacked-all-3-*`
+rigs appear. INFO-1 records that "no three-stack rig is generated at present; the band refuses them all" — a turned sub
+wall is shorter, so it lands in the band, and four three-stack rigs write.
+
+Turning *everything* is worse than turning the subs (18 against 24) and the reason is physical rather than geometric: it
+rolls the **tops**, 194 of them across the written scenes. A top's horn is designed for one orientation and rolling it 90°
+rolls its dispersion pattern with it, so those rigs are geometrically valid and acoustically wrong. Low frequency is
+near-omnidirectional, which is why the same objection does not apply to a sub.
+
+**So the sweep is leaving half its output on the table, and the decision is which cabinets may legitimately be laid
+down.** `subtype: sub` already exists in every spec, so "subs only" is derivable rather than invented — but whether *our*
+cabinets are built to sit on their sides is physical knowledge about this gear, and this repository deliberately refuses
+to guess at it. `StackEntry`'s own note says so: *"Named outright rather than inferred from the cabinets, because no spec
+field says which are horn-loaded — and adding one to drive a rotation would be inventing a property to serve a layout."*
 
 #### GEO-10 — a mixed orientation
 
