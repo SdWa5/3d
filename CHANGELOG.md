@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.75.1] - 2026-08-14
+
+### Changed
+
+- **SWP-1 gains a sixth axis, `(possible, impossible)`**, where an impossible rig is emitted anyway with its offending
+  cabinets painted red rather than refused. That is CVR-5, and as an axis it is the complement of `possible` rather than a
+  variant of it, so it doubles the candidate count to **2646** and turns today's 55 refusals into 55 written scenes
+- **Step 2 of SWP-1 — the folded orientation/mirror axis — was implemented, measured and reverted, and the measurement is
+  the point.** The fold works exactly as specified: `66 × 7 = 462` candidates writing **61 scenes** against 11. The
+  `-turned-turned-` doubled suffix from the first prototype turned out to be an artefact of that prototype, not of the
+  design. `DEFAULT_MAX_SCENES = 80` is *not* the constraint, since 61 fits under it
+- **the constraint is runtime, and it is severe enough to block the axis.** `SceneStackCommandTest` alone went from
+  seconds to **5 minutes 37 seconds**, and the full suite passed 10 minutes without finishing. A candidate costs a solve
+  plus a compile plus an interpenetration sweep, and narrowing the two incidental bare sweeps to `--orientation=upright`
+  was nowhere near enough. At 2646 candidates it is four times worse again. SWP-1's step 3 is rewritten from "raise the
+  fuse" to "solve the runtime", at ca. 3h, with three unmeasured options recorded: cache the solve across candidates
+  sharing a rig, have `ShippedScenesTest` compile a sample, or split the exhaustive sweep tests into an excluded slow
+  group
+- eight test failures were left unread when the suite ran out of time. Recorded as unread rather than assumed trivial,
+  though they are most likely assertions pinning scene ids or counts that the new axis legitimately changes
+
 ## [0.75.0] - 2026-08-14
 
 ### Added
