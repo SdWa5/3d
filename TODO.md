@@ -50,6 +50,7 @@ things worse, measured as 6 "nothing under it" refusals becoming 12.
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P3 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | — | measured |
+| GEO-10 | A **`mixed` orientation** beside upright and turned — some device types on their sides, the rest standing, rather than the whole inventory one way | P2 | 3h | the 3 refused turned siblings GEO-6 names, and every rig where turning helps one type and ruins another | GEO-6 | open |
 
 #### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 
@@ -209,6 +210,24 @@ Re-estimate before starting.
 Watch the candidate count when this lands. Four shapes times three alignments times two mirror styles is 24 variants per
 rig against today's 12, and `DEFAULT_MAX_SCENES` is 80.
 
+#### GEO-10 — a mixed orientation
+
+Where: `--roll-mirror` in `SceneStackCommand`, `StackEntry::$rollMirror`, and whatever the sweep decides to offer.
+
+**The option already exists per device and the sweep does not use it that way.** `--roll-mirror` takes device ids, so a
+mixed orientation is expressible today — the `-turned-` scenes in `scenes/generated` come from an invocation naming
+`flexy-folded-horn-hybrid` and `skram` specifically. What is missing is the sweep ever *choosing* a subset: it offers
+upright, or it offers everything named on the command line turned, and nothing in between.
+
+**This is the answer to GEO-6 rather than a separate feature.** That item records why turning the whole inventory fails —
+a rolled SKRAM is 19 mm taller than a rolled Flexy, so the row above straddles the step — and a subset is exactly the
+escape: turn the types where it buys width, leave the ones that would introduce a step. Read GEO-6 first, since the 19 mm
+measurement is the constraint any subset has to respect.
+
+The open question is what the sweep enumerates, because the subsets are a power set and the candidate count is already a
+concern. Worth measuring before choosing: turning only the types that are *deepest* is one rule, turning the types that
+share a rolled height is another, and either is a fixed handful of candidates rather than 2ⁿ.
+
 #### GEO-4 — resolved extents, and the row that may not move
 
 Where: `Gravity::slidSeats()` (bounded by `Stack::$slideWithinM`), `Stack::spreadApart()`, `SceneCompiler`.
@@ -315,6 +334,49 @@ but because the model has no way to raise tops other than stacking subs under th
 | CVR-3 | The default `--from` means both sound systems in one stack; make it mean one system — an `--owner` narrowing, or owner-awareness in `everySpeaker()` | P1 | 1h | **12 of GEO-2's 22 refusals**, since `all-1` cannot stand at any geometry | decision | decision |
 | CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
 | CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes — pinned at floor, scale has no P4 | decision | decision |
+| CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P2 | 5h | all 56 refusals become lookable-at, and the diagnosis stops being prose | — | open |
+| CVR-6 | **Derive a smaller rig from one that fails** — drop cabinets until the same inventory stands up, and write that as its own scene beside the refusal | P2 | 4h | a buildable scene for every rig that currently produces none, `all-1` included | CVR-5 | open |
+
+#### CVR-5 — show the failure instead of describing it
+
+Where: `SceneStackCommand`'s refusal paths, `StackChecks`, `SceneStackCommand::floating()`, and a material override in the
+Blender build.
+
+Every check in this repository answers with a sentence and then throws the geometry away. That is the wrong way round for
+the failures that are hard to picture, which is most of them: "a gmss-turbo-top would stand at 4.668 m with nothing under
+it across x" took a debug dump, two probes and a corrected coordinate mapping to understand, and a render with that one
+cabinet in red would have said it immediately.
+
+So the refusal becomes a **scene plus a marking** rather than a skip. Each checker already names the cabinet or the run it
+objects to, so the information exists and is currently discarded at the point of refusal.
+
+Three things to settle while building it, none of them yet decided:
+
+* **Where the colour lives.** A `debug_colour` on the placement is the smallest thing that works and it puts a rendering
+  concern into the scene schema. An override passed to `scene:build` keeps the schema clean and means the marking is not
+  reproducible from the scene file alone.
+* **These scenes must not be mistaken for buildable ones.** A separate output directory, or a required prefix, and they
+  stay out of whatever the sweep counts as written.
+* **`ShippedScenesTest` must keep refusing them.** The test's whole promise is that a shipped scene stands up, so the
+  marked scenes have to be excluded by construction rather than by a list somebody maintains.
+
+#### CVR-6 — the same rig, small enough to stand
+
+Where: the sweep in `SceneStackCommand`, alongside {@see WIDTH_LADDER_M}'s existing retry.
+
+The sweep already walks a **width** ladder when a rig misses the height band. This is the same idea on the other axis:
+walk the **cabinet count** down until the rig stands, and write that. `all-1` is the case that proves it is worth having —
+41 cabinets in one stack cannot reach the band at any width, and nothing about that is interesting, whereas "here is the
+biggest one-stack rig those cabinets *can* build" is the answer somebody actually wanted.
+
+Which cabinets to drop is the question, and it is not obvious. Dropping the deepest loses the bottom row that carries
+everything; dropping the tops changes what the rig is *for*. A first cut worth measuring is to drop whole rows from the top
+of the sub wall, since that is what a crew does when the wall is too tall, and to stop at the first arrangement that
+stands. Report what was left out by name — `statedMix` and the `LEFT OUT` reporting already do this elsewhere, so the
+convention exists.
+
+Depends on CVR-5 only for the framing: once a failing rig is emitted rather than skipped, "and here is the reduced one
+that works" is the obvious companion output rather than a second mechanism.
 
 #### CVR-1 — tops that do not stand on the sub wall
 

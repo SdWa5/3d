@@ -170,6 +170,46 @@ final class Interpenetration
     }
 
     /**
+     * The tightest gap between any cabinet of one group and any cabinet of another, positive when there is room.
+     *
+     * **The measure an `outside` clearance solve needs, and the reason it is not an x comparison.** That solve used to
+     * reduce both sides to an x interval and subtract them, which over-demands clearance rather than merely
+     * approximating it: two aimed cabinets whose x extents overlap **nest in y and never touch**, because a toed-in
+     * trapezoid's outermost point is a back bottom corner and swings behind its neighbour rather than into it. Three
+     * aimed Tecnares span 1.5137 m where their nominal widths and gaps give 1.540, and an x-interval solve pushes a
+     * fill out until intervals that were never in conflict stop overlapping.
+     *
+     * Signed throughout and negative while the two overlap, which is what a bisection needs — see {@see narrowestGap}
+     * for why {@see worst} cannot serve as an objective.
+     *
+     * **This reads y and z as well as x, and that is inherent rather than incidental.** Nesting *is* a y effect, so a
+     * measure blind to y cannot see it. One consequence is worth knowing: two cabinets at different heights are now
+     * correctly reported as clear, so a fill that gravity seated onto a lower shoulder is no longer pushed away from a
+     * neighbour it cannot reach.
+     *
+     * @param list<PlacedDevice> $mine
+     * @param list<PlacedDevice> $theirs
+     */
+    public static function gapBetween(array $mine, array $theirs): float
+    {
+        if ($mine === [] || $theirs === []) {
+            return INF;
+        }
+
+        $hulls = array_map(static fn (PlacedDevice $entry): array => self::corners($entry), $theirs);
+
+        $tightest = INF;
+        foreach ($mine as $cabinet) {
+            $hull = self::corners($cabinet);
+            foreach ($hulls as $other) {
+                $tightest = min($tightest, self::distance($hull, $other));
+            }
+        }
+
+        return $tightest;
+    }
+
+    /**
      * The separating distance between two hulls across **every** axis, with no early exit.
      *
      * {@see separation} stops at the first axis that separates the pair, which is right for a yes-or-no answer and

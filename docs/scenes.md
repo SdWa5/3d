@@ -442,9 +442,17 @@ the alignment vocabulary text has, applied to cabinets.
 | `across` | an **earlier** placement; its own outer edges are the envelope |
 | `inside` | an **earlier** placement; the clear gap between its outermost cabinets' facing edges is the envelope |
 | `outside` | an **earlier** placement to sit *beyond*; `inset_m` is then the clearance to keep past its outer faces, not a width to span |
+| `clear_of` | an **earlier** placement whose *cabinets* these must not come within `inset_m` of. A collision clearance, not an envelope — see below for why that is a different question from `outside` |
 | `inset_m` | taken off the envelope on **each** side. Default 0 |
 
-Exactly one of `width_m`, `across` and `inside` is stated, and `center` takes none of them.
+Exactly one of `width_m`, `across`, `inside`, `outside` and `clear_of` is stated, and `center` takes none of them.
+
+**`outside` and `clear_of` are not two spellings of one idea.** `outside` collapses its reference to the x span the
+cabinets cover and gets past the whole of it. `clear_of` measures the cabinets themselves and only keeps off them. The
+difference bites whenever the reference is *aimed*: a toed-in trapezoid's outermost point is a back bottom corner that
+swings behind its neighbour, so two cabinets whose spans overlap can nest without touching. Three 0.5 m tops on a 1.5 m
+step leave 1.0 m between neighbours, and a 0.6 m sub asked merely not to touch them sits in that gap where `outside`
+would drive it outboard of all three — 1.74 m of span against 4.74 m.
 
 **Why this is a feature and not arithmetic.** An aimed cabinet's outer edge cannot be computed from its
 width. Aiming toes it in, a toed-in cabinet occupies more x than it is wide, and how far it toes in depends
@@ -885,13 +893,18 @@ make sense together:
   makes when it centres the widest and puts the smaller boxes outboard. A fill takes `aim: near`; the long throw
   keeps the placement's own aim. Before this, one `aim` covered every top a stack carried, so a 2-way beside an
   M2122 was thrown at the far focus instead of at the front row.
-* A fill is solved `align.outside` the nearest long-throw run **on its own side**, with the working gap as the
+* A fill is solved `align.clear_of` the nearest long-throw run **on its own side**, with the working gap as the
   clearance. That is what a nominal gap cannot do: two tops aimed at one focus from different x take different
   *yaws*, the outer one turns more, and it turns *into* its neighbour. At the far focus that cost 7.9 mm of the
   stated 20 in a one-stack rig and bit **1.7 mm** in a three-stack rig's right stack; at the near focus, with the
   fill toed in 36°, it bit **117 mm**.
+* **`clear_of` rather than `outside`, and the fill's height is why.** `outside` measures the span its reference covers,
+  and an aimed cabinet's span runs far wider than its body — a 2-way yawed 29.4° presents 0.8523 m on a 0.5 m cabinet.
+  Down a chain of fills that compounds, and it drove a GMSS turbo top **514 mm** off the run gravity had seated it on,
+  leaving it hanging **228 mm** over a step while the solver still believed it was carried. A fill only has to miss its
+  neighbour, so it is measured on the shells and lands on exactly the stated working gap instead of well past it.
 
-The long throw is therefore emitted **first** within its tier, because `outside` can only name a placement that
+The long throw is therefore emitted **first** within its tier, because the reference can only name a placement that
 already exists. Only the order changes; which segment is which does not. And the long throw may itself land in
 several runs — a stepped tier below splits three M2122s into two — so each fill is solved against whichever is
 nearest on its side, which clears the rest by construction.

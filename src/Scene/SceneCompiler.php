@@ -567,21 +567,41 @@ final class SceneCompiler
         Alignment $align,
         array $placedById,
     ): array|string {
-        $obstacle = Envelope::obstacleFor($align, $placedById);
-        if (is_string($obstacle)) {
-            return $obstacle;
-        }
+        // Two objectives, chosen by which key was written. `clear_of` measures the reference's shells and `outside`
+        // measures the span it covers, and {@see Alignment::$clearOf} sets out why neither can stand in for the other.
+        if ($align->clearOf !== null) {
+            $keepOff = Envelope::cabinetsFor($align, $placedById);
+            if (is_string($keepOff)) {
+                return $keepOff;
+            }
 
-        $clearanceAt = fn (float $parameter): float => $this->clearanceOf(
-            $placement,
-            $device,
-            $align->apply($copies, $parameter),
-            $base,
-            $target,
-            $hangAim,
-            $pitchDeg,
-            $obstacle,
-        );
+            $clearanceAt = fn (float $parameter): float => $this->clearanceOfShells(
+                $placement,
+                $device,
+                $align->apply($copies, $parameter),
+                $base,
+                $target,
+                $hangAim,
+                $pitchDeg,
+                $keepOff,
+            );
+        } else {
+            $obstacle = Envelope::obstacleFor($align, $placedById);
+            if (is_string($obstacle)) {
+                return $obstacle;
+            }
+
+            $clearanceAt = fn (float $parameter): float => $this->clearanceOf(
+                $placement,
+                $device,
+                $align->apply($copies, $parameter),
+                $base,
+                $target,
+                $hangAim,
+                $pitchDeg,
+                $obstacle,
+            );
+        }
 
         // **`inset_m` is a minimum, not a target.** Cabinets already further out than asked are left exactly where
         // they are rather than pulled back in, and that is the useful reading as well as the safe one: a fill that
@@ -595,9 +615,10 @@ final class SceneCompiler
         $parameter = StepSolver::solve($clearanceAt, $align->insetM, $align->startParameter());
         if ($parameter === null) {
             return sprintf(
-                'align.outside: the cabinets never reach %.4f m clear of %s, however far they are pushed out',
+                'align.%s: the cabinets never reach %.4f m clear of %s, however far they are pushed out',
+                $align->clearOf !== null ? 'clear_of' : 'outside',
                 $align->insetM,
-                (string)$align->outside,
+                (string)($align->clearOf ?? $align->outside),
             );
         }
 
@@ -628,16 +649,17 @@ final class SceneCompiler
     /**
      * How much air an `outside` alignment leaves between its cabinets and the placement they have to clear.
      *
+     * Negative when the cabinets are still inside the obstacle, which is what the solver needs: the bracket has
+     * to start somewhere below the target, and "they overlap by 300 mm" is a perfectly good place to start.
+     *
      * The other half of {@see spanOf}'s job, against the same rotated boxes. Both numbers come out of
      * {@see Envelope}: the free span between my own outermost cabinets, less the obstacle's extent, halved —
      * because the clearance is per side and the arrangement is symmetric about `at`.
      *
-     * Negative when the cabinets are still inside the obstacle, which is what the solver needs: the bracket has
-     * to start somewhere below the target, and "they overlap by 300 mm" is a perfectly good place to start.
-     *
      * @param list<PlacementCopy> $copies
      * @param array{float, float, float} $base
      * @param array{float, float, float}|null $target
+     * @param array{float, float} $obstacle the x span to get past
      */
     private function clearanceOf(
         Placement $placement,
@@ -668,6 +690,39 @@ final class SceneCompiler
         }
 
         return $worst;
+    }
+
+    /**
+     * How much air a `clear_of` alignment leaves between its cabinets and the ones it must not touch.
+     *
+     * {@see clearanceOf}'s sibling, and the difference is the whole reason both exist. That one asks how far past a
+     * **span** the cabinets are, which is what `outside` means and what a hand-written envelope needs. This asks how
+     * far from the obstacle's **shells** they are, which is what a fill beside the long throw needs: two tops aimed at
+     * one focus take different yaws, and their axis-aligned spans overlap long before the cabinets do, because a
+     * toed-in trapezoid's outermost point is a back bottom corner that swings behind its neighbour rather than into it.
+     *
+     * Measured against a span, a chain of fills over-pushes and it compounds down the chain: a 2-way yawed 29.4° has a
+     * 0.8523 m span on a 0.5 m body, and the turbo top clearing it was driven 514 mm off the run that gave it its
+     * height. See {@see Interpenetration::gapBetween}.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     * @param list<PlacedDevice> $obstacle the cabinets to keep off, not a span to get past
+     */
+    private function clearanceOfShells(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+        array $obstacle,
+    ): float {
+        $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
+
+        return $placed === [] ? 0.0 : Interpenetration::gapBetween($placed, $obstacle);
     }
 
     /**

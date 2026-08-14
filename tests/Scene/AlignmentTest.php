@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneSpec;
@@ -261,6 +262,36 @@ final class AlignmentTest extends TestCase
         // Three 0.5 m tops on a 1.5 m step span 3.5 m. Two 0.6 m subs 20 mm clear of that, one either side, put
         // their inner faces at ±1.77 and so span 3.5 + 2×0.02 + 2×0.6 = 4.74 m outer to outer.
         self::assertEqualsWithDelta(4.74, $this->extent(array_slice($placed, 3)), 1e-6);
+    }
+
+    /**
+     * `clear_of` keeps air from a placement's **cabinets**, where `outside` gets past the **span** they cover.
+     *
+     * The two are not interchangeable and this is the case that separates them. Three 0.5 m tops on a 1.5 m step
+     * leave 1.0 m of air between neighbours, so a 0.6 m sub asked only not to *touch* them fits in that gap and stays
+     * where it is; asked to get past their outer faces it is driven outboard of all three. Replacing one with the
+     * other collapsed this arrangement from a 4.74 m span to 1.74 m, the fills having cleared the middle top alone.
+     *
+     * Which a stack wants is the fill beside the long throw, since a fill only has to miss its neighbour — see
+     * {@see Alignment::$clearOf}.
+     */
+    public function testClearOfKeepsAirFromTheCabinetsRatherThanPastTheirSpan(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top', 'at' => [0.0, 0.0], 'row' => ['count' => 3, 'step_m' => 1.5]],
+            ['id' => 'fills', 'device' => 'sub', 'at' => [0.0, 0.0],
+                'align' => ['mode' => 'stereo', 'clear_of' => 'tops', 'inset_m' => 0.02],
+                'row' => ['count' => 2]],
+        ]);
+
+        $tops = array_slice($placed, 0, 3);
+        $fills = array_slice($placed, 3);
+
+        // Unaimed here, so the shells are the boxes and the arithmetic is checkable by hand: a 0.6 m sub 20 mm clear
+        // of a 0.5 m top on the centre line puts its own centre at 0.25 + 0.02 + 0.3 = 0.57, so the pair spans 1.74 m.
+        // `outside` would have pushed them past the outer top at ±1.75 instead, for 4.74 m.
+        self::assertEqualsWithDelta(1.74, $this->extent($fills), 1e-6);
+        self::assertEqualsWithDelta(0.02, Interpenetration::gapBetween($fills, $tops), 1e-5);
     }
 
     /**

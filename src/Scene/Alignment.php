@@ -71,8 +71,27 @@ final class Alignment
          * `inset_m: 0.020` says the 20 mm and the solve finds the 2.60.
          */
         public readonly ?string $outside = null,
-        /** Taken off the envelope on **each** side — "20 mm inside the outer tops". Or, with `outside`, the
-         * clearance to keep beyond it. */
+        /**
+         * An earlier placement whose **cabinets** these must not come within `inset_m` of — a collision clearance
+         * rather than an envelope.
+         *
+         * **The difference from {@see $outside} is not a refinement, it is a different question**, and conflating
+         * them broke both. `outside` asks to be past somebody's outer faces, so the reference collapses to an x
+         * span and a cabinet must clear the whole of it. That is right for a hand-written envelope and wrong for a
+         * fill standing beside the long throw, because two tops aimed at one focus take different yaws and their
+         * spans overlap long before the cabinets do: a toed-in trapezoid's outermost point is a back bottom corner
+         * that swings *behind* its neighbour. So a span measure demands air that was never needed, and in a chain of
+         * fills it compounds — a 2-way yawed 29.4° presents a 0.8523 m span on a 0.5 m body, and the turbo top
+         * clearing it was pushed 514 mm off the run that had given it its height, leaving it hanging 228 mm over a
+         * step.
+         *
+         * Measured on the shells by {@see Interpenetration::gapBetween}, which is a minimum over pairs — and that is
+         * exactly why it cannot replace `outside`: a cabinet can satisfy it while sitting in a *gap* between two of
+         * the reference's cabinets, nested inside the span it was told to stay out of.
+         */
+        public readonly ?string $clearOf = null,
+        /** Taken off the envelope on **each** side — "20 mm inside the outer tops". Or, with `outside` or
+         * `clear_of`, the clearance to keep from it. */
         public readonly float $insetM = 0.0,
         /**
          * Which way a cabinet **on the centre line** is pushed: `-1` left, `+1` right, `0` to work it out from
@@ -90,7 +109,7 @@ final class Alignment
 
     public static function fromReader(ArrayReader $reader): self
     {
-        $allowed = ['mode', 'width_m', 'across', 'inside', 'outside', 'inset_m', 'side'];
+        $allowed = ['mode', 'width_m', 'across', 'inside', 'outside', 'clear_of', 'inset_m', 'side'];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
             throw new InvalidSpecException(sprintf(
@@ -106,6 +125,7 @@ final class Alignment
             across: $reader->optionalString('across'),
             inside: $reader->optionalString('inside'),
             outside: $reader->optionalString('outside'),
+            clearOf: $reader->optionalString('clear_of'),
             insetM: $reader->optionalFloat('inset_m', 0.0) ?? 0.0,
             side: match ($reader->optionalString('side')) {
                 'left' => -1.0,
@@ -123,20 +143,24 @@ final class Alignment
      */
     public function reference(): ?string
     {
-        return $this->across ?? $this->inside ?? $this->outside;
+        return $this->across ?? $this->inside ?? $this->outside ?? $this->clearOf;
     }
 
     /**
      * Whether the solve is against a **clearance** rather than a width.
      *
      * The two objectives are genuinely different questions, which is why this is a flag and not another number:
-     * `across`/`inside`/`width_m` all ask "how wide should my cabinets come out", and `outside` asks "how much
-     * air should there be between me and that". Only the second one can be satisfied by a lone cabinet, and only
-     * the first has a tightest case worth reporting.
+     * `across`/`inside`/`width_m` all ask "how wide should my cabinets come out", and `outside` and `clear_of` ask
+     * "how much air should there be between me and that". Only the second kind can be satisfied by a lone cabinet,
+     * and only the first has a tightest case worth reporting.
+     *
+     * Both clearance keys count. They differ in *what* they measure against — a span for `outside`, the cabinets
+     * themselves for `clear_of`, see {@see $clearOf} — and not in being a clearance, so every rule that turns on
+     * "is this a clearance solve" applies to both.
      */
     public function isClearance(): bool
     {
-        return $this->outside !== null;
+        return $this->outside !== null || $this->clearOf !== null;
     }
 
     /**
@@ -152,7 +176,14 @@ final class Alignment
             return $this;
         }
 
-        return new self($this->mode, null, $placementId, null, null, $this->insetM, $this->side);
+        // Named arguments deliberately. Positionally, adding `clearOf` ahead of `insetM` silently slid the inset into
+        // the new parameter and `side` into the inset, which every alignment test then failed on at once.
+        return new self(
+            mode: $this->mode,
+            across: $placementId,
+            insetM: $this->insetM,
+            side: $this->side,
+        );
     }
 
     /**
@@ -169,13 +200,18 @@ final class Alignment
             return $this;
         }
 
-        return new self($this->mode, $widthM, null, null, null, $this->insetM, $this->side);
+        return new self(
+            mode: $this->mode,
+            widthM: $widthM,
+            insetM: $this->insetM,
+            side: $this->side,
+        );
     }
 
     private function hasEnvelope(): bool
     {
         return $this->widthM !== null || $this->across !== null || $this->inside !== null
-            || $this->outside !== null;
+            || $this->outside !== null || $this->clearOf !== null;
     }
 
     /**
@@ -188,23 +224,24 @@ final class Alignment
     public function problems(GroupStack $group, int $copyCount): array
     {
         $messages = [];
-        $sources = [$this->widthM, $this->across, $this->inside, $this->outside];
+        $sources = [$this->widthM, $this->across, $this->inside, $this->outside, $this->clearOf];
         $stated = count(array_filter($sources, static fn (mixed $v): bool => $v !== null));
 
         if ($stated > 1) {
-            $messages[] = 'use one of align.width_m, align.across, align.inside or align.outside, not two '
-                .'— they all state what the tier is solved against';
+            $messages[] = 'use one of align.width_m, align.across, align.inside, align.outside or align.clear_of, '
+                .'not two — they all state what the tier is solved against';
         }
         if ($this->mode->isSolved() && $stated === 0) {
             $messages[] = sprintf(
-                "align.mode '%s' needs something to solve against — state width_m, across, inside or outside",
+                "align.mode '%s' needs something to solve against — state width_m, across, inside, outside or "
+                .'clear_of',
                 $this->mode->value,
             );
         }
         if (!$this->mode->isSolved() && ($stated > 0 || $this->insetM !== 0.0)) {
             // Silently ignoring them would make `center` look like it had been given a width and obeyed it.
             $messages[] = "align.mode 'center' is the natural spacing and has nothing to solve "
-                .'— remove width_m/across/inside/outside/inset_m, or ask for block';
+                .'— remove width_m/across/inside/outside/clear_of/inset_m, or ask for block';
         }
         if ($this->widthM !== null && $this->widthM <= 0.0) {
             $messages[] = sprintf('align.width_m must be positive, got %s', $this->widthM);
@@ -312,8 +349,11 @@ final class Alignment
             $messages[] = 'align needs more than one cabinet across x to space';
         }
         if ($lattice->count[0] < 2 && $this->isClearance() && $this->side === 0.0) {
-            $messages[] = "align.outside on a single cabinet needs align.side: 'left' or 'right' — a cabinet on "
-                .'the centre line has no sign to say which way out is';
+            $messages[] = sprintf(
+                "align.%s on a single cabinet needs align.side: 'left' or 'right' — a cabinet on the centre line "
+                .'has no sign to say which way out is',
+                $this->clearOf !== null ? 'clear_of' : 'outside',
+            );
         }
         if ($lattice->stepM[0] !== 0.0) {
             // Only `step_m`. `gap_m` stays legal: it is the natural spacing the solve starts from, it is

@@ -511,9 +511,15 @@ final class Stack
 
         $nearest = $throw[$run['id']] ?? null;
         if ($nearest !== null) {
+            // `clear_of` rather than `outside`, and the difference is measured rather than cosmetic. `outside` reduces
+            // the reference to the x span it covers, and an aimed cabinet's span runs far wider than its body — a 2-way
+            // yawed 29.4° presents 0.8523 m on a 0.5 m cabinet. Down a chain of fills that compounds, and it drove a
+            // GMSS turbo top 514 mm off the run that had given it its height, leaving it hanging 228 mm over a step
+            // while gravity still believed it was carried. A fill only has to not *touch* its neighbour, which is what
+            // {@see Alignment::$clearOf} asks and what {@see Interpenetration::gapBetween} measures on the shells.
             return new Alignment(
                 mode: LayoutMode::Stereo,
-                outside: $nearest['id'],
+                clearOf: $nearest['id'],
                 insetM: $this->gapM,
                 side: $nearest['side'],
             );

@@ -76,6 +76,14 @@ final class Envelope
      * fill sits on one side of it and has to clear that side, while a pair straddles it and has to clear both.
      * A width alone was enough only while the arrangement was assumed symmetric, and a single cabinet is not.
      *
+     * **A SPAN IS THE POINT OF `outside`, NOT AN APPROXIMATION OF A COLLISION TEST**, and that is worth stating
+     * because replacing it with one broke this outright. `outside` means "past somebody's outer faces", so a
+     * cabinet has to clear the whole span; a hull-to-hull measure is a minimum over pairs, which a cabinet can
+     * satisfy while sitting in a *gap* between two of the obstacle's cabinets, nested inside the span it was told
+     * to stay out of. Three 0.5 m tops on a 1.5 m step went from spanning 4.74 m to 1.74 m that way, the fills
+     * having cleared the middle top alone. What genuinely needs a hull measure is a fill that must merely not
+     * touch its neighbour, and that is {@see Alignment::$clearOf}.
+     *
      * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
      * @return array{float, float}|string
      */
@@ -98,6 +106,29 @@ final class Envelope
         }
 
         return $min === INF ? [0.0, 0.0] : [$min, $max];
+    }
+
+    /**
+     * The cabinets a `clear_of` alignment names — what its own cabinets must not come within `inset_m` of.
+     *
+     * The companion to {@see obstacleFor} and deliberately a different shape of answer, because the objective is
+     * different: that one hands back a **span** to get past, this hands back the **cabinets** to keep off. See
+     * {@see Alignment::$clearOf} for why a fill wants the second and a hand-written envelope wants the first.
+     *
+     * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
+     * @return list<PlacedDevice>|string
+     */
+    public static function cabinetsFor(Alignment $align, array $placedById): array|string
+    {
+        /** @var string $reference */
+        $reference = $align->clearOf;
+        $cabinets = $placedById[$reference] ?? null;
+
+        if ($cabinets === null) {
+            return sprintf("align.clear_of: '%s' must name an earlier placement", $reference);
+        }
+
+        return $cabinets;
     }
 
     /**

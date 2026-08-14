@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneSpec;
@@ -114,9 +115,15 @@ final class StackTest extends TestCase
      *
      * Checked on the **slot positions**, not the rotated boxes. The fills are no longer one nominal gap from the
      * long throw, and that is the change rather than a regression: toe-in used to eat the stated 20 mm down to
-     * 7.9 mm of real air, so a fill is now solved `outside` the M2122 beside it and the 20 mm is the air that is
-     * actually there. It costs 12.4 mm of slot position per side. 7.9 mm still cleared here; the same mechanism
-     * bit 1.7 mm in a three-stack rig's right stack, which is what made it worth solving rather than tolerating.
+     * 7.9 mm of real air, so a fill is now solved against the M2122 beside it and the 20 mm is the air that is
+     * actually there. 7.9 mm still cleared here; the same mechanism bit 1.7 mm in a three-stack rig's right stack,
+     * which is what made it worth solving rather than tolerating.
+     *
+     * **The fill sits 12 mm closer than it did under `align.outside`, and the 20 mm is still there** — asserted
+     * below on the shells rather than inferred, which is the whole point. `outside` collapses its reference to an x
+     * span, so it put 20 mm between the *extreme x points* of two rotated boxes; the cabinets nest in y, so the real
+     * separation was more than asked for and the fill was pushed further out than the gap required.
+     * {@see Alignment::$clearOf} measures the shells and lands exactly on the stated working gap.
      */
     public function testTheSegmentsOfAMixedRowSitSideBySideWithOneGapBetweenThem(): void
     {
@@ -132,12 +139,22 @@ final class StackTest extends TestCase
         };
 
         // Three M2122s centred on -0.302, with a 2-way solved 20 mm clear of each end of them. The flanking centres
-        // moved out by 15 mm when the M2122s themselves stopped sitting closer than their own working gap: they are
-        // aimed, and their front corners were 20 mm apart in nominal widths but not in fact. The middle segment does
-        // not move, because spreading a row scales its offsets about its own centre.
+        // moved out when the M2122s themselves stopped sitting closer than their own working gap: they are aimed, and
+        // their front corners were 20 mm apart in nominal widths but not in fact. The middle segment does not move,
+        // because spreading a row scales its offsets about its own centre.
         self::assertEqualsWithDelta(-0.302, $centre('main/4b'), 1e-9);
-        self::assertEqualsWithDelta(-1.352076, $centre('main/4a'), 1e-6);
-        self::assertEqualsWithDelta(0.748076, $centre('main/4c'), 1e-6);
+        self::assertEqualsWithDelta(-1.340096, $centre('main/4a'), 1e-6);
+        self::assertEqualsWithDelta(0.736096, $centre('main/4c'), 1e-6);
+
+        // The number the positions above exist to deliver, measured the way the solve measures it. Symmetric to the
+        // micrometre, which is itself worth pinning: a one-sided answer would mean the two fills were solved against
+        // different things.
+        $segment = static fn (string $id): array => array_values(array_filter(
+            $placed,
+            static fn (PlacedDevice $e): bool => self::belongsTo($e, $id),
+        ));
+        self::assertEqualsWithDelta(0.020, Interpenetration::gapBetween($segment('main/4a'), $segment('main/4b')), 1e-5);
+        self::assertEqualsWithDelta(0.020, Interpenetration::gapBetween($segment('main/4c'), $segment('main/4b')), 1e-5);
     }
 
     /**

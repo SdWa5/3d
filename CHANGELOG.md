@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.0] - 2026-08-14
+
+### Added
+
+- **`align.clear_of`** — an earlier placement whose *cabinets* these must not come within `inset_m` of, measured on the
+  shells by the new `Interpenetration::gapBetween()`. The companion to `align.outside` and deliberately not a
+  replacement for it: `outside` collapses its reference to an x span and gets past the whole of it, which is what a
+  hand-written envelope needs, while `clear_of` only keeps off the cabinets themselves, which is what a fill beside the
+  long throw needs
+
+### Fixed
+
+- **A near-field fill was pushed far enough to leave the run that had given it its height.** Fills are solved against the
+  nearest long-throw run, and that solve used `align.outside`, which measures the *span* a reference covers. An aimed
+  cabinet's span runs far wider than its body — a 2-way yawed 29.4° presents 0.8523 m on a 0.5 m cabinet — and down a
+  chain of fills it compounds: a GMSS turbo top was driven **514 mm** off its seat, keeping the 4.668 m it had been given
+  while ending up over a support 228 mm lower, so it hung in the air and the sweep refused the rig. Fills now use
+  `clear_of`, which lands on exactly the stated working gap. **Floating refusals fall from 6 to 3**, the support family
+  from 11 to 8, with the same 10 scenes written
+- the fill now sits **12 mm closer** than before and still keeps its full 20 mm, asserted on the shells rather than
+  inferred. `outside` had been putting 20 mm between the *extreme x points* of two rotated boxes, and since the cabinets
+  nest in y the real separation was larger than asked for
+- `Alignment`'s two rewriting helpers used **positional** constructor arguments, so adding a parameter ahead of `insetM`
+  silently slid the inset into the new field and `side` into the inset. Every alignment test failed at once, which is the
+  good case; both now pass by name
+
 ## [0.73.3] - 2026-08-14
 
 ### Changed
