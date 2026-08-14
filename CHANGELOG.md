@@ -6,6 +6,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.78.0] - 2026-08-15
+
+### Added
+
+- **The inventory axis is every non-empty combination of owners**, which is SWP-1's step 4 and CVR-3. Suite: 952 tests,
+  16 751 assertions, 9 minutes 11 seconds. The sweep goes from
+  61 scenes of 426 candidates to **149 of 804**, and **not one previously shipped scene changed by a byte**
+- **the borrowed-gear pairs are where the output is**, which the TODO had guessed wrong. It read "this axis does not pay
+  off on its own", on the grounds that `sepp` alone cannot produce anything — still true, `sepp` writes 0. What it missed
+  is the middle: `sdwa5-sepp` writes **50 scenes**, more than any single owner and more than `all`. Six Achenbachs cannot
+  fill a 2 m wall alone and are excellent under somebody else's tops, which is exactly the borrowing this repository
+  supports on purpose. `all` writes fewer because 41 cabinets in one rig is two sound systems, where 25 is a gig
+- `--owner=NAME`, repeatable, which **narrows the inventory axis without collapsing the sweep**. It is the one narrowing
+  option here that is not a rig somebody named: `--from` means "this rig at this width", where `--owner` still asks the
+  sweep to walk the stack counts, shapes, orientations and the width ladder. An unknown owner is refused and the owners
+  there are named
+
+### Changed
+
+- **`DEFAULT_MAX_SCENES` raised 80 → 200**, deliberately, which is what the fuse is for. The owner combinations write 149
+  and 80 refused the run outright — the correct behaviour, and the point at which somebody looks at the number and
+  decides it is the output they meant. The next raise is CVR-5, whose `impossible` half would turn today's 655 refusals
+  into written scenes
+- the over-the-limit message names options that exist. It advised `--align/--subs`, and `--subs` has never been an option
+  of this command
+- **`--owner` binds on the narrow path too**, so `--owner=gmss --stacks=1` builds GMSS's gear rather than everything.
+  Silently ignoring a stated option is the failure mode this command avoids everywhere else. Naming both `--owner` and
+  `--from` is refused outright, since they say the same thing at different resolutions and no reading of both is anything
+  but a guess
+- three of `SceneStackCommandTest`'s slow cases name one alignment and one shape. They assert what the orientation and
+  mirror axes offer, which neither alignment nor shape changes, so the bare sweep in them was the same assertion at eight
+  times the runtime. `testTheBareCommandWritesScenesAcrossOwnersAndStackCounts` is where that full run is paid for once
+
+### Removed
+
+- **`build:all`'s second, hard-coded orientation axis.** A `regenerateTurned()` pass re-ran every generated scene's
+  recorded command with `--roll-mirror=flexy-folded-horn-hybrid --roll-mirror=skram` under an `-turned` id — which is
+  where the ten `-turned-` scenes deleted in 0.76.0 came from, and it was exactly the second copy of the command list
+  that stage's own docblock argues against. The orientation axis supersedes it on every count: every sub rather than two
+  named cabinets, three modes and seven pairs rather than one, and each choice recorded in the file's own line
+
+### Fixed
+
+- **`build:all` wrote 141 stray scenes and silently rewrote two committed ones.** The removed pass detected an
+  already-turned rig by looking for `--roll-mirror=` in the recorded command, and a turned rig now records
+  `--orientation=turned` — so it turned the turned rigs again and produced ids like
+  `stacked-sdwa5-sepp-2-turned-turned-column-center`. 149 scenes in, 290 out
+- the gap that hid it: **nothing ever ran that stage**, only `--dry-run`. A new
+  `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` pins the contract it rests on — replaying all 149
+  recorded commands rewrites exactly those 149 files, byte for byte — in 18 seconds. Covering the stage itself is TOOL-6,
+  since it calls `prune()` and a test that fails midway could delete real renders
+
 ## [0.77.0] - 2026-08-14
 
 ### Added

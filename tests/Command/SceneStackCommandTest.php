@@ -747,8 +747,7 @@ final class SceneStackCommandTest extends TestCase
      * **Every generated scene stands inside the band its own file asks for**, which is the invariant the band exists
      * to hold and the one a stale file would break silently.
      *
-     * Read from the files rather than from a sweep, so it also covers the turned siblings `build:all` writes and any
-     * scene left behind by a solver change. Each file states its own bounds, so nothing here assumes 2–3 m: a scene
+     * Read from the files rather than from a sweep, so it also covers any scene left behind by a solver change. Each file states its own bounds, so nothing here assumes 2–3 m: a scene
      * that asks for something else is held to what it asks for.
      */
     public function testEveryGeneratedSceneStandsInsideItsOwnBand(): void
@@ -834,7 +833,12 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheMirrorStyleAxisIsSweptOnlyWhereSomethingIsRolled(): void
     {
-        $display = $this->invoke(['--dry-run' => true])->getDisplay();
+        // One alignment and one shape, which neither the orientation nor the mirror style depends on. The bare sweep
+        // asserts the same thing eight times over, and `testTheBareCommandWritesScenesAcrossOwnersAndStackCounts` is
+        // where that whole run is paid for once.
+        $display = $this->invoke([
+            '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'],
+        ])->getDisplay();
 
         preg_match_all('/^\s*(?:skipped|id:)\s*(\S+)/m', $display, $matches);
         self::assertNotSame([], $matches[1]);
@@ -860,6 +864,7 @@ final class SceneStackCommandTest extends TestCase
     {
         $display = $this->invoke([
             '--dry-run' => true, '--orientation' => ['upright'], '--mirror-style' => ['centred'],
+            '--align' => ['center'], '--shape' => ['pyramid'],
         ])->getDisplay();
 
         self::assertStringContainsString('-centred-', $display);
@@ -890,6 +895,97 @@ final class SceneStackCommandTest extends TestCase
             ], $id.' is a top and was rolled');
         }
         self::assertNotSame([], $rolled[1], 'nothing was rolled at all, so the assertion above proves nothing');
+    }
+
+    /**
+     * The inventory axis is every non-empty combination of owners, and the **pairs** are the ones that were missing.
+     *
+     * Borrowing gear between owners is something this repository supports on purpose, and until the combinations landed
+     * the sweep jumped from one owner straight to all of them. The pair is not a curiosity either: `sdwa5-sepp` writes
+     * more scenes than any single owner and more than `all`, because `sepp`'s six Achenbachs cannot stand alone and are
+     * excellent under somebody else's tops.
+     *
+     * Narrowed hard on the other axes, because this test is about which *inventories* are offered and a bare sweep
+     * would be the same assertion at eight times the runtime.
+     */
+    public function testTheSweepOffersEveryCombinationOfOwners(): void
+    {
+        $display = $this->invoke([
+            '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'], '--orientation' => ['upright'],
+        ])->getDisplay();
+
+        preg_match_all('/^\s*(?:skipped|id:)\s*stacked-([a-z0-9-]+?)-\d/m', $display, $matches);
+        $inventories = array_values(array_unique($matches[1]));
+        sort($inventories);
+
+        self::assertSame(['all', 'gmss', 'gmss-sdwa5', 'gmss-sepp', 'sdwa5', 'sdwa5-sepp', 'sepp'], $inventories);
+    }
+
+    /**
+     * `--owner` narrows the inventory axis **without collapsing the sweep**, which is what separates it from `--from`.
+     *
+     * `--from` says "this rig at this width" and turns the width ladder and the stack-count sweep off with it;
+     * `--owner=gmss --owner=sepp` says whose gear may be in the rig and leaves every other axis walking. Pinned on the
+     * stack counts, which are the visible half of that.
+     */
+    public function testOwnerNarrowsTheInventoryWithoutCollapsingTheSweep(): void
+    {
+        $display = $this->invoke([
+            '--dry-run' => true, '--owner' => ['sepp', 'gmss'], '--align' => ['center'],
+            '--shape' => ['pyramid'], '--orientation' => ['upright'],
+        ])->getDisplay();
+
+        preg_match_all('/^\s*(?:skipped|id:)\s*stacked-([a-z0-9-]+?)-(\d)/m', $display, $matches);
+
+        // The owners in the specs' own order, whichever order they were typed in, so the file has one name.
+        self::assertSame(['gmss-sepp'], array_values(array_unique($matches[1])));
+        self::assertSame(['1', '2', '3'], array_values(array_unique($matches[2])), 'the stack counts still sweep');
+    }
+
+    /**
+     * `--owner` still binds when another option has already collapsed the sweep.
+     *
+     * `--stacks=2` alone means "this rig, two stacks", and that path used to build from every speaker in the repository
+     * whatever `--owner` said. Silently ignoring a stated option is the failure mode this whole command avoids
+     * elsewhere, so the narrow path filters by owner too.
+     */
+    public function testOwnerStillBindsWhenAnotherOptionCollapsesTheSweep(): void
+    {
+        $display = $this->invoke([
+            '--owner' => ['gmss'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
+            '--orientation' => ['upright'], '--dry-run' => true,
+        ])->getDisplay();
+
+        // Read off the resolved `--from` in the recorded line, which is where the narrowing has to land: an unsplit rig
+        // writes its stack as the shorthand list of ids, so there is no `device:` key to assert on.
+        self::assertStringContainsString('--from=gmss-wall-bass', $display);
+        self::assertStringNotContainsString('flexy-folded-horn-hybrid', $display);
+        self::assertStringNotContainsString('achenbach-18', $display);
+    }
+
+    /** Naming both `--owner` and `--from` is refused rather than one of them being quietly dropped. */
+    public function testOwnerAndFromTogetherAreRefused(): void
+    {
+        $tester = $this->invoke(['--owner' => ['gmss'], '--from' => self::OWN_GEAR, '--dry-run' => true]);
+
+        self::assertSame(1, $tester->getStatusCode());
+
+        // Whitespace collapsed, because the console wraps the block mid-sentence.
+        self::assertStringContainsString(
+            'name one or the other',
+            (string)preg_replace('/\s+/', ' ', $tester->getDisplay()),
+        );
+    }
+
+    /** An unknown `--owner` names the owners there are rather than building everything instead. */
+    public function testAnUnknownOwnerIsRefusedAndNamesTheAllowedValues(): void
+    {
+        $tester = $this->invoke(['--owner' => ['nobody'], '--dry-run' => true]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        $wrapped = (string)preg_replace('/\s+/', ' ', $tester->getDisplay());
+        self::assertStringContainsString("--owner: unknown value 'nobody'", $wrapped);
+        self::assertStringContainsString('allowed: gmss, sdwa5, sepp', $wrapped);
     }
 
     /** An unknown `--orientation` names the values there are rather than falling back to one of them. */

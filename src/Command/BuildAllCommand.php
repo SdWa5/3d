@@ -248,9 +248,6 @@ final class BuildAllCommand extends BaseCommand
     }
 
     /**
-     * @param array<string, mixed> $arguments
-     */
-    /**
      * Every generated scene rewritten by **replaying the command written in its own header**.
      *
      * There is no list of commands anywhere, and there deliberately is not one: a second copy would go out of step
@@ -260,21 +257,19 @@ final class BuildAllCommand extends BaseCommand
      *
      * A file with no such line is **skipped and named**, not guessed at. Anything under `generated/` that a person
      * wrote by hand is a mistake worth seeing rather than one to overwrite silently.
-     */
-    /**
-     * The cabinets a turned rig lays on their sides, stated here because **no spec field says which are horn-loaded**.
      *
-     * That omission is deliberate and predates this: "adding one to drive a rotation would be inventing a property to
-     * serve a layout". So the list lives with the thing that uses it. These two are the ones the hand-made turned
-     * scenes already passed to `--roll-mirror`: a Flexy on its side is 763 × 591 rather than 591 × 763, which is a
-     * wider and lower wall out of the same cabinets, and a SKRAM likewise.
+     * **This stage used to carry a second, hard-coded orientation axis and no longer does.** A `regenerateTurned()`
+     * pass re-ran every recorded command with `--roll-mirror=flexy-folded-horn-hybrid --roll-mirror=skram` and an
+     * `-turned` id, which is where the ten `-turned-` scenes deleted in 0.76.0 came from. It was exactly the second copy
+     * this docblock argues against, and the orientation axis in `scene:stack` supersedes it on every count: every sub
+     * rather than two named cabinets, three modes and seven pairs rather than one, and each choice recorded in the
+     * file's own line instead of applied on the way past.
      *
-     * Turning the *whole* inventory does not work and is not expected to — see TODO 4: a rolled SKRAM is 610 mm tall
-     * against a rolled Flexy's 591, so a bottom row mixing them has a 19 mm step and the row above lands on 17 % of
-     * itself. The turned pass reports which rigs refuse rather than pretending they all work.
+     * It also broke outright once the axis landed, which is what made the removal urgent rather than tidy. The pass
+     * detected an already-turned rig by looking for `--roll-mirror=` in the recorded command, and a turned rig now
+     * records `--orientation=turned` — so it turned the turned scenes again and wrote 141 extra files with ids like
+     * `stacked-sdwa5-sepp-2-turned-turned-column-center`.
      */
-    private const TURNABLE = ['flexy-folded-horn-hybrid', 'skram'];
-
     private function regenerate(OutputInterface $output): int
     {
         $directory = $this->scenesDir().'/'.SceneLoader::GENERATED;
@@ -293,7 +288,6 @@ final class BuildAllCommand extends BaseCommand
         $this->io->section('scene:stack — regenerating '.count($files).' generated scenes');
 
         sort($files);
-        $turned = [];
 
         foreach ($files as $file) {
             $command = self::recordedCommand((string)file_get_contents($file));
@@ -313,13 +307,9 @@ final class BuildAllCommand extends BaseCommand
 
                 return self::FAILURE;
             }
-
-            $turned[] = $command;
         }
 
-        $exit = $this->regenerateTurned($turned, $application, $output);
-
-        return $exit === self::SUCCESS ? $this->prune() : $exit;
+        return $this->prune();
     }
 
     /**
@@ -413,51 +403,6 @@ final class BuildAllCommand extends BaseCommand
         }
 
         return $name;
-    }
-
-    /**
-     * The same rigs again with the horn-loaded cabinets on their sides.
-     *
-     * **A refusal here is not a build failure**, and that is the whole design of this pass. Turning cabinets changes
-     * the geometry enough that some rigs genuinely cannot be built that way — a bottom row mixing a rolled SKRAM with
-     * a rolled Flexy has a 19 mm step and the row above lands on 17 % of itself — so a turned variant that refuses is
-     * reported with its reason and the build carries on. `scene:stack` already treats an unbuildable alignment the
-     * same way; this only has to not turn that into an error.
-     *
-     * Skipped for a rig that is already turned, since a scene generated with `--roll-mirror` has nothing left to roll
-     * and would just rewrite itself under a longer name.
-     *
-     * @param list<string> $commands the `scene:stack` arguments of each generated scene
-     */
-    private function regenerateTurned(array $commands, Application $application, OutputInterface $output): int
-    {
-        $rolls = implode(' ', array_map(static fn (string $id): string => '--roll-mirror='.$id, self::TURNABLE));
-
-        $turned = array_values(array_filter(
-            $commands,
-            static fn (string $command): bool => !str_contains($command, '--roll-mirror='),
-        ));
-        if ($turned === []) {
-            return self::SUCCESS;
-        }
-
-        $this->io->section(sprintf('scene:stack — %d turned variants (%s)', count($turned), implode(', ', self::TURNABLE)));
-
-        foreach ($turned as $command) {
-            // The id has to change or the turned rig overwrites the upright one. `--id` is always recorded, except
-            // when it was the default, so append to whatever is there rather than assuming a value.
-            $id = preg_match('/--id=(\S+)/', $command, $matches) === 1 ? $matches[1] : 'stacked';
-            $arguments = preg_replace('/--id=\S+/', '', $command).' --id='.$id.'-turned '.$rolls.' --force';
-
-            if ($application->find('scene:stack')->run(new StringInput((string)$arguments), $output) !== self::SUCCESS) {
-                $this->io->text(sprintf(
-                    '  <comment>no turned rig</comment> %s-turned — see the reason above; the upright one is unaffected',
-                    $id,
-                ));
-            }
-        }
-
-        return self::SUCCESS;
     }
 
     /**

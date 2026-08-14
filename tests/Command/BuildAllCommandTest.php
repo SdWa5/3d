@@ -126,6 +126,93 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
+     * **The scene set is a fixed point of its own replay**: replaying every recorded command writes back exactly the
+     * files that are there, and not one file more.
+     *
+     * This is the invariant `build:all`'s first stage rests on, and it went unchecked until it broke twice in one day.
+     * The stage carried a second, hard-coded orientation axis — every recorded command re-run with
+     * `--roll-mirror=flexy-folded-horn-hybrid --roll-mirror=skram` under an `-turned` id — which the real orientation
+     * axis superseded. It detected an already-turned rig by looking for `--roll-mirror=` in the recorded line, and a
+     * turned rig records `--orientation=turned`, so it turned the turned rigs again: **149 scenes in, 290 out**, with
+     * ids like `stacked-sdwa5-sepp-2-turned-turned-column-center` and two committed scenes silently rewritten.
+     *
+     * Both halves are asserted because they fail differently. Contents catch a replay that rebuilds a *different* rig,
+     * which is what a dropped option does; the file list catches a replay that writes an *extra* file, which is what
+     * an id built from the wrong pieces does. `--dry-run` cannot see either, which is why the rest of this class did
+     * not catch it.
+     *
+     * **What this does not cover, stated plainly: it replays the commands itself rather than running the stage.** The
+     * bug above lived in the stage's *extra* pass, so this test would not have caught that one — it pins the contract
+     * the stage depends on, not the stage. Covering the stage means invoking `regenerate()`, which calls `prune()`, and
+     * a test that can delete somebody's renders when it fails is worse than the gap. Left as a TOOL item rather than
+     * done badly.
+     */
+    public function testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet(): void
+    {
+        $directory = dirname(__DIR__, 2).'/scenes/generated';
+        $before = [];
+        foreach (glob($directory.'/*.yaml') ?: [] as $file) {
+            $before[basename($file)] = (string)file_get_contents($file);
+        }
+        self::assertNotSame([], $before);
+
+        $application = new Application();
+        $application->add(new \App\Command\SceneStackCommand());
+
+        try {
+            foreach ($before as $name => $yaml) {
+                $command = self::recordedCommandIn($yaml);
+                self::assertNotNull($command, $name.' records no command, so it cannot be replayed');
+
+                $exit = $application->find('scene:stack')->run(
+                    new \Symfony\Component\Console\Input\StringInput($command.' --force'),
+                    new \Symfony\Component\Console\Output\NullOutput(),
+                );
+                self::assertSame(0, $exit, 'replaying '.$name.' failed');
+            }
+
+            $after = [];
+            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
+                $after[basename($file)] = (string)file_get_contents($file);
+            }
+
+            self::assertSame(array_keys($before), array_keys($after), 'the replay changed which scenes exist');
+            self::assertSame($before, $after, 'the replay rebuilt a scene differently from the way it was written');
+        } finally {
+            // Whatever happened, put the tree back: a failing assertion must not leave 141 stray files behind for the
+            // next test — or the next person — to trip over.
+            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
+                if (!isset($before[basename($file)])) {
+                    unlink($file);
+                    continue;
+                }
+                file_put_contents($file, $before[basename($file)]);
+            }
+        }
+    }
+
+    /** The `scene:stack` arguments a generated scene records, unwrapped from its comment block. */
+    private static function recordedCommandIn(string $yaml): ?string
+    {
+        $command = null;
+        foreach (explode("\n", $yaml) as $line) {
+            if ($command === null) {
+                if (preg_match('/^#\s{3}bin\/console scene:stack (.+)$/', $line, $matches) === 1) {
+                    $command = trim($matches[1]);
+                }
+                continue;
+            }
+            // Continuation lines are indented further than the first, which is how the writer wraps a long line.
+            if (preg_match('/^#\s{5,}(\S.*)$/', $line, $matches) !== 1) {
+                break;
+            }
+            $command .= ' '.trim($matches[1]);
+        }
+
+        return $command;
+    }
+
+    /**
      * The whole sweep with nothing asked for: four lighting presets times two aim modes, each into a folder
      * named after what makes it different. These were opt-in flags that every invocation in the repository
      * passed, so the useful behaviour was the one nobody got by default.

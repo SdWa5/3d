@@ -785,9 +785,9 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 ### scene:stack — writing the scene for you
 
 **The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
-configuration it can stand up: one rig per owner plus one from everything, by one, two and three stacks, in both
-shapes, all three alignments and all seven orientation/mirror pairs — **61 scenes of 426 candidates** on the current
-inventory, with every refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
+configuration it can stand up: one rig per combination of owners, by one, two and three stacks, in both shapes, all three
+alignments and all seven orientation/mirror pairs — **149 scenes of 804 candidates** on the current inventory, with every
+refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
 required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
 naming `--align` narrows it to one mode.
 
@@ -846,6 +846,31 @@ centred and narrower — so a row that slides in a multi-stack rig reaches into 
 interpenetration across five `all-3` scenes. So only a stack with **nothing beside it** may move a row, and only inside
 the stated stage width. A row that is already carried is never moved, and a slide that does not improve the
 worst-carried cabinet is discarded, so every rig that stood up before stands up unchanged.
+
+#### The inventory axis, and why the borrowed rigs beat the owned ones
+
+The sweep builds from **every non-empty combination of owners** — each alone, each pair, and everything. It used to offer
+each owner and then everything, and the gap in the middle turned out to be where most of the output is:
+
+| inventory | scenes written |
+| --- | --- |
+| `sdwa5-sepp` | **50** |
+| `gmss-sdwa5` | 23 |
+| `gmss` | 21 |
+| `sdwa5` | 21 |
+| `all` | 19 |
+| `gmss-sepp` | 15 |
+| `sepp` | 0 |
+
+That is the shape of a shared gig rather than a curiosity. `sepp`'s eight cabinets **cannot stand alone** — six
+Achenbachs and two 2-ways cannot fill a 2 m wall however they are stacked, so every `sepp`-only rig is refused — and they
+are excellent *under* somebody else's tops. Borrowing gear between owners is something this repository supports on
+purpose, and the pairs are what that looks like as a rig. `all` writes fewer than the best pair because 41 cabinets in
+one rig is two complete sound systems, where 25 is a gig.
+
+`owner` is the only discriminator the specs carry, and it is admittedly not quite the right one: "owner" and "system"
+are different questions once gear is lent. It is what exists, it separates the two systems in practice, and inventing a
+`system:` field to serve a sweep would be inventing a property to serve a layout.
 
 #### The orientation axis, and why laying subs down is the biggest lever there is
 
@@ -923,7 +948,8 @@ so block and stereo alignment have nothing left to spread it into.
 | Option | Meaning |
 |--------|---------|
 | `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use) — lowest driven corner first, subs before tops |
-| `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here |
+| `--owner=NAME` | repeatable: build from these owners' gear only. Default: **sweep every non-empty combination of them**, so each owner alone, each pair and everything. It narrows one axis rather than collapsing the sweep, so the stack counts, shapes, orientations and the width ladder are still walked |
+| `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here. **Not the same option as `--owner`**, which picks whose gear is in the rig at all |
 | `--stacks=N` | split each group into N stacks — how a stereo pair is asked for |
 | `--split=MODE` | `by-count` (default) gives every stack a share of every device; `by-type` gives each stack whole device types, balanced by `quantity × width`. **`by-type` is what makes a rig low** — a by-count stack holds every type and is as many rows tall as there are types, where a by-type stack holds two or three. It needs at least one type per stack and says so otherwise |
 | `--max-sub-height=M` | **defaults to 3.0 m**, the top of the band a sub/top transition must sit in — with `--interface-height` as its floor, and **a rig that misses either is not written**. See [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes). Passed straight to the stack's [`max_sub_height_m`](#a-ceiling-on-the-sub-height). Independent of `--split`: either alone is useful, and together is how a low rig out of the whole inventory is generated |

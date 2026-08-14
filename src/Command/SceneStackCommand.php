@@ -43,16 +43,21 @@ final class SceneStackCommand extends BaseCommand
     /**
      * A ceiling on accident, not on ambition.
      *
-     * 24 was right while the command wrote one rig per alignment. The default is now a **sweep** — every owner's gear
-     * by one, two and three stacks, each in both shapes and all three alignments — which tries 132 candidates on the
-     * current inventory and writes 11 of them, the other 121 being duplicates and named refusals. So the limit has to
-     * clear that with room for the gear list to grow, while still catching the case it exists for: an axis added by
-     * mistake, where the count goes to hundreds rather than dozens.
+     * 24 was right while the command wrote one rig per alignment. The default is now a **sweep** — every combination of
+     * owners, by one, two and three stacks, each in both shapes, all seven orientation/mirror pairs and all three
+     * alignments — which tries 804 candidates on the current inventory and writes 149 of them, the rest being duplicates
+     * and named refusals. So the limit has to clear that with room for the gear list to grow, while still catching the
+     * case it exists for: an axis added by mistake, where the count goes to thousands rather than hundreds.
+     *
+     * **Raised deliberately, once per axis, and that is the point of it.** 80 fitted the 61 scenes the orientation axis
+     * wrote and the owner combinations took it straight past — which is exactly what should happen, because the raise is
+     * where somebody looks at the number and decides it is the output they meant. The next one is CVR-5, whose
+     * `impossible` half would turn today's 655 refusals into written scenes.
      *
      * **A fuse rather than a cap**: over the limit the command writes *nothing* and says so. Truncating to the first N
      * would read as "that is every possibility" when it is not, which is the same reason every refusal is printed.
      */
-    private const DEFAULT_MAX_SCENES = 80;
+    private const DEFAULT_MAX_SCENES = 200;
 
     /**
      * The stage the bare command solves against, and the top of the 2–3 m band a sub/top transition should sit in.
@@ -115,6 +120,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('orientation', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Which cabinets lie on their sides: upright (none), turned (every sub) or mixed (only where it makes them wider). Tops never roll. Default: all three')
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
+            ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Build from these owners\' gear only. Default: sweep every combination of them')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
             ->addOption('stacks', null, InputOption::VALUE_REQUIRED, 'Split each group into this many stacks. Default: sweep 1, 2 and 3')
             ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
@@ -136,6 +142,34 @@ final class SceneStackCommand extends BaseCommand
         $missing = array_values(array_diff((array)$input->getOption('from'), array_keys($devices)));
         if ($missing !== []) {
             $this->io->error(sprintf("Unknown device '%s'", $missing[0]));
+
+            return self::FAILURE;
+        }
+
+        // Checked here rather than inside {@see ownerCombinations}, because a misspelled owner has to be a refusal that
+        // names the owners there are. Silently intersecting it away would leave the whole inventory built instead, which
+        // is the opposite of what was asked for and looks like a working run.
+        $owners = array_values(array_unique(array_map(
+            static fn (DeviceSpec $spec): string => $spec->owner,
+            array_filter($specs, static fn (DeviceSpec $spec): bool => $spec->category->value === 'speaker'),
+        )));
+        sort($owners);
+        $unknown = array_values(array_diff((array)$input->getOption('owner'), $owners));
+        if ($unknown !== []) {
+            $this->io->error(sprintf(
+                "--owner: unknown value '%s' (allowed: %s)",
+                $unknown[0],
+                implode(', ', $owners),
+            ));
+
+            return self::FAILURE;
+        }
+
+        // Refused rather than resolved, because the two say the same thing at different resolutions and there is no
+        // reading of both that is not a guess: `--from` names cabinets outright, so filtering that list by owner would
+        // be a third meaning nobody asked for, and ignoring one of the two options silently is worse still.
+        if ($input->getOption('owner') !== [] && $input->getOption('from') !== []) {
+            $this->io->error('--owner and --from say the same thing at different resolutions — name one or the other');
 
             return self::FAILURE;
         }
@@ -241,7 +275,8 @@ final class SceneStackCommand extends BaseCommand
         if (count($candidates) > $limit) {
             // Refused rather than truncated: a silent cap reads as "that is every possibility" when it is not.
             $this->io->error(sprintf(
-                '%d arrangements is more than --max-scenes=%d — narrow it with --align/--subs, or raise the limit',
+                '%d arrangements is more than --max-scenes=%d — narrow it with --owner, --align, --shape or '
+                .'--orientation, or raise the limit',
                 count($candidates),
                 $limit,
             ));
@@ -601,10 +636,12 @@ final class SceneStackCommand extends BaseCommand
      *
      * So absence now means *sweep*, the way it already does for `--align` and `--shape`:
      *
-     * * **one rig per owner, plus one from everything.** `owner` is the only discriminator the specs carry, and it is
-     *   admittedly not quite the right one — the repository deliberately supports borrowing gear between owners, so
-     *   "owner" and "system" are not the same question (see `TODO`). It is what exists, it separates the two systems
-     *   in practice, and inventing a `system:` field to serve a sweep would be inventing a property to serve a layout.
+     * * **one rig per non-empty combination of owners** ({@see ownerCombinations}) — each owner alone, each pair, and
+     *   everything. `owner` is the only discriminator the specs carry, and it is admittedly not quite the right one —
+     *   the repository deliberately supports borrowing gear between owners, so "owner" and "system" are not the same
+     *   question. It is what exists, it separates the two systems in practice, and inventing a `system:` field to serve
+     *   a sweep would be inventing a property to serve a layout. The *pairs* are what that borrowing looks like as a
+     *   rig, and they were the gap: the sweep used to jump from one owner straight to all of them.
      * * **one, two and three stacks** — the counts somebody actually varies when planning a gig.
      *
      * Naming each rig into the scene id is what keeps the files apart, and it reads as what it is:
@@ -612,7 +649,8 @@ final class SceneStackCommand extends BaseCommand
      *
      * **Naming any of `--from`, `--stacks` or `--per-owner` collapses the sweep to that single point**, exactly as
      * naming `--align` collapses it to one mode. Nothing that worked before works differently; the only change is what
-     * *silence* means.
+     * *silence* means. `--owner` is the exception and narrows one axis instead of collapsing the sweep, since it says
+     * whose gear to build from and nothing about the rig — see {@see ownerCombinations}.
      *
      * @param list<DeviceSpec> $specs
      * @return list<array{from: list<string>, stacks: int, suffix: string}>
@@ -623,10 +661,23 @@ final class SceneStackCommand extends BaseCommand
         $stated = $input->getOption('from');
         $statedStacks = $input->getOption('stacks');
 
+        /** @var list<string> $owners */
+        $owners = $input->getOption('owner');
+
         // Any of the three narrowing options means the caller has a specific rig in mind.
         if (!$this->isSweep($input)) {
+            // **`--owner` still binds on this path**, which is what stops it being silently ignored the moment somebody
+            // writes `--owner=gmss --stacks=2`. `--from` names the cabinets outright and wins, and naming both is
+            // refused in `execute()` rather than resolved here.
+            $narrowed = $owners === []
+                ? $specs
+                : array_values(array_filter(
+                    $specs,
+                    static fn (DeviceSpec $spec): bool => in_array($spec->owner, $owners, true),
+                ));
+
             return [[
-                'from' => $stated !== [] ? $stated : $this->everySpeaker($specs),
+                'from' => $stated !== [] ? $stated : $this->everySpeaker($narrowed),
                 // NOT clamped to 1: an explicit `--stacks=0` is a mistake worth refusing, and {@see groups} is where
                 // that refusal lives. Clamping it here silently solved a one-stack rig instead.
                 'stacks' => (int)($statedStacks ?? 1),
@@ -642,13 +693,15 @@ final class SceneStackCommand extends BaseCommand
         }
         ksort($byOwner);
 
+        $combinations = self::ownerCombinations(array_keys($byOwner), $owners);
+
         $groups = [];
-        foreach ($byOwner as $owner => $owned) {
-            $groups[$owner] = $this->everySpeaker($owned);
-        }
-        // Everything, last, so a reader sees the single-system rigs first — they are the ones that get built.
-        if (count($byOwner) > 1) {
-            $groups['all'] = $this->everySpeaker($specs);
+        foreach ($combinations as $subset) {
+            $owned = [];
+            foreach ($subset as $owner) {
+                $owned = [...$owned, ...$byOwner[$owner]];
+            }
+            $groups[self::labelFor($subset, count($byOwner))] = $this->everySpeaker($owned);
         }
 
         $rigs = [];
@@ -664,6 +717,70 @@ final class SceneStackCommand extends BaseCommand
         }
 
         return $rigs;
+    }
+
+    /**
+     * Every non-empty combination of owners, smallest first — the inventory axis.
+     *
+     * **Combinations rather than the three fixed groups it used to be**, which is SWP-1's step 4. Before this the sweep
+     * offered each owner alone and then everything at once, and the gap in the middle is a rig people actually build:
+     * borrowing one system's subs to stand under another's tops is the normal shape of a shared gig, and the repository
+     * supports lending gear on purpose. `sdwa5 + gmss` was simply not offered.
+     *
+     * Smallest first, so a reader sees the single-system rigs before the borrowed ones and the everything rig last —
+     * the same ordering the old fixed list had, for the same reason: the single-system rigs are the ones most often
+     * built.
+     *
+     * **`--owner` narrows the axis without collapsing the sweep**, exactly as `--align` narrows the alignment. It is the
+     * one narrowing option here that is *not* a rig somebody named: `--from` and `--stacks` mean "this rig, at this
+     * width", where `--owner=gmss --owner=sepp` still asks the sweep to walk the stack counts, the shapes, the
+     * orientations and the width ladder. So it deliberately does not appear in {@see isSweep}.
+     *
+     * @param list<string> $owners every owner with speakers, already sorted
+     * @param list<string> $stated what `--owner` named, validated by the caller
+     * @return list<list<string>>
+     */
+    private static function ownerCombinations(array $owners, array $stated): array
+    {
+        if ($stated !== []) {
+            // Intersected in the specs' own order rather than in the order they were typed, so `--owner=sepp
+            // --owner=gmss` and the reverse name the same rig and write the same file.
+            return [array_values(array_intersect($owners, $stated))];
+        }
+
+        $subsets = [];
+        for ($mask = 1, $end = 1 << count($owners); $mask < $end; ++$mask) {
+            $subset = [];
+            foreach ($owners as $bit => $owner) {
+                if (($mask & (1 << $bit)) !== 0) {
+                    $subset[] = $owner;
+                }
+            }
+            $subsets[] = $subset;
+        }
+
+        // Stable within a size, because the bitmask order is not the reading order: masks 1, 2, 4 are the singles but
+        // 3 sits between 2 and 4.
+        usort($subsets, static fn (array $a, array $b): int => count($a) <=> count($b));
+
+        return $subsets;
+    }
+
+    /**
+     * What this combination is called in a scene id.
+     *
+     * `all` for the whole inventory, the owner's own name for one owner, and the owners joined for anything between —
+     * `stacked-gmss-sdwa5-2-turned-center` is both systems' gear, two stacks, subs on their sides.
+     *
+     * **`all` is only used where there is more than one owner to be all of**, which is not pedantry: in a repository
+     * with a single owner that owner's subset *is* the whole inventory, and labelling it `all` would rename every
+     * generated scene for a distinction that does not exist there.
+     *
+     * @param list<string> $subset
+     */
+    private static function labelFor(array $subset, int $owners): string
+    {
+        return $owners > 1 && count($subset) === $owners ? 'all' : implode('-', $subset);
     }
 
     /**
