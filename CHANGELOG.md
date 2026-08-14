@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.9] - 2026-08-14
+
+### Fixed
+
+- **GEO-2's reasoning as published in 0.72.7 was wrong, and `TODO.md` is corrected.** It argued that the tops row is
+  wider than any wall a 3.80 m stage can carry. There is no such limit. `DEFAULT_MAX_WIDTH_M` is 3.70 m rather than
+  3.80 m, and the sweep does not hold a rig there in any case: `SceneStackCommand::WIDTH_LADDER_M` walks
+  `2.00 … 6.00 m` whenever a rig misses the sub height band, which is what "tried stages 2–6 m" in the refusals means
+- the conclusion survives for a simpler reason, now measured across the whole ladder rather than at two widths. The tops
+  row is **3.921 m at every stage from 2.00 m to 6.00 m**, dead flat, because `StackSolver::topRow()` puts all 8 tops in
+  one row unconditionally. And **`all-1` cannot reach the 2–3 m sub height band at any width on the ladder**: widening
+  the stage does shorten the wall, from 8.676 m down to 3.840 m, and 3.840 m is the best case and still 840 mm over the
+  ceiling. The widths that would give the tops a usable support are exactly the widths where the wall is too tall to be
+  allowed. So the rig fails on two independent counts and neither is geometry — one stack is being asked to hold 41
+  cabinets, two complete sound systems
+
 ## [0.72.8] - 2026-08-14
 
 ### Changed

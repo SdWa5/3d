@@ -43,7 +43,7 @@ things worse, measured as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | The tops row is **3.921 m whatever the stage is**, so it is wider than the widest legal wall and no shape can carry it. Splitting is the only geometric lever and cost more than it bought three times. **Needs a decision** | P2 | — | 22 refusals, all `all-*`, 12 of them `all-1` | decision, CVR-3 | decision |
+| GEO-2 | The tops row is **3.921 m at every stage on the ladder**, and `all-1` misses the sub height band at all of them. 41 cabinets in one stack is the cause, not geometry. Splitting is the only geometric lever and cost more than it bought three times. **Needs a decision** | P2 | — | 22 refusals, all `all-*`, 12 of them `all-1` | decision, CVR-3 | decision |
 | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
@@ -74,12 +74,29 @@ overlapping by 203 mm. Capping at two rows fixes the cascade and still loses: it
 `top-on-nothing` and costs a scene.
 
 **AND THE SHAPE OF THE WALL IS NOT THE LEVER EITHER. That was the previous entry here and it is refuted by
-arithmetic.** `topRow()` puts every top in one row unconditionally, so the row is **3.921 m wide for the `all`
-inventory's 8 tops whatever the stage is** — measured identical at 3.80 m and at 5.00 m, because nothing about it
-responds to the stage. The widest wall a 3.80 m stage can legally carry is 3.80 m. **The tops row is wider than the
-widest possible support**, so no shape can hold it: `pyramid` leaves 751 mm per side over air and `free` leaves 1421 mm,
-and a perfectly flush wall filling the whole stage would still leave 60 mm. Re-measuring after GEO-9 is therefore
-pointless, and this item does not depend on GEO-9 at all.
+measurement.** `topRow()` puts every top in one row unconditionally, so the row is **3.921 m wide for the `all`
+inventory's 8 tops at every stage width on the ladder from 2.00 m to 6.00 m**. Dead flat, because nothing about it
+responds to the stage. Re-measuring after GEO-9 is therefore pointless, and this item does not depend on GEO-9 at all.
+
+**Note there is no fixed stage limit, and an earlier version of this entry wrongly claimed one.** It argued that the
+tops row is wider than any wall a 3.80 m stage can carry. `DEFAULT_MAX_WIDTH_M` is 3.70 m rather than 3.80 m, and the
+sweep does not hold a rig there anyway: `SceneStackCommand::WIDTH_LADDER_M` walks `2.00 … 6.00 m` whenever a rig misses
+the sub height band, which is what the "tried stages 2–6 m" in the refusals means. The conclusion survives for a
+different and simpler reason, measured across the whole ladder:
+
+| stage | tops row | top sub row | overhang per side | sub height |
+| --- | --- | --- | --- | --- |
+| 2.00 m | 3.921 | 1.200 | 1361 mm | 8.676 m |
+| 3.20 m | 3.921 | 2.420 | 751 mm | 6.399 m |
+| 3.70 m | 3.921 | 2.420 | 751 mm | 4.966 m |
+| 5.20 m | 3.921 | 2.420 | 751 mm | 4.366 m |
+| 6.00 m | 3.921 | 3.050 | 436 mm | 3.840 m |
+
+**`all-1` cannot reach the 2–3 m sub height band at any width on the ladder.** Widening the stage does shorten the wall,
+from 8.676 m down to 3.840 m, and 3.840 m is the best case and still 840 mm over the ceiling. So the widths that would
+give the tops a usable support are exactly the widths where the wall is too tall to be allowed. The rig fails on two
+independent counts and neither is geometry: **one stack is being asked to hold 41 cabinets, two complete sound
+systems.**
 
 **Which leaves exactly two levers, and picking between them is a decision rather than a measurement.**
 
