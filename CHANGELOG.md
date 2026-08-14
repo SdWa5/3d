@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.75.0] - 2026-08-14
+
+### Added
+
+- **`MirrorStyle::Column`, a third answer for the odd cabinet in a rolled row.** `alternate` swaps its side each row, so
+  the stack balances and the seam between the two mirrored halves zig-zags; `column` sends it to the same side every row,
+  so the seam runs straight up the wall and the stack is lopsided by one cabinet instead. Same heights as `alternate`, so
+  unlike `centred` it introduces no step and nothing new can fail on it. It is two lines — `Tier::mirrored()` already
+  derives the midpoint from the row parity, and this is that line with the row ignored
+- SWP-1's implementation order, so the five remaining steps each end green and measured rather than being one change
+
+### Changed
+
+- **`MirrorStyle::Upright` is renamed to `Centred`, and the rename is not cosmetic.** The sweep is gaining an
+  *orientation* axis whose own values include `upright`, meaning nothing is rolled, so a scene called
+  `stacked-gmss-1-turned-upright-center` would read as a contradiction — "every sub turned, nothing rolled". `centred`
+  also describes what the style does. **No file on disk is renamed**: nothing rolls in the default sweep, so only
+  `alternate` is ever written and no committed scene carries `-upright-`
+- **SWP-1 folds orientation and mirror style into one axis of seven values** rather than two axes with a rule saying the
+  second is meaningless under the first one's default. `Tier::mirrored()` acts only on rolled segments, so the styles are
+  byte-identical when nothing is rolled; enumerating `upright` + `turned`×3 + `mixed`×3 makes that unrepresentable
+  instead of guarded, which is the bug fixed in 0.73.0. The two stay separate *options*, since a hand invocation wants
+  `--orientation=turned` without an opinion on the odd cabinet. The candidate count is unchanged at 1323
+
 ## [0.74.7] - 2026-08-14
 
 ### Added

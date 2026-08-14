@@ -132,15 +132,15 @@ final class TierTest extends TestCase
     }
 
     /**
-     * `upright` leaves the middle cabinet standing, which makes the row a palindrome and 172 mm taller.
+     * `centred` leaves the middle cabinet standing, which makes the row a palindrome and 172 mm taller.
      *
      * Both halves of that matter. The symmetry is the point; the step is the price, and it is why the style is offered
      * rather than adopted — a rolled Flexy is 591 mm tall and an upright one 763, so anything standing on this row has
      * to bridge it and the bearing rules will usually refuse.
      */
-    public function testUprightCentresTheOddCabinetAndStandsItProud(): void
+    public function testCentredCentresTheOddCabinetAndStandsItProud(): void
     {
-        $tier = Tier::of($this->devices['flexy-folded-horn-hybrid'], 5, 90.0)->mirrored(MirrorStyle::Upright, 0);
+        $tier = Tier::of($this->devices['flexy-folded-horn-hybrid'], 5, 90.0)->mirrored(MirrorStyle::Centred, 0);
 
         self::assertSame(5, $tier->count());
         self::assertSame(
@@ -152,5 +152,47 @@ final class TierTest extends TestCase
         // The row is as tall as its tallest cabinet, which is now the upright one: 763 against the rolled 591.
         self::assertEqualsWithDelta(0.763, $tier->heightM(), 1e-9);
         self::assertEqualsWithDelta(0.172, $tier->heightStepM(), 1e-9);
+    }
+
+    /**
+     * `column` sends the odd cabinet to the same side on **every** row, where `alternate` swaps it.
+     *
+     * Asserted as the pair of rows rather than one, because the whole difference between the two styles is what the
+     * *next* row does — a single row cannot tell them apart. `alternate` reads 2 + 3 then 3 + 2, so the wall balances
+     * and the seam between the mirrored halves zig-zags; `column` reads 2 + 3 twice, so the stack is lopsided by one
+     * cabinet and the seam runs straight up.
+     *
+     * No step either way, which is what separates this from {@see testCentredCentresTheOddCabinetAndStandsItProud}:
+     * every cabinet stays rolled, so the row is one height and nothing above it has to bridge anything.
+     */
+    public function testColumnKeepsTheOddCabinetOnOneSideWhereAlternateSwapsIt(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+
+        $columnRows = array_map(
+            static fn (int $row): string => Tier::of($flexy, 5, 90.0)->mirrored(MirrorStyle::Column, $row)->label(),
+            [0, 1],
+        );
+        $alternateRows = array_map(
+            static fn (int $row): string => Tier::of($flexy, 5, 90.0)->mirrored(MirrorStyle::Alternate, $row)->label(),
+            [0, 1],
+        );
+
+        // Both rows identical under `column`, and the second row mirrored under `alternate`.
+        self::assertSame($columnRows[0], $columnRows[1], 'column does not depend on the row index');
+        self::assertNotSame($alternateRows[0], $alternateRows[1], 'alternate does');
+        self::assertSame($columnRows[0], $alternateRows[0], 'they agree on an even row');
+
+        self::assertSame(
+            '2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°',
+            $columnRows[0],
+        );
+
+        // Every cabinet still rolled, so the row is level — no step for anything above it to bridge. A delta rather
+        // than an identity because the two roll directions go through the same trig from opposite ends and land
+        // 2.2e-16 apart, which is float noise rather than a step.
+        $tier = Tier::of($flexy, 5, 90.0)->mirrored(MirrorStyle::Column, 1);
+        self::assertEqualsWithDelta(0.591, $tier->heightM(), 1e-9);
+        self::assertEqualsWithDelta(0.0, $tier->heightStepM(), 1e-9);
     }
 }

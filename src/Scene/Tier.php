@@ -152,9 +152,9 @@ final class Tier
      * where they were — the heights differ and gravity deals with that, exactly as it does for any stepped row.
      *
      * An **odd** cabinet count cannot be mirrored exactly, and `$style` decides what happens to the one that is left
-     * over — see {@see MirrorStyle} for why neither answer is free. `alternate` sends it to one side and expects the
-     * row above to send it to the other, which `$row` selects; `upright` leaves it standing in the middle, which is
-     * symmetric and 172 mm proud.
+     * over — see {@see MirrorStyle} for why none of the answers is free. `alternate` sends it to one side and expects
+     * the row above to send it to the other, which `$row` selects; `centred` leaves it standing in the middle, which is
+     * symmetric and 172 mm proud; `column` sends it to the same side every row and lets the stack be lopsided.
      *
      * @param int $row this tier's index in the stack, so `alternate` can flip sides as the wall rises
      */
@@ -165,10 +165,16 @@ final class Tier
 
         // Which half the extra cabinet joins. Even counts split exactly, so the flip has nothing to act on; odd ones
         // alternate with the row index, which is what makes the *stack* balanced when no single row can be.
-        $midpoint = $odd && $row % 2 === 1 ? intdiv($count, 2) + 1 : intdiv($count, 2);
+        //
+        // **`column` is this same line with the row ignored**, and that is the whole of the third style: the spare goes
+        // to the same side on every row, so the spares stand in one straight column and the seam between the two
+        // mirrored halves runs straight up the wall instead of zig-zagging. The stack ends up lopsided by one cabinet,
+        // which is precisely what `alternate` spends the zig-zag to avoid.
+        $flips = $style !== MirrorStyle::Column && $row % 2 === 1;
+        $midpoint = $odd && $flips ? intdiv($count, 2) + 1 : intdiv($count, 2);
 
-        // `upright` keeps the middle cabinet unrolled, so both halves are the same size and the row is a palindrome.
-        $centre = $odd && $style === MirrorStyle::Upright ? intdiv($count, 2) : null;
+        // `centred` keeps the middle cabinet unrolled, so both halves are the same size and the row is a palindrome.
+        $centre = $odd && $style === MirrorStyle::Centred ? intdiv($count, 2) : null;
         if ($centre !== null) {
             $midpoint = $centre;
         }

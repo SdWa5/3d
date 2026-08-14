@@ -808,25 +808,25 @@ final class SceneStackCommandTest extends TestCase
     public function testTheMirrorStyleAxisIsSweptOnlyWhenSomethingIsRolled(): void
     {
         $plain = $this->invoke(['--dry-run' => true])->getDisplay();
-        self::assertStringNotContainsString('-upright-', $plain);
+        self::assertStringNotContainsString('-centred-', $plain);
 
         $rolled = $this->invoke([
             '--dry-run' => true,
             '--roll-mirror' => ['flexy-folded-horn-hybrid'],
             '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'],
         ])->getDisplay();
-        self::assertStringContainsString('-upright-', $rolled);
+        self::assertStringContainsString('-centred-', $rolled);
     }
 
     /**
-     * An explicit `--mirror-style=upright` is honoured even with nothing rolled, because the caller asked for it by
+     * An explicit `--mirror-style=centred` is honoured even with nothing rolled, because the caller asked for it by
      * name. Only the *default* narrows — a stated option is never second-guessed.
      */
-    public function testAnExplicitUprightStyleIsHonouredWithNothingRolled(): void
+    public function testAnExplicitCentredStyleIsHonouredWithNothingRolled(): void
     {
-        $display = $this->invoke(['--dry-run' => true, '--mirror-style' => ['upright']])->getDisplay();
+        $display = $this->invoke(['--dry-run' => true, '--mirror-style' => ['centred']])->getDisplay();
 
-        self::assertStringContainsString('-upright-', $display);
+        self::assertStringContainsString('-centred-', $display);
     }
 
     /**
