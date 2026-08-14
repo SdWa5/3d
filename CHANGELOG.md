@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-08-14
+
+### Changed
+
+- **The `--mirror-style` axis is swept only when `--roll-mirror` names a device, which halves every default run.**
+  `Tier::mirrored()` acts only on segments lying on a quarter turn, and the default sweep rolls nothing, which the
+  written scenes confirm with zero `roll_mirror` keys. So the mirror was a no-op for every default candidate and
+  `upright` came out byte-identical to `alternate`: **66 `upright` candidates and 0 written**, 18 of them recognised as
+  duplicates by `deduplicate()` and the other 48 refused earlier on the height band or on support, in each case
+  identically to their `alternate` twin. Letting `deduplicate()` catch them afterwards was not good enough, because a
+  candidate costs a full solve plus a compile plus an interpenetration sweep. The default run drops from **132
+  candidates to 66** and the test suite from **53 s to 28 s**, with `scenes/generated` byte-identical. A stated
+  `--mirror-style` is still honoured whatever is rolled
+- SYM-1 is closed as already implemented. `MirrorStyle::Upright` *is* the centred odd cabinet, producing
+  `2 + 1 upright + 2` for a row of five, and `Alternate`'s lopsidedness is the deliberate alternative that balances the
+  stack across rows when no single row can be symmetric. Its recorded measurement is corrected from "40 odd rows across
+  all 11 mirrored stacks, in 11 of 19 scenes" to **8 odd rolled rows across 4 scenes**, all of them in the `-turned-`
+  scenes, which come from a separate invocation that does pass `--roll-mirror`
+
 ## [0.72.9] - 2026-08-14
 
 ### Fixed

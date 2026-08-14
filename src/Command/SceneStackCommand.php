@@ -157,7 +157,7 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $styles = $this->readMirrorStyles($input->getOption('mirror-style'));
+        $styles = $this->readMirrorStyles($input->getOption('mirror-style'), $input->getOption('roll-mirror'));
         if ($styles === null) {
             return self::FAILURE;
         }
@@ -439,16 +439,28 @@ final class SceneStackCommand extends BaseCommand
      *
      * Both by default, like `--align` and `--shape`, and for the same reason: an odd cabinet in a turned row has no
      * arrangement that is both symmetric and flat, so the choice is a trade rather than an answer. See
-     * {@see MirrorStyle}. `deduplicate()` drops whichever makes no difference, which is every rig without a rolled
-     * odd row — so this costs a file on four of the generated scenes and nothing on the rest.
+     * {@see MirrorStyle}.
+     *
+     * **UNLESS NOTHING IS ROLLED, IN WHICH CASE THE AXIS CANNOT PRODUCE A DISTINCT RIG AND IS NOT SWEPT.**
+     * {@see Tier::mirrored} acts only on segments lying on a quarter turn, so with no `--roll-mirror` it is a no-op and
+     * the two styles come out byte-identical. The default sweep names no rolled device, and the measurement is
+     * unambiguous: **66 `upright` candidates, 0 written.** 18 of them survived far enough for `deduplicate()` to
+     * recognise their `alternate` twin and the other 48 were refused earlier, on the height band or on support,
+     * identically to that twin. The axis was doubling the candidate count of every default run for no possible output.
+     *
+     * `deduplicate()` catching them afterwards is not good enough, and that is the correction to what this docblock
+     * used to claim. It said the cost was "a file on four of the generated scenes and nothing on the rest", which reads
+     * as a rounding error; the cost is *every candidate solved twice*, and a candidate is a full solve plus a compile
+     * plus an interpenetration sweep.
      *
      * @param list<string> $raw
+     * @param list<string> $rolled device ids `--roll-mirror` named, which is what gives the styles anything to differ on
      * @return list<MirrorStyle>|null
      */
-    private function readMirrorStyles(array $raw): ?array
+    private function readMirrorStyles(array $raw, array $rolled = []): ?array
     {
         if ($raw === []) {
-            return MirrorStyle::cases();
+            return $rolled === [] ? [MirrorStyle::Alternate] : MirrorStyle::cases();
         }
 
         $styles = [];

@@ -186,7 +186,7 @@ refusing.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SYM-1 | An **odd mirrored row is lopsided** by one cabinet. **`MirrorStyle::Upright` already centres it**, so implementing this as worded collapses the two styles into one and deletes a sweep axis. **Needs a decision** | P2 | — | 8 odd rolled rows across 4 scenes; possibly a whole redundant axis removed | decision | decision |
+| SYM-1 | An **odd mirrored row is lopsided** by one cabinet. **Already implemented as `MirrorStyle::Upright`**, and the axis is no longer swept when nothing is rolled, since the mirror is then a no-op | — | done | 132 candidates → 66, suite 53 s → 28 s, `scenes/generated` byte-identical | — | done |
 | SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties | P2 | 3h | broadest stereo image; the mono spread | decision, ALN-4 | decision |
 | SYM-2 | Stack ordering cannot make the flanks *equal*, only place the tall ones | P3 | 1h | 3 of 13 multi-stack scenes are height-asymmetric | GEO-4 | partial |
 
@@ -206,16 +206,23 @@ styles already agree on every even row, so they would then agree everywhere a ro
 oversight either: the code says so, and alternating the extra cabinet by row index is what balances the *stack* when no
 single row can be.
 
-Two ways out, and picking one is a decision rather than a measurement:
+**RESOLVED. `--mirror-style=upright` *is* the centred variant, so SYM-1 was already implemented**, and the follow-up
+question — why no `upright` scene is ever written — is answered and fixed.
 
-* **SYM-1 is already done.** `--mirror-style=upright` *is* the centred variant. The work is then to stop calling
-  `Alternate` a defect and to find out why no `upright` scene is ever written — of the 10 scenes the bare sweep writes,
-  every one is `alternate`, so the upright siblings are all refused or deduplicated and the axis is costing candidates
-  without ever producing a rig.
-* **Delete `MirrorStyle`.** Keep centring only, drop the enum and the option, and halve the mirrored half of the sweep.
+`mirrored()` acts only on segments lying on a quarter turn, and **the default sweep names no `--roll-mirror` device**,
+which the written scenes confirm with zero `roll_mirror` keys. So the mirror was a no-op for every default candidate and
+`upright` came out byte-identical to `alternate`. The measurement: **66 `upright` candidates, 0 written**, 18 of them
+recognised as duplicates by `deduplicate()` and the other 48 refused earlier on the height band or on support, in each
+case identically to their `alternate` twin.
 
-The row's "40 odd rows across all 11 mirrored stacks, in 11 of 19 scenes" is **wrong** and was corrected once already by
-measurement: it is 8 odd *rolled* rows across 4 scenes. Re-measure it as part of whichever way out is chosen.
+`deduplicate()` catching them afterwards was not good enough, because a candidate is a full solve plus a compile plus an
+interpenetration sweep. `readMirrorStyles()` now sweeps the axis only when something is rolled, which took the default
+run from **132 candidates to 66** with `scenes/generated` byte-identical, and the test suite from 53 s to 28 s. A stated
+`--mirror-style` is still honoured whatever is rolled.
+
+The row's "40 odd rows across all 11 mirrored stacks, in 11 of 19 scenes" was **wrong** and is corrected: 8 odd *rolled*
+rows across 4 scenes, all of them in the `-turned-` scenes, which come from a separate invocation that does pass
+`--roll-mirror`.
 
 #### SYM-3 — the contradiction to settle first
 

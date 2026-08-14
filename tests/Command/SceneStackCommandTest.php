@@ -795,6 +795,41 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
+     * The mirror-style axis is only swept when something is actually rolled.
+     *
+     * {@see \App\Scene\Tier::mirrored} acts only on segments lying on a quarter turn, so with no `--roll-mirror` it is a
+     * no-op and `upright` comes out byte-identical to `alternate`. Sweeping it anyway doubled every default run's
+     * candidates for no possible output: 66 `upright` candidates, 0 written, 18 of them recognised as duplicates and the
+     * other 48 refused on the same height and support grounds as their twin.
+     *
+     * Asserted on the *ids offered*, not on the files written, because the point is the candidate that is never built
+     * rather than the scene that was never any different.
+     */
+    public function testTheMirrorStyleAxisIsSweptOnlyWhenSomethingIsRolled(): void
+    {
+        $plain = $this->invoke(['--dry-run' => true])->getDisplay();
+        self::assertStringNotContainsString('-upright-', $plain);
+
+        $rolled = $this->invoke([
+            '--dry-run' => true,
+            '--roll-mirror' => ['flexy-folded-horn-hybrid'],
+            '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'],
+        ])->getDisplay();
+        self::assertStringContainsString('-upright-', $rolled);
+    }
+
+    /**
+     * An explicit `--mirror-style=upright` is honoured even with nothing rolled, because the caller asked for it by
+     * name. Only the *default* narrows — a stated option is never second-guessed.
+     */
+    public function testAnExplicitUprightStyleIsHonouredWithNothingRolled(): void
+    {
+        $display = $this->invoke(['--dry-run' => true, '--mirror-style' => ['upright']])->getDisplay();
+
+        self::assertStringContainsString('-upright-', $display);
+    }
+
+    /**
      * @param array<string, mixed> $options
      */
     private function invoke(array $options): CommandTester
