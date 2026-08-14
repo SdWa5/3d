@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.7] - 2026-08-14
+
+### Added
+
+- **`TODO.md` gains an `SWP` group and `SWP-1`, which states the target sweep as one cross product** rather than leaving
+  it implied across six places: `(1/2/3 stacks) × (every non-empty combination of sdwa5, gmss, sepp) × (center, block,
+  stereo) × (pyramid, free, V) × (upright, turned, mixed) × (alternate, centred, column)`. That is **1323 candidates**
+  against today's 66, since the mirror axis only bites where something is rolled and so multiplies with orientation as
+  `upright(1) + turned(3) + mixed(3)`
+- the three values that do not exist yet are specified: **`V` as a stated shape** (`free` is not it — `free` *permits* a
+  rig to widen going up without asking for it), **`column` as a third mirror style** with **`upright` renamed to
+  `centred`**, and **all seven owner combinations** in place of today's three fixed groups
+- two load-bearing consequences are recorded rather than discovered later. `DEFAULT_MAX_SCENES` is 80 and will refuse the
+  sweep outright, since an orientation-axis prototype alone wrote **49** scenes from 318 candidates. And runtime: 318
+  candidates already take a couple of minutes, so 1323 is on the order of ten, with `ShippedScenesTest` compiling every
+  written scene on top
+
+### Changed
+
+- CVR-3 is rewritten. It described narrowing the default `--from` to one sound system; what SWP-1 needs is the inventory
+  axis widened to all seven owner combinations. `sepp` alone still produces nothing until CVR-1 lets a top stand on
+  something that is not a cabinet
+- an orientation-axis prototype was built, measured and reverted, and the trap it found is recorded in SWP-1: its scene
+  ids **collided with four committed files** (`stacked-sdwa5-1-turned-center` and three siblings), whose committed
+  versions came from a hand invocation rolling only `flexy` and `skram`. An orientation mode rolling every sub produces
+  the same id and a different rig, so `--force` rewrites them silently. It also emitted a doubled suffix,
+  `stacked-sdwa5-1-turned-turned-center`, so the id builder needs a test across every axis rather than a spot check
+
 ## [0.74.6] - 2026-08-14
 
 ### Changed
