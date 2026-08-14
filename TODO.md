@@ -43,7 +43,7 @@ things worse, measured as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | The tops row is **3.921 m at every stage on the ladder**, and `all-1` misses the sub height band at all of them. 41 cabinets in one stack is the cause, not geometry. Splitting is the only geometric lever and cost more than it bought three times. **Needs a decision** | P2 | — | 22 refusals, all `all-*`, 12 of them `all-1` | decision, CVR-3 | decision |
+| GEO-2 | **12 of the 22 refusals are correct behaviour**, since `all-1` puts 41 cabinets in one stack and misses the band at every stage on the ladder. The real item is the remaining **10 `all-2`/`all-3`** refusals, raised by `SceneStackCommand::floating()` rather than by `StackChecks`. Two checks named in the section, measure first | P1 | 2h | 10 refusals; `--per-owner` and the `all-2`/`all-3` rigs writing | — | narrowed |
 | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
@@ -98,7 +98,38 @@ give the tops a usable support are exactly the widths where the wall is too tall
 independent counts and neither is geometry: **one stack is being asked to hold 41 cabinets, two complete sound
 systems.**
 
-**Which leaves exactly two levers, and picking between them is a decision rather than a measurement.**
+**AND 12 OF THE 22 REFUSALS ARE NOT DEFECTS AT ALL.** `all-1` puts 41 cabinets in one stack and cannot reach the 2–3 m
+band at any width on the ladder, as the table above measures. A generator that declines an impossible rig is a generator
+working correctly — that is the whole promise `scene:stack` makes, that "a generator which emits a scene the compiler
+rejects is worse than no generator". So those 12 want no geometry and no code. At most they want the candidate not to be
+offered, which is cosmetic.
+
+**That leaves 10 real ones, the `all-2` and `all-3` refusals**, where the tops are already spread over two and three
+stacks and a rig that plausibly should work still does not. That is the whole of GEO-2 now.
+
+**Where to start, already narrowed.** Every one of the 10 is reported against the *compiled* scene rather than by
+`StackChecks`, by `SceneStackCommand::floating()` and its helper `coveredFraction()` — a different code path from the
+tier checks, and one nothing in this file had read until now. Eight of the 10 are the same cabinet at the same height, `a
+gmss-turbo-top would stand at 4.668 m with nothing under it across x`, which means `coveredFraction($entry, $placed, 0)`
+returned exactly `0.0`: **no cabinet at all whose box top is within `CONTACT_TOLERANCE_M` of that top's box bottom
+overlaps it in both plan axes.** Not a thin bearing, nothing.
+
+Two things to check first, in this order, and **measure before changing anything**:
+
+1. **Is the top genuinely floating, or is the check wrong?** `coveredFraction()` decides support from `worldBox()`, and
+   an axis-aligned box is the measure this repository has been burnt by twice — see the traps at the end of GEO-3. For
+   *clearance* a box is wrong in direction. For *support* an inflated box would report **more** coverage rather than
+   less, so it should not be able to invent a float, which makes a genuine float the likelier reading. Confirm that
+   before touching the checker.
+2. **The `z` gate is exact equality within a tolerance.** Only cabinets whose box top sits within
+   `CONTACT_TOLERANCE_M` of this cabinet's box bottom are considered at all. Anything that lands a top a hair off a
+   stepped support — and a stepped support is what `all-*` rigs have everywhere — drops every candidate supporter and
+   reports zero coverage. Print the actual `z` of the top's box bottom against the box tops of the cabinets beneath it;
+   if they differ by more than the tolerance but less than a cabinet, the gate is the bug and not the geometry.
+
+Below is kept for the `all-1` case only, in case the cosmetic half is ever wanted.
+
+**Two levers, and picking between them is a decision rather than a measurement.**
 
 * **Split the tops after all.** It is the only *geometric* option, and the table above is what it costs. The three
   attempts predate the width arithmetic above, so they were made while a cheaper fix still looked available; that is a

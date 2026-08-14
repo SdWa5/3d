@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.73.1] - 2026-08-14
+
+### Changed
+
+- **12 of GEO-2's 22 refusals are the generator working correctly, not defects, and `TODO.md` now says so.** `all-1`
+  puts 41 cabinets in one stack and cannot reach the 2–3 m sub height band at any width on the
+  `WIDTH_LADDER_M` — 8.676 m at a 2.00 m stage down to 3.840 m at 6.00 m, and that best case is still 840 mm over the
+  ceiling. Declining an impossible rig is the whole promise `scene:stack` makes, that a generator emitting a scene the
+  compiler rejects is worse than no generator, so those 12 want no geometry and no code
+- GEO-2 is therefore narrowed to the **10 `all-2` and `all-3` refusals**, and re-prioritised to P1 at ca. 2h with the
+  starting point written down. All 10 are raised by `SceneStackCommand::floating()` and its helper
+  `coveredFraction()` against the *compiled* scene rather than by `StackChecks` against the tiers, which is a code path
+  nothing in `TODO.md` had read. Eight of the 10 are one cabinet at one height, so `coveredFraction()` returned exactly
+  `0.0`, meaning no cabinet at all overlaps the top in both plan axes. The two candidate causes are recorded in order:
+  whether the float is genuine, given that an inflated axis-aligned box would report *more* coverage rather than less and
+  so should not be able to invent one, and whether the exact-equality `z` gate against `CONTACT_TOLERANCE_M` drops every
+  supporter when a top lands a hair off a stepped support, which is what `all-*` rigs have everywhere
+- the discriminator question under CVR-3 is answered with the spec data: there are **three** owners rather than two
+  systems, `gmss` with 5 speakers, `sdwa5` with 3 and `sepp` with 2. `sepp` never gets a rig of its own and appears only
+  inside `all-*`
+
 ## [0.73.0] - 2026-08-14
 
 ### Changed
