@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.73.2] - 2026-08-14
+
+### Changed
+
+- GEO-2's second candidate cause is downgraded before anyone spends time on it. The `z` gate in
+  `SceneStackCommand::coveredFraction()` only considers cabinets whose box top sits within `CONTACT_TOLERANCE_M` of the
+  cabinet's box bottom, which would drop every supporter if a top landed a hair off a stepped support.
+  **`CONTACT_TOLERANCE_M` is 0.001 m**, a millimetre rather than a float epsilon, and `Gravity` derives every `z` by
+  summing exact cabinet heights, so the accumulated error is orders of magnitude inside it. The likely answer is
+  therefore that the float is **genuine** and the `all-2`/`all-3` tops row really does reach past the stack under it,
+  the same family as `all-1` and merely less extreme. If the numbers confirm that, the fix is not in the checker and the
+  item becomes a question about distributing the tops across stacks
+
 ## [0.73.1] - 2026-08-14
 
 ### Changed

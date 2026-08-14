@@ -121,11 +121,17 @@ Two things to check first, in this order, and **measure before changing anything
    *clearance* a box is wrong in direction. For *support* an inflated box would report **more** coverage rather than
    less, so it should not be able to invent a float, which makes a genuine float the likelier reading. Confirm that
    before touching the checker.
-2. **The `z` gate is exact equality within a tolerance.** Only cabinets whose box top sits within
-   `CONTACT_TOLERANCE_M` of this cabinet's box bottom are considered at all. Anything that lands a top a hair off a
-   stepped support — and a stepped support is what `all-*` rigs have everywhere — drops every candidate supporter and
-   reports zero coverage. Print the actual `z` of the top's box bottom against the box tops of the cabinets beneath it;
-   if they differ by more than the tolerance but less than a cabinet, the gate is the bug and not the geometry.
+2. **The `z` gate is exact equality within a tolerance**, so check it, but expect it to be innocent. Only cabinets whose
+   box top sits within `CONTACT_TOLERANCE_M` of this cabinet's box bottom are considered at all, and anything landing a
+   top a hair off a stepped support would drop every candidate supporter and report zero coverage. **`CONTACT_TOLERANCE_M`
+   is 0.001 m, though**, which is a millimetre rather than a float epsilon, and `Gravity` derives every `z` by summing
+   exact cabinet heights, so the accumulated error should be many orders of magnitude inside it. Print the numbers to be
+   sure and then move on.
+
+**So the likely answer is that the float is genuine** and the `all-2`/`all-3` tops row really does reach past the stack
+under it, which is the same family as `all-1` and merely less extreme. If that is what the numbers say, the fix is not in
+the checker and the item becomes a question about how the tops are distributed across stacks — at which point re-read
+the splitting table above, because a fourth attempt at splitting would be the fourth.
 
 Below is kept for the `all-1` case only, in case the cosmetic half is ever wanted.
 
