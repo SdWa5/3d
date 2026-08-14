@@ -36,19 +36,20 @@ Where that stands: bare `scene:stack` writes **11 scenes of 132 candidates**, ev
 **One root cause across this group:** a row is positioned and spaced as if its cabinets were unrotated and centred, and
 neighbouring stacks are spaced on nominal tier widths rather than on where the cabinets actually ended up. GEO-1 and GEO-3
 are done, which cleared all 8 interpenetration refusals, all 6 spread-envelope refusals and the 12 by-type overlaps.
-What is left runs in a chain: **GEO-9 gives the wall a usable top face, which is what GEO-2 actually needs, and GEO-4
-waits on GEO-2** — sliding a sub row moves what the tops row stands on, so enabling it first made things worse, measured
-as 6 "nothing under it" refusals becoming 12.
+What is left no longer runs in a chain. **GEO-2 does not depend on GEO-9**, and the entry that said so is refuted in
+GEO-2's own section: the tops row is wider than the widest wall the stage can legally carry, so no shape reaches it.
+**GEO-4 still waits on GEO-2**, because sliding a sub row moves what the tops row stands on, and enabling it first made
+things worse, measured as 6 "nothing under it" refusals becoming 12.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | Tops land on the narrowest row in the stack — **splitting is the wrong lever, measured three times**; fix the wall's shape instead | P2 | 30m | 12 tops-on-nothing + 6 nothing-under-at-all + 5 bearing refusals | GEO-9, GEO-5 | partial |
+| GEO-2 | The tops row is **3.921 m whatever the stage is**, so it is wider than the widest legal wall and no shape can carry it. Splitting is the only geometric lever and cost more than it bought three times. **Needs a decision** | P2 | — | 22 refusals, all `all-*`, 12 of them `all-1` | decision, CVR-3 | decision |
 | GEO-4 | Switch multi-stack row sliding on — the bound is written and measured, `clearance / 2 - gap` | P1 | 15m | the `LEFT OUT` mid-bass in `stacked-all-2-center`; `--per-owner` writing at all | GEO-2 | partial |
 | GEO-5 | The **pyramid cap** reaches `statedMix` now; `reserveLifts` reserves its flanks before any tier exists, so it needs the cap at emission instead | P2 | 1h 15m | 9 of 13 pyramid stacks still step outward (the V shape) | — | partial |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
-| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P1 | 8h | GEO-2's 23 refusals, by giving the tops a support as wide as the wall | — | measured |
+| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P3 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | — | measured |
 
 #### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 
@@ -72,19 +73,37 @@ cabinets, and eight tops became seven ever-thinner rows — a 7-tier rig grew to
 overlapping by 203 mm. Capping at two rows fixes the cascade and still loses: it trades `nothing-under` and `bearing` for
 `top-on-nothing` and costs a scene.
 
-**So the lever is the shape of the wall, not the tops row.** This rig's rows read **2.730 / 1.890 / 2.420 / 1.200 m going
-up**, which is neither a pyramid nor a V but an accident, and it lands the tops on the narrowest row in the stack. A wall
-that actually tapers, or a `tower` whose rows are all about one width, gives the tops a support wide enough to hold them
-in one row and this item disappears rather than being worked around. Do the shapes first, which is GEO-9 and GEO-5, and
-then re-measure this before writing any more splitting code.
+**AND THE SHAPE OF THE WALL IS NOT THE LEVER EITHER. That was the previous entry here and it is refuted by
+arithmetic.** `topRow()` puts every top in one row unconditionally, so the row is **3.921 m wide for the `all`
+inventory's 8 tops whatever the stage is** — measured identical at 3.80 m and at 5.00 m, because nothing about it
+responds to the stage. The widest wall a 3.80 m stage can legally carry is 3.80 m. **The tops row is wider than the
+widest possible support**, so no shape can hold it: `pyramid` leaves 751 mm per side over air and `free` leaves 1421 mm,
+and a perfectly flush wall filling the whole stage would still leave 60 mm. Re-measuring after GEO-9 is therefore
+pointless, and this item does not depend on GEO-9 at all.
+
+**Which leaves exactly two levers, and picking between them is a decision rather than a measurement.**
+
+* **Split the tops after all.** It is the only *geometric* option, and the table above is what it costs. The three
+  attempts predate the width arithmetic above, so they were made while a cheaper fix still looked available; that is a
+  reason to re-read them, not evidence that a fourth attempt would go differently.
+* **Stop building the rig.** All 22 refusals are `all-*`, and 12 of the 22 are `all-1`, which is one stack holding both
+  complete sound systems and 8 tops in one row. Nobody builds that. Every per-owner rig — `sdwa5-*` and `gmss-*` — is
+  clean in this family. That makes it **CVR-3**, which already asks whether the default `--from` should mean one system
+  rather than both, and it would retire half of this item without any geometry at all.
+
+The remaining 10 refusals are `all-2` and `all-3`, where the tops are already spread over two and three stacks. Those are
+a smaller and separate case, reported by the sweep against the *compiled* scene rather than by `StackChecks` ("a
+gmss-turbo-top would stand at 4.668 m with nothing under it across x"), and they should be measured on their own once the
+`all-1` question is settled.
 
 #### GEO-9 — the two shapes that are missing
 
-Where: `src/Scene/StackShape.php`, `StackSolver::perRowCap()` and `rowSizeFor()`.
+Where: `src/Scene/StackShape.php` and `StackSolver::packedRows()` / `packTo()`.
 
-`pyramid` narrows going up and `free` lets the bearing rule decide, and neither expresses a wall of constant width. That
-is what leaves this rig reading **2.730 / 1.890 / 2.420 / 1.200 m going up** and landing its tops on the narrowest row in
-the stack, which is GEO-2 and which no amount of splitting the tops fixes.
+`pyramid` narrows going up and `free` lets the bearing rule decide, and neither expresses a wall of constant width. Worth
+having because it is a shape crews build, and **not** worth having for GEO-2: that item is refuted independently of this
+one, since its tops row is wider than any wall the stage permits. This is now a shape for its own sake, which is why it
+dropped to P3.
 
 * **`tower`** — every row about one width, so the top of the wall is as usable as its base.
 * **`mixed`** — a tower base with a tapering top, which is the common real rig and the only shape that makes a wide
@@ -200,7 +219,7 @@ but because the model has no way to raise tops other than stacking subs under th
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one | P2 | 6h | 54 refusals — every `sepp` rig, `gmss-3`, `sdwa5-3` | — | open |
-| CVR-3 | The default `--from` means both sound systems in one stack; make it mean one system — an `--owner` narrowing, or owner-awareness in `everySpeaker()` | P3 | 1h | the one-stack mixed rigs, once GEO-2 lands | decision, GEO-2 | decision |
+| CVR-3 | The default `--from` means both sound systems in one stack; make it mean one system — an `--owner` narrowing, or owner-awareness in `everySpeaker()` | P1 | 1h | **12 of GEO-2's 22 refusals**, since `all-1` cannot stand at any geometry | decision | decision |
 | CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
 | CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes — pinned at floor, scale has no P4 | decision | decision |
 
@@ -216,9 +235,13 @@ end, and INFO-1 is what the stands can actually reach.
 
 `owner` is not quite the right discriminator: the repository deliberately supports borrowing gear between owners, so a
 rig can legitimately mix them. It separates the two systems in practice, and inventing a `system:` field to serve a
-sweep would be inventing a property to serve a layout. **Decide the discriminator before writing code.** Note the
-refusal this item used to cite has moved: the one-stack mixed rig now fails on the tops row (`2× turbo-top + 1× 2-way +
-3× tecnare`) and one top floating at 4.196 m — that is GEO-2, not a `--from` problem.
+sweep would be inventing a property to serve a layout. **Decide the discriminator before writing code.**
+
+**This item got considerably more valuable, and the note that used to be here got it backwards.** It read "the one-stack
+mixed rig now fails on the tops row and one top floating at 4.196 m, that is GEO-2, not a `--from` problem". The width
+arithmetic in GEO-2 says the reverse: 8 tops in one row are 3.921 m, wider than the widest wall a 3.80 m stage can carry,
+so `all-1` cannot be made to stand by any geometry. It is a `--from` problem, and narrowing the default retires **12 of
+GEO-2's 22 refusals** without touching the solver.
 
 ## SCN · scenes and renders
 

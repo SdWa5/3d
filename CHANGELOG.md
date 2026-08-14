@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.72.7] - 2026-08-14
+
+### Changed
+
+- **GEO-2's premise is refuted by arithmetic, and `TODO.md` says so.** The entry claimed the lever was the shape of the
+  wall, so that GEO-2 waited on GEO-9. `StackSolver::topRow()` puts every top in one row unconditionally, and for the
+  `all` inventory's 8 tops that row measures **3.921 m at a 3.80 m stage and 3.921 m at a 5.00 m stage** — it does not
+  respond to the stage at all. The widest wall a 3.80 m stage can legally carry is 3.80 m, so **the tops row is wider than
+  the widest possible support** and no shape reaches it: `pyramid` leaves 751 mm per side over air, `free` leaves 1421 mm,
+  and a flush wall filling the whole stage would still leave 60 mm. GEO-2 no longer depends on GEO-9, and re-measuring it
+  after GEO-9 would have proved nothing
+- all 22 refusals in that family name a **tops** cabinet and not one names a sub, and every one is an `all-*` rig. 12 of
+  the 22 are `all-1`, one stack holding both complete sound systems with 8 tops in one row. Every per-owner rig is clean.
+  **CVR-3 is therefore promoted from P3 to P1** and its dependency on GEO-2 dropped, because narrowing the default
+  `--from` retires those 12 without touching the solver. The note under CVR-3 that read "that is GEO-2, not a `--from`
+  problem" had it backwards and is corrected
+- GEO-9 drops from P1 to P3. It is worth having as a shape crews build and it buys nothing measurable, since the item it
+  was raised to unblock is refuted independently of it
+
 ## [0.72.6] - 2026-08-14
 
 ### Changed
