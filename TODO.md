@@ -50,7 +50,7 @@ ladder. Both entries record what was measured rather than what was expected.
 |----|------|------|--------|------|-------|-------|
 | GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x — the same split GEO-2 was. Needs the two-pass compile | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
-| GEO-5 | The pyramid cap now reaches `statedMix` **and lifts**. What is left is that the cap is a *count*, and its stated reason — every cabinet 0.45–0.66 m — is false: `gmss-mid-bass` is **1.200 m**. **Needs a decision** on the tolerance | P2 | — | 2 of the 5 remaining overhangs; the other 3 are the deliberately uncapped tops row | decision | decision |
+| GEO-5 | The pyramid cap reaches `statedMix` and lifts now. Its premise is false — `gmss-mid-bass` is **1.200 m** against 0.45–0.66 for the other nine — and **both pure-width replacements measured worse** (11 scenes → 7 and 8, and both introduce interpenetration). Waits on the fill/gravity reconciliation | P3 | 6h | 2 V rows, and only once the cascade is solvable | GEO-4 | measured |
 | GEO-6 | The whole inventory cannot be **turned** at once — a rolled SKRAM is 19 mm taller than a rolled Flexy and the row above straddles the step | P2 | 2h | 3 of 10 turned siblings | — | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
@@ -86,10 +86,35 @@ At nearly double the widest of the others, one mid bass in a row breaks the equi
 The other three are the **tops row**, which `topRow()` deliberately never caps because nothing stands on it, so those
 belong to GEO-2's family rather than here.
 
-**The decision is the tolerance, and it is a decision because both extremes are already known to be wrong.** A strict
-width cap was tried and is too blunt: it forbids a 27 mm shoulder the bearing rule allows four hundred of, which split
-six Achenbachs into two rows of three and cost a 2-way from the rig. No width bound at all is what ships now. So the
-answer is a stated tolerance, and what it should be derived from is the open question.
+**BOTH PURE-WIDTH RULES WERE THEN BUILT AND MEASURED, AND BOTH ARE WORSE THAN THE BROKEN COUNT RULE.** `perRowCap()`
+was deleted outright and the pyramid expressed in `ceilingFor()` as a width, twice, with these results on the
+66-candidate sweep:
+
+| rule | scenes | sub-row V's | interpenetration |
+| --- | --- | --- | --- |
+| **count (what ships)** | **11** | 2, both the mid bass | **0** |
+| width, bounded by the row below | 7 | 0 | 2 |
+| width, bounded by the base | 8 | 1 | 3 |
+
+A tolerance is **not** the lever, which was the previous entry's guess. Tried at 10 mm — the checker's own
+`OVERHANG_TOLERANCE_M`, "what the rubber feet and the working gaps absorb" — and at 30 mm, and both gave 7 scenes,
+identical to no tolerance at all. The losses are not a few millimetres of shoulder.
+
+**Why both fail is the same reason, and it is structural rather than a tuning problem.** A width bound makes rows
+narrower, narrower rows make more of them, and a wall of many thin rows is a *staircase*. `Gravity` then splits each row
+into runs at the different heights that staircase presents, and those runs end up inside each other — measured at
+**127 mm** on `stacked-all-2-center` and 28 mm on `stacked-all-2-stereo`. That is the same cascade three attempts at
+splitting the tops row hit at 203 mm. Bounding by the base instead of the row below cannot cascade and still hits it,
+because the *inventory* forces thin rows regardless of what the bound permits.
+
+So the honest state is: **the pyramid's count rule is justified by a premise that is false, and is still the best
+arrangement measured.** The two mid-bass rows are legal under the bearing rule, stand up, and read as a V.
+
+**What a width-based pyramid actually waits on** is the same reconciliation GEO-2 and GEO-4 turned out to need, and this
+is the third instance of it. The fill decides row widths, `Gravity` decides where cabinets land, the compiler decides
+final x, and no stage sees the next one's answer — so the fill cannot know that the wall it is narrowing is one gravity
+will break into overlapping runs. Until the fill can ask that question, any width rule is choosing between a V and an
+overlap blind.
 
 #### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
 

@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.74.5] - 2026-08-14
+
+### Changed
+
+- **The pyramid was reimplemented as a pure width rule, twice, and both versions measured worse than the count rule they
+  replace.** `perRowCap()` was deleted and the shape expressed in `ceilingFor()` instead, once bounded by the row below
+  and once by the bottom row. On the 66-candidate sweep: the count rule writes **11 scenes with 0 interpenetration**,
+  bounding by the row below writes 7 with 2 interpenetrations, and bounding by the base writes 8 with 3. Reverted, and
+  `TODO.md` records the numbers
+- a tolerance is **not** the lever, which the previous entry guessed it was. Tried at 10 mm — the checker's own
+  `OVERHANG_TOLERANCE_M`, "what the rubber feet and the working gaps absorb" — and at 30 mm, both giving 7 scenes,
+  identical to no tolerance at all
+- **why both fail is structural.** A width bound makes rows narrower, narrower rows make more of them, and a wall of many
+  thin rows is a staircase; `Gravity` splits each row into runs at the heights that staircase presents and those runs end
+  up inside each other, at **127 mm** on `stacked-all-2-center`. That is the same cascade three attempts at splitting the
+  tops row hit at 203 mm. Bounding by the base cannot cascade and still hits it, because the inventory forces thin rows
+  whatever the bound permits
+- so this is the **third** instance of one architectural split, after GEO-2 and GEO-4: the fill decides row widths,
+  `Gravity` decides where cabinets land, the compiler decides final x, and no stage sees the next one's answer. GEO-5 is
+  re-estimated at ca. 6h, dropped to P3 and now depends on that reconciliation. The count rule stays, with its false
+  premise and its two legal-but-V rows documented
+
 ## [0.74.4] - 2026-08-14
 
 ### Fixed
