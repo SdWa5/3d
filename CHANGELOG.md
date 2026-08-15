@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Two P1 items stated by the owner, written down and not yet built.** **SWP-2** makes how separate the sound systems
+  stand a swept axis at three values — each system its own stack, the subs per system with the tops shared, and
+  everything pooled. Only the third is generated today, verified rather than assumed: 0 of the 150 scene files carry
+  `--per-owner` and none states `--split`. **SWP-3** adds sweep configuration, which is every axis value switchable
+  individually plus a system grouping that overrides `owner`, so `sdwa5` and `sepp` can be swept as one system. That
+  second half is the answer CVR-3 was waiting for, and it is a grouping stated at invocation time rather than a
+  `system:` field in the specs
+
 ## [0.81.0] - 2026-08-15
 
 ### Added
