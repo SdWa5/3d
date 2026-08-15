@@ -79,7 +79,9 @@ Settled with the owner, so a new session can act on it without re-deriving it:
    up to three and there is no sense counting the same rigs twice.
 4. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
    enable/disable surface worth building.
-5. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes.
+5. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
+   SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
+   169 mm cost on the tightest tops row is measured.
 6. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, and it covers the bug class that cost two reverts.
 7. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
    any code. GEO-9 sits behind it, so the two are one piece of work in practice.
@@ -438,22 +440,104 @@ refusing.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties | P1 | 3h | broadest stereo image; the mono spread | decision, ALN-4 | decision |
+| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties. **No longer blocked on a decision.** The spreading half is SWP-2's shared tops row rather than a change to `Alignment`, and the evenness rule is **equal pitch**, settled by the owner. Both measured, see the section | P1 | 5h | broadest stereo image; the mono spread. Costs 169 mm on the tightest tops row, which the width ladder has to absorb | SWP-2 | open |
 | SYM-2 | Stack ordering cannot make the flanks *equal*, only place the tall ones | P3 | 1h | 3 of 13 multi-stack scenes are height-asymmetric | GEO-4 | partial |
 
-#### SYM-3 — the contradiction to settle first
+#### SYM-3 — both blockers settled, and it is now work rather than a decision
 
 The ask is "in a stereo scene the subs get spread out as wide as possible or necessary so that the tops can be set as
 far apart as possible", and "in a mono scene the outermost tops as wide apart as possible but all tops spaced as evenly
 as possible", with symmetry between and inside stacks optimised.
 
-Two things block it, both needing a call rather than code:
+**Both blockers are settled.** The first turned out to be a different item, and the second was answered by the owner
+after it was measured. Nothing here waits on a decision any more.
 
-1. **Spreading subs is currently forbidden by design.** ALN-4 states the rule — only the top tier may be spread,
-   because spreading a load-bearing tier turns it into gaps and the tier above stands over air. Spreading sub *clusters*
-   with the tier above following the gaps is a different mechanism from `align`, and a real change to the model.
-2. **"Widest outermost" and "evenly spaced" compete** whenever the row does not exactly fill its envelope, which with
-   mixed cabinet widths is most of the time. Which yields, and by how much?
+##### Resolved: spreading subs is SWP-2, not a new mechanism
+
+**Two different things wear the word "spread", and only one of them was ever the problem.**
+
+Spreading a sub *row* means air between cabinets inside one tier. That is what ALN-4 forbids and the ban is right rather
+than conservative: `Gravity::MIN_BEARING` is `1/3`, so a cabinet must land on at least a third of its own width, and
+stretching the row underneath hands it air instead. This is not a preference that can be switched on and preferred where
+possible. It is a rig that falls over, so there is nothing to gain by making it optional.
+
+Spreading sub *columns* means each sub stack stays solid and the stacks move apart. Nothing stands over air, because
+every tier still sits on a whole stack. **This is what the ask actually wants, and half of it already exists**:
+`--stacks=N` splits the rig and `--clearance` sets the air between the stacks, default 0.5 m.
+
+**What is missing is that every stack carries its own tops row.** `StackSolver::topRow()` builds the tops from what is
+left in *that stack*, so widening the clearance moves the subs and their tops together. The tops cannot be held in place
+while the subs open underneath them, and a top cannot go wider than its own stack. That is exactly **SWP-2's middle
+value, "subs apart, tops shared"**, arriving from the other direction. So this half is not a change to `Alignment` at
+all, and **SYM-3 no longer waits on ALN-4.**
+
+**One real constraint comes with it, and it is computable rather than a guess.** A tops row spanning two sub stacks has
+cabinets over the gap, which is the same standing-on-air problem one level up. Every top must still land on a third of
+its width, so a 0.450 m top may hang about 0.300 m off an edge and two tops meeting over the gap put a rough ceiling
+near 0.600 m on the clearance. **That bound is what "only as far as the tops need" is solving against**, which is the
+sentence the ask was always making and nothing could express.
+
+##### Equal air against equal pitch, and why it was a real question
+
+**"Evenly spaced" has two meanings and they stop agreeing the moment the cabinets differ in width.** Our tops are 0.450
+(`gmss-turbo-top`), 0.4656 (`eighteensound-2way-15`) and 0.500 (`tecnare-m2122`), so equal *air* between boxes and equal
+*pitch* between centres are different placements. Pinning the outer two to the envelope — which is what "as wide apart
+as possible" means — leaves no freedom to satisfy both.
+
+Measured on all eight tops on a 4.40 m stage, in the order `topRow()` deals them, by
+[`tools/tops-row-spread.php`](tools/tops-row-spread.php) so it can be re-measured rather than trusted:
+
+| | equal air | equal pitch |
+| --- | --- | --- |
+| air between boxes | 88.4 mm everywhere | **64.3 to 114.3 mm** |
+| centre to centre | 546 to 596 mm | 564.3 mm everywhere |
+
+Worst centre disagreement between the two: **44 mm**. Equal pitch puts the widest three cabinets 64 mm apart while the
+narrow ones get 114 mm, which reads as a mistake in a render. Equal air puts the centres on an irregular grid, which is
+invisible unless somebody measures it.
+
+**And today's `block` is neither.** A `Tier` lays its cabinets edge to edge with a constant `gap_m`, so an *unspread*
+row is exactly equal air. `Alignment::apply()` then scales every centre offset by one factor `t`, so the air between a
+pair grows with that pair's own width:
+
+```
+gap(i, i+1) = (wᵢ + wᵢ₊₁)/2 · (t − 1) + gap_m · t
+```
+
+On that 4.40 m stage the factor is 1.1379 and the row lands 6 mm from equal air, so today it is close by accident. The
+error is proportional to `t − 1`, so a rig spreading twice as far drifts about seven times further.
+
+**That is the part that decides the size of this item.** Equal pitch is a one-scalar solve and fits the current model
+exactly. Equal air with the ends pinned is a per-copy offset, which one scalar cannot express, so `Alignment` gains a
+second path beside the scalar one its whole docblock rests on.
+
+##### Settled by the owner: equal pitch
+
+**Equal pitch wins.** Stated outright, against a recommendation of equal air, so this is decided rather than open.
+
+That leaves one consequence, measured after the call rather than argued before it. **A uniform pitch has to clear the
+widest adjacent pair**, which leaves every narrower pair holding more air than it needs, so the tightest possible row
+gets wider:
+
+| the eight tops at their tightest | width |
+| --- | --- |
+| equal air, `gap_m` everywhere | 3.9212 m |
+| equal pitch, 0.520 m everywhere | **4.0900 m** |
+
+**169 mm, and it is the kind of number that decides whether a rig exists.** GEO-2 already found that eight tops in one
+row do not fit a 3.70 m stage at 3.921 m. At 4.090 m they need a wider one again, so the choice does not only change how
+a spread row looks. It changes which rigs the width ladder can place at all.
+
+**So the rule needs a floor, and the floor is the existing one read correctly.** Equal pitch whenever there is slack to
+distribute, never below the pitch that clears the widest pair, and the tightest arrangement below that is the equal-air
+packing a `Tier` already builds. That is the same shape as `Alignment::minParameter()`, which exists because a factor
+under 1 drives neighbours into each other — the argument transfers, but it is an argument about factors and has to be
+re-derived for a pitch.
+
+**What it costs to build.** Less than equal air would have. Equal pitch puts the centres on a regular grid, which is an
+affine function of the index, which is what a `row` group's `step_m` already is — so it stays inside the one-scalar
+model `Alignment` rests on. What changes is that `Tier::seats()` packs by equal air, so the natural offsets a spread
+scales are the wrong ones to scale, and the row has to be rebuilt on a step before the solver touches it.
 
 #### SYM-2 — what ordering can and cannot do
 
@@ -669,6 +753,12 @@ heights, which is what the tops row has to sit on.
 of SWP-1's target. `DEFAULT_MAX_SCENES` is at 600 and will bind. Do it after CVR-7 rather than before, or the same rigs
 get counted twice.
 
+**SYM-3's spreading half is this item**, which is worth knowing while designing the middle value. "Spread the subs only
+as far as the tops need" is a solve for the clearance between sub stacks under a shared tops row, and the bound is the
+bearing rule one level up: a top over the gap must still land on a third of its width, which puts a rough ceiling near
+0.600 m on the clearance for a 0.450 m top. Build the shared tops row so that clearance is solvable rather than fixed,
+and SYM-3 becomes a ranking question instead of a mechanism.
+
 #### SWP-3 — configuring the sweep, and grouping systems
 
 Where: `SweepAxes`, `SceneStackCommand`'s option list, and whatever CVR-3's discriminator turns out to be.
@@ -839,8 +929,10 @@ GEO-2's 22 refusals** without touching the solver.
 | ALN-2 | `align` on **nested** groups — scaling x would stretch the inner group's spacing with the outer one's; needs the level named. Same for `arc` and `line_array`, which own their spacing | P3 | 2h | — | — | known |
 | ALN-3 | `stereo` splits into halves only — `floor(n/2)`; 2 + 2 out of six with two in the middle needs a `columns:` key | P3 | 1h | — | — | known |
 
-**ALN sits below the P1 groups on its own top row, not because it stopped mattering.** ALN-4 is what SYM-3 waits on, so
-the two are one decision seen from two sides.
+**ALN sits below the P1 groups on its own top row.** It used to say here that ALN-4 is what SYM-3 waits on. **That is no
+longer true**, and the reason is worth keeping: SYM-3 wanted to spread the subs, ALN-4 forbids spreading a load-bearing
+tier, and the resolution is that SYM-3 never needed a tier spread at all. It needs sub *stacks* moved apart under a
+shared tops row, which is SWP-2. ALN-4's rule stands untouched and the two items are now independent.
 
 ## SCN · scenes and renders
 

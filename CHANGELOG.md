@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `tools/tops-row-spread.php`, the evidence behind SYM-3. It lays the eight tops out across one envelope three ways —
+  equal air with the ends pinned, equal pitch with the ends pinned, and what `Alignment`'s single scalar does today —
+  so the figures in `TODO.md` can be re-measured rather than trusted
+
 ### Changed
 
 - **Two P1 items stated by the owner, written down and not yet built.** **SWP-2** makes how separate the sound systems
@@ -15,6 +21,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   individually plus a system grouping that overrides `owner`, so `sdwa5` and `sepp` can be swept as one system. That
   second half is the answer CVR-3 was waiting for, and it is a grouping stated at invocation time rather than a
   `system:` field in the specs
+- **SYM-3 is no longer blocked on a decision**, and neither blocker turned out to be what it looked like. Spreading subs
+  is SWP-2's shared tops row rather than a change to `Alignment`, since the ask needs sub *stacks* moved apart under one
+  tops row and never needed a load-bearing tier stretched — so ALN-4's rule stands untouched and the two items are
+  independent. The evenness rule is **equal pitch**, settled by the owner against a recommendation of equal air. Its
+  cost is measured: a uniform pitch has to clear the widest adjacent pair, so the tightest row of our eight tops is
+  **4.090 m against 3.921 m**, and those 169 mm decide which stages a rig fits at all
 
 ## [0.81.0] - 2026-08-15
 
