@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.80.0] - 2026-08-15
+
+### Changed
+
+- **`SceneStackCommand` split into three, 1998 lines down to 1635.** TOOL-5. Size was the symptom; the reason is that
+  two clusters in it never touched the solve, so they could not be reasoned about or tested without a rig, an inventory
+  and a console. **No behaviour change** — the scene set is byte-identical and the suite is unchanged
+- **`App\Scene\SweepAxes`** takes the five axes that have something to decide: `modes()`, `shapes()`, `mirrorStyles()`,
+  `orientations()`, the orientation/mirror `pairs()` and `ownerCombinations()` with its `labelFor()`. An axis is a fact
+  about what the sweep covers, and now it reads as one
+- **errors come back as a string rather than being printed.** Each parser returns its values or the message naming what
+  was misspelled and what was allowed, and the command decides that an error is red text on stderr. That is the whole of
+  the seam. The four near-identical parsers collapse into one `of()` that names every allowed value, because a refusal
+  saying only "unknown value" sends somebody to the source to find out what is allowed
+- **`App\Scene\PlacementChecks`** takes `floating()` and `coveredFraction()`. The sibling of `StackChecks`, and the
+  distinction is the data rather than the severity: `StackChecks` reads *tiers*, where "the row below" is a thing you can
+  point at, and this reads `PlacedDevice`s, which are cabinets at world coordinates with no memory of which row they came
+  from. Everything the compiler does between those two representations is what these checks exist to catch
+- the contact tolerance is defined once, in `PlacementChecks`, and the command takes it from there. Two copies of a
+  tolerance drift the first time one of them is tuned
+
 ## [0.79.0] - 2026-08-15
 
 ### Added

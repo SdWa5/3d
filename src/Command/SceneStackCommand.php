@@ -8,6 +8,7 @@ use App\Scene\Interpenetration;
 use App\Scene\LayoutMode;
 use App\Scene\MirrorStyle;
 use App\Scene\RolledBox;
+use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
@@ -18,6 +19,7 @@ use App\Scene\StackOrientation;
 use App\Scene\StackSceneWriter;
 use App\Scene\StackShape;
 use App\Scene\StackSolver;
+use App\Scene\SweepAxes;
 use App\Scene\SplitMode;
 use App\Spec\DeviceSpec;
 use App\Spec\Violation;
@@ -95,8 +97,13 @@ final class SceneStackCommand extends BaseCommand
      */
     private const NEAR_FOCUS = 'near';
 
-    /** How close two faces count as touching — the same millimetre `ShippedScenesTest` uses, so they agree. */
-    private const CONTACT_TOLERANCE_M = 0.001;
+    /**
+     * How close two faces count as touching — the same millimetre `ShippedScenesTest` uses, so they agree.
+     *
+     * Taken from {@see PlacementChecks} rather than restated, because the checks that moved there use the same
+     * number for the same reason and two copies of a tolerance drift the first time one of them is tuned.
+     */
+    private const CONTACT_TOLERANCE_M = PlacementChecks::CONTACT_TOLERANCE_M;
 
     protected function configure(): void
     {
@@ -147,7 +154,7 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        // Checked here rather than inside {@see ownerCombinations}, because a misspelled owner has to be a refusal that
+        // Checked here rather than inside {@see SweepAxes::ownerCombinations}, because a misspelled owner has to be a refusal that
         // names the owners there are. Silently intersecting it away would leave the whole inventory built instead, which
         // is the opposite of what was asked for and looks like a working run.
         $owners = array_values(array_unique(array_map(
@@ -184,26 +191,23 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $modes = $this->readModes($input->getOption('align'));
-        if ($modes === null) {
-            return self::FAILURE;
-        }
-
-        $shapes = $this->readShapes($input->getOption('shape'));
-        if ($shapes === null) {
-            return self::FAILURE;
-        }
-
-        $styles = $this->readMirrorStyles($input->getOption('mirror-style'));
-        if ($styles === null) {
-            return self::FAILURE;
-        }
-
         /** @var list<string> $rolled */
         $rolled = $input->getOption('roll-mirror');
-        $orientations = $this->readOrientations($input->getOption('orientation'), $rolled);
-        if ($orientations === null) {
-            return self::FAILURE;
+
+        // **The axes are parsed by {@see SweepAxes} and reported here**, which is the whole of that seam: what an axis
+        // covers and what a misspelled value is allowed to be are facts about the sweep, and "an error is red text on
+        // stderr" is a fact about a console command.
+        $modes = SweepAxes::modes($input->getOption('align'));
+        $shapes = SweepAxes::shapes($input->getOption('shape'));
+        $styles = SweepAxes::mirrorStyles($input->getOption('mirror-style'));
+        $orientations = SweepAxes::orientations($input->getOption('orientation'), $rolled);
+
+        foreach ([$modes, $shapes, $styles, $orientations] as $axis) {
+            if (is_string($axis)) {
+                $this->io->error($axis);
+
+                return self::FAILURE;
+            }
         }
 
         // SHAPE FIRST IN THE NAME, and only when it is not the pyramid. The pyramid is the one to reach for, so it
@@ -217,7 +221,7 @@ final class SceneStackCommand extends BaseCommand
         $skipped = [];
         foreach ($rigs as $rig) {
             foreach ($shapes as $shape) {
-                foreach ($this->orientationPairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
+                foreach (SweepAxes::pairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
                         $name = sprintf(
                             '%s%s%s%s%s-%s',
@@ -486,147 +490,6 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
-     * The mirror styles somebody named, or `[]` for "sweep whatever the orientation gives them to differ on".
-     *
-     * All three by default, like `--align` and `--shape`, and for the same reason: an odd cabinet in a turned row has no
-     * arrangement that is both symmetric and flat, so the choice is a trade rather than an answer. See
-     * {@see MirrorStyle}.
-     *
-     * **THE DEFAULT IS DECIDED PER ORIENTATION RATHER THAN HERE**, which is why this returns an empty list instead of
-     * every case. {@see Tier::mirrored} acts only on segments lying on a quarter turn, so the styles are *vacuous*
-     * wherever nothing is rolled and come out byte-identical, and the measurement was unambiguous: sweeping the axis
-     * unconditionally gave **66 `centred` candidates, 0 written** — 18 caught afterwards by `deduplicate()` and the
-     * other 48 refused identically to their `alternate` twin. `deduplicate()` catching them is not good enough, because
-     * the cost is not a file, it is *every candidate solved twice*, and a candidate is a full solve plus a compile plus
-     * an interpenetration sweep.
-     *
-     * {@see orientationPairs} is where that judgement now lives, since which cabinets roll is exactly what the
-     * orientation axis decides.
-     *
-     * @param list<string> $raw
-     * @return list<MirrorStyle>|null null on a misspelling, `[]` when none was named
-     */
-    private function readMirrorStyles(array $raw): ?array
-    {
-        if ($raw === []) {
-            return [];
-        }
-
-        $styles = [];
-        foreach ($raw as $value) {
-            $style = MirrorStyle::tryFrom($value);
-            if ($style === null) {
-                $this->io->error(sprintf(
-                    "--mirror-style: unknown value '%s' (allowed: %s)",
-                    $value,
-                    implode(', ', array_column(MirrorStyle::cases(), 'value')),
-                ));
-
-                return null;
-            }
-            $styles[] = $style;
-        }
-
-        return $styles;
-    }
-
-    /**
-     * The orientations to write a scene for, or null when one is misspelled.
-     *
-     * All three by default, and this is the axis that pays best of any in the sweep: **the default sweep writes 61 scenes
-     * where upright alone writes 11**, three-stack rigs among them for the first time, because a rolled sub is wider and
-     * shorter and both of those help a wall land inside the sub height band. See {@see StackOrientation}.
-     *
-     * **`--roll-mirror` turns the axis off**, which keeps every hand invocation that names cabinets working exactly as
-     * it did. The two options answer the same question at different resolutions — which cabinets lie down — so a line
-     * naming `--roll-mirror=skram` means *those* and not "sweep three modes and ignore what I said". A `null`
-     * orientation is how that is carried: it says "the rolled set is stated on the command line", and
-     * {@see stackFor} reads `--roll-mirror` in that case.
-     *
-     * @param list<string> $raw
-     * @param list<string> $rolled the device ids `--roll-mirror` named
-     * @return list<StackOrientation|null>|null
-     */
-    private function readOrientations(array $raw, array $rolled): ?array
-    {
-        if ($raw === []) {
-            return $rolled === [] ? StackOrientation::cases() : [null];
-        }
-
-        $orientations = [];
-        foreach ($raw as $value) {
-            $orientation = StackOrientation::tryFrom($value);
-            if ($orientation === null) {
-                $this->io->error(sprintf(
-                    "--orientation: unknown value '%s' (allowed: %s)",
-                    $value,
-                    implode(', ', array_column(StackOrientation::cases(), 'value')),
-                ));
-
-                return null;
-            }
-            $orientations[] = $orientation;
-        }
-
-        return $orientations;
-    }
-
-    /**
-     * The orientation and mirror style **as pairs**, because the two are not independent axes.
-     *
-     * Orientation says which cabinets lie down; mirror style says what a rolled row does with the odd cabinet it cannot
-     * split in half. Different questions, and a turned rig genuinely has three different forms — but the style is
-     * *vacuous* when nothing is rolled, since {@see Tier::mirrored} only ever acts on a segment lying on a quarter turn.
-     * Multiplied out as two axes, one third of every candidate would be a duplicate of another by construction. Paired,
-     * the vacuous combinations are **unrepresentable** rather than guarded:
-     *
-     * | # | pair |
-     * | --- | --- |
-     * | 1 | `upright` — nothing rolled, so no odd cabinet to place |
-     * | 2–4 | `turned` × (`alternate`, `centred`, `column`) |
-     * | 5–7 | `mixed` × (`alternate`, `centred`, `column`) |
-     *
-     * **A mode that rolls nothing in *this* rig is dropped as well**, and that is not the same rule. `mixed` rolls only
-     * the cabinets that get wider on their side, so an inventory of a cube and a top has nothing for it to turn — and
-     * the candidate it would produce is `upright` under another name. Dropping it here rather than letting
-     * `deduplicate()` find it afterwards is what keeps the names honest: a `-turned-` file always has something turned
-     * in it.
-     *
-     * Asked per rig rather than once, because the rigs are different inventories. Asked on the rig's whole device list
-     * rather than per stack, because a split can hand one stack no rollable cabinet while the rig plainly has one, and
-     * the scene is named for the rig.
-     *
-     * @param list<StackOrientation|null> $orientations
-     * @param list<MirrorStyle> $stated the styles somebody named, `[]` to sweep as each orientation allows
-     * @param list<string> $rolled the device ids `--roll-mirror` named, which is what a null orientation defers to
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $from
-     * @return list<array{StackOrientation|null, MirrorStyle}>
-     */
-    private function orientationPairs(
-        array $orientations,
-        array $stated,
-        array $rolled,
-        array $devices,
-        array $from,
-    ): array {
-        $pairs = [];
-        foreach ($orientations as $orientation) {
-            $rolls = $orientation?->rolls($devices, $from) ?? array_values(array_intersect($from, $rolled));
-            if ($rolls === [] && $orientation !== null && $orientation !== StackOrientation::Upright) {
-                continue;
-            }
-
-            $styles = $stated !== [] ? $stated : ($rolls === [] ? [MirrorStyle::Alternate] : MirrorStyle::cases());
-            foreach ($styles as $style) {
-                $pairs[] = [$orientation, $style];
-            }
-        }
-
-        return $pairs;
-    }
-
-    /**
      * Every rig worth trying — which gear, and how many stacks to split it into.
      *
      * **THIS IS THE PROJECT'S GOAL EXPRESSED AS A DEFAULT.** As many *sensible* configurations as possible out of one
@@ -637,7 +500,7 @@ final class SceneStackCommand extends BaseCommand
      *
      * So absence now means *sweep*, the way it already does for `--align` and `--shape`:
      *
-     * * **one rig per non-empty combination of owners** ({@see ownerCombinations}) — each owner alone, each pair, and
+     * * **one rig per non-empty combination of owners** ({@see SweepAxes::ownerCombinations}) — each owner alone, each pair, and
      *   everything. `owner` is the only discriminator the specs carry, and it is admittedly not quite the right one —
      *   the repository deliberately supports borrowing gear between owners, so "owner" and "system" are not the same
      *   question. It is what exists, it separates the two systems in practice, and inventing a `system:` field to serve
@@ -651,7 +514,7 @@ final class SceneStackCommand extends BaseCommand
      * **Naming any of `--from`, `--stacks` or `--per-owner` collapses the sweep to that single point**, exactly as
      * naming `--align` collapses it to one mode. Nothing that worked before works differently; the only change is what
      * *silence* means. `--owner` is the exception and narrows one axis instead of collapsing the sweep, since it says
-     * whose gear to build from and nothing about the rig — see {@see ownerCombinations}.
+     * whose gear to build from and nothing about the rig — see {@see SweepAxes::ownerCombinations}.
      *
      * @param list<DeviceSpec> $specs
      * @return list<array{from: list<string>, stacks: int, suffix: string}>
@@ -694,7 +557,7 @@ final class SceneStackCommand extends BaseCommand
         }
         ksort($byOwner);
 
-        $combinations = self::ownerCombinations(array_keys($byOwner), $owners);
+        $combinations = SweepAxes::ownerCombinations(array_keys($byOwner), $owners);
 
         $groups = [];
         foreach ($combinations as $subset) {
@@ -702,7 +565,7 @@ final class SceneStackCommand extends BaseCommand
             foreach ($subset as $owner) {
                 $owned = [...$owned, ...$byOwner[$owner]];
             }
-            $groups[self::labelFor($subset, count($byOwner))] = $this->everySpeaker($owned);
+            $groups[SweepAxes::labelFor($subset, count($byOwner))] = $this->everySpeaker($owned);
         }
 
         $rigs = [];
@@ -718,70 +581,6 @@ final class SceneStackCommand extends BaseCommand
         }
 
         return $rigs;
-    }
-
-    /**
-     * Every non-empty combination of owners, smallest first — the inventory axis.
-     *
-     * **Combinations rather than the three fixed groups it used to be**, which is SWP-1's step 4. Before this the sweep
-     * offered each owner alone and then everything at once, and the gap in the middle is a rig people actually build:
-     * borrowing one system's subs to stand under another's tops is the normal shape of a shared gig, and the repository
-     * supports lending gear on purpose. `sdwa5 + gmss` was simply not offered.
-     *
-     * Smallest first, so a reader sees the single-system rigs before the borrowed ones and the everything rig last —
-     * the same ordering the old fixed list had, for the same reason: the single-system rigs are the ones most often
-     * built.
-     *
-     * **`--owner` narrows the axis without collapsing the sweep**, exactly as `--align` narrows the alignment. It is the
-     * one narrowing option here that is *not* a rig somebody named: `--from` and `--stacks` mean "this rig, at this
-     * width", where `--owner=gmss --owner=sepp` still asks the sweep to walk the stack counts, the shapes, the
-     * orientations and the width ladder. So it deliberately does not appear in {@see isSweep}.
-     *
-     * @param list<string> $owners every owner with speakers, already sorted
-     * @param list<string> $stated what `--owner` named, validated by the caller
-     * @return list<list<string>>
-     */
-    private static function ownerCombinations(array $owners, array $stated): array
-    {
-        if ($stated !== []) {
-            // Intersected in the specs' own order rather than in the order they were typed, so `--owner=sepp
-            // --owner=gmss` and the reverse name the same rig and write the same file.
-            return [array_values(array_intersect($owners, $stated))];
-        }
-
-        $subsets = [];
-        for ($mask = 1, $end = 1 << count($owners); $mask < $end; ++$mask) {
-            $subset = [];
-            foreach ($owners as $bit => $owner) {
-                if (($mask & (1 << $bit)) !== 0) {
-                    $subset[] = $owner;
-                }
-            }
-            $subsets[] = $subset;
-        }
-
-        // Stable within a size, because the bitmask order is not the reading order: masks 1, 2, 4 are the singles but
-        // 3 sits between 2 and 4.
-        usort($subsets, static fn (array $a, array $b): int => count($a) <=> count($b));
-
-        return $subsets;
-    }
-
-    /**
-     * What this combination is called in a scene id.
-     *
-     * `all` for the whole inventory, the owner's own name for one owner, and the owners joined for anything between —
-     * `stacked-gmss-sdwa5-2-turned-center` is both systems' gear, two stacks, subs on their sides.
-     *
-     * **`all` is only used where there is more than one owner to be all of**, which is not pedantry: in a repository
-     * with a single owner that owner's subset *is* the whole inventory, and labelling it `all` would rename every
-     * generated scene for a distinction that does not exist there.
-     *
-     * @param list<string> $subset
-     */
-    private static function labelFor(array $subset, int $owners): string
-    {
-        return $owners > 1 && count($subset) === $owners ? 'all' : implode('-', $subset);
     }
 
     /**
@@ -1612,7 +1411,7 @@ final class SceneStackCommand extends BaseCommand
             return $errors[0]->message;
         }
 
-        $floating = self::floating($result['placed']);
+        $floating = PlacementChecks::floating($result['placed']);
         if ($floating !== null) {
             return $floating;
         }
@@ -1645,105 +1444,6 @@ final class SceneStackCommand extends BaseCommand
         sort($marks);
 
         return ['cabinets' => count($result['placed']), 'fingerprint' => implode('|', $marks)];
-    }
-
-    /**
-     * The first cabinet standing on nothing, or null when every one of them is over something.
-     *
-     * **The compiler does not catch this and the shipped-scene sweep does**, which is exactly the gap this closes.
-     * A tops row narrower than the tier below it can still land off the end of it once the row is split into runs by
-     * a stepped support — `all-speakers-three-turned` came out with a top 1.261 m up over open air, compiling
-     * cleanly and failing the sweep. This command's whole promise is that "a generator that emits a scene the
-     * compiler rejects is worse than no generator", and a scene the *sweep* rejects is no better: the failure just
-     * surfaces one command later.
-     *
-     * Deliberately the narrow question — is there something under it, in both plan axes — and not how far it would
-     * tilt. Tilt is the solver's question, enforced by {@see \App\Scene\Stability} against the tier it knows is
-     * below; re-deriving it from world boxes alone needs "the tier immediately below", which they do not tell you.
-     * The same reasoning is written out at length in `ShippedScenesTest`, and this is the same check from the same
-     * data so the two cannot drift into disagreeing.
-     *
-     * @param list<\App\Scene\PlacedDevice> $placed
-     */
-    private static function floating(array $placed): ?string
-    {
-        foreach ($placed as $entry) {
-            $box = $entry->worldBox();
-            if ($box['min'][2] < self::CONTACT_TOLERANCE_M || $entry->flyPoint !== null) {
-                continue;
-            }
-
-            foreach ([0, 1] as $axis) {
-                if (self::coveredFraction($entry, $placed, $axis) > 0.0) {
-                    continue;
-                }
-
-                return sprintf(
-                    'a %s would stand at %.3f m with nothing under it across %s — the compiler allows it and the '
-                    .'shipped-scene sweep does not, so it is not one of the possibilities',
-                    $entry->device->id,
-                    $box['min'][2],
-                    $axis === 0 ? 'x' : 'y',
-                );
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * How much of a cabinet's extent along `$axis` has something level underneath it, as a fraction.
-     *
-     * Overlapping supports are merged rather than summed, so two neighbours a cabinet bridges count the span once.
-     *
-     * @param list<\App\Scene\PlacedDevice> $placed
-     */
-    private static function coveredFraction(\App\Scene\PlacedDevice $entry, array $placed, int $axis): float
-    {
-        $box = $entry->worldBox();
-        $extent = $box['max'][$axis] - $box['min'][$axis];
-        if ($extent <= 0.0) {
-            return 0.0;
-        }
-
-        $spans = [];
-        foreach ($placed as $other) {
-            if ($other === $entry) {
-                continue;
-            }
-            $under = $other->worldBox();
-            if (abs($under['max'][2] - $box['min'][2]) > self::CONTACT_TOLERANCE_M) {
-                continue;
-            }
-
-            $overlap = [];
-            foreach ([0, 1] as $plan) {
-                $overlap[$plan] = min($box['max'][$plan], $under['max'][$plan])
-                    - max($box['min'][$plan], $under['min'][$plan]);
-            }
-            if ($overlap[0] <= self::CONTACT_TOLERANCE_M || $overlap[1] <= self::CONTACT_TOLERANCE_M) {
-                continue;
-            }
-
-            $spans[] = [
-                max($box['min'][$axis], $under['min'][$axis]),
-                min($box['max'][$axis], $under['max'][$axis]),
-            ];
-        }
-
-        usort($spans, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
-
-        $covered = 0.0;
-        $reach = -INF;
-        foreach ($spans as [$lo, $hi]) {
-            $lo = max($lo, $reach);
-            if ($hi > $lo) {
-                $covered += $hi - $lo;
-                $reach = $hi;
-            }
-        }
-
-        return $covered / $extent;
     }
 
     /**
@@ -1897,69 +1597,6 @@ final class SceneStackCommand extends BaseCommand
 
             return $b->quantity * $b->dimensions->width <=> $a->quantity * $a->dimensions->width;
         };
-    }
-
-    /**
-     * The shapes to write a scene for, or null when one is misspelled.
-     *
-     * Both by default, the same way `--align` defaults to all three modes: the two shapes answer opposite questions
-     * — {@see StackShape::Pyramid} takes the silhouette and the height, {@see StackShape::Free} keeps the deepest and
-     * heaviest cabinets on the floor — and which matters more is the sort of thing to decide by looking at two
-     * renders rather than by reading a docblock.
-     *
-     * @param list<string> $raw
-     * @return list<StackShape>|null
-     */
-    private function readShapes(array $raw): ?array
-    {
-        if ($raw === []) {
-            return StackShape::cases();
-        }
-
-        $shapes = [];
-        foreach ($raw as $value) {
-            $shape = StackShape::tryFrom($value);
-            if ($shape === null) {
-                $this->io->error(sprintf(
-                    "--shape: unknown value '%s' (allowed: %s)",
-                    $value,
-                    implode(', ', array_column(StackShape::cases(), 'value')),
-                ));
-
-                return null;
-            }
-            $shapes[] = $shape;
-        }
-
-        return $shapes;
-    }
-
-    /**
-     * @param list<string> $raw
-     * @return list<LayoutMode>|null
-     */
-    private function readModes(array $raw): ?array
-    {
-        if ($raw === []) {
-            return LayoutMode::cases();
-        }
-
-        $modes = [];
-        foreach ($raw as $value) {
-            $mode = LayoutMode::tryFrom($value);
-            if ($mode === null) {
-                $this->io->error(sprintf(
-                    "--align: unknown value '%s' (allowed: %s)",
-                    $value,
-                    implode(', ', array_column(LayoutMode::cases(), 'value')),
-                ));
-
-                return null;
-            }
-            $modes[] = $mode;
-        }
-
-        return $modes;
     }
 
     /**
