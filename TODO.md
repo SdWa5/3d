@@ -82,7 +82,9 @@ Settled with the owner, so a new session can act on it without re-deriving it:
 5. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
    SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
    169 mm cost on the tightest tops row is measured.
-6. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, and it covers the bug class that cost two reverts.
+6. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, P1, and the one stage that writes into the repository
+   while never being run by a test. Pull it forward whenever the queue above it stalls, since it takes 1h 30m and does
+   not depend on anything.
 7. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
    any code. GEO-9 sits behind it, so the two are one piece of work in practice.
 
@@ -920,6 +922,37 @@ arithmetic in GEO-2 says the reverse: 8 tops in one row are 3.921 m, wider than 
 so `all-1` cannot be made to stand by any geometry. It is a `--from` problem, and narrowing the default retires **12 of
 GEO-2's 22 refusals** without touching the solver.
 
+## TOOL · tooling and CI
+
+| ID | Item | Prio | Effort | Buys | Needs | State |
+|----|------|------|--------|------|-------|-------|
+| TOOL-6 | **`build:all`'s `regenerate()` stage is never run by a test**, only `--dry-run`, which is how a whole extra pass writing 141 stray scenes went unnoticed until `git status` showed it. Raised to P1 once the cause was confirmed as a code defect rather than anything about how the command was invoked. See the section | P1 | 1h 30m | the class of bug that cost two reverts, on the one stage that writes into the repository | — | open |
+| TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
+| TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
+| TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
+| TOOL-4 | GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so mostly packaging and metadata mapping | P3 | 3h | — | — | open |
+
+#### TOOL-6 — the one stage that writes into the repository and is never run
+
+Where: `BuildAllCommand::regenerate()` and `prune()`, and `BuildAllCommandTest`.
+
+**The cause was a code defect, and that is why this is P1 rather than P2.** The removed `regenerateTurned()` pass
+detected an already-turned rig by looking for `--roll-mirror=` in the recorded command line. After 0.77.0 a turned rig
+records `--orientation=turned` instead, so the pass no longer recognised its own output and turned the turned rigs
+again, producing ids like `stacked-sdwa5-sepp-2-turned-turned-column-center`. **149 scenes in, 290 out**, plus two
+committed files silently rewritten. Nothing about the environment, the invocation or anything running alongside it
+contributed. A stale string comparison against a format that had moved is the whole of it.
+
+**What was fixed and what was not.** The offending pass was deleted in 0.78.0 and
+`testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` was added, which pins the contract the stage rests on
+— replaying all recorded commands rewrites exactly those files, byte for byte, in 18 seconds. That is the contract and
+not the stage. **`regenerate()` itself is still only ever run with `--dry-run`**, so the same class of defect would land
+the same way: silently, into the working tree, found by `git status` rather than by the suite.
+
+**The obstacle is `prune()`.** The stage deletes generated files the sweep no longer produces, so a test that fails
+midway could take real renders with it. Covering it needs a way to run the stage without pruning, which is one flag or
+one seam and is the actual work here. The rest is a fixture directory and an assertion on what came out.
+
 ## ALN · alignment features
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
@@ -1148,16 +1181,6 @@ catalog reports 0 of 17 — and several are estimates by arithmetic or by the bu
 bass's 120 kg, which the cabinet's own volume argues against. So the report states the provenance of the weights it
 summed alongside the total, the same way the catalog flags what still needs the hanging scale. A payload check against
 994 kg of `estimated` GMSS cabinets is a planning aid, not a clearance.
-
-## TOOL · tooling and CI
-
-| ID | Item | Prio | Effort | Buys | Needs | State |
-|----|------|------|--------|------|-------|-------|
-| TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
-| TOOL-6 | **`build:all`'s `regenerate()` stage is never run by a test**, only `--dry-run`, which is how a whole extra pass writing 141 stray scenes went unnoticed until `git status` showed it. `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` pins the contract the stage depends on but not the stage. The obstacle is `prune()`: a test that fails midway could delete real renders, so the stage needs a way to run without pruning before it can be covered | P2 | 1h 30m | the class of bug that cost two reverts today | — | open |
-| TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
-| TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
-| TOOL-4 | GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so mostly packaging and metadata mapping | P3 | 3h | — | — | open |
 
 ## INFO · facts worth keeping
 

@@ -21,6 +21,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   individually plus a system grouping that overrides `owner`, so `sdwa5` and `sepp` can be swept as one system. That
   second half is the answer CVR-3 was waiting for, and it is a grouping stated at invocation time rather than a
   `system:` field in the specs
+- **TOOL-6 raised to P1**, once the cause of the stray-scene incident was confirmed as a code defect rather than
+  anything about how the command was invoked. The removed `regenerateTurned()` pass compared against `--roll-mirror=`
+  in a recorded command line after the format had moved to `--orientation=turned`, so it turned the turned rigs again.
+  A stale string comparison is the whole of it, nothing environmental contributed, and `regenerate()` is still the one
+  stage that writes into the repository while only ever being run with `--dry-run`. The TOOL section moves up the file
+  with it, and TOOL-6 gained a section naming `prune()` as the obstacle
 - **SYM-3 is no longer blocked on a decision**, and neither blocker turned out to be what it looked like. Spreading subs
   is SWP-2's shared tops row rather than a change to `Alignment`, since the ask needs sub *stacks* moved apart under one
   tops row and never needed a load-bearing tier stretched — so ALN-4's rule stands untouched and the two items are
