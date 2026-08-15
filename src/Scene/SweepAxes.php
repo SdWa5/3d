@@ -47,10 +47,10 @@ final class SweepAxes
     /**
      * The shapes to write a scene for, or the reason one of them is not a shape.
      *
-     * Both by default, the same way `--align` defaults to all three modes: the two shapes answer opposite questions
+     * All three by default, the same way `--align` defaults to all three modes: the shapes answer different questions
      * — {@see StackShape::Pyramid} takes the silhouette and the height, {@see StackShape::Free} keeps the deepest and
-     * heaviest cabinets on the floor — and which matters more is the sort of thing to decide by looking at two
-     * renders rather than by reading a docblock.
+     * heaviest cabinets on the floor, {@see StackShape::V} reverses the pyramid so the wall widens as it rises — and
+     * which matters more is the sort of thing to decide by looking at three renders rather than by reading a docblock.
      *
      * @param list<string> $raw
      * @return list<StackShape>|string

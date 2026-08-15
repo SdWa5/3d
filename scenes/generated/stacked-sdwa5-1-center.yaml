@@ -10,13 +10,12 @@
 #
 # What it deals out today:
 #
-#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   2  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   3  2× skram                                                                  1.24 m wide
+#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
+#   2  4× flexy-folded-horn-hybrid                                              2.424 m wide
+#   3  4× flexy-folded-horn-hybrid                                              2.424 m wide
 #   4  3× tecnare-m2122                                                          1.54 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
-#   * the 3× tecnare-m2122 row is 1.540 m on a 1.240 m row, so it overhangs 150 mm each side
 #
 id: stacked-sdwa5-1-center
 name: "Solved rig — one stack, tiers centred"

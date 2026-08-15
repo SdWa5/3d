@@ -6,6 +6,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.81.0] - 2026-08-15
+
+### Added
+
+- **`shape: v`**, SWP-1's last missing axis value. The sweep writes **150 scenes of ~1200 candidates**, 29 of them `v`. The pyramid's mirror at both places the pyramid acts: the fill puts
+  the *narrowest* row-making type on the floor so the wall has somewhere to grow, and no row may be narrower than the
+  one below it
+- **`StackChecks::silhouetteProblem()`** — every shape rule in one place and **in metres**
+
+### Changed
+
+- **THE SHAPE RULES ARE WIDTHS, NOT CABINET COUNTS.** Stated by the owner of the gear, for the pyramid, the V and the
+  tower alike. The pyramid was written as a count — no row holding more cabinets than the row below — and the premise
+  that lets a count stand in for a width is false: nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is
+  1.200 m. The V made it obvious rather than causing it. Built on a count rule it produced **21 stacks that narrow
+  against 8 that widen**, and `free` widened more often than the shape named after widening
+- the pyramid's allowance is **a tenth of its outboard cabinet per side**, and both bounds on that number were measured.
+  It cannot be zero — six Achenbachs on six Flexys stand 27 mm proud per side and are flush, and forbidding that splits
+  them into two rows of three, whereupon the 1.84 m row cannot carry the tops and a 2-way is dropped. It cannot be a
+  whole cabinet either, which was the first thing tried: `2× gmss-nuke + 1× gmss-mid-bass` stands 265 mm proud out of a
+  590 mm cabinet and reads as a V
+- the lift's pyramid guard compares widths too. It predicted a cabinet *count* through a `lastRowCount()` helper, and the
+  support's width was already computed one line above for the bearing test, so one number now answers both
+- `perRowCap()` keeps its count as a **hint** rather than a rule: a row of at most as many cabinets as the row below is
+  nearly always what the width rule wants too, so the search finds it first instead of walking down to it. Where the two
+  disagree the width rule wins, because it is the one that refuses
+- **`DEFAULT_MAX_SCENES` raised 200 → 600**, the owner's call, sized for CVR-5 rather than for this release
+- **the scene set is 148 → 150, and that small number is the honest one.** The V adds 29 rigs; the tightened pyramid
+  refuses 79 candidates the count rule had allowed, and the V's own rule refuses 74. Thirty scenes written under the
+  count rule are no longer produced and were deleted. The gain is not the count, it is that a `-v-` file now widens and
+  a `-pyramid-` one does not
+- **the test suite went from 9 minutes to 24.** Recorded because it is a fourfold jump from one change, and unlike the
+  earlier growth it is not that there is more to check. The width rules refuse arrangements *mid-search*, so the solver
+  walks far more of the space before it settles. Runtime is not a constraint on this project, so nothing was done about
+  it, but the next axis should expect the same multiplier
+
+- **`TODO.md` is sorted by priority throughout**, rows inside each table and the group sections by their own top row, so
+  the first table in the file holds the highest-priority item in the file. A `P4` tier was added for work that is wanted
+  but that nothing waits on. Restated by the owner in the same pass: **CVR-7 is new and says the sub/top interface height
+  is an optimisation problem rather than a hard constraint**, so tops below or above head height stop being a reason to
+  refuse a rig. That is not implemented here, only written down, and it is what CVR-1 dropping to P4 follows from. CVR-5,
+  SYM-3 and GEO-9 are P1. Two pieces of gear joined the file with no specs yet, two 3 × 3 m tents and five Euro pallets
+
+### Fixed
+
+- three tests that asserted on what the count rule produced. `testASoloStackSlidesARowRatherThanLosingTheRig` named the
+  `2× gmss-nuke + 1× gmss-mid-bass` row, which is the exact 265 mm step-out the width rule now refuses, so it is
+  re-anchored on a case that still exercises the slide and the case was **verified by taking the slack away**: with
+  `slideSlackM` forced to null the same invocation writes nothing and reports `3.340 m against the 3.000 m ceiling`.
+  The other two are a shape count and a scene file that the count rule used to produce
+
 ## [0.80.0] - 2026-08-15
 
 ### Changed

@@ -5,45 +5,46 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --max-width=4.4 --orientation=turned --from=gmss-wall-bass --from=gmss-mid-bass
+#   bin/console scene:stack --max-width=3.7 --orientation=turned --from=gmss-wall-bass --from=gmss-mid-bass
 #     --from=skram --from=flexy-folded-horn-hybrid --from=gmss-nuke --from=gmss-iq-sub --from=tecnare-m2122
 #     --from=gmss-turbo-top --stacks=2 --align=stereo --shape=pyramid --mirror-style=alternate --id=stacked-gmss-sdwa5-2
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 17 cabinets in 4 rows:
-#
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
-#   2  1× gmss-iq-sub rolled 270° + 1× gmss-wall-bass rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 2× gmss-iq-sub rolled 90°    4.253 m wide
-#   3  1× gmss-mid-bass rolled 270° + 1× skram rolled 90° + 1× gmss-nuke rolled 90°    2.224 m wide
-#   4  1× tecnare-m2122 + 1× gmss-turbo-top + 1× gmss-turbo-top + 1× tecnare-m2122     1.96 m wide
-#
-# Subs reach 2.451 m against a 2.0 m interface. The stack is 3.411 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
-#     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× gmss-iq-sub rolled 270° + 1× gmss-wall-bass rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° +
-#     2× gmss-iq-sub rolled 90° row is 4.253 m on a 3.895 m row, so it overhangs 179 mm each side
-#
-# main-1 — 1, 14 cabinets in 5 rows:
+# main-2 — 2, 14 cabinets in 4 rows:
 #
 #   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   2  1× gmss-iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× gmss-iq-sub rolled 90°    2.926 m wide
-#   3  1× gmss-iq-sub rolled 270° + 1× skram rolled 270° + 1× gmss-wall-bass rolled 90°    3.024 m wide
-#   4  1× gmss-nuke rolled 90°                                                  0.77 m wide
+#   3  1× gmss-mid-bass rolled 270° + 1× skram rolled 270° + 1× gmss-nuke rolled 90° + 1× gmss-iq-sub rolled 90°    2.914 m wide
+#   4  1× tecnare-m2122 + 1× gmss-turbo-top                                     0.97 m wide
+#
+# Subs reach 2.382 m against a 2.0 m interface. The stack is 3.342 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
+#   * gmss-turbo-top: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
+#   * gmss-wall-bass: LEFT OUT, it cannot be carried in this stack — a gmss-nuke in the 1× gmss-mid-bass rolled
+#     270° + 1× gmss-nuke rolled 90° row would land on only 2% of its own width — it is touching what carries it rather
+#     than sitting on it. Line the segments up with what carries them
+#
+# main-1 — 1, 13 cabinets in 5 rows:
+#
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   3  2× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90°                 2.05 m wide
+#   4  1× gmss-nuke rolled 270° + 1× skram rolled 90°                        1.704 m wide
 #   5  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
 #
-# Subs reach 2.432 m against a 2.0 m interface. The stack is 3.392 m of cabinet.
+# Subs reach 2.322 m against a 2.0 m interface. The stack is 3.282 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
-#     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× gmss-iq-sub rolled 270° + 1× skram rolled 270° + 1× gmss-wall-bass rolled 90° row is 3.024 m on a
-#     2.926 m row, so it overhangs 49 mm each side
-#   * the 1× gmss-turbo-top + 1× tecnare-m2122 row is 0.970 m on a 0.770 m row, so it overhangs 100 mm each side
+#   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
+#   * gmss-turbo-top: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
+#   * gmss-wall-bass: LEFT OUT, it cannot be carried in this stack — the 1× gmss-turbo-top + 1× tecnare-m2122 row
+#     is 0.970 m on a 0.770 m row, so it steps out 100 mm each side against the 45 mm a 0.450 m cabinet may sit proud —
+#     `shape: pyramid` asks for a wall that does not widen as it rises
 #
 id: stacked-gmss-sdwa5-2-turned-stereo
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -57,22 +58,19 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 17 cabinets in 4 rows
+  # 2, 14 cabinets in 4 rows
   - id: main-2
-    at: [-2.108, 0.0]
+    at: [-1.7165, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
     stack:
-      max_width_m: 4.4
+      max_width_m: 3.7
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: pyramid
       from:
-        - device: gmss-wall-bass
-          count: 1
-          roll_mirror: 90.0
         - device: gmss-mid-bass
           roll_mirror: 90.0
         - device: skram
@@ -88,28 +86,25 @@ placements:
           count: 3
           roll_mirror: 90.0
         - device: tecnare-m2122
-          count: 2
+          count: 1
         - device: gmss-turbo-top
-          count: 2
+          count: 1
           aim: near
 
-  # 1, 14 cabinets in 5 rows
+  # 1, 13 cabinets in 5 rows
   - id: main-1
-    at: [2.0745, 0.0]
+    at: [1.504, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
     stack:
-      max_width_m: 4.4
+      max_width_m: 3.7
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: pyramid
       mirror: true             # the mirror image of stack 1
       from:
-        - device: gmss-wall-bass
-          count: 1
-          roll_mirror: 90.0
         - device: skram
           count: 1
           roll_mirror: 90.0

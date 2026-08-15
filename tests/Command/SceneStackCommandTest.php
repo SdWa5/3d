@@ -165,38 +165,41 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * Both shapes are written, and the pyramid is the one that keeps the plain id.
+     * Every shape is written, and the pyramid is the one that keeps the plain id.
      *
-     * The two answer opposite questions — the pyramid orders the fill for row *width* so the wall tapers and comes
-     * out shorter, `free` keeps the deepest and heaviest cabinets on the floor and accepts a wall that widens as it
-     * rises. On the GMSS cabinets that is 2.570 m against 3.240 for the same twelve boxes, which is worth being able
-     * to look at both ways round.
+     * The three answer different questions. The pyramid orders the fill for row *width* so the wall tapers, `free`
+     * keeps the deepest and heaviest cabinets on the floor and asks only the bearing rule, and `v` reverses the
+     * pyramid's order so the wall widens as it rises. On these cabinets that is three different floors for the same
+     * twelve boxes, which is worth being able to look at every way round.
      *
-     * **Asserted on which type is on the floor, not on how many of it.** The pyramid's bottom row was six IQ subs and
-     * is now four, because `target_sub_height_m` prefers the arrangement nearer 2.5 m and the other two join the wall
-     * basses a row up. That is the aim working and the shape unchanged, so pinning the count would make this test fail
-     * on every future change to what the solver prefers — which is not what it is about.
+     * **Asserted on which type is on the floor, not on how many of it.** What the pyramid puts under the six IQ subs
+     * moves whenever `target_sub_height_m` prefers a different arrangement, so pinning the count would make this test
+     * fail on every future change to what the solver prefers — which is not what it is about.
      */
-    public function testBothShapesAreWrittenAndThePyramidKeepsThePlainId(): void
+    public function testEveryShapeIsWrittenAndThePyramidKeepsThePlainId(): void
     {
         $display = $this->invoke([
             '--from' => ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'tecnare-m2122'],
             // 3.5 m, not the 3.0 m default: `free` comes out at 3.240 m here and the band would refuse it, and the
             // subject of this test is the two fill orders rather than which of them meets a ceiling.
             '--max-width' => '3.80', '--interface-height' => '0', '--max-sub-height' => '3.5',
-            // One orientation, so the two scenes below are the two shapes rather than the shapes times the orientations.
+            // One orientation, so the three scenes below are the three shapes rather than shapes times orientations.
             '--align' => ['center'], '--orientation' => ['upright'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('id: stacked-center', $display);
         self::assertStringContainsString('id: stacked-free-center', $display);
+        self::assertStringContainsString('id: stacked-v-center', $display);
 
         // The pyramid puts the IQ subs on the floor, which is the widest row they can make; `free` puts the two wall
-        // basses there, which is 1.34 m and two rows more of stack.
+        // basses there, which is 1.34 m and two rows more of stack; `v` puts the single mid-bass there at 1.20 m,
+        // which is the narrowest floor of the three because everything above it has to be wider.
+        // The order is {@see StackShape::cases()}, so 0 is the pyramid, 1 is free and 2 is v.
         preg_match_all('/^#\s+1\s+(\S.*?)\s{2,}[\d.]+ m wide$/m', $display, $bottomRows);
-        self::assertCount(2, $bottomRows[1], 'one bottom row per shape');
+        self::assertCount(3, $bottomRows[1], 'one bottom row per shape');
         self::assertStringContainsString('gmss-iq-sub', $bottomRows[1][0], 'the pyramid stands on the IQ subs');
         self::assertStringContainsString('gmss-wall-bass', $bottomRows[1][1], 'and free on the wall basses');
+        self::assertStringContainsString('gmss-mid-bass', $bottomRows[1][2], 'and v on the single mid-bass');
     }
 
     /**
@@ -655,10 +658,15 @@ final class SceneStackCommandTest extends TestCase
     /**
      * **A row is slid along its support rather than the rig being refused**, where nothing stands beside it.
      *
-     * The GMSS cabinets are the case the stage-width ladder cannot help: four sub types and at most six of any one of
-     * them means the row count is set by the types, so the wall is 3.34 m at every width from 3.70 to 6.00 m. Their one
-     * arrangement inside the band packs the nukes and mid-bass into a single row — 2.42 m on a 1.89 m support, where
-     * centred the outboard nuke lands on a fraction of itself and the whole rig was thrown away. Slid, it is carried.
+     * The GMSS cabinets turned on their sides are the case the stage-width ladder cannot help: five rolled IQ subs make
+     * a 3.29 m row and the widest support the rest of the inventory can put under it is 2.77 m, so the row hangs
+     * 260 mm proud each side. Centred, an IQ sub lands on a fraction of itself, the arrangement is thrown away, and the
+     * only one left standing reaches 3.340 m against the 3.000 m ceiling and is refused. Slid, the row is carried and
+     * the rig is written at 2.66 m.
+     *
+     * Measured by taking the slack away rather than by reading the solver: with `slideSlackM` forced to null this exact
+     * invocation writes nothing and says `3.340 m against the 3.000 m ceiling`. That is the whole value of the line in
+     * {@see \App\Command\SceneStackCommand} that hands a solo stack `INF`, and it is what this test guards.
      *
      * Pinned on the sub height rather than on the offset, because the height is what the rig is for and the offset is
      * how it got there.
@@ -667,13 +675,17 @@ final class SceneStackCommandTest extends TestCase
     {
         $display = $this->invoke([
             '--from' => ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'gmss-nuke', 'gmss-turbo-top'],
-            '--max-width' => '3.70', '--stacks' => '1', '--align' => ['center'],
-            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
+            '--max-width' => '3.70', '--stacks' => '1', '--align' => ['center'], '--shape' => ['free'],
+            '--orientation' => ['turned'], '--mirror-style' => ['centred'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-center', $display);
-        self::assertStringContainsString('2× gmss-nuke + 1× gmss-mid-bass', $display, 'the packed row is the point');
-        self::assertSame([2.84], $this->heights($display));
+        self::assertStringContainsString('id: stacked-free-turned-centred-center', $display);
+        self::assertStringContainsString(
+            '2× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 2× gmss-iq-sub rolled 90°',
+            $display,
+            'the packed row is the point',
+        );
+        self::assertSame([2.66], $this->heights($display));
     }
 
     /**
@@ -735,9 +747,9 @@ final class SceneStackCommandTest extends TestCase
      *
      * This is the half of the band that adds scenes instead of removing them. A sub wall gets shorter as the stage
      * gets wider, so a rig over the ceiling at 3.70 m is often not an impossible rig but a rig on the wrong stage:
-     * both systems' gear across two stacks is 3.16 m of subs at 3.70 m and 2.83 m at 4.40 m, and only the second is
-     * one you would build. The width the sweep settled on is written into the recorded command, because a replay that
-     * inherited the default would rebuild the rig that missed.
+     * everybody's gear across two stacks is 4.173 m of subs at 3.70 m, which is 1173 mm over the ceiling and refused,
+     * and 2.381 m at 4.40 m, which is one you would build. The width the sweep settled on is written into the recorded
+     * command, because a replay that inherited the default would rebuild the rig that missed.
      *
      * Read off the file the sweep wrote rather than by running it again: the sweep is the slowest thing in this suite
      * and the recorded line is the durable evidence — it is what a replay uses, so a width that failed to reach it
@@ -745,7 +757,9 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheSweepMovesARigOntoAWiderStageRatherThanSkippingIt(): void
     {
-        $yaml = (string)file_get_contents(dirname(__DIR__, 2).'/scenes/generated/stacked-all-2-center.yaml');
+        $yaml = (string)file_get_contents(
+            dirname(__DIR__, 2).'/scenes/generated/stacked-all-2-free-mixed-column-center.yaml',
+        );
 
         self::assertMatchesRegularExpression('/--max-width=4\.4\b/', $yaml, 'the wider stage has to be recorded');
         self::assertStringContainsString('max_width_m: 4.4', $yaml, 'and reach the stack the compiler re-solves');

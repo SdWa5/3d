@@ -46,20 +46,20 @@ final class SceneStackCommand extends BaseCommand
      * A ceiling on accident, not on ambition.
      *
      * 24 was right while the command wrote one rig per alignment. The default is now a **sweep** — every combination of
-     * owners, by one, two and three stacks, each in both shapes, all seven orientation/mirror pairs and all three
-     * alignments — which tries 804 candidates on the current inventory and writes 149 of them, the rest being duplicates
+     * owners, by one, two and three stacks, each in all three shapes, all seven orientation/mirror pairs and all three
+     * alignments — which tries ~1200 candidates on the current inventory and writes 150 of them, the rest being duplicates
      * and named refusals. So the limit has to clear that with room for the gear list to grow, while still catching the
      * case it exists for: an axis added by mistake, where the count goes to thousands rather than hundreds.
      *
-     * **Raised deliberately, once per axis, and that is the point of it.** 80 fitted the 61 scenes the orientation axis
-     * wrote and the owner combinations took it straight past — which is exactly what should happen, because the raise is
-     * where somebody looks at the number and decides it is the output they meant. The next one is CVR-5, whose
-     * `impossible` half would turn today's 655 refusals into written scenes.
+     * **Raised deliberately, and that is the point of it.** 80 fitted the 61 scenes the orientation axis wrote and the
+     * owner combinations took it straight past — which is exactly what should happen, because the raise is where
+     * somebody looks at the number and decides it is the output they meant. 600 is the owner's call and is sized for
+     * CVR-5, whose `impossible` half turns today's refusals into written scenes and is the next thing to need room.
      *
      * **A fuse rather than a cap**: over the limit the command writes *nothing* and says so. Truncating to the first N
      * would read as "that is every possibility" when it is not, which is the same reason every refusal is printed.
      */
-    private const DEFAULT_MAX_SCENES = 200;
+    private const DEFAULT_MAX_SCENES = 600;
 
     /**
      * The stage the bare command solves against, and the top of the 2–3 m band a sub/top transition should sit in.

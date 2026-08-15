@@ -34,9 +34,9 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — a gmss-turbo-top in the 1× gmss-turbo-top + 2×
-#     tecnare-m2122 + 1× gmss-turbo-top row has nothing under it at all, so it would fall to the floor — inside the row
-#     below it
+#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — the 1× gmss-turbo-top + 2× tecnare-m2122 + 1×
+#     gmss-turbo-top row is 1.960 m on a 1.220 m row, so it steps out 370 mm each side against the 45 mm a 0.450 m cabinet
+#     may sit proud — `shape: pyramid` asks for a wall that does not widen as it rises
 #
 id: stacked-gmss-sdwa5-2-center
 name: "Solved rig — 2 stacks side by side, tiers centred"

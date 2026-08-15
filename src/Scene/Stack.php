@@ -147,7 +147,7 @@ final class Stack
     /**
      * The stated shape, or the default when a scene says nothing.
      *
-     * An unknown value is **refused rather than defaulted**, because the two shapes differ in what they build and a
+     * An unknown value is **refused rather than defaulted**, because the three shapes differ in what they build and a
      * silently-ignored `shape: pyramide` would ship the other rig with nothing to say so. `free` is the default
      * because it is what the solver always did, so an existing scene keeps the rig it had.
      */

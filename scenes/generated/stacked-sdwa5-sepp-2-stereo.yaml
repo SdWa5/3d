@@ -5,7 +5,7 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --max-width=3.7 --orientation=upright --from=skram --from=flexy-folded-horn-hybrid
+#   bin/console scene:stack --max-width=2.8 --orientation=upright --from=skram --from=flexy-folded-horn-hybrid
 #     --from=achenbach-18 --from=tecnare-m2122 --from=eighteensound-2way-15 --stacks=2 --align=stereo --shape=pyramid
 #     --mirror-style=alternate --id=stacked-sdwa5-sepp-2
 #
@@ -20,22 +20,20 @@
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
 #
-# main-2 — 2, 13 cabinets in 4 rows:
+# main-2 — 2, 12 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
 #   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
 #   3  1× skram + 1× achenbach-18                                               1.23 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122        1.5056 m wide
+#   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 row is 1.506 m on a 1.230 m row, so it
-#     overhangs 138 mm each side
+#   * tecnare-m2122: LEFT OUT, 1 of 3 — 2 stacks take 1 each, and an odd cabinet would make one stack a different
+#     rig from the others
 #
 id: stacked-sdwa5-sepp-2-stereo
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -56,7 +54,7 @@ placements:
     align:
       mode: stereo
     stack:
-      max_width_m: 3.7
+      max_width_m: 2.8
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
@@ -75,14 +73,14 @@ placements:
           count: 1
           aim: near
 
-  # 2, 13 cabinets in 4 rows
+  # 2, 12 cabinets in 4 rows
   - id: main-2
     at: [1.169, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
     stack:
-      max_width_m: 3.7
+      max_width_m: 2.8
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
@@ -95,7 +93,7 @@ placements:
         - device: achenbach-18
           count: 3
         - device: tecnare-m2122
-          count: 2
+          count: 1
         - device: eighteensound-2way-15
           count: 1
           aim: near

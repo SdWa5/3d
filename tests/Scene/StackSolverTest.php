@@ -1041,17 +1041,19 @@ final class StackSolverTest extends TestCase
      */
     public function testTheTargetDecidesWhichLegalArrangementComesBack(): void
     {
-        $ids = ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'tecnare-m2122'];
+        // Five Flexys and three Achenbachs, because that inventory has three arrangements that stand up and they are
+        // far apart: one row of five, 3 + 2, and five rows of one. An aim cannot move a rig with nowhere to go, and
+        // most of this gear has exactly one arrangement under a ceiling.
+        $ids = ['flexy-folded-horn-hybrid', 'achenbach-18'];
 
-        // The pyramid, because it is the shape with something to choose between: `free` on this inventory has exactly
-        // one arrangement that stands up, and an aim cannot move a rig that has nowhere to go.
         $heights = [];
-        foreach ([2.0, 2.5, 3.0] as $target) {
+        foreach ([1.0, 2.0, 3.0] as $target) {
             $result = $this->solveTo(
                 $ids,
-                maxWidthM: 3.80,
+                maxWidthM: 3.70,
                 maxSubHeightM: 3.0,
-                shape: StackShape::Pyramid,
+                flexyCount: 5,
+                achenbachCount: 3,
                 targetSubHeightM: $target,
             );
             self::assertSame([], $result['problems'], 'aiming at '.$target.' m must still produce a rig');
@@ -1172,12 +1174,13 @@ final class StackSolverTest extends TestCase
         self::assertStringContainsString('gmss-wall-bass', $free['tiers'][0]->label());
         self::assertStringContainsString('gmss-iq-sub', $pyramid['tiers'][0]->label());
 
-        // 2.570 m rather than the 2.070 m this pinned before `target_sub_height_m` existed, and out of the same twelve
-        // cabinets. The pyramid had several arrangements that stand up and the solver took the shortest; it now takes
-        // the one nearest 2.5 m, which is this one. The shape is what the test is about and the shape is unchanged —
-        // widest-row type on the floor, fewer rows than `free`, same cabinets.
+        // 2.070 m, and it went 2.070 → 2.570 → 2.070 across two releases for two different reasons that are worth
+        // keeping apart. `target_sub_height_m` took it to 2.570, because the pyramid had several arrangements that
+        // stand up and the solver stopped taking the shortest. The **width-based** pyramid rule took it back, because
+        // the 2.570 arrangement stepped a row 265 mm out over its support — legal under the old count rule, which
+        // compared cabinets, and a V under the rule that compares metres.
         self::assertEqualsWithDelta(3.240, $this->subHeight($free['tiers']), 1e-9);
-        self::assertEqualsWithDelta(2.570, $this->subHeight($pyramid['tiers']), 1e-9);
+        self::assertEqualsWithDelta(2.070, $this->subHeight($pyramid['tiers']), 1e-9);
         self::assertLessThan(count($free['tiers']), count($pyramid['tiers']));
 
         // Same cabinets both ways — the shape is not bought by leaving one out.

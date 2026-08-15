@@ -36,7 +36,18 @@ final class StackChecks
      * A centimetre. Below that it is a cabinet edge sitting proud of a joint, which is normal and is what
      * the rubber feet and the working gaps absorb. Above it, something is standing on air.
      */
-    private const OVERHANG_TOLERANCE_M = 0.01;
+    public const OVERHANG_TOLERANCE_M = 0.01;
+
+    /**
+     * How far a pyramid's row may sit proud of its support before the wall counts as widening, **as a fraction of the
+     * outboard cabinet** rather than as a number of millimetres.
+     *
+     * A tenth. Derived from the two cases either side of it: six Achenbachs on six Flexys stand 27 mm proud per side
+     * out of a 600 mm cabinet and are flush by any reading, and `2× gmss-nuke + 1× gmss-mid-bass` stands 265 mm proud
+     * out of a 590 mm one and reads as a V. A fraction rather than a constant so it scales with whatever cabinet is on
+     * the end of the row, the same way {@see Gravity::MIN_BEARING} and {@see StackSolver::OVERHANG_PER_SIDE} do.
+     */
+    public const PYRAMID_SHOULDER = 0.1;
 
     /**
      * Every bound the finished stack misses, each naming the number it reached and the number it needed.
@@ -174,6 +185,9 @@ final class StackChecks
             }
 
             $below = $tiers[$index - 1]->widthM($stack->gapM);
+
+            $problems = [...$problems, ...self::silhouetteProblem($tier, $below, $stack)];
+
             $overhang = ($tier->widthM($stack->gapM) - $below) / 2;
             if ($overhang <= self::OVERHANG_TOLERANCE_M) {
                 continue;
@@ -198,6 +212,77 @@ final class StackChecks
             ],
             'warnings' => $warnings,
         ];
+    }
+
+    /**
+     * The shape rule for one row against the one under it — **in metres, never in cabinets**.
+     *
+     * **Stated by the owner: the pyramid, the V and the tower are all width rules.** Counting cabinets was how the
+     * pyramid was written, and the premise it rests on is false — nine of our ten cabinets are 0.45–0.66 m wide and
+     * `gmss-mid-bass` is **1.200 m**, so "no more cabinets than the row below" and "no wider than the row below"
+     * stopped meaning the same thing the day it arrived. The V made the failure obvious rather than causing it: built
+     * on a count rule it produced **21 stacks that narrow against 8 that widen**, and `free` widened more often than
+     * the shape named after widening.
+     *
+     * The two rules are one line read in either direction:
+     *
+     * * **{@see StackShape::Pyramid}** — a row may not be wider than its support **by a whole cabinet of its own**.
+     * * **{@see StackShape::V}** — a row may not be narrower than its support at all.
+     *
+     * **The pyramid's allowance is a tenth of its outboard cabinet per side**, and both halves of that were measured.
+     * It cannot be zero: six Achenbachs are 3.700 m on six Flexys' 3.646 — 27 mm per side, a flush wall by any reading
+     * — and a rule without an allowance splits them into two rows of three, whereupon the 1.84 m row cannot carry the
+     * tops and a 2-way is dropped from the rig. It cannot be a whole cabinet either, which was the first thing tried
+     * here: `2× gmss-nuke + 1× gmss-mid-bass` is 2.420 m on a 1.890 m row, 265 mm per side, and one nuke is 590 — so a
+     * one-cabinet allowance passes a row that reads as a V to anybody looking at it.
+     *
+     * A tenth of a cabinet separates them cleanly: 27 mm against the 60 it allows, and 265 against the 59 it does not.
+     * Stated as a fraction rather than a number of millimetres so it scales with whatever cabinet is on the end of the
+     * row, the same way {@see Gravity::MIN_BEARING} and {@see StackSolver::OVERHANG_PER_SIDE} are fractions.
+     *
+     * A **problem** rather than a warning, so the search moves on: {@see StackSolver::fill} walks every row width and
+     * this refuses the arrangements that are not the shape asked for, exactly as the bearing rules beside it refuse the
+     * ones that do not stand up.
+     *
+     * **Tops are exempt from the V.** Nothing stands on a top, `topRow()` deliberately never caps their width, and a
+     * tops row narrower than the wall carrying it is the normal case rather than a broken silhouette.
+     *
+     * @return list<string>
+     */
+    private static function silhouetteProblem(Tier $tier, float $below, Stack $stack): array
+    {
+        $width = $tier->widthM($stack->gapM);
+
+        if ($stack->shape === StackShape::V) {
+            return $tier->isSub() && $width + self::OVERHANG_TOLERANCE_M < $below
+                ? [sprintf(
+                    'the %s row is %.3f m on a %.3f m row, so the wall narrows as it rises — `shape: v` asks for the '
+                    .'opposite and this is not one of its arrangements',
+                    $tier->label(),
+                    $width,
+                    $below,
+                )]
+                : [];
+        }
+
+        if ($stack->shape !== StackShape::Pyramid) {
+            return [];
+        }
+
+        $allowance = self::PYRAMID_SHOULDER * $tier->outerWidthM();
+
+        return ($width - $below) / 2 > $allowance
+            ? [sprintf(
+                'the %s row is %.3f m on a %.3f m row, so it steps out %.0f mm each side against the %.0f mm a '
+                .'%.3f m cabinet may sit proud — `shape: pyramid` asks for a wall that does not widen as it rises',
+                $tier->label(),
+                $width,
+                $below,
+                ($width - $below) / 2 * 1000,
+                $allowance * 1000,
+                $tier->outerWidthM(),
+            )]
+            : [];
     }
 
     /**

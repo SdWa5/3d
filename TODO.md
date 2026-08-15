@@ -8,9 +8,15 @@ settings, with priority on the configurations actually used in praxis as well as
 Not only enforce the subwoofer ceiling strictly (optimum 2–3 m) but improve the existing logic to reach it: **do not
 avoid generating a scene, ignore the ceiling, or use fewer speakers if there is any other possibility to solve it.**
 
-Where that stands: bare `scene:stack` writes **148 scenes of 804 candidates**, every stack's sub/top transition inside
-2–3 m and **aimed at 2.5 m** rather than merely inside the band, every refusal named. The 656 refusals are the work —
-grouped below by what actually causes them.
+**And the band is an aim rather than a gate**, which settles how to read the sentence above. Stated by the owner: a sub
+wall that puts the tops below or above head height is **not** a reason to refuse a rig or to call a scene invalid,
+because the sub/top interface height is an optimisation problem. So "do not avoid generating a scene" wins outright, and
+the two bounds stop being able to throw a rig away. That is CVR-7, and it is the largest single change left in the file,
+because 258 of the sweep's refusals are that one message. Today's code still enforces them as gates.
+
+Where that stands: bare `scene:stack` writes **150 scenes of ~1200 candidates**, every stack's sub/top transition inside
+2–3 m and **aimed at 2.5 m** rather than merely inside the band, every refusal named, and every shape rule stated in
+**metres rather than in cabinet counts**. The refusals are the work — grouped below by what actually causes them.
 
 **Two axes landed in one day and took the sweep from 11 scenes to 149.** The orientation axis (0.77.0) is worth more than
 every other axis put together — 11 became 61, three-stack rigs are generated for the first time, and
@@ -23,16 +29,22 @@ comes back, where the solver used to keep the shortest one and park the transiti
 148 against 149, and the four differences are duplicates rather than losses — with the rigs sitting 0.189 m from the aim
 on average against 0.222 m.
 
-**The target is stated once, in SWP-1**, as a six-axis cross product. One value is still missing — a `V` shape — plus the
-`impossible` half of the last axis.
+**0.80.0 split `SceneStackCommand`** into `SweepAxes` and `PlacementChecks`, 1998 lines down to 1635, with no behaviour
+change. **0.81.0 made every shape rule a width** and added `shape: v`.
+
+**The target is stated once, in SWP-1**, as a six-axis cross product. All of it exists except the `impossible` half of
+the last axis, which is CVR-5.
 
 ## How to read this
 
-* **One table per group.** Groups are by shared root cause, so finishing one closes several rows. Rows are sorted by
-  priority inside the group.
+* **One table per group.** Groups are by shared root cause, so finishing one closes several rows.
+* **Everything is sorted by priority**, rows inside a table and the group sections themselves. A section sits where its
+  own top row does, so the first table in the file holds the highest-priority row in the file. Ties keep the order they
+  already had rather than being re-argued.
 * **IDs are stable and never renumbered.** Plain numbers broke every cross-reference twice in one session; `GEO-2`
   keeps meaning `GEO-2` even when rows are added, reordered or deleted.
-* **Prio** — `P1` blocks the goal above · `P2` a real defect or a wanted feature · `P3` when it's next touched.
+* **Prio** — `P1` blocks the goal above · `P2` a real defect or a wanted feature · `P3` when it's next touched · `P4`
+  wanted, but nothing waits on it and it may sit for a long time.
 * **Effort** — estimate for one focused pass *including* tests and docs, to 5 minutes. `phys` means physical work
   (tape measure, hanging scale, opening a rack), which no estimate here can shorten.
 * **Buys** — the measured payoff, in refused sweep candidates or affected scenes. `—` means it buys nothing
@@ -48,6 +60,27 @@ on average against 0.222 m.
 * **GEO, SYM and ALN together are the highest priority** — geometry, symmetry and alignment are the same placement
   problem seen from three sides. While working inside any of the three: fix every bug hit immediately, and implement
   every related TODO it turns up immediately, rather than filing it for later.
+* **Every silhouette rule is a width, in metres, never a cabinet count.** Stated by the owner for the pyramid, the V and
+  the tower alike. Nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is 1.200 m, so a count stopped
+  standing in for a width the day it arrived. They all live in `StackChecks::silhouetteProblem()`; anything new goes
+  there too.
+
+### The order to pick things up in
+
+Settled with the owner, so a new session can act on it without re-deriving it:
+
+1. **CVR-7**, the band as an aim rather than a gate. Newest and largest, and it is **ahead of CVR-5 on a dependency
+   rather than on taste**: it turns 258 refusals into written rigs, and every one of them is a rig CVR-5 would otherwise
+   have to paint red. Doing CVR-5 first means painting several hundred rigs that CVR-7 then un-paints.
+2. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
+   the rest of the refusals from sentences that scroll away into rigs somebody can look at. Read its three unsettled
+   sub-questions first. The fuse is already at 600 for it.
+3. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes.
+4. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, and it covers the bug class that cost two reverts.
+5. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
+   any code. GEO-9 sits behind it, so the two are one piece of work in practice.
+
+**CVR-1 is parked on the owner rather than on code** and is P4 for that reason.
 
 ## GEO · placement geometry
 
@@ -69,12 +102,38 @@ ladder. Both entries record what was measured rather than what was expected.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-2 | **Done.** Two movers shifted a row after gravity had seated it and neither re-asked what it stood on. Fills over-pushed on an inflated span (fixed with `align.clear_of`) and the stereo spread never reseated (fixed with `Gravity::reseat()`) | — | done | floating refusals **6 → 1**, scenes **10 → 11**, no existing scene changed. The one left is `all-1`, which cannot stand at any width | — | done |
-| GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x — the same split GEO-2 was. Needs the two-pass compile | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | — | measured |
-| GEO-5 | The pyramid cap reaches `statedMix` and lifts now. Its premise is false — `gmss-mid-bass` is **1.200 m** against 0.45–0.66 for the other nine — and **both pure-width replacements measured worse** (11 scenes → 7 and 8, and both introduce interpenetration). Waits on the fill/gravity reconciliation | P3 | 6h | 2 V rows, and only once the cascade is solvable | GEO-4 | measured |
+| GEO-11 | **The fill, gravity and the compiler cannot see each other's answers.** The one finding that has now turned up **four separate times** wearing four names. The biggest lever left in the solver, and the only item that unblocks three others at once | P1 | 12h | GEO-4, the rest of GEO-5 and GEO-9's tower, plus whatever the fifth instance turns out to be | — | open |
+| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective, which is GEO-11. **Both must be width rules**, stated by the owner, so they belong in `StackChecks::silhouetteProblem()` beside the other three | P1 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | GEO-11 | measured |
+| GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x. Waits on GEO-11 | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | GEO-11 | measured |
+| GEO-5 | **Mostly closed by 0.81.0.** The cap is a width now, in `StackChecks::silhouetteProblem()`, with a tenth of a cabinet per side as the shoulder — so the false premise this entry was written about is gone. What is left is that the width rules refuse arrangements mid-search and the sweep got four times slower, which is GEO-11's shape again | P3 | 3h | — | GEO-11 | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
-| GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective | P3 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | — | measured |
+
+#### GEO-11 — the three stages that cannot see each other
+
+Where: `StackSolver::fillWith()` and `packedRows()`, `Gravity::resolve()`, `SceneCompiler`.
+
+**The fill decides row widths, `Gravity` decides where cabinets land, the compiler decides final x, and no stage sees
+the next one's answer.** Written out here because it has been re-derived four times from four different symptoms, each
+time by somebody who did not know it was the same thing:
+
+| found as | what it looked like |
+| --- | --- |
+| **GEO-2** | a fill was moved sideways after gravity had seated it and kept the old height, leaving a top 228 mm in the air |
+| **GEO-4** | a row slides for its own bearing and walks out from under the tier it carries, which no bound in stack clearance can see |
+| **GEO-5** | a width-based pyramid narrows rows, narrow rows make more of them, and gravity splits that staircase into runs 127 mm inside each other |
+| **GEO-9** | a bound in `ceilingFor()` cannot make a wall flush, because the fill cannot ask what the row above will need |
+
+Each was attacked on its own and each was measured net negative or inert. That is the evidence: they are one problem.
+
+**What it needs is that the fill can ask a question it currently cannot** — "if I build this row, what will gravity do
+with the row above it, and where will the compiler put both". Two shapes are worth weighing before writing anything: a
+**two-pass compile**, where the whole rig is solved once, gravity and the compiler run, and the fill re-runs knowing the
+answer; or a **lookahead inside the fill**, where each candidate row is speculatively seated before it is accepted. The
+first is simpler and slower, the second is faster and duplicates knowledge.
+
+**This is the one item in the file worth a plan before a line of code.** It touches all three stages that every hard
+entry here runs into, and a wrong structure would be expensive to unwind.
 
 #### GEO-5 — the pyramid cap, and the cabinet that breaks its premise
 
@@ -135,7 +194,11 @@ final x, and no stage sees the next one's answer — so the fill cannot know tha
 will break into overlapping runs. Until the fill can ask that question, any width rule is choosing between a V and an
 overlap blind.
 
-#### GEO-2 — the tops row and the plateau, and why splitting is the wrong lever
+#### Kept from GEO-2, which is closed: splitting the tops row is the wrong lever
+
+**The item is done and its row is deleted. This section stays for the negative result in it**, which is the sort of thing
+that gets retried every six months by somebody who has not read it. Splitting the tops across two rows was tried three
+times and never nets positive, and the measurements are below.
 
 Where: `StackSolver::topRow()`; the rule already exists in `swallows()`.
 
@@ -371,43 +434,8 @@ refusing.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SYM-1 | An **odd mirrored row is lopsided** by one cabinet. **Already implemented as `MirrorStyle::Upright`**, and the axis is no longer swept when nothing is rolled, since the mirror is then a no-op | — | done | 132 candidates → 66, suite 53 s → 28 s, `scenes/generated` byte-identical | — | done |
-| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties | P2 | 3h | broadest stereo image; the mono spread | decision, ALN-4 | decision |
+| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties | P1 | 3h | broadest stereo image; the mono spread | decision, ALN-4 | decision |
 | SYM-2 | Stack ordering cannot make the flanks *equal*, only place the tall ones | P3 | 1h | 3 of 13 multi-stack scenes are height-asymmetric | GEO-4 | partial |
-
-#### SYM-1 — centre the odd cabinet
-
-Where: `Tier::mirrored()`.
-
-**READ THIS BEFORE WRITING ANY CODE: the fix is already in the repository, and implementing SYM-1 as worded would delete
-a sweep axis.** `mirrored()` does not mirror *positions*, it mirrors **roll direction**, and it touches only segments
-whose roll is a quarter turn. An odd row therefore cannot be a palindrome in roll, because a cabinet has to lie one way
-or the other, unless one is left standing up. Leaving one standing up is exactly `MirrorStyle::Upright`, which is
-implemented, is generated by default and produces `2 + 1 upright + 2` for a row of five.
-
-So "centre the odd cabinet" in `MirrorStyle::Alternate` yields `2 + 1 upright + 2`, which **is** `Upright`. The two
-styles already agree on every even row, so they would then agree everywhere a row is uniformly rolled, and
-`MirrorStyle`, the `--mirror-style` option and half the sweep's candidates become redundant. The lopsidedness is not an
-oversight either: the code says so, and alternating the extra cabinet by row index is what balances the *stack* when no
-single row can be.
-
-**RESOLVED. `--mirror-style=upright` *is* the centred variant, so SYM-1 was already implemented**, and the follow-up
-question — why no `upright` scene is ever written — is answered and fixed.
-
-`mirrored()` acts only on segments lying on a quarter turn, and **the default sweep names no `--roll-mirror` device**,
-which the written scenes confirm with zero `roll_mirror` keys. So the mirror was a no-op for every default candidate and
-`upright` came out byte-identical to `alternate`. The measurement: **66 `upright` candidates, 0 written**, 18 of them
-recognised as duplicates by `deduplicate()` and the other 48 refused earlier on the height band or on support, in each
-case identically to their `alternate` twin.
-
-`deduplicate()` catching them afterwards was not good enough, because a candidate is a full solve plus a compile plus an
-interpenetration sweep. `readMirrorStyles()` now sweeps the axis only when something is rolled, which took the default
-run from **132 candidates to 66** with `scenes/generated` byte-identical, and the test suite from 53 s to 28 s. A stated
-`--mirror-style` is still honoured whatever is rolled.
-
-The row's "40 odd rows across all 11 mirrored stacks, in 11 of 19 scenes" was **wrong** and is corrected: 8 odd *rolled*
-rows across 4 scenes, all of them in the `-turned-` scenes, which come from a separate invocation that does pass
-`--roll-mirror`.
 
 #### SYM-3 — the contradiction to settle first
 
@@ -431,23 +459,14 @@ the split giving each stack similar contents, so `stacked-gmss-2-stereo` reads 2
 2.033 | 2.833. `--per-owner` can never be symmetric — three owners are three different systems — and currently writes
 nothing at all: 6 variants refused by GEO-2's family and the rest by the sub height band.
 
-## ALN · alignment features
-
-| ID | Item | Prio | Effort | Buys | Needs | State |
-|----|------|------|--------|------|-------|-------|
-| ALN-1 | Align scenes / stacks / rows at their **front faces** instead of their centres | P2 | 1h 30m | — | — | open |
-| ALN-4 | Only the top tier can be spread — per-tier `align` picks *which* alignment the top tier uses, never how many tiers spread | P2 | — | — | decision |
-| ALN-2 | `align` on **nested** groups — scaling x would stretch the inner group's spacing with the outer one's; needs the level named. Same for `arc` and `line_array`, which own their spacing | P3 | 2h | — | — | known |
-| ALN-3 | `stereo` splits into halves only — `floor(n/2)`; 2 + 2 out of six with two in the middle needs a `columns:` key | P3 | 1h | — | — | known |
-
 ## SWP · the sweep's axes
 
-**What the autogeneration should produce, stated as one cross product.** Today's sweep is **804 candidates writing 149
-scenes**; the target below is **2646 candidates**, and the work left is one value and one whole half.
+**What the autogeneration should produce, stated as one cross product.** Today's sweep is **~1200 candidates writing 150
+scenes**; the target below is **2646 candidates**, and the work left is one whole half and nothing else.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SWP-1 | **The full sweep cross product** — the target set of autogenerated rigs, stated once. Six axes, order in the section below. Steps 1 to 4 are **done**: `column`, the orientation/mirror fold, the fuse and the owner combinations. A `V` shape and the `impossible` half are not | P1 | 6h | 2646 candidates against today's 804 | CVR-5 | partial |
+| SWP-1 | **The full sweep cross product** — the target set of autogenerated rigs, stated once. Six axes, order in the section below. Steps 1 to 5 are **done**: `column`, the orientation/mirror fold, the fuse, the owner combinations and the `V` shape. Only the `impossible` half is missing, which is CVR-5 | P1 | 4h | 2646 candidates against today's ~1200 | CVR-5 | partial |
 
 #### SWP-1 — the cross product
 
@@ -483,19 +502,20 @@ before solving rather than letting `deduplicate()` find it afterwards is what ke
 or `-mixed-` file always has something turned in it. Measured: the seven pairs come out as 426 candidates rather than
 `66 × 7 = 462`, and the 36 missing are exactly this.
 
-**Count.** `3 x 7 x 3 x 3 x 7 x 2` = **2646 candidates**, three times today's 804. The gap is the `V` shape and the
-`impossible` half, and nothing else.
+**Count.** `3 x 7 x 3 x 3 x 7 x 2` = **2646 candidates**, roughly twice today's ~1200. The gap is the `impossible` half
+and nothing else.
 
 The `impossible` half is **CVR-5**: rather than refusing a rig that cannot stand, emit it with every offending cabinet
 coloured red. It is not a variant of a possible rig but its complement — a candidate is one or the other — so as an axis
 it doubles the count rather than multiplying the written output. **The two axes added in 0.77.0 and 0.78.0 made this much
-larger**: today's 655 refusals would become written scenes, where before them there were 55. **147 of the 655 are
-duplicates rather than refusals** and would not be written, which still leaves 508 against `DEFAULT_MAX_SCENES = 200`. So
-CVR-5 is where the fuse has to be raised deliberately again, and by a lot.
+larger**: today's refusals would become written scenes, where before them there were 55. A share of them are duplicates
+rather than refusals and would not be written. `DEFAULT_MAX_SCENES` was raised to **600** in 0.81.0 for exactly this, so
+the first job in CVR-5 is to re-count the refusals against that headroom rather than to assume it is enough.
 
-**258 of the 656 are one refusal**, worth knowing before building CVR-5: the tops would fire below head height, which is
-CVR-1's rig-too-small-for-a-2 m-wall. Painting cabinets red does not answer that one — there is nothing wrong with the
-rig, it is simply short — so CVR-1 and CVR-5 divide the refusals between them rather than competing for them.
+**The largest single family of refusals is one message**, 258 of the 656 counted at 0.78.0 and to be re-counted with the
+rest: the tops would fire below head height. Painting cabinets red does not answer that one — there is nothing wrong
+with the rig, it is simply short — which is why **CVR-7 takes that whole family and CVR-5 gets what is left**. Those 258
+stop being refusals altogether rather than becoming red renders.
 
 ##### Implementation order
 
@@ -516,9 +536,10 @@ files record the stack spec and not solved positions.
    shipped scene changed by a byte. `sepp` alone writes nothing, as CVR-1 predicted, and the **borrowed-gear pairs are
    the biggest inventory in the sweep**: `sdwa5-sepp` writes 50 scenes, more than any single owner and more than `all`.
    `DEFAULT_MAX_SCENES` was raised 80 → 200 here, which is the deliberate raise step 3 exists for.
-5. **`V` as a stated shape** (ca. 4h) — last, because it is the one most likely to fail. Read GEO-5 first: both
-   pure-width pyramid bounds were measured and both produced interpenetration, because narrow stepped walls make gravity
-   split rows into overlapping runs. A V bound hits the same cascade from the other direction.
+5. **DONE in 0.81.0 — `V` as a stated shape**, and it forced the thing GEO-5 had been circling. The V built as a
+   *count* rule produced 21 stacks that narrow against 8 that widen, because raising a seat count only permits a wider
+   row where a row's width is decided by what cabinets are left. **Stated by the owner: the pyramid, the V and the
+   tower are all width rules.** All three now live in `StackChecks::silhouetteProblem()`, in metres.
 
 ##### What exists, per axis
 
@@ -526,7 +547,7 @@ files record the stack spec and not solved positions.
 | --- | --- | --- |
 | stacks | 1, 2, 3 | **done** — hard-coded `[1, 2, 3]` in `SceneStackCommand` |
 | alignment | `center`, `block`, `stereo` | **done** — `LayoutMode`. `center` and `block` are both mono |
-| shape | `pyramid`, `free` | 2 of 3 — **`V` is missing**, see below |
+| shape | `pyramid`, `free`, `v` | **done** in 0.81.0 — all three are width rules in `StackChecks::silhouetteProblem()` |
 | orientation | `upright`, `turned`, `mixed` | **done** in 0.77.0 — `StackOrientation`, swept as pairs with the mirror style |
 | mirror style | `alternate`, `centred`, `column` | **done** in 0.75.0 |
 | inventory | all 7 combinations of `sdwa5`, `gmss`, `sepp` | **done** in 0.78.0 — `ownerCombinations()`, narrowed by `--owner` |
@@ -613,16 +634,46 @@ stale, not precious.** `comm -23` between the directory listing and the sweep's 
 
 ## CVR · coverage of the height band
 
-**121 of 132 candidates are refused, and the two height bounds account for 72 of them.** Not because the band is wrong
-but because the model has no way to raise tops other than stacking subs under them.
+**Most of the sweep's candidates are refused, and the two height bounds account for the largest share.** Not because the
+band is wrong but because the model has no way to raise tops other than stacking subs under them — and because the band
+is enforced as a gate, which CVR-7 says it should not be.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one. **Deferred by the owner**: the answer to "what does a top stand on" was "aim the sub wall at 2.5 m instead", which shipped in 0.79.0 and took the family 267 → 258. The remaining 258 need gear that is not in the specs, so this waits on what we actually own | P2 | 6h | **258 refusals**, the largest single family in the sweep and 39 % of all of them. Every `sepp`-alone rig is one | decision | decision |
-| CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
-| CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes — pinned at floor, scale has no P4 | decision | decision |
-| CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P2 | 5h | up to 508 refusals become lookable-at, and the diagnosis stops being prose. Needs the fuse raised again | — | open |
+| CVR-7 | **The sub/top interface height is an optimisation problem, not a hard constraint.** Stated by the owner. Tops below or above head height are **not** a reason to refuse a rig or to call a scene invalid. `interface_height_m` and `max_sub_height_m` become terms in the ranking beside `target_sub_height_m` rather than gates, and the miss is reported on the scene instead of thrown away | P1 | 6h | **258 refusals at least**, and every `sepp`-alone rig. Also shrinks CVR-5, which would otherwise paint those same rigs red | — | open |
+| CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P1 | 5h | the refusals that survive CVR-7 become lookable-at, and the diagnosis stops being prose. The fuse is already at 600 for it | CVR-7 to avoid duplicated work | open |
 | CVR-6 | **Derive a smaller rig from one that fails** — drop cabinets until the same inventory stands up, and write that as its own scene beside the refusal | P2 | 4h | a buildable scene for every rig that currently produces none, `all-1` included | CVR-5 | open |
+| CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
+| CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes | decision | decision |
+| CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one. **Deferred by the owner**, and CVR-7 removes the urgency entirely: a short wall stops being a refusal, so this becomes a modelling feature rather than a fix. It still waits on what we actually own | P4 | 6h | nothing once CVR-7 lands — the 258 refusals it was written for are CVR-7's | decision | decision |
+
+#### CVR-7 — the band is an aim, not a gate
+
+Where: `StackSolver::solve()` and its `reachesInterface()` guard, `StackChecks`'s two height checks, and
+`SceneStackCommand::build()`'s ranking.
+
+**Stated by the owner in one sentence:** tops standing below or above head height is not a reason to refuse a rig or to
+call a scene invalid, because the sub/top interface height is an optimisation problem rather than a hard constraint.
+
+That contradicts how 0.70.0 built the band and how 0.79.0 aimed it. Today `interface_height_m` is a floor and
+`max_sub_height_m` is a ceiling, both enforced by throwing the arrangement away, and `target_sub_height_m` only chooses
+between the arrangements that survive. The change is to make all three the same kind of thing: **the target is what the
+solver optimises, and the two bounds become distances reported on the rig rather than gates in front of it.**
+
+Three questions to settle before writing anything, because the answers decide how large this is:
+
+1. **What does the ranking do with a rig that misses?** A miss has to cost something or the aim stops meaning anything,
+   but it can no longer cost the rig. The obvious shape is the ranking that 0.79.0 already uses — the worst stack's
+   distance from 2.5 m — with the bounds folded in as a steeper penalty outside the band rather than as a veto.
+2. **Where does the miss get written?** The scene comment already reports the wall height against the interface. A rig
+   that is knowingly 250 mm short needs that on the file rather than in a terminal, or the next reader treats it as a
+   bug. This is the same surface CVR-5 builds, which is the second reason to do CVR-7 first.
+3. **Does anything stay a gate?** Bearing, interpenetration and the silhouette rules are statements about whether the
+   rig stands up at all, which is a different question from whether it sounds right. The working assumption is that they
+   stay hard and only the two height bounds go soft, but it should be stated rather than assumed.
+
+**Measure it the way the band was measured.** 258 refusals are one message today, and the count of written scenes before
+and against after is the whole evidence. Expect the scene set to grow by a lot and `DEFAULT_MAX_SCENES` to bind again.
 
 #### CVR-5 — show the failure instead of describing it
 
@@ -667,6 +718,10 @@ that works" is the obvious companion output rather than a second mechanism.
 
 #### CVR-1 — tops that do not stand on the sub wall
 
+**Dropped to P4, and CVR-7 is why.** Once a short wall is a miss to be reported rather than a refusal, this entry stops
+buying the 258 refusals it was written for and becomes a modelling feature that somebody may want for its own sake. The
+measurements below stay because they are the answer to "what should we buy", which is the question it was really about.
+
 **258 of the 656 refusals are this one family**, the largest in the sweep: the rig cannot fill a 2 m wall out of the
 cabinets it is given, so the tops would fire below head height. `sepp`'s eight cabinets cannot reach it however they are
 stacked. In reality you solve that with a riser or a pair of stands, and neither is modelled: support in the solver is
@@ -707,6 +762,18 @@ arithmetic in GEO-2 says the reverse: 8 tops in one row are 3.921 m, wider than 
 so `all-1` cannot be made to stand by any geometry. It is a `--from` problem, and narrowing the default retires **12 of
 GEO-2's 22 refusals** without touching the solver.
 
+## ALN · alignment features
+
+| ID | Item | Prio | Effort | Buys | Needs | State |
+|----|------|------|--------|------|-------|-------|
+| ALN-1 | Align scenes / stacks / rows at their **front faces** instead of their centres | P2 | 1h 30m | — | — | open |
+| ALN-4 | Only the top tier can be spread — per-tier `align` picks *which* alignment the top tier uses, never how many tiers spread | P2 | — | — | decision | decision |
+| ALN-2 | `align` on **nested** groups — scaling x would stretch the inner group's spacing with the outer one's; needs the level named. Same for `arc` and `line_array`, which own their spacing | P3 | 2h | — | — | known |
+| ALN-3 | `stereo` splits into halves only — `floor(n/2)`; 2 + 2 out of six with two in the middle needs a `columns:` key | P3 | 1h | — | — | known |
+
+**ALN sits below the P1 groups on its own top row, not because it stopped mattering.** ALN-4 is what SYM-3 waits on, so
+the two are one decision seen from two sides.
+
 ## SCN · scenes and renders
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
@@ -741,6 +808,8 @@ GEO-2's 22 refusals** without touching the solver.
 | SPEC-5 | Measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec describes a design or a datasheet, not our build | P2 | phys | — | — | partial |
 | SPEC-6 | `audio.drivers` cannot record a count without a size — `size_in` is required, so "2× unknown" has to omit the whole `audio` block | P2 | 45m | `gmss-mid-bass` keeps what is known | — | open |
 | SPEC-8 | Two amplifier facts, both settled by reading the front panels: the fourth amp (EP4000 2U/16.6 kg vs Proline 3000 3U/37 kg — 69 kg vs 79 per rack), and "gisen md60", which matches no product | P2 | phys | rack weights | — | open |
+| SPEC-11 | **Two 3 × 3 m tents** — new gear, no spec, no model. The 3 × 3 m footprint is what we call them by; make, model, eave and ridge height, packed size and weight are all unsourced, and a tent is a frame with a canopy rather than a box | P2 | phys | two items of gear that exist and are invisible to every scene and every pack | — | open |
+| SPEC-12 | **Five Euro pallets** — new gear, no spec, no model. Footprint is the EPAL standard, so it can be sourced rather than measured, but ours need weighing and their condition and height class checking. They are what a riser is built from, so CVR-1 wants them modelled | P2 | phys | five items of gear, and a real answer to what a top stands on | — | open |
 | SPEC-2 | Detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device)) | P3 | 3h | — | — | partial |
 | SPEC-7 | `provenance.dimensions` cannot say "outer box sourced, internals estimated" — one field for the whole geometry, which the part-built shapes break | P3 | 1h 15m | — | — | open |
 | SPEC-3 | The remaining lighting, plus a **telescoping mast** shape for the towers | P3 | 2h 30m | — | — | partial |
@@ -925,8 +994,8 @@ summed alongside the total, the same way the catalog flags what still needs the 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
-| TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-6 | **`build:all`'s `regenerate()` stage is never run by a test**, only `--dry-run`, which is how a whole extra pass writing 141 stray scenes went unnoticed until `git status` showed it. `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` pins the contract the stage depends on but not the stage. The obstacle is `prune()`: a test that fails midway could delete real renders, so the stage needs a way to run without pruning before it can be covered | P2 | 1h 30m | the class of bug that cost two reverts today | — | open |
+| TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
 | TOOL-4 | GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so mostly packaging and metadata mapping | P3 | 3h | — | — | open |
 

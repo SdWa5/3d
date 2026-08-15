@@ -5,30 +5,29 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --max-width=4.4 --orientation=mixed --from=gmss-wall-bass --from=gmss-mid-bass
+#   bin/console scene:stack --max-width=5.2 --orientation=mixed --from=gmss-wall-bass --from=gmss-mid-bass
 #     --from=skram --from=flexy-folded-horn-hybrid --from=gmss-nuke --from=achenbach-18 --from=gmss-iq-sub
 #     --from=tecnare-m2122 --from=eighteensound-2way-15 --from=gmss-turbo-top --stacks=2 --align=stereo --shape=pyramid
 #     --mirror-style=column --id=stacked-all-2
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 22 cabinets in 6 rows:
+# main-2 — 2, 23 cabinets in 5 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
-#   2  1× gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.603 m wide
-#   3  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
-#   4  3× achenbach-18                                                           1.84 m wide
-#   5  1× gmss-nuke rolled 270° + 1× gmss-nuke rolled 90° + 1× gmss-mid-bass     2.78 m wide
-#   6  1× tecnare-m2122 + 1× gmss-turbo-top + 1× eighteensound-2way-15 + 1× gmss-turbo-top + 1× tecnare-m2122   2.4456 m wide
+#   1  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
+#   2  1× gmss-wall-bass rolled 270° + 1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90° + 1× gmss-wall-bass rolled 90°     4.89 m wide
+#   3  1× skram rolled 270° + 3× achenbach-18 + 1× skram rolled 90°         3.708 m wide
+#   4  1× gmss-nuke rolled 270° + 1× gmss-mid-bass + 1× gmss-nuke rolled 90°     2.78 m wide
+#   5  1× tecnare-m2122 + 1× gmss-turbo-top + 1× gmss-turbo-top + 1× tecnare-m2122     1.96 m wide
 #
-# Subs reach 2.971 m against a 2.0 m interface. The stack is 3.931 m of cabinet.
+# Subs reach 2.451 m against a 2.0 m interface. The stack is 3.411 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * gmss-wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
-#   * skram: LEFT OUT, it cannot be carried in this stack — a eighteensound-2way-15 in the 1× tecnare-m2122 + 1×
-#     gmss-turbo-top + 1× eighteensound-2way-15 + 1× gmss-turbo-top + 1× tecnare-m2122 row would land on only 2% of its
-#     own width — it is touching what carries it rather than sitting on it. Line the segments up with what carries them
+#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
 #   * gmss-nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
@@ -36,8 +35,12 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× gmss-nuke rolled 270° + 1× gmss-nuke rolled 90° + 1× gmss-mid-bass row is 2.780 m on a 1.840 m row,
-#     so it overhangs 470 mm each side
+#   * eighteensound-2way-15: LEFT OUT, it cannot be carried in this stack — the 1× gmss-iq-sub rolled 270° + 1×
+#     gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90° + 2× gmss-iq-sub rolled 90° row is 4.890 m on a 4.678 m
+#     row, so it steps out 106 mm each side against the 67 mm a 0.670 m cabinet may sit proud — `shape: pyramid` asks for
+#     a wall that does not widen as it rises
+#   * the 1× gmss-wall-bass rolled 270° + 1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90° + 1×
+#     gmss-wall-bass rolled 90° row is 4.890 m on a 4.678 m row, so it overhangs 106 mm each side
 #
 # main-1 — 1, 15 cabinets in 5 rows:
 #
@@ -75,14 +78,14 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 22 cabinets in 6 rows
+  # 2, 23 cabinets in 5 rows
   - id: main-2
     at: [-1.7165, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
     stack:
-      max_width_m: 4.4
+      max_width_m: 5.2
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
@@ -92,6 +95,8 @@ placements:
         - device: gmss-wall-bass
           roll_mirror: 90.0
         - gmss-mid-bass
+        - device: skram
+          roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6
           roll_mirror: 90.0
@@ -104,21 +109,18 @@ placements:
           roll_mirror: 90.0
         - device: tecnare-m2122
           count: 2
-        - device: eighteensound-2way-15
-          count: 1
-          aim: near
         - device: gmss-turbo-top
           count: 2
           aim: near
 
   # 1, 15 cabinets in 5 rows
   - id: main-1
-    at: [1.8955, 0.0]
+    at: [2.393, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
     stack:
-      max_width_m: 4.4
+      max_width_m: 5.2
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02

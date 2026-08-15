@@ -510,7 +510,7 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 | `from` | the devices, **low frequency first**. Each entry is a bare id, or a mapping with `count` / `align` / `mix_with` — see below |
 | `max_width_m` | how wide the stage or the truss lets the rig be. The row count falls out of it |
 | `interface_height_m` | how high the sub stack's top face should reach, so the tops fire over a standing crowd. **Defaults to 2.0**, and in a hand-written scene it is an **optimum rather than a requirement** — missing it warns; state `0` to stop aiming for it. In a scene `scene:stack` writes it is binding, together with `max_sub_height_m`: see [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes) |
-| `shape` | `pyramid` (no row wider than the one below, and the fill ordered for row width) or `free` (as wide as the bearing rule allows). Default `free`, so an existing scene keeps the rig it had. See [the two shapes](#the-two-shapes) |
+| `shape` | `pyramid` (no row wider than the one below), `free` (as wide as the bearing rule allows) or `v` (no row narrower than the one below). Default `free`, so an existing scene keeps the rig it had. **All three are width rules, in metres** — see [the three shapes](#the-three-shapes) |
 | `max_sub_height_m` | how high the sub stack's top face is *allowed* to reach — the **mirror** of `interface_height_m`. Stating one changes what the solver optimises for and lets a row hold several device types. See [a ceiling on the sub height](#a-ceiling-on-the-sub-height). Missing it warns in a hand-written scene and **refuses the rig in a generated one**, like its floor — see [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes). A ceiling below the stack's own `interface_height_m` is an error: the two say opposite things about one number |
 | `target_sub_height_m` | the sub/top transition to **aim at**, between the floor and the ceiling. **Defaults to 2.5**, the middle of the band, and it decides which of the arrangements that stand up comes back — where the two bounds decide which of them are allowed at all. A preference and never a refusal. Written into a scene only when it is not the default. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
@@ -568,24 +568,43 @@ three M2122s and three turbo tops — the centre holds one of each and the row i
 that block. That is the least imbalance the counts allow: a centimetre in the middle rather than a whole cabinet at
 one end.
 
-### The two shapes
+### The three shapes
 
 The bearing rule permits a row to be **wider** than the one carrying it — two thirds of a cabinet past each end —
 and for a long time nothing said it should not be. That is how a stack ends up widening as it rises: 1.34 m on the
 floor under 1.82, 1.84, 2.32, 2.18 and 2.51 m. Every one of those rows is legally carried and the rig reads
 top-heavy, a V balanced on its point.
 
-`shape: pyramid` is two rules together, and it needs both:
+**Every shape rule is a width, in metres.** Stated by the owner of the gear, and it is not a stylistic preference:
+the pyramid was written as a *count* — no row holding more cabinets than the row below — and the premise that makes
+a count stand in for a width is false. Nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is
+**1.200 m**, so "no more cabinets" and "no wider" stopped meaning the same thing the day it arrived. The V made it
+obvious: built on a count rule it produced **21 stacks that narrow against 8 that widen**, and `free` widened more
+often than the shape named after widening.
 
-* **the fill is ordered for row width rather than weight** — the type that can make the widest row goes on the floor,
-  because the taper can only ever *narrow* a wall and so a pyramid is decided by how wide its bottom row is;
-* **no row may hold more cabinets than the row below it.** A count, not a width: six Achenbachs are 3.700 m on six
-  Flexys' 3.646, a 27 mm shoulder per side that is flush rather than a V, and capping the width refused it.
+| shape | the rule, per row against the one below |
+| --- | --- |
+| `pyramid` | may not sit **more than a tenth of its outboard cabinet proud** on either side |
+| `free` | may be as wide as the bearing rule allows — two thirds of a cabinet per side |
+| `v` | may not be **narrower** at all |
+
+**The pyramid's tenth of a cabinet is derived from the two cases either side of it**, not chosen. It cannot be zero:
+six Achenbachs are 3.700 m on six Flexys' 3.646, 27 mm proud per side out of a 600 mm cabinet, and a rule without an
+allowance splits them into two rows of three — whereupon the 1.84 m row cannot carry the tops and a 2-way is dropped
+from the rig. It cannot be a whole cabinet either: `2× gmss-nuke + 1× gmss-mid-bass` is 2.420 m on a 1.890 m row,
+265 mm proud per side out of a 590 mm cabinet, and that reads as a V to anybody looking at it. A tenth separates them
+cleanly, and it is a fraction rather than a number of millimetres so it scales with whatever cabinet ends the row.
+
+`pyramid` and `v` each carry a **fill order** as well as a bound, and it is the half that makes them possible rather
+than merely permitted. The pyramid puts the type that can make the widest row on the floor, because a taper can only
+narrow a wall and so is decided by how wide its bottom row is; the V puts the *narrowest* row-maker there, because a
+wall can only grow by two thirds of a cabinet per side per row and a V asked for on a full-width base has nowhere to
+go.
 
 The price is stated rather than hidden: a wide-but-shallow type can end up *under* a deeper one, which is the
-inversion the fill order otherwise exists to prevent. That is why **both shapes are generated** — `free` keeps the
-deepest and heaviest cabinets on the floor and accepts the V, `pyramid` takes the shape and the height and gives up
-the ordering. On the GMSS cabinets that is 2.070 m against 3.240 for the same twelve boxes.
+inversion the fill order otherwise exists to prevent. That is why **all three shapes are generated** — `free` keeps
+the deepest and heaviest cabinets on the floor and accepts whatever silhouette falls out, where the other two choose
+one and give up the ordering.
 
 ### A ceiling on the sub height
 
@@ -786,8 +805,8 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 ### scene:stack — writing the scene for you
 
 **The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
-configuration it can stand up: one rig per combination of owners, by one, two and three stacks, in both shapes, all three
-alignments and all seven orientation/mirror pairs — **148 scenes of 804 candidates** on the current inventory, with every
+configuration it can stand up: one rig per combination of owners, by one, two and three stacks, in all three shapes, all
+three alignments and all seven orientation/mirror pairs — **150 scenes of ~1200 candidates** on the current inventory, with every
 refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
 required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
 naming `--align` narrows it to one mode.
@@ -993,9 +1012,9 @@ so block and stereo alignment have nothing left to spread it into.
 | — | **`build:all` prunes as well as writes**: a `.blend`, plan or render under a `generated/` directory whose scene id no longer exists is removed and named. Generated *scene* files are left alone — they are tracked, cheap to regenerate and expensive to lose |
 | — | **`build:all` replays those commands as its first stage**, so a generated scene follows the specs the way the models and renders already do. It is the only stage that writes outside `build/` — `build:all --dry-run` says how many files it would rewrite. A file under `generated/` with no recorded command is skipped and named, never guessed at |
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
-| `--orientation=MODE` | repeatable: `upright` (nothing rolled), `turned` (every sub) or `mixed` (only the subs that get wider on their side). **Tops never roll at any setting**, and the reason is acoustic — see [the orientation axis](#the-orientation-axis-and-why-laying-subs-down-is-the-biggest-lever-there-is). Default all three, and it is the largest axis in the sweep: `upright` alone writes 11 scenes where every sub rolled writes 24. Naming `--roll-mirror` switches it off |
+| `--orientation=MODE` | repeatable: `upright` (nothing rolled), `turned` (every sub) or `mixed` (only the subs that get wider on their side). **Tops never roll at any setting**, and the reason is acoustic — see [the orientation axis](#the-orientation-axis-and-why-laying-subs-down-is-the-biggest-lever-there-is). Default all three, and it is the largest axis in the sweep: measured on the 66-candidate sweep it landed in, `upright` alone writes 11 scenes where every sub rolled writes 24. Naming `--roll-mirror` switches it off |
 | `--mirror-style=MODE` | repeatable: `alternate`, `centred`, `column`. What a turned row does with the odd cabinet it cannot split in half — `alternate` swaps its side each row so the stack balances, `centred` leaves it standing in the middle so the row is symmetric at the cost of a 172 mm step, `column` sends it to the same side every row so the seam runs straight and the stack is lopsided by one. **Default all three, but only where something is rolled.** With nothing rolled the mirror is a no-op and all three are byte-identical, so the orientation and the style are swept as seven pairs rather than as 3 × 3. Stating the option explicitly always honours it |
-| `--shape=MODE` | repeatable: `pyramid`, `free`. Default both — **one scene each**, and the pyramid keeps the plain id while `free` gets a `-free` infix |
+| `--shape=MODE` | repeatable: `pyramid`, `free`, `v`. Default all three — **one scene each**, and the pyramid keeps the plain id while the other two get a `-free` or `-v` infix. All three are width rules in metres, see [the three shapes](#the-three-shapes) |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 

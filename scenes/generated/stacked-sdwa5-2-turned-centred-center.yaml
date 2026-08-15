@@ -23,15 +23,14 @@
 #
 # main-2 — 2, 9 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   3  1× skram                                                                  0.61 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   4  2× tecnare-m2122                                                          1.02 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
+# Subs reach 2.096 m against a 2.0 m interface. The stack is 3.056 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 2× tecnare-m2122 row is 1.020 m on a 0.610 m row, so it overhangs 205 mm each side
 #
 id: stacked-sdwa5-2-turned-centred-center
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -47,7 +46,7 @@ focus:
 placements:
   # 1, 8 cabinets in 4 rows
   - id: main-1
-    at: [-1.6305, 0.0]
+    at: [-1.64, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       max_width_m: 3.7

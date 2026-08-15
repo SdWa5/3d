@@ -152,13 +152,17 @@ final class StackSolver
         // rows and 3.240 m. A metre and a sixth of height, and the V gone, out of nothing but the order.
         //
         // The price is stated rather than hidden: a wide-but-shallow type ends up UNDER a deep one, which is the
-        // inversion {@see \App\Command\SceneStackCommand::byFillOrder} exists to prevent. That is why both shapes
+        // inversion {@see \App\Command\SceneStackCommand::byFillOrder} exists to prevent. That is why all three shapes
         // are generated — `free` keeps the deepest and heaviest cabinets on the floor and accepts the V, `pyramid`
-        // takes the shape and the height and gives up the ordering. Neither is right for every rig.
+        // takes the shape and the height and gives up the ordering. None of them is right for every rig.
         //
         // Subs only, and their block stays before the tops, so {@see orderingProblems} is unaffected.
-        if ($stack->shape === StackShape::Pyramid) {
-            $inventory = self::widestFirst($inventory, $stack);
+        // **And the V is the same re-ordering read the other way**, which is what makes it a shape rather than a bound.
+        // A wall can only grow by two thirds of a cabinet per side per row, so a V asked for on a wide base has nowhere
+        // to go — the base already fills the stage. Putting the type that makes the *narrowest* row on the floor is
+        // what leaves it room, exactly as the pyramid puts the widest one there to have something to taper from.
+        if ($stack->shape !== StackShape::Free) {
+            $inventory = self::widestFirst($inventory, $stack, $stack->shape === StackShape::V);
         }
 
         $widest = 0;
@@ -548,18 +552,19 @@ final class StackSolver
                     break;
                 }
 
-                // **THE PYRAMID CAP, PREDICTED HERE RATHER THAN ENFORCED AT EMISSION.** Every other row-building path
-                // asks {@see perRowCap} how many cabinets the row below holds, and a lift cannot: it reserves its flanks
-                // before a single tier exists, so there is nothing yet to measure against. Enforcing it later does not
-                // work either — by the time the flanked tier is emitted the source's own rows are already built, so
-                // handing surplus cabinets back would strand them with nowhere left to go.
+                // **THE PYRAMID BOUND, PREDICTED HERE RATHER THAN ENFORCED AT EMISSION.** A lift reserves its flanks
+                // before a single tier exists, so there is nothing yet to measure against; and enforcing it later does
+                // not work either, since by the time the flanked tier is emitted the source's own rows are already
+                // built and handing surplus cabinets back would strand them with nowhere left to go. Without this a
+                // lift was the one way a pyramid could still step outward.
                 //
-                // So the count is predicted the same way the width above it already is. The flanked tier stands on the
-                // source's **last** row, {@see share} puts the fuller row at the bottom, and that row's cabinet count is
-                // the cap. Without this a lift was the one way a pyramid could still step outward: two flanks either
-                // side of four Achenbachs is a 6-wide row on the 4-wide Flexy row carrying it.
+                // **A width, like the rule it predicts** ({@see StackChecks::silhouetteProblem}) — this used to compare
+                // cabinet counts through a `lastRowCount()` helper, and a count is the premise the owner ruled out. The
+                // support's width is already computed on the line above for the bearing test, so the same number
+                // answers both questions.
                 if ($stack->shape === StackShape::Pyramid
-                    && $targetCount + 2 * ($lift + 1) > self::lastRowCount($source, $left, $stack, $perRow)) {
+                    && ($width - $support) / 2 > StackChecks::PYRAMID_SHOULDER * $candidate->outerWidthM()
+                ) {
                     break;
                 }
             } else {
@@ -1183,6 +1188,18 @@ final class StackSolver
      * cabinets across whatever they are.
      *
      * `INF` for `free` and for the bottom row, which has nothing to narrow relative to.
+     *
+     * **THIS IS A HINT NOW, NOT THE RULE.** The rule is a width and lives in {@see StackChecks::silhouetteProblem},
+     * stated by the owner of the gear: the pyramid, the V and the tower are all width rules, because counting cabinets
+     * rests on a premise that is false — nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is 1.200 m.
+     *
+     * The count survives here because it is a good *starting* size and costs nothing: a row of at most as many cabinets
+     * as the row below is nearly always the arrangement the width rule wants too, so the search finds it first instead
+     * of walking down to it. Where the two disagree the width rule wins, because it is the one that refuses.
+     *
+     * The V gets no mirror of this line and that is also measured. Reading `min` as `max` was the obvious mirror and it
+     * does nothing: raising the seat count only *permits* a wider row, where a row's width is decided by what cabinets
+     * are left. Built that way the V produced **21 stacks that narrow against 8 that widen**.
      */
     private static function perRowCap(array $tiers, Stack $stack, int $perRow): int
     {
@@ -1208,7 +1225,7 @@ final class StackSolver
      * @param list<array{DeviceSpec, int}> $inventory
      * @return list<array{DeviceSpec, int}>
      */
-    private static function widestFirst(array $inventory, Stack $stack): array
+    private static function widestFirst(array $inventory, Stack $stack, bool $reversed = false): array
     {
         $subs = [];
         $tops = [];
@@ -1216,11 +1233,17 @@ final class StackSolver
             $entry[0]->subtype === 'sub' ? $subs[] = $entry : $tops[] = $entry;
         }
 
+        // `$reversed` is the V: narrowest row-maker on the floor, so the wall has somewhere to grow. Same measure and
+        // the same tops rule, read the other way round, because a V and a pyramid are one question with two answers
+        // and writing the comparison out twice is how the two would drift apart.
+        $direction = $reversed ? -1 : 1;
+
         usort(
             $subs,
-            static fn (array $a, array $b): int
-                => $b[1] * RolledBox::widthOf($b[0], self::rollFor($b[0], $stack))
-                <=> $a[1] * RolledBox::widthOf($a[0], self::rollFor($a[0], $stack)),
+            static fn (array $a, array $b): int => $direction * (
+                $b[1] * RolledBox::widthOf($b[0], self::rollFor($b[0], $stack))
+                <=> $a[1] * RolledBox::widthOf($a[0], self::rollFor($a[0], $stack))
+            ),
         );
 
         return [...$subs, ...$tops];

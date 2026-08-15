@@ -11,13 +11,14 @@
 #
 # What it deals out today:
 #
-#   1  5× gmss-iq-sub                                                            2.73 m wide
-#   2  2× gmss-wall-bass + 1× gmss-iq-sub                                       1.89 m wide
-#   3  2× gmss-nuke + 1× gmss-mid-bass                                          2.42 m wide
-#   4  3× gmss-turbo-top                                                         1.39 m wide
+#   1  6× gmss-iq-sub                                                            3.28 m wide
+#   2  1× gmss-nuke + 2× gmss-wall-bass + 1× gmss-nuke                         2.56 m wide
+#   3  3× gmss-turbo-top                                                         1.39 m wide
 #
-# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.55 m of cabinet.
-#   * the 2× gmss-nuke + 1× gmss-mid-bass row is 2.420 m on a 1.890 m row, so it overhangs 265 mm each side
+# Subs reach 2.07 m against a 2.0 m interface. The stack is 2.78 m of cabinet.
+#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — the 1× gmss-iq-sub + 2× gmss-wall-bass + 1×
+#     gmss-iq-sub row is 2.440 m on a 2.180 m row, so it steps out 130 mm each side against the 53 mm a 0.530 m cabinet may
+#     sit proud — `shape: pyramid` asks for a wall that does not widen as it rises
 #
 id: stacked-gmss-1-center
 name: "Solved rig — one stack, tiers centred"
@@ -42,7 +43,6 @@ placements:
       shape: pyramid
       from:
         - gmss-wall-bass
-        - gmss-mid-bass
         - gmss-nuke
         - gmss-iq-sub
         - gmss-turbo-top
