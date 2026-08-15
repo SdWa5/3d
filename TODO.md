@@ -14,6 +14,10 @@ because the sub/top interface height is an optimisation problem. So "do not avoi
 the two bounds stop being able to throw a rig away. That is CVR-7, and it is the largest single change left in the file,
 because 258 of the sweep's refusals are that one message. Today's code still enforces them as gates.
 
+**The stage width is the same statement about a different number.** Also stated by the owner: how wide a generated scene
+comes out does not matter at all unless a parameter limiting the width is explicitly passed. Today the command applies a
+3.70 m default whether or not anybody said so. That is CVR-8, and it is built together with CVR-7 rather than after it.
+
 Where that stands: bare `scene:stack` writes **150 scenes of ~1200 candidates**, every stack's sub/top transition inside
 2–3 m and **aimed at 2.5 m** rather than merely inside the band, every refusal named, and every shape rule stated in
 **metres rather than in cabinet counts**. The refusals are the work — grouped below by what actually causes them.
@@ -72,20 +76,22 @@ Settled with the owner, so a new session can act on it without re-deriving it:
 1. **CVR-7**, the band as an aim rather than a gate. Newest and largest, and it is **ahead of CVR-5 on a dependency
    rather than on taste**: it turns 258 refusals into written rigs, and every one of them is a rig CVR-5 would otherwise
    have to paint red. Doing CVR-5 first means painting several hundred rigs that CVR-7 then un-paints.
-2. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
+2. **CVR-8**, the width bound coming off. Small next to CVR-7 and **built with it rather than after it**, because
+   removing the bound alone collapses a rig to one row per type and CVR-7's target is what stops that.
+3. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
    the rest of the refusals from sentences that scroll away into rigs somebody can look at. Read its three unsettled
    sub-questions first. The fuse is already at 600 for it.
-3. **SWP-2**, the system-separation axis. After CVR-7 rather than before, because it multiplies the candidate count by
+4. **SWP-2**, the system-separation axis. After CVR-7 rather than before, because it multiplies the candidate count by
    up to three and there is no sense counting the same rigs twice.
-4. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
+5. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
    enable/disable surface worth building.
-5. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
+6. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
    SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
    169 mm cost on the tightest tops row is measured.
-6. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, P1, and the one stage that writes into the repository
+7. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, P1, and the one stage that writes into the repository
    while never being run by a test. Pull it forward whenever the queue above it stalls, since it takes 1h 30m and does
    not depend on anything.
-7. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
+8. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
    any code. GEO-9 sits behind it, so the two are one piece of work in practice.
 
 **CVR-1 is parked on the owner rather than on code** and is P4 for that reason.
@@ -442,7 +448,7 @@ refusing.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties. **No longer blocked on a decision.** The spreading half is SWP-2's shared tops row rather than a change to `Alignment`, and the evenness rule is **equal pitch**, settled by the owner. Both measured, see the section | P1 | 5h | broadest stereo image; the mono spread. Costs 169 mm on the tightest tops row, which the width ladder has to absorb | SWP-2 | open |
+| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties. **No longer blocked on a decision.** The spreading half is SWP-2's shared tops row rather than a change to `Alignment`, and the evenness rule is **equal pitch**, settled by the owner. Both measured, see the section | P1 | 5h | broadest stereo image; the mono spread. Costs 169 mm on the tightest tops row, which only bites where a width is explicitly stated — see CVR-8 | SWP-2 | open |
 | SYM-2 | Stack ordering cannot make the flanks *equal*, only place the tall ones | P3 | 1h | 3 of 13 multi-stack scenes are height-asymmetric | GEO-4 | partial |
 
 #### SYM-3 — both blockers settled, and it is now work rather than a decision
@@ -526,9 +532,11 @@ gets wider:
 | equal air, `gap_m` everywhere | 3.9212 m |
 | equal pitch, 0.520 m everywhere | **4.0900 m** |
 
-**169 mm, and it is the kind of number that decides whether a rig exists.** GEO-2 already found that eight tops in one
-row do not fit a 3.70 m stage at 3.921 m. At 4.090 m they need a wider one again, so the choice does not only change how
-a spread row looks. It changes which rigs the width ladder can place at all.
+**169 mm, and CVR-8 is what makes that harmless.** This paragraph used to say the number decides whether a rig exists,
+on the grounds that eight tops already do not fit a 3.70 m stage at 3.921 m and 4.090 m needs a wider one again. **The
+owner then settled that an unstated width limits nothing**, so a row growing by 169 mm costs a wider scene and not a
+lost rig. The number stays because it is still real where somebody *does* state a width: pass `--max-width=3.7` and the
+169 mm is the difference between a rig and a refusal.
 
 **So the rule needs a floor, and the floor is the existing one read correctly.** Equal pitch whenever there is slack to
 distribute, never below the pitch that clears the widest pair, and the tightest arrangement below that is the equal-air
@@ -787,15 +795,17 @@ enable/disable surface is where a grouping would be stated. Building them separa
 options are fine for four axes and stop being fine at seven with groupings; a file is testable and is one more thing to
 keep in step with `--help`.
 
-## CVR · coverage of the height band
+## CVR · coverage, and the inputs that were secretly gates
 
-**Most of the sweep's candidates are refused, and the two height bounds account for the largest share.** Not because the
-band is wrong but because the model has no way to raise tops other than stacking subs under them — and because the band
-is enforced as a gate, which CVR-7 says it should not be.
+**Most of the sweep's candidates are refused, and the largest share is not geometry.** It is that two inputs stated as
+preferences are enforced as gates: the height band, which is CVR-7, and the stage width, which is CVR-8. Both were
+settled by the owner in the same direction, and neither is a claim that the number is wrong. It is a claim about what
+the number is *for*.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | CVR-7 | **The sub/top interface height is an optimisation problem, not a hard constraint.** Stated by the owner. Tops below or above head height are **not** a reason to refuse a rig or to call a scene invalid. `interface_height_m` and `max_sub_height_m` become terms in the ranking beside `target_sub_height_m` rather than gates, and the miss is reported on the scene instead of thrown away | P1 | 6h | **258 refusals at least**, and every `sepp`-alone rig. Also shrinks CVR-5, which would otherwise paint those same rigs red | — | open |
+| CVR-8 | **An unstated width must not limit anything.** Stated by the owner: how wide a generated scene comes out does not matter unless `--max-width` is explicitly passed. Today the command defaults it to 3.70 m whether or not anybody said so, and the ladder gives up at 6.00 m. **Do it with CVR-7, not before**, since removing the bound on its own degenerates a rig to one row — see the section | P1 | 4h | every refusal that is a stage the rig does not fit, and it retires GEO-2's "8 tops are 3.921 m and do not fit" outright | CVR-7 | open |
 | CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P1 | 5h | the refusals that survive CVR-7 become lookable-at, and the diagnosis stops being prose. The fuse is already at 600 for it | CVR-7 to avoid duplicated work | open |
 | CVR-6 | **Derive a smaller rig from one that fails** — drop cabinets until the same inventory stands up, and write that as its own scene beside the refusal | P2 | 4h | a buildable scene for every rig that currently produces none, `all-1` included | CVR-5 | open |
 | CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
@@ -829,6 +839,51 @@ Three questions to settle before writing anything, because the answers decide ho
 
 **Measure it the way the band was measured.** 258 refusals are one message today, and the count of written scenes before
 and against after is the whole evidence. Expect the scene set to grow by a lot and `DEFAULT_MAX_SCENES` to bind again.
+
+#### CVR-8 — an unstated width limits nothing
+
+Where: `SceneStackCommand::DEFAULT_MAX_WIDTH_M`, `WIDTH_LADDER_M` and `buildInBand()`, and `StackSolver::ceilingFor()`.
+
+**Stated by the owner:** how wide a generated scene comes out does not matter at all unless a parameter limiting the
+width is explicitly passed.
+
+Today it matters twice over, and neither is something anybody asked for:
+
+* `--max-width` is read as `readFloat(…) ?? DEFAULT_MAX_WIDTH_M`, so **every generated scene is built against 3.70 m
+  whether or not a width was stated**. There is no way to say "no stage".
+* `buildInBand()` walks `WIDTH_LADDER_M` and **stops at its ends**. A rig needing more than 6.00 m is reported with the
+  miss it had at the nearest rung rather than being widened until it fits.
+
+**The machinery is already there and is simply never reached.** `Stack::maxWidthM` is nullable, `ceilingFor()` reads
+null as "no bound at all", and its docblock already records the trap: passing `INF` instead of null casts to
+`(int)floor(INF)` in `perTier()`, which is undefined in PHP and came out as a row of one. So the change is to stop
+defaulting the option, not to invent an unbounded path.
+
+##### Why this waits on CVR-7 rather than shipping on its own
+
+**Removing the bound alone degenerates the rig, and the reason is worth stating before somebody tries it.** The width
+does two jobs today and the owner's statement only removes one of them:
+
+| job | what happens without a width |
+| --- | --- |
+| **a gate**, refusing a rig that does not fit | correctly gone, and that is the whole ask |
+| **the thing that decides how wide a row wants to be** — `ceilingFor()` returns `maxWidthM` for the bottom row, since it has no support to bound it | **nothing decides it**, so the bottom row takes every cabinet of its type and the rig collapses to one row per type |
+
+**CVR-7 is what makes it safe.** Once `target_sub_height_m` is what the solver optimises rather than a tie-break among
+survivors, a one-row wall misses 2.5 m by nearly two metres and loses to a stacked one on its own merits. The width then
+stops being an input and becomes an output: **the target height decides the shape and the width falls out of it**, which
+is the inversion of how it works today. Done in that order it needs no new rule. Done alone it needs one invented, which
+is how a preference becomes a gate in the first place.
+
+##### The two things to decide while building it
+
+1. **What a written scene records.** The compiler re-solves every build, so a scene with no `max_width_m` has to solve
+   the same way twice. Either the resolved width is written back so a rebuild is pinned, or the key is omitted and the
+   unbounded solve has to be deterministic. `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` is the
+   test that will say which, and it should be consulted before the choice rather than after.
+2. **What the ladder is for afterwards.** Its purpose was to move a rig onto a stage where its wall lands in the band.
+   With the band an aim and the width unbounded, both ends of that sentence are gone. The honest outcome may be that
+   `WIDTH_LADDER_M` is deleted rather than extended, and that a stated `--max-width` is simply obeyed.
 
 #### CVR-5 — show the failure instead of describing it
 

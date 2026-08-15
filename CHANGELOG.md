@@ -21,6 +21,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   individually plus a system grouping that overrides `owner`, so `sdwa5` and `sepp` can be swept as one system. That
   second half is the answer CVR-3 was waiting for, and it is a grouping stated at invocation time rather than a
   `system:` field in the specs
+- **CVR-8 is new and P1**, the same statement as CVR-7 about a different number. Stated by the owner: how wide a
+  generated scene comes out does not matter unless a parameter limiting the width is explicitly passed. Today
+  `--max-width` is read as `readFloat(…) ?? 3.70`, so every generated scene is built against a stage nobody asked for,
+  and `buildInBand()` stops at the width ladder's 6.00 m end rather than widening until the rig fits. **It is built
+  with CVR-7 rather than after it**: the width does two jobs, and removing only the gate leaves nothing deciding how
+  wide a row wants to be, so the bottom row takes every cabinet of its type and the rig collapses to one row. Once the
+  target height is what the solver optimises, a one-row wall loses on its own merits and the width becomes an output
+- **SYM-3's 169 mm is no longer a rig-losing number**, which is what CVR-8 changes about it. It costs a wider scene
+  rather than a refusal, and it still bites where a width *is* stated
 - **TOOL-6 raised to P1**, once the cause of the stray-scene incident was confirmed as a code defect rather than
   anything about how the command was invoked. The removed `regenerateTurned()` pass compared against `--roll-mirror=`
   in a recorded command line after the format had moved to `--orientation=turned`, so it turned the turned rigs again.
