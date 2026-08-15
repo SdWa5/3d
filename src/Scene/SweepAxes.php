@@ -140,6 +140,13 @@ final class SweepAxes
      * rather than per stack, because a split can hand one stack no rollable cabinet while the rig plainly has one, and
      * the scene is named for the rig.
      *
+     * **A style is always part of the pair, so it is always part of the scene's name.** It was tempting to leave it out
+     * of the name where nothing is rolled, on the grounds that the sweep only ever pairs `upright` with `alternate` and
+     * a style decides nothing there. That is true of the sweep and false of the command:
+     * `--orientation=upright --mirror-style=centred` is accepted and honoured — see
+     * {@see \App\Tests\Command\SceneStackCommandTest::testAnExplicitCentredStyleIsHonouredWithNothingRolled} — so a
+     * name that dropped it would give two different rigs the same file name.
+     *
      * @param list<StackOrientation|null> $orientations
      * @param list<MirrorStyle> $stated the styles somebody named, `[]` to sweep as each orientation allows
      * @param list<string> $rolled the device ids `--roll-mirror` named, which is what a null orientation defers to
@@ -233,6 +240,29 @@ final class SweepAxes
     public static function labelFor(array $subset, int $owners): string
     {
         return $owners > 1 && count($subset) === $owners ? 'all' : implode('-', $subset);
+    }
+
+    /**
+     * How wide the owner column has to be to hold every label these owners can produce.
+     *
+     * Asked of the **whole** owner list rather than of the subsets a given run walks, and that is the whole reason it
+     * is a method rather than a `max()` at the call site: `--owner` narrows which combinations are built, and a width
+     * measured after that narrowing would give one rig two different file names depending on how it was asked for.
+     *
+     * Every non-empty combination, because the widest label is rarely the obvious one — three owners make `all` out of
+     * the biggest subset and `gmss-sdwa5` out of a middling one, so the longest name belongs to a pair rather than to
+     * the whole. See {@see \App\Command\SceneStackCommand::padded} for what the width is used for.
+     *
+     * @param list<string> $owners
+     */
+    public static function labelWidth(array $owners): int
+    {
+        $width = 0;
+        foreach (self::ownerCombinations($owners, []) as $subset) {
+            $width = max($width, strlen(self::labelFor($subset, count($owners))));
+        }
+
+        return $width;
     }
 
     /**

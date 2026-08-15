@@ -10,6 +10,7 @@ use App\Scene\SceneLoader;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use App\Spec\Violation;
+use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -85,8 +86,8 @@ final class SceneStackCommandTest extends TestCase
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertSame(2, preg_match_all('/^id: /m', $display), 'center and stereo differ; block does not');
-        self::assertStringContainsString('the same rig as stacked-center', $display);
-        self::assertStringContainsString('id: stacked-stereo', $display);
+        self::assertStringContainsString('the same rig as stacked-pyramid-upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-stereo', $display);
 
         // In stereo the long throw is at BOTH ends with the fills inboard, and the odd M2122 sits on the centre
         // line so the two clusters stay equal — a palindrome, where the centred row reads
@@ -123,11 +124,14 @@ final class SceneStackCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
         self::assertGreaterThan(8, preg_match_all('/^id: /m', $display), 'the bare command must produce a set');
 
-        // More than one owner, and more than one stack count, or it is not a sweep.
-        self::assertMatchesRegularExpression('/^id: \S*-sdwa5-\d/m', $display);
-        self::assertMatchesRegularExpression('/^id: \S*-gmss-\d/m', $display);
-        self::assertMatchesRegularExpression('/^id: \S*-\w+-1/m', $display);
-        self::assertMatchesRegularExpression('/^id: \S*-\w+-2/m', $display);
+        // More than one owner, and more than one stack count, or it is not a sweep. `-+` rather than `-` between the
+        // owner label and the stack count, because the label is padded to a fixed width with dashes — see
+        // {@see \App\Command\SceneStackCommand::padded}. Matching a single dash pinned the padding by accident, which
+        // is not what any of these four lines is about.
+        self::assertMatchesRegularExpression('/^id: \S*-sdwa5-+\d/m', $display);
+        self::assertMatchesRegularExpression('/^id: \S*-gmss-+\d/m', $display);
+        self::assertMatchesRegularExpression('/^id: \S*-\w+-+1/m', $display);
+        self::assertMatchesRegularExpression('/^id: \S*-\w+-+2/m', $display);
 
         // Every refusal carries a reason — a sweep that drops candidates silently reads as "that is all there is".
         foreach (explode("\n", $display) as $line) {
@@ -150,7 +154,7 @@ final class SceneStackCommandTest extends TestCase
         ])->getDisplay();
 
         self::assertSame(1, preg_match_all('/^id: /m', $display));
-        self::assertStringContainsString('id: stacked-center', $display, 'no owner or stack-count suffix');
+        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display, 'no owner or stack-count suffix');
     }
 
     /** The fast path: one alignment, one shape and one orientation named outright, exactly one scene. */
@@ -187,9 +191,9 @@ final class SceneStackCommandTest extends TestCase
             '--align' => ['center'], '--orientation' => ['upright'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-center', $display);
-        self::assertStringContainsString('id: stacked-free-center', $display);
-        self::assertStringContainsString('id: stacked-v-center', $display);
+        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-free----upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-v-------upright-alternate-center', $display);
 
         // The pyramid puts the IQ subs on the floor, which is the widest row they can make; `free` puts the two wall
         // basses there, which is 1.34 m and two rows more of stack; `v` puts the single mid-bass there at 1.20 m,
@@ -332,9 +336,12 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testEverythingTheCollectiveOwnsGoesIntoOneStack(): void
     {
+        // The shape and the orientation are named, because the band stopped refusing the variants: a `v` on rolled
+        // cabinets does have to leave a Tecnare out, and it is a different rig rather than a counter-example to this
+        // one. The subject is the SKRAMs sharing a bottom row in the rig this test has always been about.
         $tester = $this->invoke([
             '--max-width' => '5.0', '--interface-height' => '2.0', '--from' => self::OWN_GEAR,
-            '--align' => ['center'], '--dry-run' => true,
+            '--shape' => ['free'], '--orientation' => ['upright'], '--align' => ['center'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -628,9 +635,11 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheOddCabinetIsPlacedByDefaultAndLeftOutOnlyWhenAsked(): void
     {
+        // One shape named, because the band no longer refuses the others and two of them now write the same split
+        // twice. The subject is what the split does with the odd cabinet, which no shape changes.
         $shared = [
-            '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '2',
-            '--max-width' => '3.70', '--align' => ['center'], '--dry-run' => true,
+            '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '2', '--shape' => ['free'],
+            '--orientation' => ['upright'], '--max-width' => '3.70', '--align' => ['center'], '--dry-run' => true,
         ];
 
         $dealt = $this->invoke($shared)->getDisplay();
@@ -646,8 +655,8 @@ final class SceneStackCommandTest extends TestCase
     public function testTheSubHeightCeilingIsWrittenIntoTheScene(): void
     {
         $display = $this->invoke([
-            // 3.5 m because this gear comes out at 3.040 m: a ceiling the rig misses is refused rather than written,
-            // so a test about the ceiling *reaching the file* has to state one the rig meets.
+            // 3.5 m because this gear comes out at 3.040 m, so the ceiling is met rather than missed. A missed one
+            // would be written too — see the band tests — and this is about the key reaching the file.
             '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '3.5',
             '--interface-height' => '0', '--align' => ['center'], '--dry-run' => true,
         ])->getDisplay();
@@ -658,15 +667,15 @@ final class SceneStackCommandTest extends TestCase
     /**
      * **A row is slid along its support rather than the rig being refused**, where nothing stands beside it.
      *
-     * The GMSS cabinets turned on their sides are the case the stage-width ladder cannot help: five rolled IQ subs make
-     * a 3.29 m row and the widest support the rest of the inventory can put under it is 2.77 m, so the row hangs
-     * 260 mm proud each side. Centred, an IQ sub lands on a fraction of itself, the arrangement is thrown away, and the
-     * only one left standing reaches 3.340 m against the 3.000 m ceiling and is refused. Slid, the row is carried and
-     * the rig is written at 2.66 m.
+     * The GMSS cabinets turned on their sides are the case a wider stage cannot help: five rolled IQ subs make a
+     * 3.29 m row and the widest support the rest of the inventory can put under it is 2.77 m, so the row hangs 260 mm
+     * proud each side. Centred, an IQ sub lands on a fraction of itself and the arrangement is thrown away. Slid, the
+     * row is carried and the rig comes out at 2.66 m.
      *
-     * Measured by taking the slack away rather than by reading the solver: with `slideSlackM` forced to null this exact
-     * invocation writes nothing and says `3.340 m against the 3.000 m ceiling`. That is the whole value of the line in
-     * {@see \App\Command\SceneStackCommand} that hands a solo stack `INF`, and it is what this test guards.
+     * Measured by taking the slack away rather than by reading the solver: with `slideSlackM` forced to null the best
+     * arrangement this invocation can find reaches 3.340 m against the 3.000 m ceiling, 680 mm further from the aim.
+     * That is the whole value of the line in {@see \App\Command\SceneStackCommand} that hands a solo stack `INF`, and
+     * it is what this test guards. It cost the rig outright while the ceiling was a gate; now it costs 680 mm.
      *
      * Pinned on the sub height rather than on the offset, because the height is what the rig is for and the offset is
      * how it got there.
@@ -679,7 +688,7 @@ final class SceneStackCommandTest extends TestCase
             '--orientation' => ['turned'], '--mirror-style' => ['centred'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-free-turned-centred-center', $display);
+        self::assertStringContainsString('id: stacked-free----turned--centred---center', $display);
         self::assertStringContainsString(
             '2× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 2× gmss-iq-sub rolled 90°',
             $display,
@@ -689,17 +698,18 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **A rig whose sub wall misses the band is not written**, and the refusal says by how much.
+     * **A rig whose sub wall misses the band is written anyway, and says by how much.** Stated by the owner: the
+     * sub/top interface height is an optimisation problem rather than a hard constraint.
      *
-     * The two bounds existed long before this and were preferences: the solver reported a miss as a warning and built
-     * the rig anyway, which is right for a scene somebody wrote and wrong for one this command generates. Measured
-     * across the 54 scenes that shipped before it bound, only 16 had every stack between 2 and 3 m — the rest included
-     * a 5.73 m wall and a 0.60 m one, tops firing at knee height.
+     * It used to be a refusal, and that refusal threw away 258 candidates in one family — every one of them a rig
+     * that stands up and is merely shorter or taller than ideal. What replaces it is a number in two places: a
+     * `noted` line for whoever ran the command, and the same sentence in the file's own header for whoever opens it
+     * later and would otherwise read a knowingly short wall as a bug.
      *
-     * Asserted on the numbers rather than on the refusal alone, because "no workable arrangement" for a rig that is
-     * 40 mm too tall is what sends somebody hunting for a geometry fault.
+     * Asserted on the numbers rather than on the note alone, because "40 mm too high" and "1470 mm too high" are
+     * different rigs and only one of them is worth looking at.
      */
-    public function testARigThatMissesTheSubHeightBandIsRefusedWithTheMeasurement(): void
+    public function testARigThatMissesTheSubHeightBandIsWrittenWithTheMeasurement(): void
     {
         $display = $this->invoke([
             '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '3.0',
@@ -708,22 +718,28 @@ final class SceneStackCommandTest extends TestCase
 
         self::assertStringContainsString('3.040 m against the 3.000 m ceiling', $display);
         self::assertStringContainsString('40 mm too high', $display);
-        self::assertStringNotContainsString('id: stacked-center', $display);
+        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display, 'the miss no longer costs the rig');
+        self::assertMatchesRegularExpression(
+            '/#\s+\*\s+the subs reach 3\.040 m against the 3\.000 m ceiling/',
+            $display,
+            'the miss has to be on the file, not only on the terminal',
+        );
     }
 
     /**
-     * The floor is the other half, and it refuses the opposite mistake: a wall too short to get the tops over a
-     * standing crowd. Two Achenbachs cannot make a 2 m wall however they are stacked, so the rig is not written.
+     * The floor is the other half, and it is the same answer: a wall too short to get the tops over a standing crowd
+     * is a rig with a note on it. Two Achenbachs cannot make a 2 m wall however they are stacked, and a pair of
+     * Achenbachs with a 2-way on top is a rig somebody would genuinely carry into a small room.
      */
-    public function testAWallTooShortToClearTheInterfaceIsRefused(): void
+    public function testAWallTooShortToClearTheInterfaceIsWrittenWithTheMeasurement(): void
     {
         $display = $this->invoke([
             '--from' => ['achenbach-18', 'eighteensound-2way-15'], '--max-width' => '3.70',
             '--interface-height' => '2.0', '--align' => ['center'], '--shape' => ['pyramid'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('would fire below head height', $display);
-        self::assertStringNotContainsString('id: stacked-center', $display);
+        self::assertStringContainsString('fire below head height', $display);
+        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display, 'a short wall is a rig, not a refusal');
     }
 
     /**
@@ -738,41 +754,67 @@ final class SceneStackCommandTest extends TestCase
             '--interface-height' => '0', '--align' => ['center'], '--shape' => ['pyramid'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-center', $display);
+        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display);
         self::assertStringNotContainsString('too high', $display);
     }
 
     /**
-     * **A rig that misses the band on the default stage is moved onto one that fits it**, rather than skipped.
+     * **An unstated width limits nothing**, which is stated by the owner and is the whole of CVR-8: how wide a
+     * generated scene comes out does not matter unless a parameter limiting the width is explicitly passed.
      *
-     * This is the half of the band that adds scenes instead of removing them. A sub wall gets shorter as the stage
-     * gets wider, so a rig over the ceiling at 3.70 m is often not an impossible rig but a rig on the wrong stage:
-     * everybody's gear across two stacks is 4.173 m of subs at 3.70 m, which is 1173 mm over the ceiling and refused,
-     * and 2.381 m at 4.40 m, which is one you would build. The width the sweep settled on is written into the recorded
-     * command, because a replay that inherited the default would rebuild the rig that missed.
+     * It used to be limited whether or not anybody said so. `--max-width` defaulted to 3.70 m, so every generated
+     * scene was solved against a stage nobody had asked for, and a rig too wide for it was refused for a reason that
+     * came from the option's default rather than from the request.
      *
-     * Read off the file the sweep wrote rather than by running it again: the sweep is the slowest thing in this suite
-     * and the recorded line is the durable evidence — it is what a replay uses, so a width that failed to reach it
-     * would be the actual defect.
+     * Asserted three ways, because a bound can leak back in at any of them: it must not reach the stack the compiler
+     * re-solves, it must not reach the recorded command a replay runs, and — the one that proves the other two are
+     * not merely cosmetic — the rig has to actually come out wider than the old default allowed.
      */
-    public function testTheSweepMovesARigOntoAWiderStageRatherThanSkippingIt(): void
+    public function testAnUnstatedWidthBoundsNothing(): void
     {
-        $yaml = (string)file_get_contents(
-            dirname(__DIR__, 2).'/scenes/generated/stacked-all-2-free-mixed-column-center.yaml',
-        );
+        $shared = ['--from' => self::OWN_GEAR, '--align' => ['center'], '--shape' => ['free'], '--dry-run' => true];
 
-        self::assertMatchesRegularExpression('/--max-width=4\.4\b/', $yaml, 'the wider stage has to be recorded');
-        self::assertStringContainsString('max_width_m: 4.4', $yaml, 'and reach the stack the compiler re-solves');
+        $unbounded = $this->invoke($shared)->getDisplay();
+        $bounded = $this->invoke($shared + ['--max-width' => '2.40'])->getDisplay();
+
+        self::assertStringContainsString('id: stacked-free----upright-alternate-center', $unbounded);
+        self::assertStringNotContainsString('max_width_m:', $unbounded, 'no bound reaches the re-solved stack');
+        self::assertStringNotContainsString('--max-width=', $unbounded, 'and none reaches the recorded command');
+        self::assertStringContainsString('max_width_m: 2.4', $bounded, 'a stated one still reaches it');
+
+        // The one that proves the other three are not merely cosmetic: the same gear on a stated 2.40 m stage cannot
+        // deal a row wider than that, and unstated it does.
+        self::assertGreaterThan(
+            2.40,
+            max($this->rowWidths($unbounded)),
+            'unbounded has to mean unbounded, not "bounded by something else"',
+        );
+        self::assertLessThanOrEqual(2.40, max($this->rowWidths($bounded)));
     }
 
     /**
-     * **Every generated scene stands inside the band its own file asks for**, which is the invariant the band exists
-     * to hold and the one a stale file would break silently.
+     * Every row width the header reports, in metres.
      *
-     * Read from the files rather than from a sweep, so it also covers any scene left behind by a solver change. Each file states its own bounds, so nothing here assumes 2–3 m: a scene
-     * that asks for something else is held to what it asks for.
+     * @return list<float>
      */
-    public function testEveryGeneratedSceneStandsInsideItsOwnBand(): void
+    private function rowWidths(string $display): array
+    {
+        preg_match_all('/^#\s+\d+\s+.*?([\d.]+) m wide$/m', $display, $rows);
+        self::assertNotSame([], $rows[1], 'the header has to report a width per row');
+
+        return array_map('floatval', $rows[1]);
+    }
+
+    /**
+     * **Every generated scene that misses its own band says so in its own header**, which is the invariant that
+     * replaced "every generated scene stands inside its band".
+     *
+     * The band stopped being a gate, so a file outside it is no longer a defect — a file outside it *in silence* is,
+     * because the next reader would take a knowingly short wall for a solver bug. Read from the files rather than
+     * from a sweep, so it also covers any scene left behind by a solver change, and each file is held to the bounds
+     * it states rather than to 2–3 m.
+     */
+    public function testEveryGeneratedSceneOutsideItsBandSaysSo(): void
     {
         $files = glob(dirname(__DIR__, 2).'/scenes/generated/*.yaml') ?: [];
         self::assertNotSame([], $files);
@@ -786,9 +828,11 @@ final class SceneStackCommandTest extends TestCase
             self::assertNotSame([], $walls[1], $name.' records no sub wall height');
 
             foreach ($walls[1] as $index => $height) {
-                self::assertGreaterThanOrEqual((float)$walls[2][$index], (float)$height + 1e-9, $name);
-                if ($ceiling !== []) {
-                    self::assertLessThanOrEqual((float)$ceiling[1] + 1e-9, (float)$height, $name);
+                if ((float)$height + 1e-9 < (float)$walls[2][$index]) {
+                    self::assertStringContainsString('m interface asked for', $yaml, $name.' is short and silent');
+                }
+                if ($ceiling !== [] && (float)$height > (float)$ceiling[1] + 1e-9) {
+                    self::assertStringContainsString('m ceiling asked for', $yaml, $name.' is tall and silent');
                 }
             }
         }
@@ -865,8 +909,15 @@ final class SceneStackCommandTest extends TestCase
         preg_match_all('/^\s*(?:skipped|id:)\s*(\S+)/m', $display, $matches);
         self::assertNotSame([], $matches[1]);
 
+        // **Every axis in an id is a fixed-width field padded with dashes**, so `turned` reads as `turned--` and
+        // `centred` as `centred---`. Collapsing runs of dashes first is what keeps this test about the pairing of two
+        // axes rather than about how wide their columns happen to be — matching `-turned-centred-` literally pinned
+        // the padding by accident and broke here the moment it arrived.
+        $ids = array_map(static fn (string $id): string => (string)preg_replace('/-{2,}/', '-', $id), $matches[1]);
+        $collapsed = (string)preg_replace('/-{2,}/', '-', $display);
+
         $vacuous = array_values(array_filter(
-            $matches[1],
+            $ids,
             static fn (string $id): bool => (str_contains($id, '-centred') || str_contains($id, '-column'))
                 && !str_contains($id, '-turned-') && !str_contains($id, '-mixed-'),
         ));
@@ -874,8 +925,8 @@ final class SceneStackCommandTest extends TestCase
         self::assertSame([], $vacuous, 'a mirror style was offered with nothing rolled to apply it to');
 
         // And the pairing is not merely absent — the rolled orientations do get all three styles.
-        self::assertStringContainsString('-turned-centred-', $display);
-        self::assertStringContainsString('-turned-column-', $display);
+        self::assertStringContainsString('-turned-centred-', $collapsed);
+        self::assertStringContainsString('-turned-column-', $collapsed);
     }
 
     /**
@@ -936,8 +987,13 @@ final class SceneStackCommandTest extends TestCase
             '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'], '--orientation' => ['upright'],
         ])->getDisplay();
 
+        // `rtrim` because the owner column is padded out to the widest label the gear list can make, so `gmss` reads
+        // `gmss------` in a name. The padding is the point of the scheme and is not what this test is about.
         preg_match_all('/^\s*(?:skipped|id:)\s*stacked-([a-z0-9-]+?)-\d/m', $display, $matches);
-        $inventories = array_values(array_unique($matches[1]));
+        $inventories = array_values(array_unique(array_map(
+            static fn (string $label): string => rtrim($label, '-'),
+            $matches[1],
+        )));
         sort($inventories);
 
         self::assertSame(['all', 'gmss', 'gmss-sdwa5', 'gmss-sepp', 'sdwa5', 'sdwa5-sepp', 'sepp'], $inventories);
@@ -960,7 +1016,10 @@ final class SceneStackCommandTest extends TestCase
         preg_match_all('/^\s*(?:skipped|id:)\s*stacked-([a-z0-9-]+?)-(\d)/m', $display, $matches);
 
         // The owners in the specs' own order, whichever order they were typed in, so the file has one name.
-        self::assertSame(['gmss-sepp'], array_values(array_unique($matches[1])));
+        self::assertSame(['gmss-sepp'], array_values(array_unique(array_map(
+            static fn (string $label): string => rtrim($label, '-'),
+            $matches[1],
+        ))));
         self::assertSame(['1', '2', '3'], array_values(array_unique($matches[2])), 'the stack counts still sweep');
     }
 
@@ -1032,24 +1091,75 @@ final class SceneStackCommandTest extends TestCase
      * measured tomorrow joins the rig the file describes, where a frozen list would rebuild yesterday's. The stated form
      * is only recorded where it is what the caller actually said.
      *
-     * Read off a shipped file rather than from a run, the same way the stage-width test is: the recorded line is what
+     * Read off the shipped files rather than from a run, the same way the stage-width test is: the recorded line is what
      * `build:all` replays, so a file that failed to carry the mode is the actual defect.
+     *
+     * **Asserted across the whole set rather than on two named files.** Naming this test's evidence by file name broke it
+     * three times for reasons that had nothing to do with orientation, once per change to the id shape. The rule it is
+     * really about holds for every generated scene, so every generated scene is where it is checked.
      */
     public function testARecordedLineNamesTheOrientationRatherThanTheCabinets(): void
     {
-        $turned = (string)file_get_contents(
-            dirname(__DIR__, 2).'/scenes/generated/stacked-sdwa5-2-turned-center.yaml',
-        );
-        self::assertStringContainsString('--orientation=turned', $turned);
-        self::assertStringNotContainsString('--roll-mirror=', $turned);
+        $turned = 0;
+        $upright = 0;
+        foreach (glob(dirname(__DIR__, 2).'/scenes/generated/*.yaml') ?: [] as $file) {
+            $yaml = (string)file_get_contents($file);
+            $name = basename($file);
 
-        // And the cabinets it resolved to are in the stack itself, which is where a re-solve reads them from.
-        self::assertStringContainsString('roll_mirror: 90.0', $turned);
+            if (str_contains($yaml, '--orientation=turned')) {
+                ++$turned;
+                // The mode is recorded, and the cabinets it resolved to live in the stack itself, which is where a
+                // re-solve reads them from.
+                self::assertStringNotContainsString('--roll-mirror=', $yaml, $name);
+                self::assertStringContainsString('roll_mirror: 90.0', $yaml, $name);
+            }
 
-        // The upright rigs say so too, rather than leaving the axis to a default that may change under them.
-        $upright = (string)file_get_contents(dirname(__DIR__, 2).'/scenes/generated/stacked-sdwa5-2-center.yaml');
-        self::assertStringContainsString('--orientation=upright', $upright);
-        self::assertStringNotContainsString('roll_mirror', $upright);
+            if (str_contains($yaml, '--orientation=upright')) {
+                ++$upright;
+                self::assertStringNotContainsString('roll_mirror', $yaml, $name);
+            }
+        }
+
+        // Both modes are actually represented, so a sweep that stopped writing one of them fails here rather than
+        // passing an assertion loop that never ran.
+        self::assertGreaterThan(0, $turned, 'no shipped scene records --orientation=turned');
+        self::assertGreaterThan(0, $upright, 'no shipped scene records --orientation=upright');
+    }
+
+    /**
+     * The fill order is decided by frequency, and only between two cabinets that **both** state one.
+     *
+     * Stated by the owner: the lowest and most powerful subs belong as low as the rig allows. The guard is the part
+     * worth pinning, because it is the part an earlier frequency-first sort did not have — that version read a missing
+     * passband as `INF`, fell back to `quantity × width` and put the 40 kg IQ subs under the 220 kg wall basses. Nine
+     * of our ten speakers state no passband, so a rule that ranks on absence ranks almost everything on nothing.
+     *
+     * Both directions are asserted, since only the pair of them says the guard is a guard rather than an ordering that
+     * happens to agree: two stated passbands beat the mass even when the mass disagrees, and one stated passband beats
+     * nothing at all.
+     */
+    public function testTheFillOrderIsFrequencyFirstAndOnlyWhereBothCabinetsStateOne(): void
+    {
+        $order = (new \ReflectionMethod(SceneStackCommand::class, 'byFillOrder'))->invoke(null);
+
+        $deep = SpecFactory::spec([
+            'id' => 'light-and-deep',
+            'physical' => ['weight_kg' => 10.0],
+            'audio' => ['passband_hz' => ['low_hz' => 20, 'high_hz' => 100, 'provenance' => 'datasheet']],
+        ]);
+        $shallow = SpecFactory::spec([
+            'id' => 'heavy-and-shallow',
+            'physical' => ['weight_kg' => 200.0],
+            'audio' => ['passband_hz' => ['low_hz' => 40, 'high_hz' => 100, 'provenance' => 'datasheet']],
+        ]);
+        $silent = SpecFactory::spec(['id' => 'heavy-and-silent', 'physical' => ['weight_kg' => 200.0]]);
+
+        // Both state one, and they disagree with the mass by a factor of twenty. The frequency wins.
+        self::assertLessThan(0, $order($deep, $shallow), 'a lighter, deeper cabinet belongs under a heavier one');
+
+        // One of them says nothing, so there is no frequency to compare and the mass decides. Without the guard the
+        // silent cabinet would sort above the deep one on a number it does not have.
+        self::assertLessThan(0, $order($silent, $deep), 'a silent cabinet is placed by mass, not by its silence');
     }
 
     /**

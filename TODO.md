@@ -11,16 +11,16 @@ avoid generating a scene, ignore the ceiling, or use fewer speakers if there is 
 **And the band is an aim rather than a gate**, which settles how to read the sentence above. Stated by the owner: a sub
 wall that puts the tops below or above head height is **not** a reason to refuse a rig or to call a scene invalid,
 because the sub/top interface height is an optimisation problem. So "do not avoid generating a scene" wins outright, and
-the two bounds stop being able to throw a rig away. That is CVR-7, and it is the largest single change left in the file,
-because 258 of the sweep's refusals are that one message. Today's code still enforces them as gates.
+the two bounds cannot throw a rig away. That is CVR-7, it is **built**, and it was the largest single change in the
+file: 551 of the sweep's refusals were that one message.
 
 **The stage width is the same statement about a different number.** Also stated by the owner: how wide a generated scene
-comes out does not matter at all unless a parameter limiting the width is explicitly passed. Today the command applies a
-3.70 m default whether or not anybody said so. That is CVR-8, and it is built together with CVR-7 rather than after it.
+comes out does not matter at all unless a parameter limiting the width is explicitly passed. That is CVR-8, **built**
+together with CVR-7, and no generated scene carries a width any more.
 
-Where that stands: bare `scene:stack` writes **150 scenes of ~1200 candidates**, every stack's sub/top transition inside
-2–3 m and **aimed at 2.5 m** rather than merely inside the band, every refusal named, and every shape rule stated in
-**metres rather than in cabinet counts**. The refusals are the work — grouped below by what actually causes them.
+Where that stands: bare `scene:stack` writes **396 scenes of ~1200 candidates**, every stack's sub/top transition
+**aimed at 2.5 m** and its miss written on the file where it misses, every refusal named, and every shape rule stated in
+**metres rather than in cabinet counts**. What is still refused is geometry and duplicates — grouped below by cause.
 
 **How it got here is in the CHANGELOG rather than repeated here**, but two findings from it govern what to build next.
 **The orientation axis is worth more than every other axis put together** — 11 scenes became 61 in 0.77.0, and
@@ -69,26 +69,33 @@ the last axis, which is CVR-5, and SWP-2 then adds a seventh axis.
 
 Settled with the owner, so a new session can act on it without re-deriving it:
 
-1. **CVR-7**, the band as an aim rather than a gate. Newest and largest, and it is **ahead of CVR-5 on a dependency
-   rather than on taste**: it turns 258 refusals into written rigs, and every one of them is a rig CVR-5 would otherwise
-   have to paint red. Doing CVR-5 first means painting several hundred rigs that CVR-7 then un-paints.
-2. **CVR-8**, the width bound coming off. Small next to CVR-7 and **built with it rather than after it**, because
-   removing the bound alone collapses a rig to one row per type and CVR-7's target is what stops that.
-3. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
+**CVR-7 and CVR-8 are done**, which is why the list now starts where it does.
+
+1. **GEO-12**, the search knob from a cabinet count to a width in metres. Ahead of everything else because it is the
+   bill CVR-8 ran up: 18 scenes and 28 in-band walls are waiting on it, and it is the last place the solver treats
+   cabinets 0.45 m and 1.20 m wide as the same unit.
+2. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
    the rest of the refusals from sentences that scroll away into rigs somebody can look at. Read its three unsettled
-   sub-questions first. The fuse is already at 600 for it.
-4. **SWP-2**, the system-separation axis. After CVR-7 rather than before, because it multiplies the candidate count by
-   up to three and there is no sense counting the same rigs twice.
-5. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
+   sub-questions first. The fuse is at 600 and the sweep is at 396, so there is room but not a lot of it.
+3. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
+   above rather than before them.
+4. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
    enable/disable surface worth building.
-6. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
+5. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
    SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
    169 mm cost on the tightest tops row is measured.
-7. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, P1, and the one stage that writes into the repository
+6. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, P1, and the one stage that writes into the repository
    while never being run by a test. Pull it forward whenever the queue above it stalls, since it takes 1h 30m and does
    not depend on anything.
-8. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
-   any code. GEO-9 sits behind it, so the two are one piece of work in practice.
+7. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
+   any code. GEO-9 and GEO-13 both sit behind it, so the three are one piece of work in practice.
+
+**GEO-14 arrived after this order was settled and has not been placed in it.** It is P1, it was stated by the owner and
+its four blocking questions are answered: the shapes keep priority, height and acoustics are weighted metrics traded off
+against each other, "central" is the rig's centre line for mono and each stack's own for stereo, and the fill key is
+frequency. **The frequency quarter is done.** One sub-question is left before the rest can start, which is where the
+weights live — a constant, a CLI option or a scene key. The power quarter waits on SPEC-13. Pick this up after GEO-12,
+which is where the settled order still starts.
 
 **CVR-1 is parked on the owner rather than on code** and is P4 for that reason.
 
@@ -102,12 +109,177 @@ GEO-3, GEO-6 and GEO-10 are done and their rows are deleted — the CHANGELOG ha
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
+| GEO-12 | **The fill's search knob is a cabinet count and has to be a width in metres.** `$perRow` is one integer applied to every device at once, and our cabinets are 0.45 m to 1.20 m wide, so `perRow: 7` means seven Flexys at 4.3 m *and* seven mid-bass at 8.5 m. A metre budget divides by each cabinet's own width instead. **Measured, see the section** | P1 | 5h | the 18 scenes and the 28 in-band walls CVR-8 cost, and the last place the solver pretends the cabinets have a common size | — | measured |
+| GEO-13 | **Gaps inside a row, chosen rather than constant.** `gap_m` is one uniform working gap everywhere and nothing can space a row out. The **checking** half is already built and load-bearing — see the section — so what is missing is the half that proposes the gaps. **Same lever as GEO-12**: a row-width budget wider than the cabinets need *is* a gapped row | P2 | 6h | rows that reach wider than their cabinet count allows, which is what a wide base and SYM-3's equal pitch both want | GEO-12 | open |
+| GEO-14 | **The lowest and most powerful subs belong as low and as central as the rig allows.** Stated by the owner and **settled on four counts**: the shapes keep priority, height and acoustics are traded off as **differently weighted metrics** rather than one gating the other, "central" is the **rig's** centre line for `center` and `block` and **each stack's own** for `stereo`, and the fill key is frequency. The frequency quarter is **done**. What is left is the weighted objective and the two centring rules it scores. **Power is in no spec field** | P1 | 7h | the acoustic reason the fill order exists at all, and the first rule that reaches across stacks rather than inside one | SPEC-13 for power, and where the weights live | partial |
 | GEO-11 | **The fill, gravity and the compiler cannot see each other's answers.** The one finding that has now turned up **four separate times** wearing four names. The biggest lever left in the solver, and the only item that unblocks three others at once | P1 | 12h | GEO-4, the rest of GEO-5 and GEO-9's tower, plus whatever the fifth instance turns out to be | — | open |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective, which is GEO-11. **Both must be width rules**, stated by the owner, so they belong in `StackChecks::silhouetteProblem()` beside the other three | P1 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | GEO-11 | measured |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x. Waits on GEO-11 | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | GEO-11 | measured |
 | GEO-5 | **Mostly closed by 0.81.0.** The cap is a width now, in `StackChecks::silhouetteProblem()`, with a tenth of a cabinet per side as the shoulder — so the false premise this entry was written about is gone. What is left is that the width rules refuse arrangements mid-search and the sweep got four times slower, which is GEO-11's shape again | P3 | 3h | — | GEO-11 | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
+
+#### GEO-12 — the search knob is a count and the cabinets have no common size
+
+Where: `StackSolver::fill()`'s `for ($perRow = $widest; $perRow >= 1; --$perRow)`, `perRowCap()`, and the twenty-odd
+call sites that thread `$perRow` through the fill.
+
+**Found by removing the width ladder in CVR-8, and it is not CVR-8's fault.** The ladder was a stage bound and it was
+also, by accident, a *second search dimension* — and only the bound was the thing nobody had asked for.
+
+A stage width in metres caps **each device's row count by that device's own cabinet width**: 4.40 m deals 7 Flexys and
+3 mid-bass. `$perRow` caps every device to the same integer, so no setting of it reproduces that arrangement. Measured
+against the 150 scenes the ladder used to write:
+
+| | |
+| --- | --- |
+| scenes lost outright | **18** (6 of them ladder rescues at 4.40 and 5.20 m, 12 on the plain 3.70 m stage) |
+| scenes kept but pushed outside the band | **28** — `stacked-all-2-free-mixed-column-center` went 2.381 → **4.173** m of subs |
+| fully inside 2–3 m | 150 → **110** of 396 |
+| baseline scenes whose recorded width was not 3.70 m | **70**, so the ladder was doing real work rather than decorating |
+
+**What changes and what does not.** `$perRow` becomes a row-width budget in metres, walked coarse to fine, with the
+unbounded case always in the search — so nothing is bounded by it and no rig can be refused for missing a budget.
+**Counts stay where counts belong**, which is the owner's own reading: parity and symmetry (`flankingPairs`, the pairs
+per side of a mixed bottom row, `mirrored`, `centred`, `share()`, `outerShare`, `splitRemainder`) and the pillar rule's
+"a row of one", all of which are genuinely about how many cabinets there are.
+
+**The ladder is derived from the cabinets, never written down.** That is the difference between this and the
+`WIDTH_LADDER_M` that CVR-8 deleted, which was eight metre figures nobody could source. The candidate budgets are the
+row widths the inventory can actually make: for each device and each `n` from its stage fit down to one,
+`Tier::of($device, $n, $roll)->widthM($gap)`, collected, deduplicated within an epsilon and walked descending with the
+unbounded case first. So the search still returns the widest arrangement on its first hit where there is no ceiling, and
+a budget that no row can land on is never tried. It costs roughly the sum of the per-device counts in passes against
+today's single count, which is a few times slower and therefore free, since runtime is not a constraint here.
+
+**`perRowCap()` is the trap in this item and the naive fix is measured wrong.** Turning `min($perRow, $last->count())`
+into a plain width cap at the row below was already tried, and its own docblock records what it cost: six Achenbachs are
+3.700 m on six Flexys' 3.646 m, a 27 mm shoulder per side that the bearing rule allows four hundred of, and forbidding
+it split them into two rows of three, whereupon the 1.84 m row could not carry the tops and a 2-way was dropped from the
+rig. **A flush wall is not a V.** So the width form has to carry the same shoulder the real rule already does, which is
+`below + 2 × PYRAMID_SHOULDER × cabinet width`, exactly what `StackChecks::silhouetteProblem()` allows. With that it is
+the same hint it is today, expressed in the unit the rule is actually written in.
+
+**Where it lands in `packTo()` is a simplification rather than a translation.** That loop already computes a width
+ceiling per device — `min(ceilingFor(…), $budgetM)` — and a separate seat count from `perRowCap()`. Once the pyramid hint
+is a width the two are one quantity, so the `$count + $take + 1 <= $seats` half of the inner condition goes away
+entirely and the row is bounded by width alone.
+
+**The scene records nothing new**, and the sweep's file names do not change, so this is the rare solver change that can
+be checked by diffing the generated set against the previous one rather than by reading it.
+
+The scene records nothing new. A budget is a search parameter rather than a constraint, the search is deterministic,
+and `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` is what proves the rebuild still agrees.
+
+#### GEO-13 — gaps inside a row
+
+Where: `Tier::seats()` and `Tier::widthM()`, which take one `$gapM` and use it between every pair of neighbours.
+
+**The checking half is finished and the proposing half does not exist.** Worth writing down in that order, because the
+hard part is the one already built:
+
+* **`Gravity::runs()`** splits a row into runs and `topFacesOf()` hands the tier above whatever faces those runs
+  offer. A gapped row is already representable — it is a row of several runs with air between them.
+* **`Gravity::MIN_BEARING = 1/3`** is the "does not fall through" rule, per cabinet.
+* **`StackChecks::bearingProblems()`** catches both halves: nothing underneath at all, and touching rather than
+  sitting on what carries it.
+* **`Stability::tips()`** asks it of the row as one body, which no per-cabinet rule can.
+
+So the condition — either the row above fits on the runs below, or its cabinets are wide enough to bridge the gaps and
+still land on a third of themselves — is already enforced. What is missing is a solver that *chooses* the gaps.
+
+**Do it as GEO-12's budget rather than as its own mechanism.** A row given more metres than its cabinets need is a
+gapped row, so the two are one search and building them apart would build it twice. The open question is what the
+scene records: a solved gap has to survive the re-solve, either by being reproduced deterministically like the budget
+or by being written out per row, and `gap_m` today is a single scalar with no place to put a row.
+
+**ALN-4 stays untouched.** That rule forbids *spreading a load-bearing tier* through the placement alignment, and it
+forbids it for exactly this reason. A gap the fill chose and the bearing rules verified is a different object from a
+tier stretched after the fact by a scalar that cannot see what stands on it.
+
+#### GEO-14 — low and central, which is four rules and only one of them exists
+
+Where: `SceneStackCommand::byFillOrder()`, `StackSolver::fill()`'s `widestFirst()` branch, `StackSolver::centred()`,
+`statedMix()` / `mixedBottomRow()` via `widestSub()`, `topRow()` / `stereoTopRow()`, and `SceneStackCommand::byType()`.
+
+Stated by the owner as one sentence, so it is recorded as one row. It is four separate pieces of work in the code, and
+they are in four different states.
+
+**Four questions are settled**, all by the owner:
+
+* **The shapes keep priority and the acoustic rule is an optimisation problem**, not a gate. That is the same answer the
+  sub height band got in 0.82.0 and it should be built the same way, as a cost the search ranks candidates on rather
+  than as a refusal. `pyramid` and `v` go on re-ordering the inventory `widestFirst()`, and within the freedom a shape
+  leaves, the arrangement that puts the lowest cabinets lowest and most central wins. **So nothing is ever refused for
+  it and no rig gets narrower**, which is what makes it safe to add to a search that already has a ceiling and a target
+  in it.
+* **The key is frequency, not weight.** Done, see below.
+* **"Central" is the rig's centre line for mono and each stack's own centre line for stereo.** So `center` and `block`
+  push the lowest and most powerful subs towards the middle of the whole rig, inner stacks and inner positions both,
+  while `stereo` centres them inside each stack and leaves the stacks where they are. That mirrors the split
+  `topRow()` already makes for tops, where `center` and `block` put the long throw central with the fills outboard and
+  `stereo` puts the fills inboard nearest the centre line, because a stereo rig exists for the width of its image.
+  **Both mechanisms get built** and the alignment picks between them, which is the most work of the three answers and
+  the only one that does not contradict what the code already believes about the two cases.
+* **Height and acoustics are traded off against each other, as differently weighted metrics.** Not a tiebreak and not a
+  gate. The arrangement that wins is the one with the best weighted score across several named measures, so a rig may
+  legitimately give up some height to put the low end lower and more central, or the reverse, depending on what the
+  weights say.
+
+**1. Low, inside one stack. Done.** `byFillOrder()` now sorts on the driven low corner and falls back to mass, and the
+guard is the part that matters: **frequency decides only between two cabinets that both state one**. An earlier
+frequency-first sort read a missing passband as `INF` and fell back to `quantity × width`, which put the 40 kg IQ subs
+under the 220 kg wall basses. Nine of our ten speakers state no passband, so a rule that ranks on absence ranks almost
+everything on nothing. **The change is inert on the gear we own**, checked rather than assumed: our three cabinets with
+a passband come out in the same order either way, because the Achenbach reaches 35 Hz but is high-passed at 38 on
+purpose so that it sits above the Flexys, and GMSS's four state none at all and fall through to mass.
+
+**2. Low, versus the shape. Settled, and now an optimisation.** `fill()` re-orders the inventory `widestFirst()` for
+every shape but `free`, and its comment states the price outright: a wide-but-shallow type ends up *under* a deep one,
+which is the inversion `byFillOrder()` exists to prevent. That was not an oversight and it buys a metre and a sixth of
+height on the GMSS wall, six IQ subs on the floor giving 3.28 / 2.56 / 1.54 in three rows at 2.070 m against
+1.34 / 1.20 / 1.63 / 1.63 / 1.54 in five rows at 3.240 m. **The shape wins and the acoustic order becomes a preference
+between the arrangements that shape allows.** Where to put it is `fill()`'s ranking, beside
+`SceneStackCommand::heightCost()`, since that is the one place a legal arrangement is already scored rather than
+accepted.
+
+**3. Central, inside a row. Wanted, and it can only ever be a weighted preference.** `centred()` puts the **tallest** take in the
+middle, `widestSub()` puts the **widest** sub in the middle of a mixed bottom row, and `topRow()` centres the long
+throw. Every one of those is load-bearing for a reason that is not acoustics: the tall segment in the middle is what
+carries the row above at all, measured at 14 % bearing when it sits outboard instead. **Re-keying them on frequency
+would break the reason they exist**, so this has to rank arrangements the bearing rules already accept and may never
+replace their key.
+
+**4. Central, across stacks. Wanted, and nothing exists.** In a 2- or 3-stack rig nothing puts the deepest cabinets in
+the inner stacks. `byType()` balances the split on `quantity × width` alone, which is a packing heuristic with no side
+to it, and `by-count` has none either. This is the only quarter with no incumbent rule to argue with, so it is the one
+to build first.
+
+**The objective becomes a weighted score over several metrics, and that is the shape of the whole item.** Settled by the
+owner: height and acoustics are trade-offs weighted against each other rather than one deciding and the other breaking
+ties. `SceneStackCommand::heightCost()` is already two thirds of it — distance from `target_sub_height_m` plus
+`OUT_OF_BAND_PENALTY` times the part of the miss outside the band — so what it becomes is a general weighted sum with
+the acoustic measures added beside the height ones, in the one place a preference between *legal* arrangements is
+already expressed. Nothing there can refuse an arrangement, which is what makes it the right home for a rule the owner
+has said is an optimisation rather than a gate.
+
+The metrics to name, each scored so that lower is better and each weighted separately:
+
+* distance from the target sub height, and the part of the miss outside the band, both of which exist today
+* how far the lowest cabinets sit above the floor, weighted by how low and how powerful they are
+* how far those same cabinets sit from the centre line, which is the rig's for `center` and `block` and each stack's
+  own for `stereo`
+
+**The one open sub-question is where the weights live**, and it should be answered before any of it is built, because it
+decides whether a scene can be reproduced from its own file. A constant is the smallest thing that works and means
+nobody can trade the two off per rig. A CLI option is reproducible, since the recorded command carries it, and it adds
+an axis the sweep would then want to walk. A scene key is the most expressive and puts a search parameter into the
+schema, which is the thing the `max_width_m` work has just finished arguing against.
+
+**Power is not in the schema.** `DeviceSpec` carries `weightKg`, `passband`, `coverage` and `drivers`, and `Driver`
+carries size, type and count. Neither has a wattage, a sensitivity or an SPL figure anywhere. So the "highest power"
+half of the sentence cannot be implemented at all until a field exists and is filled, and every number that goes into it
+needs provenance like every other spec figure. Filed as **SPEC-13** rather than guessed at here.
 
 #### GEO-11 — the three stages that cannot see each other
 
@@ -399,7 +571,7 @@ scenes**; SWP-1's own target is **2646 candidates**, and SWP-2 adds a seventh ax
 |----|------|------|--------|------|-------|-------|
 | SWP-1 | **The full sweep cross product** — the target set of autogenerated rigs, stated once. Six axes, order in the section below. Steps 1 to 5 are **done**: `column`, the orientation/mirror fold, the fuse, the owner combinations and the `V` shape. Only the `impossible` half is missing, which is CVR-5. SWP-2 then adds a seventh axis | P1 | 4h | 2646 candidates against today's ~1200 | CVR-5 | partial |
 | SWP-2 | **How separate the sound systems stand, as a swept axis.** Three values: each system its own stack, the **subs** per system with the **tops shared**, and everything pooled. Stated by the owner. Today only the third exists in the output, so a rig where the systems stand apart is not generated at all | P1 | 10h | **0 of 150 scenes** put the systems in their own stacks today, and the middle value is a rig nothing in the code can currently build | — | open |
-| SWP-3 | **Sweep configuration** — turn each axis value on and off individually, and **group sound systems so the grouping overrides `owner`**, so `sdwa5` + `sepp` can be swept as one system rather than as two. Stated by the owner | P1 | 8h | control over an output that is ~1200 candidates and growing, and the grouping is what CVR-3's discriminator question was really asking | decision on the discriminator, see CVR-3 | open |
+| SWP-3 | **Sweep configuration** — turn each axis value on and off individually, **group sound systems so the grouping overrides `owner`**, and let each axis be a **subfolder** instead of a field in the file name, nested in the name's own order with the value in one place or the other but never both. All three stated by the owner | P1 | 12h | control over an output that is ~1200 candidates and growing, a directory somebody can navigate at 396 files and rising, and the grouping is what CVR-3's discriminator question was really asking | decision on the discriminator, see CVR-3 | open |
 
 #### SWP-1 — the cross product
 
@@ -449,10 +621,10 @@ larger**: today's refusals would become written scenes, where before them there 
 rather than refusals and would not be written. `DEFAULT_MAX_SCENES` was raised to **600** in 0.81.0 for exactly this, so
 the first job in CVR-5 is to re-count the refusals against that headroom rather than to assume it is enough.
 
-**The largest single family of refusals is one message**, 258 of the 656 counted at 0.78.0 and to be re-counted with the
-rest: the tops would fire below head height. Painting cabinets red does not answer that one — there is nothing wrong
-with the rig, it is simply short — which is why **CVR-7 takes that whole family and CVR-5 gets what is left**. Those 258
-stop being refusals altogether rather than becoming red renders.
+**The largest single family of refusals was one message and CVR-7 has taken all of it**: 551 of 1056, the tops firing
+below or above head height. Painting cabinets red never answered that one — there is nothing wrong with those rigs,
+they are simply short or tall — so they stopped being refusals rather than becoming red renders. **What CVR-5 inherits
+is the 810 that are left**, and they are geometry and duplicates, which is exactly the kind a render can answer.
 
 ##### Implementation order
 
@@ -576,7 +748,7 @@ and SYM-3 becomes a ranking question instead of a mechanism.
 
 Where: `SweepAxes`, `SceneStackCommand`'s option list, and whatever CVR-3's discriminator turns out to be.
 
-Two asks, both from the owner, and they are one item because they are the same surface.
+Three asks, all from the owner, and they are one item because they are the same surface.
 
 **1. Every axis value on and off individually.** Part of this exists and part of it does not, and the difference matters
 before anybody estimates it. `--shape`, `--align`, `--orientation`, `--mirror-style` and `--owner` are repeatable, so
@@ -591,102 +763,102 @@ answer attached** — that section asked what the right discriminator is and ref
 layout. A grouping stated at invocation time rather than in the specs is a different answer from a spec field, and it is
 the one the owner asked for.
 
-**The two interact, which is why they are one item.** A grouping changes what `ownerCombinations()` enumerates, and the
-enable/disable surface is where a grouping would be stated. Building them separately means building that surface twice.
+**3. Each axis may become a subfolder, nested in the same order the file name uses.** Stated by the owner. The sweep
+writes 396 files into one flat directory and the count only grows, so the configuration decides per axis whether it is
+a directory level or a field in the name.
+
+**The rule is that an axis value appears in exactly one of the two, never in both.** A file under
+`free/turned/column/` is not called `stacked-all-2-free-turned-column-center` as well — it is `stacked-all-2-center`.
+Otherwise every path states the same fact twice and a rename has two places to go wrong.
+
+The nesting order is the name's order, which is the order the sweep itself nests: **rig (owners and stack count),
+shape, orientation, mirror style, alignment.** Naming a directory level moves that field out of the name and leaves the
+remaining fields in their existing order, so switching a level on or off is a move rather than a rewrite.
+
+Three things this has to answer, and two of them are already load-bearing elsewhere:
+
+* **`SceneLoader::files()` is recursive and an id is the file's basename**, so directories cost the loader nothing
+  today. What they do cost is uniqueness: `free/…/stacked-all-2-center` and `v/…/stacked-all-2-center` are two files
+  with **the same id**, and the whole repository keys scenes by id. Either the id keeps the axis values the path
+  dropped, which contradicts the rule above, or ids stop being basenames.
+* **`build:all` replays each scene's recorded command and prunes what the sweep no longer writes.** Both walk paths, so
+  a layout change is a change to the prune's idea of stale — and the prune is the thing that once deleted 742 files.
+* **`--id` is what a replay reconstructs the path from**, so whatever the layout is has to be derivable from the
+  recorded line alone, without reading the file it is in.
+
+**The three interact, which is why they are one item.** A grouping changes what `ownerCombinations()` enumerates, the
+enable/disable surface is where a grouping would be stated, and the layout is per axis — so all three are the same
+per-axis configuration seen three ways. Building them separately means building that surface three times.
 
 **Decide before code:** whether the configuration lives on the command line, in a config file, or both. Repeatable
-options are fine for four axes and stop being fine at seven with groupings; a file is testable and is one more thing to
-keep in step with `--help`.
+options are fine for four axes and stop being fine at seven with groupings and a per-axis layout flag; a file is
+testable and is one more thing to keep in step with `--help`.
 
 ## CVR · coverage, and the inputs that were secretly gates
 
-**Most of the sweep's candidates are refused, and the largest share is not geometry.** It is that two inputs stated as
-preferences are enforced as gates: the height band, which is CVR-7, and the stage width, which is CVR-8. Both were
-settled by the owner in the same direction, and neither is a claim that the number is wrong. It is a claim about what
-the number is *for*.
+**Most of the sweep's candidates used to be refused, and the largest share was not geometry.** It was that two inputs
+stated as preferences were enforced as gates: the height band, which is CVR-7, and the stage width, which is CVR-8.
+Both were settled by the owner in the same direction, neither was a claim that the number is wrong, and **both are
+built**. The sweep went from 150 scenes of 1206 candidates to **396**, and the 551 refusals that were band misses are
+gone. What is left refused is geometry and duplicates.
+
+**The one thing they cost is filed as GEO-12**, because it belongs to the solver rather than to coverage: the width
+ladder was also a search dimension, and without it 18 scenes are lost and 28 more sit further from the aim.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| CVR-7 | **The sub/top interface height is an optimisation problem, not a hard constraint.** Stated by the owner. Tops below or above head height are **not** a reason to refuse a rig or to call a scene invalid. `interface_height_m` and `max_sub_height_m` become terms in the ranking beside `target_sub_height_m` rather than gates, and the miss is reported on the scene instead of thrown away | P1 | 6h | **258 refusals at least**, and every `sepp`-alone rig. Also shrinks CVR-5, which would otherwise paint those same rigs red | — | open |
-| CVR-8 | **An unstated width must not limit anything.** Stated by the owner: how wide a generated scene comes out does not matter unless `--max-width` is explicitly passed. Today the command defaults it to 3.70 m whether or not anybody said so, and the ladder gives up at 6.00 m. **Do it with CVR-7, not before**, since removing the bound on its own degenerates a rig to one row — see the section | P1 | 4h | every refusal that is a stage the rig does not fit, and it retires GEO-2's "8 tops are 3.921 m and do not fit" outright | CVR-7 | open |
+| CVR-7 | **The sub/top interface height is an optimisation problem, not a hard constraint.** Stated by the owner. Tops below or above head height are **not** a reason to refuse a rig or to call a scene invalid. The bounds are terms in the ranking beside `target_sub_height_m` rather than gates, and the miss is reported on the terminal and on the file. **Built** | P1 | 6h | **551 refusals**, measured — 411 walls too short and 140 too tall. The sweep writes **396 scenes against 150** | — | **done** |
+| CVR-8 | **An unstated width must not limit anything.** Stated by the owner. `--max-width` has no default, `WIDTH_LADDER_M` and `buildInBand()` are deleted, and no generated scene carries a `max_width_m`. **Built with CVR-7**, since removing the bound alone degenerates a rig to one row. **It cost a search dimension nobody had noticed, which is GEO-12** | P1 | 4h | every refusal that was a stage the rig does not fit. Widest row 4.89 → 9.376 m | CVR-7 | **done** |
 | CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P1 | 5h | the refusals that survive CVR-7 become lookable-at, and the diagnosis stops being prose. The fuse is already at 600 for it | CVR-7 to avoid duplicated work | open |
 | CVR-6 | **Derive a smaller rig from one that fails** — drop cabinets until the same inventory stands up, and write that as its own scene beside the refusal | P2 | 4h | a buildable scene for every rig that currently produces none, `all-1` included | CVR-5 | open |
 | CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
 | CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes | decision | decision |
 | CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one. **Deferred by the owner**, and CVR-7 removes the urgency entirely: a short wall stops being a refusal, so this becomes a modelling feature rather than a fix. It still waits on what we actually own | P4 | 6h | nothing once CVR-7 lands — the 258 refusals it was written for are CVR-7's | decision | decision |
 
-#### CVR-7 — the band is an aim, not a gate
+#### CVR-7 and CVR-8 — what they turned out to be
 
-Where: `StackSolver::solve()` and its `reachesInterface()` guard, `StackChecks`'s two height checks, and
-`SceneStackCommand::build()`'s ranking.
+Built together, and the three questions each of them was filed with are answered rather than open.
 
-**Stated by the owner in one sentence:** tops standing below or above head height is not a reason to refuse a rig or to
-call a scene invalid, because the sub/top interface height is an optimisation problem rather than a hard constraint.
+**What is a gate now and what is not.** The two height bounds went soft and **everything about whether the rig stands
+up stayed hard** — bearing, support, the pillar rule, the silhouette rules and interpenetration. That line was the
+working assumption and it survived contact: a cabinet hanging off its support cannot be built at any price, and tops a
+bit low can. It is worth restating whenever a new check is written, because "is this a rig" and "is this a good rig"
+are two questions and only the first may refuse.
 
-That contradicts how 0.70.0 built the band and how 0.79.0 aimed it. Today `interface_height_m` is a floor and
-`max_sub_height_m` is a ceiling, both enforced by throwing the arrangement away, and `target_sub_height_m` only chooses
-between the arrangements that survive. The change is to make all three the same kind of thing: **the target is what the
-solver optimises, and the two bounds become distances reported on the rig rather than gates in front of it.**
+**Where the miss is written, and it needed no new surface.** `StackChecks::boundsProblems()` has reported both misses
+as warnings since long before this, and `StackSceneWriter::header()` has always written every warning into the file.
+So the scene already said it and the gate was throwing the scene away anyway. What was added is a `noted` line on the
+terminal for whoever ran the sweep and is not going to open 396 files.
 
-Three questions to settle before writing anything, because the answers decide how large this is:
+**What the ranking does with a miss.** `heightCost()` — distance from the target plus `OUT_OF_BAND_PENALTY` times the
+part of the miss that falls outside the band. **Inert at the default band and kept anyway**, the same argument
+`StackSolver::fill` already makes about the same numbers: 2.5 m is the midpoint of 2–3 m, so every in-band wall is
+already nearer the aim than every out-of-band one. Without it a stated `--max-sub-height` would have no say in
+anything at the command level, which is a bound that can neither refuse nor rank and therefore means nothing.
 
-1. **What does the ranking do with a rig that misses?** A miss has to cost something or the aim stops meaning anything,
-   but it can no longer cost the rig. The obvious shape is the ranking that 0.79.0 already uses — the worst stack's
-   distance from 2.5 m — with the bounds folded in as a steeper penalty outside the band rather than as a veto.
-2. **Where does the miss get written?** The scene comment already reports the wall height against the interface. A rig
-   that is knowingly 250 mm short needs that on the file rather than in a terminal, or the next reader treats it as a
-   bug. This is the same surface CVR-5 builds, which is the second reason to do CVR-7 first.
-3. **Does anything stay a gate?** Bearing, interpenetration and the silhouette rules are statements about whether the
-   rig stands up at all, which is a different question from whether it sounds right. The working assumption is that they
-   stay hard and only the two height bounds go soft, but it should be stated rather than assumed.
+**What a written scene records: nothing.** The key is omitted and the unbounded solve is deterministic, which is the
+first of the two options CVR-8 was filed with. `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` is
+what holds it, exactly as predicted.
 
-**Measure it the way the band was measured.** 258 refusals are one message today, and the count of written scenes before
-and against after is the whole evidence. Expect the scene set to grow by a lot and `DEFAULT_MAX_SCENES` to bind again.
+**What the ladder was for afterwards: nothing, and that was the wrong answer.** `WIDTH_LADDER_M` and `buildInBand()`
+are deleted, on the argument that a width is either stated — in which case deviating from it is disobeying it — or
+absent, in which case there is nothing to deviate from. The argument is right about the *bound* and wrong about what
+else the ladder was doing, which is **GEO-12**. Recorded here rather than there as well, because the shape of the
+mistake generalises: a mechanism built for one reason can be load-bearing for a second nobody wrote down, and deleting
+it on the first reason alone will not show up until the counts are compared.
 
-#### CVR-8 — an unstated width limits nothing
+**The measurement, before and after, on the bare sweep:**
 
-Where: `SceneStackCommand::DEFAULT_MAX_WIDTH_M`, `WIDTH_LADDER_M` and `buildInBand()`, and `StackSolver::ceilingFor()`.
+| | before | after |
+| --- | --- | --- |
+| scenes written | 150 | **396** |
+| candidates skipped | 1056 | 810 |
+| of those, band refusals | **551** — 411 short, 140 too tall | **0** |
+| widest row anywhere | 4.89 m | 9.376 m |
+| `max_width_m` in a generated file | 150 | 0 |
+| fully inside 2–3 m | 150 | 110, and see GEO-12 |
 
-**Stated by the owner:** how wide a generated scene comes out does not matter at all unless a parameter limiting the
-width is explicitly passed.
-
-Today it matters twice over, and neither is something anybody asked for:
-
-* `--max-width` is read as `readFloat(…) ?? DEFAULT_MAX_WIDTH_M`, so **every generated scene is built against 3.70 m
-  whether or not a width was stated**. There is no way to say "no stage".
-* `buildInBand()` walks `WIDTH_LADDER_M` and **stops at its ends**. A rig needing more than 6.00 m is reported with the
-  miss it had at the nearest rung rather than being widened until it fits.
-
-**The machinery is already there and is simply never reached.** `Stack::maxWidthM` is nullable, `ceilingFor()` reads
-null as "no bound at all", and its docblock already records the trap: passing `INF` instead of null casts to
-`(int)floor(INF)` in `perTier()`, which is undefined in PHP and came out as a row of one. So the change is to stop
-defaulting the option, not to invent an unbounded path.
-
-##### Why this waits on CVR-7 rather than shipping on its own
-
-**Removing the bound alone degenerates the rig, and the reason is worth stating before somebody tries it.** The width
-does two jobs today and the owner's statement only removes one of them:
-
-| job | what happens without a width |
-| --- | --- |
-| **a gate**, refusing a rig that does not fit | correctly gone, and that is the whole ask |
-| **the thing that decides how wide a row wants to be** — `ceilingFor()` returns `maxWidthM` for the bottom row, since it has no support to bound it | **nothing decides it**, so the bottom row takes every cabinet of its type and the rig collapses to one row per type |
-
-**CVR-7 is what makes it safe.** Once `target_sub_height_m` is what the solver optimises rather than a tie-break among
-survivors, a one-row wall misses 2.5 m by nearly two metres and loses to a stacked one on its own merits. The width then
-stops being an input and becomes an output: **the target height decides the shape and the width falls out of it**, which
-is the inversion of how it works today. Done in that order it needs no new rule. Done alone it needs one invented, which
-is how a preference becomes a gate in the first place.
-
-##### The two things to decide while building it
-
-1. **What a written scene records.** The compiler re-solves every build, so a scene with no `max_width_m` has to solve
-   the same way twice. Either the resolved width is written back so a rebuild is pinned, or the key is omitted and the
-   unbounded solve has to be deterministic. `testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet` is the
-   test that will say which, and it should be consulted before the choice rather than after.
-2. **What the ladder is for afterwards.** Its purpose was to move a rig onto a stage where its wall lands in the band.
-   With the band an aim and the width unbounded, both ends of that sentence are gone. The honest outcome may be that
-   `WIDTH_LADDER_M` is deleted rather than extended, and that a stated `--max-width` is simply obeyed.
+`DEFAULT_MAX_SCENES` is 600 and 396 fits, so the fuse did not bind. CVR-5 is the next thing to need that room.
 
 #### CVR-5 — show the failure instead of describing it
 
@@ -713,12 +885,13 @@ Three things to settle while building it, none of them yet decided:
 
 #### CVR-6 — the same rig, small enough to stand
 
-Where: the sweep in `SceneStackCommand`, alongside {@see WIDTH_LADDER_M}'s existing retry.
+Where: the sweep in `SceneStackCommand`.
 
-The sweep already walks a **width** ladder when a rig misses the height band. This is the same idea on the other axis:
-walk the **cabinet count** down until the rig stands, and write that. `all-1` is the case that proves it is worth having —
-41 cabinets in one stack cannot reach the band at any width, and nothing about that is interesting, whereas "here is the
-biggest one-stack rig those cabinets *can* build" is the answer somebody actually wanted.
+Walk the **cabinet count** down until the rig stands, and write that. The sweep used to walk a width ladder for the
+band, which is the same idea on a different axis, and that ladder is gone — so this is the retry mechanism rather than
+a second one beside it. `all-1` is the case that proves it is worth having: 41 cabinets in one stack cannot be made to
+stand, and nothing about that is interesting, whereas "here is the biggest one-stack rig those cabinets *can* build"
+is the answer somebody actually wanted.
 
 Which cabinets to drop is the question, and it is not obvious. Dropping the deepest loses the bottom row that carries
 everything; dropping the tops changes what the rig is *for*. A first cut worth measuring is to drop whole rows from the top
@@ -731,9 +904,11 @@ that works" is the obvious companion output rather than a second mechanism.
 
 #### CVR-1 — tops that do not stand on the sub wall
 
-**Dropped to P4, and CVR-7 is why.** Once a short wall is a miss to be reported rather than a refusal, this entry stops
-buying the 258 refusals it was written for and becomes a modelling feature somebody may want for its own sake. The
-measurement below stays because it answers "what should we buy", which is the question this was really about.
+**Dropped to P4, and CVR-7 is why.** Now that a short wall is a miss reported on the file rather than a refusal, this
+entry buys nothing it was written for and is a modelling feature somebody may want for its own sake. The measurement
+below stays because it answers "what should we buy", which is the question this was really about. It was taken across
+the 258 short walls counted at 0.78.0; the sweep now writes 211 of them outright, so the shape of the distribution is
+what to trust rather than the count.
 
 The family is one message: the rig cannot fill a 2 m wall out of the cabinets it is given, so the tops fire below head
 height. In reality you solve that with a riser or a pair of stands, and neither is modelled — support in the solver is
@@ -781,6 +956,7 @@ GEO-2's 22 refusals** without touching the solver.
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | TOOL-6 | **`build:all`'s `regenerate()` stage is never run by a test**, only `--dry-run`, which is how a whole extra pass writing 141 stray scenes went unnoticed until `git status` showed it. Raised to P1 once the cause was confirmed as a code defect rather than anything about how the command was invoked. See the section | P1 | 1h 30m | the class of bug that cost two reverts, on the one stage that writes into the repository | — | open |
+| TOOL-7 | **`build:all`'s stale-scene deletion catches a rename and not a rig the sweep has stopped offering.** `regenerate()` replays every file that carries a recorded line, so every one lands in the written set by construction and can only look stale when its replay comes out under a different name. **Measured**: 18 files carrying `--max-width=3.7` outlived the release that deleted the width ladder and would have survived for ever. They show as stale only against a fresh `scene:stack --force`. See the section | P2 | 2h | `git status` after a sweep stops being the only thing that finds an abandoned rig | — | measured |
 | TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
 | TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
@@ -806,6 +982,34 @@ the same way: silently, into the working tree, found by `git status` rather than
 **The obstacle is `prune()`.** The stage deletes generated files the sweep no longer produces, so a test that fails
 midway could take real renders with it. Covering it needs a way to run the stage without pruning, which is one flag or
 one seam and is the actual work here. The rest is a fixture directory and an assertion on what came out.
+
+#### TOOL-7 — the stale rule catches a rename, not an abandoned rig
+
+Where: `BuildAllCommand::deleteStaleScenes()` and `regenerate()`.
+
+**The rule is right and its reach is narrower than its name.** Staleness is "the run did not write this file", which is the
+only safe definition — the two timestamp attempts before it both destroyed the scene set. But in `build:all` the written
+set is the union of every replay, and `regenerate()` replays *every* file that carries a recorded line. So a file is in
+the written set by construction, and the only way it can fall out is if its own replay produces a different name. That is
+a rename, which is exactly what the feature was built for and exactly all it covers.
+
+**A rig the sweep has stopped offering replays perfectly well from its own recorded line and survives for ever.** Found
+by measurement rather than by reading: 18 files recording `--max-width=3.7` outlived the release that deleted the width
+ladder, kept alive by the very stage meant to clean up after it, and they surfaced only when a fresh
+`scene:stack --force` was diffed against the directory. They are set aside rather than deleted, because they are the only
+artifacts of what the ladder produced and **GEO-12 exists to bring them back**.
+
+**The fix is not a list of what the sweep offers.** That is the second copy `regenerate()`'s docblock argues against, and
+it would go out of step with the sweep the same way every other second copy has. Two honest shapes instead:
+
+* **Run the sweep as part of the stage** rather than replaying files, and let the replay handle only what the sweep does
+  not produce. That makes `build:all` and `scene:stack` agree by construction, and it is a bigger change than it looks
+  because a replay is per file where a sweep is per rig.
+* **Report rather than delete.** The stage says which recorded commands no longer match anything the current sweep would
+  write, and a person decides. Cheaper, and it keeps the "never delete what you did not just write" rule intact.
+
+Until then, `git status` after a full sweep is the check that finds these, which is worth knowing rather than worth
+pretending otherwise.
 
 ## ALN · alignment features
 
@@ -857,6 +1061,7 @@ shared tops row, which is SWP-2. ALN-4's rule stands untouched and the two items
 | SPEC-8 | Two amplifier facts, both settled by reading the front panels: the fourth amp (EP4000 2U/16.6 kg vs Proline 3000 3U/37 kg — 69 kg vs 79 per rack), and "gisen md60", which matches no product | P2 | phys | rack weights | — | open |
 | SPEC-11 | **Two 3 × 3 m tents** — new gear, no spec, no model. The 3 × 3 m footprint is what we call them by; make, model, eave and ridge height, packed size and weight are all unsourced, and a tent is a frame with a canopy rather than a box | P2 | phys | two items of gear that exist and are invisible to every scene and every pack | — | open |
 | SPEC-12 | **Five Euro pallets** — new gear, no spec, no model. Footprint is the EPAL standard, so it can be sourced rather than measured, but ours need weighing and their condition and height class checking. They are what a riser is built from, so CVR-1 wants them modelled | P2 | phys | five items of gear, and a real answer to what a top stands on | — | open |
+| SPEC-13 | **No speaker carries a power or sensitivity figure.** `DeviceSpec` has `weightKg`, `passband`, `coverage` and `drivers`, and `Driver` has size, type and count. Nothing anywhere says how much a cabinet takes or how loud it goes, so **GEO-14's "highest power" half cannot be built at all**. The schema change is small and the figures are the work, since every one needs provenance like every other spec number | P2 | 1h 30m + phys | GEO-14's second key, and the first honest answer to which sub is the main one | — | open |
 | SPEC-2 | Detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device)) | P3 | 3h | — | — | partial |
 | SPEC-7 | `provenance.dimensions` cannot say "outer box sourced, internals estimated" — one field for the whole geometry, which the part-built shapes break | P3 | 1h 15m | — | — | open |
 | SPEC-3 | The remaining lighting, plus a **telescoping mast** shape for the towers | P3 | 2h 30m | — | — | partial |

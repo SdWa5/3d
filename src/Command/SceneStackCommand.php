@@ -47,9 +47,12 @@ final class SceneStackCommand extends BaseCommand
      *
      * 24 was right while the command wrote one rig per alignment. The default is now a **sweep** — every combination of
      * owners, by one, two and three stacks, each in all three shapes, all seven orientation/mirror pairs and all three
-     * alignments — which tries ~1200 candidates on the current inventory and writes 150 of them, the rest being duplicates
-     * and named refusals. So the limit has to clear that with room for the gear list to grow, while still catching the
-     * case it exists for: an axis added by mistake, where the count goes to thousands rather than hundreds.
+     * alignments — which tries ~1200 candidates on the current inventory and writes **396** of them, the rest being
+     * duplicates and named refusals. So the limit has to clear that with room for the gear list to grow, while still
+     * catching the case it exists for: an axis added by mistake, where the count goes to thousands rather than hundreds.
+     *
+     * **396 rather than 150 because the sub height band stopped refusing**, which is where the headroom went: CVR-7
+     * turned 551 refused candidates into written rigs in one change. What is left of the 600 is CVR-5's.
      *
      * **Raised deliberately, and that is the point of it.** 80 fitted the 61 scenes the orientation axis wrote and the
      * owner combinations took it straight past — which is exactly what should happen, because the raise is where
@@ -62,32 +65,77 @@ final class SceneStackCommand extends BaseCommand
     private const DEFAULT_MAX_SCENES = 600;
 
     /**
-     * The stage the bare command solves against, and the top of the 2–3 m band a sub/top transition should sit in.
+     * The top of the 2–3 m band a sub/top transition should sit in.
      *
-     * **Defaults rather than required options, because the goal is that one command in its default settings produces
-     * every sensible rig.** Without bounds the bare command had none to solve against and wrote nothing at all: an
-     * unbounded stack of both systems' gear cannot stand up, and every one of the generated scenes had to spell four
-     * to six flags out to get anywhere.
+     * **A default rather than a required option, because the goal is that one command in its default settings
+     * produces every sensible rig.** 3.0 m is safe to default because a ceiling is monotone at the solver level
+     * (measured across six inventories and both shapes: 13 shorter, 11 unchanged, none taller) once the strategy tie
+     * is broken on height rather than on the order the strategies happen to be tried in.
      *
-     * 3.70 m is the stage width every hand-written scene in the repository uses. 3.0 m is the ceiling — safe to
-     * default because a ceiling is monotone at the solver level (measured across six inventories and both shapes: 13
-     * shorter, 11 unchanged, none taller) once the strategy tie is broken on height rather than on the order the
-     * strategies happen to be tried in. A rig that cannot get under it says by how much rather than failing.
+     * **And it is an aim rather than a gate**, which is the whole of CVR-7: a rig that cannot get under it says by
+     * how much, on the file it writes, and is built anyway. See {@see bandMiss}.
+     *
+     * There is deliberately **no companion width default**. A stage width nobody stated used to be applied to every
+     * generated scene, which is the one bound that could throw a rig away for a reason nobody had given — see
+     * {@see $maxWidthM} on {@see build}.
      */
-    private const DEFAULT_MAX_WIDTH_M = 3.70;
-
     private const DEFAULT_MAX_SUB_HEIGHT_M = 3.0;
 
     /**
-     * The stage widths per stack the sweep is allowed to try, so a rig that misses its sub height band can be moved
-     * onto a stage that fits it instead of being skipped. See {@see buildInBand} for why width is the lever.
+     * What a metre outside the band costs against a metre away from the target, when {@see heightCost} ranks two
+     * ways of dealing the same cabinets out.
      *
-     * Real widths in 0.40–0.80 m steps rather than a continuum, and deliberately coarse: a rung has to be a stage
-     * somebody could actually deck, and the solve is a row count, so a finer ladder mostly returns the same
-     * arrangement twice. 3.70 m — the width every hand-written scene uses — is in it so the ordinary case is a
-     * rung and not a special case beside one.
+     * Twice, which is the smallest number that says "outside is worse" without turning a preference back into the
+     * gate it just stopped being. A rig 100 mm over the ceiling still beats one 400 mm from the aim, and that is the
+     * right way round: both are buildable and the second is further from what was asked for.
+     *
+     * **Inert at the default band, and deliberately kept anyway** — the same argument {@see StackSolver::fill} makes
+     * about the same numbers. 2.5 m is the midpoint of 2–3 m, so every in-band arrangement is already nearer the aim
+     * than every out-of-band one and the penalty changes no ranking. It stops being redundant the moment somebody
+     * states a target off the midpoint: `--target-sub-height=2.2 --max-sub-height=3.0` puts a 3.05 m wall 850 mm from
+     * the aim and a 1.40 m wall 800 mm from it, and only the penalty knows one of the two is over the ceiling.
      */
-    private const WIDTH_LADDER_M = [2.00, 2.40, 2.80, 3.20, 3.70, 4.40, 5.20, 6.00];
+    private const OUT_OF_BAND_PENALTY = 2.0;
+
+    /**
+     * What the orientation axis is called in a scene name when `--roll-mirror` named the cabinets outright.
+     *
+     * **The one axis value with no enum case behind it, and it needs one anyway.** `--orientation=MODE` says *which*
+     * cabinets lie down by a rule — every sub, or only the ones that get wider on their side — where `--roll-mirror`
+     * lists them, and {@see SweepAxes::orientations} represents that as a null orientation. Left unnamed it was the
+     * one gap left in a scheme whose whole point is that a reader never has to know what a missing field meant.
+     *
+     * **Not a {@see StackOrientation} case**, deliberately. An enum case would be offerable as `--orientation=stated`,
+     * which means nothing without a `--roll-mirror` beside it and would have to be refused wherever it appeared alone.
+     * The name is a fact about how the rig was *asked for* rather than about which cabinets ended up on their sides,
+     * so it belongs to the naming rather than to the axis.
+     */
+    private const STATED_ORIENTATION = 'stated';
+
+    /**
+     * The filler that pads an axis value out to its axis's widest one.
+     *
+     * A dash, so a name is one alphabet rather than two. The fields are fixed-width and positional, so nothing reads
+     * a name by splitting on the separator any more and a run of dashes costs no ambiguity.
+     */
+    private const NAME_PAD = '-';
+
+    /**
+     * The scene files this run actually wrote, absolute, in the order they were written.
+     *
+     * **The missing half of pruning generated scenes, and it is deliberately a fact rather than a guess.**
+     * {@see \App\Command\BuildAllCommand::prune} explains why two attempts at deciding staleness by timestamp both
+     * destroyed the scene set — `filemtime()` is whole seconds, `microtime(true)` is fractional, so a file written in
+     * the same second as the run started reads as older than the run — and concludes that automating it "needs
+     * `scene:stack` to report the paths it wrote, not a cleverer clock". This is that report.
+     *
+     * Reset at the start of every run and read by the caller afterwards, so a `build:all` that replays hundreds of
+     * recorded commands accumulates the union rather than seeing only the last one. Empty after a `--dry-run`, which
+     * is correct: a dry run wrote nothing, so nothing may be judged stale against it.
+     *
+     * @var list<string>
+     */
+    public array $written = [];
 
     /**
      * The focus a near-field fill is turned towards — one of the two {@see StackSceneWriter} always writes.
@@ -111,7 +159,7 @@ final class SceneStackCommand extends BaseCommand
             ->setName('scene:stack')
             ->setDescription('Solve a rig from constraints and write it out as scene files')
             ->addOption('from', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids, low frequency first. Default: every speaker, subs before tops')
-            ->addOption('max-width', null, InputOption::VALUE_REQUIRED, 'How wide the stage or truss allows, in metres', (string)self::DEFAULT_MAX_WIDTH_M)
+            ->addOption('max-width', null, InputOption::VALUE_REQUIRED, 'How wide the stage or truss allows, in metres. Unstated means no limit at all')
             ->addOption('min-width', null, InputOption::VALUE_REQUIRED, 'Floor on the widest tier, in metres')
             ->addOption('max-height', null, InputOption::VALUE_REQUIRED, 'Ceiling or rigging limit, in metres')
             ->addOption('interface-height', null, InputOption::VALUE_REQUIRED, 'Height the tops must clear, in metres', (string)Stack::DEFAULT_INTERFACE_HEIGHT_M)
@@ -210,53 +258,73 @@ final class SceneStackCommand extends BaseCommand
             }
         }
 
-        // SHAPE FIRST IN THE NAME, and only when it is not the pyramid. The pyramid is the one to reach for, so it
-        // keeps the plain id every generated scene already has; putting the shape in both ids would rename all twelve
-        // of them for nothing. `deduplicate()` then drops whichever shape resolves to the same rig as the other,
-        // which is most of them — a stack already tapering has nothing for the pyramid rule to change.
-        $sweeping = $this->isSweep($input);
-        $statedWidth = $this->readFloat($input, 'max-width') ?? self::DEFAULT_MAX_WIDTH_M;
+        // **NULL WHEN NOBODY STATED ONE, and that is the whole of CVR-8.** It used to fall back to a 3.70 m default,
+        // so every generated scene was solved against a stage nobody had asked for and a rig too wide for it was
+        // refused for a reason that came from this line rather than from the request. {@see Stack::$maxWidthM} has
+        // always been nullable and {@see StackSolver::ceilingFor} has always read null as "no bound at all" — the
+        // unbounded path was there the whole time and simply never reached.
+        //
+        // **AND THE WIDTH LADDER WENT WITH IT.** The sweep used to walk a rig up and down a list of stage widths to
+        // land its sub wall inside the band, which needed both halves of a sentence that no longer has either: a
+        // band that refuses, and a stated width worth deviating from. A width is now either stated, in which case
+        // deviating from it is disobeying it, or absent, in which case there is nothing to deviate from. The lever
+        // that remains is the solver's own row-count search, which chases `target_sub_height_m` directly rather than
+        // through a proxy — see {@see StackSolver::fill}.
+        $statedWidth = $this->readFloat($input, 'max-width');
 
         $candidates = [];
         $skipped = [];
+        $noted = [];
         foreach ($rigs as $rig) {
             foreach ($shapes as $shape) {
                 foreach (SweepAxes::pairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
+                        // **EVERY AXIS IS IN THE NAME, AT A FIXED WIDTH**, in the order the sweep nests them: the rig
+                        // (owners and stack count), then shape, orientation, mirror style, alignment. See
+                        // {@see padded} for why the widths, and {@see STATED_ORIENTATION} for the one value that has
+                        // no enum case behind it.
+                        //
+                        // Three axes used to be omitted at one value each — `pyramid`, `upright` and `alternate` — so
+                        // that the ordinary rig kept a short id, and the price was a directory nobody could read: a
+                        // name with a gap in it does not say which value was left out, only that one was, and the
+                        // reader had to know the defaults by heart to tell `stacked-gmss-1-center` from its siblings.
+                        //
+                        // The mirror style is written even where nothing is rolled and it decides nothing. The sweep
+                        // only pairs `upright` with `alternate`, but `--orientation=upright --mirror-style=centred` is
+                        // accepted and honoured, so a name that dropped a vacuous style would give two different rigs
+                        // the same file name.
                         $name = sprintf(
-                            '%s%s%s%s%s-%s',
+                            '%s%s-%s-%s-%s-%s',
                             (string)$input->getOption('id'),
                             $rig['suffix'],
-                            $shape === StackShape::Pyramid ? '' : '-'.$shape->value,
-                            $orientation === null || $orientation === StackOrientation::Upright
-                                ? ''
-                                : '-'.$orientation->value,
-                            $style === MirrorStyle::Alternate ? '' : '-'.$style->value,
+                            self::padded($shape->value, StackShape::class),
+                            self::padded($orientation?->value ?? self::STATED_ORIENTATION, StackOrientation::class),
+                            self::padded($style->value, MirrorStyle::class),
+                            // The last field is left ragged on purpose: nothing is lined up behind it, and a trailing
+                            // run of dashes before `.yaml` would be padding that buys the reader nothing.
                             $mode->value,
                         );
-                        $built = $sweeping
-                            ? $this->buildInBand(
-                                $devices, $rig['from'], $at, $mode, $shape, $style, $orientation, $rig['stacks'],
-                                (string)$input->getOption('id').$rig['suffix'], $statedWidth, $input,
-                            )
-                            : $this->build(
-                                $devices, $rig['from'], $at, $mode, $shape, $style, $orientation, $rig['stacks'],
-                                (string)$input->getOption('id').$rig['suffix'], $statedWidth, $input,
-                            );
+                        $built = $this->build(
+                            $devices, $rig['from'], $at, $mode, $shape, $style, $orientation, $rig['stacks'],
+                            (string)$input->getOption('id').$rig['suffix'], $statedWidth, $input,
+                        );
                         if (is_string($built)) {
                             $skipped[$name] = $built;
                             continue;
                         }
-                        // **THE BAND BINDS EVERY INVOCATION, not just the sweep.** It was tempting to make it the
-                        // sweep's own judgement and leave a named rig to the solver's warning, and that would have
-                        // left the hole this command is most often used through: `build:all` regenerates a generated
-                        // scene by replaying *its* recorded line, which names `--from` and `--stacks` and so is not a
-                        // sweep. Every out-of-band file in the repository would have been rewritten exactly as it was,
-                        // for as long as it existed. What the sweep does differently is try to *avoid* the miss
-                        // ({@see buildInBand}); what happens to a rig that misses anyway is the same either way.
+                        // **A MISSED BAND IS A NOTE, NOT A SKIP**, which is CVR-7 and is stated by the owner: the
+                        // sub/top interface height is an optimisation problem rather than a hard constraint, so tops
+                        // firing below or above head height is not a reason to refuse a rig. It used to be one, on
+                        // every invocation rather than only on the sweep, and it threw away more candidates than every
+                        // geometry rule in the repository put together.
+                        //
+                        // Noted here **and** written into the file, which are two different readers. The scene carries
+                        // the miss in its own header — {@see StackChecks::boundsProblems} produces it as a warning and
+                        // {@see StackSceneWriter::header} writes every warning out — so somebody opening the file sees
+                        // that the wall is knowingly short. The line below is for whoever ran the sweep and is not
+                        // going to open 150 files.
                         if ($built['bandMiss'] !== null) {
-                            $skipped[$name] = $built['bandMiss']['message'];
-                            continue;
+                            $noted[$name] = $built['bandMiss'];
                         }
                         $candidates[$name] = $built;
                     }
@@ -268,6 +336,13 @@ final class SceneStackCommand extends BaseCommand
 
         foreach ($skipped as $name => $reason) {
             $this->io->text(sprintf('  <comment>skipped</comment> %s — %s', $name, $reason));
+        }
+        // After the deduplication rather than before it, so a note is only printed for a rig that is actually
+        // written. A duplicate is reported as the duplicate it is and its miss belongs to the scene it duplicates.
+        foreach ($noted as $name => $reason) {
+            if (isset($candidates[$name])) {
+                $this->io->text(sprintf('  <comment>noted</comment>   %s — %s', $name, $reason));
+            }
         }
 
         if ($candidates === []) {
@@ -293,31 +368,34 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
-     * The first stack whose sub/top transition falls outside the band the scene asked for, with which way it missed,
-     * or null when every stack is inside it.
+     * The first stack whose sub/top transition falls outside the band the scene asked for, or null when every stack
+     * is inside it. **A sentence about the rig, never a reason to refuse it.**
      *
-     * **A GENERATED SCENE HAS TO MEET ITS SUB HEIGHT, NOT MERELY AIM AT IT.** The two bounds have always existed —
-     * `interface_height_m` is the floor a top must clear to fire over a standing crowd and `max_sub_height_m` the
-     * ceiling — and the solver treats both as preferences, reporting a miss as a warning and building the rig anyway.
-     * That is right for a scene somebody wrote: they asked for this gear in this space and the near miss is theirs to
-     * judge. It is wrong for the sweep, whose entire job is to produce **sensible** configurations: of 54 generated
-     * scenes only 16 had every stack inside 2–3 m, and among the rest were `stacked-all-3-turned-center` at 5.73 m and
-     * `stacked-sepp-2-center` at 0.60 m — a rig whose tops fire at knee height.
+     * **STATED BY THE OWNER: THE INTERFACE HEIGHT IS AN OPTIMISATION PROBLEM, NOT A HARD CONSTRAINT.** Tops standing
+     * below or above head height is not a reason to refuse a rig or to call a scene invalid. This used to return a
+     * refusal, on every invocation rather than only on the sweep, and it was by a wide margin the largest single
+     * source of skipped candidates in the command — 258 of them in one family, more than every geometry rule in the
+     * repository put together. Each one was a rig that stands up perfectly well and is merely shorter or taller than
+     * ideal.
      *
-     * **The two options are the control, so there is no third one.** Widen the band and the sweep writes more:
-     * `--interface-height=0 --max-sub-height=99` accepts anything, which is what the hand-written low rigs state for
-     * themselves. Narrow it and it writes less. Adding a flag to switch the check off would only be a way of asking
-     * for rigs nobody would build.
+     * What the three height keys mean now is one thing rather than three:
      *
-     * `direction` is what makes this more than a refusal: **+1 means the wall is too tall and wants a wider stage,
-     * −1 that it is too short and wants a narrower one**, which is the whole mechanism {@see buildInBand} turns into a
-     * scene instead of a skip. The message carries the measured height and the bound it missed, because "no workable
-     * arrangement" for a rig that is merely 300 mm too tall would send somebody hunting for a geometry fault.
+     * * **`target_sub_height_m`** is what the solver optimises, and it always was.
+     * * **`interface_height_m`** and **`max_sub_height_m`** are the band around it. They still steer — the solver
+     *   prefers an arrangement inside them ({@see StackSolver::fill}) and {@see build} ranks a miss as a cost — and
+     *   neither can throw the rig away any more.
+     *
+     * **What stays a gate is everything about whether the rig stands up**: bearing, support, the pillar rule, the
+     * silhouette rules and interpenetration. That is the line, and it is a different question from whether the rig
+     * sounds right. A cabinet hanging off the edge of its support cannot be built at any price; tops a bit low can.
+     *
+     * The message carries the measured height and the bound it missed, because a number is what makes it judgeable.
+     * The same sentence reaches the file itself through {@see StackChecks::boundsProblems}, which has reported both
+     * misses as warnings since long before this stopped refusing them.
      *
      * @param list<StackBlock> $blocks
-     * @return array{message: string, direction: int}|null
      */
-    private static function bandMiss(array $blocks): ?array
+    private static function bandMiss(array $blocks): ?string
     {
         foreach ($blocks as $block) {
             $height = $block->subHeightM();
@@ -326,30 +404,24 @@ final class SceneStackCommand extends BaseCommand
             $whose = $block->label === '' ? 'stack\'s' : $block->label.' stack\'s';
 
             if ($ceiling !== null && $height > $ceiling + 1e-9) {
-                return [
-                    'direction' => 1,
-                    'message' => sprintf(
-                        'the %s subs reach %.3f m against the %.3f m ceiling asked for — %.0f mm too high, and a rig '
-                        .'that misses its sub height is not one of the possibilities',
-                        $whose,
-                        $height,
-                        $ceiling,
-                        ($height - $ceiling) * 1000,
-                    ),
-                ];
+                return sprintf(
+                    'the %s subs reach %.3f m against the %.3f m ceiling asked for — %.0f mm too high, and the rig is '
+                    .'written with that miss on it',
+                    $whose,
+                    $height,
+                    $ceiling,
+                    ($height - $ceiling) * 1000,
+                );
             }
             if ($floor > 0.0 && $height + 1e-9 < $floor) {
-                return [
-                    'direction' => -1,
-                    'message' => sprintf(
-                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, so the '
-                        .'tops would fire below head height',
-                        $whose,
-                        $height,
-                        $floor,
-                        ($floor - $height) * 1000,
-                    ),
-                ];
+                return sprintf(
+                    'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, so the '
+                    .'tops fire below head height',
+                    $whose,
+                    $height,
+                    $floor,
+                    ($floor - $height) * 1000,
+                );
             }
         }
 
@@ -357,87 +429,56 @@ final class SceneStackCommand extends BaseCommand
     }
 
     /**
-     * The same rig on whatever stage width puts its sub wall inside the band, or the reason no width does.
+     * How badly one stack's sub wall misses what was asked of it, as a single number the deal strategies are ranked
+     * on — **distance from the target, and a steeper price outside the band**.
      *
-     * **THE STAGE WIDTH IS THE LEVER, AND IT WAS THE ONE THING THE SWEEP HELD FIXED.** A sub wall gets shorter as the
-     * stage gets wider — the same twelve cabinets are five rows on 2.4 m and three on 4.4 m — so a rig that misses the
-     * band is usually not an impossible rig, it is a rig on the wrong stage. Held at the default 3.70 m the band left
-     * 9 of 132 candidates standing, and 88 of the refusals were a miss in a known direction with an obvious remedy.
-     *
-     * So the miss drives the search: too tall widens, too short narrows, and the first width that lands inside the
-     * band wins. Directional rather than a scan of every width, because it is monotone in the useful sense and the
-     * default is the stage most of this gear actually plays on — deviating as little as possible from it keeps a rig
-     * that already worked byte-identical, and keeps the width in a written scene meaning "this is the stage it needs"
-     * rather than "this is what the search happened to try first".
-     *
-     * The ladder is {@see WIDTH_LADDER_M} rather than a bisection, and it stops at its ends rather than running away:
-     * 6.00 m is already a wide wall per stack and 2.00 m is a pillar, so a rig needing a stage outside those is
-     * reported with the miss it had at the nearest width tried instead of being widened until the arithmetic works.
-     *
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $from
-     * @param array{float, float} $at
-     * @return array{yaml: string, cabinets: int, fingerprint: string, bandMiss: array{message: string, direction: int}|null}|string
+     * The target is the aim and the two bounds are no longer gates ({@see bandMiss}), so without this they would
+     * mean nothing at all here: two deal strategies placing the same cabinets would be separated by pure distance
+     * from 2.5 m and a stated ceiling would have no say in which one wins. A miss has to cost something, and what it
+     * may no longer cost is the rig. See {@see OUT_OF_BAND_PENALTY} for what the multiplier is worth.
      */
-    private function buildInBand(
-        array $devices,
-        array $from,
-        array $at,
-        LayoutMode $mode,
-        StackShape $shape,
-        MirrorStyle $style,
-        ?StackOrientation $orientation,
-        int $stacks,
-        string $baseId,
-        float $stated,
-        InputInterface $input,
-    ): array|string {
-        $ladder = self::WIDTH_LADDER_M;
-        // The stated width first, wherever it sits in the ladder, so the default stage is what a rig is tried on.
-        $wider = array_values(array_filter($ladder, static fn (float $w): bool => $w > $stated + 1e-9));
-        $narrower = array_reverse(array_values(array_filter($ladder, static fn (float $w): bool => $w < $stated - 1e-9)));
-
-        $width = $stated;
-        $queue = null;
-        $last = null;
-        $widenedBlind = false;
-
-        // At most one pass per ladder rung, plus the stated width: the direction cannot flip without the band having
-        // been cleared on the way, and a rig that oscillates would otherwise loop between two rungs forever.
-        for ($step = 0; $step <= count($ladder); ++$step) {
-            $built = $this->build(
-                $devices, $from, $at, $mode, $shape, $style, $orientation, $stacks, $baseId, $width, $input,
-            );
-            if (is_string($built)) {
-                // **A refusal that is not a height miss gets one rung, not the ladder.** It is worth a rung: both
-                // systems across two stacks refuses at 3.70 m with two runs 127 mm inside each other and solves at
-                // 4.40 m, 2.033 and 2.833 m of subs — a rig somebody would build, recovered. It is not worth the
-                // ladder: walking all of it retried every one of the 122 refused candidates at four widths and tripled
-                // the sweep to recover that same one scene. A geometry fault that a rung does not fix is a fault at
-                // every width, so one try and then the reason stands.
-                $last = $built;
-                if ($widenedBlind || $wider === []) {
-                    return $last;
-                }
-                $widenedBlind = true;
-                $width = $wider[0];
-                continue;
-            }
-
-            if ($built['bandMiss'] === null) {
-                return $built;
-            }
-
-            $last = $built['bandMiss']['message'];
-            $queue ??= $built['bandMiss']['direction'] > 0 ? $wider : $narrower;
-            $next = array_shift($queue);
-            if ($next === null) {
-                return sprintf('%s (tried stages %.2f–%.2f m)', $last, min($ladder), max($ladder));
-            }
-            $width = $next;
+    /**
+     * One axis value padded to the width of the widest value that axis has, so the fields line up down a listing.
+     *
+     * **A directory of 396 files is read in columns or not at all.** Unpadded, `stacked-all-3-v-mixed-centred-block`
+     * and `stacked-gmss-sdwa5-2-pyramid-upright-alternate-center` share a scheme that nothing about looking at them
+     * reveals: every field starts at a different place, so comparing two rigs means parsing both names first. Padded,
+     * the shape column is the shape column in every row.
+     *
+     * **The width comes from the enum rather than from a number written here**, so a new case widens the column by
+     * existing. That renames every scene the day an axis gains a value, which is the honest price and is a thing that
+     * already happens for other reasons — the same release that adds a shape regenerates the set anyway.
+     *
+     * @param class-string<\BackedEnum> $axis
+     */
+    private static function padded(string $value, string $axis): string
+    {
+        $width = 0;
+        foreach ($axis::cases() as $case) {
+            $width = max($width, strlen((string)$case->value));
+        }
+        // The orientation axis carries one value that is not a case of it, so the column has to clear that too.
+        if ($axis === StackOrientation::class) {
+            $width = max($width, strlen(self::STATED_ORIENTATION));
         }
 
-        return $last ?? 'no workable arrangement';
+        return str_pad($value, $width, self::NAME_PAD);
+    }
+
+    private static function heightCost(StackBlock $block, float $target): float
+    {
+        $height = $block->subHeightM();
+        $floor = $block->stack->interfaceHeightM;
+        $ceiling = $block->stack->maxSubHeightM;
+
+        $outside = 0.0;
+        if ($ceiling !== null && $height > $ceiling) {
+            $outside = $height - $ceiling;
+        } elseif ($floor > 0.0 && $height < $floor) {
+            $outside = $floor - $height;
+        }
+
+        return abs($height - $target) + self::OUT_OF_BAND_PENALTY * $outside;
     }
 
     /**
@@ -568,6 +609,13 @@ final class SceneStackCommand extends BaseCommand
             $groups[SweepAxes::labelFor($subset, count($byOwner))] = $this->everySpeaker($owned);
         }
 
+        // **THE LABEL COLUMN IS AS WIDE AS THE GEAR LIST MAKES IT, NOT AS WIDE AS THIS RUN NEEDS.** Measured over
+        // every combination the *specs* allow rather than over `$combinations`, which `--owner` narrows: pad to what
+        // this run happens to hold and `--owner=gmss` would name its rigs `stacked-gmss-1-…` while the full sweep
+        // names the identical rig `stacked-gmss------1-…`. One rig, two file names, decided by an option that is
+        // supposed to narrow the sweep rather than to rename it.
+        $width = SweepAxes::labelWidth(array_keys($byOwner));
+
         $rigs = [];
         foreach ($groups as $label => $from) {
             foreach ([1, 2, 3] as $stacks) {
@@ -576,7 +624,11 @@ final class SceneStackCommand extends BaseCommand
                 if (count($from) < $stacks) {
                     continue;
                 }
-                $rigs[] = ['from' => $from, 'stacks' => $stacks, 'suffix' => sprintf('-%s-%d', $label, $stacks)];
+                $rigs[] = [
+                    'from' => $from,
+                    'stacks' => $stacks,
+                    'suffix' => sprintf('-%s-%d', str_pad((string)$label, $width, self::NAME_PAD), $stacks),
+                ];
             }
         }
 
@@ -586,10 +638,10 @@ final class SceneStackCommand extends BaseCommand
     /**
      * Whether this invocation is the sweep or one rig somebody named.
      *
-     * Asked in two places — which rigs to try, and whether a wall outside the sub height band is a skip or a rig for
-     * a different stage — and they have to agree, because the band and the width ladder are the sweep's judgement
-     * about what is worth *shipping* and not a rule about how a stack may be built. Name a rig and you get it built
-     * and warned about, at the width you asked for.
+     * **Only one question depends on it now, which is which rigs to try.** It used to decide a second one as well —
+     * whether a wall outside the sub height band was a skip or a rig for a different stage — and that second reading
+     * is gone in both directions: nothing is skipped for missing the band, and there is no stage to move it to. A
+     * named rig and a swept one are built the same way and differ only in how many of them there are.
      */
     private function isSweep(InputInterface $input): bool
     {
@@ -604,7 +656,9 @@ final class SceneStackCommand extends BaseCommand
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $from
      * @param array{float, float} $at
-     * @return array{yaml: string, cabinets: int, fingerprint: string, bandMiss: array{message: string, direction: int}|null}|string
+     * @param ?float $maxWidthM the stage width, or **null for none at all** — how wide a generated scene comes out
+     *     does not matter unless somebody says it does, which is stated by the owner and is CVR-8
+     * @return array{yaml: string, cabinets: int, fingerprint: string, bandMiss: ?string}|string
      */
     private function build(
         array $devices,
@@ -616,7 +670,7 @@ final class SceneStackCommand extends BaseCommand
         ?StackOrientation $orientation,
         int $stacks,
         string $baseId,
-        float $maxWidthM,
+        ?float $maxWidthM,
         InputInterface $input,
     ): array|string {
         $groups = $this->groups($devices, $from, $stacks, $input);
@@ -689,14 +743,16 @@ final class SceneStackCommand extends BaseCommand
             //
             // **THE WORST STACK'S MISS, NOT THE TALLEST STACK'S HEIGHT**, and the difference is not academic. Scoring
             // the tallest stack alone is what "too high" means about a rig, so it was right while the tie-break was
-            // "shorter wins" — but a target is a distance, and {@see bandMiss} refuses a rig when **any** stack falls
-            // outside the band. Ranking on the tallest let an attempt win because its tall stack sat at 2.48 m while
-            // its other stack dropped to 1.773 m and the whole rig was then refused: measured, it cost
-            // `stacked-sdwa5-2-free-turned-centred-center`. Taking the worst miss keeps every stack near the aim,
-            // which is what the aim is for.
+            // "shorter wins" — but a target is a distance. Ranking on the tallest let an attempt win because its tall
+            // stack sat at 2.48 m while its other stack dropped to 1.773 m: measured, it cost
+            // `stacked-sdwa5-2-free-turned-centred-center` the whole scene, back when a stack outside the band was a
+            // refusal. Taking the worst miss keeps every stack near the aim, which is what the aim is for.
+            //
+            // The cost is {@see heightCost} rather than plain distance, because the band no longer refuses anything
+            // and a bound that cannot refuse and cannot rank would mean nothing whatsoever.
             $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $attempt));
             $miss = max(array_map(
-                static fn (StackBlock $b): float => abs($b->subHeightM() - $target),
+                static fn (StackBlock $b): float => self::heightCost($b, $target),
                 $attempt,
             ));
 
@@ -711,9 +767,9 @@ final class SceneStackCommand extends BaseCommand
             return $firstProblem ?? 'no workable arrangement';
         }
 
-        // Measured before the blocks are reordered, and reported rather than refused: the *sweep* decides whether a
-        // wall outside the band is a skip or a rig for a different stage ({@see buildInBand}), while a scene somebody
-        // asked for by name is built and warned about, which is what `StackChecks` has always done.
+        // Measured before the blocks are reordered, and **reported rather than refused whoever asked for it**. The
+        // sweep used to treat a wall outside the band as a rig for a different stage and a named rig as a warning,
+        // which was two answers to one question; now both are the warning, and there is no stage to move it to.
         $bandMiss = self::bandMiss($blocks);
 
         $blocks = self::byHeight($blocks, $mode);
@@ -914,7 +970,7 @@ final class SceneStackCommand extends BaseCommand
         StackShape $shape,
         MirrorStyle $style,
         ?StackOrientation $orientation,
-        float $maxWidthM,
+        ?float $maxWidthM,
         InputInterface $input,
         bool $named,
         int $index,
@@ -993,7 +1049,7 @@ final class SceneStackCommand extends BaseCommand
         array $ids,
         InputInterface $input,
         array $devices,
-        float $maxWidthM,
+        ?float $maxWidthM,
         StackShape $shape = StackShape::Free,
         MirrorStyle $style = MirrorStyle::Alternate,
         ?StackOrientation $orientation = null,
@@ -1029,9 +1085,9 @@ final class SceneStackCommand extends BaseCommand
                 ),
                 $ids,
             ),
-            // The width the *caller* settled on, not the option: the sweep moves a rig up and down
-            // {@see WIDTH_LADDER_M} to land its wall in the band, and reading the option here would silently
-            // undo every rung of that.
+            // The width the *caller* settled on, and **null is one of the answers** rather than a missing value:
+            // an unstated `--max-width` is a stage nobody bounded, which {@see StackSolver::ceilingFor} reads as no
+            // bound at all. Passed down rather than read off the option here, so there is one place that decides it.
             maxWidthM: $maxWidthM,
             minWidthM: $this->readFloat($input, 'min-width'),
             maxHeightM: $this->readFloat($input, 'max-height'),
@@ -1087,15 +1143,18 @@ final class SceneStackCommand extends BaseCommand
         ?StackOrientation $orientation,
         int $stacks,
         string $baseId,
-        float $maxWidthM,
+        ?float $maxWidthM,
         array $from,
     ): string {
         $parts = ['bin/console scene:stack'];
 
-        // **THE SOLVED WIDTH, WRITTEN OUT WHATEVER IT IS.** `--max-width` is not in the loop below with the other
-        // value options, because it is no longer merely echoed: the sweep chooses the stage a rig needs, and a replay
-        // that inherited the default instead would rebuild a different rig — the one that missed the band.
-        $parts[] = sprintf('--max-width=%s', rtrim(rtrim(sprintf('%.2f', $maxWidthM), '0'), '.'));
+        // **THE STATED WIDTH, AND NOTHING WHEN NONE WAS STATED.** `--max-width` is not in the loop below with the
+        // other value options because it has no default to compare against any more: the option is either given, in
+        // which case the replay has to be given it too or it would rebuild a different rig, or it is absent, in which
+        // case writing one out would invent the bound this command just stopped inventing.
+        if ($maxWidthM !== null) {
+            $parts[] = sprintf('--max-width=%s', rtrim(rtrim(sprintf('%.2f', $maxWidthM), '0'), '.'));
+        }
 
         foreach ([
             'min-width', 'max-height', 'interface-height', 'max-sub-height', 'target-sub-height', 'gap', 'at', 'split',
@@ -1483,6 +1542,9 @@ final class SceneStackCommand extends BaseCommand
     private function emit(array $candidates, bool $dryRun, bool $force): int
     {
         $exit = self::SUCCESS;
+        // Cleared here rather than left to accumulate, so the property always describes *this* run. A caller reading
+        // it after two runs would otherwise be told the first run's files are current.
+        $this->written = [];
 
         // GENERATED SCENES GO IN THEIR OWN SUBDIRECTORY, and this is the only place that decides it — nothing reads
         // them by path, because {@see SceneLoader::files} is recursive and an id has always been the file's
@@ -1515,6 +1577,7 @@ final class SceneStackCommand extends BaseCommand
                 return self::FAILURE;
             }
 
+            $this->written[] = $path;
             $this->io->text(sprintf('  <info>wrote</info>   %-44s %d cabinets', $this->relative($path), $candidate['cabinets']));
         }
 
@@ -1552,47 +1615,61 @@ final class SceneStackCommand extends BaseCommand
 
 
     /**
-     * Heaviest first, so the deepest cabinets end up on the floor carrying everything.
+     * Deepest first, so the lowest cabinets end up on the floor carrying everything.
      *
-     * **THE KEY IS WEIGHT, AND THE REASON IS THAT FREQUENCY IS NOT ALWAYS KNOWN.** This used to sort on the driven
-     * low corner of `audio.passband_hz` and fall back to `quantity × width` when a spec had none — which reads as
-     * "the most numerous cabinet on the floor" and put the 40 kg IQ subs under the 220 kg wall basses, with all four
-     * GMSS subs above six Achenbachs. Nine of our ten speakers have no passband at all, so the fallback was doing
-     * almost all of the work and it was doing it on a row-making heuristic rather than on anything physical.
+     * **THE KEY IS FREQUENCY, STATED BY THE OWNER, AND IT DECIDES ONLY BETWEEN TWO CABINETS THAT BOTH STATE ONE.**
+     * That second half is what makes it work, because it is the half the earlier frequency-first sort did not have.
+     * That version read a missing passband as `INF` and fell back to `quantity × width`, which is "the most numerous
+     * cabinet on the floor" and put the 40 kg IQ subs under the 220 kg wall basses with all four GMSS subs above six
+     * Achenbachs. Nine of our ten speakers have no passband at all, so the fallback was doing nearly all of the work
+     * and doing it on a row-making heuristic rather than on anything physical.
      *
-     * Weight is not a guess dressed up as data. It is stated for every cabinet, it is what
-     * {@see \App\Scene\Gravity} and three separate comments in {@see \App\Scene\StackSolver} already appeal to —
-     * "weight belongs low and central" — and it agrees with the frequency order everywhere both are known:
+     * **Weight is the fallback and it is a good one**, which is why nothing breaks. It is stated for every cabinet,
+     * and it is what {@see \App\Scene\Gravity} and three separate comments in {@see \App\Scene\StackSolver} already
+     * appeal to when they say weight belongs low and central.
      *
-     * * **our measured gear**: SKRAM 90 kg, Flexy 85, Achenbach 50 — the same order as SKRAM 15 Hz, Flexy 38-200,
-     *   Achenbach 38-1500, including the Flexy-versus-Achenbach case the old high-corner tiebreak existed for
-     * * **GMSS's own rig**: wall bass 220, mid bass 120, nuke 58, IQ sub 40 — which is exactly how the builder
-     *   stacks them, wall basses on the ground with the mid bass across them, a nuke on the ground with the IQ subs
-     *   on it. That arrangement was described to us, not derived, so it is a real check rather than a circular one
+     * **This change is inert on the gear we own**, and that was checked rather than assumed:
      *
-     * Two independent agreements is why this is the key rather than a fallback. **The passband is still consulted**,
-     * as the tiebreak, so a stated frequency decides between cabinets of equal mass — and if a light, deep sub ever
-     * turns up and the two rules disagree, the frequency is the one to believe and this is the comment that has to
-     * change.
+     * * **our measured gear**: SKRAM 15 Hz, Flexy 38-200, Achenbach 38-1500 on the driven corner, against SKRAM
+     *   90 kg, Flexy 85, Achenbach 50. The same order either way. The Achenbach reaches 35 Hz and would sort under
+     *   the Flexy on capability, but it is high-passed at 38 on purpose so that it sits *above* the Flexys, which is
+     *   exactly what {@see \App\Spec\Passband::orderingLowHz} exists to express, and the high corner then separates
+     *   the two the same way the mass does
+     * * **GMSS's own rig**: not one of its four cabinets states a passband, so all four fall through to wall bass
+     *   220 kg, mid bass 120, nuke 58, IQ sub 40. That is exactly how the builder stacks them, wall basses on the
+     *   ground with the mid bass across them and a nuke on the ground with the IQ subs on it. It was described to us
+     *   rather than derived, so it is a real check rather than a circular one
+     *
+     * So no generated scene moves today. What changes is which rule wins the day a spec separates them, and the
+     * owner has stated that it is the frequency. See **GEO-14** for the rest of that rule, which is the half about
+     * being central rather than low, and for the power figure that no spec carries yet.
      *
      * @return callable(DeviceSpec, DeviceSpec): int
      */
     private static function byFillOrder(): callable
     {
         return static function (DeviceSpec $a, DeviceSpec $b): int {
+            // **BOTH SIDES OR NEITHER, AND THAT GUARD IS THE WHOLE DIFFERENCE BETWEEN THIS AND THE VERSION THAT
+            // BROKE.** The earlier frequency-first sort read a missing passband as `INF` and fell back to
+            // `quantity × width`, which sorted every cabinet without one *above* every cabinet with one: the 40 kg
+            // IQ subs went under the 220 kg wall basses and all four GMSS subs above six Achenbachs. Absence of a
+            // measurement is not a measurement, so a pair where either side is silent is left for the mass to
+            // decide rather than being ranked on a number one of them does not have.
+            if ($a->passband !== null && $b->passband !== null) {
+                $low = $a->passband->orderingLowHz() <=> $b->passband->orderingLowHz();
+                if ($low !== 0) {
+                    return $low;
+                }
+
+                $high = $a->passband->highHz <=> $b->passband->highHz;
+                if ($high !== 0) {
+                    return $high;
+                }
+            }
+
             $mass = ($b->weightKg ?? 0.0) <=> ($a->weightKg ?? 0.0);
             if ($mass !== 0) {
                 return $mass;
-            }
-
-            $low = ($a->passband?->orderingLowHz() ?? INF) <=> ($b->passband?->orderingLowHz() ?? INF);
-            if ($low !== 0) {
-                return $low;
-            }
-
-            $high = ($a->passband?->highHz ?? INF) <=> ($b->passband?->highHz ?? INF);
-            if ($high !== 0) {
-                return $high;
             }
 
             return $b->quantity * $b->dimensions->width <=> $a->quantity * $a->dimensions->width;

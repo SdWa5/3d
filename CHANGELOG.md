@@ -4,7 +4,107 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.82.0] - 2026-08-16
+
+### Changed
+
+- **THE SUB HEIGHT BAND IS AN AIM, NOT A GATE.** Stated by the owner: the sub/top interface height is an optimisation
+  problem rather than a hard constraint, so tops standing below or above head height is not a reason to refuse a rig or
+  to call a scene invalid. It was a refusal on every invocation, and it was by a wide margin the largest single source
+  of skipped candidates in the command — **551 of 1056**, 411 walls too short and 140 too tall, more than every geometry
+  rule in the repository put together. `target_sub_height_m` is what the solve optimises, `interface_height_m` and
+  `max_sub_height_m` are the band a miss is measured against, and everything about whether the rig *stands up* stays a
+  gate: bearing, support, the pillar rule, the silhouette rules and interpenetration
+- **The miss is reported in two places and needed no new surface for either.** `StackChecks::boundsProblems()` has
+  produced both misses as warnings since 0.70.0 and `StackSceneWriter::header()` has always written every warning into
+  the file, so the scene already said it and the gate was throwing the scene away anyway. What is new is a `noted` line
+  on the terminal for whoever ran the sweep and is not going to open 396 files
+- **`SceneStackCommand::heightCost()`** ranks the deal strategies on distance from the target plus `OUT_OF_BAND_PENALTY`
+  times the part of the miss outside the band. Inert at the default band, since 2.5 m is the midpoint of 2–3 m and every
+  in-band wall is already nearer the aim than every out-of-band one. Kept because without it a stated `--max-sub-height`
+  could neither refuse nor rank, which is a bound that means nothing
+- **AN UNSTATED WIDTH LIMITS NOTHING.** Also stated by the owner: how wide a generated scene comes out does not matter
+  unless a parameter limiting the width is explicitly passed. `--max-width` had a 3.70 m default, so every generated
+  scene was solved against a stage nobody had asked for. It has no default now, `Stack::$maxWidthM` reaches
+  `StackSolver::ceilingFor()` as null, and **no generated scene carries a `max_width_m` or a `--max-width=` any more**.
+  The widest row in the set went from 4.89 m to 9.376 m
+- **`WIDTH_LADDER_M` and `buildInBand()` are deleted.** A width is either stated, in which case deviating from it is
+  disobeying it, or absent, in which case there is nothing to deviate from. `isSweep()` now decides one question rather
+  than two
+- **EVERY AXIS IS IN THE SCENE NAME**, which renames the whole generated set. Three of them used to be left out at one
+  value each — `pyramid`, `upright` and `alternate` — so that the ordinary rig kept a short id, and the price was a
+  directory nobody could read: a gap in a name does not say which value was omitted, only that one was, so telling
+  `stacked-gmss-1-center` from its six siblings meant knowing the defaults by heart. Now
+  `stacked-gmss-1-pyramid-upright-alternate-center`, in the order the sweep nests the axes: rig, shape, orientation, mirror
+  style, alignment. **One value is still absent because it does not exist**, rather than because it is a default: a
+  null orientation means `--roll-mirror` named the cabinets outright, so that axis has no value. The mirror style is
+  written even where nothing is rolled and it decides nothing — the sweep only pairs `upright` with `alternate`, but
+  `--orientation=upright --mirror-style=centred` is honoured, and a name that dropped a vacuous style would give those
+  two rigs the same file name
+- **EVERY AXIS IS ALSO A FIXED-WIDTH COLUMN**, padded with dashes, so a directory listing lines up and a reader can scan
+  one axis down the page instead of parsing each name. `SceneStackCommand::padded()` measures each axis from its own
+  enum cases, so a new value widens its column by existing rather than by a number written somewhere. **The owner column
+  is measured over every combination the specs allow rather than over the ones a given run walks**, which is the one
+  trap here: padding to what the run happens to hold would have let `--owner=gmss` name a rig `stacked-gmss-1-…` where
+  the full sweep names the identical rig `stacked-gmss------1-…`, one rig with two file names decided by an option meant
+  to narrow the sweep rather than to rename it. The last field stays ragged, since nothing is lined up behind it
+- **The sweep writes 396 scenes against 150**, of ~1200 candidates. 286 of them carry a band note — 211 walls short of
+  the interface and 75 over the ceiling — each one written on the file it belongs to. `DEFAULT_MAX_SCENES` stays at 600
+  and did not bind
+
+### Added
+
+- **`build:all` deletes generated scene files the sweep no longer writes**, with `--keep-stale` to switch it off. A
+  replay *renames* rather than replaces — each scene's own recorded command rebuilds it under whatever name the current
+  naming produces — so an axis that gains a value or a name that gains a field leaves the old file sitting there,
+  compiling and rendering and describing a rig the sweep no longer offers. `SceneStackCommand::$written` reports the
+  paths each run wrote and staleness is a set difference against that report, **never a timestamp**: two earlier
+  attempts at the latter destroyed the scene set, because `filemtime()` is whole seconds where `microtime(true)` is
+  fractional and a file written in the same second the run started reads as older than the run. Three guards — a run
+  that wrote nothing deletes nothing, a scene with no `Regenerate it with:` line is not the pipeline's to delete, and
+  only `scenes/generated/` is touched
+- **The fill order is decided by frequency now, not by mass.** Stated by the owner: the lowest and most powerful subs
+  belong as low and as central as the rig allows. `byFillOrder()` sorts on the driven low corner and keeps mass as the
+  fallback, **and it compares frequencies only between two cabinets that both state one**. That guard is the whole
+  difference between this and the version that broke: the earlier frequency-first sort read a missing passband as `INF`
+  and fell back to `quantity × width`, so every cabinet without a passband sorted above every cabinet with one and the
+  40 kg IQ subs went under the 220 kg wall basses. Nine of our ten speakers state no passband, so a rule that ranks on
+  absence ranks almost everything on nothing. **No generated scene moves**, checked rather than assumed: our three
+  cabinets with a passband come out in the same order either way, because the Achenbach reaches 35 Hz but is
+  high-passed at 38 on purpose so that it sits above the Flexys, and GMSS's four state none and fall through to mass.
+  The rest of that rule is **GEO-14**, where the owner has settled that the shapes keep priority and the acoustic order
+  is an optimisation rather than a gate, and the missing power figure is **SPEC-13**
+
+### Fixed
+
+- Three tests that assumed the band collapsed the output to one scene. Two are narrowed to the single rig they are
+  about rather than to whatever survived the gate, and the third replaces "every generated scene stands inside its own
+  band" with the invariant that took its place: **every generated scene outside its band says so on its own file**
+- **`testARecordedLineNamesTheOrientationRatherThanTheCabinets` no longer names its evidence by file name.** Naming two
+  shipped files broke it three times for reasons that had nothing to do with orientation, once per change to the id
+  shape. The rule it is about holds for every generated scene, so it is now asserted across the whole set, with a count
+  of each mode so a sweep that stopped writing one fails here rather than passing an assertion loop that never ran
+- **Two sweep tests that pinned the padding by accident.** `testTheMirrorStyleAxisIsSweptOnlyWhereSomethingIsRolled`
+  matched `-turned-centred-` literally and `testTheBareCommandWritesScenesAcrossOwnersAndStackCounts` put a single dash
+  between the owner label and the stack count. Neither is about column widths. The first collapses runs of dashes
+  before asserting, so it stays about the pairing of two axes, and the second takes `-+`
+
+### Known
+
+- **The stale-scene deletion catches a rename, not a rig the sweep has stopped offering.** `regenerate()` replays every
+  file that carries a recorded line, so every one of them lands in the written set by construction and can only look
+  stale when its replay comes out under a different name. Measured while cleaning up after the rename: **18 files
+  recording `--max-width=3.7` outlived the release that deleted the width ladder**, kept alive by the very stage meant
+  to clean up after it, and they surfaced only when a fresh `scene:stack --force` was diffed against the directory. They
+  are set aside rather than deleted, since they are the only artifacts of what the ladder produced and **GEO-12** exists
+  to bring them back. Filed as **TOOL-7**. Until it lands, `git status` after a full sweep is the check that finds them
+- **The width ladder was also a search dimension, and deleting it cost 18 scenes.** Filed as **GEO-12**. A stage width
+  in metres caps each device's row count by that device's own cabinet width — 4.40 m deals 7 Flexys and 3 mid-bass —
+  where `StackSolver`'s `$perRow` caps every device to the same integer, and our cabinets run 0.45 m to 1.20 m wide. So
+  no row-count setting reproduces what a width produced. Measured against the 150: **18 scenes lost outright, 28 more
+  pushed outside the band** (`stacked-all-2-free-mixed-column-center` went 2.381 → 4.173 m of subs), and 110 of the 396
+  fully inside 2–3 m against 150 before. The fix is to make the search knob a width budget rather than a count, with the
+  unbounded case always in the search so nothing is bounded by it
 
 ### Added
 

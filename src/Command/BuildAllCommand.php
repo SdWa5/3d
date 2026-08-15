@@ -52,6 +52,7 @@ final class BuildAllCommand extends BaseCommand
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Rebuild everything, even what looks up to date')
             ->addOption('skip-render', null, InputOption::VALUE_NONE, 'Stop after the scenes are assembled')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'List the stages and variants without running any')
+            ->addOption('keep-stale', null, InputOption::VALUE_NONE, 'Leave generated scene files the sweep no longer writes. Default: delete them')
             ->addOption('camera', 'c', InputOption::VALUE_REQUIRED, 'Camera preset to render with')
             // Naming one narrows the sweep to it. That is the whole of the opt-out: there is no
             // `--no-lighting-variants`, because "just this lighting" is what stating a lighting already means.
@@ -87,7 +88,7 @@ final class BuildAllCommand extends BaseCommand
         // **This stage writes to `scenes/generated/`, which is tracked** — the only stage that touches anything
         // outside `build/`. That is the deliberate trade: a generated scene is build output that happens to be worth
         // reviewing in a diff, so it has to be regenerated like build output and reviewed like source.
-        if (!$dryRun && $this->regenerate($output) !== self::SUCCESS) {
+        if (!$dryRun && $this->regenerate($output, !$input->getOption('keep-stale')) !== self::SUCCESS) {
             return self::FAILURE;
         }
 
@@ -270,7 +271,7 @@ final class BuildAllCommand extends BaseCommand
      * records `--orientation=turned` — so it turned the turned scenes again and wrote 141 extra files with ids like
      * `stacked-sdwa5-sepp-2-turned-turned-column-center`.
      */
-    private function regenerate(OutputInterface $output): int
+    private function regenerate(OutputInterface $output, bool $deleteStale = true): int
     {
         $directory = $this->scenesDir().'/'.SceneLoader::GENERATED;
         $files = glob($directory.'/*.{yaml,yml}', GLOB_BRACE) ?: [];
@@ -289,6 +290,7 @@ final class BuildAllCommand extends BaseCommand
 
         sort($files);
 
+        $written = [];
         foreach ($files as $file) {
             $command = self::recordedCommand((string)file_get_contents($file));
             if ($command === null) {
@@ -301,15 +303,115 @@ final class BuildAllCommand extends BaseCommand
 
             // `--force` because the file being replaced is precisely the one this command wrote; without it every
             // run after the first would refuse itself.
-            $exit = $application->find('scene:stack')->run(new StringInput($command.' --force'), $output);
+            $stack = $application->find('scene:stack');
+            $exit = $stack->run(new StringInput($command.' --force'), $output);
             if ($exit !== self::SUCCESS) {
                 $this->io->error('Regenerating '.$this->relative($file).' failed');
 
                 return self::FAILURE;
             }
+            // The union across every replay, and the reason it is collected here rather than read once at the end:
+            // {@see SceneStackCommand::$written} describes one run, and this stage is hundreds of them.
+            if ($stack instanceof SceneStackCommand) {
+                $written = [...$written, ...$stack->written];
+            }
+        }
+
+        if ($deleteStale && $this->deleteStaleScenes($directory, $written) !== self::SUCCESS) {
+            return self::FAILURE;
         }
 
         return $this->prune();
+    }
+
+    /**
+     * Generated scene files this run did not write, deleted — the other half of {@see prune}.
+     *
+     * **A replay renames rather than replaces.** Every scene's own recorded command rebuilds it under whatever name
+     * the *current* naming produces, so an axis that gains a value, a name that gains a field or a rig that stops
+     * solving leaves the old file sitting there, correct-looking and describing a rig the sweep no longer offers. One
+     * release renamed all 150 at once and the tree had 546 files in it until somebody noticed.
+     *
+     * **Decided by what the run wrote, never by a clock**, which is the whole safety of it. {@see prune}'s docblock
+     * records why: two attempts at deciding staleness by timestamp both destroyed the scene set, because
+     * `filemtime()` is whole seconds where `microtime(true)` is fractional and a file written in the same second as
+     * the run started reads as older than the run. `scene:stack` now reports the paths it wrote and this compares
+     * against that report, so a file is stale when the sweep did not produce it rather than when it looks old.
+     *
+     * Three guards, each of which has to hold or nothing is deleted:
+     *
+     * * **A run that wrote nothing deletes nothing.** An empty report is far more likely to be a broken stage than an
+     *   instruction to empty the tree — the same reasoning {@see prune} applies to an empty scene set.
+     * * **Only files that carry a `Regenerate it with:` line.** A file without one is not something this pipeline
+     *   wrote, `regenerate()` above says so and skips it, and deleting what it declined to rebuild would be the
+     *   pipeline removing somebody else's work.
+     * * **Only `scenes/generated/`**, which is the one tracked directory this pipeline owns.
+     *
+     * **WHAT THIS CATCHES IS A RENAME, AND NOT A RIG THE SWEEP HAS STOPPED OFFERING.** Worth stating plainly, because
+     * the name reads wider than the rule is. {@see regenerate} replays *every* file that carries a recorded line, so
+     * every such file lands in `$written` by construction and can only be stale when its replay comes out under a
+     * different name. A scene whose options the sweep no longer generates replays perfectly well from its own line and
+     * so survives here for ever.
+     *
+     * Measured rather than reasoned: 18 files carrying `--max-width=3.7` outlived the release that deleted the width
+     * ladder, and they show up as stale only against a *fresh* `scene:stack --force`, never against this stage. That
+     * is not a defect to fix here — this stage has no idea what the sweep would offer, and inventing one would be the
+     * second copy {@see regenerate} argues against — but it is the reason `git status` after a sweep is still the
+     * check that finds them. Filed as **TOOL-7**.
+     *
+     * `--keep-stale` switches it off. It defaults to deleting because the stale files are the confusing half: they
+     * compile, they render, and nothing about looking at one says it belongs to a rig that no longer exists.
+     *
+     * @param list<string> $written absolute paths `scene:stack` reported writing
+     */
+    private function deleteStaleScenes(string $directory, array $written): int
+    {
+        if ($written === []) {
+            return self::SUCCESS;
+        }
+
+        $removed = [];
+        foreach (glob($directory.'/*.{yaml,yml}', GLOB_BRACE) ?: [] as $file) {
+            if (!self::isStaleScene($file, $written, (string)file_get_contents($file))) {
+                continue;
+            }
+            if (!@unlink($file)) {
+                $this->io->error('Could not delete the stale '.$this->relative($file));
+
+                return self::FAILURE;
+            }
+            $removed[] = $this->relative($file);
+        }
+
+        if ($removed !== []) {
+            $this->io->section(sprintf(
+                'deleted %d stale generated scene%s',
+                count($removed),
+                count($removed) === 1 ? '' : 's',
+            ));
+            foreach (array_slice($removed, 0, 12) as $file) {
+                $this->io->text('  <comment>removed</comment> '.$file);
+            }
+            if (count($removed) > 12) {
+                $this->io->text(sprintf('  … and %d more', count($removed) - 12));
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Whether one generated scene file is stale: this run did not write it, and it is one this pipeline owns.
+     *
+     * Split out from the loop so the rule can be tested on strings rather than on a directory somebody has to build
+     * first — the same bargain {@see sceneIdOf} strikes, and for the same reason: the decision is the part worth
+     * pinning and the filesystem is not.
+     *
+     * @param list<string> $written absolute paths `scene:stack` reported writing
+     */
+    private static function isStaleScene(string $file, array $written, string $yaml): bool
+    {
+        return !in_array($file, $written, true) && self::recordedCommand($yaml) !== null;
     }
 
     /**

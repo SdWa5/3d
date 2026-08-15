@@ -18,7 +18,10 @@ use App\Spec\InvalidSpecException;
  *
  * The constraints, any of which may be left out:
  *
- * * **`max_width_m`** — how wide the stage or the truss lets the rig be. The row width falls out of it.
+ * * **`max_width_m`** — how wide the stage or the truss lets the rig be. The row width falls out of it. **Left out
+ *   means no bound at all** rather than a generous one, and that is a real distinction: how wide a rig comes out
+ *   does not matter unless somebody says it does, which is stated by the owner and is why
+ *   {@see \App\Command\SceneStackCommand} stopped defaulting the option.
  * * **`interface_height_m`** — how high the sub stack's top face has to reach, so the tops fire over a
  *   standing crowd rather than into it. Defaults to {@see DEFAULT_INTERFACE_HEIGHT_M}; state `0` for a rig
  *   that deliberately sits low. Against what we own, two Flexy tiers reach 1.526 m and miss, and two Flexy
