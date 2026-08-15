@@ -58,6 +58,11 @@ the last axis, which is CVR-5.
   worth keeping, not a task).
 * Resolved rows are **deleted**, not ticked. Measured figures are re-measured when touched, never carried forward on
   trust — several were wrong for two releases.
+* **This file is never split, however long it gets.** Stated by the owner, and it applies to `README.md` and
+  `CHANGELOG.md` the same way. Each of them promises the reader everything on its subject, so hunting across several
+  files for an item this one said it holds is worse than the length. When it gets unwieldy, **compact it** — delete
+  resolved rows, drop text a later measurement has superseded, merge sections saying the same thing — and only then
+  move genuine reference material into `docs/`. The line count is worth reporting; a split is not worth proposing.
 * **Runtime is not a constraint on this project.** Stated by the user outright. A sweep that takes ten minutes and a
   test suite that takes longer are both acceptable if they produce more correct scenes, so no estimate, no design and no
   prioritisation here may trade coverage away for speed. Measure it, record it, and do not treat it as a blocker.
