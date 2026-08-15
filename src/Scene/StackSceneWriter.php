@@ -256,6 +256,13 @@ final class StackSceneWriter
         if ($stack->maxSubHeightM !== null) {
             $constraints['max_sub_height_m'] = $stack->maxSubHeightM;
         }
+        // **Only when it is not the default**, unlike the two bounds above. A target is a preference and its default is
+        // the one every rig is solved against, so writing it into all 149 files would state a number that says nothing
+        // and would have to be rewritten in every one of them the day the default moves. Stated, it means somebody
+        // asked for a different aim and the re-solve has to keep it.
+        if (abs($stack->targetSubHeightM - Stack::DEFAULT_TARGET_SUB_HEIGHT_M) > 1e-9) {
+            $constraints['target_sub_height_m'] = $stack->targetSubHeightM;
+        }
         $constraints['gap_m'] = $stack->gapM;
 
         foreach (['max_width_m' => $stack->maxWidthM, 'min_width_m' => $stack->minWidthM, 'max_height_m' => $stack->maxHeightM] as $key => $value) {

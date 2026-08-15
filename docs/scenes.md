@@ -53,7 +53,7 @@ placements:
 | `placements[].row` | `{ count, axis, gap_m, step_m, roll_cycle }` — a lattice with one open axis; `axis` defaults to `x` |
 | `placements[].line_array` | `{ count, splay_deg, gap_m }` — a hang: elements chained below one another, each tilted further than the last. `splay_deg` is one angle or one per gap |
 | `placements[].align` | `{ mode, width_m, across, inside, inset_m }` — how this tier is spread across a width, instead of stating `step_m`. See [align](#align) |
-| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, max_sub_height_m, gap_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
+| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, max_sub_height_m, target_sub_height_m, gap_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
 | `placements[].in` | list of groups this one is nested **inside**, innermost first: `in[0]` wraps the sibling group, `in[1]` wraps that |
 | `placements[].arc` | `{ mode, count, splay_deg, radius_m, gap_m }` — a group seated on an arc. Exclusive with `repeat`; see below |
 | `placements[].arc.gap_m` | working gap between neighbours, in metres. Default 0 — cabinets touching |
@@ -512,6 +512,7 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 | `interface_height_m` | how high the sub stack's top face should reach, so the tops fire over a standing crowd. **Defaults to 2.0**, and in a hand-written scene it is an **optimum rather than a requirement** — missing it warns; state `0` to stop aiming for it. In a scene `scene:stack` writes it is binding, together with `max_sub_height_m`: see [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes) |
 | `shape` | `pyramid` (no row wider than the one below, and the fill ordered for row width) or `free` (as wide as the bearing rule allows). Default `free`, so an existing scene keeps the rig it had. See [the two shapes](#the-two-shapes) |
 | `max_sub_height_m` | how high the sub stack's top face is *allowed* to reach — the **mirror** of `interface_height_m`. Stating one changes what the solver optimises for and lets a row hold several device types. See [a ceiling on the sub height](#a-ceiling-on-the-sub-height). Missing it warns in a hand-written scene and **refuses the rig in a generated one**, like its floor — see [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes). A ceiling below the stack's own `interface_height_m` is an error: the two say opposite things about one number |
+| `target_sub_height_m` | the sub/top transition to **aim at**, between the floor and the ceiling. **Defaults to 2.5**, the middle of the band, and it decides which of the arrangements that stand up comes back — where the two bounds decide which of them are allowed at all. A preference and never a refusal. Written into a scene only when it is not the default. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
 | `max_height_m` | a ceiling or a rigging limit |
 | `gap_m` | working gap between neighbours in a row |
@@ -786,7 +787,7 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 **The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
 configuration it can stand up: one rig per combination of owners, by one, two and three stacks, in both shapes, all three
-alignments and all seven orientation/mirror pairs — **149 scenes of 804 candidates** on the current inventory, with every
+alignments and all seven orientation/mirror pairs — **148 scenes of 804 candidates** on the current inventory, with every
 refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
 required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
 naming `--align` narrows it to one mode.
@@ -847,6 +848,36 @@ interpenetration across five `all-3` scenes. So only a stack with **nothing besi
 the stated stage width. A row that is already carried is never moved, and a slide that does not improve the
 worst-carried cabinet is discarded, so every rig that stood up before stands up unchanged.
 
+#### Aiming the sub wall, rather than settling for the lowest one
+
+**A bound says which arrangements are allowed; a target says which of them is best.** Until `target_sub_height_m`
+existed the solver had no answer to the second question, so it kept the **shortest** arrangement that cleared the
+interface — a defensible tie-break, and not what anybody wants. It parked the transition just over 2.0 m wherever it
+could, when the useful place for it is the middle of the band, where the tops clear a standing crowd with room to spare
+and the wall is still well under a truss.
+
+The target defaults to **2.5 m**, the middle of the 2–3 m band, and `--target-sub-height` moves it. Measured across the
+sweep, the same 148 rigs sit noticeably closer to the aim:
+
+| | mean distance from 2.5 m |
+| --- | --- |
+| shortest-wins | 0.222 m |
+| aiming at 2.5 m | **0.189 m** |
+
+Two rules keep an aim from doing damage, both of which cost a measurement to find:
+
+* **The ceiling binds before the target does.** A target is a preference between *legal* arrangements and may never
+  reach past a bound to pick an illegal one. This is inert at the default, since 2.5 m is the band's midpoint and every
+  legal arrangement is therefore nearer the aim than any illegal one — and it stops being inert the moment somebody
+  states an aim off the midpoint, which is exactly when the option gets used.
+* **With nothing legal, the aim falls back to the ceiling.** Five Flexys and three Achenbachs under a 1.0 m ceiling can
+  build 1.363 m or 2.126 m and neither fits. 2.126 m is nearer 2.5 m; 1.363 m is nearer being a rig. A preference must
+  not pick the worse of two failures just because there is no success to choose between.
+
+The scene file records `target_sub_height_m` **only when it is not the default**, unlike the two bounds, which are
+always written. A default written into all 148 files would state a number that says nothing and would have to be
+rewritten in every one of them the day the default moves.
+
 #### The inventory axis, and why the borrowed rigs beat the owned ones
 
 The sweep builds from **every non-empty combination of owners** — each alone, each pair, and everything. It used to offer
@@ -855,11 +886,11 @@ each owner and then everything, and the gap in the middle turned out to be where
 | inventory | scenes written |
 | --- | --- |
 | `sdwa5-sepp` | **50** |
-| `gmss-sdwa5` | 23 |
+| `gmss-sdwa5` | 25 |
+| `sdwa5` | 22 |
 | `gmss` | 21 |
-| `sdwa5` | 21 |
-| `all` | 19 |
-| `gmss-sepp` | 15 |
+| `all` | 17 |
+| `gmss-sepp` | 13 |
 | `sepp` | 0 |
 
 That is the shape of a shared gig rather than a curiosity. `sepp`'s eight cabinets **cannot stand alone** — six
@@ -952,6 +983,7 @@ so block and stereo alignment have nothing left to spread it into.
 | `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here. **Not the same option as `--owner`**, which picks whose gear is in the rig at all |
 | `--stacks=N` | split each group into N stacks — how a stereo pair is asked for |
 | `--split=MODE` | `by-count` (default) gives every stack a share of every device; `by-type` gives each stack whole device types, balanced by `quantity × width`. **`by-type` is what makes a rig low** — a by-count stack holds every type and is as many rows tall as there are types, where a by-type stack holds two or three. It needs at least one type per stack and says so otherwise |
+| `--target-sub-height=M` | **defaults to 2.5 m** — the sub/top transition the rig *aims at*, as opposed to the two bounds it has to stay between. A preference and never a refusal: it decides which of the legal arrangements comes back, and the bounds decide which are legal. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `--max-sub-height=M` | **defaults to 3.0 m**, the top of the band a sub/top transition must sit in — with `--interface-height` as its floor, and **a rig that misses either is not written**. See [the sub height band](#the-sub-height-band-and-why-it-writes-fewer-scenes). Passed straight to the stack's [`max_sub_height_m`](#a-ceiling-on-the-sub-height). Independent of `--split`: either alone is useful, and together is how a low rig out of the whole inventory is generated |
 | `--no-asymmetry` | leave the odd cabinets out rather than giving one stack more than another. **By default every cabinet that can be placed is placed**: three M2122s over two stacks are 1 + 2 with the unevenness named in the scene header, where they used to be 1 + 1 with the third reported as left out |
 | `--clearance=M` | air between neighbouring stacks. Default 0.5 |

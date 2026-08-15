@@ -988,6 +988,11 @@ final class StackSolverTest extends TestCase
      * does not exist: six Achenbachs are 3.700 m on six Flexys' 3.646 m and stand 27 mm proud per side, against
      * the two thirds of a cabinet {@see Gravity::MIN_BEARING} allows. Five Flexys and three Achenbachs is the
      * same shape with the numbers further apart.
+     *
+     * **The order is the invariant; how many rows the Flexys take is not.** Under a ceiling the five Flexys now come
+     * out as 3 + 2 rather than one row of five, because `target_sub_height_m` prefers the taller arrangement — same
+     * cabinets, same order, 1.526 m instead of 0.763 m and that much nearer the aim. Asserting the exact row list in
+     * both cases would pin the solver's arithmetic in a test about which cabinet stands on which.
      */
     public function testTheAchenbachsStandOnTheFlexysRatherThanUnderThem(): void
     {
@@ -999,21 +1004,80 @@ final class StackSolverTest extends TestCase
                 flexyCount: 5,
                 achenbachCount: 3,
             );
+            $labels = array_map(static fn (Tier $t): string => $t->label(), $result['tiers']);
 
             self::assertSame([], $result['problems']);
-            self::assertSame(['5× flexy-folded-horn-hybrid', '3× achenbach-18'], array_map(
-                static fn (Tier $t): string => $t->label(),
-                $result['tiers'],
-            ));
+            self::assertSame('3× achenbach-18', $labels[count($labels) - 1], 'the Achenbachs go on top');
+            foreach (array_slice($labels, 0, -1) as $below) {
+                self::assertStringContainsString('flexy-folded-horn-hybrid', $below, 'and every row under them is Flexy');
+            }
+            self::assertSame(8, $this->cabinets($result['tiers']), 'all five Flexys and all three Achenbachs');
+        }
+
+        // Without a ceiling there is nothing to rank, so the first hit stands and it is the single row of five.
+        $free = $this->solveTo(
+            ['flexy-folded-horn-hybrid', 'achenbach-18'],
+            maxWidthM: 3.70,
+            maxSubHeightM: null,
+            flexyCount: 5,
+            achenbachCount: 3,
+        );
+        self::assertSame(['5× flexy-folded-horn-hybrid', '3× achenbach-18'], array_map(
+            static fn (Tier $t): string => $t->label(),
+            $free['tiers'],
+        ));
+    }
+
+    /**
+     * **The target decides which of the legal arrangements comes back**, and moving it moves the rig.
+     *
+     * The whole of the change: under a ceiling the solver walks every arrangement that stands up and used to keep the
+     * *shortest*, which parked the transition as low as the interface allowed. A target says which one is wanted, and
+     * the same twelve cabinets answer differently at 2.0 m, 2.5 m and 3.0 m without a single other input changing.
+     *
+     * Asserted as an ordering rather than three numbers, because the exact heights are the inventory's arithmetic and
+     * would have to be re-pinned every time a cabinet is measured. What must hold is that a higher aim never returns a
+     * lower rig.
+     */
+    public function testTheTargetDecidesWhichLegalArrangementComesBack(): void
+    {
+        $ids = ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'tecnare-m2122'];
+
+        // The pyramid, because it is the shape with something to choose between: `free` on this inventory has exactly
+        // one arrangement that stands up, and an aim cannot move a rig that has nowhere to go.
+        $heights = [];
+        foreach ([2.0, 2.5, 3.0] as $target) {
+            $result = $this->solveTo(
+                $ids,
+                maxWidthM: 3.80,
+                maxSubHeightM: 3.0,
+                shape: StackShape::Pyramid,
+                targetSubHeightM: $target,
+            );
+            self::assertSame([], $result['problems'], 'aiming at '.$target.' m must still produce a rig');
+            $heights[] = $this->subHeight($result['tiers']);
+        }
+
+        self::assertLessThanOrEqual($heights[1], $heights[0], 'aiming lower must not return a taller rig');
+        self::assertLessThanOrEqual($heights[2], $heights[1], 'aiming higher must not return a shorter rig');
+        self::assertGreaterThan($heights[0], $heights[2], 'and the two ends must differ, or the aim does nothing');
+
+        // Every one of them legal, which is the bound the target is a preference inside of.
+        foreach ($heights as $height) {
+            self::assertLessThanOrEqual(3.0 + 1e-9, $height);
         }
     }
 
     /**
      * A ceiling the inventory cannot come under is a warning naming the miss, not a refusal.
      *
-     * The mirror of the interface warning and a warning for the mirror reason: the solver already keeps the
-     * shortest arrangement that stands up, so the number it reached *is* the inventory's floor. Refusing would
-     * make the key unusable on the rigs it exists for.
+     * The mirror of the interface warning and a warning for the mirror reason: the solver already keeps the best
+     * arrangement that stands up, so the number it reached *is* what the inventory can do. Refusing would make the key
+     * unusable on the rigs it exists for.
+     *
+     * The message says "the nearest the target" rather than "the shortest", which is not a wording change — the solver
+     * ranks by `target_sub_height_m` now, and a message promising the shortest arrangement would describe a rule that
+     * no longer exists, on exactly the rigs where the difference shows.
      */
     public function testACeilingTheStackCannotMeetWarnsAndNamesTheMiss(): void
     {
@@ -1028,7 +1092,18 @@ final class StackSolverTest extends TestCase
         self::assertSame([], $result['problems']);
         self::assertContains(
             'the subs reach 1.363 m against the 1.000 m ceiling asked for, so they stand 363 mm too high — '
-            .'1.363 m is the shortest arrangement in which every tier is still carried',
+            .'1.363 m is the nearest the 2.500 m target that every tier is still carried at',
+            $result['warnings'],
+        );
+
+        // **And 1.363 m rather than 2.126 m is the point of the assertion above.** No arrangement of these cabinets
+        // comes under a 1.0 m ceiling, and 2.126 m is the one nearest the 2.5 m target — so ranking on the target alone
+        // answers a rig that misses by 1126 mm where one missing by 363 mm exists. With nothing legal to prefer between,
+        // the aim falls back to the ceiling.
+        self::assertLessThan(
+            2.0,
+            $this->subHeight($result['tiers']),
+            'with nothing under the ceiling, the least miss wins rather than the nearest the target',
             $result['warnings'],
         );
     }
@@ -1097,8 +1172,12 @@ final class StackSolverTest extends TestCase
         self::assertStringContainsString('gmss-wall-bass', $free['tiers'][0]->label());
         self::assertStringContainsString('gmss-iq-sub', $pyramid['tiers'][0]->label());
 
+        // 2.570 m rather than the 2.070 m this pinned before `target_sub_height_m` existed, and out of the same twelve
+        // cabinets. The pyramid had several arrangements that stand up and the solver took the shortest; it now takes
+        // the one nearest 2.5 m, which is this one. The shape is what the test is about and the shape is unchanged —
+        // widest-row type on the floor, fewer rows than `free`, same cabinets.
         self::assertEqualsWithDelta(3.240, $this->subHeight($free['tiers']), 1e-9);
-        self::assertEqualsWithDelta(2.070, $this->subHeight($pyramid['tiers']), 1e-9);
+        self::assertEqualsWithDelta(2.570, $this->subHeight($pyramid['tiers']), 1e-9);
         self::assertLessThan(count($free['tiers']), count($pyramid['tiers']));
 
         // Same cabinets both ways — the shape is not bought by leaving one out.
@@ -1152,6 +1231,7 @@ final class StackSolverTest extends TestCase
         ?int $flexyCount = null,
         ?int $achenbachCount = null,
         StackShape $shape = StackShape::Free,
+        float $targetSubHeightM = Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
     ): array {
         $counts = array_filter([
             'skram' => $skramCount,
@@ -1171,6 +1251,7 @@ final class StackSolverTest extends TestCase
                 gapM: 0.02,
                 maxSubHeightM: $maxSubHeightM,
                 shape: $shape,
+                targetSubHeightM: $targetSubHeightM,
             ),
         );
     }

@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.79.0] - 2026-08-15
+
+### Added
+
+- **`target_sub_height_m` and `--target-sub-height`, defaulting to 2.5 m** — the sub/top transition a rig *aims at*, as
+  opposed to the two bounds it has to stay between. Stated by the owner of the gear. A bound says which arrangements are
+  allowed and a target says which of them is best, and the solver had no answer to the second question: it kept the
+  **shortest** arrangement that cleared the interface, which parked the transition just over 2.0 m wherever it could.
+  Across the sweep the same rigs now sit **0.189 m from the aim on average against 0.222 m**
+- two rules that keep an aim from doing damage, both found by measuring rather than by reasoning. **The ceiling binds
+  before the target does**, so a preference can never reach past a bound to pick an illegal arrangement — inert at the
+  default, since 2.5 m is the band's midpoint, and live the moment somebody states an aim off it. **With nothing legal,
+  the aim falls back to the ceiling**: five Flexys and three Achenbachs under a 1.0 m ceiling can build 1.363 m or
+  2.126 m, and ranking on the target alone answered with the rig that misses by 1126 mm over the one that misses by 363
+
+### Changed
+
+- `build()` ranks attempts by the **worst stack's** distance from the aim rather than by the tallest stack's height.
+  Scoring the tallest was right while the tie-break was "shorter wins"; with a target it let an attempt win because its
+  tall stack sat at 2.48 m while its other stack dropped to 1.773 m and the whole rig was then refused
+- the ceiling warning says "the nearest the target that every tier is still carried at" rather than "the shortest
+  arrangement in which every tier is still carried", because that is the rule the solver now follows
+- **28 generated scenes changed arrangement** and four collapsed into their `alternate` sibling, so the set is 148 rather
+  than 149. No rig was lost — every one of the four still ships under the sibling's name — and three new rigs appeared.
+  Refusals moved between families rather than in total: 267 too-short became 258, 38 too-high became 54
+- three tests pinned the solver's arithmetic where they meant to pin its shape, and the aim moved that arithmetic. Five
+  Flexys under a ceiling now come out 3 + 2 rather than one row of five, and the GMSS pyramid stands on four IQ subs
+  rather than six. Both assert the ordering — Achenbachs above Flexys, IQ subs on the floor — which is what they are
+  about and what did not change
+
 ## [0.78.0] - 2026-08-15
 
 ### Added

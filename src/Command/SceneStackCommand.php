@@ -109,6 +109,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('max-height', null, InputOption::VALUE_REQUIRED, 'Ceiling or rigging limit, in metres')
             ->addOption('interface-height', null, InputOption::VALUE_REQUIRED, 'Height the tops must clear, in metres', (string)Stack::DEFAULT_INTERFACE_HEIGHT_M)
             ->addOption('max-sub-height', null, InputOption::VALUE_REQUIRED, 'Ceiling on the sub/top transition, in metres. Lets a row hold several device types', (string)self::DEFAULT_MAX_SUB_HEIGHT_M)
+            ->addOption('target-sub-height', null, InputOption::VALUE_REQUIRED, 'The sub/top transition to aim at, in metres. A preference between the two bounds, never a refusal', (string)Stack::DEFAULT_TARGET_SUB_HEIGHT_M)
             ->addOption('split', null, InputOption::VALUE_REQUIRED, 'by-count (a share of every device to every stack) or by-type (whole types per stack, which comes out lower)', SplitMode::ByCount->value)
             ->addOption('no-asymmetry', null, InputOption::VALUE_NONE, 'Leave the odd cabinets out rather than giving one stack more than another')
             ->addOption('gap', null, InputOption::VALUE_REQUIRED, 'Working gap between neighbours, in metres', '0.02')
@@ -847,7 +848,8 @@ final class SceneStackCommand extends BaseCommand
 
         $blocks = [];
         $best = -1;
-        $bestHeight = INF;
+        $bestMiss = INF;
+        $target = $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M;
         $firstProblem = null;
 
         foreach ($strategies as [$evenSplit, $placeAll]) {
@@ -874,22 +876,34 @@ final class SceneStackCommand extends BaseCommand
                 continue;
             }
 
-            // **CABINETS FIRST, THEN HEIGHT.** More cabinets always wins, because a cabinet in no rig at all is the
+            // **CABINETS FIRST, THEN THE TARGET.** More cabinets always wins, because a cabinet in no rig at all is the
             // worse failure and that ordering is what the four strategies exist to exploit. But between two attempts
             // that place the *same* number there was nothing to choose, and the first one tried simply won — which is
-            // how stating a `max_sub_height_m` could make a rig come out TALLER than not stating one. The ceiling is
-            // monotone at the solver level (measured: 13 of 24 inventories shorter, 11 unchanged, none taller), so
-            // the extra height was never the solve; it was this tie, resolved by strategy order rather than by the
-            // thing the ceiling was asked about.
+            // how stating a `max_sub_height_m` could make a rig come out taller than not stating one. The extra height
+            // was never the solve; it was this tie, resolved by strategy order rather than by the thing the ceiling was
+            // asked about.
             //
-            // Measured on the tallest stack rather than the total, because that is what a truss has to clear and what
-            // "too high" means about a rig.
+            // **The tie was then broken by "shorter wins", and that is now `target_sub_height_m`.** Shorter was a
+            // stand-in for a preference nobody had stated, and it is the wrong one: between a rig at 2.05 m and one at
+            // 2.48 m out of the same cabinets, the second is the rig to build. Closest to the target wins in either
+            // direction.
+            //
+            // **THE WORST STACK'S MISS, NOT THE TALLEST STACK'S HEIGHT**, and the difference is not academic. Scoring
+            // the tallest stack alone is what "too high" means about a rig, so it was right while the tie-break was
+            // "shorter wins" — but a target is a distance, and {@see bandMiss} refuses a rig when **any** stack falls
+            // outside the band. Ranking on the tallest let an attempt win because its tall stack sat at 2.48 m while
+            // its other stack dropped to 1.773 m and the whole rig was then refused: measured, it cost
+            // `stacked-sdwa5-2-free-turned-centred-center`. Taking the worst miss keeps every stack near the aim,
+            // which is what the aim is for.
             $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $attempt));
-            $height = max(array_map(static fn (StackBlock $b): float => $b->subHeightM(), $attempt));
+            $miss = max(array_map(
+                static fn (StackBlock $b): float => abs($b->subHeightM() - $target),
+                $attempt,
+            ));
 
-            if ($placed > $best || ($placed === $best && $height < $bestHeight - 1e-9)) {
+            if ($placed > $best || ($placed === $best && $miss < $bestMiss - 1e-9)) {
                 $best = $placed;
-                $bestHeight = $height;
+                $bestMiss = $miss;
                 $blocks = $attempt;
             }
         }
@@ -1226,6 +1240,7 @@ final class SceneStackCommand extends BaseCommand
             gapM: (float)$input->getOption('gap'),
             mirror: $mirror,
             maxSubHeightM: $this->readFloat($input, 'max-sub-height'),
+            targetSubHeightM: $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
             shape: $shape,
             mirrorStyle: $style,
             // **STILL ONLY A SOLO STACK, AND IT IS NOT FOR WANT OF THE BOUND.** The bound a multi-stack rig needs is
@@ -1284,7 +1299,7 @@ final class SceneStackCommand extends BaseCommand
         $parts[] = sprintf('--max-width=%s', rtrim(rtrim(sprintf('%.2f', $maxWidthM), '0'), '.'));
 
         foreach ([
-            'min-width', 'max-height', 'interface-height', 'max-sub-height', 'gap', 'at', 'split',
+            'min-width', 'max-height', 'interface-height', 'max-sub-height', 'target-sub-height', 'gap', 'at', 'split',
             'clearance',
         ] as $option) {
             $value = $input->getOption($option);

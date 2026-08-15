@@ -168,8 +168,9 @@ final class StackSolver
 
         $tallestCarried = [];
         $tallestCarriedSubs = -INF;
-        $shortestCarried = [];
-        $shortestCarriedSubs = INF;
+        $closestCarried = [];
+        $closestCarriedMiss = INF;
+        $closestCarriedLegal = false;
         $widestAttempt = [];
 
         for ($perRow = $widest; $perRow >= 1; --$perRow) {
@@ -196,12 +197,42 @@ final class StackSolver
                     // UNDER A CEILING THE PREFERENCE INVERTS, and that is the whole reason the key exists. Without
                     // one the answer is the widest row that still gets the tops up, so the search returns on its
                     // first hit and every later, narrower arrangement is ignored. With one, a hit is not the answer
-                    // — a *shorter* hit may be further down the search — so the whole space is walked and the
-                    // shortest arrangement that still clears the interface is kept. Ties keep the first, the widest.
+                    // — a *better* hit may be further down the search — so the whole space is walked.
+                    //
+                    // **WHICH HIT IS BETTER IS `target_sub_height_m`, AND IT USED TO BE "THE SHORTEST".** That was a
+                    // tie-break standing in for a preference nobody had stated, and it parked the transition just over
+                    // 2.0 m wherever it could — legal, and never what anybody wanted, since the useful place for it is
+                    // the middle of the band. Now the arrangement nearest the target wins, which is bidirectional: an
+                    // arrangement 300 mm under the target loses to one 100 mm over it. Ties keep the first, the widest.
+                    //
+                    // **THE CEILING BINDS BEFORE THE TARGET DOES**, because a target is a preference between *legal*
+                    // arrangements and may never reach past the bound to pick an illegal one. Offered 1.5 m and 3.2 m
+                    // against a 3.0 m ceiling, plain distance takes the 3.2 m, which is not a rig at all.
+                    //
+                    // **Measured, and it is inert at the default target — deliberately kept anyway.** 2.5 m is the
+                    // midpoint of the 2–3 m band, so every legal arrangement is within 0.5 m of the aim and every
+                    // illegal one is further: distance alone already sorts them, and adding this changed not one scene
+                    // of the 148. It stops being redundant the moment somebody states a target off the midpoint —
+                    // `--target-sub-height=2.2` puts a 3.05 m arrangement nearer the aim than a 2.0 m one — which is
+                    // exactly when the option is used and exactly when nobody would be watching for this.
                     if ($stack->maxSubHeightM !== null) {
-                        if (self::reachesInterface($tiers, $stack) && $subs < $shortestCarriedSubs) {
-                            $shortestCarriedSubs = $subs;
-                            $shortestCarried = $tiers;
+                        $legal = $subs <= $stack->maxSubHeightM + self::EPSILON_M;
+                        // **When nothing is legal the aim is the ceiling, not the target**, and the two are different
+                        // answers: against a 1.0 m ceiling this inventory can build 1.363 m or 2.126 m, and 2.126 is
+                        // nearer 2.5 while 1.363 is nearer being a rig. Measured — the naive version reported a
+                        // 1126 mm miss where the honest answer misses by 363. A preference cannot be allowed to pick
+                        // the worse of two failures just because there is no success to choose between.
+                        $miss = $legal
+                            ? abs($subs - $stack->targetSubHeightM)
+                            : $subs - $stack->maxSubHeightM;
+                        $better = $legal === $closestCarriedLegal
+                            ? $miss < $closestCarriedMiss
+                            : $legal;
+
+                        if (self::reachesInterface($tiers, $stack) && $better) {
+                            $closestCarriedLegal = $legal;
+                            $closestCarriedMiss = $miss;
+                            $closestCarried = $tiers;
                         }
                     } elseif (self::reachesInterface($tiers, $stack)) {
                         return $tiers;
@@ -214,12 +245,12 @@ final class StackSolver
                 }
             }
         }
-        if ($shortestCarried !== []) {
-            return $shortestCarried;
+        if ($closestCarried !== []) {
+            return $closestCarried;
         }
         if ($tallestCarried !== []) {
             // Stands up but sits lower than asked for, which is a warning. Under a ceiling this is the arrangement
-            // that misses it — nothing cleared the interface, so there is no shortest-that-clears to prefer, and
+            // that misses it — nothing cleared the interface, so there is no legal arrangement to rank, and
             // {@see StackChecks::boundsProblems} names the miss rather than this silently picking a side.
             return $tallestCarried;
         }

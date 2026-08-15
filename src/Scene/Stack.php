@@ -56,6 +56,22 @@ final class Stack
     public const DEFAULT_INTERFACE_HEIGHT_M = 2.0;
 
     /**
+     * The sub/top transition this rig **aims at**, as opposed to the two bounds it has to stay between.
+     *
+     * **A bound says which arrangements are allowed and a target says which of them is best**, and until this existed
+     * the solver had no answer to the second question — so it took the *shortest* arrangement that cleared the
+     * interface, on the reasoning that a lower rig is a safer rig. That is a defensible tie-break and it is not what
+     * anybody wants: it parks the transition just over 2.0 m whenever it can, when the useful place for it is the
+     * middle of the band, where the tops clear a standing crowd with room to spare and the wall is still well under a
+     * truss.
+     *
+     * 2.5 m is the middle of the 2–3 m band and is stated by the owner of the gear. It is a *preference* and never a
+     * refusal: an arrangement is legal if it sits between {@see DEFAULT_INTERFACE_HEIGHT_M} and `max_sub_height_m`,
+     * and the target only decides which of the legal ones is returned.
+     */
+    public const DEFAULT_TARGET_SUB_HEIGHT_M = 2.5;
+
+    /**
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      * @param bool $mirror build this stack as the mirror image of how it solves, so one of a side-by-side pair
      *     reflects the other instead of duplicating it — see {@see Tier::flipped}
@@ -82,6 +98,7 @@ final class Stack
         public readonly StackShape $shape = StackShape::Free,
         public readonly MirrorStyle $mirrorStyle = MirrorStyle::Alternate,
         public readonly ?float $slideSlackM = null,
+        public readonly float $targetSubHeightM = self::DEFAULT_TARGET_SUB_HEIGHT_M,
     ) {
     }
 
@@ -89,7 +106,7 @@ final class Stack
     {
         $allowed = [
             'from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
-            'max_sub_height_m', 'shape', 'mirror_style',
+            'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style',
         ];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
@@ -115,6 +132,8 @@ final class Stack
             gapM: $reader->optionalFloat('gap_m', 0.0) ?? 0.0,
             mirror: $reader->optionalBool('mirror'),
             maxSubHeightM: $reader->optionalFloat('max_sub_height_m'),
+            targetSubHeightM: $reader->optionalFloat('target_sub_height_m', self::DEFAULT_TARGET_SUB_HEIGHT_M)
+                ?? self::DEFAULT_TARGET_SUB_HEIGHT_M,
             shape: self::shapeFrom($reader->optionalString('shape')),
             mirrorStyle: MirrorStyle::tryFrom($reader->optionalString('mirror_style') ?? MirrorStyle::Alternate->value)
                 ?? throw new InvalidSpecException(sprintf(
@@ -173,6 +192,7 @@ final class Stack
             'min_width_m' => $this->minWidthM,
             'max_height_m' => $this->maxHeightM,
             'max_sub_height_m' => $this->maxSubHeightM,
+            'target_sub_height_m' => $this->targetSubHeightM,
         ] as $key => $value) {
             if ($value !== null && $value <= 0.0) {
                 $messages[] = sprintf('stack.%s must be positive, got %s', $key, $value);

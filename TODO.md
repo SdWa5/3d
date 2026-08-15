@@ -8,14 +8,20 @@ settings, with priority on the configurations actually used in praxis as well as
 Not only enforce the subwoofer ceiling strictly (optimum 2–3 m) but improve the existing logic to reach it: **do not
 avoid generating a scene, ignore the ceiling, or use fewer speakers if there is any other possibility to solve it.**
 
-Where that stands: bare `scene:stack` writes **149 scenes of 804 candidates**, every stack's sub/top transition inside
-2–3 m, every refusal named. The 655 refusals are the work — grouped below by what actually causes them.
+Where that stands: bare `scene:stack` writes **148 scenes of 804 candidates**, every stack's sub/top transition inside
+2–3 m and **aimed at 2.5 m** rather than merely inside the band, every refusal named. The 656 refusals are the work —
+grouped below by what actually causes them.
 
 **Two axes landed in one day and took the sweep from 11 scenes to 149.** The orientation axis (0.77.0) is worth more than
 every other axis put together — 11 became 61, three-stack rigs are generated for the first time, and
 `stacked-all-2-turned-centred-stereo` stands **39 cabinets** where the upright rig of the same gear stands 38. The owner
 combinations (0.78.0) then took it to 149, and the surprise there is that the **borrowed-gear pairs beat every single
 owner**: `sdwa5-sepp` alone writes 50 scenes.
+
+**0.79.0 then aimed them.** `target_sub_height_m` defaults to 2.5 m and decides which of the arrangements that stand up
+comes back, where the solver used to keep the shortest one and park the transition just over 2.0 m. Same coverage —
+148 against 149, and the four differences are duplicates rather than losses — with the rigs sitting 0.189 m from the aim
+on average against 0.222 m.
 
 **The target is stated once, in SWP-1**, as a six-axis cross product. One value is still missing — a `V` shape — plus the
 `impossible` half of the last axis.
@@ -487,7 +493,7 @@ larger**: today's 655 refusals would become written scenes, where before them th
 duplicates rather than refusals** and would not be written, which still leaves 508 against `DEFAULT_MAX_SCENES = 200`. So
 CVR-5 is where the fuse has to be raised deliberately again, and by a lot.
 
-**267 of the 655 are one refusal**, worth knowing before building CVR-5: the tops would fire below head height, which is
+**258 of the 656 are one refusal**, worth knowing before building CVR-5: the tops would fire below head height, which is
 CVR-1's rig-too-small-for-a-2 m-wall. Painting cabinets red does not answer that one — there is nothing wrong with the
 rig, it is simply short — so CVR-1 and CVR-5 divide the refusals between them rather than competing for them.
 
@@ -542,11 +548,11 @@ missed is that the *pairs* are where the payoff is:
 | inventory | scenes |
 | --- | --- |
 | `sdwa5-sepp` | **50** |
-| `gmss-sdwa5` | 23 |
+| `gmss-sdwa5` | 25 |
+| `sdwa5` | 22 |
 | `gmss` | 21 |
-| `sdwa5` | 21 |
-| `all` | 19 |
-| `gmss-sepp` | 15 |
+| `all` | 17 |
+| `gmss-sepp` | 13 |
 | `sepp` | 0 |
 
 `sepp`'s eight cabinets cannot stand alone and are excellent *under* somebody else's tops, which is precisely the
@@ -612,7 +618,7 @@ but because the model has no way to raise tops other than stacking subs under th
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one | P1 | 6h | **267 refusals**, the largest single family in the sweep and 41 % of all of them. Every `sepp`-alone rig is one | — | open |
+| CVR-1 | **A top may stand on something that is not a cabinet** — riser, stand or fly point. A rig too small for a 2 m sub wall is a real rig, not an impossible one. **Deferred by the owner**: the answer to "what does a top stand on" was "aim the sub wall at 2.5 m instead", which shipped in 0.79.0 and took the family 267 → 258. The remaining 258 need gear that is not in the specs, so this waits on what we actually own | P2 | 6h | **258 refusals**, the largest single family in the sweep and 39 % of all of them. Every `sepp`-alone rig is one | decision | decision |
 | CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
 | CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes — pinned at floor, scale has no P4 | decision | decision |
 | CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P2 | 5h | up to 508 refusals become lookable-at, and the diagnosis stops being prose. Needs the fuse raised again | — | open |
@@ -661,11 +667,33 @@ that works" is the obvious companion output rather than a second mechanism.
 
 #### CVR-1 — tops that do not stand on the sub wall
 
-18 of the 132 candidates cannot get under 3 m on any stage in the ladder; **54 cannot fill a 2 m wall out of the
-cabinets they are given** — `sepp`'s eight cabinets cannot, however they are stacked. In reality you solve that with a
-riser or a pair of stands, and neither is modelled: support in the solver is always another cabinet. This is the gap,
-not the band. Related: SCN-1 wants the Tecnare tops flown from truss, which is the same missing concept from the other
-end, and INFO-1 is what the stands can actually reach.
+**258 of the 656 refusals are this one family**, the largest in the sweep: the rig cannot fill a 2 m wall out of the
+cabinets it is given, so the tops would fire below head height. `sepp`'s eight cabinets cannot reach it however they are
+stacked. In reality you solve that with a riser or a pair of stands, and neither is modelled: support in the solver is
+always another cabinet. This is the gap, not the band.
+
+**Put to the owner and answered "aim the sub wall at 2.5 m instead", which shipped as 0.79.0** and took the family from
+267 to 258. So the cheap half is done and the expensive half is deferred rather than dropped.
+
+**What it is blocked on is gear, not code.** Measured across the 258: the shortfalls run 60 mm to 1470 mm with a median
+of 818 mm, and a riser would cover them like this —
+
+| riser | covers |
+| --- | --- |
+| 200 mm | 30 |
+| 400 mm | 111 |
+| 600 mm | 117 |
+| 800 mm | 123 |
+| 1000 mm | 204 |
+| 1400 mm | 237 |
+| 1600 mm | 267 |
+
+A **stage deck is a property of the venue rather than gear we own**, so modelling it needs no spec invented and is the
+cheap option (ca. 4h) if it is wanted. A **speaker stand is gear**, and `specs/stands/` holds only the two Krause AH7
+scaffold towers — so height, weight and quantity would all have to be invented, which the spec rules forbid. Say what we
+own and it becomes buildable. **Flying** is the third answer and the most expensive: we own 2 `truss-tower-4m`, 2
+`gmss-tower-5m`, 5 `truss-f33-2m` and 1 `gmss-truss-9m`, SCN-1 wants the Tecnare tops flown, and INFO-1 records that the
+4 m towers cannot clear a combined rig.
 
 #### CVR-3 — `owner` is standing in for "system"
 

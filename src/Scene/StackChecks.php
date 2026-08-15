@@ -94,7 +94,7 @@ final class StackChecks
             );
         }
         // And the same number from the other side. A warning for the same reason its mirror is one: the solver
-        // already walks the whole search and keeps the shortest arrangement that stands up, so a miss here is not
+        // already walks the whole search and keeps the best arrangement that stands up, so a miss here is not
         // a mistake to refuse but the inventory's own floor — a stack holding six sub types cannot be shorter than
         // the rows those types need, however they are packed. Refusing would make the key unusable on exactly the
         // rigs it was added for, where knowing the miss and by how much is the useful answer.
@@ -103,12 +103,17 @@ final class StackChecks
         // itself, and a sub wing with no tops on it still has to fit under the truss.
         if ($stack->maxSubHeightM !== null && $subHeight > $stack->maxSubHeightM + self::EPSILON_M) {
             $warnings[] = sprintf(
+                // **"the nearest the target" rather than "the shortest"**, because that is what the solver now
+                // returns. Under a ceiling it keeps the arrangement closest to `target_sub_height_m` among those that
+                // stand up, so a message promising the shortest one would be describing a rule that no longer exists —
+                // and on a rig that misses the ceiling it would be describing it wrongly in the reader's favour.
                 'the subs reach %.3f m against the %.3f m ceiling asked for, so they stand %.0f mm too high — '
-                .'%.3f m is the shortest arrangement in which every tier is still carried',
+                .'%.3f m is the nearest the %.3f m target that every tier is still carried at',
                 $subHeight,
                 $stack->maxSubHeightM,
                 ($subHeight - $stack->maxSubHeightM) * 1000,
                 $subHeight,
+                $stack->targetSubHeightM,
             );
         }
         if ($stack->maxHeightM !== null && $totalHeight > $stack->maxHeightM + self::EPSILON_M) {

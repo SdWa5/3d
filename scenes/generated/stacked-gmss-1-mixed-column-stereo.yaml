@@ -11,16 +11,20 @@
 #
 # What it deals out today:
 #
-#   1  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
-#   2  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
-#   3  1× gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90°           2.82 m wide
-#   4  1× gmss-nuke rolled 270° + 1× gmss-mid-bass + 1× gmss-nuke rolled 90°     2.78 m wide
+#   1  2× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.74 m wide
+#   2  1× gmss-iq-sub rolled 270° + 1× gmss-wall-bass rolled 90° + 1× gmss-iq-sub rolled 90°     2.78 m wide
+#   3  1× gmss-nuke rolled 270° + 1× gmss-wall-bass rolled 90° + 1× gmss-nuke rolled 90°     2.98 m wide
+#   4  1× gmss-mid-bass                                                           1.2 m wide
 #   5  1× gmss-turbo-top + 1× gmss-turbo-top + 1× gmss-turbo-top               1.39 m wide
 #
-# Subs reach 2.31 m against a 2.0 m interface. The stack is 3.02 m of cabinet.
+# Subs reach 2.35 m against a 2.0 m interface. The stack is 3.06 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90° row is 2.820 m on a 2.050 m row, so it
-#     overhangs 385 mm each side
+#   * the 1× gmss-iq-sub rolled 270° + 1× gmss-wall-bass rolled 90° + 1× gmss-iq-sub rolled 90° row is 2.780 m
+#     on a 2.740 m row, so it overhangs 20 mm each side
+#   * the 1× gmss-nuke rolled 270° + 1× gmss-wall-bass rolled 90° + 1× gmss-nuke rolled 90° row is 2.980 m on a
+#     2.780 m row, so it overhangs 100 mm each side
+#   * the 1× gmss-turbo-top + 1× gmss-turbo-top + 1× gmss-turbo-top row is 1.390 m on a 1.200 m row, so it
+#     overhangs 95 mm each side
 #
 id: stacked-gmss-1-mixed-column-stereo
 name: "Solved rig — one stack, tiers split left and right"

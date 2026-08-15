@@ -169,8 +169,13 @@ final class SceneStackCommandTest extends TestCase
      *
      * The two answer opposite questions — the pyramid orders the fill for row *width* so the wall tapers and comes
      * out shorter, `free` keeps the deepest and heaviest cabinets on the floor and accepts a wall that widens as it
-     * rises. On the GMSS cabinets that is 2.070 m against 3.240 for the same twelve boxes, which is worth being able
+     * rises. On the GMSS cabinets that is 2.570 m against 3.240 for the same twelve boxes, which is worth being able
      * to look at both ways round.
+     *
+     * **Asserted on which type is on the floor, not on how many of it.** The pyramid's bottom row was six IQ subs and
+     * is now four, because `target_sub_height_m` prefers the arrangement nearer 2.5 m and the other two join the wall
+     * basses a row up. That is the aim working and the shape unchanged, so pinning the count would make this test fail
+     * on every future change to what the solver prefers — which is not what it is about.
      */
     public function testBothShapesAreWrittenAndThePyramidKeepsThePlainId(): void
     {
@@ -179,16 +184,19 @@ final class SceneStackCommandTest extends TestCase
             // 3.5 m, not the 3.0 m default: `free` comes out at 3.240 m here and the band would refuse it, and the
             // subject of this test is the two fill orders rather than which of them meets a ceiling.
             '--max-width' => '3.80', '--interface-height' => '0', '--max-sub-height' => '3.5',
-            '--align' => ['center'], '--dry-run' => true,
+            // One orientation, so the two scenes below are the two shapes rather than the shapes times the orientations.
+            '--align' => ['center'], '--orientation' => ['upright'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('id: stacked-center', $display);
         self::assertStringContainsString('id: stacked-free-center', $display);
 
-        // The pyramid puts the six IQ subs on the floor for a 3.28 m base; `free` puts the two wall basses there,
-        // which is 1.34 m and two rows more of stack.
-        self::assertStringContainsString('6× gmss-iq-sub', $display);
-        self::assertStringContainsString('2× gmss-wall-bass', $display);
+        // The pyramid puts the IQ subs on the floor, which is the widest row they can make; `free` puts the two wall
+        // basses there, which is 1.34 m and two rows more of stack.
+        preg_match_all('/^#\s+1\s+(\S.*?)\s{2,}[\d.]+ m wide$/m', $display, $bottomRows);
+        self::assertCount(2, $bottomRows[1], 'one bottom row per shape');
+        self::assertStringContainsString('gmss-iq-sub', $bottomRows[1][0], 'the pyramid stands on the IQ subs');
+        self::assertStringContainsString('gmss-wall-bass', $bottomRows[1][1], 'and free on the wall basses');
     }
 
     /**
