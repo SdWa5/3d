@@ -15,6 +15,7 @@ require dirname(__DIR__).'/vendor/autoload.php';
 use App\Command\BuildAllCommand;
 use App\Command\CatalogCommand;
 use App\Command\LibraryBuildCommand;
+use App\Command\LoadPlanCommand;
 use App\Command\ModelsBuildCommand;
 use App\Command\SceneBuildCommand;
 use App\Command\SceneStackCommand;
@@ -31,6 +32,7 @@ $app->addCommands([
         new SceneBuildCommand(),
         new SceneRenderCommand(),
         new CatalogCommand(),
+        new LoadPlanCommand(),
         new BuildAllCommand(),
 ]);
 $app->run();

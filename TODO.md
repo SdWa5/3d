@@ -74,36 +74,40 @@ Settled with the owner, so a new session can act on it without re-deriving it:
 **GEO-12, GEO-11's stack-local half, TOOL-6, TOOL-7 and TOOL-8 are done**, which is why the list now starts where it
 does. TOOL-7 left a narrow remainder, filed as TOOL-15.
 
-1. **LOAD-3 and LOAD-4**, the pack and its two verdicts. The transporter half landed in 0.86.0, so the schema, both
-   vehicle specs and the fleet reporting are in and this group is the only one whose output somebody needs on the day.
-   **Read the numbers before writing the heuristic**: GMSS does not travel in these vans, which leaves 2238.5 kg in
-   20.490 m³ against 2224 kg of payload and about 29.2 m³ of bay. Weight binds by 14.5 kg and volume has 30 % of
-   headroom, so the ordering is heaviest-first with weight as the refusal.
+1. **LOAD-2's remainder, and it is the owner's to do rather than mine.** The whole LOAD group is code-complete —
+   the schema and both vehicle specs landed in 0.86.0, `load:plan` and its two verdicts in 0.87.0 — and the answer it
+   gives is **20.6 kg short of one trip**, with Sepp's van at 112 % of its bay. Every one of those figures rests on
+   estimates: not a single weight in the library has been on a scale, and half the fleet payload is Sepp's assumed
+   1200 kg. Two measurements move it from a guess to an answer, and neither is a keyboard job.
 
-   **What actually blocks it is paperwork, not code.** Half that payload is Sepp's assumed 1200 kg, so a 14.5 kg
-   deficit is inside the error bar of its own input and the answer flips between one trip and two on two fields of a
-   registration document nobody has read. **LOAD-2's remainder comes first**, and it is the owner's to do.
-2. **TOOL-10**, the staleness check the regenerate stage has never had. 1h 30m against a **measured 6m40s off every
-   build**, the same shape as three checks `Staleness` already serves, and the cheapest thing in the file by a
-   distance. It is now the largest remaining runtime saving, because 0.85.0's parallelism made the stage quick and
-   left it doing all of its work: **a stage that skips beats a stage that is fast**. Then **TOOL-11**, which is the
-   same argument one stage later. The rest of the runtime cluster is speculative until somebody runs this on a
-   machine with four cores.
-3. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
+   * **Fields F.2 and G off Sepp's Zulassungsbescheinigung.** They decide whether the deficit is real at all.
+   * **A tape measure inside both bays.** Length at the floor, width between the walls and between the arches,
+     height under the roof and through the rear door aperture, and anything bolted in. The Movano's bay is currently
+     estimated and Sepp's is a guess about a van nobody has opened.
+
+   Until then `load:plan --exclude-owner=gmss` is a planning aid, which is what it calls itself.
+
+   **The runtime cluster came off this list entirely, and it is worth saying why.** TOOL-10 was ranked second on a
+   measured 6m40s. The stage now takes **34 s**, because 0.85.0 forked the very thing TOOL-10 was going to teach to
+   skip, so it is 1h 30m of work for half a minute and drops to P3 with the rest of them. The lesson is the ranking
+   rather than the item: **a priority argued from a measurement expires when the measurement does**, and this one
+   expired inside a single release.
+2. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
    the rest of the refusals from sentences that scroll away into rigs somebody can look at. Read its three unsettled
    sub-questions first. **The fuse is at 600 and the sweep is at 483**, up from 450 in 0.84.0, so the headroom is 117
    candidates and shrinking. CVR-5 turns refusals into written scenes, so it is the item most likely to blow the fuse,
    and the fuse refuses outright rather than truncating.
-4. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
+3. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
    cabinets need *is* a gapped row, so the search that landed already does half of it.
-5. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
-   above rather than before them — and after TOOL-10, which is what makes a tripled sweep bearable.
-6. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
+4. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
+   above rather than before them. It no longer waits on TOOL-10: a tripled sweep is bearable because the sweep is
+   forked, not because the regenerate stage learned to skip.
+5. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
    enable/disable surface worth building.
-7. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
+6. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
    SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
    169 mm cost on the tightest tops row is measured.
-8. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
+7. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
    stack-local half shipped in 0.83.0 and unblocked GEO-9 and GEO-4 as far as it can; what is left needs the front face
    and the solve to stop depending on each other.
 
@@ -1097,8 +1101,8 @@ now exist, and whose answer is currently a statement about two estimates rather 
 |----|------|------|--------|------|-------|-------|
 | LOAD-1 | Where a **vehicle** belongs in the schema. **Done in 0.86.0**: a real `vehicle` category with `van`/`trailer`, a validated `vehicle:` block for the permitted gross and the load bay, the payload derived as `F.2 − G` rather than stored, and `Category::producesAModel()` so a van is never built into geometry or shelved in the asset library | — | — | LOAD-3 and LOAD-4, which could not start without it | — | done |
 | LOAD-2 | Specs for the **two transporters**, both in `specs/vehicles/` since 0.86.0. **Stefan's is documented** off the Zulassungsbescheinigung: Opel Movano L4H3, 6.848 × 2.070 × 2.808 m, 2476 kg in service against 3500 kg permitted, so **1024 kg of payload**. **Sepp's is a placeholder that says so in capitals** — an ex-Deutsche-Post L3H2, probably a Peugeot, built 2014, with both masses assumed rather than read. What is left is the tape measure inside both bays and **fields F.2 and G off Sepp's papers**, which is the pair that decides one trip against two | P1 | 1h | the difference between a load plan and a guess, since half the fleet payload is currently assumed | — | needs the owner |
-| LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both — this is bin packing, so a named heuristic rather than an implied optimal solver | P1 | 6h | a load plan, which nothing produces today | LOAD-1, LOAD-2 | open |
-| LOAD-4 | **Report space and weight separately** — a pack can fit the bay and still be overloaded, and a payload overrun is a legal problem rather than an inconvenience | P1 | 2h | — | LOAD-3 | open |
+| LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both. **Done in 0.87.0** as `load:plan`: heaviest unit first, payload as a hard refusal, bins scored by the worse of their weight and volume fills, and a device split across vans only when no van can take the lot. Not a 3D packer and it says so — the inputs for one do not exist. **The answer on our own gear is that it does not fit**, 20.6 kg left behind | — | — | a load plan, which nothing produced before | — | done |
+| LOAD-4 | **Report space and weight separately**. **Done in 0.87.0**: two verdicts per vehicle with the numbers behind each, an overrun exiting `OVERLOADED` rather than warning, space stated as a lower bound that can refuse but never permit, and the provenance of every figure printed beside the verdict — including `UNDECIDED` where the margin is inside the error of its own inputs, which is where both vehicles land today | — | — | — | — | done |
 
 #### LOAD-1 — a vehicle is not a speaker
 
@@ -1361,7 +1365,7 @@ until somebody runs this on a small machine.
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | TOOL-15 | **A scene the sweep collapses as a duplicate survives the replay**, which is what is left of TOOL-7 after 0.84.0 closed the rest of it. Dedup is a decision across the whole sweep — "the same rig as X" — and a replay is one file with nothing to compare against, so it rebuilds itself happily. **Measured: 6 of 489**, all six confirmed duplicates of a sibling that is also on disk, deleted by hand. Narrow and cosmetic next to what it was: nothing is lost, the rig exists under the other name, and the pipeline no longer aborts. The honest fix is the one TOOL-7 named, which is running the sweep as the stage instead of replaying files | P3 | 3h | a tree that matches a fresh `--force` sweep without `comm` and `rm` | — | measured |
-| TOOL-10 | **`build:all`'s regenerate stage is the one stage with no staleness check**, and its own comment boasts that every stage skips what is already current. It replays all 483 recorded commands unconditionally, **measured at 6m40s**, when a generated scene can only change if a spec or the solver did — both ordinary mtime inputs, and exactly the shape of the three checks `Staleness` already serves. Simple and the biggest single saving in the pipeline | P1 | 1h 30m | 6m40s off every build where nothing changed | — | measured |
+| TOOL-10 | **`build:all`'s regenerate stage is the one stage with no staleness check**, and its own comment boasts that every stage skips what is already current. It replays all 483 recorded commands unconditionally, when a generated scene can only change if a spec or the solver did — both ordinary mtime inputs, and exactly the shape of the three checks `Staleness` already serves. **Re-measured after 0.85.0 and demoted on the number: the stage is 34 s, not the 6m40s it was ranked on.** 1h 30m of work for 34 s is no longer the cheapest thing in the file, and it was only ever cheapest because the stage was slow | P3 | 1h 30m | 34 s off every build where nothing changed | — | measured |
 | TOOL-11 | **`scene:render` compiles the whole scene again**, rather than reading anything `scene:build` produced from the identical inventory a moment earlier. `build/plans/` holds `_library.json`, per-model plans and `_render-*.json`, but no compiled-scene plan a later stage reads back — so the natural place for the answer exists and is unused. Re-solving *from the file* is a stated design choice and this does not touch it: the specs demonstrably have not changed between two stages of one build | P1 | 2h 30m | one solve per scene per build instead of two, on every render pass | — | open |
 | TOOL-12 | **`scene:stack` compiles each candidate twice**: once in the solve's seating check and again in `compileYaml()` immediately after. The two are not the same check — one judges a stack in isolation mid-search, the other judges the finished file and also catches a scene that will not parse — so this is a reuse question rather than a deletion | P2 | 1h 30m | unmeasured, and it is on the hot path of a 20-minute sweep | — | open |
 | TOOL-13 | **The seating check's memo lives for one solve.** Across a 483-scene sweep every solve rebuilds it from empty, and identical arrangements recur across rigs that share cabinets. Worth a shared cache only once its hit rate across rigs is measured, because the key is a whole arrangement and most of them are unique | P3 | 1h | unmeasured, and possibly nothing | — | open |

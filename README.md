@@ -104,6 +104,13 @@ Sepp's van is described rather than documented and its file says so in capitals.
 as a fleet beside the library and keeps them out of the weight and volume totals, because a van is the container and
 never the load.
 
+**And the fleet does not carry the library.** `bin/console load:plan --exclude-owner=gmss` assigns every cabinet to a
+van and reports the two verdicts separately, and today it comes back **20.6 kg short**: 2238.5 kg of gear against
+2224 kg of combined payload is infeasible before any assignment is made. It also puts Sepp's van at 112 % of its bay
+against the Movano's 33 %, which is structural — twelve Flexys are 1020 kg of a 2224 kg payload, so wherever they go
+that van is full by weight and everything else has to fit in the other one. Both halves of that comparison are
+estimates and the report says which ([docs/load.md](docs/load.md)).
+
 ## Commands
 
 | Command          | Does                                                                                                                             |
@@ -116,6 +123,7 @@ never the load.
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them. Quality is Full HD at 128 samples, with `--quick-preview` (960×540/16) and `--high-quality` (4K/384) either side; an explicit `--samples`/`--resolution` wins over both. Redraws when an input moves **or** when the settings differ from the ones recorded in `build/renders/built-with.json` |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
 | `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. Every stage skips what is already current; `--force` rebuilds anyway. `--dry-run` lists the stages. It also **deletes generated scene files the sweep no longer writes** — a replay renames rather than replaces, so a renamed axis leaves the old file behind — and `--keep-stale` switches that off. The regenerate stage replays across every core, `--jobs=1` for one. Renders **one** picture per scene; `--every-variant` asks for all four lighting presets in both aim modes, a folder each, and `--lighting=X` or `--aim-lines=X` picks one out |
+| `load:plan`      | Assigns the gear across the transporters and reports weight and space as **two** verdicts. A payload overrun exits non-zero, since it is a legal problem rather than an inconvenience; a bounding-box volume over the bay is stated as evidence, and under it is never a permission. `--exclude-owner=gmss` is the invocation this collective uses ([docs/load.md](docs/load.md)) |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. Transporters are reported separately as a fleet, with payload and bay volume each, and are kept out of the library's weight and volume totals. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device
@@ -132,6 +140,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 
 ```
 specs/          one YAML file per device — speakers/, truss/, lighting/, stands/, racks/, vehicles/
+src/Load/       the pack: which unit rides in which van, and the two verdicts on it
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/

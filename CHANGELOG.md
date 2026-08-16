@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.87.0] - 2026-08-16
+
+### Added
+
+- **`load:plan`, and the answer is that the fleet does not carry the library.** It assigns every unit to a
+  transporter, heaviest first, with the payload as a hard refusal, and reports weight and space as **two** verdicts.
+  On our own gear with GMSS excluded it comes back **20.6 kg short**: 2238.5 kg against 2224 kg of combined payload
+  is infeasible before any assignment is made, so no ordering carries it. Leaving the remainder visible is the whole
+  point — a heuristic that hid it to look successful would be worse than useless
+- **A payload overrun exits `OVERLOADED` (2), not `FAILURE`.** It is a fine, a liability question after an accident
+  and a refused insurance claim, so it can never be a warning somebody scrolls past; it is also not a broken
+  command, and a script wants to tell "the fleet is too small" from "this crashed". The same argument
+  `scene:stack` makes for `NOTHING_TO_WRITE`
+- **Space is reported as a lower bound and never as a permission.** A bay already exceeded by bounding boxes is
+  evidence the load will not go in; a bay 60 % accounted for is not a pass, because boxes do not tessellate and a
+  horn mouth is not a brick. A bay nobody has measured gets no space answer at all
+- **The provenance of the verdict, printed with the verdict.** No weight in this library has been on a scale and
+  half the fleet payload is Sepp's assumed 1200 kg, so a margin inside that uncertainty is reported `UNDECIDED`
+  rather than passed. Today both vehicles land there, at 2.1 kg and 4.0 kg of margin
+- `App\Load\LoadPlanner`, `LoadPlan` and `LoadReport`; `tests/Load/LoadPlannerTest.php` and
+  `tests/Command/LoadPlanCommandTest.php`; [`docs/load.md`](docs/load.md)
+
+### Fixed
+
+- **A bin scored on weight alone produces plans that are legal and unloadable**, found by running the planner rather
+  than by reasoning about it. 30 % of volume headroom *across a fleet* says nothing about either vehicle. Bins are
+  now scored by the worse of their two fills, which is the standard vector-bin-packing move. **It changes nothing on
+  our own fleet** — twelve Flexys are 1020 kg of a 2224 kg payload, so wherever they go that van is full by weight —
+  and the first version of the test that was meant to prove it used two vans of equal payload and passed under both
+  scorings. Replaced with one that fails under weight-only scoring, verified against a patched copy
+
+### Known
+
+- **Sepp's van comes out at 112 % of its bay against the Movano's 33 %**, and no ordering fixes it for the reason
+  above. What would fix it is a real answer about space, which needs a tape measure inside both bays
+- The plan is a bounding-box assignment, so it does not yet know that heavy goes low, that the Movano's wheel arches
+  narrow its floor from 1.765 m to 1.380 m, that racks roll and cabinets do not, or that a cabinet has to fit
+  through the doors
+
 ## [0.86.0] - 2026-08-16
 
 ### Added
