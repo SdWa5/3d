@@ -50,6 +50,15 @@ final class CatalogCommand extends BaseCommand
         foreach ($summary['by_category'] as $category => $count) {
             $lines[] = sprintf('%-13s %d units', ucfirst($category).':', $count);
         }
+        foreach ($summary['fleet'] as $vehicle) {
+            $lines[] = sprintf(
+                'Vehicle %s (%s): %.1f kg payload%s',
+                $vehicle['id'],
+                $vehicle['owner'],
+                $vehicle['payload_kg'],
+                $vehicle['bay_m3'] === null ? ', bay not measured' : sprintf(', %.2f m³ bay', $vehicle['bay_m3']),
+            );
+        }
         foreach ($summary['by_owner'] as $owner => $totals) {
             $lines[] = sprintf('%-13s %d units, %.1f kg', 'owner '.$owner.':', $totals['units'], $totals['weight_kg']);
         }

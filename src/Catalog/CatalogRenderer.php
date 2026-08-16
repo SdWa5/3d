@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Catalog;
 
+use App\Spec\Category;
 use App\Spec\DeviceSpec;
 use App\Spec\Provenance;
 
@@ -51,9 +52,15 @@ final class CatalogRenderer
     }
 
     /**
+     * **Every weight and volume here is what has to be CARRIED**, so the transporters are excluded from them and
+     * reported separately as `fleet`. See the note in the loop: counting two vans as gear takes the library from
+     * 3493.7 kg to 8269.7, and `owner sdwa5` from 1856.5 kg to 4332.5 — which is precisely the figure somebody would
+     * hold up against a 1024 kg payload to decide what goes in one load.
+     *
      * @param list<DeviceSpec> $specs
      * @return array{
      *     devices: int,
+     *     fleet: list<array{id: string, owner: string, payload_kg: float, bay_m3: float|null}>,
      *     units: int,
      *     total_weight_kg: float,
      *     total_volume_m3: float,
@@ -75,18 +82,43 @@ final class CatalogRenderer
         $unmeasuredIds = [];
         $dimensionsUnmeasured = [];
         $weightUnmeasured = [];
+        $fleet = [];
 
         foreach ($specs as $spec) {
-            $units += $spec->quantity;
-            $weight += $spec->totalWeightKg();
-            $volume += $spec->dimensions->volumeM3() * $spec->quantity;
             $byCategory[$spec->category->value] = ($byCategory[$spec->category->value] ?? 0) + $spec->quantity;
 
-            $owner = $byOwner[$spec->owner] ?? ['units' => 0, 'weight_kg' => 0.0];
-            $byOwner[$spec->owner] = [
-                'units' => $owner['units'] + $spec->quantity,
-                'weight_kg' => $owner['weight_kg'] + $spec->totalWeightKg(),
-            ];
+            // **A VEHICLE IS THE CONTAINER, NEVER THE LOAD**, and counting it as gear breaks the one comparison this
+            // whole summary exists to support. Adding two vans took the library from 3493.7 kg to 8269.7 and from
+            // 26.586 m³ to 97.401 — and `owner sdwa5` from 1856.5 kg to 4332.5, which is exactly the figure somebody
+            // would hold up against a 1024 kg payload. It is still counted in `by_category`, because "we own two
+            // vans" is true and useful; what it may not join is a weight or a volume that means "what has to be
+            // carried".
+            if ($spec->category === Category::Vehicle) {
+                $fleet[] = [
+                    'id' => $spec->id,
+                    'owner' => $spec->owner,
+                    // Derived rather than stored, so it cannot drift from the two masses it comes out of.
+                    'payload_kg' => $spec->vehicle?->payloadKg($spec->weightKg) ?? 0.0,
+                    'bay_m3' => $spec->vehicle?->loadBayVolumeM3(),
+                ];
+            } else {
+                $units += $spec->quantity;
+                $weight += $spec->totalWeightKg();
+                $volume += $spec->dimensions->volumeM3() * $spec->quantity;
+
+                $owner = $byOwner[$spec->owner] ?? ['units' => 0, 'weight_kg' => 0.0];
+                $byOwner[$spec->owner] = [
+                    'units' => $owner['units'] + $spec->quantity,
+                    'weight_kg' => $owner['weight_kg'] + $spec->totalWeightKg(),
+                ];
+            }
+
+            // **THE PROVENANCE TALLY COUNTS VEHICLES AND THE WEIGHT TOTALS DO NOT**, which is the distinction this
+            // `else` exists to draw. A van is not cargo, so it may not join a weight; it is very much a thing nobody
+            // has measured, so it must join the count of things nobody has measured — and LOAD-2 is literally the
+            // job of going and measuring it. Skipping the whole iteration got this wrong in the obvious direction:
+            // the report read `2 of 20 measured` with an open list of 18, so the two least-measured devices in the
+            // library counted as done.
 
             if (!$spec->provenance->isFullyMeasured()) {
                 $unmeasuredIds[] = $spec->id;
@@ -103,6 +135,7 @@ final class CatalogRenderer
 
         return [
             'devices' => count($specs),
+            'fleet' => $fleet,
             'units' => $units,
             'total_weight_kg' => $weight,
             'total_volume_m3' => $volume,
@@ -159,6 +192,20 @@ final class CatalogRenderer
                 $owner,
                 $totals['units'],
                 $this->formatNumber($totals['weight_kg']),
+            );
+        }
+        // **The payload beside the load it has to carry**, which is the one comparison the totals above cannot make
+        // on their own. 3493.7 kg of gear against 1024 kg of Movano is three and a half loads, and that is the sort
+        // of thing somebody should read off the catalog rather than work out.
+        foreach ($summary['fleet'] as $vehicle) {
+            $lines[] = sprintf(
+                '- Vehicle %s (%s): %s kg payload%s',
+                $vehicle['id'],
+                $vehicle['owner'],
+                $this->formatNumber($vehicle['payload_kg']),
+                $vehicle['bay_m3'] === null
+                    ? ', load bay not measured'
+                    : sprintf(', %s m³ bay', $this->formatNumber($vehicle['bay_m3'], 2)),
             );
         }
         $lines[] = sprintf(

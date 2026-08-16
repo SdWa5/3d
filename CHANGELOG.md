@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.86.0] - 2026-08-16
+
+### Added
+
+- **A transporter is a device now, so the library knows what it has to be carried in.** `Category::Vehicle` with the
+  subtypes `van` and `trailer`, and a validated `vehicle:` block holding the permitted gross mass and, optionally, the
+  load bay. **The payload is derived rather than stored**, as `F.2 − G` off the Zulassungsbescheinigung, so it cannot
+  drift from the two masses it comes out of and every figure in the file still cites a numbered field. Stated by the
+  owner: a transporter belongs in `specs/`
+- **`specs/vehicles/opel-movano-l4h3.yaml`, off its registration document.** 6.848 × 2.070 × 2.808 m outside,
+  2476 kg in service against 3500 kg permitted, so **1024 kg of payload with the driver already counted**, since field
+  G includes 75 kg by EU definition. The bay is estimated at 4.383 × 1.765 × 2.048 m with 1.380 m between the wheel
+  arches, on the owner's instruction to estimate rather than wait for a tape measure. **No VIN, no plate and no
+  address**, none of which is a packing input
+- **`specs/vehicles/sepp-transporter-l3h2.yaml`, and it says in capitals that it is a guess.** An ex-Deutsche-Post
+  L3H2, probably a Peugeot, built 2014, with every number estimated and both masses assumed rather than read. It is in
+  the repository so the fleet has two bins rather than one, and it must not be planned against
+- **`Category::producesAModel()`, the first category that answers no.** A van is what the picture's contents are driven
+  to the gig in, never a thing placed in one, so `models:build` and `library:build` skip it. Without this Blender is
+  handed a 6.8 m white box that would be the largest object in every render it appeared in
+- **The catalog reports a `fleet` beside the library.** Payload and bay volume per vehicle, so the one comparison that
+  matters can be read off `bin/console catalog` instead of worked out
+- `tests/Spec/VehicleTest.php` — 8 tests over the payload arithmetic, the refusals, and the two real specs read out of
+  `specs/` rather than out of a fixture
+
+### Fixed
+
+- **A vehicle counted as cargo and it broke the only comparison the totals exist to support.** Two vans took the
+  library from 3493.7 kg to 8269.7 and `owner sdwa5` from 1856.5 kg to 4332.5, which is exactly the figure somebody
+  would hold up against a 1024 kg payload. Vehicles are now out of the weight, volume and per-owner totals. **They stay
+  in the provenance tally**, because a van is very much a thing nobody has measured and skipping the whole iteration
+  reported `2 of 20 measured` with the two least-measured devices in the library counted as done
+
+### Known
+
+- **The load is 14.5 kg heavier than the fleet can legally carry, and both halves of that comparison are estimates.**
+  GMSS gear does not travel in these two vans, stated by the owner, which leaves 2238.5 kg in 20.490 m³ against
+  2224 kg of payload and about 29.2 m³ of bay. Half the payload is Sepp's assumed 1200 kg, so the deficit is inside
+  the error bar of its own input. Fields F.2 and G off his papers decide one trip against two, and LOAD-3 waits on
+  them rather than on code
+
 ## [0.85.0] - 2026-08-16
 
 Runtime. **Stated by the owner: kill the running suite and make the thing fast**, with the lighting sweep named as

@@ -1,0 +1,107 @@
+# Stefan's transporter — Opel Movano B (X62), Kastenwagen L4H3, first registered 25.04.2016.
+#
+# THE MASSES AND THE OUTER BOX COME OFF THE ZULASSUNGSBESCHEINIGUNG, both parts of which the owner supplied on
+# 2026-08-16. That is the highest provenance any vehicle figure can have: each one is a numbered field on a document
+# rather than a catalogue row for a trim level somebody guessed at.
+#
+#   field 18   length                6848 mm
+#   field 19   width                 2070 mm    body only, mirrors not included
+#   field 20   height           2792-2808 mm    stated as a range; the upper end is the bounding box
+#   field G    mass in service       2476 kg    includes the 75 kg driver, by EU definition
+#   field F.2  permitted gross       3500 kg    F.1, technically permitted, is the same number
+#   fields 7.1/7.2  axle loads   1850 / 2300 kg
+#   fields O.1/O.2  towing        2500 / 750 kg braked / unbraked
+#   field S.1  seats                        3
+#
+# PAYLOAD IS 1024 kg AND IS NOT STORED ANYWHERE. It is `F.2 − G`, worked out by Vehicle::payloadKg(), because both
+# halves cite a document field and their difference cites nothing. The driver is already inside the 2476, so a
+# second person aboard comes straight off the 1024.
+#
+# WHICH GENERATION THIS IS, and it matters more than it looks. 2016 Movano is the Renault Master-based Movano B, not
+# the Stellantis Boxer-based Movano C of 2021 onwards. The two share a name and nothing else: Movano C L4 is 6363 mm
+# where field 18 here says 6848, which is Master L4 exactly. Every load bay figure below would be wrong by a third of
+# a metre if the newer catalogue were used. The owner puts the build year at 2014; both 2014 and 2016 are Movano B
+# and the bay is identical, so it changes no number here. The registration date is what the document states.
+#
+# THE LOAD BAY IS ESTIMATED AND THE OWNER ASKED FOR IT THAT WAY. No registration document states the inside of a van,
+# so these are manufacturer figures for the body and they describe a bare shell. A tape measure replaces them, and
+# until it does they know nothing about ply lining, a bulkhead, load rails or a shelf.
+#
+# THE REAR-WHEEL-DRIVE BAY, DELIBERATELY. The L4 body is not offered front-wheel drive, and the RWD floor sits
+# higher, so the H3 bay is 2048 mm and not the 2144 mm an FWD H3 gets. The document agrees with the drivetrain:
+# 1850 kg on the front axle against 2300 kg on the rear. Taking the front-wheel-drive row would have invented 96 mm
+# of headroom that is not there.
+#
+# 1380 mm BETWEEN THE ARCHES IS THE NUMBER THAT DECIDES THINGS, 385 mm under the bay's own width. Anything lying flat
+# on the floor gets 1380, not 1765.
+#
+# NOTHING IDENTIFYING IS RECORDED HERE. The VIN, the registration plate and the owner's home address are all on the
+# document and none of them is a packing input.
+#
+# See docs/sources.md.
+id: opel-movano-l4h3
+name: "Opel Movano L4H3 — Stefan's transporter"
+category: vehicle
+subtype: van
+quantity: 1
+owner: sdwa5
+build: original
+
+provenance:
+  # `datasheet` for the weight: the Zulassungsbescheinigung is a published figure for THIS vehicle rather than for a
+  # trim level, so it is at least as good as a datasheet and the enum has no better word.
+  #
+  # `estimated` for the dimensions even though the outer box is off the same document, because one value has to
+  # cover both boxes and the LOAD BAY is the estimated half. The bay is the number a packer reads, so the weaker of
+  # the two is the honest one to publish. It becomes `measured` when somebody takes a tape measure to the inside.
+  dimensions: estimated
+  weight: datasheet
+
+geometry:
+  shape: box
+  # Depth is the fore-aft axis, so the vehicle's 6.848 m length is its depth. Height takes the upper end of the
+  # 2792-2808 mm the document states, because a bounding box takes the larger.
+  dimensions_m: { width: 2.070, height: 2.808, depth: 6.848 }
+  origin: bottom-center
+  chamfer_m: 0.02
+
+appearance:
+  # Field R of Zulassungsbescheinigung Teil II: WEISS.
+  color: "#e8e8e8"
+
+physical:
+  # Zulassungsbescheinigung field G, mass of the vehicle in service. Includes the 75 kg driver.
+  weight_kg: 2476.0
+  handles: [ ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+vehicle:
+  # Field F.2, the legally binding permitted gross mass. Payload is derived from this and physical.weight_kg.
+  permitted_gross_kg: 3500.0
+  load_bay_m:
+    # ESTIMATED, manufacturer figures for the Master/Movano L4H3 rear-wheel-drive body. `depth` is the trade's
+    # Ladelänge; the bay lies along the vehicle's own axes, so its long dimension is the vehicle's depth.
+    width: 1.765
+    height: 2.048
+    depth: 4.383
+    # The floor between the wheel boxes, which is what actually decides whether something lies flat.
+    width_between_arches: 1.380
+
+notes: |
+  Payload 1024 kg, against 3493.7 kg for the whole library and 1856.5 kg for what sdwa5 itself owns. So one Movano
+  is 1.8 loads of the collective's own gear and 3.4 loads of everything, and the packer's question was never whether
+  it fits but which subset goes in which load.
+
+  BAY VOLUME 15.8 m³ by the manufacturer's own figure, against 15.5 m³ from multiplying the three numbers above.
+  Neither is a fit test. The catalog's 26.586 m³ library total is a sum of bounding boxes and is a lower bound on the
+  space needed, so a load that looks like it fits on volume alone very often does not.
+
+  WHAT THE TAPE MEASURE STILL HAS TO SETTLE: the four bay dimensions against the real vehicle, the rear door
+  aperture, which no catalogue row here covers and which is usually the binding gate for a tall cabinet, and
+  whether anything is fixed in the bay that never comes out.
+
+  NOT MODELLED. This spec exists to be packed into rather than placed in a scene, and no `.glb` of a van is wanted.
+  The box is the outer envelope and nothing about the shape is meant to be looked at.

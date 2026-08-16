@@ -96,19 +96,27 @@ place every device in the repository stands in one picture — 55 cabinets, 3237
 the lights hung, both scaffold towers and all three racks
 ([docs/scenes.md](docs/scenes.md#all-speakers-owner-ignored)).
 
+**And two of the specs are not gear at all.** [`specs/vehicles/`](specs/vehicles) holds the transporters the rig is
+driven to the gig in, which is the one category that is never modelled and never placed in a scene. The Movano's
+figures are off its registration document, so the number the whole load side turns on is documented rather than
+guessed: **1024 kg of payload**, derived as permitted gross minus mass in service with the driver already counted.
+Sepp's van is described rather than documented and its file says so in capitals. `bin/console catalog` reports both
+as a fleet beside the library and keeps them out of the weight and volume totals, because a van is the container and
+never the load.
+
 ## Commands
 
 | Command          | Does                                                                                                                             |
 |------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | `specs:validate` | Validates every spec against the shared conventions. Runs without Blender, so CI runs it too                                     |
-| `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow     |
+| `models:build`   | Spec → `build/glb/<id>.glb` + `build/blend/<id>.blend`. Skips up-to-date models; `--force` to rebuild, `--id=<id>` to narrow. A `vehicle` has no geometry and is reported as skipped rather than filtered out in silence |
 | `library:build`  | Assembles `build/library/sdwa5-3d.blend` with every device as a draggable collection asset                                       |
 | `scene:stack`    | Solves a rig from constraints and writes scene files — one per alignment. With no flags it sweeps every sensible rig. The sub/top transition aims at the 2–3 m band and **a rig that misses it is written with the miss on it** rather than skipped, and **an unstated `--max-width` bounds nothing at all**. By default it sweeps **every combination of owners**, which is where most of the output is — `sdwa5` + `sepp` writes more scenes than any single owner, since borrowed subs under somebody else's tops is the shape of a shared gig. `--owner=NAME` narrows that, `--per-owner` gives each owner its own stack, `--stacks=N` splits into a stereo pair, `--orientation=MODE` decides which cabinets lie on their sides (**tops never do**, and laying the subs down more than doubles what the sweep can build), `--roll-mirror=ID` names those cabinets outright instead, `--shape=MODE` picks the wall's silhouette (`pyramid` narrows as it rises, `v` widens, `free` asks only the bearing rule, and all three are width rules in metres rather than cabinet counts), `--dry-run` prints, `--force` overwrites. **The sweep is solved across every core** — 25 minutes in one process against 1m58s in twenty-eight, byte-identical either way — and `--jobs=1` puts it back in one |
 | `scene:build`    | Scene YAML → `build/scenes/<id>.blend`, with a weight/footprint report and warnings for borrowed or over-used gear. `--dry-run` skips Blender |
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them. Quality is Full HD at 128 samples, with `--quick-preview` (960×540/16) and `--high-quality` (4K/384) either side; an explicit `--samples`/`--resolution` wins over both. Redraws when an input moves **or** when the settings differ from the ones recorded in `build/renders/built-with.json` |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
 | `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. Every stage skips what is already current; `--force` rebuilds anyway. `--dry-run` lists the stages. It also **deletes generated scene files the sweep no longer writes** — a replay renames rather than replaces, so a renamed axis leaves the old file behind — and `--keep-stale` switches that off. The regenerate stage replays across every core, `--jobs=1` for one. Renders **one** picture per scene; `--every-variant` asks for all four lighting presets in both aim modes, a folder each, and `--lighting=X` or `--aim-lines=X` picks one out |
-| `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. `--write` also writes `docs/catalog.md` |
+| `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. Transporters are reported separately as a fleet, with payload and bay volume each, and are kept out of the library's weight and volume totals. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device
 
@@ -123,7 +131,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 ## Repository layout
 
 ```
-specs/          one YAML file per device — speakers/, truss/, lighting/, stands/, racks/
+specs/          one YAML file per device — speakers/, truss/, lighting/, stands/, racks/, vehicles/
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/

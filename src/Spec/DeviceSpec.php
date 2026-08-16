@@ -59,6 +59,8 @@ final class DeviceSpec
         public readonly array $drivers,
         public readonly ?BaffleLayout $layout,
         public readonly ?MeshOverride $meshOverride,
+        /** What this transporter can carry. Present exactly when the category is `vehicle`. */
+        public readonly ?Vehicle $vehicle,
         public readonly ?string $notes,
     ) {
     }
@@ -126,6 +128,9 @@ final class DeviceSpec
             ),
             layout: BaffleLayout::fromReader($audio?->optionalSection('layout')),
             meshOverride: MeshOverride::fromReader($reader, 'mesh_override'),
+            vehicle: ($vehicleSection = $reader->optionalSection('vehicle')) !== null
+                ? Vehicle::fromReader($vehicleSection)
+                : null,
             notes: $reader->optionalString('notes'),
         );
     }

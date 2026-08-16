@@ -224,7 +224,58 @@ added.
 | `truss` | `straight`, `corner`, `base`, `tower` |
 | `rack` | `amp`, `network`, `shipping` |
 | `stand` | `speaker-pole`, `tripod`, `riser` |
+| `vehicle` | `van`, `trailer` — a transporter, see below |
 | `other` | anything — the escape hatch for gear the taxonomy has not caught up with |
+
+### vehicle
+
+**The only category that is a container rather than something to be placed**, and the only one that is measured
+twice. Every other spec has one set of dimensions, the true outer bounding box, because the only question anybody
+asks of a cabinet is how much room it takes up. A van is asked the opposite question — not what it occupies but what
+fits inside it — so `geometry.dimensions_m` stays the outside and a `vehicle:` block declares the inside.
+
+```yaml
+category: vehicle
+subtype: van
+
+geometry:
+  # The outside, as everywhere else. Depth is the fore-aft axis, so a van's length is its depth.
+  dimensions_m: { width: 2.070, height: 2.808, depth: 6.848 }
+
+physical:
+  # Zulassungsbescheinigung field G, the mass in service. Includes the 75 kg driver by EU definition.
+  weight_kg: 2476.0
+
+vehicle:
+  # Field F.2, the legally binding permitted gross mass.
+  permitted_gross_kg: 3500.0
+  load_bay_m:
+    width: 1.765
+    height: 2.048
+    depth: 4.383              # the trade's "Ladelänge"
+    width_between_arches: 1.380
+    # door_aperture_width / door_aperture_height are optional and usually the binding gate
+```
+
+| key | meaning |
+|-----|---------|
+| `permitted_gross_kg` | **required.** Zulassungsbescheinigung **field F.2**, what the vehicle may not exceed loaded |
+| `load_bay_m` | **optional**, the inside. Absent means nobody has measured it, which is the normal state of a van specified from its papers — no registration document states a load bay. A packer refuses such a vehicle by name rather than the validator refusing the spec |
+| `load_bay_m.width_between_arches` | the floor between the wheel boxes, and **the dimension that actually decides whether something lies flat**. 385 mm under the bay's own width on our Movano |
+| `load_bay_m.door_aperture_width` / `_height` | the rear opening, a third gate. A cabinet that fits the bay and not the doorway does not go in |
+
+**Payload is derived and never stored.** It is `F.2 − G`, worked out by `Vehicle::payloadKg()`. Both halves cite a
+numbered field on a document somebody can be shown; their difference cites nothing, so storing it would put a number
+in the library that points at no source and would go quietly wrong the day either half is corrected.
+
+**The bay reuses `width`/`height`/`depth` rather than the trade's own words.** A van catalogue says *Ladelänge* and a
+reader coming from one will look for `length`. The bay lies along the vehicle's own axes though, so its long
+dimension is the same axis as the vehicle's `depth`, and a second vocabulary for one category would mean every
+consumer of `Dimensions` having to know which kind of box it had been handed.
+
+**A vehicle is never built into geometry** and never appears in a scene. `models:build` and `library:build` skip it
+and say so, and the catalog counts it under `by_category` but leaves it out of every weight and volume total —
+because those totals mean *what has to be carried*, and adding two vans took the library from 3493.7 kg to 8269.7.
 
 ## Shapes
 
@@ -357,6 +408,10 @@ narrower, so the builder rejects it. That is the mechanism doing its job.
 * an `id` or `owner` that is not lowercase-dashes; an `id` that does not match its filename or is
   used twice
 * a `subtype` that does not belong to its `category`
+* in `vehicle`: the block missing on `category: vehicle`, or present on anything else; a
+  `permitted_gross_kg` at or below `physical.weight_kg`, which means the vehicle may legally carry nothing and is
+  always a transcribed digit; a `load_bay_m` axis that is zero, negative, or bigger than the same axis of the
+  vehicle itself; a `width_between_arches` wider than the bay; a door aperture bigger than the bay behind it
 * `build: clone` without `clone_of` — and `clone_of` on something that is not a clone
 * a **clone** whose `provenance.dimensions` or `provenance.weight` is `datasheet`/`plans` but which
   names no `clone_of` to look that up in (factory gear is exempt: its datasheet is its own)

@@ -110,6 +110,11 @@ final class ModelBuilder
 
         $entries = [];
         foreach ($specs as $spec) {
+            // Nothing to put on the shelf: {@see \App\Spec\Category::producesAModel}. A vehicle has no `.blend`,
+            // so listing it here would point the library script at a file that was never built.
+            if (!$spec->category->producesAModel()) {
+                continue;
+            }
             $entries[] = [
                 'id' => $spec->id,
                 'name' => $spec->name,

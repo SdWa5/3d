@@ -74,11 +74,15 @@ Settled with the owner, so a new session can act on it without re-deriving it:
 **GEO-12, GEO-11's stack-local half, TOOL-6, TOOL-7 and TOOL-8 are done**, which is why the list now starts where it
 does. TOOL-7 left a narrow remainder, filed as TOOL-15.
 
-1. **LOAD-1 and LOAD-2**, the transporter half, raised to P1 across the group by the owner. It is the only group whose
-   output somebody needs on the day, and the only place where getting it wrong is a legal problem rather than a bad
-   render. **Both blockers have cleared**: the schema decision is made and Stefan's Zulassungsbescheinigung is in, so
-   LOAD-1 is ordinary work and LOAD-2 is down to a tape measure inside two vans plus Sepp's papers. Write the schema
-   and the Movano spec first, since neither waits on the measurement.
+1. **LOAD-3 and LOAD-4**, the pack and its two verdicts. The transporter half landed in 0.86.0, so the schema, both
+   vehicle specs and the fleet reporting are in and this group is the only one whose output somebody needs on the day.
+   **Read the numbers before writing the heuristic**: GMSS does not travel in these vans, which leaves 2238.5 kg in
+   20.490 m³ against 2224 kg of payload and about 29.2 m³ of bay. Weight binds by 14.5 kg and volume has 30 % of
+   headroom, so the ordering is heaviest-first with weight as the refusal.
+
+   **What actually blocks it is paperwork, not code.** Half that payload is Sepp's assumed 1200 kg, so a 14.5 kg
+   deficit is inside the error bar of its own input and the answer flips between one trip and two on two fields of a
+   registration document nobody has read. **LOAD-2's remainder comes first**, and it is the owner's to do.
 2. **TOOL-10**, the staleness check the regenerate stage has never had. 1h 30m against a **measured 6m40s off every
    build**, the same shape as three checks `Staleness` already serves, and the cheapest thing in the file by a
    distance. It is now the largest remaining runtime saving, because 0.85.0's parallelism made the stage quick and
@@ -1083,28 +1087,16 @@ the load and leaves **2238.5 kg against 2224 kg of fleet payload**, so the pack 
 `all` rig above is a picture rather than a load. The two vans still travel together, because neither carries sdwa5's own
 gear alone.
 
-> **IN FLIGHT — LOAD-1 and LOAD-2 are built and green, and are waiting for 0.84.0 to commit before being applied.**
-> They live in a sandbox copy of the repo at
-> `<session scratchpad>/load-wt`, kept out of the working tree only because the full suite was
-> reading it at the time. **187 tests pass there, 8 of them new** (`tests/Spec/VehicleTest.php`).
->
-> What is in it: `Category::Vehicle` with `van`/`trailer` and `Category::producesAModel()`; `src/Spec/Vehicle.php`;
-> the `?Vehicle $vehicle` field on `DeviceSpec`; `SpecValidator::validateVehicle()`; vehicles excluded from the
-> catalog's weight and volume totals but kept in its provenance tally and reported as a `fleet`;
-> `models:build` and `library:build` skipping them; `specs/vehicles/opel-movano-l4h3.yaml` and
-> `specs/vehicles/sepp-transporter-l3h2.yaml`; `docs/spec-format.md`, `docs/sources.md` and a regenerated
-> `docs/catalog.md`. **Still owed when it lands:** a `CHANGELOG.md` section, a `README.md` line and a version bump to
-> 0.85.0. Delete this block once it is applied.
-
-**Both non-code halves have moved and what is left of them is one measurement.** LOAD-1's schema decision is made, so it
-is ordinary work now. LOAD-2 has Stefan's Zulassungsbescheinigung, so what remains there is **the inside of both vans
-with a tape measure** — no registration document states a load bay — plus the whole of Sepp's vehicle. LOAD-3 and LOAD-4
-were always ordinary work and now only wait on the bay.
+**The code half is done and what is left is a tape measure.** LOAD-1 landed whole in 0.86.0 and LOAD-2 has both specs
+in `specs/vehicles/`, one documented and one an explicit placeholder. What remains is **the inside of both vans with a
+tape measure** — no registration document states a load bay — and **fields F.2 and G off Sepp's Zulassungsbescheinigung**,
+which are the two numbers the whole one-trip-or-two question turns on. LOAD-3 and LOAD-4 are ordinary work whose inputs
+now exist, and whose answer is currently a statement about two estimates rather than about a van.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| LOAD-1 | Where a **vehicle** belongs in the schema — a transporter is not a speaker, and a load bay is not a bounding box. **Decided: `specs/`, a real `vehicle` category, a `vehicle:` block for the permitted gross and the load bay, payload derived.** Ordinary work now | P1 | 1h 30m | LOAD-3 and LOAD-4, which cannot start without it | — | decided |
-| LOAD-2 | Specs for the **two transporters**. **Stefan's is documented**: Opel Movano L4H3, 6.848 × 2.070 × 2.808 m, 2476 kg in service against 3500 kg permitted, so **1024 kg of payload**, all off the Zulassungsbescheinigung. **Sepp's is still unknown** — L3H2 or L3H3, probably a Peugeot, ex-Deutsche-Post. **Neither load bay is measured and no registration document states one**, so the tape measure is what is left | P1 | phys | provenance for the only two objects a pack is ever checked against | LOAD-1 | partial |
+| LOAD-1 | Where a **vehicle** belongs in the schema. **Done in 0.86.0**: a real `vehicle` category with `van`/`trailer`, a validated `vehicle:` block for the permitted gross and the load bay, the payload derived as `F.2 − G` rather than stored, and `Category::producesAModel()` so a van is never built into geometry or shelved in the asset library | — | — | LOAD-3 and LOAD-4, which could not start without it | — | done |
+| LOAD-2 | Specs for the **two transporters**, both in `specs/vehicles/` since 0.86.0. **Stefan's is documented** off the Zulassungsbescheinigung: Opel Movano L4H3, 6.848 × 2.070 × 2.808 m, 2476 kg in service against 3500 kg permitted, so **1024 kg of payload**. **Sepp's is a placeholder that says so in capitals** — an ex-Deutsche-Post L3H2, probably a Peugeot, built 2014, with both masses assumed rather than read. What is left is the tape measure inside both bays and **fields F.2 and G off Sepp's papers**, which is the pair that decides one trip against two | P1 | 1h | the difference between a load plan and a guess, since half the fleet payload is currently assumed | — | needs the owner |
 | LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both — this is bin packing, so a named heuristic rather than an implied optimal solver | P1 | 6h | a load plan, which nothing produces today | LOAD-1, LOAD-2 | open |
 | LOAD-4 | **Report space and weight separately** — a pack can fit the bay and still be overloaded, and a payload overrun is a legal problem rather than an inconvenience | P1 | 2h | — | LOAD-3 | open |
 
