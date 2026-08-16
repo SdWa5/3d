@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Process\Parallel;
 use App\Scene\Alignment;
+use App\Scene\Feasibility;
 use App\Scene\GroupStack;
 use App\Scene\Interpenetration;
 use App\Scene\LayoutMode;
@@ -75,13 +76,18 @@ final class SceneStackCommand extends BaseCommand
      *
      * **Raised deliberately, and that is the point of it.** 80 fitted the 61 scenes the orientation axis wrote and the
      * owner combinations took it straight past — which is exactly what should happen, because the raise is where
-     * somebody looks at the number and decides it is the output they meant. 600 is the owner's call and is sized for
-     * CVR-5, whose `impossible` half turns today's refusals into written scenes and is the next thing to need room.
+     * somebody looks at the number and decides it is the output they meant.
+     *
+     * **800 because CVR-5 arrived and 600 was 27 short**, measured rather than guessed: the sweep writes 483 possible
+     * rigs and the `impossible` half is 144 more, which is 627. The 144 is itself a measurement worth keeping —
+     * of 723 refusals, **579 were duplicates rather than failures** and are not rigs at all, leaving 86 floating and
+     * 58 interpenetrating. Stated by the owner: raise it to 800, both halves counted together, which also leaves
+     * room for SWP-2.
      *
      * **A fuse rather than a cap**: over the limit the command writes *nothing* and says so. Truncating to the first N
      * would read as "that is every possibility" when it is not, which is the same reason every refusal is printed.
      */
-    private const DEFAULT_MAX_SCENES = 600;
+    private const DEFAULT_MAX_SCENES = 800;
 
     /**
      * The top of the 2–3 m band a sub/top transition should sit in.
@@ -332,6 +338,11 @@ final class SceneStackCommand extends BaseCommand
                         // only pairs `upright` with `alternate`, but `--orientation=upright --mirror-style=centred` is
                         // accepted and honoured, so a name that dropped a vacuous style would give two different rigs
                         // the same file name.
+                        // **THE STEM, AND THE LAST FIELD IS NO LONGER THE LAST FIELD.** Feasibility is the sixth
+                        // axis and it is the solve's answer rather than the caller's request, so it cannot be
+                        // known here — the name is completed after {@see sweep} returns. The alignment is padded
+                        // now that something lines up behind it; whatever ends up last stays ragged, which is the
+                        // rule this always followed.
                         $name = sprintf(
                             '%s%s-%s-%s-%s-%s',
                             (string)$input->getOption('id'),
@@ -339,9 +350,7 @@ final class SceneStackCommand extends BaseCommand
                             self::padded($shape->value, StackShape::class),
                             self::padded($orientation?->value ?? self::STATED_ORIENTATION, StackOrientation::class),
                             self::padded($style->value, MirrorStyle::class),
-                            // The last field is left ragged on purpose: nothing is lined up behind it, and a trailing
-                            // run of dashes before `.yaml` would be padding that buys the reader nothing.
-                            $mode->value,
+                            self::padded($mode->value, LayoutMode::class),
                         );
                         if (is_string($rigProblem)) {
                             $skipped[$name] = $rigProblem;
@@ -353,10 +362,26 @@ final class SceneStackCommand extends BaseCommand
             }
         }
 
-        foreach ($this->sweep($tasks, $devices, $at, $statedWidth, $input) as $name => $built) {
+        foreach ($this->sweep($tasks, $devices, $at, $statedWidth, $input) as $stem => $built) {
             if (is_string($built)) {
-                $skipped[$name] = $built;
+                // No rig at all, so no side of the feasibility axis to put it on. Reported under the stem, because
+                // a name for a file that was never written would be a name for nothing.
+                $skipped[$stem] = $built;
                 continue;
+            }
+
+            // **The axis value is appended here because here is the first place it is known.** A candidate is
+            // possible or impossible — never a variant of the same rig — so this doubles the sweep rather than
+            // multiplying it, and both halves are ordinary generated scenes.
+            $feasibility = Feasibility::of($built['faults']);
+            $name = $stem.'-'.$feasibility->value;
+            if ($feasibility === Feasibility::Impossible) {
+                // **The file says why it is named impossible, in its own header.** Everything else in a generated
+                // scene is a constraint the compiler re-solves; this is the one line that is an *answer*, and it is
+                // a comment for that reason. `scene:build` derives the same faults from the same geometry and cages
+                // the cabinets in red, so nothing downstream reads this — it is for whoever opens the file and
+                // wonders what is wrong with it.
+                $built['yaml'] = self::withFaultNotice($built['yaml'], $built['faults']);
             }
             // **A MISSED BAND IS A NOTE, NOT A SKIP**, which is CVR-7 and is stated by the owner: the
             // sub/top interface height is an optimisation problem rather than a hard constraint, so tops
@@ -892,6 +917,31 @@ final class SceneStackCommand extends BaseCommand
         );
     }
 
+
+    /**
+     * Prepends the fault notice to an impossible rig's header.
+     *
+     * Inserted after the generated-by line rather than at the top, so the first thing in the file is still what
+     * every other generated scene starts with. A reader skimming a directory listing already knows from the name;
+     * a reader inside the file wants the reason in the first screen.
+     *
+     * @param list<Fault> $faults
+     */
+    private static function withFaultNotice(string $yaml, array $faults): string
+    {
+        $lines = ['#', '# THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather'];
+        $lines[] = '# than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.';
+        $lines[] = '#';
+        foreach ($faults as $fault) {
+            $lines[] = '#   * '.$fault->message;
+        }
+
+        $first = strpos($yaml, "\n");
+
+        return $first === false
+            ? implode("\n", $lines)."\n".$yaml
+            : substr($yaml, 0, $first)."\n".implode("\n", $lines).substr($yaml, $first);
+    }
     /**
      * The device ids to build each stack from, in order.
      *
@@ -1576,23 +1626,19 @@ final class SceneStackCommand extends BaseCommand
             return $errors[0]->message;
         }
 
-        $floating = PlacementChecks::floating($result['placed']);
-        if ($floating !== null) {
-            return $floating;
-        }
-
-        // **AND NOTHING INSIDE ANYTHING ELSE.** Same reasoning as the floating check above and the same source of
-        // truth: `ShippedScenesTest` sweeps every scene for interpenetration, so a candidate that fails it is not one
-        // of the possibilities — writing it only moves the failure one command later. The compiler cannot see this on
-        // its own: `on:` reads a top face and nothing downstream compares two finished placements.
-        ['separation' => $separation, 'pair' => $pair] = Interpenetration::worst($result['placed']);
-        if ($separation < -self::CONTACT_TOLERANCE_M) {
-            return sprintf(
-                '%s would be %.4f m inside each other — the compiler allows it and the shipped-scene sweep does not',
-                $pair,
-                -$separation,
-            );
-        }
+        // **THE TWO CHECKS THAT NAME A CABINET NO LONGER REFUSE — THEY REPORT.** A rig that floats a top or buries
+        // two cabinets in each other is still not one somebody can build, but it *is* a rig, and CVR-5's whole
+        // argument is that a picture of it beats a sentence about it. So the faults travel back with the geometry
+        // and {@see Feasibility} decides which side of the axis the candidate lands on. Everything above this line
+        // is still a refusal, because a scene that will not parse or that the compiler rejects has no geometry to
+        // look at in the first place.
+        //
+        // The compiler cannot see either of these on its own: `on:` reads a top face, and nothing downstream
+        // compares two finished placements.
+        $faults = [
+            ...PlacementChecks::floatingFaults($result['placed']),
+            ...Interpenetration::faults($result['placed'], self::CONTACT_TOLERANCE_M),
+        ];
 
         $marks = [];
         foreach ($result['placed'] as $entry) {
@@ -1608,7 +1654,7 @@ final class SceneStackCommand extends BaseCommand
         }
         sort($marks);
 
-        return ['cabinets' => count($result['placed']), 'fingerprint' => implode('|', $marks)];
+        return ['cabinets' => count($result['placed']), 'fingerprint' => implode('|', $marks), 'faults' => $faults];
     }
 
     /**

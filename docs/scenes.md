@@ -1210,9 +1210,38 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 600** — a fuse against an axis added by mistake, not a cap on the sweep, which writes 396 of the ~1200 candidates it tries. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 800** — a fuse against an axis added by mistake, not a cap on the sweep, which writes **543 of the ~1200** candidates it tries, 483 possible and 60 impossible. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
+
+#### Possible and impossible, the sixth axis
+
+**A candidate is one or the other, so this doubles the sweep rather than multiplying it.** Five axes are things you
+ask for — the rig, the shape, the orientation, the mirror style, the alignment — and this one is the solver's
+answer, which is why there is no `--feasibility` option: asking for a rig that does not stand up is not a request
+anybody makes.
+
+A rig that floats a top or buries two cabinets in each other **used to be refused with a sentence**. It is now
+written, named `-impossible`, and `scene:build` cages the offending cabinets in red so the failure is something to
+look at. "A `gmss-turbo-top` would stand at 0.660 m with nothing under it across x" took a debug dump, two probes
+and a corrected coordinate mapping to understand; the picture takes a second.
+
+Measured on the default sweep: **483 possible and 60 impossible**. The 60 is smaller than the 144 refusals it comes
+from, because 84 of those produce the same impossible geometry as a sibling and collapse in the deduplication —
+which they had never reached before, having been thrown away one step earlier.
+
+**Every id says which side it is on**, including the possible ones. A name with a gap in it says a value was left
+out and never which one, which is the same argument that took `pyramid`, `upright` and `alternate` out of hiding.
+The alignment field is padded now that something lines up behind it, and whatever ends up last stays ragged.
+
+**What is still a refusal.** Only the two checks that name a *cabinet* moved. A rig with no workable arrangement at
+all, a scene that will not parse, a compiler violation and a bad request are all still refusals, because there is
+no geometry to look at — painting nothing red helps nobody.
+
+An impossible scene carries the reason in its own header and `ShippedScenesTest` skips it by name, through
+`Feasibility::isImpossibleId` so the writer and the test cannot disagree about which files are which. A second test
+compiles every impossible scene and insists it really does fail a check, so the axis cannot become a way to opt a
+rig out of every geometry rule by naming it.
 
 #### The sweep runs across every core
 

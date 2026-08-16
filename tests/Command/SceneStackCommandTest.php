@@ -1283,6 +1283,63 @@ final class SceneStackCommandTest extends TestCase
      * @param array<string, mixed> $options
      */
     /**
+     * **Every written scene declares which side of the feasibility axis it is on**, and no name is allowed to be
+     * silent about it.
+     *
+     * This is the sixth axis of SWP-1 and the odd one out among them: the other five are things a caller asks for,
+     * this one is the solver's answer. Writing it anyway is the same argument that took `pyramid`, `upright` and
+     * `alternate` out of hiding in 0.79.0 — a name with a gap in it says a value was left out, never which one.
+     * Stated by the owner: treat it like the other axis.
+     */
+    public function testEveryWrittenSceneSaysWhetherItStandsUp(): void
+    {
+        $display = $this->invoke(['--owner' => ['gmss'], '--dry-run' => true])->getDisplay();
+
+        preg_match_all('/^id: (\S+)$/m', $display, $matches);
+        self::assertNotSame([], $matches[1]);
+
+        foreach ($matches[1] as $id) {
+            self::assertMatchesRegularExpression(
+                '/-(im)?possible$/',
+                $id,
+                $id.' does not say which side of the feasibility axis it is on',
+            );
+        }
+    }
+
+    /**
+     * **A rig that does not stand up is written rather than refused, and it says so in its own header.**
+     *
+     * The whole of CVR-5. "A `gmss-turbo-top` would stand at 0.660 m with nothing under it across x" took a debug
+     * dump, two probes and a corrected coordinate mapping to understand; the same rig as a picture, with that
+     * cabinet caged in red, says it at a glance. The two checks that name a cabinet therefore stopped refusing and
+     * started reporting.
+     */
+    public function testARigThatDoesNotStandUpIsWrittenWithTheReasonInItsHeader(): void
+    {
+        $display = $this->invoke(['--owner' => ['gmss'], '--dry-run' => true])->getDisplay();
+
+        self::assertMatchesRegularExpression('/^id: \S+-impossible$/m', $display, 'no impossible rig was written');
+        self::assertStringContainsString('THIS RIG DOES NOT STAND UP', $display);
+        self::assertStringContainsString('with nothing under it', $display);
+    }
+
+    /**
+     * **What is still a refusal after CVR-5, and why the line is where it is.** A rig with no arrangement at all has
+     * no geometry to look at, so painting it red is not an option — there is nothing to paint. Only the checks that
+     * name a *cabinet* moved.
+     */
+    public function testARigWithNoArrangementAtAllIsStillRefusedRatherThanDrawn(): void
+    {
+        $tester = $this->invoke([
+            '--from' => ['flexy-folded-horn-hybrid'], '--max-width' => '0.2', '--dry-run' => true,
+        ]);
+
+        self::assertSame(SceneStackCommand::NOTHING_TO_WRITE, $tester->getStatusCode());
+        self::assertStringNotContainsString('-impossible', $tester->getDisplay());
+    }
+
+    /**
      * **The sweep across processes says exactly what the sweep in one process says.**
      *
      * This is the property the whole of {@see \App\Process\Parallel} exists to preserve, and it is the one a fork

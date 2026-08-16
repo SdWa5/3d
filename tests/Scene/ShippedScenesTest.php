@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Scene\Feasibility;
 use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
+use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
 use App\Spec\DeviceSpec;
@@ -60,6 +62,18 @@ final class ShippedScenesTest extends TestCase
 
 
     /**
+     * Every scene this test holds to standing up, which is every scene **except the ones that say they do not**.
+     *
+     * **The exclusion is a property of the name and not a list somebody maintains**, which is the condition CVR-5
+     * set for itself. The sweep's sixth axis is `possible` / `impossible`, and an impossible rig is in the
+     * repository precisely because it fails one of the checks below — it is written so the failure can be looked at
+     * in a render with the offending cabinets caged in red, rather than read about in a terminal line that scrolls
+     * away. Holding it to the same promise as the rest would make this test's whole meaning "every scene stands up
+     * except the ones I remembered to add to an array", which is not a promise at all.
+     *
+     * {@see \App\Scene\Feasibility::isImpossibleId} is the single place that decides, so the writer and the test
+     * cannot drift into disagreeing about which files are which.
+     *
      * @return iterable<string, array{string}>
      */
     public static function sceneCases(): iterable
@@ -67,8 +81,52 @@ final class ShippedScenesTest extends TestCase
         $loader = new SceneLoader(dirname(__DIR__, 2).'/scenes');
         foreach ($loader->files() as $file) {
             $id = basename($file, '.yaml');
+            if (Feasibility::isImpossibleId($id)) {
+                continue;
+            }
             yield $id => [$id];
         }
+    }
+
+    /**
+     * **And the impossible ones really are impossible**, which is the other half of the exclusion above.
+     *
+     * Without this, the axis is a way to opt any rig out of every geometry check in the repository by naming it —
+     * so the guard has to run the same checks and insist they *fail*. A scene that says it does not stand up and
+     * then does is either a solver that improved or a rig that was mislabelled, and both are worth being told
+     * about rather than being quietly carried.
+     */
+    public function testEveryImpossibleSceneReallyFailsACheck(): void
+    {
+        $project = dirname(__DIR__, 2);
+        $loader = new SceneLoader($project.'/scenes');
+        $specs = [];
+        foreach ((new \App\Spec\SpecLoader($project.'/specs'))->loadAll()['specs'] as $spec) {
+            $specs[$spec->id] = $spec;
+        }
+
+        $checked = 0;
+        foreach ($loader->files() as $file) {
+            $id = basename($file, '.yaml');
+            if (!Feasibility::isImpossibleId($id)) {
+                continue;
+            }
+
+            ++$checked;
+            $placed = (new \App\Scene\SceneCompiler($specs))->compile($loader->load($file))['placed'];
+            $faults = [
+                ...PlacementChecks::floatingFaults($placed),
+                ...Interpenetration::faults($placed, PlacementChecks::CONTACT_TOLERANCE_M),
+            ];
+
+            self::assertNotSame(
+                [],
+                $faults,
+                $id.' is named impossible and passes every check — either the solver improved or the name is wrong',
+            );
+        }
+
+        self::assertGreaterThan(0, $checked, 'the sweep writes impossible rigs, so some should be on disk');
     }
 
     /**

@@ -87,13 +87,7 @@ final class Interpenetration
             $faults[] = new Fault(
                 Fault::INTERPENETRATION,
                 [$a, $b],
-                sprintf(
-                    '%s and %s would be %.4f m inside each other — the compiler allows it and the shipped-scene '
-                    .'sweep does not',
-                    $a,
-                    $b,
-                    -$separation,
-                ),
+                sprintf('%s and %s are %.4f m inside each other', $a, $b, -$separation),
             );
         }
 

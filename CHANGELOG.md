@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.89.0] - 2026-08-16
+
+CVR-5's second half, and with it the last value of SWP-1's cross product. **Stated by the owner: treat `impossible`
+like the other axis, and raise the fuse to 800.**
+
+### Added
+
+- **A rig that does not stand up is written rather than refused.** `App\Scene\Feasibility` is the sixth axis, and
+  the two checks that name a cabinet — nothing under it, two cabinets inside each other — stopped refusing and
+  started reporting. The rig is written, named `-impossible`, and `scene:build` cages the offending cabinets in
+  red. Verified end to end: `stacked-gmss-------2-v-------mixed---centred---block--impossible` renders with its
+  floating `gmss-turbo-top` caged and hanging off the end of the row, which is a diagnosis nobody had to read
+- **Every id says which side of the axis it is on, possible ones included.** A name with a gap in it says a value
+  was left out and never which one, which is the argument that took `pyramid`, `upright` and `alternate` out of
+  hiding in 0.79.0. This renames all 483 existing scenes and pads the alignment field, since something now lines
+  up behind it
+- An impossible scene carries the reason in its own header, so a reader who opens the file learns it there
+- `ShippedScenesTest` skips them **by name**, through `Feasibility::isImpossibleId`, so the writer and the test
+  cannot disagree about which files are which. A second test compiles every impossible scene and insists it really
+  does fail a check — without it the axis would be a way to opt any rig out of every geometry rule by naming it
+- Three tests in `SceneStackCommandTest`, including the one that pins **what is still a refusal**: a rig with no
+  workable arrangement has no geometry to look at, so painting it red is not an option
+
+### Changed
+
+- `DEFAULT_MAX_SCENES` 600 → 800, as asked. **The premise for it turned out to be wrong and the raise is kept
+  anyway**: the sweep writes 543, not the 627 that made 600 look 27 short, so nothing was actually blocked. 800
+  leaves room for SWP-2, which is the next axis
+- **The fault messages describe rather than refuse.** They used to end "so it is not one of the possibilities",
+  which was true while these were refusals and became a contradiction the moment the rigs started being written:
+  the file's own header says it is written on purpose and the next line said it could not be
+
+### Fixed
+
+- **The count in 0.88.0's notes was the number of refusals, not the number of scenes.** The sweep writes **60**
+  impossible rigs, not 144: 84 of those refusals produce the same impossible geometry as a sibling and collapse in
+  the deduplication, which they had never reached before because they were discarded one step earlier. 483 + 60 =
+  **543**
+
 ## [0.88.0] - 2026-08-16
 
 CVR-5's first half: a cabinet the geometry checks object to is now **shown** rather than described.

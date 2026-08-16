@@ -83,9 +83,12 @@ final class PlacementChecks
                 $faults[] = new Fault(
                     Fault::FLOATING,
                     [$entry->placementId],
+                    // **The message describes the fault and no longer argues about what to do with it.** It used
+                    // to end "so it is not one of the possibilities", which was true while this was a refusal and
+                    // became a contradiction the moment CVR-5 started writing these rigs out: the file's own header
+                    // says it is written on purpose, and the next line said it could not be.
                     sprintf(
-                        'a %s would stand at %.3f m with nothing under it across %s — the compiler allows it and '
-                        .'the shipped-scene sweep does not, so it is not one of the possibilities',
+                        'a %s stands at %.3f m with nothing under it across %s',
                         $entry->device->id,
                         $box['min'][2],
                         $axis === 0 ? 'x' : 'y',
