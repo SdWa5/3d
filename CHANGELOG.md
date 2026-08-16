@@ -4,6 +4,52 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.91.0] - 2026-08-16
+
+SWP-2's separation axis, which is the seventh and the last one stated. **Stated by the owner, shown the measured
+count first: take all of it, and raise the fuse to 1500 so the third value has room too.**
+
+### Added
+
+- **The sweep offers rigs where the two sound systems stand apart, which it never did.** `App\Scene\SystemSplit`
+  with `pooled` and `systems-apart`. Every generated scene pooled the gear until now — verified rather than assumed,
+  since not one written file carried `--per-owner` in its recorded command, because naming that option collapses the
+  sweep to a single point. The mechanism existed and the sweep could not reach it
+- **Separated rigs are not marginal, they are the majority where they apply.** On the `gmss` + `sepp` pair the sweep
+  writes **116 separated against 90 pooled**: giving each system its own narrower stack stands up more often than
+  pooling two systems into one wide one. Across the whole sweep the axis adds **433 scenes to 543**, for 976
+- A rig drawn from one owner is offered `pooled` alone, because one system separated from nothing is one system.
+  Left to the deduplication, every single-owner rig would be solved twice to write one file, and single-owner rigs
+  are 153 of the sweep
+- Two tests, one of which asserts the separated half is the *larger* half — asserting only that the field is present
+  would pass on a sweep that never separated anything, which is the state this replaces
+
+### Changed
+
+- `DEFAULT_MAX_SCENES` 800 → **1500**, and this time the number was measured before the raise rather than after. The
+  sweep writes 976; the headroom is for SWP-2's third value, which is not buildable yet and would add roughly 400
+- Every id gains a seventh field, so all 543 existing scenes are renamed again. The `pooled` half is byte-identical
+  in content to what it replaces
+
+### Fixed
+
+- **A separated rig recorded a command that rebuilt it pooled, and `build:all`'s replay is what caught it.** The
+  axis lives on the rig rather than on the input, so `commandLine()` reading `--per-owner` off the input wrote
+  nothing for a swept `systems-apart` rig. Replaying then produced a *different* rig under the separated one's
+  name — **99 of the 976 scenes replayed to a different file**, most of them flipping `-possible` to `-impossible`.
+  The stage whose job is exactly this found it, which is the second time it has earned its keep. Now asserted
+  directly as well, so the next axis that lives on the rig is not caught by a three-minute test over a thousand
+  files
+
+### Known
+
+- **The third value, `subs apart, tops shared`, is not buildable and the reason is architectural.** It breaks an
+  assumption the code holds everywhere: that a stack's tops come from the same pool its subs came from. The solver
+  is handed one id list per stack, so "these subs, those tops" cannot be expressed. It needs a second pass dealing
+  the tops after the sub stacks are solved, because only that pass can see the sub wall heights the tops row sits
+  on. **Adding it costs no rename** — `systems-apart` is the longest value and already sets the field's width
+- 976 scenes is 976 `.blend` files and 976 renders per `build:all`, which roughly doubles both stages
+
 ## [0.90.0] - 2026-08-16
 
 Sepp's transporter got its papers read and then got put on a scale, and **the two disagree by 365 kg**.

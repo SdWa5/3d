@@ -1283,6 +1283,95 @@ final class SceneStackCommandTest extends TestCase
      * @param array<string, mixed> $options
      */
     /**
+     * **The sweep offers rigs where the two sound systems stand apart, which it never did before.**
+     *
+     * SWP-2's seventh axis. Every generated scene pooled the gear until now — verified rather than assumed, since
+     * not one written file carried `--per-owner` in its recorded command — because naming that option collapses the
+     * sweep to a single point. So a rig with each system in its own stack could be asked for by hand and never came
+     * out of the sweep.
+     *
+     * **Separated rigs are not marginal**: on the `gmss` + `sepp` pair the sweep writes 116 of them against 90
+     * pooled, because giving each system its own narrower stack stands up more often than pooling two systems into
+     * one wide one.
+     */
+    public function testTheSweepOffersSystemsStandingApartAsWellAsPooled(): void
+    {
+        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--dry-run' => true])->getDisplay();
+
+        preg_match_all('/^id: (\S+)$/m', $display, $matches);
+        self::assertNotSame([], $matches[1]);
+
+        foreach ($matches[1] as $id) {
+            self::assertMatchesRegularExpression(
+                '/-(pooled|systems-apart)-+/',
+                $id,
+                $id.' does not say how separately its systems stand',
+            );
+        }
+
+        // **Both values, and the separated half is the larger one.** Asserting only that the field is present would
+        // pass on a sweep that never separated anything, which is precisely the state this axis replaces.
+        $separated = count(array_filter($matches[1], static fn (string $id): bool => str_contains($id, '-systems-apart')));
+        $pooled = count($matches[1]) - $separated;
+        self::assertGreaterThan(0, $pooled);
+        self::assertGreaterThan(
+            $pooled,
+            $separated,
+            'two systems in their own stacks stand up more often than two systems in one',
+        );
+    }
+
+    /**
+     * **A separated rig records that it is separated, and this was a real defect rather than a hypothetical.**
+     *
+     * SWP-2's axis lives on the rig rather than on the input, so `commandLine()` reading `--per-owner` off the
+     * input recorded nothing at all for a swept `systems-apart` rig. The replay then rebuilt it **pooled**, under
+     * the separated rig's name, with different geometry — and measured across the sweep, **99 of 976 scenes
+     * replayed to a different file**, most of them flipping `-possible` to `-impossible`.
+     *
+     * `build:all`'s replay caught it, which is what that stage is for. This asserts the rule directly so the next
+     * axis that lives on the rig does not have to be caught by a three-minute test over a thousand files.
+     */
+    public function testASeparatedRigRecordsTheSeparationInItsOwnRegenerateLine(): void
+    {
+        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--dry-run' => true])->getDisplay();
+
+        // Split on the section title the dry run prints before each file, not on the `id:` line inside the YAML —
+        // the recorded command sits in the header *above* that line, so splitting there puts the two in different
+        // blocks and the test passes or fails for the wrong reason.
+        $parts = preg_split('/^(stacked\S*\.yaml)$/m', $display, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        $separated = 0;
+        for ($i = 1; $i < count($parts); $i += 2) {
+            $name = $parts[$i];
+            if (!str_contains($name, '-systems-apart')) {
+                continue;
+            }
+            ++$separated;
+            self::assertStringContainsString(
+                '--per-owner',
+                $parts[$i + 1] ?? '',
+                $name.' does not record its own separation, so a replay would rebuild it pooled',
+            );
+        }
+
+        self::assertGreaterThan(0, $separated, 'no separated rig was written, so nothing was checked');
+    }
+
+    /**
+     * **A rig drawn from one owner is offered `pooled` alone**, because one system separated from nothing is one
+     * system. Left to the deduplication instead, every single-owner rig would be solved twice to write one file —
+     * and single-owner rigs are 153 of the sweep's scenes, so that is a large fraction of the work spent proving a
+     * tautology.
+     */
+    public function testASingleOwnerRigIsNotOfferedASeparationItCannotHave(): void
+    {
+        $display = $this->invoke(['--owner' => ['gmss'], '--dry-run' => true])->getDisplay();
+
+        self::assertStringContainsString('-pooled', $display);
+        self::assertStringNotContainsString('-systems-apart', $display);
+    }
+
+    /**
      * **Every written scene declares which side of the feasibility axis it is on**, and no name is allowed to be
      * silent about it.
      *

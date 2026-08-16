@@ -25,6 +25,7 @@ use App\Scene\StackSceneWriter;
 use App\Scene\StackShape;
 use App\Scene\StackSolver;
 use App\Scene\SweepAxes;
+use App\Scene\SystemSplit;
 use App\Scene\SplitMode;
 use App\Spec\DeviceSpec;
 use App\Spec\Violation;
@@ -78,16 +79,21 @@ final class SceneStackCommand extends BaseCommand
      * owner combinations took it straight past — which is exactly what should happen, because the raise is where
      * somebody looks at the number and decides it is the output they meant.
      *
-     * **800 because CVR-5 arrived and 600 was 27 short**, measured rather than guessed: the sweep writes 483 possible
-     * rigs and the `impossible` half is 144 more, which is 627. The 144 is itself a measurement worth keeping —
-     * of 723 refusals, **579 were duplicates rather than failures** and are not rigs at all, leaving 86 floating and
-     * 58 interpenetrating. Stated by the owner: raise it to 800, both halves counted together, which also leaves
-     * room for SWP-2.
+     * **1500 because SWP-2 arrived and 800 bound, and this time the number is measured before the raise rather
+     * than after.** The sweep writes **976**: the 543 `pooled` rigs that existed, plus 433 where the systems stand
+     * apart. Stated by the owner, who was shown the count and asked for room for SWP-2's third value as well — a
+     * `subs apart, tops shared` grouping is not buildable yet and would add roughly another 400.
+     *
+     * **The two raises before this one are a lesson in what a fuse is worth.** 600 went to 800 on an argument that
+     * turned out to be arithmetic on the wrong quantity — 144 *refusals* read as 144 scenes, where the deduplication
+     * collapsed them to 60 — so the raise was never needed and the sweep fitted 600 all along. The docblock this
+     * replaces said the raise is "where somebody looks at the number and decides it is the output they meant". It
+     * only works if the number is the one that gets written.
      *
      * **A fuse rather than a cap**: over the limit the command writes *nothing* and says so. Truncating to the first N
      * would read as "that is every possibility" when it is not, which is the same reason every refusal is printed.
      */
-    private const DEFAULT_MAX_SCENES = 800;
+    private const DEFAULT_MAX_SCENES = 1500;
 
     /**
      * The top of the 2–3 m band a sub/top transition should sit in.
@@ -317,7 +323,7 @@ final class SceneStackCommand extends BaseCommand
             //
             // Asked in the parent on purpose. A fork hands each child a copy of this object, so anything a child
             // records about the run dies with it, and this has to survive to decide the exit code.
-            $rigProblem = $this->groups($devices, $rig['from'], $rig['stacks'], $input);
+            $rigProblem = $this->groups($devices, $rig['from'], $rig['stacks'], $input, $rig['split']);
             if (is_string($rigProblem)) {
                 $requestProblem ??= $rigProblem;
             }
@@ -665,6 +671,9 @@ final class SceneStackCommand extends BaseCommand
                 // NOT clamped to 1: an explicit `--stacks=0` is a mistake worth refusing, and {@see groups} is where
                 // that refusal lives. Clamping it here silently solved a one-stack rig instead.
                 'stacks' => (int)($statedStacks ?? 1),
+                // The separation is a property of the rig from here on rather than a flag read deep inside the
+                // solve, which is what lets the sweep offer both values of it. On this path the caller stated it.
+                'split' => $input->getOption('per-owner') ? SystemSplit::SystemsApart : SystemSplit::Pooled,
                 'suffix' => '',
             ]];
         }
@@ -680,12 +689,15 @@ final class SceneStackCommand extends BaseCommand
         $combinations = SweepAxes::ownerCombinations(array_keys($byOwner), $owners);
 
         $groups = [];
+        $ownersOf = [];
         foreach ($combinations as $subset) {
             $owned = [];
             foreach ($subset as $owner) {
                 $owned = [...$owned, ...$byOwner[$owner]];
             }
-            $groups[SweepAxes::labelFor($subset, count($byOwner))] = $this->everySpeaker($owned);
+            $label = SweepAxes::labelFor($subset, count($byOwner));
+            $groups[$label] = $this->everySpeaker($owned);
+            $ownersOf[$label] = $subset;
         }
 
         // **THE LABEL COLUMN IS AS WIDE AS THE GEAR LIST MAKES IT, NOT AS WIDE AS THIS RUN NEEDS.** Measured over
@@ -703,11 +715,22 @@ final class SceneStackCommand extends BaseCommand
                 if (count($from) < $stacks) {
                     continue;
                 }
-                $rigs[] = [
-                    'from' => $from,
-                    'stacks' => $stacks,
-                    'suffix' => sprintf('-%s-%d', str_pad((string)$label, $width, self::NAME_PAD), $stacks),
-                ];
+                // **SWP-2's axis, and it is offered only where it can mean something.** A rig drawn from one owner
+                // has nothing to separate, so it gets `pooled` alone — see {@see SystemSplit::forOwnerCount}. That
+                // is a third of the sweep not solved twice to produce one file.
+                foreach (SystemSplit::forOwnerCount(count($ownersOf[$label] ?? [])) as $split) {
+                    $rigs[] = [
+                        'from' => $from,
+                        'stacks' => $stacks,
+                        'split' => $split,
+                        'suffix' => sprintf(
+                            '-%s-%d-%s',
+                            str_pad((string)$label, $width, self::NAME_PAD),
+                            $stacks,
+                            self::padded($split->value, SystemSplit::class),
+                        ),
+                    ];
+                }
             }
         }
 
@@ -751,8 +774,9 @@ final class SceneStackCommand extends BaseCommand
         string $baseId,
         ?float $maxWidthM,
         InputInterface $input,
+        SystemSplit $split = SystemSplit::Pooled,
     ): array|string {
-        $groups = $this->groups($devices, $from, $stacks, $input);
+        $groups = $this->groups($devices, $from, $stacks, $input, $split);
         if (is_string($groups)) {
             return $groups;
         }
@@ -861,7 +885,7 @@ final class SceneStackCommand extends BaseCommand
             at: $at,
             clearanceM: $clearance,
             command: $this->commandLine(
-                $input, $mode, $shape, $style, $orientation, $stacks, $baseId, $maxWidthM, $from,
+                $input, $mode, $shape, $style, $orientation, $stacks, $baseId, $maxWidthM, $from, $split,
             ),
         );
 
@@ -912,6 +936,7 @@ final class SceneStackCommand extends BaseCommand
                 (string)$input->getOption('id').$task[0]['suffix'],
                 $statedWidth,
                 $input,
+                $task[0]['split'],
             ),
             (int)$input->getOption('jobs'),
         );
@@ -956,8 +981,15 @@ final class SceneStackCommand extends BaseCommand
      * @param list<string> $from
      * @return array<string, array{ids: list<string>, index: int, of: int}>|string
      */
-    private function groups(array $devices, array $from, int $stacks, InputInterface $input): array|string
-    {
+    private function groups(
+        array $devices,
+        array $from,
+        int $stacks,
+        InputInterface $input,
+        // Named `$systems` and not `$split`, because `--split` is a different axis entirely — it decides whether a
+        // stack gets a share of every device type or whole types each, and it is resolved a few lines below.
+        SystemSplit $systems = SystemSplit::Pooled,
+    ): array|string {
         if ($stacks < 1) {
             return '--stacks must be at least 1';
         }
@@ -974,8 +1006,11 @@ final class SceneStackCommand extends BaseCommand
             );
         }
 
+        // **Read off the rig rather than off the option, which is what lets one sweep offer both.** `--per-owner`
+        // still decides it for a caller who names a rig by hand; on the sweep the axis decides, and the option is
+        // recorded into each written scene's regenerate line so a replay rebuilds the same grouping.
         $groups = [];
-        if ($input->getOption('per-owner')) {
+        if ($systems->isPerOwner()) {
             foreach ($from as $id) {
                 $groups[$devices[$id]->owner][] = $id;
             }
@@ -1301,6 +1336,7 @@ final class SceneStackCommand extends BaseCommand
         string $baseId,
         ?float $maxWidthM,
         array $from,
+        SystemSplit $systems,
     ): string {
         $parts = ['bin/console scene:stack'];
 
@@ -1339,7 +1375,16 @@ final class SceneStackCommand extends BaseCommand
         foreach ($mixes as $mix) {
             $parts[] = '--mix='.$mix;
         }
-        foreach (['per-owner', 'no-asymmetry'] as $flag) {
+        // **THE SEPARATION HAS TO BE WRITTEN OUT, AND IT IS NOT AN OPTION THE SWEEP SET.** SWP-2's axis lives on
+        // the rig rather than on the input, so reading `--per-owner` off the input records nothing for a swept
+        // `systems-apart` rig — and the replay then rebuilds it pooled, under the separated rig's name, with
+        // different geometry and sometimes a different feasibility. Measured before this line existed: 99 of the
+        // 976 scenes replayed to a different file, most of them flipping `-possible` to `-impossible`.
+        if ($systems->isPerOwner()) {
+            $parts[] = '--per-owner';
+        }
+
+        foreach (['no-asymmetry'] as $flag) {
             if ($input->getOption($flag)) {
                 $parts[] = '--'.$flag;
             }

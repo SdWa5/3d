@@ -1210,9 +1210,36 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 800** — a fuse against an axis added by mistake, not a cap on the sweep, which writes **543 of the ~1200** candidates it tries, 483 possible and 60 impossible. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep, which writes **976** candidates, 898 possible and 78 impossible, 543 pooled and 433 with the systems apart. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
+
+#### How separately the systems stand, the seventh axis
+
+**Every generated scene pooled the gear until 0.91.0**, and that was verified rather than assumed: not one written
+file carried `--per-owner` in its recorded command, because naming that option collapses the sweep to a single
+point. A rig with each system in its own stack could be asked for by hand and never came out of the sweep.
+
+| value | what stands where |
+| --- | --- |
+| `pooled` | every stack gets a share of every cabinet, whoever owns it |
+| `systems-apart` | each system is its own group, dealt across the stacks in turn |
+| *subs apart, tops shared* | **not built yet** — see below |
+
+**Separated rigs are not marginal.** On the `gmss` + `sepp` pair the sweep writes **116 separated against 90
+pooled**, because giving each system its own narrower stack stands up more often than pooling two systems into one
+wide one. Across the whole sweep the axis adds **433 scenes to 543**.
+
+**A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. Leaving
+that to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner rigs
+are 153 of the sweep.
+
+**The third value is not buildable yet and the reason is architectural.** "Subs apart, tops shared" breaks an
+assumption the code holds everywhere — that a stack's tops come from the same pool its subs came from. The solver
+is handed one id list per stack and builds the whole stack from it, so "these subs, those tops" cannot be expressed.
+It needs a second pass that deals the tops after the sub stacks are solved, because only that pass can see the sub
+wall heights the tops row has to sit on. Adding it costs no rename: `systems-apart` is the longest value and
+already sets the field's width.
 
 #### Possible and impossible, the sixth axis
 
