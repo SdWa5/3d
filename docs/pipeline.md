@@ -53,8 +53,10 @@ ddev exec bin/console catalog --write     # also write docs/catalog.md
 
 ddev exec bin/console build:all           # every stage above, in order
 ddev exec bin/console build:all --dry-run # ...list what it would run, and run nothing
-ddev exec bin/console build:all --lighting=studio       # ...one lighting only, both aim modes
-ddev exec bin/console build:all --quick-preview         # ...the whole sweep at preview quality
+ddev exec bin/console build:all --lighting=studio       # ...that lighting instead of the default one
+ddev exec bin/console build:all --every-variant         # ...all four lightings in both aim modes
+ddev exec bin/console build:all --quick-preview         # ...at preview quality
+ddev exec bin/console build:all --jobs=1  # ...regenerate the scenes in one process
 ```
 
 **Every stage skips what is already current**, so a rebuild after touching one scene costs that scene and its
@@ -113,14 +115,35 @@ remembering five commands and which of them the edit had invalidated.
 It delegates rather than reimplements, so each stage's own staleness rules, reporting and refusals are the
 ones that apply, and a failing stage stops the run.
 
-The variant sweep is what makes it more than a shell alias, and it is the **default**: every scene under each of
-the four lighting presets, each with and without aim lines — eight passes into eight folders under
-`build/renders/`. These were opt-in flags once, but every invocation in this repository passed both, so the
-useful behaviour was the one nobody got by default.
+**The regenerate stage is idempotent, and "every candidate was refused" is not a failure.** It replays each generated
+scene's own recorded command, and a rig the solver has stopped being able to build makes that command write nothing.
+`scene:stack` says so with its own exit code — **2, `NOTHING_TO_WRITE`**, non-zero so a human sees it but distinct from
+1 so a caller can tell it from a command that broke. The replay reports such a scene as `stale`, leaves it out of the
+written set, and the stale deletion removes it. Before those were one exit code, a single abandoned rig aborted the
+whole stage and took every other replay with it, so `build:all` could not be run twice in a row — from the stage whose
+job is deleting exactly that file. `--keep-stale` leaves them in place.
 
-Narrowing is how you opt out, and there is no negative flag for it: `--lighting=studio` renders that lighting
-only, `--aim-lines=none` that aim mode only. Naming *both* leaves one pass, which writes exactly where
-`scene:render` always put it rather than into a subfolder. An unknown `--aim-lines` value is refused before any
+One case is left, and it is cosmetic: a variant the sweep collapses as **the same rig as** a sibling replays perfectly
+well on its own, because dedup is a decision across a whole sweep and a replay is one file with nothing to compare
+itself against. Six such files existed at 0.84.0, every one a duplicate of a scene that is also on disk. `git status`
+after a fresh `scene:stack --force` is still what finds those.
+
+**The regenerate stage runs across every core**, one process per replay, because five hundred `scene:stack` runs share
+nothing and a recorded command rewrites exactly the file it was read from. Each child's console output is captured and
+printed back by the parent in file order, so the log reads as a serial run's did rather than as twenty-eight processes
+interleaving mid-line. `--jobs=1` puts it back in one process, which is what a debugger needs. The one behaviour that
+changes: a broken replay is reported after the whole stage has run rather than stopping it, and the failure named is
+the one the serial order would have named first.
+
+The variant sweep is a **flag** rather than the default, and that is a reversal of 0.70.0. Every scene under each of
+the four lighting presets, each with and without aim lines, is eight passes into eight folders under `build/renders/`
+— which at 483 generated scenes is 3864 pictures out of the slowest tool in the repository. Stated by the owner:
+the lighting variants go if they are what holds `build:all` up. They were. `--every-variant` asks for the eight back,
+and the useful-by-default argument still stands for everything cheap.
+
+With nothing asked for there is one pass, writing exactly where `scene:render` always put it rather than into a
+subfolder. Naming a `--lighting` or an `--aim-lines` picks that one out, and either of them alongside
+`--every-variant` narrows the sweep to that row or column of it. An unknown `--aim-lines` value is refused before any
 stage runs — a dry run runs nothing, so nothing downstream would catch the typo.
 
 ### Quality
@@ -139,9 +162,9 @@ Both on `scene:render` and on `build:all`, which forwards the level to every pas
 matters for the one thing a level cannot say, like a 4K frame at 16 samples to check framing. Asking for both
 levels at once is refused.
 
-The two changes compound: eight variants at 2.9× a frame makes a full sweep about **23×** what it used to cost.
-That is the intended trade, but it is worth knowing before starting one on a laptop — `--quick-preview` brings
-the same sweep back under today's cost.
+The two compound, which is why the variant sweep is no longer the default: eight variants at 2.9× a frame is about
+**23×** one render of one scene, times 483 scenes. `--every-variant --quick-preview` brings the whole of it back
+under the cost of a single default pass.
 
 **Raising the default does make existing renders stale**, as of the settings stamp above — so the PNGs still on
 disk at the old 1600×900 redraw themselves on the next `build:all`, without a `--force` sweep. It costs the same

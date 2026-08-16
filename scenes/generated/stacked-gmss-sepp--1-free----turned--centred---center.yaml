@@ -19,8 +19,8 @@
 #
 # Subs reach 2.39 m against a 2.0 m interface. The stack is 3.226 m of cabinet.
 #   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — a gmss-turbo-top in the 2× gmss-turbo-top + 2×
-#     eighteensound-2way-15 + 1× gmss-turbo-top row has nothing under it at all, so it would fall to the floor — inside
-#     the row below it
+#     eighteensound-2way-15 + 1× gmss-turbo-top row would land on only 1% of its own width — it is touching what carries
+#     it rather than sitting on it. Line the segments up with what carries them
 #   * the 1× gmss-iq-sub rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1×
 #     gmss-iq-sub rolled 90° row is 2.600 m on a 2.460 m row, so it overhangs 70 mm each side
 #   * the 2× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90° row is 2.740 m on a 2.600 m row, so it overhangs
@@ -45,6 +45,7 @@ placements:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
+      slide_slack_m: .inf
       mirror_style: centred
       from:
         - device: gmss-wall-bass

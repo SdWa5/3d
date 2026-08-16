@@ -107,7 +107,14 @@ final class Gravity
             // only which repair *wins* now accounts for the row above.
             $above = $tiers[$index + 1] ?? null;
             $score = static function (array $candidate) use ($above, $gapM): float {
-                $own = self::worstBearing($candidate);
+                // **`carriedBearing`, NOT `worstBearing`, AND FOR THE CANDIDATE'S OWN ROW TOO.** A run standing on
+                // nothing reports a bearing of 1.0 — see {@see reseat} — so scoring a repair on the bearing alone
+                // makes "walked clean off its support" look like the best arrangement available and take the slot.
+                // Measured: `2× gmss-nuke + 1× gmss-mid-bass` on two wall basses is carried at 8.5 % centred, and the
+                // slide replaced it with an arrangement carrying a run on nothing at all. The lookahead below already
+                // read `on` for exactly this reason; the row's own score did not, and the two halves of one rule sat
+                // one line apart.
+                $own = self::carriedBearing($candidate);
                 if ($above === null) {
                     return $own;
                 }

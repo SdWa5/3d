@@ -286,6 +286,14 @@ final class StackSceneWriter
             $constraints['target_sub_height_m'] = $stack->targetSubHeightM;
         }
         $constraints['gap_m'] = $stack->gapM;
+        // **The one solve input this writer used to leave out, and it changed the rig.** A solo stack is solved with
+        // `INF` here and a stack in a rig with null, and the file could say neither — so every solo scene rebuilt with
+        // sliding forbidden and answered a different question from the one its own header comment reported. It is
+        // written whenever it is stated rather than only when it is not the default, because both values are
+        // meaningful and null is not a missing number but the "may not move" answer.
+        if ($stack->slideSlackM !== null) {
+            $constraints['slide_slack_m'] = $stack->slideSlackM;
+        }
 
         foreach (['max_width_m' => $stack->maxWidthM, 'min_width_m' => $stack->minWidthM, 'max_height_m' => $stack->maxHeightM] as $key => $value) {
             if ($value !== null) {
@@ -313,6 +321,13 @@ final class StackSceneWriter
     /** Numbers that read like the ones in a hand-written scene: `0.02`, `3.7`, `2.0` — never `2.0000000001`. */
     private static function number(float $value): string
     {
+        // `sprintf('%.4F', INF)` is the string `INF`, which YAML reads as an ordinary word rather than as a number, so
+        // the file would fail to load on the one key that needs it. `.inf` is the YAML spelling and Symfony parses it
+        // back to a float INF. See {@see Stack::$slideSlackM}, the only value here that is ever unbounded.
+        if (is_infinite($value)) {
+            return $value > 0 ? '.inf' : '-.inf';
+        }
+
         $formatted = rtrim(rtrim(sprintf('%.4F', $value), '0'), '.');
 
         return $formatted === '' || $formatted === '-' ? '0.0' : (str_contains($formatted, '.') ? $formatted : $formatted.'.0');

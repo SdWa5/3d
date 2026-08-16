@@ -53,7 +53,7 @@ placements:
 | `placements[].row` | `{ count, axis, gap_m, step_m, roll_cycle }` — a lattice with one open axis; `axis` defaults to `x` |
 | `placements[].line_array` | `{ count, splay_deg, gap_m }` — a hang: elements chained below one another, each tilted further than the last. `splay_deg` is one angle or one per gap |
 | `placements[].align` | `{ mode, width_m, across, inside, inset_m }` — how this tier is spread across a width, instead of stating `step_m`. See [align](#align) |
-| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, max_sub_height_m, target_sub_height_m, gap_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
+| `placements[].stack` | `{ from, max_width_m, min_width_m, max_height_m, interface_height_m, max_sub_height_m, target_sub_height_m, gap_m, slide_slack_m }` — a whole rig from constraints instead of a tier per row. Replaces `device` and any group. See [stack](#stack) |
 | `placements[].in` | list of groups this one is nested **inside**, innermost first: `in[0]` wraps the sibling group, `in[1]` wraps that |
 | `placements[].arc` | `{ mode, count, splay_deg, radius_m, gap_m }` — a group seated on an arc. Exclusive with `repeat`; see below |
 | `placements[].arc.gap_m` | working gap between neighbours, in metres. Default 0 — cabinets touching |
@@ -516,6 +516,7 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
 | `max_height_m` | a ceiling or a rigging limit |
 | `gap_m` | working gap between neighbours in a row |
+| `slide_slack_m` | how far sideways a badly-carried row may be moved to get it under something, in metres, or `.inf` for "bounded only by the stage". **Unstated means it may not move at all**, which is the right answer for a stack with a neighbour to slide into. A statement about the rest of the scene rather than about gravity — see [sliding a row rather than losing the rig](#sliding-a-row-rather-than-losing-the-rig) |
 
 A `stack` replaces `device` and any group — both are decided by the solve, and stating one as well is
 refused rather than quietly overruled. It expands into one ordinary placement per tier, numbered `main/1`,
@@ -927,6 +928,13 @@ This is why a generated file's header and its rebuild agree: `scene:stack` and t
 the same arrangement. They did not always, and a file whose header described a rig the compiler would rebuild
 differently is the sort of thing nothing downstream notices.
 
+**Asking the same question is only half of it — both sides also have to be given the same stack.** The compiler
+re-solves from the file, so every input the command solved with has to be a key the file can state. The seating check
+was the first place this went wrong and [`slide_slack_m`](#sliding-a-row-rather-than-losing-the-rig) was the second, in
+the same rig and with the same symptom: a header describing an arrangement the rebuild never reaches.
+
+#### Sliding a row rather than losing the rig
+
 **For a quantity-bound rig the lever is where the row sits, not how wide the stage is.** A row does not have to be
 centred on what carries it: centring is only optimal when the row overhangs a symmetric amount of cabinet at each end,
 and a mixed row is asymmetric by construction. GMSS's one arrangement inside the band packs the nukes and mid-bass into a
@@ -939,6 +947,14 @@ centred and narrower — so a row that slides in a multi-stack rig reaches into 
 interpenetration across five `all-3` scenes. So only a stack with **nothing beside it** may move a row, and only inside
 the stated stage width. A row that is already carried is never moved, and a slide that does not improve the
 worst-carried cabinet is discarded, so every rig that stood up before stands up unchanged.
+
+**The scene states it as [`slide_slack_m`](#the-stack-block), and for a long time it could not.** `scene:stack` gives a
+solo stack `.inf` and a stack in a rig nothing at all, and the schema had no key for either — so a generated solo scene
+was written by a solve that allowed sliding and rebuilt by one that forbade it. That is not a rounding difference.
+Measured on `stacked-all--------1-free----turned--alternate-center`, the same inventory came out as four rows reaching
+1.860 m of subs with the slack and as two rows reaching 0.660 m without it: a 23.5 m line of cabinet with the tops
+1340 mm below the interface, rendered and committed, whose own header comment described the other rig. Unstated the
+key still means "may not move", so a hand-written scene keeps the arrangement it had.
 
 #### An unstated width limits nothing
 
@@ -1196,6 +1212,24 @@ stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside
 | `--id=PREFIX` | base scene id. Default `stacked` |
 | `--max-scenes=N` | refuse past this many. **Default 600** — a fuse against an axis added by mistake, not a cap on the sweep, which writes 396 of the ~1200 candidates it tries. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
+| `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
+
+#### The sweep runs across every core
+
+The candidates share nothing. Each is a solve and a compile over the same inventory, none of them reads what another
+writes, and the file writing happens afterwards on the survivors — so the only thing the loop ever shared was the CPU.
+It is now forked across as many processes as the machine has cores. **Measured on the default sweep, 1206 candidates
+and about 100 minutes of CPU between them: 25 minutes serial against 1m58s across 28 cores**, with byte-identical
+output.
+
+Two properties are worth stating, because a fork would break each of them first. **The order out is the order in**:
+results are re-keyed from the candidate list rather than from whichever worker finished first, so the scene list, the
+refusals and the deduplication all come out in the order a serial run produced. And **work is taken rather than
+dealt**: an `all` rig solves in about a minute and a single-owner rig in a second, so workers pull the next candidate
+off a shared cursor instead of being given a slice up front.
+
+`--jobs=1` is the serial path, for a debugger or a platform without `pcntl`. Generated scene files are written to a
+temporary name and renamed into place, so two replays that name the same file cannot interleave inside it.
 
 How many scenes you get is a parameter, not a decision baked in: `--align=block --subs=mixed` is exactly one,
 the default is three. Going over `--max-scenes` is **refused rather than truncated** — a silent cap reads as

@@ -514,6 +514,31 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
+     * **An unbuildable rig and an unusable request are both "nothing written" and must not share an exit code.**
+     *
+     * {@see SceneStackCommand::NOTHING_TO_WRITE} means the solver could not stand any of these rigs up, which is a
+     * fact about the gear and is what makes `build:all`'s regenerate stage idempotent — it reads that code as "this
+     * scene is stale, delete it". A `--stacks=0` is not that. It is a number nobody can act on, and reporting it the
+     * same way would have a typo in a recorded command read as a scene to throw away. The two came out as one code
+     * in 0.84.0 and three tests caught it.
+     */
+    public function testAnUnbuildableRigAndAnUnusableRequestExitDifferently(): void
+    {
+        // No workable arrangement: a 0.2 m stage carries nothing this repository owns.
+        $unbuildable = $this->invoke([
+            '--from' => ['flexy-folded-horn-hybrid'], '--max-width' => '0.2', '--dry-run' => true,
+        ]);
+        self::assertSame(SceneStackCommand::NOTHING_TO_WRITE, $unbuildable->getStatusCode());
+        self::assertStringContainsString('No workable arrangement', $unbuildable->getDisplay());
+
+        // Unusable request: the same empty candidate list, reached by asking for something incoherent.
+        $unusable = $this->invoke([
+            '--from' => ['flexy-folded-horn-hybrid'], '--split' => 'sideways', '--dry-run' => true,
+        ]);
+        self::assertSame(SceneStackCommand::FAILURE, $unusable->getStatusCode());
+    }
+
+    /**
      * The one that matters. A generator that emits a scene the compiler rejects is worse than no generator,
      * because the failure then surfaces later and further from its cause — so every candidate is compiled
      * before it is written, and this pins that the check is real by reading the cabinets back.
@@ -1184,8 +1209,104 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
+     * **A written scene rebuilds the rig its own header describes**, which is the invariant the whole generator
+     * rests on and the one that keeps breaking in a new field.
+     *
+     * The file states constraints rather than rows, so `scene:build` re-solves it from scratch. That only produces
+     * the same rig if the file can express **every** input the command solved with, and `slide_slack_m` was the last
+     * one it could not: `SceneStackCommand::stackFor()` gives a solo stack `INF`, meaning a badly-carried row may be
+     * moved sideways to get it under something, and `Stack::fromReader()` had no key for it, so the rebuild got
+     * `null` — "it may not move".
+     *
+     * **Measured on this exact rig before the key existed.** The command wrote a header describing four rows reaching
+     * 1.860 m of subs, and `scene:build` on that file produced two rows reaching 0.660 m: a 23.5 m line of cabinet
+     * with the tops 1340 mm below the interface, rendered and committed, whose own comment described a different rig.
+     * GEO-11 is the same defect in the seating check, and {@see SceneStackCommand::probePlacement} states the rule
+     * this test enforces — anything the solve reads has to be expressible on both sides.
+     *
+     * Asserted on the sub-wall height rather than on the row list because that is the one number both sides print in
+     * the same words, and it is what separates the two answers by a factor of three.
+     */
+    public function testAWrittenSceneRebuildsToTheSubWallItsOwnHeaderReports(): void
+    {
+        $tester = $this->invoke([
+            '--from' => [
+                'gmss-wall-bass', 'gmss-mid-bass', 'skram', 'flexy-folded-horn-hybrid', 'gmss-nuke',
+                'achenbach-18', 'gmss-iq-sub', 'tecnare-m2122', 'eighteensound-2way-15', 'gmss-turbo-top',
+            ],
+            '--orientation' => ['turned'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['free'],
+            '--mirror-style' => ['alternate'], '--id' => self::THROWAWAY_ID,
+        ]);
+        self::assertSame(0, $tester->getStatusCode());
+
+        $written = glob(dirname(__DIR__, 2).'/scenes/generated/'.self::THROWAWAY_ID.'*.yaml') ?: [];
+        self::assertCount(1, $written);
+        $contents = (string)file_get_contents($written[0]);
+
+        // A solo stack slides without bound, so the file has to say so. Written as `.inf` because `sprintf('%.4F')`
+        // gives `INF`, which YAML reads as a word.
+        self::assertStringContainsString('slide_slack_m: .inf', $contents);
+
+        self::assertSame(
+            1,
+            preg_match('/the subs reach ([\d.]+) m against/', $contents, $header),
+            'the header states no sub-wall height, so this test is checking nothing',
+        );
+
+        $devices = [];
+        foreach ((new SpecLoader(dirname(__DIR__, 2).'/specs'))->loadAll()['specs'] as $spec) {
+            /** @var DeviceSpec $spec */
+            $devices[$spec->id] = $spec;
+        }
+        $result = (new SceneCompiler($devices))->compile(
+            (new SceneLoader(dirname(__DIR__, 2).'/scenes'))->load($written[0]),
+        );
+
+        self::assertSame([], array_map(
+            static fn ($v): string => $v->message,
+            Violation::errorsIn($result['violations']),
+        ));
+
+        $rebuilt = array_values(array_filter(
+            array_map(static fn ($v): string => $v->message, $result['violations']),
+            static fn (string $message): bool => str_contains($message, 'the subs reach '),
+        ));
+        self::assertCount(1, $rebuilt, 'the rebuild reports no sub-wall height to compare against');
+        self::assertStringContainsString(
+            'the subs reach '.$header[1].' m against',
+            $rebuilt[0],
+            'the rebuilt rig is not the one the file describes',
+        );
+    }
+
+    /**
      * @param array<string, mixed> $options
      */
+    /**
+     * **The sweep across processes says exactly what the sweep in one process says.**
+     *
+     * This is the property the whole of {@see \App\Process\Parallel} exists to preserve, and it is the one a fork
+     * breaks first: candidates come back in completion order, a duplicate id wins a race, a worker that silently
+     * dies shortens the list. Any of those shows up here as a differing display, because the display carries every
+     * id, every refusal and every reason in order.
+     *
+     * Asserted on a narrow rig rather than the bare sweep, because the bare sweep is two minutes of work to prove a
+     * statement about ordering that a rig of one owner makes just as well.
+     */
+    public function testTheSweepSaysTheSameThingInOneProcessAsInTwentyEight(): void
+    {
+        $shared = ['--owner' => ['gmss'], '--dry-run' => true];
+
+        $serial = $this->invoke($shared + ['--jobs' => '1']);
+        $parallel = $this->invoke($shared);
+
+        self::assertSame(0, $serial->getStatusCode());
+        self::assertSame(0, $parallel->getStatusCode());
+        self::assertSame($serial->getDisplay(), $parallel->getDisplay());
+        // And it is a sweep rather than a single rig, or the two paths would agree by never diverging.
+        self::assertGreaterThan(1, preg_match_all('/^id: /m', $parallel->getDisplay()));
+    }
+
     private function invoke(array $options): CommandTester
     {
         $application = new Application();

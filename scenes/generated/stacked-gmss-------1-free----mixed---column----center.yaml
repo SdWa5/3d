@@ -6,22 +6,22 @@
 # Regenerate it with:
 #
 #   bin/console scene:stack --orientation=mixed --from=gmss-wall-bass --from=gmss-mid-bass --from=gmss-nuke
-#     --from=gmss-iq-sub --from=gmss-turbo-top --stacks=1 --align=center --shape=free --mirror-style=centred
+#     --from=gmss-iq-sub --from=gmss-turbo-top --stacks=1 --align=center --shape=free --mirror-style=column
 #     --id=stacked-gmss-------1
 #
 # What it deals out today:
 #
 #   1  1× gmss-wall-bass rolled 270° + 1× gmss-mid-bass + 1× gmss-wall-bass rolled 90°     4.04 m wide
 #   2  1× gmss-nuke rolled 270° + 1× gmss-nuke rolled 90°                     1.56 m wide
-#   3  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 1× gmss-iq-sub rolled 90°     1.91 m wide
-#   4  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 1× gmss-iq-sub rolled 90°     1.91 m wide
+#   3  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
+#   4  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
 #   5  3× gmss-turbo-top                                                         1.39 m wide
 #
-# Subs reach 2.59 m against a 2.0 m interface. The stack is 3.3 m of cabinet.
-#   * the 1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 1× gmss-iq-sub rolled 90° row is 1.910 m on a 1.560 m
-#     row, so it overhangs 175 mm each side
+# Subs reach 2.31 m against a 2.0 m interface. The stack is 3.02 m of cabinet.
+#   * the 1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90° row is 2.050 m on a 1.560 m row, so it overhangs
+#     245 mm each side
 #
-id: stacked-gmss-------1-free----mixed---centred---center
+id: stacked-gmss-------1-free----mixed---column----center
 name: "Solved rig — one stack, tiers centred"
 
 focus:
@@ -40,7 +40,8 @@ placements:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
-      mirror_style: centred
+      slide_slack_m: .inf
+      mirror_style: column
       from:
         - device: gmss-wall-bass
           roll_mirror: 90.0

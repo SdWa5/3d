@@ -4,6 +4,139 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.85.0] - 2026-08-16
+
+Runtime. **Stated by the owner: kill the running suite and make the thing fast**, with the lighting sweep named as
+the first thing to drop if it was what held the pipeline up. Nothing here changes an answer. Every measurement below
+was checked by diffing the output against the serial run, and every one is byte-identical.
+
+### Changed
+
+- **The `scene:stack` sweep is solved across every core.** The candidate loop was embarrassingly parallel and had
+  always been run on one: each candidate is a solve and a compile over the same immutable inventory, none of them
+  reads what another writes, and the file writing happens afterwards on the survivors. **The default sweep goes from
+  25 minutes to 1m58s on 28 cores**, output byte-identical, and a single-owner rig from 62 seconds to 5.6. The whole
+  sweep is 1206 candidates and about 100 minutes of CPU between them, so the ceiling here is the machine rather than
+  the code. `--jobs=1` is the serial path
+- **`build:all` regenerates the scenes across every core too.** 483 recorded commands that share nothing took a
+  quarter of an hour of one core. Each child's console output is captured and printed back in file order, so the log
+  reads exactly as a serial run's did. **The one behaviour that changes**: a broken replay is reported after the
+  stage has run rather than stopping it, and the failure named is the one the serial order would have named first
+- **`build:all` renders one picture per scene instead of eight, which reverses 0.70.0's default.** Four lighting
+  presets times two aim modes times 483 generated scenes is 3864 pictures out of the slowest tool in the repository.
+  `--every-variant` asks for the eight back. The useful-by-default argument that made the sweep the default still
+  stands for everything cheap, and a render is not cheap
+- **JIT on, in `bin/console` and in `phpunit.xml`.** The image ships opcache with a 64 MB JIT buffer and
+  `opcache.jit` empty, which means off, and `opcache.jit` is settable at runtime where the buffer is not. One line in
+  each place, no image or ddev config to keep in step. **2m31s to 1m58s** on the parallel sweep
+- **A generated scene is written to a temporary name and renamed into place.** A rename is atomic on one filesystem,
+  so two replays that name the same file — TOOL-15's six duplicates are exactly that — cannot interleave inside one
+
+### Added
+
+- `App\Process\Parallel`, the fork helper behind both stages, and `tests/Process/ParallelTest.php` covering the three
+  properties a race would break first: the order out is the order in, work is taken from a shared cursor rather than
+  dealt out in advance, and a worker that dies is an error rather than a shorter answer
+- `--jobs` on `scene:stack` and on `build:all`; `--every-variant` on `build:all`
+- `testTheSweepSaysTheSameThingInOneProcessAsInTwentyEight`, which is the drop-in claim asserted rather than argued
+
+### Fixed
+
+- **The suite's slowest class was measured rather than guessed at.** The PHPUnit result cache holds a per-test
+  duration, so the profile was free: of 4238 seconds, **1519 were one test** and the top six were 3044 between them.
+  Every one of them was a sweep. `BuildAllCommandTest` goes from 7m46s to 1m14s
+
+### Known
+
+- **The CPU bill is unchanged and TOOL-9 is only half closed.** Its stated lever was pruning ladder steps that cannot
+  change the answer, and this prunes nothing — it buys the same work more cores. The sweep is now something you can
+  run while waiting, which was the point, but a laptop with four cores gets four times less of this than this
+  machine does
+- Memoising `solveGroup` was tried and abandoned: 1512 solves across 189 candidates produced **zero** cache hits, so
+  every solve in a sweep is genuinely distinct
+
+## [0.84.0] - 2026-08-16
+
+### Fixed
+
+- **Every solo generated scene rebuilt as a different rig from the one its own header described.**
+  `SceneStackCommand::stackFor()` gives a stack with nothing beside it `slideSlackM: INF`, so a badly-carried row may
+  be moved sideways to get it under something. `Stack::fromReader()` had no key for that value, so the compiler
+  re-solved the written file with `null`, which means the row may not move at all. The file therefore stated a
+  constraint set that was not the one it was solved against. Measured on
+  `stacked-all--------1-free----turned--alternate-center`, same inventory, same placement, same focus table: **four
+  rows reaching 1.860 m of subs** with the slack against **two rows reaching 0.660 m** without it, a 23.5 m line of
+  cabinet with the tops 1340 mm below the interface. The other candidates were ruled out first and each gives the
+  identical wrong answer — the per-entry `aim: near`, the real placement against the command's probe placement, and
+  the scene's focus table against the writer's
+- **The scene files barely move and the models do.** **148 of the 483** generated scenes are solo and each gains one
+  line, and the header comments do not change at all, because the solve was always right and it was the rebuild that
+  was wrong. Every `.blend` and every render of those 148 is a different rig from now on, which is the whole point and
+  is nearly invisible in `git status`
+- **The sweep writes 483 scenes against 450, and the 33 are rigs the command was throwing away at its own last
+  gate.** `scene:stack` compiles each candidate's written YAML before accepting it, and that compile read the file
+  the compiler would — so it re-solved without the slack, disagreed with the solve that had just produced the
+  candidate, and discarded the rig. 43 scenes are new and 10 are gone. Attributed rather than assumed: a sweep from a
+  worktree at 0.83.0 writes 450, and **the same worktree with only the `Gravity` line changed also writes 450**, so
+  the gravity fix really was inert and this is the whole of the difference. The fingerprint is in 0.83.0's own
+  refusals — the scenes now written were skipped with "a `gmss-turbo-top` would stand at **0.660 m** with nothing
+  under it", which is the slide-slack answer exactly
+- **`build:all` could not be run twice in a row**, which is **TOOL-7** and was reported by the owner running it.
+  `scene:stack` returned the same exit code for "the command broke" and "every candidate was refused for a stated
+  reason", so the regenerate stage read the second as the first: one rig that had stopped solving aborted the whole
+  stage and took the other 482 replays with it. `stacked-all--------1-pyramid-mixed---alternate-stereo` is the file
+  that surfaced it — a `gmss-turbo-top` would stand at 2.452 m with nothing under it across x. **Now idempotent**: a
+  refused replay is reported stale, left out of the written set and deleted, so a second run has nothing to do. Ten
+  such files were on disk, and the stage that exists to delete them was the one keeping them alive
+- **A gravity repair could win by throwing a cabinet away.** `Gravity::resolve()` scored a candidate repair with
+  `worstBearing()`, and a run standing on nothing reports a bearing of **1.0** — so "walked clean off its support"
+  scored as perfect and took the slot. `carriedBearing()` exists for exactly this and reads `on` rather than the
+  bearing, and the lookahead onto the tier above already used it; the row's own score did not, one line apart.
+  Measured on the case that surfaced it: `2× gmss-nuke + 1× gmss-mid-bass` on two wall basses is carried at 8.5 %
+  centred and the slide replaced it with an arrangement carrying a run on nothing. **Effectively inert on the shipped
+  set** — 450 scenes and 313 band notes either way, with two refusal messages naming a different cabinet as the
+  unsupported one
+
+### Added
+
+- **`slide_slack_m` on the `stack:` block**, in metres or `.inf` for "bounded only by the stage". Unstated it is
+  `null`, which is the "may not move" answer a stack with a neighbour needs, so no hand-written scene changes. Written
+  by `StackSceneWriter` whenever it is stated rather than only when it differs from a default, because both values are
+  meaningful and there is no default to differ from
+- **`StackSceneWriter::number()` writes an infinity as `.inf`.** `sprintf('%.4F', INF)` is the string `INF`, which YAML
+  reads as an ordinary word and the reader then refuses as "expected a number"
+- **A test that a written scene rebuilds to the sub wall its own header reports**, asserted on that number because it
+  is the one both sides print in the same words and it separated the two answers by a factor of three. This is the
+  third field to break the same invariant after the seating check, so the test is written against the invariant rather
+  than against the field
+- **`SceneStackCommand::NOTHING_TO_WRITE`**, exit code 2. Still non-zero, because a human who asked for a rig and got
+  none needs the shell to say so, and distinct from `FAILURE` so a caller replaying a recorded command can tell a rig
+  that is no longer one of the possibilities from a command that broke
+- **A structural guard for the next one.** Every constructor parameter of `Stack` must appear as a key
+  `Stack::fromReader()` accepts, derived by camelCase to snake_case rather than listed, and a stack that states
+  everything must be written out stating everything and load again. Three releases have shipped this bug in three
+  different fields and each was found by looking at a render
+- **`build:all`'s regenerate stage is run by a test**, which is **TOOL-6** and the gap that let a real defect through:
+  a removed pass wrote 141 stray scenes and `git status` found it rather than the suite, because every test checked
+  the stage with `--dry-run` and none ran it. The replay is split out as `replayRecorded()` so the two deletions that
+  follow it stay out of the test's way, and the test asserts which scenes exist, that each is byte-identical, and that
+  the stage reports every one as written. The sibling test proves each recorded command is idempotent; this one proves
+  the code that runs them does nothing else
+- **`slideSlackM` is covered again**, which is **TOOL-8**, and at the `Gravity` level rather than through a swept rig —
+  a rig can stop needing a feature, which is exactly how the old guard quietly stopped guarding anything. The case is
+  measured: an Achenbach carried at **3.2 %** on a wall bass's edge, landing at **98.5 %** on the Flexy beside it after
+  a 30 mm slide
+
+### Known
+
+- **A scene the sweep collapses as a duplicate still survives the replay**, which is what is left of TOOL-7 and is
+  filed as **TOOL-15**. Dedup is a decision across a whole sweep and a replay is one file with nothing to compare
+  itself against. Measured at **6 of 489**, every one confirmed a duplicate of a sibling that is also on disk, removed
+  by hand so the tree matches a fresh `--force` sweep at 483
+- **Sliding never changes the answer on a flat support.** Searched across every sub pair against every one, two and
+  three cabinet support: not one case. Every case where the slide helps has a *stepped* support underneath, where a
+  cabinet perches on the edge of the taller run. That is why the mechanism is invisible until a mixed row appears
+
 ## [0.83.0] - 2026-08-16
 
 ### Changed

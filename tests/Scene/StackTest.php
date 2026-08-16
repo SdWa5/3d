@@ -8,9 +8,12 @@ use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneSpec;
+use App\Scene\Stack;
+use App\Spec\ArrayReader;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * A `stack` as the compiler sees it: solved into ordinary placements before anything else runs.
@@ -441,6 +444,102 @@ final class StackTest extends TestCase
             ['id' => 'main', 'at' => [0.0, 0.0], 'row' => ['count' => 3],
                 'stack' => ['max_width_m' => 3.7, 'from' => ['flexy-folded-horn-hybrid']]],
         ]);
+    }
+
+    /**
+     * **`slide_slack_m` is read, and unstated it is `null` rather than a missing number.**
+     *
+     * The distinction is the whole point of the key. Null means "a row may not be moved sideways to get it carried",
+     * which is the right answer for a stack with a neighbour to slide into, and `.inf` means "bounded only by the
+     * stage", which is what `scene:stack` solves a solo rig with. Until this key existed the file could state
+     * neither, so every solo rig rebuilt under the stricter rule and came out as a different arrangement — see
+     * {@see \App\Tests\Command\SceneStackCommandTest::testAWrittenSceneRebuildsToTheSubWallItsOwnHeaderReports}.
+     *
+     * `.inf` is asserted through the YAML rather than by handing the reader a PHP `INF`, because the spelling is
+     * half of what could go wrong: `sprintf('%.4F', INF)` writes `INF`, which YAML reads as an ordinary word and the
+     * reader then refuses as "expected a number".
+     */
+    public function testTheSlideSlackIsReadAndIsNullWhenNothingSaysOtherwise(): void
+    {
+        $parsed = Yaml::parse("from: [flexy-folded-horn-hybrid]\nslide_slack_m: .inf\n");
+        self::assertInfinite(Stack::fromReader(new ArrayReader($parsed))->slideSlackM);
+
+        $bounded = Yaml::parse("from: [flexy-folded-horn-hybrid]\nslide_slack_m: 0.15\n");
+        self::assertSame(0.15, Stack::fromReader(new ArrayReader($bounded))->slideSlackM);
+
+        $silent = Yaml::parse("from: [flexy-folded-horn-hybrid]\n");
+        self::assertNull(Stack::fromReader(new ArrayReader($silent))->slideSlackM);
+    }
+
+    /**
+     * **Every solve input a `Stack` carries has a key the scene can state, and the writer writes it.**
+     *
+     * This is the invariant rather than the field. A generated scene holds constraints and is re-solved on every
+     * build, so an input the file cannot express is an input the rebuild silently substitutes a default for — and
+     * three separate releases have shipped that bug in three different places: the seating check, the aim the probe
+     * judged tops at, and `slide_slack_m`, which turned a four-row rig into a 23.5 m line. Each was found by looking
+     * at a render. Asserted structurally so the fourth one is found by this test instead.
+     *
+     * The key name is derived from the constructor parameter rather than listed here, because a list is a fourth
+     * place to forget something. Every parameter maps by camelCase to snake_case, with a trailing `M` becoming the
+     * `_m` suffix the schema uses everywhere.
+     */
+    public function testEveryStackInputCanBeStatedInASceneAndIsWrittenIntoOne(): void
+    {
+        $allowed = (new \ReflectionClass(Stack::class))->getMethod('fromReader');
+        $source = (string)file_get_contents((string)$allowed->getFileName());
+
+        foreach ((new \ReflectionClass(Stack::class))->getConstructor()?->getParameters() ?? [] as $parameter) {
+            $key = strtolower((string)preg_replace('/(?<!^)[A-Z]/', '_$0', $parameter->getName()));
+
+            self::assertStringContainsString(
+                "'".$key."'",
+                $source,
+                sprintf('Stack::$%s is a solve input no scene can state, so a rebuild will not reproduce it', $parameter->getName()),
+            );
+        }
+
+        // And the other direction: a stack that states everything is written out stating everything. A key the reader
+        // accepts but the writer never emits is the same defect seen from the generator's side.
+        $stated = new Stack(
+            from: [new \App\Scene\StackEntry('flexy-folded-horn-hybrid')],
+            maxWidthM: 3.7,
+            minWidthM: 2.1,
+            maxHeightM: 4.2,
+            interfaceHeightM: 1.9,
+            gapM: 0.03,
+            mirror: true,
+            maxSubHeightM: 2.9,
+            shape: \App\Scene\StackShape::Pyramid,
+            mirrorStyle: \App\Scene\MirrorStyle::Column,
+            slideSlackM: INF,
+            targetSubHeightM: 2.4,
+        );
+        $written = \App\Scene\StackSceneWriter::yaml(
+            'zz-round-trip',
+            'round trip',
+            [new \App\Scene\StackBlock('main', 'a', $stated, [], ['flexy-folded-horn-hybrid'], [])],
+            [0.0, 0.0],
+            0.5,
+        );
+
+        foreach ([
+            'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
+            'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m',
+        ] as $key) {
+            self::assertStringContainsString($key.':', $written, $key.' is accepted by the reader and never written');
+        }
+
+        // It has to load again, which is what catches `INF` being written as a word YAML reads as a string. `from` is
+        // supplied here rather than read back: the writer counts it off the tiers and this block has none, since what
+        // is under test is the constraint set rather than the deal.
+        $reread = Stack::fromReader(new ArrayReader(
+            ['from' => ['flexy-folded-horn-hybrid']] + Yaml::parse($written)['placements'][0]['stack'],
+        ));
+        self::assertInfinite($reread->slideSlackM);
+        self::assertSame(3.7, $reread->maxWidthM);
+        self::assertSame(2.4, $reread->targetSubHeightM);
+        self::assertSame(\App\Scene\StackShape::Pyramid, $reread->shape);
     }
 
     public function testReadingRejectsAnUnknownStackKey(): void

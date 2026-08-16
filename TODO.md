@@ -39,7 +39,9 @@ the last axis, which is CVR-5, and SWP-2 then adds a seventh axis.
 * **IDs are stable and never renumbered.** Plain numbers broke every cross-reference twice in one session; `GEO-2`
   keeps meaning `GEO-2` even when rows are added, reordered or deleted.
 * **Prio** — `P1` blocks the goal above · `P2` a real defect or a wanted feature · `P3` when it's next touched · `P4`
-  wanted, but nothing waits on it and it may sit for a long time.
+  wanted, but nothing waits on it and it may sit for a long time · **`P5` and beyond** a *direction* rather than a task:
+  nothing is planned around it, nothing waits on it, and it may never be built. Kept because knowing where the project
+  might go changes how the things above it are built.
 * **Effort** — estimate for one focused pass *including* tests and docs, to 5 minutes. `phys` means physical work
   (tape measure, hanging scale, opening a rack), which no estimate here can shorten.
 * **Buys** — the measured payoff, in refused sweep candidates or affected scenes. `—` means it buys nothing
@@ -69,26 +71,37 @@ the last axis, which is CVR-5, and SWP-2 then adds a seventh axis.
 
 Settled with the owner, so a new session can act on it without re-deriving it:
 
-**CVR-7 and CVR-8 are done**, which is why the list now starts where it does.
+**GEO-12, GEO-11's stack-local half, TOOL-6, TOOL-7 and TOOL-8 are done**, which is why the list now starts where it
+does. TOOL-7 left a narrow remainder, filed as TOOL-15.
 
-1. **GEO-12**, the search knob from a cabinet count to a width in metres. Ahead of everything else because it is the
-   bill CVR-8 ran up: 18 scenes and 28 in-band walls are waiting on it, and it is the last place the solver treats
-   cabinets 0.45 m and 1.20 m wide as the same unit.
-2. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
+1. **LOAD-1 and LOAD-2**, the transporter half, raised to P1 across the group by the owner. It is the only group whose
+   output somebody needs on the day, and the only place where getting it wrong is a legal problem rather than a bad
+   render. **Both blockers have cleared**: the schema decision is made and Stefan's Zulassungsbescheinigung is in, so
+   LOAD-1 is ordinary work and LOAD-2 is down to a tape measure inside two vans plus Sepp's papers. Write the schema
+   and the Movano spec first, since neither waits on the measurement.
+2. **TOOL-10**, the staleness check the regenerate stage has never had. 1h 30m against a **measured 6m40s off every
+   build**, the same shape as three checks `Staleness` already serves, and the cheapest thing in the file by a
+   distance. It is now the largest remaining runtime saving, because 0.85.0's parallelism made the stage quick and
+   left it doing all of its work: **a stage that skips beats a stage that is fast**. Then **TOOL-11**, which is the
+   same argument one stage later. The rest of the runtime cluster is speculative until somebody runs this on a
+   machine with four cores.
+3. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
    the rest of the refusals from sentences that scroll away into rigs somebody can look at. Read its three unsettled
-   sub-questions first. The fuse is at 600 and the sweep is at 396, so there is room but not a lot of it.
-3. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
-   above rather than before them.
-4. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
+   sub-questions first. **The fuse is at 600 and the sweep is at 483**, up from 450 in 0.84.0, so the headroom is 117
+   candidates and shrinking. CVR-5 turns refusals into written scenes, so it is the item most likely to blow the fuse,
+   and the fuse refuses outright rather than truncating.
+4. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
+   cabinets need *is* a gapped row, so the search that landed already does half of it.
+5. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
+   above rather than before them — and after TOOL-10, which is what makes a tripled sweep bearable.
+6. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
    enable/disable surface worth building.
-5. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
+7. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
    SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
    169 mm cost on the tightest tops row is measured.
-6. **TOOL-6** — cover `build:all`'s `regenerate()` stage. Cheap, P1, and the one stage that writes into the repository
-   while never being run by a test. Pull it forward whenever the queue above it stalls, since it takes 1h 30m and does
-   not depend on anything.
-7. **GEO-11** — the fill, gravity and compiler reconciliation. The big one, and the only entry here worth a plan before
-   any code. GEO-9 and GEO-13 both sit behind it, so the three are one piece of work in practice.
+8. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
+   stack-local half shipped in 0.83.0 and unblocked GEO-9 and GEO-4 as far as it can; what is left needs the front face
+   and the solve to stop depending on each other.
 
 **GEO-14 arrived after this order was settled and has not been placed in it.** It is P1, it was stated by the owner and
 its four blocking questions are answered: the shapes keep priority, height and acoustics are weighted metrics traded off
@@ -364,6 +377,13 @@ did and they are worth not repeating:
   inside the check: the `all` inventory's turned rigs came back with **0.660 m of subs** against 1.860 m once fixed.
   `StackSceneWriter::focusPoints()` is now the one definition both sides read, because two copies of `far: 10 m / 1.8 m`
   is how they drift apart again.
+* **A fourth, found in 0.84.0 by looking at a render rather than at a number, and the reason this list is worth
+  keeping.** Asking the same question of both sides is only half of it — both sides also have to be given the same
+  stack. `scene:stack` solves a solo rig with `slideSlackM: INF` and the scene schema had no key for it, so the
+  compiler re-solved every written solo scene with `null`, which forbids a slide entirely. Same rig as the third
+  defect and the same headline number: **0.660 m of subs against the 1.860 m its own header reported**, two rows of a
+  23.5 m line where the file described four. Fixed by `slide_slack_m` on the `stack:` block. **The invariant now has a
+  test of its own** rather than each field getting one, because this is the third time it has broken in a new place.
 
 **Measured, with GEO-12, against 0.82.0:** 396 → 450 scenes written, 110 → 137 fully in band, 94 new rigs, 21
 consolidated into siblings, 19 refused. The refusals are 13 interpenetration and 6 bearing, all rigs where every
@@ -1045,14 +1065,316 @@ arithmetic in GEO-2 says the reverse: 8 tops in one row are 3.921 m, wider than 
 so `all-1` cannot be made to stand by any geometry. It is a `--from` problem, and narrowing the default retires **12 of
 GEO-2's 22 refusals** without touching the solver.
 
-## TOOL · tooling and CI
+## LOAD · transporters and packing
+
+**Raised to P1 across the group by the owner.** It used to sit low because nothing in the solver waited on it, which
+was the wrong test: this is the only group whose output somebody needs on the day, and a rig that cannot be transported
+is not a rig. A payload overrun is also the one failure in this repository that is a **legal** problem rather than a
+bad-looking render.
+
+**The gear side of this was always finished and the vehicle side is now half filled.** Two transporters exist, one
+Stefan Ripper's and one Sepp Fronz's. Stefan's is an Opel Movano L4H3 and its papers settle every mass and the outer
+box, including the number that matters most: **1024 kg of payload against 2660 kg of cabinets in the `all` rig**, so one
+van carries about two fifths of one generated scene. Sepp's is still described rather than documented.
+
+**Stated by the owner: GMSS gear does not travel in these two vans.** That is a scope constraint rather than a
+measurement, and it is the one that decides the size of the problem. It takes 21 cabinets, 1255.2 kg and 6.098 m³ off
+the load and leaves **2238.5 kg against 2224 kg of fleet payload**, so the pack is one trip or very nearly one, and the
+`all` rig above is a picture rather than a load. The two vans still travel together, because neither carries sdwa5's own
+gear alone.
+
+> **IN FLIGHT — LOAD-1 and LOAD-2 are built and green, and are waiting for 0.84.0 to commit before being applied.**
+> They live in a sandbox copy of the repo at
+> `<session scratchpad>/load-wt`, kept out of the working tree only because the full suite was
+> reading it at the time. **187 tests pass there, 8 of them new** (`tests/Spec/VehicleTest.php`).
+>
+> What is in it: `Category::Vehicle` with `van`/`trailer` and `Category::producesAModel()`; `src/Spec/Vehicle.php`;
+> the `?Vehicle $vehicle` field on `DeviceSpec`; `SpecValidator::validateVehicle()`; vehicles excluded from the
+> catalog's weight and volume totals but kept in its provenance tally and reported as a `fleet`;
+> `models:build` and `library:build` skipping them; `specs/vehicles/opel-movano-l4h3.yaml` and
+> `specs/vehicles/sepp-transporter-l3h2.yaml`; `docs/spec-format.md`, `docs/sources.md` and a regenerated
+> `docs/catalog.md`. **Still owed when it lands:** a `CHANGELOG.md` section, a `README.md` line and a version bump to
+> 0.85.0. Delete this block once it is applied.
+
+**Both non-code halves have moved and what is left of them is one measurement.** LOAD-1's schema decision is made, so it
+is ordinary work now. LOAD-2 has Stefan's Zulassungsbescheinigung, so what remains there is **the inside of both vans
+with a tape measure** — no registration document states a load bay — plus the whole of Sepp's vehicle. LOAD-3 and LOAD-4
+were always ordinary work and now only wait on the bay.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| TOOL-6 | **`build:all`'s `regenerate()` stage is never run by a test**, only `--dry-run`, which is how a whole extra pass writing 141 stray scenes went unnoticed until `git status` showed it. Raised to P1 once the cause was confirmed as a code defect rather than anything about how the command was invoked. See the section | P1 | 1h 30m | the class of bug that cost two reverts, on the one stage that writes into the repository | — | open |
-| TOOL-7 | **`build:all`'s stale-scene deletion catches a rename and not a rig the sweep has stopped offering.** `regenerate()` replays every file that carries a recorded line, so every one lands in the written set by construction and can only look stale when its replay comes out under a different name. **Measured**: 18 files carrying `--max-width=3.7` outlived the release that deleted the width ladder and would have survived for ever. They show as stale only against a fresh `scene:stack --force`. See the section | P2 | 2h | `git status` after a sweep stops being the only thing that finds an abandoned rig | — | measured |
-| TOOL-9 | **A full sweep takes 20 minutes and the suite the better part of two hours**, because GEO-12's ladder walks roughly fifty steps where the old cabinet count walked a dozen. **Measured rather than assumed**: the same sweep with the seating check short-circuited off is 20m14s, so GEO-11's compile adds only two to four minutes and the ladder is the whole of the rest. Runtime is explicitly not a constraint here, so this is not a defect — it is a bill worth knowing before somebody optimises the wrong half. The lever is pruning ladder steps that cannot change the answer, never dropping a dimension | P3 | 3h | a sweep somebody can run while waiting, and a suite that fits a coffee break | — | measured |
-| TOOL-8 | **`slideSlackM` lost its only dedicated test.** `testASoloStackSlidesARowRatherThanLosingTheRig` guarded it by pinning a rig whose row hung 260 mm proud, and GEO-12's wider search now solves that rig with every row narrower than the one under it, so nothing slides and the test guards something else. The feature is plainly still live — **273 generated scenes carry an overhang warning against 262 before** — which is exactly why the gap is easy to miss. Wants a solver-level test that sets `slideSlackM` and asserts the difference, rather than a CLI rig that may stop needing it again | P2 | 1h | a feature that is load-bearing across 273 scenes and pinned by nothing | — | open |
+| LOAD-1 | Where a **vehicle** belongs in the schema — a transporter is not a speaker, and a load bay is not a bounding box. **Decided: `specs/`, a real `vehicle` category, a `vehicle:` block for the permitted gross and the load bay, payload derived.** Ordinary work now | P1 | 1h 30m | LOAD-3 and LOAD-4, which cannot start without it | — | decided |
+| LOAD-2 | Specs for the **two transporters**. **Stefan's is documented**: Opel Movano L4H3, 6.848 × 2.070 × 2.808 m, 2476 kg in service against 3500 kg permitted, so **1024 kg of payload**, all off the Zulassungsbescheinigung. **Sepp's is still unknown** — L3H2 or L3H3, probably a Peugeot, ex-Deutsche-Post. **Neither load bay is measured and no registration document states one**, so the tape measure is what is left | P1 | phys | provenance for the only two objects a pack is ever checked against | LOAD-1 | partial |
+| LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both — this is bin packing, so a named heuristic rather than an implied optimal solver | P1 | 6h | a load plan, which nothing produces today | LOAD-1, LOAD-2 | open |
+| LOAD-4 | **Report space and weight separately** — a pack can fit the bay and still be overloaded, and a payload overrun is a legal problem rather than an inconvenience | P1 | 2h | — | LOAD-3 | open |
+
+#### LOAD-1 — a vehicle is not a speaker
+
+Where: `src/Spec/Category.php`, `src/Spec/DeviceSpec.php`, `src/Spec/SpecValidator.php`, `docs/spec-format.md`.
+
+**Question 1 is settled by the owner: a transporter belongs in `specs/`.** Stated as "of course a transporter belongs
+in specs, where else". So there is no separate directory and no second loader, and everything a spec already gets —
+`owner`, `provenance`, a row in `sources.md`, the catalog's weight and volume totals — a vehicle gets for free.
+
+That decides question 2 with it. `other/vehicle` was only attractive because it needed no schema change, and a load bay
+and a legal payload need validated fields whatever the category is, so the change is owed either way. It is a real
+`vehicle` case with `van` and `trailer` subtypes.
+
+**Question 3 is the one left, and it is a design call rather than a question for the owner.** `geometry.dimensions_m`
+is the true outer bounding box, which for a van is the wrong number entirely — what a pack reads is the **inside**:
+length, width, width between the wheel arches, height under the roof and height through the door aperture, which is
+usually the binding one. That is a second dimension set on one device and the schema has nothing like it. Payload is
+the same shape of problem seen from the mass side: `physical.weight_kg` is what the object weighs, and a van also
+carries what it is *allowed* to weigh.
+
+The shape that follows from what the Zulassungsbescheinigung actually states:
+
+* `physical.weight_kg` stays what it always was and takes **field G**, the mass of the vehicle in service. No new
+  field, and the catalog's totals keep meaning what they mean.
+* A new `vehicle:` block holds `permitted_gross_kg` (**field F.2**) and the `load_bay_m` set. **The payload is
+  derived** as `F.2 − G` rather than stored, because both halves are citable to a numbered field on a document and
+  their difference is not.
+* `load_bay_m` is **optional**, and a vehicle without one is refused by the packer by name rather than by the
+  validator. Stefan's van can be specified today from its papers and cannot be packed into until somebody measures the
+  inside, and that distinction is worth being able to express.
+
+Also part of the call: `owner`. The vans are personal property, and `owner` already carries `sdwa5`, `sepp` and `gmss`.
+Both men are sdwa5 members, so Sepp's is `sepp` and Stefan's is `sdwa5` unless a personal value is wanted. CVR-3 is the
+same discriminator problem seen from the rig side.
+
+#### LOAD-2 — Stefan's van is documented, Sepp's is not
+
+Where: `specs/` (a `vehicle` category, per LOAD-1), and a row each in [docs/sources.md](docs/sources.md).
+
+##### Stefan's van, from the Zulassungsbescheinigung itself
+
+Both parts of the document were supplied by the owner on 2026-08-16, so these are `document` provenance rather than
+estimates. **The masses and the outer box are settled and the load bay is not** — the inside of a van appears on no
+registration document, so item 3 below still needs the tape measure.
+
+**Opel Movano, Kastenwagen, body L4H3** — the body designation is the owner's, and the two figures on the document
+agree with it: 6848 mm is Movano L4 and the H3 roof is the only one near 2.8 m.
+
+| what | value | where it is stated |
+| --- | --- | --- |
+| make, model | Opel Movano | D.1 `OPEL`, D.3 `MOVANO` |
+| type, variant, version | MR / F6YF / S2BFC3 | D.2 |
+| vehicle class | N1, `Fz.z.Gü.bef. b. 3,5 t`, body `BB` Van | J, (5), (4) |
+| **length** | **6.848 m** | 18 |
+| **width** | **2.070 m** | 19 — body only, mirrors not included |
+| **height** | **2.792–2.808 m** | 20, stated as a range |
+| **mass in service** | **2476 kg** | G — includes the 75 kg driver by EU definition |
+| **permitted gross** | **3500 kg** | F.2, and F.1 technically permitted is the same |
+| **payload** | **1024 kg** | derived, `F.2 − G`, driver already counted |
+| axle loads | 1850 kg front, 2300 kg rear | 7.1 / 7.2 |
+| towing | 2500 kg braked, 750 kg unbraked | O.1 / O.2 |
+| seats | 3 | S.1 |
+| first registered | 25.04.2016 | B |
+
+**1024 kg of payload, against a library that weighs 3493.7 kg.** That is the first real number this group has ever had
+and it reframes what LOAD-3 is for. Three comparisons, all off `bin/console catalog` and the scene reports:
+
+| load | weight | volume | Movano loads |
+| --- | --- | --- | --- |
+| everything in `specs/` | 3493.7 kg | 26.588 m³ | 3.4 |
+| **what actually travels, GMSS excluded** | **2238.5 kg** | **20.490 m³** | **2.2** |
+| what sdwa5 itself owns | 1856.5 kg | 18.645 m³ | 1.8 |
+| what Sepp owns | 382.0 kg | 1.845 m³ | 0.4 |
+| GMSS, **not carried in these two vans** | 1255.2 kg | 6.098 m³ | — |
+| the `all` rig, 38 cabinets | 2660.0 kg | — | 2.6 |
+
+**Even the collective's own gear does not fit in one van**, so the packer's question was never "does it fit". It is
+which subset goes in which load, and with two vans of different sizes that is the two-bin problem LOAD-3 already
+describes. The 1024 kg also has the driver counted already, since field G includes 75 kg, but a second person on board
+comes straight off it.
+
+**Stated by the owner: GMSS is not carried in these two vans.** That takes 1255.2 kg and 6.098 m³ out of the problem and
+leaves a load of **2238.5 kg in 20.490 m³** against a fleet payload of **2224 kg** and roughly **29.2 m³ of bay**, so the
+two vans are **14.5 kg short of one trip** and have volume to spare. The whole packing problem now turns on 0.6 % of the
+load.
+
+**Which means the deciding number is the one nobody has looked up.** The 2224 kg is 1024 documented plus Sepp's
+**estimated** 1200, and that estimate is a guess twice over, since both the mass in service and the permitted gross were
+assumed rather than read. Field F.2 and field G off Sepp's Zulassungsbescheinigung move the answer between "one trip" and
+"two", and no amount of packing cleverness substitutes for reading them. That promotes the paperwork above the code:
+**LOAD-3 should not be written until LOAD-2's second vehicle is real.**
+
+**The volume headroom is thinner than 70 % fill sounds.** 20.490 m³ is the sum of gross bounding boxes, so it already
+counts the air around every wedge and every horn flare, but it counts no aisle, no strapping and no stacking rule. The
+Movano's floor is also 1.380 m between the arches against a 1.765 m bay, so the width a cabinet actually gets depends on
+how high it sits.
+
+**Neither van does its own owner's gear alone.** sdwa5 owns 1856.5 kg in 18.645 m³ against the Movano's 1024 kg and
+15.844 m³, over on both counts, so the split is genuinely across the two vehicles rather than one van per owner. That is
+the two-bin problem LOAD-3 describes, and with the GMSS gear gone it is a **single-trip** two-bin problem with a hard
+weight constraint and a soft volume one.
+
+**Nothing identifying goes in the spec file.** The VIN, the plate and the owner's home address are all on the document
+and none of them is a packing input, so the spec carries make, model, body, dimensions and masses and stops there.
+
+##### The load bays, estimated on the owner's instruction
+
+**Stated by the owner: estimate both bays and Sepp's vehicle for now.** So these go in as `provenance: estimated` with a
+`sources.md` row naming where they came from, which is the mechanism this repository already has for exactly this — all
+21 GMSS cabinets are `estimated` and say so. What stays forbidden is an *unlabelled* number.
+
+**An estimate against a legal limit is rounded in the safe direction, and that is not the same as rounding to the
+nearest.** A payload estimated low and a bay estimated small make the packer refuse loads that would in fact have
+fitted, which costs a second trip. The other direction costs a fine and an insurance claim. So where a figure is a
+range or a guess, the pessimistic end goes in the spec.
+
+| | Stefan, Movano L4H3 | Sepp, Boxer L3H2 (assumed) |
+| --- | --- | --- |
+| load length | 4383 mm | 3705 mm |
+| load width | 1765 mm | 1870 mm |
+| between wheel arches | 1380 mm | 1422 mm |
+| load height | 2048 mm | 1932 mm |
+| load volume | 15.8 m³ | 13 m³ |
+
+Two things to know about those columns before anybody trusts them:
+
+* **The Movano figures are the rear-wheel-drive ones**, and that is deliberate rather than incidental. The L4 body is
+  not offered front-wheel drive, and the RWD floor sits higher, so the H3 bay is **2048 mm rather than the 2144 mm** a
+  front-wheel-drive H3 gets. The registration document agrees with the drivetrain: 1850 kg on the front axle against
+  2300 kg on the rear. Taking the FWD figure would have invented 96 mm of headroom.
+* **Sepp's column assumes the smaller of the two roofs he might have.** L3H2 and L3H3 share every dimension but the
+  height, 1932 mm against 2168 mm, so the assumption costs 236 mm and no more. It is the safe end of his own
+  uncertainty and it is the one number in the table that a single look at the vehicle would settle.
+
+Both are manufacturer catalogue figures for the body, so they describe a bare van. **They do not know about ply lining,
+a bulkhead, load rails, a shelf or anything an ex-Post fleet fitted**, which is item 4 below and is why the tape measure
+still matters. Sepp's payload stays open, because a catalogue kerb weight for a fleet-specification vehicle is the exact
+mistake the GMSS reconstruction is the worked example of.
+
+##### Sepp's van, still unknown
+
+**L3H2 or L3H3, probably a Peugeot, an ex-Deutsche-Post vehicle** — the owner's own description, and explicitly
+uncertain in both the height and the make. So nothing about it may be written into a spec yet. What settles it is the
+same document Stefan's van produced, and an ex-Post Boxer is likely to differ from the catalogue anyway, since those
+were bought to a fleet specification.
+
+**No dimension, payload or weight for either transporter may be invented, and that is not a style preference here.**
+Every number in this repository points at a row in `sources.md`, and the GMSS reconstruction is the worked example of
+what happens when it does not: a photograph got a cabinet's depth wrong by 205 mm and its weight by 139 kg, and the
+whole apparatus had to be thrown away when the builder finally stated his figures. A guessed payload is worse than that,
+because a wrong cabinet weight makes a bad render and a wrong payload makes an overloaded van.
+
+**No dimension, payload or weight for either transporter may be invented, and that is not a style preference here.**
+Every number in this repository points at a row in `sources.md`, and the GMSS reconstruction is the worked example of
+what happens when it does not: a photograph got a cabinet's depth wrong by 205 mm and its weight by 139 kg, and the
+whole apparatus had to be thrown away when the builder finally stated his figures. A guessed payload is worse than that,
+because a wrong cabinet weight makes a bad render and a wrong payload makes an overloaded van.
+
+What is needed, per vehicle:
+
+1. **Make and model**, which pins the class and nothing else. **Stefan's: done.** Sepp's: open.
+2. **The legal payload**, from the **Zulassungsbescheinigung**. Field F.2 is the permitted gross weight and G is the mass
+   in service, and the payload is the difference. That is the citable number, and it is stated on a document rather than
+   derived from a brochure figure for a different trim level. **Stefan's: done, 1024 kg.** Sepp's: open.
+3. **The internal load bay**, with a tape measure. Length at the floor, width between the walls and width between the
+   wheel arches, height under the roof and height through the door aperture. **Open for both, and it is now the only
+   thing standing between Stefan's van and a spec that can be packed into.** No registration document states it.
+4. Whether either vehicle has anything fixed in the bay that never comes out. Open for both.
+
+Until 3 exists, a pack that reports "it fits" is reporting nothing, however good the payload figure is.
+
+#### LOAD-3 — packing, and what a heuristic can honestly claim
+
+Where: reads `DeviceSpec::$dimensions` and `physical.weight_kg` straight out of `SpecLoader`; `CatalogRenderer::summary()`
+already sums weight and volume across the library.
+
+**The gear side needs no new data.** Every spec carries `geometry.dimensions_m` and a required `physical.weight_kg`, and
+`bin/console catalog` already totals both — total weight, total volume and a per-owner weight and unit count. A packer
+reuses that loader and those totals wholesale; what it adds is the vehicle, an ordering and a fit test.
+
+**The catalog's volume total is not a packing figure.** It is the sum of bounding-box volumes times quantity, so it
+ignores that boxes do not tessellate, that a load bay has a fixed shape, and that a horn mouth is not a brick. It is a
+lower bound on the space needed and can never say a load fits. (`docs/catalog.md` had also gone stale against the GMSS
+rename, still listing `gmss-turbo-sub` and `gmss-middle-sub`. It was regenerated in 0.72.4 and the totals moved by
+61 kg. It is a generated file, so re-run `catalog --write` rather than trusting a figure quoted from it.)
+
+**3D bin packing is NP-hard, so what gets built is a heuristic with its ordering written down**, not a solver that
+claims an optimum. Heaviest and largest first into the deepest free space is the usual shape of it, and the ordering is
+part of the output so a load plan can be argued with. Two transporters make it a bin-packing problem with two bins of
+different sizes, which is the same heuristic run twice with a rule for which bin a device is offered to first.
+
+**Two bins, one trip, and the weight is what binds.** GMSS does not travel in these vans, so the load is 2238.5 kg in
+20.490 m³ against 2224 kg of payload and about 29.2 m³ of bay. Volume has 30 % of headroom and weight is 14.5 kg short,
+which fixes what the heuristic is optimising for. Ordering by volume into the deepest free space solves the constraint
+that is not binding, so the ordering has to be **heaviest first with weight as the refusal**, and volume is the check
+that runs second. **Sepp's payload is estimated, so the 14.5 kg deficit is inside the error bar of its own input** and
+the honest output is a load plan with the provenance of the limit printed beside the verdict, exactly as LOAD-4 requires.
+An instance this tight also makes a first-fit result nearly meaningless: two bins at 99.3 % combined utilisation is a
+region where the ordering decides feasibility, so the report says which ordering was used and what it left over.
+
+The constraints a naive box packer misses are the ones that decide whether a plan is usable:
+
+* **Heavy low.** A 220 kg wall bass or a 90 kg SKRAM goes on the floor. Nothing stacks on top of a cabinet it would
+  crush, and no cabinet is stacked higher than two people can lift it.
+* **What a cabinet can carry** is already modelled on the rig side, in `Stability` and the stack checks, and a load has
+  the same rule with a different ceiling.
+* **Irregular shapes.** A Tecnare top is a trapezoid, a Flexy is mostly folded horn, and the truss towers report the
+  mast's footprint rather than their unfolded outriggers, which
+  [docs/sources.md](docs/sources.md#the-towers-are-placeholders-and-look-it) calls the one number in those specs to be
+  careful with. A bounding box overstates some of these and understates none.
+* **Racks roll**, cabinets do not, and the two amp racks are already split by weight rather than by height at 69 kg
+  each.
+
+#### LOAD-4 — two constraints, two verdicts
+
+Where: report shaped like `CatalogRenderer::renderMarkdown()`; `SceneReport` is the precedent for naming every refusal
+rather than failing silently.
+
+**Space and weight are independent, and a pack can pass one while failing the other.** The output therefore has to state
+both outcomes separately, with the numbers behind each: cubic metres used against the bay, and kilogrammes against the
+payload from the Zulassungsbescheinigung. Reporting one figure, or a single pass/fail, hides exactly the case that
+matters — a load that fits the bay comfortably and is 300 kg over the axle.
+
+**An overrun on payload is a legal problem.** It is a fine, a liability question after an accident and a refused
+insurance claim, so it is reported as a refusal with the overrun in kilogrammes, never as a warning to be scrolled past.
+A space overrun is an inconvenience by comparison, and it is fixed by a second run.
+
+**How much the payload verdict can be trusted is bounded by SPEC-5.** No weight in the library is `measured` — the
+catalog reports 0 of 17 — and several are estimates by arithmetic or by the builder's own hedging, including the mid
+bass's 120 kg, which the cabinet's own volume argues against. So the report states the provenance of the weights it
+summed alongside the total, the same way the catalog flags what still needs the hanging scale. A payload check against
+2238.5 kg of `estimated` cabinets is a planning aid, not a clearance.
+
+**And on this fleet both sides of the comparison are estimates.** The load is unmeasured to a cabinet, and half the
+payload is Sepp's assumed 1200 kg, so a verdict of "14.5 kg over" is a statement about two guesses rather than about a
+van. The report therefore prints the provenance of the limit as well as of the load, and a verdict this close to the
+line reads as "cannot be decided from the data" rather than as a refusal.
+
+## TOOL · tooling and CI
+
+**Raised across the runtime cluster by the owner**, and the evidence for it was this release rather than a preference.
+0.84.0 took the sweep from **450 written scenes to 483**, so every per-scene cost in the pipeline got 7 % worse on the
+same afternoon that a 20-minute sweep and a two-hour suite made three separate measurements expensive to take. **Slow
+tooling does not just cost time, it costs evidence**: the `slide_slack_m` defect shipped because looking at a render was
+cheaper than running the thing that would have caught it, and the wrong runtime attribution in TOOL-9 was made twice
+because re-measuring cost twenty minutes a go.
+
+**0.85.0 answered most of it with parallelism rather than with any of these items.** Stated by the owner: kill the
+running suite and make the thing fast. The sweep is forked across every core and went from 25 minutes to 1m58s, the
+regenerate stage went the same way, JIT was turned on for another fifth, and `build:all` renders one picture per scene
+instead of eight. Nothing on this list was needed to get there, which is worth remembering the next time a runtime
+item looks like the only way to a runtime answer.
+
+What that changes here. **TOOL-9 drops to P3**: the symptom is gone and the CPU bill it is really about is unchanged,
+so it now reads as a bill rather than as pain. **TOOL-10 stays P1** and is now the largest remaining saving by a
+distance, because a stage that skips its work beats a stage that does it quickly on 28 cores. **TOOL-11 stays P1** for
+the same reason. TOOL-12, TOOL-13 and TOOL-14 all shave CPU off a sweep that no longer hurts, so they are speculative
+until somebody runs this on a small machine.
+
+| ID | Item | Prio | Effort | Buys | Needs | State |
+|----|------|------|--------|------|-------|-------|
+| TOOL-15 | **A scene the sweep collapses as a duplicate survives the replay**, which is what is left of TOOL-7 after 0.84.0 closed the rest of it. Dedup is a decision across the whole sweep — "the same rig as X" — and a replay is one file with nothing to compare against, so it rebuilds itself happily. **Measured: 6 of 489**, all six confirmed duplicates of a sibling that is also on disk, deleted by hand. Narrow and cosmetic next to what it was: nothing is lost, the rig exists under the other name, and the pipeline no longer aborts. The honest fix is the one TOOL-7 named, which is running the sweep as the stage instead of replaying files | P3 | 3h | a tree that matches a fresh `--force` sweep without `comm` and `rm` | — | measured |
+| TOOL-10 | **`build:all`'s regenerate stage is the one stage with no staleness check**, and its own comment boasts that every stage skips what is already current. It replays all 483 recorded commands unconditionally, **measured at 6m40s**, when a generated scene can only change if a spec or the solver did — both ordinary mtime inputs, and exactly the shape of the three checks `Staleness` already serves. Simple and the biggest single saving in the pipeline | P1 | 1h 30m | 6m40s off every build where nothing changed | — | measured |
+| TOOL-11 | **`scene:render` compiles the whole scene again**, rather than reading anything `scene:build` produced from the identical inventory a moment earlier. `build/plans/` holds `_library.json`, per-model plans and `_render-*.json`, but no compiled-scene plan a later stage reads back — so the natural place for the answer exists and is unused. Re-solving *from the file* is a stated design choice and this does not touch it: the specs demonstrably have not changed between two stages of one build | P1 | 2h 30m | one solve per scene per build instead of two, on every render pass | — | open |
+| TOOL-12 | **`scene:stack` compiles each candidate twice**: once in the solve's seating check and again in `compileYaml()` immediately after. The two are not the same check — one judges a stack in isolation mid-search, the other judges the finished file and also catches a scene that will not parse — so this is a reuse question rather than a deletion | P2 | 1h 30m | unmeasured, and it is on the hot path of a 20-minute sweep | — | open |
+| TOOL-13 | **The seating check's memo lives for one solve.** Across a 483-scene sweep every solve rebuilds it from empty, and identical arrangements recur across rigs that share cabinets. Worth a shared cache only once its hit rate across rigs is measured, because the key is a whole arrangement and most of them are unique | P3 | 1h | unmeasured, and possibly nothing | — | open |
+| TOOL-14 | **Every command re-reads and re-parses every spec.** Negligible once, and the regenerate stage makes 483 invocations of it. Last of these by a distance: the cost is unmeasured, the fix touches every command's bootstrap, and TOOL-10 removes most of the invocations that make it matter | P3 | 2h | unmeasured | TOOL-10 first | open |
+| TOOL-9 | **The wall clock is fixed and the CPU bill is not.** 0.85.0 forked the sweep across every core, so 25 minutes became 1m58s with byte-identical output, and that was the whole of the pain. What is left is the bill itself: 1206 candidates cost about 100 minutes of CPU between them, because GEO-12's ladder walks roughly fifty steps where the old cabinet count walked a dozen. **Measured rather than assumed**: the same sweep with the seating check short-circuited off is 20m14s serial, so GEO-11's compile adds only two to four minutes and the ladder is the whole of the rest. The lever is still pruning ladder steps that cannot change the answer, never dropping a dimension. **Demoted because the symptom is gone**, and it comes back the moment somebody runs this on a four-core laptop | P3 | 3h | a sweep that is cheap rather than merely quick, and the same speed on a small machine | — | half-done |
 | TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
 | TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
@@ -1079,33 +1401,66 @@ the same way: silently, into the working tree, found by `git status` rather than
 midway could take real renders with it. Covering it needs a way to run the stage without pruning, which is one flag or
 one seam and is the actual work here. The rest is a fixture directory and an assertion on what came out.
 
-#### TOOL-7 — the stale rule catches a rename, not an abandoned rig
+#### TOOL-8 — what covering the slide turned up
 
-Where: `BuildAllCommand::deleteStaleScenes()` and `regenerate()`.
+**A repair could win by throwing a cabinet away**, and the two halves of the rule that forbids it sat one line apart.
+`Gravity::resolve()` scores a candidate repair with `worstBearing()`, and a run standing on nothing reports a bearing of
+**1.0** — so "walked clean off its support" scored as perfect and took the slot. `carriedBearing()` exists for exactly
+this and reads `on` rather than the bearing, and the *lookahead onto the tier above* already used it. The row's own
+score did not.
 
-**The rule is right and its reach is narrower than its name.** Staleness is "the run did not write this file", which is the
-only safe definition — the two timestamp attempts before it both destroyed the scene set. But in `build:all` the written
-set is the union of every replay, and `regenerate()` replays *every* file that carries a recorded line. So a file is in
-the written set by construction, and the only way it can fall out is if its own replay produces a different name. That is
-a rename, which is exactly what the feature was built for and exactly all it covers.
+Measured on the case that surfaced it: `2× gmss-nuke + 1× gmss-mid-bass` on two wall basses is carried at 8.5 % centred,
+and the slide replaced it with an arrangement carrying a run on nothing.
 
-**A rig the sweep has stopped offering replays perfectly well from its own recorded line and survives for ever.** Found
-by measurement rather than by reading: 18 files recording `--max-width=3.7` outlived the release that deleted the width
-ladder, kept alive by the very stage meant to clean up after it, and they surfaced only when a fresh
-`scene:stack --force` was diffed against the directory. They are set aside rather than deleted, because they are the only
-artifacts of what the ladder produced and **GEO-12 exists to bring them back**.
+**Effectively inert on the shipped set, and this time it is isolated rather than asserted.** 450 scenes and 313 band
+notes either way. The release around it took the sweep from 450 to 483, which looked at first like this line and is
+not: a worktree at 0.83.0 writes **450**, the same worktree with **only this line changed also writes 450**, and the
+full 0.84.0 tree writes 483. The 33 belong to `slide_slack_m` — `scene:stack` compiles each candidate's YAML before
+accepting it, and that compile disagreed with the solve that produced it. So this is a latent defect fixed at no
+cost, exactly as recorded.
 
-**The fix is not a list of what the sweep offers.** That is the second copy `regenerate()`'s docblock argues against, and
-it would go out of step with the sweep the same way every other second copy has. Two honest shapes instead:
+**The lesson is about the attribution and not about the fix.** A release-level count says nothing about which change
+caused it, and the tempting answer — "the only line that touches the solver" — was wrong here even though the
+reasoning was sound. A worktree, one line, one sweep is 25 minutes and settles it. Worth the 25 minutes whenever a
+number is going into a changelog, because the alternative is a plausible attribution nobody can check later.
 
-* **Run the sweep as part of the stage** rather than replaying files, and let the replay handle only what the sweep does
-  not produce. That makes `build:all` and `scene:stack` agree by construction, and it is a bigger change than it looks
-  because a replay is per file where a sweep is per rig.
-* **Report rather than delete.** The stage says which recorded commands no longer match anything the current sweep would
-  write, and a person decides. Cheaper, and it keeps the "never delete what you did not just write" rule intact.
+**Sliding never changes the answer on a flat support.** Found by searching every sub pair against every one, two and
+three cabinet support: not one case. Every case where the slide helps has a *stepped* support underneath, where a
+cabinet perches on the edge of the taller run — the measured example is an Achenbach carried at 3.2 % on a wall bass's
+edge, landing at 98.5 % on the Flexy beside it after a 30 mm slide. That is why the mechanism is invisible until a mixed
+row appears, and it is worth knowing before searching for a case again.
 
-Until then, `git status` after a full sweep is the check that finds these, which is worth knowing rather than worth
-pretending otherwise.
+## SIG · signal chain, amplifiers and DSP
+
+**Nothing in this repository knows what is plugged into what.** Every spec describes a box and its geometry; none of
+them says what drives it, at what level, through which crossover, on which cable. That is a whole half of a PA and it
+exists today only as a spreadsheet.
+
+| ID | Item | Prio | Effort | Buys | Needs | State |
+|----|------|------|--------|------|-------|-------|
+| SIG-1 | **Bring the Audio Routing sheet into the project.** Speakers, amplifiers and DSP, their settings, and the cabling between them, as specs the repository owns rather than a Google table nobody can diff. See the section | P2 | 12h | the half of the rig that is currently invisible, and the first answer to "does this rig even have enough amp channels" | decision on the schema | open |
+
+#### SIG-1 — the routing that lives in a spreadsheet
+
+**Read the sheet before designing anything.** What it actually holds decides the schema, and guessing at that is how a
+spec format ends up with the wrong shape. The obvious pieces are a device's inputs and outputs, an amplifier's channels
+and their power, a DSP's crossover and delay and gain per output, and a cable's ends and its length — but which of
+those the sheet records, and which it only implies, is not something to invent from here.
+
+**Three things it plainly touches that the repository already has opinions about:**
+
+* **`SPEC-13`'s power figure.** No speaker carries a wattage or a sensitivity, and an amplifier assignment is the one
+  thing that would make those numbers load-bearing rather than decorative. The two items should land together or the
+  first one lands twice.
+* **Provenance applies here exactly as it does to a dimension.** A crossover frequency is trivially easy to invent,
+  impossible to check by looking at a render, and it silently decides what every cabinet is asked to do. Same rule as
+  `audio.passband_hz`, same reason.
+* **`gmss-nuke`'s "8 turbo subs 3000rms" is a rating covering two cabinet types together**, which is already recorded
+  as unsplittable. A routing model has to be able to say that rather than force a number per box.
+
+**Cabling is geometry as well as topology**, and this is the part worth deciding early. A cable run has a length, and a
+length depends on where the cabinets stand — which this project already knows. Whether SIG-1 models that, or records
+stated lengths and leaves the geometry alone, is the schema decision the row is blocked on.
 
 ## ALN · alignment features
 
@@ -1128,6 +1483,7 @@ shared tops row, which is SWP-2. ALN-4's rule stands untouched and the two items
 | SCN-1 | `full-rig-truss-three-quarter.png`: add the two SKRAMs; Gerüste replace the truss stands (remove those), turned 90° with fronts aligned to the system front; fly the Tecnare tops wide apart on the truss; 18Sound 2-ways near field beside them | P2 | 1h 15m | — | CVR-1 (flying) | open |
 | SCN-2 | `everything-three-quarter.png`: remove unused truss stands, turn Gerüste 90°, align their fronts with the system front | P2 | 30m | — | — | open |
 | SCN-8 | `end-fire-lattice-three-quarter.png`: vertical gaps between the subs; add the two SKRAMs, Achenbach, Tecnare and 2-way tops | P2 | 45m | — | — | open |
+| SCN-9 | **Several scenes in one image, as an overview.** An option on `scene:render` that lays out more than one scene in a single picture, so a set can be compared at a glance instead of by opening 450 files one at a time. **The sweep is what makes this worth having**: an axis is only legible side by side, and today the only way to see what `pyramid` does against `free` is to flick between two windows | P3 | 4h | 450 generated scenes that nobody can currently take in | — | open |
 | SCN-3 | `detail-check-turned-three-quarter.png`: add missing stuff | P3 | 20m | — | — | open |
 | SCN-7 | End-fire setup: add the other sub and the tops | P3 | 30m | — | — | open |
 | SCN-4 | Daylight renders: the insides of speakers come out a little too dark | P3 | 30m | — | — | open |
@@ -1227,115 +1583,25 @@ speakers/. A rack needed no new geometry at all: a case is a box.
    1.499 × 1.499 m outrigger spread, or that we own three stands rather than two. The first reading fits where it sits;
    the second changes `truss-tower-4m`'s quantity. One answer settles it.
 
-## LOAD · transporters and packing
-
-**The gear side of this is finished and the vehicle side is empty.** Two transporters exist, one Stefan Ripper's and one
-Sepp Fronz's, and their make, model, internal load bay and legal payload are all unsourced — so every cabinet can be
-weighed and measured out of `specs/` today, and there is nothing to pack it into.
+## VIS · the long view
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| LOAD-1 | Where a **vehicle** belongs in the schema — a transporter is not a speaker, and a load bay is not a bounding box | P2 | 1h 30m | — | decision | decision |
-| LOAD-2 | Specs for the **two transporters**, Stefan's and Sepp's — make, model, internal load bay and legal payload are all unsourced. Zulassungsbescheinigung for the payload, tape measure for the bay | P2 | phys | provenance for the only two objects a pack is ever checked against | LOAD-1 | open |
-| LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both — this is bin packing, so a named heuristic rather than an implied optimal solver | P3 | 6h | a load plan, which nothing produces today | LOAD-1, LOAD-2 | open |
-| LOAD-4 | **Report space and weight separately** — a pack can fit the bay and still be overloaded, and a payload overrun is a legal problem rather than an inconvenience | P3 | 2h | — | LOAD-3 | open |
+| VIS-1 | **Make the whole thing an interactive real-time simulator.** Move the rig in a viewport and see the solve, the coverage and the stability answer as you go, instead of editing a scene file and waiting on Blender. A direction rather than a task — nothing waits on it and it may never be built | P5 | — | — | — | open |
 
-#### LOAD-1 — a vehicle is not a speaker
+**Recorded because it changes how the things above it are built, which is the only reason a P5 row is worth carrying.**
+Two of today's decisions point straight at it and one points away:
 
-Where: `src/Spec/Category.php`, `src/Spec/DeviceSpec.php`, `src/Spec/SpecValidator.php`, `docs/spec-format.md`.
-
-Three questions, and none of them is settled:
-
-1. **Does a transporter belong in `specs/` at all?** Every spec in there is a thing that gets built, placed in a scene
-   and exported as a `.glb`. A van is none of that. It is the container the rest goes into, so it may want its own
-   directory and its own loader rather than a sixth category beside speakers, truss, racks, stands and lighting.
-2. **If it is a category, which one?** `Category::Other` accepts any subtype and is the documented escape hatch, so
-   `other/vehicle` needs no schema change at all. A real `vehicle` case with `van`/`trailer` subtypes is the honest
-   version and costs a validator pass and a docs pass.
-3. **What is a load bay in schema terms?** `geometry.dimensions_m` is defined as the true outer bounding box, which for
-   a van is the wrong number entirely — what a pack reads is the **inside**: length, width, height at the wheel arches
-   and height at the door aperture, which is usually the binding one. That is a second dimension set on one device, and
-   the schema has nothing like it. Payload is the same shape of problem: `physical.weight_kg` is what the object weighs,
-   and a van also carries what it is *allowed* to weigh, which is a different field.
-
-Also part of the call: `owner`. The vans are personal property, and `owner` already carries `sdwa5`, `sepp` and `gmss`,
-so Sepp's is `sepp` and Stefan's is either `sdwa5` or a new personal value. CVR-3 is the same discriminator problem seen
-from the rig side.
-
-#### LOAD-2 — nothing about either vehicle is known
-
-Where: `specs/` (a new directory or category, per LOAD-1), and a row each in [docs/sources.md](docs/sources.md).
-
-**No dimension, payload or weight for either transporter may be invented, and that is not a style preference here.**
-Every number in this repository points at a row in `sources.md`, and the GMSS reconstruction is the worked example of
-what happens when it does not: a photograph got a cabinet's depth wrong by 205 mm and its weight by 139 kg, and the
-whole apparatus had to be thrown away when the builder finally stated his figures. A guessed payload is worse than that,
-because a wrong cabinet weight makes a bad render and a wrong payload makes an overloaded van.
-
-What is needed, per vehicle:
-
-1. **Make and model**, which pins the class and nothing else.
-2. **The legal payload**, from the **Zulassungsbescheinigung**. Field F.2 is the permitted gross weight and G is the kerb
-   weight, and the payload is the difference. That is the citable number, and it is stated on a document rather than
-   derived from a brochure figure for a different trim level.
-3. **The internal load bay**, with a tape measure. Length at the floor, width between the walls and width between the
-   wheel arches, height under the roof and height through the door aperture.
-4. Whether either vehicle has anything fixed in the bay that never comes out.
-
-Until those exist, `provenance` for both is `estimated` at best, and a pack that reports "it fits" is reporting nothing.
-
-#### LOAD-3 — packing, and what a heuristic can honestly claim
-
-Where: reads `DeviceSpec::$dimensions` and `physical.weight_kg` straight out of `SpecLoader`; `CatalogRenderer::summary()`
-already sums weight and volume across the library.
-
-**The gear side needs no new data.** Every spec carries `geometry.dimensions_m` and a required `physical.weight_kg`, and
-`bin/console catalog` already totals both — total weight, total volume and a per-owner weight and unit count. A packer
-reuses that loader and those totals wholesale; what it adds is the vehicle, an ordering and a fit test.
-
-**The catalog's volume total is not a packing figure.** It is the sum of bounding-box volumes times quantity, so it
-ignores that boxes do not tessellate, that a load bay has a fixed shape, and that a horn mouth is not a brick. It is a
-lower bound on the space needed and can never say a load fits. (`docs/catalog.md` had also gone stale against the GMSS
-rename, still listing `gmss-turbo-sub` and `gmss-middle-sub`. It was regenerated in 0.72.4 and the totals moved by
-61 kg. It is a generated file, so re-run `catalog --write` rather than trusting a figure quoted from it.)
-
-**3D bin packing is NP-hard, so what gets built is a heuristic with its ordering written down**, not a solver that
-claims an optimum. Heaviest and largest first into the deepest free space is the usual shape of it, and the ordering is
-part of the output so a load plan can be argued with. Two transporters make it a bin-packing problem with two bins of
-different sizes, which is the same heuristic run twice with a rule for which bin a device is offered to first.
-
-The constraints a naive box packer misses are the ones that decide whether a plan is usable:
-
-* **Heavy low.** A 220 kg wall bass or a 90 kg SKRAM goes on the floor. Nothing stacks on top of a cabinet it would
-  crush, and no cabinet is stacked higher than two people can lift it.
-* **What a cabinet can carry** is already modelled on the rig side, in `Stability` and the stack checks, and a load has
-  the same rule with a different ceiling.
-* **Irregular shapes.** A Tecnare top is a trapezoid, a Flexy is mostly folded horn, and the truss towers report the
-  mast's footprint rather than their unfolded outriggers, which
-  [docs/sources.md](docs/sources.md#the-towers-are-placeholders-and-look-it) calls the one number in those specs to be
-  careful with. A bounding box overstates some of these and understates none.
-* **Racks roll**, cabinets do not, and the two amp racks are already split by weight rather than by height at 69 kg
-  each.
-
-#### LOAD-4 — two constraints, two verdicts
-
-Where: report shaped like `CatalogRenderer::renderMarkdown()`; `SceneReport` is the precedent for naming every refusal
-rather than failing silently.
-
-**Space and weight are independent, and a pack can pass one while failing the other.** The output therefore has to state
-both outcomes separately, with the numbers behind each: cubic metres used against the bay, and kilogrammes against the
-payload from the Zulassungsbescheinigung. Reporting one figure, or a single pass/fail, hides exactly the case that
-matters — a load that fits the bay comfortably and is 300 kg over the axle.
-
-**An overrun on payload is a legal problem.** It is a fine, a liability question after an accident and a refused
-insurance claim, so it is reported as a refusal with the overrun in kilogrammes, never as a warning to be scrolled past.
-A space overrun is an inconvenience by comparison, and it is fixed by a second run.
-
-**How much the payload verdict can be trusted is bounded by SPEC-5.** No weight in the library is `measured` — the
-catalog reports 0 of 17 — and several are estimates by arithmetic or by the builder's own hedging, including the mid
-bass's 120 kg, which the cabinet's own volume argues against. So the report states the provenance of the weights it
-summed alongside the total, the same way the catalog flags what still needs the hanging scale. A payload check against
-994 kg of `estimated` GMSS cabinets is a planning aid, not a clearance.
+* **Runtime stopped being free the moment this is on the table.** The project states outright that it is not a
+  constraint, and that is right for a batch sweep. A 20-minute solve is not a simulator, so TOOL-9's ladder pruning and
+  the TOOL-10 to TOOL-14 caching rows are the groundwork whether or not this is ever built. **0.85.0's parallelism is
+  not that groundwork**, and this is where the difference bites: 28 cores fix a batch that a person waits for once and
+  do nothing at all for a single solve that has to land inside a frame.
+* **Re-solving from constraints is exactly the right shape for it.** A scene records what the rig has to satisfy rather
+  than where the cabinets ended up, so a viewport that moves a stack asks the same solver the same question. Freezing
+  solved tiers into the files would have had to be undone.
+* **The seating check's cost is the warning.** One compile per accepted arrangement is affordable in a batch and is not
+  affordable at 60 Hz, so GEO-11's scene-level half should be designed knowing that.
 
 ## INFO · facts worth keeping
 

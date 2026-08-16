@@ -88,6 +88,12 @@ final class Stack
      *     **A stack in a rig therefore gets half the clearance to its neighbour, less a working gap**, so two rows
      *     sliding towards each other still leave air between them. A stack with nothing beside it is bounded only by
      *     the stage. See {@see Gravity::resolve}
+     *
+     *     **A scene states it as `slide_slack_m`, and it has to.** This was the last solve input `scene:stack` used
+     *     that the schema could not express, so every solo rig was written by a solve that allowed sliding and rebuilt
+     *     by one that forbade it. Measured on `stacked-all--------1-free----turned--alternate-center`, the same
+     *     inventory came out as four rows reaching 1.860 m of subs with the slack and as two rows reaching 0.660 m
+     *     without it — a 23.5 m line of cabinet whose own header comment described a different rig.
      */
     public function __construct(
         public readonly array $from,
@@ -109,7 +115,7 @@ final class Stack
     {
         $allowed = [
             'from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
-            'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style',
+            'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m',
         ];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
@@ -137,6 +143,10 @@ final class Stack
             maxSubHeightM: $reader->optionalFloat('max_sub_height_m'),
             targetSubHeightM: $reader->optionalFloat('target_sub_height_m', self::DEFAULT_TARGET_SUB_HEIGHT_M)
                 ?? self::DEFAULT_TARGET_SUB_HEIGHT_M,
+            // **The key that was missing, and its absence rebuilt every solo rig as a different one.** Unstated it
+            // reads as null, which is "a row may not move", so a file solved with sliding allowed re-solved without
+            // it. `.inf` is the value a solo stack carries, and YAML parses it to a float INF.
+            slideSlackM: $reader->optionalFloat('slide_slack_m'),
             shape: self::shapeFrom($reader->optionalString('shape')),
             mirrorStyle: MirrorStyle::tryFrom($reader->optionalString('mirror_style') ?? MirrorStyle::Alternate->value)
                 ?? throw new InvalidSpecException(sprintf(

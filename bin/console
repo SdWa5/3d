@@ -3,6 +3,13 @@
 
 declare(strict_types=1);
 
+// **JIT on, because this repository is a geometry solver wearing a console application.** The image ships opcache
+// with a 64 MB JIT buffer and `opcache.jit` empty, which means off. `opcache.jit` is settable at runtime and the
+// buffer is the part that is not, so one line here turns it on wherever the CLI runs, with no image or ddev config
+// to keep in step. Measured on the default `scene:stack` sweep across 28 cores: **2m31s against 2m00s**, output
+// byte-identical. Silenced because a build without opcache should run slowly rather than not at all.
+@ini_set('opcache.jit', 'tracing');
+
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use App\Command\BuildAllCommand;

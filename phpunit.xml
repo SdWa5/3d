@@ -5,6 +5,11 @@
          colors="true"
          failOnWarning="true"
          failOnRisky="true">
+    <!-- The same JIT the CLI turns on in bin/console. The suite spends most of its time in the solver, and the
+         tests do not go through bin/console, so it has to be said twice. -->
+    <php>
+        <ini name="opcache.jit" value="tracing"/>
+    </php>
     <testsuites>
         <testsuite name="unit">
             <directory>tests</directory>

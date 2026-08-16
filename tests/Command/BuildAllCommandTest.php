@@ -11,8 +11,10 @@ use App\Command\ModelsBuildCommand;
 use App\Command\SceneBuildCommand;
 use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
+use App\Process\Parallel;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Tester\CommandTester;
 use PHPUnit\Framework\TestCase;
 
@@ -187,10 +189,172 @@ final class BuildAllCommandTest extends TestCase
      *
      * **What this does not cover, stated plainly: it replays the commands itself rather than running the stage.** The
      * bug above lived in the stage's *extra* pass, so this test would not have caught that one — it pins the contract
-     * the stage depends on, not the stage. Covering the stage means invoking `regenerate()`, which calls `prune()`, and
-     * a test that can delete somebody's renders when it fails is worse than the gap. Left as a TOOL item rather than
-     * done badly.
+     * the stage depends on, not the stage. The stage itself is covered by
+     * {@see testTheRegenerateStageRewritesTheSceneSetAndReportsWhatItWrote}, which became possible once the replay was
+     * split from the two deletions that follow it — a test that can delete somebody's renders when it fails is worse
+     * than the gap, so the seam had to come first.
      */
+    /**
+     * **THE STAGE ITSELF, RUN RATHER THAN DESCRIBED** — TOOL-6, and the gap that let a real defect through.
+     *
+     * `build:all`'s regenerate stage is the only one that writes into tracked files, and until now the only one no
+     * test had ever run: everything above checks it with `--dry-run`, which lists the stages and executes none. So a
+     * removed pass that re-ran every recorded command with an extra `-turned` id wrote **141 stray scenes** and two
+     * rewritten committed files, and `git status` found it rather than the suite.
+     *
+     * The sibling test above replays the recorded commands by hand, which pins the *contract* the stage rests on. This
+     * one calls the stage, so a second pass, a mangled command line or a lost `--force` shows up here. It is the
+     * difference between "every recorded command is idempotent" and "the code that runs them does nothing else".
+     *
+     * **Only the replay, never the deletions.** `regenerate()` goes on to delete stale scenes and prune derived files,
+     * and a test that failed midway through those could take real renders with it. {@see BuildAllCommand} splits the
+     * replay out for exactly this reason, and the replay is idempotent by contract, so this can run it against the
+     * real tree and leave it as it found it.
+     */
+    public function testTheRegenerateStageRewritesTheSceneSetAndReportsWhatItWrote(): void
+    {
+        $directory = dirname(__DIR__, 2).'/scenes/generated';
+        $before = [];
+        foreach (glob($directory.'/*.yaml') ?: [] as $file) {
+            $before[basename($file)] = (string)file_get_contents($file);
+        }
+        self::assertNotSame([], $before);
+
+        $command = new BuildAllCommand();
+        $application = new Application();
+        $application->add($command);
+        $application->add(new \App\Command\SceneStackCommand());
+
+        // `io` is set in execute(), which this deliberately does not call.
+        $io = new \Symfony\Component\Console\Style\SymfonyStyle(
+            new \Symfony\Component\Console\Input\ArrayInput([]),
+            new \Symfony\Component\Console\Output\NullOutput(),
+        );
+        (new \ReflectionProperty(\App\Command\BaseCommand::class, 'io'))->setValue($command, $io);
+
+        try {
+            /** @var array{int, list<string>} $result */
+            $result = (new \ReflectionMethod(BuildAllCommand::class, 'replayRecorded'))
+                ->invoke($command, new ArrayInput([], $command->getDefinition()), new \Symfony\Component\Console\Output\NullOutput());
+            [$exit, $written] = $result;
+
+            self::assertSame(0, $exit, 'the stage itself failed');
+
+            $after = [];
+            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
+                $after[basename($file)] = (string)file_get_contents($file);
+            }
+
+            // The two halves the stray-scene defect broke: which files exist, and what is in them.
+            self::assertSame(array_keys($before), array_keys($after), 'the stage changed which scenes exist');
+            self::assertSame($before, $after, 'the stage rebuilt a scene differently from the way it was written');
+
+            // And it reports what it wrote, which is what the stale deletion is a set difference against. A stage that
+            // reported nothing would silently make that deletion a no-op rather than an error.
+            self::assertSame(
+                array_keys($before),
+                array_values(array_unique(array_map('basename', $written))),
+                'every regenerable scene is reported as written',
+            );
+        } finally {
+            // Whatever happened, put the tree back.
+            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
+                if (!isset($before[basename($file)])) {
+                    unlink($file);
+                    continue;
+                }
+                file_put_contents($file, $before[basename($file)]);
+            }
+        }
+    }
+
+    /**
+     * **A recorded rig that no longer solves is stale, and the stage carries on** — TOOL-7, reported by the owner as
+     * `build:all` refusing to run at all.
+     *
+     * `scene:stack` used to return `FAILURE` both when it broke and when every candidate was refused for a stated
+     * reason, and the replay could only read the first meaning. So one scene whose rig the sweep had stopped
+     * offering aborted the whole stage and took the other 482 replays with it, and the only way forward was to find
+     * and delete the file by hand — from a stage whose entire job is deleting exactly that file.
+     *
+     * The two halves are asserted separately because they fail differently: the stage has to **succeed**, and the
+     * dead scene has to be **absent from the written set**, which is what {@see BuildAllCommand::deleteStaleScenes}
+     * takes its set difference against. A stage that succeeded but still reported the file as written would delete
+     * nothing and look fine.
+     *
+     * Built on two scenes of its own rather than on the real 483, because which real rigs solve is exactly the thing
+     * that changes underneath a test like this — and because replaying the whole set to check one file took 9m32s.
+     * `--max-width=0.2` against a 0.591 m cabinet refuses every candidate for a reason the command prints, and will go
+     * on doing so however the solver changes. The live scene beside it is the half that pins "took the other 482 with
+     * it": a stage that merely stopped erroring, and stopped replaying, would pass without it.
+     */
+    public function testARecordedRigThatNoLongerSolvesIsStaleRatherThanFatal(): void
+    {
+        $recorded = static fn (string $id, string $options): string => implode("\n", [
+            '# Regenerate it with:',
+            '#',
+            '#   bin/console scene:stack '.$options.' --id='.$id,
+            '#',
+            'id: '.$id,
+            'name: "a stub, read only for the line above"',
+            '',
+            'placements: []',
+            '',
+        ]);
+
+        $directory = sys_get_temp_dir().'/sdwa5-replay-'.getmypid();
+        mkdir($directory, 0o777, true);
+        file_put_contents(
+            $directory.'/zz-test-abandoned-rig.yaml',
+            $recorded('zz-test-abandoned-rig', '--from=flexy-folded-horn-hybrid --max-width=0.2 --stacks=1 --align=center --shape=free'),
+        );
+        file_put_contents(
+            $directory.'/zz-test-live-rig.yaml',
+            $recorded('zz-test-live-rig', '--from=flexy-folded-horn-hybrid --max-width=3.7 --stacks=1 --align=center --shape=free --orientation=upright --mirror-style=alternate'),
+        );
+
+        $command = new BuildAllCommand();
+        $application = new Application();
+        $application->add($command);
+        $application->add(new \App\Command\SceneStackCommand());
+
+        $io = new \Symfony\Component\Console\Style\SymfonyStyle(
+            new \Symfony\Component\Console\Input\ArrayInput([]),
+            new \Symfony\Component\Console\Output\NullOutput(),
+        );
+        (new \ReflectionProperty(\App\Command\BaseCommand::class, 'io'))->setValue($command, $io);
+
+        try {
+            /** @var array{int, list<string>} $result */
+            $result = (new \ReflectionMethod(BuildAllCommand::class, 'replayRecorded'))
+                ->invoke($command, new ArrayInput([], $command->getDefinition()), new \Symfony\Component\Console\Output\NullOutput(), $directory);
+            [$exit, $written] = $result;
+
+            self::assertSame(0, $exit, 'one abandoned rig aborted the whole stage');
+
+            $names = implode("\n", array_map('basename', $written));
+            self::assertStringNotContainsString(
+                'zz-test-abandoned-rig',
+                $names,
+                'the abandoned rig is reported as written, so the stale deletion would never remove it',
+            );
+            self::assertStringContainsString(
+                'zz-test-live-rig',
+                $names,
+                'the stage stopped replaying after the abandoned rig instead of carrying on past it',
+            );
+        } finally {
+            // `scene:stack` resolves its own output path, so the live rig landed in the real tree.
+            foreach (glob(dirname(__DIR__, 2).'/scenes/generated/zz-test-*.yaml') ?: [] as $file) {
+                unlink($file);
+            }
+            foreach (glob($directory.'/*') ?: [] as $file) {
+                unlink($file);
+            }
+            @rmdir($directory);
+        }
+    }
+
     public function testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet(): void
     {
         $directory = dirname(__DIR__, 2).'/scenes/generated';
@@ -204,14 +368,27 @@ final class BuildAllCommandTest extends TestCase
         $application->add(new \App\Command\SceneStackCommand());
 
         try {
-            foreach ($before as $name => $yaml) {
-                $command = self::recordedCommandIn($yaml);
-                self::assertNotNull($command, $name.' records no command, so it cannot be replayed');
+            // Across processes, the same way the stage itself replays — 483 commands that share nothing but the
+            // inventory. **Nothing is asserted inside the closure**, because an assertion that fails in a forked
+            // child dies with the child and comes back as "a worker produced nothing" rather than as the message it
+            // was written to give. The exit codes come home and are judged here.
+            $exits = Parallel::map(
+                $before,
+                static function (string $yaml) use ($application): ?int {
+                    $command = self::recordedCommandIn($yaml);
+                    if ($command === null) {
+                        return null;
+                    }
 
-                $exit = $application->find('scene:stack')->run(
-                    new \Symfony\Component\Console\Input\StringInput($command.' --force'),
-                    new \Symfony\Component\Console\Output\NullOutput(),
-                );
+                    return $application->find('scene:stack')->run(
+                        new \Symfony\Component\Console\Input\StringInput($command.' --force'),
+                        new \Symfony\Component\Console\Output\NullOutput(),
+                    );
+                },
+            );
+
+            foreach ($exits as $name => $exit) {
+                self::assertNotNull($exit, $name.' records no command, so it cannot be replayed');
                 self::assertSame(0, $exit, 'replaying '.$name.' failed');
             }
 
@@ -257,13 +434,29 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
-     * The whole sweep with nothing asked for: four lighting presets times two aim modes, each into a folder
-     * named after what makes it different. These were opt-in flags that every invocation in the repository
-     * passed, so the useful behaviour was the one nobody got by default.
+     * **One picture per scene with nothing asked for, and that is a reversal of 0.70.0's default.**
+     *
+     * The sweep of four lighting presets in both aim modes is eight renders of each of 483 generated scenes, which
+     * is 3864 pictures out of the slowest tool in the pipeline. Stated by the owner, who asked for the lighting
+     * variants to go if they were what held `build:all` up. The useful-by-default argument still stands for
+     * everything cheap; a render is not cheap.
      */
-    public function testEveryVariantIsRenderedWithNoFlagsAtAll(): void
+    public function testOnePictureIsRenderedPerSceneWithNoFlagsAtAll(): void
     {
         $display = $this->dryRun(['--dry-run' => true]);
+
+        self::assertStringContainsString('1 render pass', $display);
+        // The plain folder, so the default does not quietly move anybody's renders into a subdirectory.
+        self::assertStringNotContainsString('--out-dir', $display);
+        self::assertStringNotContainsString('--lighting', $display);
+    }
+
+    /**
+     * And the eight are still one flag away, because comparing lightings side by side is what they are for.
+     */
+    public function testEveryVariantIsRenderedWhenItIsAskedFor(): void
+    {
+        $display = $this->dryRun(['--dry-run' => true, '--every-variant' => true]);
 
         self::assertStringContainsString('8 render passes', $display);
         self::assertStringContainsString('build/renders/studio-aim', $display);
@@ -271,12 +464,11 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
-     * Naming a lighting narrows the sweep to it — which is the whole of the opt-out. There is no
-     * `--no-lighting-variants`, because "just this lighting" is what stating a lighting already means.
+     * Naming a lighting picks it out of the sweep and leaves the aim modes alone, which is what it always did.
      */
     public function testNamingALightingLeavesOnlyItsTwoAimModes(): void
     {
-        $display = $this->dryRun(['--dry-run' => true, '--lighting' => 'studio']);
+        $display = $this->dryRun(['--dry-run' => true, '--every-variant' => true, '--lighting' => 'studio']);
 
         self::assertStringContainsString('2 render passes', $display);
         self::assertStringContainsString('--aim-lines=none', $display);
@@ -286,7 +478,7 @@ final class BuildAllCommandTest extends TestCase
 
     public function testNamingAnAimModeLeavesOneFolderPerLightingPreset(): void
     {
-        $display = $this->dryRun(['--dry-run' => true, '--aim-lines' => 'none']);
+        $display = $this->dryRun(['--dry-run' => true, '--every-variant' => true, '--aim-lines' => 'none']);
 
         self::assertStringContainsString('4 render passes', $display);
         foreach (['studio', 'stage', 'daylight', 'flat'] as $preset) {
@@ -324,7 +516,7 @@ final class BuildAllCommandTest extends TestCase
      */
     public function testAQualityLevelIsForwardedToEveryPass(): void
     {
-        $display = $this->dryRun(['--dry-run' => true, '--quick-preview' => true]);
+        $display = $this->dryRun(['--dry-run' => true, '--every-variant' => true, '--quick-preview' => true]);
 
         self::assertSame(8, substr_count($display, '--quick-preview'));
     }

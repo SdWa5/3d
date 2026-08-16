@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Process\Parallel;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
 use App\Scene\SceneLoader;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -54,10 +56,12 @@ final class BuildAllCommand extends BaseCommand
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'List the stages and variants without running any')
             ->addOption('keep-stale', null, InputOption::VALUE_NONE, 'Leave generated scene files the sweep no longer writes. Default: delete them')
             ->addOption('camera', 'c', InputOption::VALUE_REQUIRED, 'Camera preset to render with')
-            // Naming one narrows the sweep to it. That is the whole of the opt-out: there is no
-            // `--no-lighting-variants`, because "just this lighting" is what stating a lighting already means.
-            ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, 'Render this lighting only, instead of every preset')
-            ->addOption('aim-lines', 'a', InputOption::VALUE_REQUIRED, 'Render this aim mode only (none, tops), instead of both')
+            // Naming one picks it out; `--every-variant` asks for all eight. See {@see renderVariants} for why
+            // the sweep stopped being the default.
+            ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, 'Render this lighting instead of the default preset')
+            ->addOption('aim-lines', 'a', InputOption::VALUE_REQUIRED, 'Render this aim mode (none, tops) instead of none')
+            ->addOption('every-variant', null, InputOption::VALUE_NONE, 'Render all four lighting presets in both aim modes — eight pictures per scene')
+            ->addOption('jobs', 'j', InputOption::VALUE_REQUIRED, 'Processes to regenerate the scenes in — 1 is serial, 0 is one per core', '0')
             ->addOption('samples', null, InputOption::VALUE_REQUIRED, 'Cycles samples')
             ->addOption('resolution', 'r', InputOption::VALUE_REQUIRED, 'WIDTHxHEIGHT')
             ->addOption('quick-preview', null, InputOption::VALUE_NONE, 'Render every variant at preview quality')
@@ -88,7 +92,7 @@ final class BuildAllCommand extends BaseCommand
         // **This stage writes to `scenes/generated/`, which is tracked** — the only stage that touches anything
         // outside `build/`. That is the deliberate trade: a generated scene is build output that happens to be worth
         // reviewing in a diff, so it has to be regenerated like build output and reviewed like source.
-        if (!$dryRun && $this->regenerate($output, !$input->getOption('keep-stale')) !== self::SUCCESS) {
+        if (!$dryRun && $this->regenerate($input, $output, !$input->getOption('keep-stale')) !== self::SUCCESS) {
             return self::FAILURE;
         }
 
@@ -172,16 +176,28 @@ final class BuildAllCommand extends BaseCommand
             $shared['--force'] = true;
         }
 
-        // **Every variant, unless one is named.** These used to be opt-in flags that every invocation passed, so
-        // the useful default was the one nobody got by default. Four lighting presets times two aim modes is eight
-        // renders per scene — which is why the quality level matters as much as it does.
-        $lightings = $input->getOption('lighting') !== null
-            ? [$input->getOption('lighting')]
-            : array_map(static fn (LightingPreset $p): string => $p->value, LightingPreset::cases());
+        // **ONE PICTURE PER SCENE UNLESS EVERY VARIANT IS ASKED FOR, AND THAT IS A REVERSAL.** Sweeping all four
+        // lighting presets in both aim modes was the default from 0.70.0, on the argument that the useful output
+        // was the one nobody got by default. The argument was right about usefulness and wrong about arithmetic:
+        // eight renders times 483 generated scenes is 3864 pictures for one `build:all`, and Blender is the
+        // slowest thing in this repository by a wide margin. Stated by the owner, who asked for the lighting sweep
+        // to go if it was what held the pipeline up. It is. `--every-variant` asks for the eight back, and naming
+        // a `--lighting` or an `--aim-lines` still picks one out.
+        $everyVariant = (bool)$input->getOption('every-variant');
 
-        $aimModes = $input->getOption('aim-lines') !== null
-            ? [$input->getOption('aim-lines')]
-            : [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS];
+        $lightings = match (true) {
+            $input->getOption('lighting') !== null => [$input->getOption('lighting')],
+            $everyVariant => array_map(static fn (LightingPreset $p): string => $p->value, LightingPreset::cases()),
+            // Null rather than a named preset, so the plain case keeps writing where `scene:render` always wrote
+            // and defers the choice of preset to it.
+            default => [null],
+        };
+
+        $aimModes = match (true) {
+            $input->getOption('aim-lines') !== null => [$input->getOption('aim-lines')],
+            $everyVariant => [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS],
+            default => [RenderPlan::AIM_NONE],
+        };
 
         $plain = count($lightings) === 1 && count($aimModes) === 1;
 
@@ -271,57 +287,130 @@ final class BuildAllCommand extends BaseCommand
      * records `--orientation=turned` — so it turned the turned scenes again and wrote 141 extra files with ids like
      * `stacked-sdwa5-sepp-2-turned-turned-column-center`.
      */
-    private function regenerate(OutputInterface $output, bool $deleteStale = true): int
+    private function regenerate(InputInterface $input, OutputInterface $output, bool $deleteStale = true): int
     {
+        [$exit, $written] = $this->replayRecorded($input, $output);
+        if ($exit !== self::SUCCESS) {
+            return $exit;
+        }
+
         $directory = $this->scenesDir().'/'.SceneLoader::GENERATED;
+        if ($deleteStale && $this->deleteStaleScenes($directory, $written) !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        return $this->prune();
+    }
+
+    /**
+     * The replay itself, split from the two deletions that follow it.
+     *
+     * **Split so a test can run it**, which is the whole of TOOL-6. `regenerate()` writes into the repository and then
+     * deletes from it, and a test that failed midway through the deletions could take real renders with it — so the
+     * stage that had never been run by anything but `--dry-run` was the one stage nobody dared run. That is how a
+     * defect writing 141 stray scenes reached `git status` before it reached the suite. The replay on its own is
+     * idempotent by contract: every recorded command rewrites its own file, so a test can call this, assert nothing
+     * moved, and leave the tree exactly as it found it.
+     *
+     * `$directory` is the generated scene set and defaults to the real one. **It is a parameter so a test can hand it
+     * two files instead of 483**, which took a check about one synthetic scene from 9m32s to seconds — and, more to
+     * the point, stopped it depending on which of the real rigs happen to solve this week. `scene:stack` still resolves
+     * its own output path, so a replay pointed elsewhere writes into the real tree and a test has to clean up after it.
+     *
+     * @return array{int, list<string>} the exit code, and every path `scene:stack` reported writing
+     */
+    private function replayRecorded(InputInterface $input, OutputInterface $output, ?string $directory = null): array
+    {
+        $directory ??= $this->scenesDir().'/'.SceneLoader::GENERATED;
         $files = glob($directory.'/*.{yaml,yml}', GLOB_BRACE) ?: [];
         if ($files === []) {
-            return self::SUCCESS;
+            return [self::SUCCESS, []];
         }
 
         $application = $this->getApplication();
         if ($application === null) {
             $this->io->error('build:all has to run through the application, so it can find the other commands');
 
-            return self::FAILURE;
+            return [self::FAILURE, []];
         }
 
         $this->io->section('scene:stack — regenerating '.count($files).' generated scenes');
 
         sort($files);
 
+        // **Each replay is its own process, and each one writes its own file.** Five hundred `scene:stack` runs that
+        // share nothing took a quarter of an hour of one core while the other twenty-seven sat idle. The replays
+        // cannot collide: a recorded command rewrites exactly the file it was read from, which is the same contract
+        // that makes this stage idempotent in the first place. **The child's console output is captured rather than
+        // printed**, because twenty-eight processes writing to one terminal interleave mid-line; the parent prints
+        // the buffers back in file order, so the log reads exactly as a serial run's did.
+        //
+        // A verbosity note that is easy to get wrong: the buffer is given the real output's verbosity, or a `-v`
+        // run would come out quiet.
+        $replays = Parallel::map(
+            // Keyed by path, because `glob()` returns a list and the loop below names the failing file from the key.
+            array_combine($files, $files),
+            function (string $file) use ($application, $output): array {
+                $command = self::recordedCommand((string)file_get_contents($file));
+                if ($command === null) {
+                    return ['exit' => self::SUCCESS, 'output' => '', 'written' => [], 'note' => sprintf(
+                        '  <comment>skipped</comment> %s — no `Regenerate it with:` line, so it is not regenerable',
+                        $this->relative($file),
+                    )];
+                }
+
+                $buffer = new BufferedOutput($output->getVerbosity(), $output->isDecorated());
+                // `--force` because the file being replaced is precisely the one this command wrote; without it every
+                // run after the first would refuse itself.
+                $stack = $application->find('scene:stack');
+                // `--jobs=1` on the child: a recorded command rebuilds one rig, and a nested pool would fight the
+                // one already running. Where the parent is serial this keeps the whole stage in one process.
+                $exit = $stack->run(new StringInput($command.' --force --jobs=1'), $buffer);
+
+                return [
+                    'exit' => $exit,
+                    'output' => $buffer->fetch(),
+                    // The union across every replay, and the reason it is collected here rather than read once at the
+                    // end: {@see SceneStackCommand::$written} describes one run, and this stage is hundreds of them.
+                    'written' => $stack instanceof SceneStackCommand ? $stack->written : [],
+                    // **A rig that no longer solves is stale, not broken, and this is what makes the stage
+                    // idempotent.** Every refusal was printed with its reason a moment ago, so there is nothing to add
+                    // beyond leaving the file out of `written` — {@see deleteStaleScenes} then removes it, and the next
+                    // run has nothing to replay. Treated as a hard error this aborted the whole stage on the first such
+                    // file, which meant `build:all` could not be run twice:
+                    // `stacked-all--------1-pyramid-mixed---alternate-stereo` stopped being offered and took the other
+                    // 449 replays down with it. See {@see SceneStackCommand::NOTHING_TO_WRITE}.
+                    'note' => $exit === SceneStackCommand::NOTHING_TO_WRITE ? sprintf(
+                        '  <comment>stale</comment>   %s — the sweep no longer offers this rig, so it is deleted rather than rebuilt',
+                        $this->relative($file),
+                    ) : null,
+                ];
+            },
+            (int)$input->getOption('jobs'),
+        );
+
         $written = [];
-        foreach ($files as $file) {
-            $command = self::recordedCommand((string)file_get_contents($file));
-            if ($command === null) {
-                $this->io->text(sprintf(
-                    '  <comment>skipped</comment> %s — no `Regenerate it with:` line, so it is not regenerable',
-                    $this->relative($file),
-                ));
-                continue;
+        foreach ($replays as $file => $replay) {
+            if ($replay['output'] !== '') {
+                $output->write($replay['output']);
             }
-
-            // `--force` because the file being replaced is precisely the one this command wrote; without it every
-            // run after the first would refuse itself.
-            $stack = $application->find('scene:stack');
-            $exit = $stack->run(new StringInput($command.' --force'), $output);
-            if ($exit !== self::SUCCESS) {
-                $this->io->error('Regenerating '.$this->relative($file).' failed');
-
-                return self::FAILURE;
+            if ($replay['note'] !== null) {
+                $this->io->text($replay['note']);
             }
-            // The union across every replay, and the reason it is collected here rather than read once at the end:
-            // {@see SceneStackCommand::$written} describes one run, and this stage is hundreds of them.
-            if ($stack instanceof SceneStackCommand) {
-                $written = [...$written, ...$stack->written];
+            // **Reported in file order rather than at the moment it happened**, which is the one behaviour the fork
+            // changes. A serial replay stopped at the first broken rig and never learned whether the rest were fine;
+            // this runs them all and then names the first failure the old order would have named.
+            if ($replay['exit'] !== self::SUCCESS && $replay['exit'] !== SceneStackCommand::NOTHING_TO_WRITE) {
+                $this->io->error('Regenerating '.$this->relative((string)$file).' failed');
+
+                return [self::FAILURE, $written];
+            }
+            if ($replay['exit'] === self::SUCCESS) {
+                $written = [...$written, ...$replay['written']];
             }
         }
 
-        if ($deleteStale && $this->deleteStaleScenes($directory, $written) !== self::SUCCESS) {
-            return self::FAILURE;
-        }
-
-        return $this->prune();
+        return [self::SUCCESS, $written];
     }
 
     /**
@@ -347,17 +436,26 @@ final class BuildAllCommand extends BaseCommand
      *   pipeline removing somebody else's work.
      * * **Only `scenes/generated/`**, which is the one tracked directory this pipeline owns.
      *
-     * **WHAT THIS CATCHES IS A RENAME, AND NOT A RIG THE SWEEP HAS STOPPED OFFERING.** Worth stating plainly, because
-     * the name reads wider than the rule is. {@see regenerate} replays *every* file that carries a recorded line, so
-     * every such file lands in `$written` by construction and can only be stale when its replay comes out under a
-     * different name. A scene whose options the sweep no longer generates replays perfectly well from its own line and
-     * so survives here for ever.
+     * **This catches a rename and a rig that has stopped solving, and it used to catch only the first.** Worth stating
+     * plainly, because the rule is subtler than the name. {@see replayRecorded} replays *every* file that carries a
+     * recorded line, so a file lands in `$written` by construction whenever its replay succeeds, and the only way it
+     * can go missing is by coming out under a different name — a rename. A scene the sweep no longer offers replays
+     * perfectly well from its own line and used to survive here for ever, which is what **TOOL-7** was.
      *
-     * Measured rather than reasoned: 18 files carrying `--max-width=3.7` outlived the release that deleted the width
-     * ladder, and they show up as stale only against a *fresh* `scene:stack --force`, never against this stage. That
-     * is not a defect to fix here — this stage has no idea what the sweep would offer, and inventing one would be the
-     * second copy {@see regenerate} argues against — but it is the reason `git status` after a sweep is still the
-     * check that finds them. Filed as **TOOL-7**.
+     * What closed it is that "every candidate was refused" is now its own exit code rather than a failure. The replay
+     * leaves such a file out of `$written` and says so, and this deletes it, so the stage converges: run `build:all`
+     * twice and the second run has nothing to delete. Before that it did worse than miss them — one rig that stopped
+     * solving aborted the whole stage, so the pipeline could not be run at all until the file was removed by hand.
+     *
+     * Measured rather than reasoned, twice over: 18 files carrying `--max-width=3.7` outlived the release that deleted
+     * the width ladder, and 10 more outlived 0.84.0, `stacked-all--------1-pyramid-mixed---alternate-stereo` among
+     * them. Of those 10 this stage now deletes 4 — the ones whose rig stopped solving.
+     *
+     * **The other 6 are duplicates and are the part that is still open**, filed as **TOOL-15**. Dedup is a decision
+     * across a whole sweep, "the same rig as X", and a replay is one file with nothing to compare itself against, so a
+     * collapsed variant rebuilds itself happily and survives. Narrow: all six were confirmed duplicates of a sibling
+     * that is also on disk, so nothing is lost by them and nothing is lost by removing them either. The honest fix is
+     * to run the sweep as this stage rather than replaying files.
      *
      * `--keep-stale` switches it off. It defaults to deleting because the stale files are the confusing half: they
      * compile, they render, and nothing about looking at one says it belongs to a rig that no longer exists.

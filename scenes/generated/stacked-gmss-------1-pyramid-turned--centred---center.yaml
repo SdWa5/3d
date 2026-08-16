@@ -5,8 +5,8 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=mixed --from=gmss-wall-bass --from=gmss-mid-bass --from=gmss-nuke
-#     --from=gmss-iq-sub --from=gmss-turbo-top --stacks=1 --align=center --shape=pyramid --mirror-style=alternate
+#   bin/console scene:stack --orientation=turned --from=gmss-wall-bass --from=gmss-mid-bass --from=gmss-nuke
+#     --from=gmss-iq-sub --from=gmss-turbo-top --stacks=1 --align=center --shape=pyramid --mirror-style=centred
 #     --id=stacked-gmss-------1
 #
 # What it deals out today:
@@ -22,7 +22,7 @@
 #   * the 1× gmss-nuke rolled 270° + 1× gmss-mid-bass + 1× gmss-nuke rolled 90° row is 2.780 m on a 2.740 m row,
 #     so it overhangs 20 mm each side
 #
-id: stacked-gmss-------1-pyramid-mixed---alternate-center
+id: stacked-gmss-------1-pyramid-turned--centred---center
 name: "Solved rig — one stack, tiers centred"
 
 focus:
@@ -41,11 +41,14 @@ placements:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
+      slide_slack_m: .inf
+      mirror_style: centred
       shape: pyramid
       from:
         - device: gmss-wall-bass
           roll_mirror: 90.0
-        - gmss-mid-bass
+        - device: gmss-mid-bass
+          roll_mirror: 90.0
         - device: gmss-nuke
           roll_mirror: 90.0
         - device: gmss-iq-sub

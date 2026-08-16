@@ -39,6 +39,7 @@ placements:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
+      slide_slack_m: .inf
       mirror_style: column
       from:
         - device: skram

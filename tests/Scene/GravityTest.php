@@ -300,4 +300,101 @@ final class GravityTest extends TestCase
         self::assertSame(0.0, $adrift[0]['top'], 'so it falls to the floor');
         self::assertSame(1.0, $adrift[0]['bearing'], 'and the bearing figure alone cannot tell you that');
     }
+
+    /**
+     * **A badly-carried row is slid along its support rather than the rig being refused**, and `slideSlackM` is the
+     * switch that permits it.
+     *
+     * Measured rather than invented. A stepped support of one Flexy at 0.763 m tall beside one wall bass at 1.400 m
+     * is 1.271 m across; the row of one Achenbach and one Flexy is 1.211 m and so fits it with room to spare. Centred
+     * anyway, the Achenbach lands on the *tall* cabinet's edge with **3.2 %** of itself carried, far under the third
+     * {@see Gravity::MIN_BEARING} asks for, and the arrangement is thrown away. Slid 30 mm, it comes down on the
+     * Flexy's face instead at **98.5 %**. Nothing about the rig changes but where the row sits, which is what a crew
+     * would do without discussing it.
+     *
+     * **Asserted on `Gravity` rather than through a swept rig**, which is what the previous guard did and why it
+     * stopped guarding anything: `testASoloStackSlidesARowRatherThanLosingTheRig` pinned an invocation whose best
+     * arrangement no longer overhangs at all once GEO-12 widened the search, so the slide was never exercised and
+     * nothing said so. A rig can stop needing a feature. The mechanism cannot stop being the mechanism.
+     *
+     * Both directions, because only the pair of them says the slack is doing the work rather than the geometry
+     * happening to be fine either way.
+     */
+    public function testASlidRowIsCarriedWhereACentredOneIsNot(): void
+    {
+        $tiers = [
+            new Tier([
+                [$this->devices['flexy-folded-horn-hybrid'], 1, 0.0],
+                [$this->devices['gmss-wall-bass'], 1, 0.0],
+            ]),
+            new Tier([
+                [$this->devices['achenbach-18'], 1, 0.0],
+                [$this->devices['flexy-folded-horn-hybrid'], 1, 0.0],
+            ]),
+        ];
+
+        $centred = Gravity::resolve($tiers, 0.02, 'main');
+        $slid = Gravity::resolve($tiers, 0.02, 'main', slideSlackM: INF);
+
+        self::assertEqualsWithDelta(0.032, $this->carried($centred[1]), 5e-4, 'centred, it perches on the step');
+        self::assertEqualsWithDelta(0.985, $this->carried($slid[1]), 5e-4, 'slid, it comes down on the face');
+        self::assertGreaterThan(Gravity::MIN_BEARING, $this->carried($slid[1]));
+
+        // Moved, not rebuilt: the same cabinets in the same pieces.
+        self::assertSame(count($centred[1]), count($slid[1]));
+    }
+
+    /**
+     * **A repair may not walk a cabinet off its support**, however well the rest of the row then reads.
+     *
+     * A run standing on nothing reports a bearing of **1.0**, so a repair scored on the bearing alone looks perfect
+     * exactly when it has thrown a cabinet away. `Gravity::carriedBearing()` exists for that and reads `on`, and the
+     * lookahead onto the tier above already used it — the row's *own* score did not, one line apart, so a slide could
+     * beat a legal arrangement by abandoning a cabinet.
+     *
+     * Measured on the case that found it: `2× gmss-nuke + 1× gmss-mid-bass` is 2.420 m on two wall basses' 1.340 m,
+     * carried at 8.5 % centred, and the slide replaced it with an arrangement carrying a run on nothing at all. The
+     * row is far too wide for that support either way — what this pins is that the repair does not make it worse.
+     */
+    public function testARepairIsNeverTakenByAbandoningACabinet(): void
+    {
+        $tiers = [
+            Tier::of($this->devices['gmss-wall-bass'], 2),
+            new Tier([
+                [$this->devices['gmss-nuke'], 2, 0.0],
+                [$this->devices['gmss-mid-bass'], 1, 0.0],
+            ]),
+        ];
+
+        $centred = Gravity::resolve($tiers, 0.02, 'main');
+        $slid = Gravity::resolve($tiers, 0.02, 'main', slideSlackM: INF);
+
+        foreach ($slid[1] as $run) {
+            self::assertNotNull($run['on'], 'every run still stands on something');
+        }
+        self::assertGreaterThanOrEqual(
+            $this->carried($centred[1]),
+            $this->carried($slid[1]),
+            'a repair that scores worse is not taken',
+        );
+    }
+
+    /**
+     * The worst-carried cabinet in a row, counting one that stands on nothing as nothing.
+     *
+     * The same reading {@see Gravity::carriedBearing} takes, restated here because the test has to be able to catch a
+     * disagreement with it rather than inherit one.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float,
+     *     on: string|null, bearing: float, settle: float, roll: float}> $runs
+     */
+    private function carried(array $runs): float
+    {
+        $worst = INF;
+        foreach ($runs as $run) {
+            $worst = min($worst, $run['on'] === null ? 0.0 : $run['bearing']);
+        }
+
+        return $worst;
+    }
 }

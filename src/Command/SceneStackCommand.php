@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Process\Parallel;
 use App\Scene\Alignment;
 use App\Scene\GroupStack;
 use App\Scene\Interpenetration;
@@ -45,6 +46,21 @@ use Symfony\Component\Yaml\Yaml;
  */
 final class SceneStackCommand extends BaseCommand
 {
+    /**
+     * Every candidate was refused for a stated reason, so there is nothing to write and nothing went wrong.
+     *
+     * **Non-zero, because a human who asked for a rig and got none needs the shell to say so**, and distinct from
+     * `FAILURE`, because a caller replaying a *recorded* command needs to tell "this rig is no longer one of the
+     * possibilities" apart from "the command broke". Those two were the same exit code, and
+     * {@see \App\Command\BuildAllCommand::replayRecorded} could only read the second meaning: one rig that stopped
+     * solving aborted the whole regenerate stage, so `build:all` could not be run twice in a row. That is **TOOL-7**,
+     * and the file that surfaced it is `stacked-all--------1-pyramid-mixed---alternate-stereo`.
+     *
+     * The refusals are already printed one per candidate above this, so the exit code adds a category rather than an
+     * explanation.
+     */
+    public const NOTHING_TO_WRITE = 2;
+
     /**
      * A ceiling on accident, not on ambition.
      *
@@ -185,7 +201,8 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
             ->addOption('max-scenes', null, InputOption::VALUE_REQUIRED, 'Refuse to write more than this many', (string)self::DEFAULT_MAX_SCENES)
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Print the scenes instead of writing them')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite an existing scene file');
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite an existing scene file')
+            ->addOption('jobs', 'j', InputOption::VALUE_REQUIRED, 'Processes to solve the sweep in — 1 is serial, 0 is one per core', '0');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -278,7 +295,26 @@ final class SceneStackCommand extends BaseCommand
         $candidates = [];
         $skipped = [];
         $noted = [];
+
+        // **NAMED FIRST AND SOLVED AFTERWARDS**, which is what lets {@see sweep} put several processes on the list.
+        // The four nested loops decide *which* rigs there are, which is arithmetic over the axes and costs nothing;
+        // the solve behind each one is a minute of CPU on the big rigs. Splitting the two is the whole of the change.
+        $tasks = [];
+        $requestProblem = null;
         foreach ($rigs as $rig) {
+            // **THE REQUEST-LEVEL HALF OF A REFUSAL, ASKED ONCE PER RIG AND ASKED HERE.** {@see groups} reads only
+            // the device list and the stack count, so its answer is the same for every shape, orientation and
+            // alignment nested below — and what it refuses is the invocation rather than the geometry. `--stacks=0`
+            // is not a rig the solver could not build; it is a number nobody can act on. Keeping the two apart is
+            // what lets the exit code below mean something: {@see NOTHING_TO_WRITE} is "none of these rigs stands
+            // up", and a bad request is still a plain failure.
+            //
+            // Asked in the parent on purpose. A fork hands each child a copy of this object, so anything a child
+            // records about the run dies with it, and this has to survive to decide the exit code.
+            $rigProblem = $this->groups($devices, $rig['from'], $rig['stacks'], $input);
+            if (is_string($rigProblem)) {
+                $requestProblem ??= $rigProblem;
+            }
             foreach ($shapes as $shape) {
                 foreach (SweepAxes::pairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
@@ -307,32 +343,36 @@ final class SceneStackCommand extends BaseCommand
                             // run of dashes before `.yaml` would be padding that buys the reader nothing.
                             $mode->value,
                         );
-                        $built = $this->build(
-                            $devices, $rig['from'], $at, $mode, $shape, $style, $orientation, $rig['stacks'],
-                            (string)$input->getOption('id').$rig['suffix'], $statedWidth, $input,
-                        );
-                        if (is_string($built)) {
-                            $skipped[$name] = $built;
+                        if (is_string($rigProblem)) {
+                            $skipped[$name] = $rigProblem;
                             continue;
                         }
-                        // **A MISSED BAND IS A NOTE, NOT A SKIP**, which is CVR-7 and is stated by the owner: the
-                        // sub/top interface height is an optimisation problem rather than a hard constraint, so tops
-                        // firing below or above head height is not a reason to refuse a rig. It used to be one, on
-                        // every invocation rather than only on the sweep, and it threw away more candidates than every
-                        // geometry rule in the repository put together.
-                        //
-                        // Noted here **and** written into the file, which are two different readers. The scene carries
-                        // the miss in its own header — {@see StackChecks::boundsProblems} produces it as a warning and
-                        // {@see StackSceneWriter::header} writes every warning out — so somebody opening the file sees
-                        // that the wall is knowingly short. The line below is for whoever ran the sweep and is not
-                        // going to open 150 files.
-                        if ($built['bandMiss'] !== null) {
-                            $noted[$name] = $built['bandMiss'];
-                        }
-                        $candidates[$name] = $built;
+                        $tasks[$name] = [$rig, $shape, $style, $orientation, $mode];
                     }
                 }
             }
+        }
+
+        foreach ($this->sweep($tasks, $devices, $at, $statedWidth, $input) as $name => $built) {
+            if (is_string($built)) {
+                $skipped[$name] = $built;
+                continue;
+            }
+            // **A MISSED BAND IS A NOTE, NOT A SKIP**, which is CVR-7 and is stated by the owner: the
+            // sub/top interface height is an optimisation problem rather than a hard constraint, so tops
+            // firing below or above head height is not a reason to refuse a rig. It used to be one, on
+            // every invocation rather than only on the sweep, and it threw away more candidates than every
+            // geometry rule in the repository put together.
+            //
+            // Noted here **and** written into the file, which are two different readers. The scene carries
+            // the miss in its own header — {@see StackChecks::boundsProblems} produces it as a warning and
+            // {@see StackSceneWriter::header} writes every warning out — so somebody opening the file sees
+            // that the wall is knowingly short. The line below is for whoever ran the sweep and is not
+            // going to open 150 files.
+            if ($built['bandMiss'] !== null) {
+                $noted[$name] = $built['bandMiss'];
+            }
+            $candidates[$name] = $built;
         }
 
         $candidates = $this->deduplicate($candidates, $skipped);
@@ -349,9 +389,20 @@ final class SceneStackCommand extends BaseCommand
         }
 
         if ($candidates === []) {
+            // **A BAD REQUEST IS A FAILURE AND AN UNBUILDABLE RIG IS NOT**, which is the distinction
+            // {@see NOTHING_TO_WRITE} exists to draw and which it briefly erased. `--stacks=0`, an unknown
+            // `--split` and "5 device types cannot fill 9 stacks" all leave the candidate list empty, and reporting
+            // them as "the sweep no longer offers this rig" would have `build:all` treat a typo as a scene to
+            // delete. Every one of them comes out of {@see groups}, which is why the check above it is where it is.
+            if ($requestProblem !== null) {
+                $this->io->error($requestProblem);
+
+                return self::FAILURE;
+            }
+
             $this->io->warning('No workable arrangement — nothing written');
 
-            return self::FAILURE;
+            return self::NOTHING_TO_WRITE;
         }
 
         $limit = (int)$input->getOption('max-scenes');
@@ -797,6 +848,48 @@ final class SceneStackCommand extends BaseCommand
         }
 
         return ['yaml' => $yaml, 'bandMiss' => $bandMiss] + $compiled;
+    }
+
+    /**
+     * Solves every candidate in the sweep, across as many processes as the machine has cores.
+     *
+     * **The candidate loop is embarrassingly parallel and was costing 25 minutes of one core.** Each candidate is a
+     * solve and a compile over the same immutable inventory. It reads nothing another candidate writes, it writes
+     * no file — the writing happens after the deduplication, on the survivors — and what it returns is four
+     * scalars. The only thing the loop ever shared was the CPU. Measured on the default sweep, 1206 candidates and
+     * 100 minutes of CPU between them: **25 minutes serial against 3m37s across 28 cores**, and the printed output
+     * is byte-identical, which is the property the merge below exists to guarantee.
+     *
+     * **Merged by task order rather than by whichever child finished first.** The results are keyed by the name the
+     * caller already assigned, and this rebuilds that order from `$tasks` rather than from the children, so the
+     * scene list, the skip list and therefore the deduplication all come out in the order a serial run produced.
+     * Without that the output would be correct and unstable, which is worse than slow.
+     *
+     * @param array<string, array{array{from: list<string>, stacks: int, suffix: string}, StackShape, MirrorStyle,
+     *     ?StackOrientation, LayoutMode}> $tasks
+     * @param array<string, DeviceSpec> $devices
+     * @param list<float> $at
+     * @return array<string, array{yaml: string, bandMiss: ?string, cabinets: int, fingerprint: string}|string>
+     */
+    private function sweep(array $tasks, array $devices, array $at, ?float $statedWidth, InputInterface $input): array
+    {
+        return Parallel::map(
+            $tasks,
+            fn (array $task): array|string => $this->build(
+                $devices,
+                $task[0]['from'],
+                $at,
+                $task[4],
+                $task[1],
+                $task[2],
+                $task[3],
+                $task[0]['stacks'],
+                (string)$input->getOption('id').$task[0]['suffix'],
+                $statedWidth,
+                $input,
+            ),
+            (int)$input->getOption('jobs'),
+        );
     }
 
     /**
@@ -1584,7 +1677,14 @@ final class SceneStackCommand extends BaseCommand
                 $exit = self::FAILURE;
                 continue;
             }
-            if (file_put_contents($path, $yaml) === false) {
+            // **Written whole or not at all**, because `build:all` now replays hundreds of these at once and two
+            // recorded commands can name the same file. TOOL-15 is exactly that case: six generated scenes replay
+            // from their own line onto a sibling's name, which serially meant one overwriting the other and in
+            // parallel would mean two writers interleaving inside one file. A rename is atomic on the same
+            // filesystem, so the loser of that race writes a whole file rather than half of each.
+            $temporary = $path.'.'.getmypid().'.tmp';
+            if (file_put_contents($temporary, $yaml) === false || !rename($temporary, $path)) {
+                @unlink($temporary);
                 $this->io->error('Could not write '.$this->relative($path));
 
                 return self::FAILURE;
