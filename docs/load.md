@@ -15,28 +15,42 @@ code. Without it the planner is asked to carry 3493.7 kg, which is not a questio
 ## The answer, today
 
 ```
-sepp-transporter-l3h2 (sepp) — 23 units
-  weight    1197.9 kg of 1200.0 kg payload  (2.1 kg spare)
-  space      14.973 m³ of 13.386 m³ bay  (112 % by bounding box, WHICH ALREADY EXCEEDS IT)
+opel-movano-l4h3 (sdwa5) — 23 units
+  weight    1023.0 kg of 1024.0 kg payload  (1.0 kg spare)
 
-opel-movano-l4h3 (sdwa5) — 12 units
-  weight    1020.0 kg of 1024.0 kg payload  (4.0 kg spare)
-  space       5.216 m³ of 15.843 m³ bay  (33 % by bounding box)
+fiat-ducato-250-l3h2 (sepp) — 14 units
+  weight     997.3 kg of 1000.0 kg payload  (2.7 kg spare)
+  space       4.823 m³ of 13.386 m³ bay  (36 % by bounding box)
 
 NOT CARRIED — the fleet has no legal room for these:
-     2 × truss-f33-2m                        20.6 kg
+     1 × rack-power-12u, 2 × eighteensound-2way-15, 2 × truss-tower-4m, 4 × truss-f33-2m
+  short by 218.2 kg
 ```
 
-**The fleet cannot carry the load, and the arithmetic settles it before any assignment is made.** 2238.5 kg of gear
-against 2224 kg of combined payload is infeasible, so no ordering and no heuristic gets it in — the planner leaves
-the lightest 20.6 kg behind and says so. That is the useful output. A heuristic that hid the remainder to look
-successful would be worse than useless, because the remainder *is* the answer.
+**The fleet is 214.5 kg short of carrying the library in one trip**, and both vehicles finish within three
+kilogrammes of their legal limit — which is why both come back `UNDECIDED` rather than as a pass.
 
-**Sepp's van also comes out at 112 % of its bay while the Movano sits at 33 %, and that is structural rather than a
-bad choice.** Twelve Flexys are 1020 kg of a 2224 kg fleet payload, so wherever they go, that vehicle is full by
-weight and everything else has to fit in the other one. They are also the densest thing in the library at 195 kg per
-cubic metre, where the rest of the load averages 80 — so the vehicle that takes them ends up light on volume and the
-other one ends up buried.
+## The number moved twice in a day, and that is the lesson
+
+| source for Sepp's payload | figure | the fleet against a 2238.5 kg load |
+| --- | --- | --- |
+| estimated, deliberately cautious | 1200 kg | 14.5 kg short |
+| his Zulassungsschein, field A10 | 1365 kg | 150.5 kg **spare** |
+| **a weighbridge — full tank, driver aboard** | **1000 kg** | **214.5 kg short** |
+
+**The estimate was pessimistic and the document was optimistic**, which is not the order anybody expects. The
+estimate guessed heavy on purpose, reasoning that an ex-fleet van carries shelving a catalogue kerb weight knows
+nothing about. That reasoning was right and the guess was still 200 kg out — in the other direction from the paper.
+
+**A registration document is authoritative about what a vehicle may weigh and merely historical about what it
+does.** Field F2 — 3500 kg — is the law and no scale can tell you it. Field G, or the Austrian Eigengewicht, is a
+number from the day of type approval, and this van has had shelving, a bulkhead and a ply floor added since. Add
+75 kg of diesel for a full 90 litre tank and the 365 kg gap is accounted for. **For a payload you need both
+sources: the ceiling from the paper, the mass from the scale.**
+
+**The same question now hangs over the Movano.** Its 1024 kg comes off field G of its Zulassungsbescheinigung — the
+same class of figure that has just been shown 365 kg light on the van that got weighed. Until it goes on a scale
+the fleet total is one measurement plus one assumption, and the assumption is the optimistic kind.
 
 ## Weight and space are two answers, and only one of them is a verdict
 
@@ -54,20 +68,25 @@ A bay nobody has measured gets no space answer at all, rather than a pass.
 
 ## What the verdict is made of
 
-**Not one weight in this library has been on a scale.** They are datasheet figures, arithmetic and the builder's own
-hedging. Half the fleet payload is Sepp's assumed 1200 kg, both masses guessed rather than read off his
-Zulassungsbescheinigung. So the report prints what it summed and where those figures came from, and when a margin
-lands inside that uncertainty it says `UNDECIDED` instead of pretending to decide:
+**One payload is measured, one is read off a document, and no cabinet weight has been on a scale at all.** The
+report prints which is which, because after today the difference between those two is not academic:
 
 ```
 Weights: 0 of 10 devices weighed on a scale. The rest are datasheet figures or estimates
-Payload of sepp-transporter-l3h2: 1200 kg, from estimated masses
 Payload of opel-movano-l4h3: 1024 kg, from datasheet masses
-UNDECIDED for sepp-transporter-l3h2: 2.1 kg of margin is inside the error of the estimates it is made of
+Payload of fiat-ducato-250-l3h2: 1000 kg, from measured masses
+UNDECIDED for opel-movano-l4h3: 1 kg of margin is inside the error of the estimates it is made of
+UNDECIDED for fiat-ducato-250-l3h2: 2.7 kg of margin is inside the error of the estimates it is made of
 ```
 
-**Fields F.2 and G off Sepp's papers are the two numbers that would change the answer**, and a tape measure inside
-both bays is the other half. See [LOAD-2 in TODO.md](../TODO.md) and [sources.md](sources.md).
+**A margin inside the error of its own inputs is reported `UNDECIDED` rather than passed**, and both vehicles are
+there: 1.0 kg and 2.7 kg of headroom, off masses good to tens of kilogrammes. The plan is a way to see roughly what
+goes where, not a clearance to drive.
+
+**A tape measure inside both bays is what is left.** Both load bays are still manufacturer figures rather than
+measurements, and an Austrian Zulassungsschein carries no dimensions at all — so Sepp's outer box is estimated as
+well, and whether it is an L3H2 or an L3H3 is still one look at the roof. See [LOAD-2 in TODO.md](../TODO.md) and
+[sources.md](sources.md).
 
 ## How the assignment is made
 
@@ -84,8 +103,9 @@ The ordering, written down so it can be argued with:
    90 kg SKRAM.
 3. **A device goes to the bin least strained by taking it**, scored as the worse of its two fills — weight against
    payload, volume against bay. Scoring weight alone produces plans that are legal and unloadable, because 30 % of
-   headroom *across a fleet* says nothing about either vehicle. On our own fleet it changes nothing, for the
-   structural reason above; it earns its place where a better split exists.
+   headroom *across a fleet* says nothing about either vehicle. **On our own fleet it decides nothing, because
+   weight decides everything**: both vans finish within three kilogrammes of their limit, so there is no slack for
+   a second dimension to spend. It earns its place on a fleet with room in it.
 4. **A device is split across vehicles only when no single vehicle can take all of it**, because a matched pair of
    tops in two different vans is a valid plan and an annoying one.
 5. **Weight refuses and space only ranks.** A unit that would put a vehicle over its payload is never placed there;

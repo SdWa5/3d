@@ -318,20 +318,20 @@ Round centimetres throughout, which is what the owner gave and is honest about t
 still needs a tape measure and a scale before it plans a real load-in — the mid bass's 120 kg first, since that is
 the one figure the box's own volume argues against.
 
-### The transporters: one documented, one described
+### The transporters: both documented, neither measured inside
 
-`opel-movano-l4h3` and `sepp-transporter-l3h2` are the first devices here that are not gear, and they are sourced
-very differently from each other. Worth reading before either is planned against, because **a wrong cabinet weight
-makes a bad render and a wrong payload makes an overloaded van** — a fine, a liability question after an accident
-and a refused insurance claim.
+`opel-movano-l4h3` and `fiat-ducato-250-l3h2` are the devices here that are not gear. **Both sets of masses are now
+read off a registration document and both load bays are still manufacturer figures.** Worth reading before either is
+planned against, because **a wrong cabinet weight makes a bad render and a wrong payload makes an overloaded van** —
+a fine, a liability question after an accident and a refused insurance claim.
 
 | Device | Reference | Source | What came from it |
 |--------|-----------|--------|-------------------|
 | `opel-movano-l4h3` | `datasheet` | **Zulassungsbescheinigung Teil I and Teil II**, both photographed by the owner on 2026-08-16 | Length 6848 (18), width 2070 (19), height 2792–2808 (20), mass in service 2476 kg (G), permitted gross 3500 kg (F.2 and F.1), axle loads 1850/2300 (7.1/7.2), towing 2500/750 (O.1/O.2), 3 seats (S.1), first registered 25.04.2016 (B), colour WEISS (R). **Payload 1024 kg is derived, `F.2 − G`, and stored nowhere** |
 | | `datasheet` | Manufacturer body figures for the Renault Master / Opel Movano **L4H3 rear-wheel-drive** shell | Load bay 4383 × 1765 × 2048 mm, 1380 mm between the wheel arches, 15.8 m³. **Estimated**, and it describes a bare shell |
-| `sepp-transporter-l3h2` | — | **The owner of the vehicle**, describing it | "L3H2 or L3H3 (not sure which), probably peugot, old deutsche post vehicle". That is the entire source |
-| | — | Manufacturer body figures for the Peugeot Boxer **L3H2** shell | Outer 5998 × 2050 × 2522 mm, load bay 3705 × 1870 × 1932 mm, 1422 mm between the arches, 13 m³. **Estimated, and the vehicle is not identified** |
-| | — | Nothing at all | The 3500 kg permitted gross and the 2300 kg mass in service are **guesses**, so the 1200 kg payload is a guess twice over |
+| `fiat-ducato-250-l3h2` | `measured` | **A weighbridge**, by the vehicle's own owner on 2026-08-16 | **2500 kg with a full tank and a driver aboard**, which is already the mass-in-service definition. This is the only weight in the entire library that has been on a scale, and it is **365 kg heavier than the registration document** |
+| | `measured` | **Austrian Zulassungsschein**, photographed on 2026-08-16 | Fiat Ducato, type 250/DMMFC/EYL1 (D1/D3/D2), van body (A8), N1 Gruppe III (J), Eigengewicht 2060 kg (G), permitted gross 3500 kg (F2, and F1 agrees), **Nutzlast 1365 kg (A10)**, axle loads 2100/2400 (N), towing 3000/750 (O1/O2), first registered 11.06.2014 (B), colour gelb (R), 2287 ccm / 96 kW diesel EURO 5b, 215/75R16C |
+| | — | Manufacturer body figures for the Ducato 250 **L3H2** shell | Outer 5998 × 2050 × 2522 mm, load bay 3705 × 1870 × 1932 mm, 1422 mm between the arches, 13 m³. **Estimated** — an Austrian Zulassungsschein carries no dimensions at all, so even the outer box is a catalogue figure here |
 
 **No registration document states the inside of a van**, which is why even the Movano's bay is `estimated` while its
 masses are not. Its `provenance.dimensions` is therefore `estimated` and its `provenance.weight` `datasheet`: one
@@ -345,9 +345,34 @@ value has to cover both boxes, and the bay is the half a packer actually reads.
 * **The Movano B and not the Movano C.** A 2016 Movano is Renault Master-based; the Boxer-based Movano C arrived in
   2021 and its L4 is 6363 mm where field 18 states 6848. Every bay figure would be out by a third of a metre. The
   owner puts the build year at 2014, which is the same generation and changes nothing.
-* **The lower of Sepp's two possible roofs, and a heavy guess at his kerb weight.** An estimate against a legal
-  limit is rounded in the **safe** direction: a bay estimated small and a payload estimated low make the packer
-  refuse a load that would have fitted, which costs a second trip, where the other direction costs a prosecution.
+* **The lower of Sepp's two possible roofs.** L3H2 and L3H3 differ in exactly one dimension, 1932 mm against
+  2168 mm, and the papers settle neither. An estimate against a legal limit is rounded in the **safe** direction: a
+  bay estimated small makes the packer refuse a load that would have fitted, which costs a second trip, where the
+  other direction costs a prosecution. One look at the roof removes 236 mm of doubt.
+
+**A REGISTRATION DOCUMENT IS AUTHORITATIVE ABOUT WHAT A VEHICLE MAY WEIGH AND MERELY HISTORICAL ABOUT WHAT IT
+DOES**, and Sepp's van is the worked example. Its payload has been three numbers in one day:
+
+| source | payload | how it was arrived at |
+|---|---|---|
+| estimate | 1200 kg | mass in service guessed at 2300, deliberately heavy for an unseen fit-out |
+| Zulassungsschein, field A10 | 1365 kg | Eigengewicht 2060 + 75 kg driver, against a 3500 kg permitted gross |
+| **weighbridge** | **1000 kg** | **2500 kg measured, full tank and driver aboard** |
+
+The estimate was pessimistic, the document was optimistic, and only the scale had been near the vehicle. The 365 kg
+the paper is missing is about 75 kg of diesel in a full 90 litre tank plus a fit-out — shelving, a bulkhead, a ply
+floor — added *after* type approval, which no registration field has ever seen. **So a payload needs both sources:
+the legal ceiling from the paper, which no scale can supply, and the actual mass from the scale, which the paper
+cannot.**
+
+**The driver still has to be reconciled between the two documents.** Austrian **Eigengewicht** is the vehicle
+without one; the German field **G** on the Movano is the *mass in service* and includes 75 kg by EU definition. The
+weighbridge figure had the driver aboard, so it needs no adjustment — but the 2135 kg it replaced was 2060 + 75 for
+exactly that reason, and stored literally the 2060 would have derived 1440 kg against the document's own 1365.
+
+**The same question now hangs over the Movano.** Its 1024 kg comes off field G of its own Zulassungsbescheinigung,
+which is the same class of figure that has just been shown 365 kg light. Until it is weighed, the fleet's total
+payload is one measurement plus one assumption, and the assumption is the optimistic kind.
   L3H2 and L3H3 differ only in height, 1932 against 2168, so that assumption costs 236 mm and nothing else.
 
 **What replaces all of this:** a tape measure inside both vans — length at the floor, width between the walls and

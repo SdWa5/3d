@@ -74,25 +74,7 @@ Settled with the owner, so a new session can act on it without re-deriving it:
 **GEO-12, GEO-11's stack-local half, TOOL-6, TOOL-7 and TOOL-8 are done**, which is why the list now starts where it
 does. TOOL-7 left a narrow remainder, filed as TOOL-15.
 
-1. **LOAD-2's remainder, and it is the owner's to do rather than mine.** The whole LOAD group is code-complete —
-   the schema and both vehicle specs landed in 0.86.0, `load:plan` and its two verdicts in 0.87.0 — and the answer it
-   gives is **20.6 kg short of one trip**, with Sepp's van at 112 % of its bay. Every one of those figures rests on
-   estimates: not a single weight in the library has been on a scale, and half the fleet payload is Sepp's assumed
-   1200 kg. Two measurements move it from a guess to an answer, and neither is a keyboard job.
-
-   * **Fields F.2 and G off Sepp's Zulassungsbescheinigung.** They decide whether the deficit is real at all.
-   * **A tape measure inside both bays.** Length at the floor, width between the walls and between the arches,
-     height under the roof and through the rear door aperture, and anything bolted in. The Movano's bay is currently
-     estimated and Sepp's is a guess about a van nobody has opened.
-
-   Until then `load:plan --exclude-owner=gmss` is a planning aid, which is what it calls itself.
-
-   **The runtime cluster came off this list entirely, and it is worth saying why.** TOOL-10 was ranked second on a
-   measured 6m40s. The stage now takes **34 s**, because 0.85.0 forked the very thing TOOL-10 was going to teach to
-   skip, so it is 1h 30m of work for half a minute and drops to P3 with the rest of them. The lesson is the ranking
-   rather than the item: **a priority argued from a measurement expires when the measurement does**, and this one
-   expired inside a single release.
-2. **SWP-2**, the system-separation axis, now that SWP-1 is complete. `(pooled, subs apart, systems apart)`
+1. **SWP-2**, the system-separation axis, now that SWP-1 is complete. `(pooled, subs apart, systems apart)`
    multiplies the sweep by up to three, and the fuse at 800 against today's 543 is the constraint to watch — a
    tripled sweep does not fit and the raise would have to be argued again, with a count rather than a guess.
 
@@ -100,17 +82,27 @@ does. TOOL-7 left a narrow remainder, filed as TOOL-15.
    fuse rather than assume, which was right, and I then quoted the refusal count as a scene count and was wrong by
    more than a factor of two: 144 refusals turned into **60** scenes, because 84 of them collapse in the
    deduplication they had never reached before. Count what gets *written*, not what gets considered.
-3. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
+
+   **Before that, though: put the Movano on a scale.** LOAD-2 is back at P1 for one reason. Sepp's payload was
+   estimated at 1200 kg, documented at 1365 and then **weighed at 1000** — his van is 365 kg heavier than its own
+   registration document, because a fit-out added after type approval appears in no field of it. The Movano's
+   1024 kg is exactly the same class of figure and has never been checked. If it is out by anything like as much,
+   the fleet is short by well over 300 kg rather than 214.5, and every load plan drawn from it is optimistic in the
+   direction that ends in a fine. **One weighbridge ticket settles it**, and no amount of code substitutes.
+
+   **The runtime cluster came off this list entirely, and it is worth saying why.** TOOL-10 was ranked second on a
+   measured 6m40s. The stage now takes **34 s**, because 0.85.0 forked the very thing TOOL-10 was going to teach to
+   skip, so it is 1h 30m of work for half a minute and drops to P3 with the rest of them. The lesson is the ranking
+   rather than the item: **a priority argued from a measurement expires when the measurement does**, and this one
+   expired inside a single release.
+2. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
    cabinets need *is* a gapped row, so the search that landed already does half of it.
-4. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
-   above rather than before them. It no longer waits on TOOL-10: a tripled sweep is bearable because the sweep is
-   forked, not because the regenerate stage learned to skip.
-5. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
+3. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
    enable/disable surface worth building.
-6. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
+4. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
    SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
    169 mm cost on the tightest tops row is measured.
-7. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
+5. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
    stack-local half shipped in 0.83.0 and unblocked GEO-9 and GEO-4 as far as it can; what is left needs the front face
    and the solve to stop depending on each other.
 
@@ -1103,7 +1095,7 @@ now exist, and whose answer is currently a statement about two estimates rather 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | LOAD-1 | Where a **vehicle** belongs in the schema. **Done in 0.86.0**: a real `vehicle` category with `van`/`trailer`, a validated `vehicle:` block for the permitted gross and the load bay, the payload derived as `F.2 − G` rather than stored, and `Category::producesAModel()` so a van is never built into geometry or shelved in the asset library | — | — | LOAD-3 and LOAD-4, which could not start without it | — | done |
-| LOAD-2 | Specs for the **two transporters**, both in `specs/vehicles/` since 0.86.0. **Stefan's is documented** off the Zulassungsbescheinigung: Opel Movano L4H3, 6.848 × 2.070 × 2.808 m, 2476 kg in service against 3500 kg permitted, so **1024 kg of payload**. **Sepp's is a placeholder that says so in capitals** — an ex-Deutsche-Post L3H2, probably a Peugeot, built 2014, with both masses assumed rather than read. What is left is the tape measure inside both bays and **fields F.2 and G off Sepp's papers**, which is the pair that decides one trip against two | P1 | 1h | the difference between a load plan and a guess, since half the fleet payload is currently assumed | — | needs the owner |
+| LOAD-2 | Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed**: 2500 kg with a full tank and driver, so 1000 kg of payload — **365 kg heavier than its own Zulassungsschein**, which knows nothing about a fit-out added after type approval. **Stefan's Movano has not been weighed** and its 1024 kg is the same class of paper figure that just proved 365 kg optimistic. What is left: **the Movano on a scale**, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3 | P1 | 45m | the difference between a load plan and a fine | — | needs the owner |
 | LOAD-3 | **Pack** the whole inventory or a stated subset onto one transporter, or across both. **Done in 0.87.0** as `load:plan`: heaviest unit first, payload as a hard refusal, bins scored by the worse of their weight and volume fills, and a device split across vans only when no van can take the lot. Not a 3D packer and it says so — the inputs for one do not exist. **The answer on our own gear is that it does not fit**, 20.6 kg left behind | — | — | a load plan, which nothing produced before | — | done |
 | LOAD-4 | **Report space and weight separately**. **Done in 0.87.0**: two verdicts per vehicle with the numbers behind each, an overrun exiting `OVERLOADED` rather than warning, space stated as a lower bound that can refuse but never permit, and the provenance of every figure printed beside the verdict — including `UNDECIDED` where the margin is inside the error of its own inputs, which is where both vehicles land today | — | — | — | — | done |
 

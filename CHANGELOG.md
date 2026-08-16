@@ -4,6 +4,57 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.90.0] - 2026-08-16
+
+Sepp's transporter got its papers read and then got put on a scale, and **the two disagree by 365 kg**.
+
+### Fixed
+
+- **Sepp's payload has been three numbers in one day, and only the last one has been near the vehicle.**
+
+  | source | payload | fleet against a 2238.5 kg load |
+  | --- | --- | --- |
+  | estimated, deliberately cautious | 1200 kg | 14.5 kg short |
+  | Zulassungsschein, field A10 | 1365 kg | 150.5 kg spare |
+  | **weighbridge, full tank and driver** | **1000 kg** | **214.5 kg short** |
+
+  The estimate was pessimistic and the document was optimistic, which is not the order anybody expects. **A
+  registration document is authoritative about what a vehicle may weigh and merely historical about what it does**:
+  field F2's 3500 kg is the law and no scale can supply it, while the Eigengewicht is a figure from the day of type
+  approval and this van has had shelving, a bulkhead and a ply floor since. Add 75 kg of diesel for a full 90 litre
+  tank and the gap is accounted for. A payload needs both sources
+- **Sepp's van is a Fiat Ducato, not a Peugeot Boxer.** Right platform, wrong badge — Boxer, Jumper and Ducato are
+  the same Sevel van and share their bay dimensions, so the estimated geometry did not move. Luck, not method
+- 0.87.0's note that scoring bins on both weight and volume "changes nothing on our own fleet" is now right for a
+  different reason: **weight decides everything**, because both vans finish within three kilogrammes of their limit
+  and there is no slack for a second dimension to spend
+
+### Changed
+
+- `specs/vehicles/sepp-transporter-l3h2.yaml` → **`specs/vehicles/fiat-ducato-250-l3h2.yaml`**, named by make and
+  model like the Movano rather than by whose it is, which the `owner` field already says
+- **The first `provenance.weight: measured` in the library.** Its permitted gross stays `datasheet`, because a legal
+  ceiling is not something a scale can tell you — the split between the two is the point
+- **The 75 kg driver, reconciled between two countries' documents.** Austrian `Eigengewicht` excludes a driver where
+  the German field `G` includes one, so `3500 − 2060` derives 1440 kg against the document's own stated 1365.
+  Stored literally it would have handed a packer 75 kg it does not have. The weighbridge figure had the driver
+  aboard and needs no such adjustment
+
+### Added
+
+- `tests/Load/LoadReportTest.php`. **The report's rules about what is wrong needed somewhere to live that does not
+  depend on the fleet being wrong**, since what the fleet is wrong about changed twice today — an overflowing bay
+  and an undecided margin are now demonstrated on plans built to order
+- `VehicleTest` pins the weighed mass, the derived 1000 kg payload and the `measured` provenance
+
+### Known
+
+- **The Movano has never been weighed, and its 1024 kg is the same class of figure that just proved 365 kg
+  optimistic.** Until it goes on a scale the fleet total is one measurement plus one assumption, and the assumption
+  is the optimistic kind. LOAD-2 is back at P1 for that reason alone
+- Both load bays are still manufacturer figures, and so is Sepp's outer box: an Austrian Zulassungsschein carries no
+  dimensions at all. Whether his van is an L3H2 or an L3H3 is 236 mm of doubt that one look at the roof removes
+
 ## [0.89.0] - 2026-08-16
 
 CVR-5's second half, and with it the last value of SWP-1's cross product. **Stated by the owner: treat `impossible`

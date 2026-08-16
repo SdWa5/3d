@@ -164,13 +164,27 @@ final class VehicleTest extends TestCase
         // The rear-wheel-drive roof. 2.144 here would be the front-wheel-drive body, which the L4 is never sold as.
         self::assertEqualsWithDelta(2.048, $movano->vehicle->loadBay->height, 1e-9);
 
-        $sepp = $specs['sepp-transporter-l3h2'] ?? null;
+        // **Sepp's Fiat Ducato, weighed rather than read, and it is 365 kg heavier than its own papers.** The
+        // Austrian Zulassungsschein gives Eigengewicht 2060 kg and field A10 a payload of 1365; the weighbridge
+        // says 2500 kg with a full tank and a driver, which is already the mass-in-service definition the Movano's
+        // field G uses. The difference is fuel plus a fit-out added after type approval, so no registration field
+        // has ever seen it.
+        //
+        // **The permitted gross still comes off the paper**, because a legal ceiling is not something a scale can
+        // tell you. That split — limit from the document, mass from the scale — is the whole point.
+        $sepp = $specs['fiat-ducato-250-l3h2'] ?? null;
         self::assertNotNull($sepp, "Sepp's transporter spec is missing");
         self::assertSame('sepp', $sepp->owner);
-        self::assertFalse(
+        self::assertNotNull($sepp->vehicle);
+        self::assertEqualsWithDelta(2500.0, $sepp->weightKg, 1e-9);
+        self::assertEqualsWithDelta(3500.0, $sepp->vehicle->permittedGrossKg, 1e-9);
+        self::assertEqualsWithDelta(1000.0, $sepp->vehicle->payloadKg($sepp->weightKg), 1e-9);
+        self::assertTrue(
             $sepp->provenance->weight->isMeasured(),
-            "Sepp's payload is a guess twice over and must never claim to be measured",
+            'the only weight in this library that has been on a scale must say so',
         );
+        // The papers carry no dimensions at all, so the body is still a catalogue figure.
+        self::assertFalse($sepp->provenance->dimensions->isMeasured());
     }
 
     /**

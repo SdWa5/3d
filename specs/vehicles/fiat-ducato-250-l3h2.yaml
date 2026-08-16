@@ -1,0 +1,127 @@
+# Sepp's transporter, off its Austrian Zulassungsschein. THE MASSES ARE DOCUMENTED; THE BODY IS NOT.
+#
+# Every mass here is read off the document. What the document does not carry is the outer box or the load bay —
+# an Austrian Zulassungsschein has no equivalent of the German fields 18/19/20 — so those remain estimated and are
+# the only guesses left in this file.
+#
+# WHAT THE PAPERS SAY, field by field:
+#
+#   D1  Marke                     FIAT
+#   D3  Handelsbezeichnung        FIAT DUCATO
+#   D2  Type/Variante/Version     250/DMMFC/EYL1
+#   J   Klasse                    N1 / Lastkraftwagen / Gruppe III
+#   A8  Aufbau                    Van
+#   B   Erstmalige Zulassung      11.06.2014
+#   R   Farbe                     Gelb
+#   G   Eigengewicht              2060 kg
+#   F1  Techn. zul. Gesamtmasse   3500 kg
+#   F2  Gesamtgewicht             3500 kg
+#   A10 Nutzlast                  1365 kg
+#   N   Achslasten                2100 kg front, 2400 kg rear
+#   O1  Anhängelast gebremst      3000 kg          O2 ungebremst 750 kg
+#   P5  Motortype                 F1AE3481D, 2287 ccm, 96 kW, Diesel, EURO 5b
+#   A13 Bereifung                 215/75R16C
+#
+# THE VAN WAS PUT ON A SCALE AND IT IS 365 KG HEAVIER THAN ITS OWN PAPERS. Weighed by the owner at **2500 kg with
+# a full tank and a driver aboard**, against a documented Eigengewicht of 2060 kg plus 75 for the driver — 2135. So
+# `weight_kg` below is the **weighed** figure and not the printed one, and the payload derives to 1000 kg rather
+# than the 1365 field A10 states.
+#
+# WHERE THE 365 KG IS. Not one mistake, several, and every one of them points the same way:
+#
+#   * ~75 kg of diesel. The 90 litre tank is full on the scale and the registration figure is not.
+#   * The ex-post fit-out. Shelving, a bulkhead and a ply floor were added *after* the vehicle was type-approved,
+#     so no registration field has ever seen them. This is the specific thing the earlier estimate tried to allow
+#     for and the document could not.
+#   * Whatever else is in a working van and was not taken out to weigh it.
+#
+# WHICH MAKES THE DOCUMENT THE LESS RELIABLE SOURCE OF THE TWO, and that is not the usual order. A
+# Zulassungsschein is authoritative about what the vehicle *may* weigh — field F2, 3500 kg, is the law — and merely
+# historical about what it *does*. The scale is the opposite. For a payload you need both: the legal ceiling from
+# the paper and the actual mass from the scale.
+#
+# THE 75 KG DRIVER, WHICH STILL MATTERS FOR THE COMPARISON. The Austrian **Eigengewicht** is the vehicle without a
+# driver; the German field G on Stefan's Movano is the *mass in service* and includes one by EU definition. The
+# weighed figure here has the driver aboard, so it is already on the Movano's definition and needs no adjustment.
+# The 2135 kg it replaces was 2060 + 75 for exactly that reason.
+#
+# PRECISION. "2,5 t" is stated to the nearest 50 kg at best, so the 1000 kg payload carries about that much
+# uncertainty. It is still a far better number than the 1365 it replaces, because that one was wrong by 365.
+#
+# WHAT IS STILL ESTIMATED, and it is now only the geometry:
+#
+#   * THE BODY VARIANT. The papers give no dimensions, so L3H2 is still the owner's own "L3H2 or L3H3". The lower
+#     roof is assumed because that is the safe end: a packer told 1932 mm refuses a load that would have fitted,
+#     one told 2168 mm authorises a load that will not go in. One look at the vehicle settles it.
+#   * THE LOAD BAY. Manufacturer figures for the Ducato 250 L3H2 body, not a tape measure.
+#   * WHAT IS BOLTED IN is now inside the weighed figure rather than unknown, which is the whole value of the
+#     scale. It is not inside the registration figure and never was.
+#
+# THE MAKE IS SETTLED AND WAS GUESSED WRONG. "Probably a Peugeot" was the right platform under the wrong badge:
+# Boxer, Jumper and Ducato are the same Sevel van and share their bay dimensions, so the estimated geometry below
+# did not move when the badge changed. That is luck rather than method.
+#
+# Nothing identifying is recorded: no VIN, no plate, no address, no keeper's name. None of them is a packing input.
+# See docs/sources.md.
+id: fiat-ducato-250-l3h2
+name: "Fiat Ducato 250 L3H2 — Sepp's transporter"
+category: vehicle
+subtype: van
+quantity: 1
+owner: sepp
+build: original
+
+provenance:
+  # MEASURED, on a scale, which is the only weight in this entire library that can say so. The permitted gross is
+  # still the document's — a legal ceiling is not something a scale can tell you. The box and the bay are neither.
+  dimensions: estimated
+  weight: measured
+
+geometry:
+  shape: box
+  # Ducato 250 L3H2 body. Depth is the fore-aft axis, so the vehicle's length is its depth.
+  dimensions_m: { width: 2.050, height: 2.522, depth: 5.998 }
+  origin: bottom-center
+  chamfer_m: 0.02
+
+appearance:
+  # R Farbe: Gelb. The one documented thing about this van with no effect whatsoever on a pack, so the model stays
+  # plain rather than shouting.
+  color: "#e8e8e8"
+
+physical:
+  # WEIGHED: 2.5 t with a full tank and the driver aboard, which is already the mass-in-service definition Stefan's
+  # field G uses. The document's 2060 + 75 = 2135 is what this replaces, and it was 365 kg light — see the top of
+  # this file for where that went.
+  weight_kg: 2500.0
+  handles: [ ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+vehicle:
+  # F2 Gesamtgewicht, and F1 technically permitted agrees with it.
+  permitted_gross_kg: 3500.0
+  load_bay_m:
+    # ESTIMATED, manufacturer figures for the Ducato 250 L3H2 body. The H3 roof would make `height` 2.168 instead.
+    width: 1.870
+    height: 1.932
+    depth: 3.705
+    width_between_arches: 1.422
+
+notes: |
+  PAYLOAD 1000 kg, from a permitted gross of 3500 on the paper and a weighed 2500 on the scale. Field A10 of the
+  document says 1365 and it is wrong about this vehicle, because the van has been fitted out since it was approved
+  and no registration field has ever seen the shelving.
+
+  WHAT THIS CHANGED, TWICE. The first estimate guessed 1200 kg. The papers said 1365 and the fleet appeared to
+  carry the whole library with 150.5 kg to spare. The scale says 1000 and it does not: the fleet is 214.5 kg short
+  of one trip, which is worse than the original guess suggested. The estimate was pessimistic, the document was
+  optimistic, and only one of the three sources has been near the vehicle.
+
+  AND THE SAME QUESTION NOW HANGS OVER THE MOVANO. Its 1024 kg payload comes off field G of its
+  Zulassungsbescheinigung — the same class of figure that has just been shown 365 kg light on this van. Until it
+  goes on a scale too, the fleet's total payload is one measurement and one assumption.
+
+  WHAT IS LEFT: a tape measure inside the bay, and one look at the roof to settle L3H2 against L3H3.

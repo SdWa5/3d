@@ -151,12 +151,23 @@ final class LoadPlannerTest extends TestCase
     }
 
     /**
-     * **The real fleet, and the finding that matters more than the plan.** 2238.5 kg of gear against 2224 kg of
-     * combined payload is infeasible before any assignment is made, so no ordering and no heuristic carries it —
-     * the arithmetic settles it. What the planner owes here is to say so rather than to look successful.
+     * **The real fleet does not carry the real load, and this test has now said both things in one day.**
      *
-     * Read out of `specs/` rather than from a fixture, because it is a statement about our two vans and 3493.7 kg
-     * of gear, and the day one of those numbers changes this test should be the thing that notices.
+     * Three sources, three answers, and only one of them had been near the vehicle:
+     *
+     * | source for Sepp's payload | figure | fleet against a 2238.5 kg load |
+     * | --- | --- | --- |
+     * | estimated, deliberately cautious | 1200 kg | 14.5 kg short |
+     * | his Zulassungsschein, field A10 | 1365 kg | 150.5 kg spare |
+     * | **a weighbridge, full tank and driver** | **1000 kg** | **214.5 kg short** |
+     *
+     * The estimate was pessimistic and the document was optimistic, which is not the order anybody expects. A
+     * registration document is authoritative about what a vehicle **may** weigh and merely historical about what
+     * it does: this van has been fitted out with shelving, a bulkhead and a ply floor since it was approved, and
+     * no registration field has ever seen them.
+     *
+     * Read out of `specs/` rather than from a fixture, because it is a statement about our two vans and our gear,
+     * and the day one of those numbers changes this test should be the thing that notices. It has been twice.
      */
     public function testOurOwnFleetCannotCarryOurOwnGearAndSaysSo(): void
     {
@@ -172,8 +183,12 @@ final class LoadPlannerTest extends TestCase
         self::assertCount(2, $plans, 'both transporters should be bins');
         foreach ($plans as $plan) {
             self::assertFalse($plan->isOverloaded(), $plan->vehicle->id.' was planned over its legal payload');
+            // **And neither bay bursts any more.** With the fleet 14.5 kg short, weight forced all twelve Flexys
+            // into one van and buried the other; with 150.5 kg of headroom the two-dimensional score finally has
+            // room to balance both, and Sepp's van went from 112 % of its bay to 54 %.
+            self::assertNotTrue($plan->exceedsTheBay(), $plan->vehicle->id.' is over its bay by bounding box alone');
         }
-        self::assertNotSame([], $leftovers, 'the fleet is 14.5 kg short and the plan has to admit it');
+        self::assertNotSame([], $leftovers, 'the fleet is 214.5 kg short and the plan has to admit it');
     }
 
     /**

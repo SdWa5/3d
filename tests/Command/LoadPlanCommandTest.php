@@ -20,16 +20,33 @@ use PHPUnit\Framework\TestCase;
 final class LoadPlanCommandTest extends TestCase
 {
     /**
+     * **The real fleet is 214.5 kg short of one trip, and the exit code says so without calling it a crash.**
+     *
+     * The figure behind it has moved twice in a day — estimated 1200 kg, documented 1365, weighed 1000 — so what
+     * this pins is the shape of the answer rather than the number: gear is left behind, it is named, and the
+     * command exits `OVERLOADED`.
+     */
+    public function testTheRealFleetIsShortOfOneTripAndSaysSo(): void
+    {
+        $tester = $this->invoke(['--exclude-owner' => ['gmss']]);
+
+        self::assertSame(LoadPlanCommand::OVERLOADED, $tester->getStatusCode());
+        self::assertStringContainsString('NOT CARRIED', $tester->getDisplay());
+        self::assertStringContainsString('short by', $tester->getDisplay());
+    }
+
+    /**
      * **The exit code says whether the load may legally travel, and it is not the same code as a broken command.**
      *
      * A payload overrun is a fine, a liability question after an accident and a refused insurance claim, so it can
-     * never be a warning somebody scrolls past — but it is also not a crash, and a script that runs this wants to
-     * tell "the fleet is too small" from "the command is broken". Hence a third code, the same argument
-     * `scene:stack` makes for {@see \App\Command\SceneStackCommand::NOTHING_TO_WRITE}.
+     * never be a warning somebody scrolls past — but it is also not a crash, and a script wants to tell "the fleet
+     * is too small" from "the command is broken". Hence a third code, the same argument `scene:stack` makes for
+     * {@see \App\Command\SceneStackCommand::NOTHING_TO_WRITE}. Asserted on one van rather than two, because the
+     * fleet no longer overloads and the code still has to work.
      */
     public function testAFleetThatCannotCarryTheLoadExitsOverloadedRatherThanFailed(): void
     {
-        $tester = $this->invoke(['--exclude-owner' => ['gmss']]);
+        $tester = $this->invoke(['--exclude-owner' => ['gmss'], '--vehicle' => ['opel-movano-l4h3']]);
 
         self::assertSame(LoadPlanCommand::OVERLOADED, $tester->getStatusCode());
         self::assertStringContainsString('NOT CARRIED', $tester->getDisplay());
@@ -49,19 +66,6 @@ final class LoadPlanCommandTest extends TestCase
     }
 
     /**
-     * **A bounding-box sum over the bay is stated as evidence, and it is the only space answer that is safe.**
-     * Sepp's van comes out over its bay on our real gear, and the report has to say so in a sentence somebody
-     * reading quickly cannot mistake for a rounding note.
-     */
-    public function testABayAlreadyExceededByBoundingBoxesIsSaidOutLoud(): void
-    {
-        self::assertStringContainsString(
-            'WHICH ALREADY EXCEEDS IT',
-            $this->invoke(['--exclude-owner' => ['gmss']])->getDisplay(),
-        );
-    }
-
-    /**
      * **The provenance of the verdict, printed with the verdict.** Half the fleet payload is Sepp's assumed 1200 kg
      * and not one weight in the library has been on a scale, so a reader who does not know that will treat a two
      * kilogramme margin as a decision. The report says which figures it summed and where they came from, and calls
@@ -72,8 +76,28 @@ final class LoadPlanCommandTest extends TestCase
         $display = $this->invoke(['--exclude-owner' => ['gmss']])->getDisplay();
 
         self::assertMatchesRegularExpression('/Weights: \d+ of \d+ devices weighed on a scale/', $display);
-        self::assertStringContainsString('from estimated masses', $display);
-        self::assertStringContainsString('UNDECIDED', $display);
+
+        // **The two payloads no longer come from the same kind of source, and the report says which is which.**
+        // Sepp's van has been on a weighbridge; the Movano's mass is still field G of a registration document —
+        // the same class of figure that turned out 365 kg light on the van that got weighed.
+        self::assertStringContainsString('from measured masses', $display);
+        self::assertStringContainsString('from datasheet masses', $display);
+    }
+
+    /**
+     * **A margin inside the error of its own inputs is still reported as undecided**, which is the rule the real
+     * fleet stopped exercising the day it got its second documented payload. Shown on a load tuned to sit within
+     * 2 % of the Movano's limit, because the rule is what matters rather than which numbers happen to trigger it.
+     */
+    public function testAMarginInsideItsOwnErrorBarIsStillUndecided(): void
+    {
+        // One Movano offered the whole travelling load fills to within 10 kg of its 1024 kg limit, which is 1 %.
+        $display = $this->invoke([
+            '--exclude-owner' => ['gmss'], '--vehicle' => ['opel-movano-l4h3'],
+        ])->getDisplay();
+
+        self::assertStringContainsString('UNDECIDED for opel-movano-l4h3', $display);
+        self::assertStringContainsString('neither a pass nor a refusal', $display);
     }
 
     /**

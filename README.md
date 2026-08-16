@@ -100,16 +100,19 @@ the lights hung, both scaffold towers and all three racks
 driven to the gig in, which is the one category that is never modelled and never placed in a scene. The Movano's
 figures are off its registration document, so the number the whole load side turns on is documented rather than
 guessed: **1024 kg of payload**, derived as permitted gross minus mass in service with the driver already counted.
-Sepp's van is described rather than documented and its file says so in capitals. `bin/console catalog` reports both
+Sepp's Ducato is the one device in the library whose weight has been on a **scale**, and it is 365 kg heavier than
+its registration document — which makes the paper authoritative about what it may weigh and merely historical about
+what it does. `bin/console catalog` reports both
 as a fleet beside the library and keeps them out of the weight and volume totals, because a van is the container and
 never the load.
 
-**And the fleet does not carry the library.** `bin/console load:plan --exclude-owner=gmss` assigns every cabinet to a
-van and reports the two verdicts separately, and today it comes back **20.6 kg short**: 2238.5 kg of gear against
-2224 kg of combined payload is infeasible before any assignment is made. It also puts Sepp's van at 112 % of its bay
-against the Movano's 33 %, which is structural — twelve Flexys are 1020 kg of a 2224 kg payload, so wherever they go
-that van is full by weight and everything else has to fit in the other one. Both halves of that comparison are
-estimates and the report says which ([docs/load.md](docs/load.md)).
+**And the fleet is 214.5 kg short of carrying the library in one trip.**
+`bin/console load:plan --exclude-owner=gmss` assigns every cabinet to a van and reports weight and space as two
+verdicts, and both vans finish within three kilogrammes of their legal limit with four devices left behind.
+**Sepp's payload has been three different numbers in a day** — estimated at 1200 kg, documented at 1365 in his
+Zulassungsschein, and **weighed at 1000** on a scale with a full tank and a driver. The van is 365 kg heavier than
+its own papers, because shelving fitted after type approval appears in no registration field
+([docs/load.md](docs/load.md)).
 
 ## Commands
 
