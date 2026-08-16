@@ -17,8 +17,8 @@
 #   1  2× gmss-wall-bass                                                         1.34 m wide
 #   2  1× skram + 1× gmss-mid-bass                                              1.83 m wide
 #   3  1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid    2.443 m wide
-#   4  2× gmss-nuke + 1× flexy-folded-horn-hybrid + 1× achenbach-18           2.431 m wide
-#   5  2× gmss-iq-sub + 1× achenbach-18                                          1.7 m wide
+#   4  1× achenbach-18 + 2× gmss-nuke + 1× flexy-folded-horn-hybrid + 1× achenbach-18    3.051 m wide
+#   5  2× gmss-iq-sub                                                            1.08 m wide
 #   6  1× tecnare-m2122 + 1× gmss-turbo-top                                     0.97 m wide
 #
 # Subs reach 4.668 m against a 2.0 m interface. The stack is 5.628 m of cabinet.
@@ -28,6 +28,8 @@
 #   * the 1× skram + 1× gmss-mid-bass row is 1.830 m on a 1.340 m row, so it overhangs 245 mm each side
 #   * the 1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid row is 2.443 m on a 1.830 m row, so
 #     it overhangs 306 mm each side
+#   * the 1× achenbach-18 + 2× gmss-nuke + 1× flexy-folded-horn-hybrid + 1× achenbach-18 row is 3.051 m on a 2.443
+#     m row, so it overhangs 304 mm each side
 #
 # main-3 — 3, 11 cabinets in 5 rows:
 #
@@ -96,7 +98,7 @@ placements:
 
   # 3, 11 cabinets in 5 rows
   - id: main-3
-    at: [0.1917, 0.0]
+    at: [0.4957, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -122,7 +124,7 @@ placements:
 
   # 1, 11 cabinets in 5 rows
   - id: main-1
-    at: [2.1473, 0.0]
+    at: [2.4513, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

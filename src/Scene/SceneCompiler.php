@@ -19,7 +19,14 @@ final class SceneCompiler
     /**
      * @param array<string, DeviceSpec> $devicesById
      */
-    public function __construct(private readonly array $devicesById)
+    public function __construct(
+        private readonly array $devicesById,
+        /**
+         * True for the throwaway compiler {@see stackSurvives} builds, so it asks no candidate the same question and
+         * the recursion is one level deep by construction rather than by a counter.
+         */
+        private readonly bool $probing = false,
+    )
     {
     }
 
@@ -47,7 +54,7 @@ final class SceneCompiler
 
         // A `stack` is solved into ordinary placements first, once, so nothing after this point — not the
         // front-face walk, not the placing loop, not the report — has to know stacks exist.
-        $placements = $this->expandStacks($scene->placements, $add, $warn);
+        $placements = $this->expandStacks($scene, $scene->placements, $add, $warn);
 
         // Where the rig stands, worked out before any orientation exists. Aiming needs the focus
         // point, the focus point needs the rig's front face, and the front face must not depend on
@@ -286,7 +293,7 @@ final class SceneCompiler
      * @param callable(string):void $warn
      * @return list<Placement>
      */
-    private function expandStacks(array $placements, callable $add, callable $warn): array
+    private function expandStacks(SceneSpec $scene, array $placements, callable $add, callable $warn): array
     {
         $expanded = [];
 
@@ -324,7 +331,14 @@ final class SceneCompiler
             if ($problems === []) {
                 // The placement's own alignment decides the ORDER of the tops row as well as its spacing:
                 // stereo puts the long throws at the ends, everything else centres them. See StackSolver::topRow.
-                $solved = StackSolver::solve($inventory, $placement->stack, $placement->align?->mode);
+                $solved = StackSolver::solve(
+                    $inventory,
+                    $placement->stack,
+                    $placement->align?->mode,
+                    $this->probing
+                        ? null
+                        : self::seatingCheck($this->devicesById, $placement, $scene->focusByName),
+                );
                 $problems = $solved['problems'];
                 if ($problems === []) {
                     // Buildable, but worth saying out loud: a stepped row, or a tier standing slightly
@@ -343,6 +357,78 @@ final class SceneCompiler
         }
 
         return $expanded;
+    }
+
+    /**
+     * Whether one candidate arrangement survives being **placed for real** — GEO-11's stack-local half.
+     *
+     * **The fill cannot answer this and must not learn to.** Two cabinets end up inside each other because of yaw,
+     * taper and chamfer, none of which a row width knows about, and the repository has exactly one opinion about
+     * where a cabinet's edge is. So the candidate is compiled rather than modelled: {@see Stack::expand} turns the
+     * tiers into ordinary placements — gravity seated, stacks spaced, runs split — and a throwaway compiler places
+     * them with the same `orientationFor()` and `worldBox()` the finished scene uses.
+     *
+     * **One level deep by construction.** The expanded placements carry no `stack` of their own, so the inner
+     * `expandStacks()` finds nothing to solve, and `$probing` stops it asking the question again in any case.
+     *
+     * **What it deliberately does not see** is the rest of the scene. The inner compile works out its own front face
+     * from this stack alone, so a tops row aimed at a focus is aimed from a centre the finished scene may move. That
+     * is the genuinely circular half of GEO-11 and it is left open: aiming needs the front face, the front face needs
+     * every placement, and every placement needs the solve. What is reconciled here is everything the stack decides
+     * on its own, which is where all four of GEO-11's measured symptoms live.
+     *
+     * A candidate that will not compile at all is refused the same as one that overlaps. Either way the search should
+     * go on looking rather than hand this arrangement to whoever asked.
+     *
+     * @param list<Tier> $tiers
+     */
+    public static function stackSurvives(
+        array $devicesById,
+        Placement $placement,
+        array $tiers,
+        array $focusByName = [],
+    ): bool {
+        if ($placement->stack === null) {
+            return true;
+        }
+
+        $probe = new SceneSpec(
+            sourcePath: 'probe',
+            id: 'probe',
+            name: 'probe',
+            placements: $placement->stack->expand($placement, $tiers),
+            // Carried over because a tops row may name a focus of its own, and a probe that did not know it would
+            // refuse every aimed arrangement as "unknown focus" rather than judging its geometry.
+            focusByName: $focusByName,
+            notes: null,
+        );
+
+        $result = (new self($devicesById, probing: true))->compile($probe);
+        if (Violation::errorsIn($result['violations']) !== []) {
+            return false;
+        }
+
+        return Interpenetration::worst($result['placed'])['separation']
+            >= -PlacementChecks::CONTACT_TOLERANCE_M;
+    }
+
+    /**
+     * The predicate {@see StackSolver::solve} asks, for one placement of one scene.
+     *
+     * **Both stages that solve a stack go through this**, which is the point of it. `scene:stack` used to call
+     * `StackSolver::solve()` with no predicate and then compile the result, so the two answered differently the
+     * moment the predicate started refusing anything — the command wrote the arrangement its own solve liked and the
+     * compiler rebuilt a different one from the same file. That is GEO-11's disagreement reappearing between two
+     * stages rather than three, and one shared entry point is what stops it.
+     *
+     * @param array<string, DeviceSpec> $devicesById
+     * @param list<Tier> $tiers
+     * @param array<string, Focus> $focusByName
+     */
+    public static function seatingCheck(array $devicesById, Placement $placement, array $focusByName = []): callable
+    {
+        return static fn (array $tiers): bool
+            => self::stackSurvives($devicesById, $placement, $tiers, $focusByName);
     }
 
     /**

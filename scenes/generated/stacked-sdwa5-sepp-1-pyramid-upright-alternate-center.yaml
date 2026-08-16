@@ -11,16 +11,12 @@
 #
 # What it deals out today:
 #
-#   1  8× flexy-folded-horn-hybrid                                              4.868 m wide
-#   2  2× achenbach-18 + 4× flexy-folded-horn-hybrid + 2× achenbach-18        4.904 m wide
-#   3  1× achenbach-18 + 2× skram + 1× achenbach-18                            2.48 m wide
+#   1  7× flexy-folded-horn-hybrid                                              4.257 m wide
+#   2  1× achenbach-18 + 5× flexy-folded-horn-hybrid + 1× achenbach-18        4.275 m wide
+#   3  2× achenbach-18 + 2× skram + 2× achenbach-18                            3.72 m wide
 #   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
-#   * the 2× achenbach-18 + 4× flexy-folded-horn-hybrid + 2× achenbach-18 row is 4.904 m on a 4.868 m row, so it
-#     overhangs 18 mm each side
-#   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is 2.511 m on a 2.480 m row,
-#     so it overhangs 16 mm each side
 #
 id: stacked-sdwa5-sepp-1-pyramid-upright-alternate-center
 name: "Solved rig — one stack, tiers centred"

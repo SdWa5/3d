@@ -993,6 +993,14 @@ final class StackSolverTest extends TestCase
      * out as 3 + 2 rather than one row of five, because `target_sub_height_m` prefers the taller arrangement — same
      * cabinets, same order, 1.526 m instead of 0.763 m and that much nearer the aim. Asserting the exact row list in
      * both cases would pin the solver's arithmetic in a test about which cabinet stands on which.
+     *
+     * **And that is why it no longer names the top row's cabinet count either.** GEO-12's width budget finds
+     * `3× flexy | 2× flexy + 1× achenbach | 2× achenbach` under a ceiling: all eight cabinets, nothing refused, one
+     * Achenbach sharing a row with Flexys rather than standing on them. A mixed row of two types **adjacent in the
+     * fill order is explicitly allowed** — see `docs/scenes.md` — and it lands nearer the aim, so `2×` on top is a
+     * better answer rather than a broken one. The order rule is what survives: **no Flexy anywhere above an
+     * Achenbach**, which is the inversion this test exists to catch, asserted directly instead of through a row count
+     * that stands in for it.
      */
     public function testTheAchenbachsStandOnTheFlexysRatherThanUnderThem(): void
     {
@@ -1007,10 +1015,24 @@ final class StackSolverTest extends TestCase
             $labels = array_map(static fn (Tier $t): string => $t->label(), $result['tiers']);
 
             self::assertSame([], $result['problems']);
-            self::assertSame('3× achenbach-18', $labels[count($labels) - 1], 'the Achenbachs go on top');
-            foreach (array_slice($labels, 0, -1) as $below) {
-                self::assertStringContainsString('flexy-folded-horn-hybrid', $below, 'and every row under them is Flexy');
+            self::assertStringContainsString('achenbach-18', $labels[count($labels) - 1], 'the Achenbachs go on top');
+            self::assertStringNotContainsString(
+                'flexy-folded-horn-hybrid',
+                $labels[count($labels) - 1],
+                'and nothing else is up there with them',
+            );
+
+            // The inversion this test exists to catch, stated as itself: once a row holds an Achenbach, no row above
+            // it may hold a Flexy. A row holding both is fine — they are adjacent in the fill order.
+            $seenAchenbach = false;
+            foreach ($labels as $row) {
+                self::assertFalse(
+                    $seenAchenbach && str_contains($row, 'flexy-folded-horn-hybrid'),
+                    'no Flexy stands above an Achenbach',
+                );
+                $seenAchenbach = $seenAchenbach || str_contains($row, 'achenbach-18');
             }
+
             self::assertSame(8, $this->cabinets($result['tiers']), 'all five Flexys and all three Achenbachs');
         }
 
@@ -1309,6 +1331,65 @@ final class StackSolverTest extends TestCase
         self::assertSame([], $result['problems']);
 
         return $result['tiers'];
+    }
+
+    /**
+     * @param list<string> $ids
+     * @return list<array{DeviceSpec, int}>
+     */
+    /**
+     * The seating check GEO-11 added, pinned on the solver alone.
+     *
+     * **Asserted here rather than through the compiler on purpose.** What this has to hold is the *contract* — a
+     * candidate the caller refuses is not returned, the search goes on looking, and refusing everything still yields
+     * an arrangement to report rather than an exception. Whether the compiler's own answer is right is
+     * `ShippedScenesTest`'s job, and pinning both in one test would mean neither says which half broke.
+     *
+     * The third case is the one worth having: with every candidate refused there is nothing legal to rank, and
+     * {@see StackSolver::fill} falls back to the widest attempt so the caller can say *why* rather than being handed
+     * an empty rig. That fallback is deliberately outside the check — it is a diagnosis, not an offer.
+     */
+    public function testTheCallerCanRefuseAnArrangementAndTheSearchLooksFurther(): void
+    {
+        $inventory = $this->inventory(['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122']);
+        $stack = new Stack(
+            from: array_map(
+                static fn (string $id): StackEntry => new StackEntry($id),
+                ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
+            ),
+            maxWidthM: 3.70,
+            interfaceHeightM: 0.0,
+            gapM: 0.02,
+            maxSubHeightM: 3.0,
+        );
+
+        $unchecked = StackSolver::solve($inventory, $stack);
+        self::assertSame([], $unchecked['problems']);
+        $first = array_map(static fn (Tier $t): string => $t->label(), $unchecked['tiers']);
+
+        // Refuse exactly the arrangement it would otherwise return, and it has to find another.
+        $refusals = 0;
+        $second = StackSolver::solve($inventory, $stack, null, static function (array $tiers) use ($first, &$refusals): bool {
+            $labels = array_map(static fn (Tier $t): string => $t->label(), $tiers);
+            if ($labels === $first) {
+                ++$refusals;
+
+                return false;
+            }
+
+            return true;
+        });
+
+        self::assertGreaterThan(0, $refusals, 'the check has to be asked at all');
+        self::assertNotSame(
+            $first,
+            array_map(static fn (Tier $t): string => $t->label(), $second['tiers']),
+            'a refused arrangement is not the one handed back',
+        );
+
+        // And refusing everything leaves something to report rather than nothing to look at.
+        $none = StackSolver::solve($inventory, $stack, null, static fn (array $tiers): bool => false);
+        self::assertNotSame([], $none['tiers'], 'the widest attempt is still returned, so the refusal can name a rig');
     }
 
     /**

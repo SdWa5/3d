@@ -38,30 +38,26 @@
 #   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 2.329 m on a
 #     2.050 m row, so it overhangs 139 mm each side
 #
-# main-1 — 1, 14 cabinets in 7 rows:
+# main-1 — 1, 14 cabinets in 5 rows:
 #
-#   1  1× gmss-nuke rolled 270°                                                 0.77 m wide
-#   2  1× skram rolled 90°                                                     0.914 m wide
-#   3  1× gmss-wall-bass rolled 270°                                             1.4 m wide
-#   4  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
-#   5  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   6  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   7  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
+#   1  1× gmss-nuke rolled 270° + 1× skram rolled 90°                        1.704 m wide
+#   2  1× gmss-iq-sub rolled 270° + 1× gmss-wall-bass rolled 90°              2.09 m wide
+#   3  1× gmss-iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× gmss-iq-sub rolled 90°    2.926 m wide
+#   4  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   5  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
 #
-# Subs reach 3.572 m against a 2.0 m interface. The stack is 4.532 m of cabinet.
+# Subs reach 2.452 m against a 2.0 m interface. The stack is 3.412 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 3.572 m against the 3.000 m ceiling asked for, so they stand 572 mm too high — 3.572 m is the
-#     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× skram rolled 90° row is 0.914 m on a 0.770 m row, so it overhangs 72 mm each side
-#   * the 1× gmss-wall-bass rolled 270° row is 1.400 m on a 0.914 m row, so it overhangs 243 mm each side
-#   * the 1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90° row is 2.050 m on a 1.400 m row, so it overhangs
-#     325 mm each side
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 2.329 m on a
-#     2.050 m row, so it overhangs 139 mm each side
+#   * the 1× gmss-iq-sub rolled 270° + 1× gmss-wall-bass rolled 90° row is 2.090 m on a 1.704 m row, so it
+#     overhangs 193 mm each side
+#   * the 1× gmss-iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid
+#     rolled 90° + 1× gmss-iq-sub rolled 90° row is 2.926 m on a 2.090 m row, so it overhangs 418 mm each side
+#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
+#     2.926 m row, so it overhangs 93 mm each side
 #
 id: stacked-gmss-sdwa5-2-v-------turned--alternate-stereo
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -77,7 +73,7 @@ focus:
 placements:
   # 2, 17 cabinets in 8 rows
   - id: main-2
-    at: [-1.7165, 0.0]
+    at: [-2.108, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -110,7 +106,7 @@ placements:
           count: 2
           aim: near
 
-  # 1, 14 cabinets in 7 rows
+  # 1, 14 cabinets in 5 rows
   - id: main-1
     at: [1.1125, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

@@ -109,17 +109,40 @@ GEO-3, GEO-6 and GEO-10 are done and their rows are deleted — the CHANGELOG ha
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-12 | **The fill's search knob is a cabinet count and has to be a width in metres.** `$perRow` is one integer applied to every device at once, and our cabinets are 0.45 m to 1.20 m wide, so `perRow: 7` means seven Flexys at 4.3 m *and* seven mid-bass at 8.5 m. A metre budget divides by each cabinet's own width instead. **Measured, see the section** | P1 | 5h | the 18 scenes and the 28 in-band walls CVR-8 cost, and the last place the solver pretends the cabinets have a common size | — | measured |
+| GEO-12 | **DONE in 0.83.0.** The fill's search knob is a row width in metres, divided by each cabinet's own width, walked as a union with the old cabinet count because **neither contains the other** — see the section. Ladder derived from the cabinets rather than written down. **396 → 450 scenes, 110 → 137 fully in band**, 94 new rigs, 21 consolidated into siblings, 19 refused | P1 | — | — | — | **done** |
 | GEO-13 | **Gaps inside a row, chosen rather than constant.** `gap_m` is one uniform working gap everywhere and nothing can space a row out. The **checking** half is already built and load-bearing — see the section — so what is missing is the half that proposes the gaps. **Same lever as GEO-12**: a row-width budget wider than the cabinets need *is* a gapped row | P2 | 6h | rows that reach wider than their cabinet count allows, which is what a wide base and SYM-3's equal pitch both want | GEO-12 | open |
 | GEO-14 | **The lowest and most powerful subs belong as low and as central as the rig allows.** Stated by the owner and **settled on four counts**: the shapes keep priority, height and acoustics are traded off as **differently weighted metrics** rather than one gating the other, "central" is the **rig's** centre line for `center` and `block` and **each stack's own** for `stereo`, and the fill key is frequency. The frequency quarter is **done**. What is left is the weighted objective and the two centring rules it scores. **Power is in no spec field** | P1 | 7h | the acoustic reason the fill order exists at all, and the first rule that reaches across stacks rather than inside one | SPEC-13 for power, and where the weights live | partial |
-| GEO-11 | **The fill, gravity and the compiler cannot see each other's answers.** The one finding that has now turned up **four separate times** wearing four names. The biggest lever left in the solver, and the only item that unblocks three others at once | P1 | 12h | GEO-4, the rest of GEO-5 and GEO-9's tower, plus whatever the fifth instance turns out to be | — | open |
+| GEO-11 | **Stack-local half DONE in 0.83.0**, scene-level half open. `StackSolver::solve()` takes a seating predicate and `SceneCompiler` supplies it, so the fill refuses an arrangement that overlaps *while it is still searching* rather than the whole rig being discarded at the end. It caught a rig being shipped with two cabinets inside each other. **What is left is aiming and cross-placement alignment**, which is the genuinely circular half: aiming needs the front face, the front face needs every placement, and every placement needs the solve | P1 | 6h | GEO-4, the rest of GEO-5 and GEO-9's tower | — | partial |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective, which is GEO-11. **Both must be width rules**, stated by the owner, so they belong in `StackChecks::silhouetteProblem()` beside the other three | P1 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | GEO-11 | measured |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x. Waits on GEO-11 | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | GEO-11 | measured |
 | GEO-5 | **Mostly closed by 0.81.0.** The cap is a width now, in `StackChecks::silhouetteProblem()`, with a tenth of a cabinet per side as the shoulder — so the false premise this entry was written about is gone. What is left is that the width rules refuse arrangements mid-search and the sweep got four times slower, which is GEO-11's shape again | P3 | 3h | — | GEO-11 | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
 
-#### GEO-12 — the search knob is a count and the cabinets have no common size
+#### GEO-12 — done, and the count turned out to be load-bearing too
+
+**Shipped in 0.83.0. Kept for two results that cost real time to find.**
+
+**A width does not contain a count, and the entry used to say it did.** The plan here read "`$perRow` becomes a row-width
+budget", full stop. Built that way it lost 49 rigs, every one refused on bearing rather than on the search running out —
+arrangements a count reaches and no width does, because a count says "the same number of every type" where a width says
+"the same metres of every type". Proven rather than argued: the count ladder alone reproduces the old solver's answer
+exactly, and no width does. So {@see RowBudget} walks **both**, as a union rather than a product, and a count is turned
+into a per-device width at the point of use — which is what lets one parameter carry both. **This is CVR-8's lesson
+recurring inside the item written about CVR-8**: a mechanism built for one reason was load-bearing for a second nobody
+had written down.
+
+**A row's budget is one number for the whole row, not one per device.** The first cut asked the budget per cabinet type
+inside the packing loop, so a row full at 3.28 m for six IQ subs became roomy again the moment a 0.670 m wall bass was
+considered, because six of *those* are 4.12 m. It pulled a wall bass into the bottom row and cost the GMSS pyramid its
+whole arrangement. Device-independent where a row can hold several types, per-device where it holds one — the support
+and pyramid ceilings stay per device, since both are allowances scaled by the cabinet on the end of the row.
+
+**And one prediction that was simply wrong.** This section used to say `packTo()`'s seat check "goes away entirely" once
+the pyramid hint was a width. It does not: the hint needs `PYRAMID_SHOULDER` to work as a width at all, and the seat
+count is still what the search's own count dimension bounds a packed row by.
+
+#### GEO-12 — the original entry, kept for the measurement that motivated it
 
 Where: `StackSolver::fill()`'s `for ($perRow = $widest; $perRow >= 1; --$perRow)`, `perRowCap()`, and the twenty-odd
 call sites that thread `$perRow` through the fill.
@@ -306,6 +329,77 @@ first is simpler and slower, the second is faster and duplicates knowledge.
 
 **This is the one item in the file worth a plan before a line of code.** It touches all three stages that every hard
 entry here runs into, and a wrong structure would be expensive to unwind.
+
+##### What shipped in 0.83.0, and the three defects it cost to get there
+
+**The stack-local half is built.** `StackSolver::solve()` takes an optional predicate on a candidate arrangement and
+`fill()` asks it alongside `supportChecks()`; `SceneCompiler::seatingCheck()` supplies one that expands the tiers and
+compiles them, so the answer comes from the same `orientationFor()` and `worldBox()` the finished scene uses rather than
+from a second opinion about where a cabinet's edge is. Callers that cannot place a cabinet pass nothing and get the old
+behaviour.
+
+**It found a rig being shipped with an overlap in it.** `--from=gmss-* --max-width=3.70 --orientation=turned` used to
+answer with five rolled IQ subs slid along a 2.77 m support at 2.66 m of subs, and two of those cabinets are inside each
+other once placed. Nothing had ever checked it, because a stated `--max-width` keeps an invocation out of the shipped
+scene set the interpenetration sweep covers. The check refuses exactly that one candidate and the search falls to a
+clean 2.70 m.
+
+**Three defects on the way, each caught by a number and none by reading.** They are the reason this took as long as it
+did and they are worth not repeating:
+
+* **Where the check goes was got wrong twice, and only the third arrangement is affordable.** Asked of every candidate
+  it is a compile per arrangement and the sweep stops finishing at all. Moved *out* of the search — place the answer,
+  strike it out if it overlaps, re-run the fill — the same test took **58 minutes**, because a re-run is another walk
+  of a fifty-step ladder and a fill costs far more than a compile. **Asked inside the search, memoised by arrangement**,
+  it is 23m40s against 20m14s with the check off. The memo is what makes it work: the ladder proposes the same rows
+  from many budgets, so most steps are already judged. It is still asked only of a candidate that would win, and the
+  fallback arrangement is held to the same bar, because returning an overlapping rig is the failure the seam exists to
+  stop.
+* **`scene:stack` solved with no predicate and then compiled the answer with one**, so the command wrote the
+  arrangement its own solve liked and the compiler rebuilt a different one from the same file. That is this very item's
+  bug, reappearing between two stages instead of three, *inside the change meant to fix it*. Both go through one entry
+  point now.
+* **The probe judged the top tiers firing straight ahead** where the file states `aim: far`. A turned cabinet's
+  outermost corner moves when it is aimed, so it was measuring a different rig and refusing overlaps that existed only
+  inside the check: the `all` inventory's turned rigs came back with **0.660 m of subs** against 1.860 m once fixed.
+  `StackSceneWriter::focusPoints()` is now the one definition both sides read, because two copies of `far: 10 m / 1.8 m`
+  is how they drift apart again.
+
+**Measured, with GEO-12, against 0.82.0:** 396 → 450 scenes written, 110 → 137 fully in band, 94 new rigs, 21
+consolidated into siblings, 19 refused. The refusals are 13 interpenetration and 6 bearing, all rigs where every
+arrangement in reach fails.
+
+**The check that the approximation is honest passed.** The plan said that if judging an unspread top row were too
+strict, the sweep would write *fewer* scenes. It writes more.
+
+##### The plan, and the line it draws
+
+**The circularity is real and it is bounded, which is the finding that makes this tractable.** Aiming needs the scene's
+front face, the front face needs every placement, and the placements need the solve — so the fill genuinely cannot ask
+what the *scene* will do with its rows. But everything a **stack decides on its own** is knowable at solve time and is
+where all the measured damage is: which cabinets share a row, where gravity seats each run, and how far apart the
+stacks stand. `Stack::expand()` already computes all three, from the tiers alone.
+
+So GEO-11 splits into two halves and only the first is worth doing now:
+
+* **Stack-local reconciliation.** `StackSolver::solve()` takes an optional predicate on a candidate arrangement, and
+  `SceneCompiler` supplies one that expands the tiers, places them at the stack's own base and asks
+  `Interpenetration::worst()`. The fill then rejects an arrangement that overlaps *while it is still searching*,
+  instead of the command discarding the whole rig at the end.
+* **Scene-level reconciliation**, which is aiming and cross-placement alignment. Left open, because it is the half that
+  is actually circular.
+
+**Why a predicate rather than a two-pass or a lookahead.** The entry weighed those two and both have a real cost: a
+two-pass re-runs the whole solve, and a lookahead "duplicates knowledge" by teaching the solver geometry it should not
+own. A predicate is the lookahead shape with the knowledge **injected** instead of duplicated — `StackSolver` stays
+free of the compiler, and the one stage that already knows how to place a cabinet is the one that answers. A caller
+that cannot place, such as `StackSolverTest`, passes nothing and gets today's behaviour.
+
+**The approximation to watch, and it must be measured rather than argued.** The predicate places each run at its own
+base without solving `align`, so a top row that alignment would spread is judged at its unspread spacing. Overlaps
+inside a run and between runs of one tier are impossible by construction, so what this can get wrong is a *between-tier*
+overlap that spreading would have resolved — which would show up as the sweep writing **fewer** scenes. If it does, the
+approximation is too strict and belongs in the second half instead.
 
 #### GEO-5 — closed by 0.81.0, and one negative result worth not repeating
 
@@ -957,6 +1051,8 @@ GEO-2's 22 refusals** without touching the solver.
 |----|------|------|--------|------|-------|-------|
 | TOOL-6 | **`build:all`'s `regenerate()` stage is never run by a test**, only `--dry-run`, which is how a whole extra pass writing 141 stray scenes went unnoticed until `git status` showed it. Raised to P1 once the cause was confirmed as a code defect rather than anything about how the command was invoked. See the section | P1 | 1h 30m | the class of bug that cost two reverts, on the one stage that writes into the repository | — | open |
 | TOOL-7 | **`build:all`'s stale-scene deletion catches a rename and not a rig the sweep has stopped offering.** `regenerate()` replays every file that carries a recorded line, so every one lands in the written set by construction and can only look stale when its replay comes out under a different name. **Measured**: 18 files carrying `--max-width=3.7` outlived the release that deleted the width ladder and would have survived for ever. They show as stale only against a fresh `scene:stack --force`. See the section | P2 | 2h | `git status` after a sweep stops being the only thing that finds an abandoned rig | — | measured |
+| TOOL-9 | **A full sweep takes 20 minutes and the suite the better part of two hours**, because GEO-12's ladder walks roughly fifty steps where the old cabinet count walked a dozen. **Measured rather than assumed**: the same sweep with the seating check short-circuited off is 20m14s, so GEO-11's compile adds only two to four minutes and the ladder is the whole of the rest. Runtime is explicitly not a constraint here, so this is not a defect — it is a bill worth knowing before somebody optimises the wrong half. The lever is pruning ladder steps that cannot change the answer, never dropping a dimension | P3 | 3h | a sweep somebody can run while waiting, and a suite that fits a coffee break | — | measured |
+| TOOL-8 | **`slideSlackM` lost its only dedicated test.** `testASoloStackSlidesARowRatherThanLosingTheRig` guarded it by pinning a rig whose row hung 260 mm proud, and GEO-12's wider search now solves that rig with every row narrower than the one under it, so nothing slides and the test guards something else. The feature is plainly still live — **273 generated scenes carry an overhang warning against 262 before** — which is exactly why the gap is easy to miss. Wants a solver-level test that sets `slideSlackM` and asserts the difference, rather than a CLI rig that may stop needing it again | P2 | 1h | a feature that is load-bearing across 273 scenes and pinned by nothing | — | open |
 | TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
 | TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |

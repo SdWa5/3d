@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Scene\Alignment;
+use App\Scene\GroupStack;
 use App\Scene\Interpenetration;
 use App\Scene\LayoutMode;
 use App\Scene\MirrorStyle;
 use App\Scene\RolledBox;
+use App\Scene\Placement;
 use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
@@ -1004,12 +1007,22 @@ final class SceneStackCommand extends BaseCommand
                 return $problems[0];
             }
 
+            // **THE SAME QUESTION THE COMPILER WILL ASK**, and asking a different one is a defect rather than a
+            // shortcut. This used to solve with no seating check and then hand the answer to {@see compileYaml},
+            // which re-solves *with* one — so the command wrote the arrangement its own solve liked and the compiler
+            // rebuilt a different one from the same file. See GEO-11 and {@see SceneCompiler::seatingCheck}.
+            $placementId = $named ? 'main-'.$label : 'main';
             $solved = StackSolver::solve(
                 $this->inventoryFor($devices, $attempt, $index, $of, $evenSplit, $placeAll),
                 $stack,
                 // `center` is written as no alignment at all, so it arrives here as the mode rather than as null —
                 // and `topRow` treats the two identically, which keeps the generated scene and its rebuild agreeing.
                 $mode,
+                SceneCompiler::seatingCheck(
+                    $devices,
+                    self::probePlacement($placementId, $stack, $mode),
+                    StackSceneWriter::focusPoints(),
+                ),
             );
             if ($solved['problems'] !== []) {
                 $firstProblem ??= $solved['problems'][0];
@@ -1022,7 +1035,7 @@ final class SceneStackCommand extends BaseCommand
             }
 
             return new StackBlock(
-                placementId: $named ? 'main-'.$label : 'main',
+                placementId: $placementId,
                 label: $label,
                 stack: $stack,
                 tiers: $solved['tiers'],
@@ -1674,6 +1687,43 @@ final class SceneStackCommand extends BaseCommand
 
             return $b->quantity * $b->dimensions->width <=> $a->quantity * $a->dimensions->width;
         };
+    }
+
+    /**
+     * A stand-in for the placement this block will be written as, for the seating check alone.
+     *
+     * **Only what changes the stack's own geometry is carried**, which is its id, its `stack` and its alignment. The
+     * ground position is not: {@see Interpenetration} compares cabinets against each other, so moving the whole rig
+     * moves both sides of every pair and changes no answer. Standing it at the origin also keeps the check
+     * independent of `--at`, which is what makes the same arrangement judged the same way wherever it is placed.
+     *
+     * The rest is the writer's default for a stack: no device of its own, no yaw, pitch or roll, nothing to stand on
+     * and no fly. A stack that ever gains one of those has to gain it here too, and the sweep would say so
+     * immediately — the command and the compiler would start disagreeing again, which is the failure this exists to
+     * prevent.
+     */
+    private static function probePlacement(string $id, Stack $stack, ?LayoutMode $mode): Placement
+    {
+        return new Placement(
+            id: $id,
+            deviceId: null,
+            at: [0.0, 0.0],
+            yawDeg: 0.0,
+            pitchDeg: 0.0,
+            rollDeg: 0.0,
+            aimAt: null,
+            // **THE AIM MATTERS AND LEAVING IT OUT WAS MEASURED WRONG.** A top tier is turned towards the focus, and
+            // a turned cabinet's outermost corner moves — so a probe that judged the tops firing straight ahead was
+            // measuring a different rig from the one the file states. Left out, the `all` inventory's turned rigs
+            // came back with 0.660 m of subs, because nearly every candidate was refused over an overlap that only
+            // existed in the probe. {@see StackSceneWriter::focusPoints} is the one definition both sides read.
+            aimFocus: StackSceneWriter::AIM,
+            on: null,
+            fly: null,
+            group: new GroupStack([]),
+            align: $mode === null || $mode === LayoutMode::Center ? null : new Alignment($mode),
+            stack: $stack,
+        );
     }
 
     /**

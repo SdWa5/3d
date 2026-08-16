@@ -11,16 +11,16 @@
 #
 # What it deals out today:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°     4.98 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
 #   5  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
 #
-# Subs reach 2.736 m against a 2.0 m interface. The stack is 3.696 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid
-#     rolled 90° row is 3.723 m on a 3.414 m row, so it overhangs 154 mm each side
+#   * the 3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90° row is 3.700 m on a 3.112 m row, so it
+#     overhangs 294 mm each side
 #
 id: stacked-sdwa5-sepp-1-free----turned--centred---stereo
 name: "Solved rig — one stack, tiers split left and right"

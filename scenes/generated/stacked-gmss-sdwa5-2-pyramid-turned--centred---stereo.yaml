@@ -34,22 +34,19 @@
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
 #
-# main-2 — 2, 18 cabinets in 4 rows:
+# main-2 — 2, 20 cabinets in 2 rows:
 #
-#   1  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
-#   2  1× gmss-wall-bass rolled 270° + 1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 1× gmss-iq-sub rolled 90° + 1× gmss-wall-bass rolled 90°     4.75 m wide
-#   3  1× gmss-nuke rolled 270° + 1× gmss-mid-bass + 1× gmss-nuke rolled 90°     2.78 m wide
-#   4  1× tecnare-m2122 + 1× gmss-turbo-top + 1× gmss-turbo-top + 1× tecnare-m2122     1.96 m wide
+#   1  1× gmss-iq-sub rolled 270° + 1× gmss-nuke rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× gmss-wall-bass rolled 270° + 1× gmss-mid-bass rolled 270° + 1× gmss-wall-bass rolled 90° + 1× skram rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× gmss-nuke rolled 90° + 2× gmss-iq-sub rolled 90°   13.556 m wide
+#   2  1× tecnare-m2122 + 1× gmss-turbo-top + 1× gmss-turbo-top + 1× tecnare-m2122     1.96 m wide
 #
-# Subs reach 1.851 m against a 2.0 m interface. The stack is 2.811 m of cabinet.
+# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.16 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * gmss-wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
-#   * skram: LEFT OUT, it cannot be carried in this stack — the 1× gmss-iq-sub rolled 270° + 2× gmss-wall-bass
-#     rolled 270° + 1× skram rolled 90° + 2× gmss-iq-sub rolled 90° row is 5.824 m on a 4.678 m row, so it steps out
-#     573 mm each side against the 67 mm a 0.670 m cabinet may sit proud — `shape: pyramid` asks for a wall that does not
-#     widen as it rises
+#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
 #   * gmss-nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
@@ -57,10 +54,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.851 m against the 2.000 m interface asked for, so the tops sit 149 mm lower than ideal —
-#     1.851 m is the most they reach while every tier is still carried
-#   * the 1× gmss-wall-bass rolled 270° + 1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 1× gmss-iq-sub rolled
-#     90° + 1× gmss-wall-bass rolled 90° row is 4.750 m on a 4.678 m row, so it overhangs 36 mm each side
+#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
+#     1.200 m is the most they reach while every tier is still carried
 #
 id: stacked-gmss-sdwa5-2-pyramid-turned--centred---stereo
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -76,7 +71,7 @@ focus:
 placements:
   # 1, 11 cabinets in 4 rows
   - id: main-1
-    at: [-2.927, 0.0]
+    at: [-7.33, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -100,7 +95,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 18 cabinets in 4 rows
+  # 2, 20 cabinets in 2 rows
   - id: main-2
     at: [1.0265, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -116,6 +111,8 @@ placements:
         - device: gmss-wall-bass
           roll_mirror: 90.0
         - device: gmss-mid-bass
+          roll_mirror: 90.0
+        - device: skram
           roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6

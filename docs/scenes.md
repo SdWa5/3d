@@ -906,8 +906,26 @@ out-of-band one. It starts mattering the moment somebody states a target off the
 **The width ladder went with the gate.** The sweep used to walk a rig up and down a list of real stage widths to land
 its wall inside the band, which needed both halves of a sentence that no longer has either: a band that refuses, and a
 default stage width worth deviating from. See [an unstated width limits nothing](#an-unstated-width-limits-nothing).
-The lever that remains is the solver's own row-count search, which chases `target_sub_height_m` directly rather than
-through the stage width as a proxy.
+The lever that remains is the solver's own search, which chases `target_sub_height_m` directly rather than through the
+stage width as a proxy.
+
+**That search is a row width in metres, and also a cabinet count, because neither contains the other.** A width is
+divided by each cabinet's own width, so one budget deals as many of each type as that type's size allows — 4.40 m is
+7 Flexys and 3 mid-bass, which no single number of cabinets expresses. A count says "the same number of every type"
+instead, which reaches arrangements no width does: built as a width alone the search lost 49 rigs, every one of them
+refused on bearing rather than on the search running out. So both are walked, as a union rather than a product, and the
+widths come from the row widths the inventory can actually make rather than from a list of round numbers. The unbounded
+step is always tried first, so nothing is ever bounded by the search itself.
+
+**And every candidate that would win is placed for real before it is accepted.** Two cabinets end up inside each other
+because of yaw, taper and chamfer, none of which a row width knows about, so the solver hands the candidate to the
+compiler and asks. A candidate that overlaps loses to the next one rather than the whole rig being thrown away, and the
+question is asked only of a candidate that would win — a loser's geometry changes nothing, and asking it of everything
+is a compile per arrangement.
+
+This is why a generated file's header and its rebuild agree: `scene:stack` and the compiler ask the same question of
+the same arrangement. They did not always, and a file whose header described a rig the compiler would rebuild
+differently is the sort of thing nothing downstream notices.
 
 **For a quantity-bound rig the lever is where the row sits, not how wide the stage is.** A row does not have to be
 centred on what carries it: centring is only optimal when the row overhangs a symmetric amount of cabinet at each end,

@@ -33,10 +33,10 @@
 #   7  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
 #
 # Subs reach 3.572 m against a 2.0 m interface. The stack is 4.532 m of cabinet.
-#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — a skram in the 1× flexy-folded-horn-hybrid
-#     rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° row would
-#     land on only 33% of its own width — it is touching what carries it rather than sitting on it. Line the segments up
-#     with what carries them
+#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — a gmss-iq-sub in the 1× gmss-iq-sub rolled
+#     270° + 1× gmss-nuke rolled 270° + 1× flexy-folded-horn-hybrid + 1× gmss-nuke rolled 90° + 1× gmss-iq-sub rolled
+#     90° row would land on only 9% of its own width — it is touching what carries it rather than sitting on it. Line the
+#     segments up with what carries them
 #   * the subs reach 3.572 m against the 3.000 m ceiling asked for, so they stand 572 mm too high — 3.572 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #

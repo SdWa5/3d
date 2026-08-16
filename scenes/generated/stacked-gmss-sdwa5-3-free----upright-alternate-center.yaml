@@ -20,21 +20,22 @@
 #
 # Subs reach 2.196 m against a 2.0 m interface. The stack is 3.156 m of cabinet.
 #
-# main-2 — 2, 15 cabinets in 6 rows:
+# main-2 — 2, 15 cabinets in 5 rows:
 #
 #   1  2× gmss-wall-bass                                                         1.34 m wide
 #   2  1× skram + 1× gmss-mid-bass                                              1.83 m wide
-#   3  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
-#   4  1× flexy-folded-horn-hybrid + 2× gmss-nuke + 1× flexy-folded-horn-hybrid    2.422 m wide
-#   5  2× gmss-iq-sub                                                            1.08 m wide
-#   6  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
+#   3  1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid    2.443 m wide
+#   4  1× gmss-iq-sub + 2× gmss-nuke + 1× flexy-folded-horn-hybrid + 1× gmss-iq-sub    2.911 m wide
+#   5  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
 #
-# Subs reach 4.668 m against a 2.0 m interface. The stack is 5.628 m of cabinet.
-#   * the subs reach 4.668 m against the 3.000 m ceiling asked for, so they stand 1668 mm too high — 4.668 m is the
+# Subs reach 3.998 m against a 2.0 m interface. The stack is 4.958 m of cabinet.
+#   * the subs reach 3.998 m against the 3.000 m ceiling asked for, so they stand 998 mm too high — 3.998 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 1× skram + 1× gmss-mid-bass row is 1.830 m on a 1.340 m row, so it overhangs 245 mm each side
-#   * the 1× flexy-folded-horn-hybrid + 2× gmss-nuke + 1× flexy-folded-horn-hybrid row is 2.422 m on a 1.832 m row,
-#     so it overhangs 295 mm each side
+#   * the 1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid row is 2.443 m on a 1.830 m row, so
+#     it overhangs 306 mm each side
+#   * the 1× gmss-iq-sub + 2× gmss-nuke + 1× flexy-folded-horn-hybrid + 1× gmss-iq-sub row is 2.911 m on a 2.443 m
+#     row, so it overhangs 234 mm each side
 #
 # main-3 — 3, 8 cabinets in 4 rows:
 #
@@ -59,7 +60,7 @@ focus:
 placements:
   # 1, 8 cabinets in 4 rows
   - id: main-1
-    at: [-2.614, 0.0]
+    at: [-2.8585, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -77,7 +78,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 15 cabinets in 6 rows
+  # 2, 15 cabinets in 5 rows
   - id: main-2
     at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -102,7 +103,7 @@ placements:
 
   # 3, 8 cabinets in 4 rows
   - id: main-3
-    at: [2.01, 0.0]
+    at: [2.2545, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0

@@ -679,6 +679,20 @@ final class SceneStackCommandTest extends TestCase
      *
      * Pinned on the sub height rather than on the offset, because the height is what the rig is for and the offset is
      * how it got there.
+     *
+     * **THE 2.66 m ARRANGEMENT THIS TEST WAS WRITTEN AROUND OVERLAPS, AND GEO-11 IS WHAT FOUND OUT.** The five rolled
+     * IQ subs slid along a 2.77 m support put two cabinets inside each other once placed, which no row width could
+     * see and nothing checked, because this invocation states a `--max-width` and so was never one of the shipped
+     * scenes the interpenetration sweep covers. The seating check refuses it — measured, it is the only candidate
+     * refused for this rig — and the search falls to a clean 2.77 / 2.74 / 2.07 m at **2.70 m**. Four centimetres
+     * further from the aim, and a rig that can actually be built.
+     *
+     * **So this no longer exercises the slide**, since every row now sits narrower than the one under it and nothing
+     * hangs proud. That is filed as TOOL-8 rather than left looking covered. The feature itself is plainly still
+     * live: 273 generated scenes carry an overhang warning, against 262 before the change.
+     *
+     * `gmss-mid-bass` is left out here and always was — 1.200 m of cabinet that the 3.70 m stage cannot carry beside
+     * the rest — so that is the rig rather than anything this change did.
      */
     public function testASoloStackSlidesARowRatherThanLosingTheRig(): void
     {
@@ -689,12 +703,13 @@ final class SceneStackCommandTest extends TestCase
         ])->getDisplay();
 
         self::assertStringContainsString('id: stacked-free----turned--centred---center', $display);
-        self::assertStringContainsString(
-            '2× gmss-iq-sub rolled 270° + 1× gmss-iq-sub + 2× gmss-iq-sub rolled 90°',
-            $display,
-            'the packed row is the point',
-        );
-        self::assertSame([2.66], $this->heights($display));
+
+        // Carried rather than refused, which is what the name is about. The rig comes out, and the only cabinet it
+        // gives up is the one the stage cannot take.
+        self::assertStringContainsString('gmss-mid-bass: LEFT OUT', $display);
+        self::assertStringNotContainsString('gmss-iq-sub: LEFT OUT', $display, 'the subs are all carried');
+
+        self::assertSame([2.7], $this->heights($display));
     }
 
     /**
@@ -1029,11 +1044,17 @@ final class SceneStackCommandTest extends TestCase
      * `--stacks=2` alone means "this rig, two stacks", and that path used to build from every speaker in the repository
      * whatever `--owner` said. Silently ignoring a stated option is the failure mode this whole command avoids
      * elsewhere, so the narrow path filters by owner too.
+     *
+     * **`free` rather than `pyramid`, and the shape was never the subject.** GMSS's four subs are 0.59 m to 1.200 m
+     * wide, and once GEO-12 widened the search every pyramid arrangement in reach for them either overlaps or misses
+     * the silhouette rule, so that one combination writes nothing at all. It is one of the rigs the CHANGELOG counts
+     * as refused, and reading owner binding off a rig that has no good arrangement pinned an unrelated failure to this
+     * test's name.
      */
     public function testOwnerStillBindsWhenAnotherOptionCollapsesTheSweep(): void
     {
         $display = $this->invoke([
-            '--owner' => ['gmss'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
+            '--owner' => ['gmss'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['free'],
             '--orientation' => ['upright'], '--dry-run' => true,
         ])->getDisplay();
 

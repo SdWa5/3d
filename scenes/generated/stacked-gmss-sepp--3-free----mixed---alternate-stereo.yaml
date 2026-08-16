@@ -11,27 +11,11 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 9 cabinets in 5 rows:
-#
-#   1  1× gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90°           2.82 m wide
-#   2  1× gmss-nuke rolled 270° + 1× gmss-nuke rolled 90°                     1.56 m wide
-#   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90°                 1.36 m wide
-#   5  1× gmss-turbo-top                                                         0.45 m wide
-#
-# Subs reach 2.38 m against a 2.0 m interface. The stack is 3.09 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — the 1× gmss-iq-sub rolled 90° row is a single
-#     column, and 2 of them are in this stack — a one-wide tier is a pillar rather than a rig, however well each cabinet
-#     is carried. Widen the rows and accept a lower interface, or take cabinets out of the stack
-#   * the 1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90° row is 1.360 m on a 1.220 m row, so it overhangs
-#     70 mm each side
-#
-# main-3 — 3, 6 cabinets in 3 rows:
+# main-1 — 1, 6 cabinets in 3 rows:
 #
 #   1  2× achenbach-18                                                           1.22 m wide
 #   2  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90°                 1.36 m wide
-#   3  1× eighteensound-2way-15 + 1× gmss-turbo-top                           0.9356 m wide
+#   3  1× gmss-turbo-top + 1× eighteensound-2way-15                           0.9356 m wide
 #
 # Subs reach 1.13 m against a 2.0 m interface. The stack is 1.966 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -40,11 +24,21 @@
 #   * the 1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90° row is 1.360 m on a 1.220 m row, so it overhangs
 #     70 mm each side
 #
-# main-1 — 1, 6 cabinets in 3 rows:
+# main-2 — 2, 10 cabinets in 2 rows:
+#
+#   1  1× gmss-iq-sub rolled 270° + 1× gmss-nuke rolled 270° + 1× achenbach-18 + 1× gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90° + 1× achenbach-18 + 1× gmss-nuke rolled 90° + 1× gmss-iq-sub rolled 90° + 1× gmss-mid-bass     8.24 m wide
+#   2  1× gmss-turbo-top                                                         0.45 m wide
+#
+# Subs reach 0.66 m against a 2.0 m interface. The stack is 1.37 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the subs reach 0.660 m against the 2.000 m interface asked for, so the tops sit 1340 mm lower than ideal —
+#     0.660 m is the most they reach while every tier is still carried
+#
+# main-3 — 3, 6 cabinets in 3 rows:
 #
 #   1  2× achenbach-18                                                           1.22 m wide
 #   2  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90°                 1.36 m wide
-#   3  1× gmss-turbo-top + 1× eighteensound-2way-15                           0.9356 m wide
+#   3  1× eighteensound-2way-15 + 1× gmss-turbo-top                           0.9356 m wide
 #
 # Subs reach 1.13 m against a 2.0 m interface. The stack is 1.966 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -65,9 +59,32 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 9 cabinets in 5 rows
+  # 1, 6 cabinets in 3 rows
+  - id: main-1
+    at: [-5.602, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      mirror: true             # the mirror image of stack 1
+      from:
+        - device: achenbach-18
+          count: 2
+        - device: gmss-iq-sub
+          count: 2
+          roll_mirror: 90.0
+        - device: eighteensound-2way-15
+          count: 1
+        - device: gmss-turbo-top
+          count: 1
+          aim: near
+
+  # 2, 10 cabinets in 2 rows
   - id: main-2
-    at: [-2.162, 0.0]
+    at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -78,6 +95,7 @@ placements:
       from:
         - device: gmss-wall-bass
           roll_mirror: 90.0
+        - gmss-mid-bass
         - device: gmss-nuke
           roll_mirror: 90.0
         - device: achenbach-18
@@ -91,7 +109,7 @@ placements:
 
   # 3, 6 cabinets in 3 rows
   - id: main-3
-    at: [0.428, 0.0]
+    at: [4.998, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -99,29 +117,6 @@ placements:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
       gap_m: 0.02
-      from:
-        - device: achenbach-18
-          count: 2
-        - device: gmss-iq-sub
-          count: 2
-          roll_mirror: 90.0
-        - device: eighteensound-2way-15
-          count: 1
-        - device: gmss-turbo-top
-          count: 1
-          aim: near
-
-  # 1, 6 cabinets in 3 rows
-  - id: main-1
-    at: [2.288, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      mirror: true             # the mirror image of stack 1
       from:
         - device: achenbach-18
           count: 2

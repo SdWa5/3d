@@ -14,8 +14,8 @@
 # main-2 — 2, 14 cabinets in 4 rows:
 #
 #   1  1× gmss-wall-bass rolled 270° + 1× gmss-mid-bass rolled 90° + 1× gmss-wall-bass rolled 90°     3.34 m wide
-#   2  1× gmss-nuke rolled 270° + 2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× gmss-nuke rolled 90°     3.42 m wide
-#   3  1× gmss-iq-sub rolled 270° + 2× gmss-iq-sub rolled 90°                 2.05 m wide
+#   2  1× gmss-nuke rolled 270° + 2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× gmss-nuke rolled 90° + 1× gmss-iq-sub rolled 90°     4.11 m wide
+#   3  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90°                 1.36 m wide
 #   4  1× gmss-turbo-top + 1× eighteensound-2way-15 + 1× gmss-turbo-top      1.4056 m wide
 #
 # Subs reach 2.33 m against a 2.0 m interface. The stack is 3.166 m of cabinet.
@@ -29,7 +29,9 @@
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× gmss-nuke rolled 270° + 2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× gmss-nuke
-#     rolled 90° row is 3.420 m on a 3.340 m row, so it overhangs 40 mm each side
+#     rolled 90° + 1× gmss-iq-sub rolled 90° row is 4.110 m on a 3.340 m row, so it overhangs 385 mm each side
+#   * the 1× gmss-turbo-top + 1× eighteensound-2way-15 + 1× gmss-turbo-top row is 1.406 m on a 1.360 m row, so it
+#     overhangs 23 mm each side
 #
 # main-1 — 1, 8 cabinets in 4 rows:
 #
@@ -98,7 +100,7 @@ placements:
 
   # 1, 8 cabinets in 4 rows
   - id: main-1
-    at: [1.658, 0.0]
+    at: [2.003, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

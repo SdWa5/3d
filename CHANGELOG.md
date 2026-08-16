@@ -4,6 +4,84 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.83.0] - 2026-08-16
+
+### Changed
+
+- **THE FILL'S SEARCH KNOB IS A ROW WIDTH IN METRES**, divided by each cabinet's own width, which is **GEO-12**.
+  `$perRow` was one integer applied to every device at once, so `perRow: 7` meant seven Flexys at 4.3 m *and* seven
+  mid-bass at 8.5 m, and no setting of it expressed "as many of each as fit 4.40 m", which is 7 Flexys and 3 mid-bass.
+  Nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is 1.200 m, so a count stopped standing in for a
+  width the day it arrived. The ladder is **derived from the cabinets** — the row widths the inventory can actually
+  make — rather than written down as constants, which is the difference between it and the `WIDTH_LADDER_M` that 0.82.0
+  deleted, and the unbounded step is always first so nothing is bounded by the search
+- **A width does not contain a count, and both are walked.** Built as a width alone it lost **49 rigs**, every one
+  refused on bearing rather than on the search running out: a count says "the same number of every type" where a width
+  says "the same metres of every type", and neither reaches the other's arrangements. Proven rather than argued, since
+  the count ladder alone reproduces the old solver's answer exactly and no width does. `RowBudget` walks both as a
+  union rather than a product, and turns a count into a per-device width at the point of use, which is what lets one
+  parameter carry both. **This is CVR-8's own lesson recurring inside the item written about CVR-8**
+- **`perRowCap()` became `pyramidCeiling()`**, a width carrying the same `PYRAMID_SHOULDER` allowance
+  `StackChecks::silhouetteProblem()` already permits. A bare "no wider than the row below" was measured wrong before
+  and is measured wrong still: it splits six Achenbachs on six Flexys into two rows of three over a 27 mm shoulder the
+  bearing rule allows four hundred of, and the 1.84 m row then cannot carry the tops. A flush wall is not a V
+- **`lastRowCount()` is deleted.** It existed only because the pyramid cap was a count while everything around it was a
+  width, and both are widths now
+
+### Added
+
+- **THE FILL CAN ASK WHETHER AN ARRANGEMENT SURVIVES BEING PLACED**, which is **GEO-11**'s stack-local half.
+  `StackSolver::solve()` takes an optional predicate and `SceneCompiler::seatingCheck()` supplies one that expands the
+  candidate's tiers and compiles them, so the answer comes from the same `orientationFor()` and `worldBox()` the
+  finished scene uses rather than from a second opinion about where a cabinet's edge is. A candidate that overlaps now
+  loses to the next one instead of the whole rig being discarded by whoever compiles it. Callers that cannot place a
+  cabinet pass nothing and get the old behaviour
+- **It found a rig that was being shipped with two cabinets inside each other.**
+  `--from=gmss-* --max-width=3.70 --orientation=turned` answered with five rolled IQ subs slid along a 2.77 m support
+  at 2.66 m of subs, and two of them interpenetrate once placed. Nothing had checked it, because a stated
+  `--max-width` keeps an invocation out of the shipped-scene set the sweep covers. The check refuses exactly that
+  candidate and the search falls to a clean 2.70 m
+- **`StackSceneWriter::focusPoints()` and `::AIM`**, so the writer and the seating check read one definition of
+  `far: 10 m / 1.8 m`. Two copies is how the two sides drift apart, and they did: judging the tops firing straight
+  ahead where the file states `aim: far` moved a turned cabinet's outermost corner and refused overlaps that existed
+  only inside the check, which brought the `all` inventory's turned rigs back at **0.660 m of subs** against 1.860 m
+  once fixed
+
+### Fixed
+
+- **`scene:stack` solved with no seating check and then compiled the answer with one**, so the command wrote the
+  arrangement its own solve liked and the compiler rebuilt a different one from the same file. That is GEO-11's own
+  defect reappearing between two stages instead of three, inside the change meant to fix it. Both go through
+  `SceneCompiler::seatingCheck()` now
+- **The row budget was read per device inside one row.** A packed row full at 3.28 m for six IQ subs became roomy again
+  the moment a 0.670 m wall bass was considered, because six of *those* are 4.12 m — so it pulled a wall bass into the
+  bottom row and cost the GMSS pyramid its arrangement. Device-independent where a row holds several types,
+  per-device where it holds one, since the support and pyramid ceilings are allowances scaled by the cabinet on the
+  end of the row
+- **The seating check ran on every candidate**, which is a compile per arrangement and stopped the sweep finishing at
+  all. It is asked last, only of a candidate that would win, and **memoised by arrangement** — the ladder proposes the
+  same rows from many budgets, so most steps are already judged. **Moving it out of the search was tried and is worse**:
+  placing the answer, striking it out when it overlaps and re-running the fill took **58 minutes** against 23m40s,
+  because a re-run is another walk of a fifty-step ladder and a fill costs far more than a compile
+- **Three tests that pinned arithmetic rather than the rule they are named for.**
+  `testTheAchenbachsStandOnTheFlexysRatherThanUnderThem` named the top row's cabinet count where the invariant is that
+  no Flexy stands above an Achenbach, `testOwnerStillBindsWhenAnotherOptionCollapsesTheSweep` read owner binding off a
+  pyramid rig that no longer has a good arrangement, and `testASoloStackSlidesARowRatherThanLosingTheRig` pinned the
+  2.66 m answer that turns out to overlap
+
+### Known
+
+- **A full sweep now takes 20 minutes, and the ladder is why rather than the seating check.** Measured by
+  short-circuiting the check off and re-running the same sweep: **20m14s without it**, against roughly 23 minutes
+  with, so GEO-12's fifty-step ladder against the old dozen-step count is the whole of the increase and GEO-11's
+  compile is two to four minutes of it. Runtime is explicitly not a constraint on this project, so this is recorded as
+  a bill rather than a defect — and recorded at all so nobody optimises the wrong half. Filed as **TOOL-9**
+- **`slideSlackM` has no dedicated test any more.** GEO-12's wider search solves the rig that guarded it with every row
+  narrower than the one under it, so nothing slides. The feature is plainly still live — **273 generated scenes carry
+  an overhang warning against 262 before** — which is exactly why the gap is easy to miss. Filed as **TOOL-8**
+- **GEO-11's scene-level half is open**, which is aiming and cross-placement alignment. It is the genuinely circular
+  part: aiming needs the scene's front face, the front face needs every placement, and every placement needs the solve
+
 ## [0.82.0] - 2026-08-16
 
 ### Changed

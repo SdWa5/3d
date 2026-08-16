@@ -11,42 +11,27 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 4 cabinets in 2 rows:
+# main-1 — 1, 6 cabinets in 4 rows:
 #
 #   1  3× gmss-iq-sub                                                            1.63 m wide
-#   2  1× gmss-turbo-top                                                         0.45 m wide
+#   2  1× gmss-wall-bass                                                         0.66 m wide
+#   3  1× gmss-nuke                                                              0.59 m wide
+#   4  1× gmss-turbo-top                                                         0.45 m wide
 #
-# Subs reach 0.67 m against a 2.0 m interface. The stack is 1.38 m of cabinet.
-#   * gmss-wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * gmss-nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
+# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.55 m of cabinet.
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 0.670 m against the 2.000 m interface asked for, so the tops sit 1330 mm lower than ideal —
-#     0.670 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 10 cabinets in 5 rows:
+# main-2 — 2, 8 cabinets in 2 rows:
 #
-#   1  3× gmss-iq-sub                                                            1.63 m wide
-#   2  2× gmss-wall-bass                                                         1.34 m wide
-#   3  1× gmss-mid-bass                                                           1.2 m wide
-#   4  2× gmss-nuke                                                               1.2 m wide
-#   5  2× gmss-turbo-top                                                         0.92 m wide
+#   1  1× gmss-iq-sub + 1× gmss-wall-bass + 1× gmss-nuke + 2× gmss-iq-sub + 1× gmss-mid-bass     4.14 m wide
+#   2  2× gmss-turbo-top                                                         0.92 m wide
 #
-# Subs reach 3.34 m against a 2.0 m interface. The stack is 4.05 m of cabinet.
-#   * gmss-wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * gmss-nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
+# Subs reach 1.4 m against a 2.0 m interface. The stack is 2.11 m of cabinet.
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 3.340 m against the 3.000 m ceiling asked for, so they stand 340 mm too high — 3.340 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+#   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
+#     1.400 m is the most they reach while every tier is still carried
 #
 id: stacked-gmss-------2-pyramid-upright-alternate-center
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -60,9 +45,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 4 cabinets in 2 rows
+  # 1, 6 cabinets in 4 rows
   - id: main-1
-    at: [-1.367, 0.0]
+    at: [-2.622, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -71,12 +56,16 @@ placements:
       shape: pyramid
       mirror: true             # the mirror image of stack 1
       from:
+        - device: gmss-wall-bass
+          count: 1
+        - device: gmss-nuke
+          count: 1
         - device: gmss-iq-sub
           count: 3
         - device: gmss-turbo-top
           count: 1
 
-  # 2, 10 cabinets in 5 rows
+  # 2, 8 cabinets in 2 rows
   - id: main-2
     at: [0.763, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -86,9 +75,11 @@ placements:
       gap_m: 0.02
       shape: pyramid
       from:
-        - gmss-wall-bass
+        - device: gmss-wall-bass
+          count: 1
         - gmss-mid-bass
-        - gmss-nuke
+        - device: gmss-nuke
+          count: 1
         - device: gmss-iq-sub
           count: 3
         - device: gmss-turbo-top

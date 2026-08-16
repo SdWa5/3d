@@ -11,42 +11,33 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 16 cabinets in 5 rows:
+# main-2 — 2, 17 cabinets in 2 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   2  1× gmss-iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× gmss-iq-sub rolled 90°    2.926 m wide
-#   3  1× gmss-wall-bass rolled 270° + 1× gmss-iq-sub rolled 90°              2.09 m wide
-#   4  1× gmss-nuke rolled 270° + 1× gmss-mid-bass                             1.99 m wide
-#   5  1× tecnare-m2122 + 1× gmss-turbo-top + 1× gmss-turbo-top + 1× tecnare-m2122     1.96 m wide
+#   1  1× gmss-iq-sub rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× gmss-wall-bass rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90° + 1× gmss-nuke rolled 90° + 2× gmss-iq-sub rolled 90° + 1× gmss-mid-bass    10.94 m wide
+#   2  1× tecnare-m2122 + 1× gmss-turbo-top + 1× gmss-turbo-top + 1× tecnare-m2122     1.96 m wide
 #
-# Subs reach 2.432 m against a 2.0 m interface. The stack is 3.392 m of cabinet.
+# Subs reach 0.763 m against a 2.0 m interface. The stack is 1.723 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * skram: LEFT OUT, it cannot be carried in this stack — the 1× tecnare-m2122 + 1× gmss-turbo-top + 1×
-#     gmss-turbo-top + 1× tecnare-m2122 row is 1.960 m on a 1.704 m row, so it steps out 128 mm each side against the 50 mm
-#     a 0.500 m cabinet may sit proud — `shape: pyramid` asks for a wall that does not widen as it rises
+#   * the subs reach 0.763 m against the 2.000 m interface asked for, so the tops sit 1237 mm lower than ideal —
+#     0.763 m is the most they reach while every tier is still carried
 #
-# main-1 — 1, 13 cabinets in 4 rows:
+# main-1 — 1, 14 cabinets in 2 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   2  1× gmss-iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× gmss-iq-sub rolled 90°    2.926 m wide
-#   3  1× gmss-iq-sub rolled 270° + 1× gmss-nuke + 1× skram rolled 90°      2.214 m wide
-#   4  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
+#   1  2× gmss-iq-sub rolled 270° + 1× gmss-nuke rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90° + 1× gmss-wall-bass rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× gmss-iq-sub rolled 90°    9.892 m wide
+#   2  1× gmss-turbo-top + 1× tecnare-m2122                                     0.97 m wide
 #
-# Subs reach 1.952 m against a 2.0 m interface. The stack is 2.912 m of cabinet.
+# Subs reach 0.66 m against a 2.0 m interface. The stack is 1.62 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * gmss-turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * gmss-wall-bass: LEFT OUT, it cannot be carried in this stack — the 1× gmss-turbo-top + 1× tecnare-m2122 row
-#     is 0.970 m on a 0.590 m row, so it steps out 190 mm each side against the 45 mm a 0.450 m cabinet may sit proud —
-#     `shape: pyramid` asks for a wall that does not widen as it rises
-#   * the subs reach 1.952 m against the 2.000 m interface asked for, so the tops sit 48 mm lower than ideal — 1.952
-#     m is the most they reach while every tier is still carried
+#   * the subs reach 0.660 m against the 2.000 m interface asked for, so the tops sit 1340 mm lower than ideal —
+#     0.660 m is the most they reach while every tier is still carried
 #
 id: stacked-gmss-sdwa5-2-pyramid-mixed---centred---stereo
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -60,9 +51,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 16 cabinets in 5 rows
+  # 2, 17 cabinets in 2 rows
   - id: main-2
-    at: [-2.108, 0.0]
+    at: [-5.498, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -77,6 +68,9 @@ placements:
           count: 1
           roll_mirror: 90.0
         - gmss-mid-bass
+        - device: skram
+          count: 1
+          roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6
           roll_mirror: 90.0
@@ -92,9 +86,9 @@ placements:
           count: 2
           aim: near
 
-  # 1, 13 cabinets in 4 rows
+  # 1, 14 cabinets in 2 rows
   - id: main-1
-    at: [1.504, 0.0]
+    at: [5.418, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -106,6 +100,9 @@ placements:
       shape: pyramid
       mirror: true             # the mirror image of stack 1
       from:
+        - device: gmss-wall-bass
+          count: 1
+          roll_mirror: 90.0
         - device: skram
           count: 1
           roll_mirror: 90.0

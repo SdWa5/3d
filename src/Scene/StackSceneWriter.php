@@ -40,12 +40,11 @@ final class StackSceneWriter
         $lines[] = sprintf('name: %s', self::quote($name));
         $lines[] = '';
         $lines[] = 'focus:';
-        $lines[] = '  far:';
-        $lines[] = '    distance_m: 10.0';
-        $lines[] = '    height_m: 1.8';
-        $lines[] = '  near:';
-        $lines[] = '    distance_m: 2.0';
-        $lines[] = '    height_m: 1.8';
+        foreach (self::focusPoints() as $name => $focus) {
+            $lines[] = sprintf('  %s:', $name);
+            $lines[] = sprintf('    distance_m: %s', self::number($focus->distanceM));
+            $lines[] = sprintf('    height_m: %s', self::number($focus->heightM));
+        }
         $lines[] = '';
         $lines[] = 'placements:';
 
@@ -56,7 +55,7 @@ final class StackSceneWriter
             }
             $lines[] = sprintf('  - id: %s', $block->placementId);
             $lines[] = sprintf('    at: [%s, %s]', self::number($centres[$index]), self::number($at[1]));
-            $lines[] = '    aim: far                 # the TOP tiers only; subs fire straight ahead';
+            $lines[] = sprintf('    aim: %s                 # the TOP tiers only; subs fire straight ahead', self::AIM);
 
             if ($block->align !== null) {
                 $lines[] = '    align:';
@@ -141,6 +140,29 @@ final class StackSceneWriter
      * @param list<StackBlock> $blocks
      * @return list<float>
      */
+    /**
+     * The name a generated scene's top tiers aim at.
+     */
+    public const AIM = 'far';
+
+    /**
+     * The two focus points every generated scene carries.
+     *
+     * **Shared rather than written twice**, because the seating check GEO-11 added has to judge a candidate under the
+     * aim the file will actually state. A probe that did not know about `far` refuses every arrangement outright as
+     * "unknown focus", and one that knew the name but not the distance would aim the tops somewhere else and measure
+     * a different rig. Two copies of these numbers is how that drifts, so there is one.
+     *
+     * @return array<string, Focus>
+     */
+    public static function focusPoints(): array
+    {
+        return [
+            self::AIM => new Focus(distanceM: 10.0, heightM: 1.8),
+            'near' => new Focus(distanceM: 2.0, heightM: 1.8),
+        ];
+    }
+
     public static function centres(array $blocks, float $centreX, float $clearanceM): array
     {
         $widths = array_map(static fn (StackBlock $block): float => $block->widthM(), $blocks);

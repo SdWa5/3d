@@ -11,20 +11,20 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 14 cabinets in 6 rows:
+# main-2 — 2, 15 cabinets in 5 rows:
 #
 #   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   2  1× gmss-wall-bass rolled 270° + 1× gmss-wall-bass rolled 90°           2.82 m wide
-#   3  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   4  1× gmss-nuke rolled 270° + 1× gmss-nuke rolled 90°                     1.56 m wide
-#   5  1× gmss-iq-sub rolled 270° + 1× gmss-iq-sub rolled 90°                 1.36 m wide
-#   6  1× tecnare-m2122 + 1× gmss-turbo-top                                     0.97 m wide
+#   3  1× skram rolled 270° + 1× skram rolled 90° + 1× gmss-nuke rolled 90°    2.638 m wide
+#   4  1× gmss-iq-sub rolled 270° + 1× gmss-mid-bass rolled 270° + 1× gmss-nuke rolled 90° + 1× gmss-iq-sub rolled 90°     2.67 m wide
+#   5  1× tecnare-m2122 + 1× gmss-turbo-top                                     0.97 m wide
 #
-# Subs reach 2.981 m against a 2.0 m interface. The stack is 3.941 m of cabinet.
+# Subs reach 3.061 m against a 2.0 m interface. The stack is 4.021 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * gmss-mid-bass: LEFT OUT, it cannot be carried in this stack — the 1× tecnare-m2122 + 1× gmss-turbo-top row
-#     is 0.970 m on a 0.500 m row, so it steps out 235 mm each side against the 50 mm a 0.500 m cabinet may sit proud —
-#     `shape: pyramid` asks for a wall that does not widen as it rises
+#   * the subs reach 3.061 m against the 3.000 m ceiling asked for, so they stand 61 mm too high — 3.061 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× gmss-iq-sub rolled 270° + 1× gmss-mid-bass rolled 270° + 1× gmss-nuke rolled 90° + 1× gmss-iq-sub
+#     rolled 90° row is 2.670 m on a 2.638 m row, so it overhangs 16 mm each side
 #
 # main-3 — 3, 8 cabinets in 4 rows:
 #
@@ -62,7 +62,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 14 cabinets in 6 rows
+  # 2, 15 cabinets in 5 rows
   - id: main-2
     at: [-2.348, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -75,6 +75,8 @@ placements:
       shape: pyramid
       from:
         - device: gmss-wall-bass
+          roll_mirror: 90.0
+        - device: gmss-mid-bass
           roll_mirror: 90.0
         - device: skram
           roll_mirror: 90.0
