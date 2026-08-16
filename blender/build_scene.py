@@ -17,7 +17,7 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from lib import export  # noqa: E402  (must follow the sys.path fix)
+from lib import export, materials  # noqa: E402  (must follow the sys.path fix)
 
 
 def _append_collection(blend_path, device_id, cache):
@@ -39,6 +39,54 @@ def _append_collection(blend_path, device_id, cache):
     cache[device_id] = collection
 
     return collection
+
+
+def _fault_cages(plan, scene_collection):
+    """Draw a red cage around every cabinet the geometry checks object to.
+
+    **A render has to show it, so it cannot be a viewport setting.** The coverage cone next door uses
+    `display_type = "WIRE"`, which Cycles ignores entirely — fine for something you sight along in the
+    viewport and useless for CVR-5, whose whole argument is that a picture beats a sentence. A Wireframe
+    modifier turns the cage's edges into real bars, so it renders from any camera.
+
+    A cage rather than a recolour, because a placement here is an empty instancing a linked collection and an
+    empty takes no material. Recolouring would mean copying the collection per faulted cabinet. A cage is also
+    the better picture: it says "this one" without hiding the thing it is pointing at.
+
+    The boxes are world-space and come from the plan. The PHP side already knows them — the same
+    `worldBox()` the checks were computed from — and asking Blender to re-derive the bounds of a collection
+    instance would be a second opinion nobody needs.
+    """
+    cages = plan.get("fault_cages") or []
+    if not cages:
+        return
+
+    material = materials.fault_material()
+
+    for cage in cages:
+        low, high = cage["min"], cage["max"]
+        mesh = bpy.data.meshes.new("fault-%s" % cage["placement"])
+        verts = [
+            (low[0], low[1], low[2]), (high[0], low[1], low[2]),
+            (high[0], high[1], low[2]), (low[0], high[1], low[2]),
+            (low[0], low[1], high[2]), (high[0], low[1], high[2]),
+            (high[0], high[1], high[2]), (low[0], high[1], high[2]),
+        ]
+        faces = [
+            (0, 1, 2, 3), (4, 5, 6, 7), (0, 1, 5, 4),
+            (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7),
+        ]
+        mesh.from_pydata(verts, [], faces)
+        mesh.update()
+        mesh.materials.append(material)
+
+        obj = bpy.data.objects.new("fault-%s" % cage["placement"], mesh)
+        wire = obj.modifiers.new(name="cage", type="WIREFRAME")
+        # 25 mm bars: thick enough to read at 960 x 540, thin enough not to bury a 0.4 m top.
+        wire.thickness = 0.025
+        wire.use_replace = True
+        obj["sdwa5_fault"] = cage["placement"]
+        scene_collection.objects.link(obj)
 
 
 def build(plan):
@@ -70,10 +118,15 @@ def build(plan):
         instance["sdwa5_device"] = placement["device"]
         scene_collection.objects.link(instance)
 
+    _fault_cages(plan, scene_collection)
+
     export.save_blend(plan["output"])
 
-    print("sdwa5-3d: scene %s with %d cabinet(s) → %s"
-          % (plan["scene_id"], len(plan["placements"]), plan["output"]))
+    faults = plan.get("faults") or []
+    print("sdwa5-3d: scene %s with %d cabinet(s)%s → %s"
+          % (plan["scene_id"], len(plan["placements"]),
+             "" if not faults else ", %d marked faulty" % len(faults),
+             plan["output"]))
 
 
 if __name__ == "__main__":

@@ -57,10 +57,60 @@ final class Interpenetration
      */
     public static function worst(array $placed): array
     {
-        $hulls = array_map(static fn (PlacedDevice $entry): array => self::corners($entry), $placed);
-
         $worst = 0.0;
         $pair = '';
+        foreach (self::overlapping($placed, 0.0) as [$a, $b, $separation]) {
+            if ($separation < $worst) {
+                $worst = $separation;
+                $pair = sprintf('%s and %s', $a, $b);
+            }
+        }
+
+        return ['separation' => $worst, 'pair' => $pair];
+    }
+
+    /**
+     * Every pair that is inside the other by more than `$tolerance`, named rather than described.
+     *
+     * **The same sweep {@see worst} makes, answering with identities instead of with the single deepest pair.**
+     * A rig where three cabinets bury each other has one worst pair and three cabinets worth marking, and a
+     * picture that reddened two of the three would read as a diagnosis rather than as a partial one. `worst` is
+     * now formatted from this, so the sentence and the marking cannot drift apart.
+     *
+     * @param list<PlacedDevice> $placed
+     * @return list<Fault>
+     */
+    public static function faults(array $placed, float $tolerance): array
+    {
+        $faults = [];
+        foreach (self::overlapping($placed, $tolerance) as [$a, $b, $separation]) {
+            $faults[] = new Fault(
+                Fault::INTERPENETRATION,
+                [$a, $b],
+                sprintf(
+                    '%s and %s would be %.4f m inside each other — the compiler allows it and the shipped-scene '
+                    .'sweep does not',
+                    $a,
+                    $b,
+                    -$separation,
+                ),
+            );
+        }
+
+        return $faults;
+    }
+
+    /**
+     * Every intersecting pair as `[placementId, placementId, separation]`, most buried first.
+     *
+     * @param list<PlacedDevice> $placed
+     * @return list<array{string, string, float}>
+     */
+    private static function overlapping(array $placed, float $tolerance): array
+    {
+        $hulls = array_map(static fn (PlacedDevice $entry): array => self::corners($entry), $placed);
+
+        $found = [];
         foreach ($placed as $i => $a) {
             foreach ($placed as $j => $b) {
                 if ($j <= $i) {
@@ -73,14 +123,15 @@ final class Interpenetration
                 }
 
                 $separation = self::separation($hulls[$i], $hulls[$j]);
-                if ($separation < $worst) {
-                    $worst = $separation;
-                    $pair = sprintf('%s and %s', $a->placementId, $b->placementId);
+                if ($separation < -$tolerance) {
+                    $found[] = [$a->placementId, $b->placementId, $separation];
                 }
             }
         }
 
-        return ['separation' => $worst, 'pair' => $pair];
+        usort($found, static fn (array $x, array $y): int => $x[2] <=> $y[2]);
+
+        return $found;
     }
 
     /**

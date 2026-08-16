@@ -15,6 +15,7 @@ CONE = "sdwa5-cone"
 HORN = "sdwa5-horn"
 ESTIMATED = "sdwa5-estimated"
 COVERAGE = "sdwa5-coverage"
+FAULT = "sdwa5-fault"
 
 
 def hex_to_linear_rgba(value, alpha=1.0):
@@ -105,3 +106,20 @@ def build_set(appearance):
             COVERAGE, hex_to_linear_rgba("#33aaff"), roughness=0.5, emission_strength=1.0
         ),
     }
+
+
+def fault_material():
+    """The cage drawn around a cabinet the geometry checks object to.
+
+    Standalone rather than part of {@see build_set}, because it belongs to a *scene* and not to a device: it has
+    no `appearance` section behind it and asking for one would mean handing this a cabinet's colours to build a
+    marker that must not look like any cabinet.
+
+    Emissive and hard, because the one thing it must never do is look like part of the rig or get lost in a dark
+    corner of the frame. Reused by name if the scene already has one, so a rig with six faults has one material.
+    """
+    existing = bpy.data.materials.get(FAULT)
+
+    return existing or _principled(
+        FAULT, hex_to_linear_rgba("#ff1133"), roughness=0.3, emission_strength=6.0
+    )

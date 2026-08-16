@@ -146,6 +146,38 @@ subfolder. Naming a `--lighting` or an `--aim-lines` picks that one out, and eit
 `--every-variant` narrows the sweep to that row or column of it. An unknown `--aim-lines` value is refused before any
 stage runs — a dry run runs nothing, so nothing downstream would catch the typo.
 
+### A cabinet the checks object to is caged in red
+
+**Every check in this repository used to answer with a sentence and then throw the geometry away**, which is the
+wrong way round for the failures that are hard to picture. "A `gmss-turbo-top` would stand at 4.668 m with nothing
+under it across x" took a debug dump, two probes and a corrected coordinate mapping to understand. A picture with
+that one cabinet in a red cage says it at a glance.
+
+So `scene:build` now runs the two geometry checks that name a cabinet — nothing under it, and two cabinets inside
+each other — and writes what they found into the scene plan. `build_scene.py` draws a red emissive wireframe cage
+around every cabinet named, and it renders:
+
+```
+sdwa5-3d: scene zz-fault-probe with 3 cabinet(s), 1 marked faulty → build/scenes/zz-fault-probe.blend
+```
+
+**A cage rather than a recolour**, because a placement is an empty instancing a linked collection and an empty takes
+no material — recolouring would mean copying the collection per faulted cabinet. The cage is also the better
+picture: it says "this one" without hiding the thing it is pointing at. It is real geometry from a Wireframe
+modifier rather than `display_type = "WIRE"`, which is a viewport setting Cycles ignores.
+
+**The marking is derived and never stored.** It is not a scene field and will not become one: a scene records the
+constraints a rig has to satisfy and is re-solved on every build, so the checks fire again on the same arrangement
+and name the same cabinets. A colour written into the schema would put a rendering concern in the file format and
+freeze one build's opinion into a file whose whole contract is that it carries no answers.
+
+**The prose refusal is now built from the marking**, rather than derived alongside it, so the sentence a terminal
+prints and the cabinet a render cages can never be about different cabinets.
+
+Today it is dormant on the shipped set, and deliberately so: `ShippedScenesTest` guarantees no scene in this
+repository has either fault. What it serves now is a hand-written scene and a regression. Emitting the sweep's own
+144 refusals as scenes to look at is the other half of CVR-5.
+
 ### Quality
 
 One quality was fixed at 1600×900 and 64 samples. Three levels now, because the same command does two different

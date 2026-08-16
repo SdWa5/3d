@@ -92,11 +92,18 @@ does. TOOL-7 left a narrow remainder, filed as TOOL-15.
    skip, so it is 1h 30m of work for half a minute and drops to P3 with the rest of them. The lesson is the ranking
    rather than the item: **a priority argued from a measurement expires when the measurement does**, and this one
    expired inside a single release.
-2. **CVR-5**, the `impossible` axis. The last value of SWP-1's cross product, so it closes the stated goal, and it turns
-   the rest of the refusals from sentences that scroll away into rigs somebody can look at. Read its three unsettled
-   sub-questions first. **The fuse is at 600 and the sweep is at 483**, up from 450 in 0.84.0, so the headroom is 117
-   candidates and shrinking. CVR-5 turns refusals into written scenes, so it is the item most likely to blow the fuse,
-   and the fuse refuses outright rather than truncating.
+2. **CVR-5's second half**, the `impossible` axis. The marking landed in 0.88.0 and is verified in a render; what is
+   left is emitting the refusals as scenes so there is something to mark. **All three of its open questions are now
+   settled.** Where the colour lives: nowhere — it is derived at build time from the same checks, so the schema stays
+   clean and the file still rebuilds itself. Where the scenes live and how they are counted: **stated by the owner,
+   treat `impossible` like the other axis** and raise `DEFAULT_MAX_SCENES` to **800**, so both halves are ordinary
+   generated scenes with the axis value in the id. `ShippedScenesTest` then excludes them by that field.
+
+   **Two measurements to carry in.** The real set is **144**, not 723: 579 of the refusals are duplicates rather than
+   failures and must never be rendered, leaving 86 floating and 58 interpenetrating. And 483 + 144 = 627 against a
+   fuse of 600, which is why it moves. **The cost is a rename of all 483 existing scenes**, because the convention is
+   that no axis value is ever omitted from a name — the same argument that took `pyramid`, `upright` and `alternate`
+   out of hiding in 0.79.0.
 3. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
    cabinets need *is* a gapped row, so the search that landed already does half of it.
 4. **SWP-2**, the system-separation axis. It multiplies the candidate count by up to three, so it goes after the two
@@ -931,7 +938,7 @@ ladder was also a search dimension, and without it 18 scenes are lost and 28 mor
 |----|------|------|--------|------|-------|-------|
 | CVR-7 | **The sub/top interface height is an optimisation problem, not a hard constraint.** Stated by the owner. Tops below or above head height are **not** a reason to refuse a rig or to call a scene invalid. The bounds are terms in the ranking beside `target_sub_height_m` rather than gates, and the miss is reported on the terminal and on the file. **Built** | P1 | 6h | **551 refusals**, measured — 411 walls too short and 140 too tall. The sweep writes **396 scenes against 150** | — | **done** |
 | CVR-8 | **An unstated width must not limit anything.** Stated by the owner. `--max-width` has no default, `WIDTH_LADDER_M` and `buildInBand()` are deleted, and no generated scene carries a `max_width_m`. **Built with CVR-7**, since removing the bound alone degenerates a rig to one row. **It cost a search dimension nobody had noticed, which is GEO-12** | P1 | 4h | every refusal that was a stage the rig does not fit. Widest row 4.89 → 9.376 m | CVR-7 | **done** |
-| CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet coloured red.** A refusal is a sentence in a terminal that scrolls away; a render shows *which* cabinet and *why* | P1 | 5h | the refusals that survive CVR-7 become lookable-at, and the diagnosis stops being prose. The fuse is already at 600 for it | CVR-7 to avoid duplicated work | open |
+| CVR-5 | **Emit the impossible rigs instead of refusing them, with every offending cabinet marked.** **Half done in 0.88.0**: the checks name cabinets instead of describing them, `scene:build` writes the faults into the plan and Blender cages each one in red, verified in a render. What is left is the *axis* — a candidate is `possible` or `impossible`, so the value joins the id like every other axis and both halves are written into `scenes/generated/`. **Stated by the owner: treat it like the other axis, and raise the fuse to 800.** Costs a rename of all 483 existing scenes, since no axis value is ever omitted from a name | P1 | 3h | 144 refusals become rigs somebody can look at | — | half done |
 | CVR-6 | **Derive a smaller rig from one that fails** — drop cabinets until the same inventory stands up, and write that as its own scene beside the refusal | P2 | 4h | a buildable scene for every rig that currently produces none, `all-1` included | CVR-5 | open |
 | CVR-4 | Port the ~13 real event setups from Drive (`…/setups/`, 2D SVG) into scene files | P3 | 4h | "actually used in praxis", which nothing covers today | — | open |
 | CVR-2 | Decide whether the sweep keeps offering `free` where the pyramid already solves — it misses the ceiling far more often, inherently | P3 | 15m | fewer named refusals, or more scenes | decision | decision |

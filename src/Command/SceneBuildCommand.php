@@ -7,7 +7,10 @@ namespace App\Command;
 use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
 use App\Build\Staleness;
+use App\Scene\Fault;
+use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
+use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
 use App\Scene\SceneReport;
@@ -264,6 +267,26 @@ final class SceneBuildCommand extends BaseCommand
             $entries[] = $entry->toArray() + ['blend' => $builder->blendPath($entry->device)];
         }
 
+        // **The marking is worked out here and carried nowhere else**, which is the whole of CVR-5's first open
+        // question. The scene file states constraints and is re-solved on every build, so the checks fire again on
+        // the arrangement they refused and name the same cabinets — a colour written into the schema would freeze
+        // one build's opinion into a file whose contract is that it carries no answers. The cage boxes are computed
+        // on this side because {@see PlacedDevice::worldBox} already knows them and a collection instance in
+        // Blender does not.
+        $faults = [
+            ...PlacementChecks::floatingFaults($placed),
+            ...Interpenetration::faults($placed, PlacementChecks::CONTACT_TOLERANCE_M),
+        ];
+        $marked = Fault::placementsIn($faults);
+        $cages = [];
+        foreach ($placed as $entry) {
+            if (!in_array($entry->placementId, $marked, true)) {
+                continue;
+            }
+            $box = $entry->worldBox();
+            $cages[] = ['placement' => $entry->placementId, 'min' => $box['min'], 'max' => $box['max']];
+        }
+
         $dir = dirname($planFile);
         if (!is_dir($dir) && !@mkdir($dir, 0o775, true) && !is_dir($dir)) {
             throw new RuntimeException("Cannot create directory {$dir}");
@@ -271,7 +294,14 @@ final class SceneBuildCommand extends BaseCommand
 
         try {
             $json = json_encode(
-                ['plan_version' => 1, 'scene_id' => $scene->id, 'output' => $target, 'placements' => $entries],
+                [
+                    'plan_version' => 1,
+                    'scene_id' => $scene->id,
+                    'output' => $target,
+                    'placements' => $entries,
+                    'faults' => array_map(static fn (Fault $fault): array => $fault->toArray(), $faults),
+                    'fault_cages' => $cages,
+                ],
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
             );
         } catch (JsonException $e) {

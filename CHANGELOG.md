@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.88.0] - 2026-08-16
+
+CVR-5's first half: a cabinet the geometry checks object to is now **shown** rather than described.
+
+### Added
+
+- **`App\Scene\Fault`, and the two checks that name a cabinet now answer with identities.**
+  `PlacementChecks::floatingFaults()` and `Interpenetration::faults()` return every offender with its placement id,
+  where before each formatted the first one into a sentence and discarded the identity. "A `gmss-turbo-top` would
+  stand at 4.668 m with nothing under it across x" took a debug dump, two probes and a corrected coordinate mapping
+  to understand; a picture with that cabinet caged says it at a glance
+- **`scene:build` writes the faults into the scene plan and Blender draws a red cage around each one.** Verified on
+  a probe scene with two SKRAMs 0.3 m apart: both are caged, the third cabinet is not, and the overlap is obvious
+  in the render. A cage rather than a recolour, because a placement is an empty instancing a linked collection and
+  an empty takes no material — and because a cage says "this one" without hiding what it points at
+- `materials.fault_material()`, standalone rather than part of `build_set()`: the marker belongs to a scene and not
+  to a device, and asking for an `appearance` section would mean handing it a cabinet's colours to build something
+  that must not look like any cabinet
+- `tests/Scene/FaultTest.php`, 9 tests
+
+### Changed
+
+- **The prose refusal is now built from the marking rather than derived alongside it**, so the sentence a terminal
+  prints and the cabinet a render cages can never be about different cabinets. `PlacementChecks::floating()` returns
+  the first fault's own message and `Interpenetration::worst()` formats the deepest of the same sweep
+- **Every offender is named, not the first.** A refusal needs one reason to be a refusal; a picture showing one of
+  four floating cabinets reads as a complete diagnosis and is worse than no picture. A cabinet floating across both
+  axes is still one fault, because marking it twice would count one failure as two
+
+### Known
+
+- **Dormant on the shipped set, by design.** `ShippedScenesTest` guarantees no scene in this repository has either
+  fault, so what this serves today is a hand-written scene and a regression. Emitting the sweep's own refusals as
+  scenes to look at is the other half of CVR-5
+- **The refusals were re-counted against the fuse, which is CVR-5's own first job, and the fuse is too small.** Of
+  723 refusals in the default sweep, **579 are duplicates** rather than failures and must never be rendered; the
+  real set is **86 floating and 58 interpenetrating**. 483 written plus 144 impossible is 627 against a
+  `DEFAULT_MAX_SCENES` of 600, so the headroom of 117 that CVR-5 was banking on is 27 short
+
 ## [0.87.0] - 2026-08-16
 
 ### Added

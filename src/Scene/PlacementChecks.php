@@ -47,6 +47,28 @@ final class PlacementChecks
      */
     public static function floating(array $placed): ?string
     {
+        $faults = self::floatingFaults($placed);
+
+        return $faults === [] ? null : $faults[0]->message;
+    }
+
+    /**
+     * Every floating cabinet, named rather than described — the same check, answering with identities.
+     *
+     * **Built the other way round from how it used to be**, so the sentence and the marking cannot disagree.
+     * {@see floating} now formats the first of these rather than deriving its own answer, which means a render
+     * showing a red cage and a terminal showing a refusal are always talking about the same cabinet.
+     *
+     * Every offender rather than the first. A refusal only needs one reason to be a refusal, and CVR-5's whole
+     * argument is that a *picture* of the failure beats a sentence about it — a picture with one of four floating
+     * cabinets marked would be the more misleading of the two.
+     *
+     * @param list<PlacedDevice> $placed
+     * @return list<Fault>
+     */
+    public static function floatingFaults(array $placed): array
+    {
+        $faults = [];
         foreach ($placed as $entry) {
             $box = $entry->worldBox();
             if ($box['min'][2] < self::CONTACT_TOLERANCE_M || $entry->flyPoint !== null) {
@@ -58,17 +80,24 @@ final class PlacementChecks
                     continue;
                 }
 
-                return sprintf(
-                    'a %s would stand at %.3f m with nothing under it across %s — the compiler allows it and the '
-                    .'shipped-scene sweep does not, so it is not one of the possibilities',
-                    $entry->device->id,
-                    $box['min'][2],
-                    $axis === 0 ? 'x' : 'y',
+                $faults[] = new Fault(
+                    Fault::FLOATING,
+                    [$entry->placementId],
+                    sprintf(
+                        'a %s would stand at %.3f m with nothing under it across %s — the compiler allows it and '
+                        .'the shipped-scene sweep does not, so it is not one of the possibilities',
+                        $entry->device->id,
+                        $box['min'][2],
+                        $axis === 0 ? 'x' : 'y',
+                    ),
                 );
+                // One fault per cabinet: a top floating across x and y is one thing wrong, not two, and marking
+                // it twice would make the count read as more failures than there are.
+                break;
             }
         }
 
-        return null;
+        return $faults;
     }
 
     /**
