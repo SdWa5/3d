@@ -38,7 +38,8 @@ final class LoadPlanCommand extends BaseCommand
             ->setDescription('Assign the gear across the transporters and report weight and space separately')
             ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Carry only this owner\'s gear; repeatable')
             ->addOption('exclude-owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Leave this owner\'s gear behind; repeatable')
-            ->addOption('vehicle', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Use only these vehicles; repeatable');
+            ->addOption('vehicle', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Use only these vehicles; repeatable')
+            ->addOption('exclude', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Leave this device behind by id; repeatable');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -58,17 +59,26 @@ final class LoadPlanCommand extends BaseCommand
         $without = $input->getOption('exclude-owner');
         /** @var list<string> $vehicles */
         $vehicles = $input->getOption('vehicle');
+        // **One device at a time, by id, and it is not the same question `--exclude-owner` answers.** Sepp's 465 kg
+        // generator travels on a trailer rather than in a van — stated by the owner — so it is neither a whole
+        // owner's gear nor part of a van's load. Until the trailer is a spec of its own and becomes a third bin
+        // (LOAD-5), naming the device is the only way to tell the truth about what the vans carry.
+        /** @var list<string> $excluded */
+        $excluded = $input->getOption('exclude');
 
-        $unknown = $this->unknownNames($specs, $only, $without, $vehicles);
+        $unknown = $this->unknownNames($specs, $only, $without, $vehicles, $excluded);
         if ($unknown !== null) {
             $this->io->error($unknown);
 
             return self::FAILURE;
         }
 
-        $selected = array_values(array_filter($specs, static function (DeviceSpec $spec) use ($only, $without, $vehicles): bool {
+        $selected = array_values(array_filter($specs, static function (DeviceSpec $spec) use ($only, $without, $vehicles, $excluded): bool {
             if ($spec->category === Category::Vehicle) {
                 return $vehicles === [] || in_array($spec->id, $vehicles, true);
+            }
+            if (in_array($spec->id, $excluded, true)) {
+                return false;
             }
             if ($only !== [] && !in_array($spec->owner, $only, true)) {
                 return false;
@@ -113,17 +123,26 @@ final class LoadPlanCommand extends BaseCommand
      * @param list<string> $only
      * @param list<string> $without
      * @param list<string> $vehicles
+     * @param list<string> $excluded
      */
-    private function unknownNames(array $specs, array $only, array $without, array $vehicles): ?string
+    private function unknownNames(array $specs, array $only, array $without, array $vehicles, array $excluded): ?string
     {
         $owners = [];
         $vehicleIds = [];
+        $cargoIds = [];
         foreach ($specs as $spec) {
             if ($spec->category === Category::Vehicle) {
                 $vehicleIds[] = $spec->id;
                 continue;
             }
             $owners[$spec->owner] = true;
+            $cargoIds[] = $spec->id;
+        }
+
+        foreach ($excluded as $id) {
+            if (!in_array($id, $cargoIds, true)) {
+                return sprintf("unknown device '%s' — nothing to exclude", $id);
+            }
         }
 
         foreach ([...$only, ...$without] as $owner) {

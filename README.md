@@ -102,14 +102,16 @@ figures are off its registration document, so the number the whole load side tur
 guessed: **1024 kg of payload**, derived as permitted gross minus mass in service with the driver already counted.
 Sepp's Ducato is the one device in the library whose weight has been on a **scale**, and it is 365 kg heavier than
 its registration document — which makes the paper authoritative about what it may weigh and merely historical about
-what it does. **Both vans are drawn as cages** rather than solids: the vehicle's outline, the load bay inside it and
+what it does. **His 465 kg generator travels on a trailer**, which is a third bin the planner does not have yet, and
+the reason the vans' 214.5 kg shortfall may not be a second journey after all. **Both vans are drawn as cages** rather than solids: the vehicle's outline, the load bay inside it and
 the floor between the wheel arches, so a pack can be looked at instead of imagined
 ([docs/load.md](docs/load.md#seeing-it)). `bin/console catalog` reports both
 as a fleet beside the library and keeps them out of the weight and volume totals, because a van is the container and
 never the load.
 
 **And the fleet is 214.5 kg short of carrying the library in one trip.**
-`bin/console load:plan --exclude-owner=gmss` assigns every cabinet to a van and reports weight and space as two
+`bin/console load:plan --exclude-owner=gmss --exclude=sepp-generator-25kva` assigns every cabinet to a van and
+reports weight and space as two
 verdicts, and both vans finish within three kilogrammes of their legal limit with four devices left behind.
 **Sepp's payload has been three different numbers in a day** — estimated at 1200 kg, documented at 1365 in his
 Zulassungsschein, and **weighed at 1000** on a scale with a full tank and a driver. The van is 365 kg heavier than
@@ -128,7 +130,7 @@ its own papers, because shelving fitted after type approval appears in no regist
 | `scene:render`   | Renders a scene to `build/renders/<id>-<camera>.png`. Camera and lighting presets, auto-framed from the scene's own size; `--aim-lines` draws where cabinets point; `--presets` lists them. Quality is Full HD at 128 samples, with `--quick-preview` (960×540/16) and `--high-quality` (4K/384) either side; an explicit `--samples`/`--resolution` wins over both. Redraws when an input moves **or** when the settings differ from the ones recorded in `build/renders/built-with.json` |
 | `ddev mesh-convert` | Meshes a `.FCStd` or `.step` into `meshes/` so a spec can use it as a `mesh_override`. A ddev *host* command, since FreeCAD runs in its own container |
 | `build:all`      | The whole pipeline in order: validate, models, library, scenes, renders. Every stage skips what is already current; `--force` rebuilds anyway. `--dry-run` lists the stages. It also **deletes generated scene files the sweep no longer writes** — a replay renames rather than replaces, so a renamed axis leaves the old file behind — and `--keep-stale` switches that off. The regenerate stage replays across every core, `--jobs=1` for one. Renders **one** picture per scene; `--every-variant` asks for all four lighting presets in both aim modes, a folder each, and `--lighting=X` or `--aim-lines=X` picks one out |
-| `load:plan`      | Assigns the gear across the transporters and reports weight and space as **two** verdicts. A payload overrun exits non-zero, since it is a legal problem rather than an inconvenience; a bounding-box volume over the bay is stated as evidence, and under it is never a permission. `--exclude-owner=gmss` is the invocation this collective uses ([docs/load.md](docs/load.md)) |
+| `load:plan`      | Assigns the gear across the transporters and reports weight and space as **two** verdicts. `--exclude-owner=gmss --exclude=sepp-generator-25kva` is the invocation this collective uses: GMSS's gear does not travel in these vans and Sepp's 465 kg generator goes on a trailer. A payload overrun exits non-zero, since it is a legal problem rather than an inconvenience; a bounding-box volume over the bay is stated as evidence, and under it is never a permission. ([docs/load.md](docs/load.md)) |
 | `catalog`        | Equipment table plus total weight, total volume and how many specs still need measuring. Transporters are reported separately as a fleet, with payload and bay volume each, and are kept out of the library's weight and volume totals. `--write` also writes `docs/catalog.md` |
 
 ## Adding a device

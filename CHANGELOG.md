@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.93.0] - 2026-08-17
+
+Sepp bought a 25 kVA generator, and it is the heaviest single object in the library by a factor of two.
+
+### Added
+
+- **`specs/power/sepp-generator-25kva.yaml`** — 465 kg, 25 kVA, engine Hatz 3M41, all three stated by the owner.
+  The next heaviest device is GMSS's 220 kg wall bass and the heaviest thing that actually *travels* is a 90 kg
+  SKRAM, so this is **45 % of either van's entire payload on its own**, and the first device here that two people
+  cannot carry at all
+- **`load:plan --exclude=ID`**, which is not the question `--exclude-owner` answers. The generator travels on a
+  **trailer** rather than in a van — stated by the owner — so it is neither a whole owner's gear nor part of a van's
+  load. Without a way to say so the planner puts 465 kg in a van and reports a **679.5 kg** shortfall nobody has.
+  A vehicle id is refused, because a van is not cargo
+- Three tests, and `specs/power/` as a directory
+
+### Known
+
+- **The trailer is the item most likely to put the whole library on one journey, and it is filed as LOAD-5.** The
+  vans are 214.5 kg short; a trailer takes that remainder *and* the generator comfortably, since the Ducato tows
+  3000 kg braked on its papers and the Movano 2500. `subtype: trailer` is already accepted and `LoadPlanner` already
+  handles any number of bins — what is missing is the trailer's own figures and the rule that **a trailer's load is
+  limited by what tows it**
+- **The dimensions are estimated and rounded up**, which is the opposite direction from the load bays and for the
+  opposite reason: a bay estimated small refuses a load that would have fitted, where an *item* estimated small
+  promises a fit that is not there. Expect the real machine to be smaller by up to 200 mm on any axis. The engine
+  does not settle the frame — several firms build 25 kVA sets on a 3M41 and an open skid, a canopy and a trailer
+  version are three different boxes. One photograph of the nameplate settles the make, the mass and the output
+- **No schema field holds 25 kVA**, so it lives in the spec's notes. Filed as SPEC-14, deliberately deferred until
+  a second device needs it: a field with one user is a field that will be wrong about the second
+- A 465 kg item needs a ramp, a tail lift or a forklift, and the planner knows nothing about any of them
+
 ## [0.92.0] - 2026-08-17
 
 **Stated by the owner: the vans need at least wire-type models so a pack can be planned.** They do, and the category

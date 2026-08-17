@@ -127,6 +127,50 @@ final class LoadPlanCommandTest extends TestCase
     }
 
     /**
+     * **A device that travels some other way is named and left out**, which is not the question `--exclude-owner`
+     * answers.
+     *
+     * Sepp's 465 kg generator rides on a trailer rather than in a van — stated by the owner — so it is neither a
+     * whole owner's gear nor part of a van's load. Without a way to say so the planner puts 465 kg of it in a van
+     * and reports a shortfall of 679.5 kg that nobody actually has. Until the trailer is a spec and becomes a third
+     * bin, naming the device is the only way to tell the truth about what the vans carry.
+     */
+    public function testADeviceTravellingSomeOtherWayIsLeftOutByName(): void
+    {
+        $withIt = $this->invoke(['--exclude-owner' => ['gmss']])->getDisplay();
+        $withoutIt = $this->invoke([
+            '--exclude-owner' => ['gmss'], '--exclude' => ['sepp-generator-25kva'],
+        ])->getDisplay();
+
+        self::assertStringContainsString('sepp-generator-25kva', $withIt, 'it is cargo unless excluded');
+        self::assertStringNotContainsString('sepp-generator-25kva', $withoutIt);
+    }
+
+    /**
+     * An id that is not a device is a typo, and a typo that silently excluded nothing would give a load plan for a
+     * heavier load than the one being planned.
+     */
+    public function testAnUnknownDeviceToExcludeIsRefused(): void
+    {
+        $tester = $this->invoke(['--exclude' => ['sepp-generator-30kva']]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString("unknown device 'sepp-generator-30kva'", $tester->getDisplay());
+    }
+
+    /**
+     * **A vehicle id cannot be excluded as cargo**, because a van is not cargo. Left unguarded this would silently
+     * accept `--exclude=opel-movano-l4h3` and change nothing, which reads as having worked.
+     */
+    public function testAVehicleCannotBeExcludedAsCargo(): void
+    {
+        $tester = $this->invoke(['--exclude' => ['opel-movano-l4h3']]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('unknown device', $tester->getDisplay());
+    }
+
+    /**
      * Naming one vehicle plans for that vehicle alone, which is the "Sepp is not coming" case and the one most
      * likely to be asked on the day.
      */

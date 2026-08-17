@@ -3,14 +3,27 @@
 Which gear rides in which transporter, and whether the fleet may legally carry it.
 
 ```bash
-ddev exec bin/console load:plan --exclude-owner=gmss   # the invocation this collective actually uses
-ddev exec bin/console load:plan --owner=sepp           # one owner's gear only
+# the invocation this collective actually uses
+ddev exec bin/console load:plan --exclude-owner=gmss --exclude=sepp-generator-25kva
+
+ddev exec bin/console load:plan --owner=sepp                 # one owner's gear only
 ddev exec bin/console load:plan --vehicle=opel-movano-l4h3   # Sepp is not coming
 ```
 
-**`--exclude-owner=gmss` is the real one.** GMSS's gear does not travel in these two vans, which is an arrangement
-between people rather than a property of the cabinets, so it is stated on the command line and not baked into the
-code. Without it the planner is asked to carry 3493.7 kg, which is not a question anybody has.
+**`--exclude-owner=gmss --exclude=sepp-generator-25kva` is the real one**, and the second half of it is newer than
+the first. GMSS's gear does not travel in these two vans, and Sepp's 465 kg generator travels on a **trailer** — both
+stated by the owner, both facts about arrangements between people rather than properties of the cabinets, so both are
+stated on the command line and not baked into the code.
+
+**Without the exclusion the generator eats 465 kg of van payload** and the plan reports a 679.5 kg shortfall nobody
+actually has. Until the trailer is a spec of its own and becomes a third bin — LOAD-5 — naming the device is the only
+way to tell the truth about what the vans carry.
+
+**And the trailer is the interesting part.** The vans are 214.5 kg short of one journey. A trailer takes the
+generator *and* that remainder comfortably: the Ducato tows 3000 kg braked on its papers and the Movano 2500 kg. So
+LOAD-5 is the item most likely to put the whole library on one trip for the first time.
+
+Without either exclusion the planner is asked to carry 3958.7 kg, which is not a question anybody has.
 
 ## The answer, today
 

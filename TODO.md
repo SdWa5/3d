@@ -805,6 +805,7 @@ now exist, and whose answer is currently a statement about two estimates rather 
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
+| LOAD-5 | **A trailer is a third bin, and Sepp is bringing one.** `subtype: trailer` is already accepted by the vehicle category and nothing uses it; `LoadPlanner` already handles any number of bins. What is missing is the trailer's own figures — permitted gross, unladen mass, bed dimensions — and a rule the planner does not have: **a trailer's load is limited by what tows it**, and both vans state that on their papers (O1 3000 kg braked for the Ducato, 2500 for the Movano, 750 unbraked each). **This is the item most likely to put the whole library on one journey**, because the vans are only 214.5 kg short and a trailer swallows that plus the 465 kg generator | P1 | 3h | one trip instead of two, if the trailer's figures allow it | the trailer's papers | needs the owner |
 | LOAD-2 | Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed**: 2500 kg with a full tank and driver, so 1000 kg of payload — **365 kg heavier than its own Zulassungsschein**, which knows nothing about a fit-out added after type approval. **Stefan's Movano has not been weighed** and its 1024 kg is the same class of paper figure that just proved 365 kg optimistic. What is left: **the Movano on a scale**, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3 | P1 | 45m | the difference between a load plan and a fine | — | needs the owner |
 
 #### LOAD-2 — both vans documented, neither measured inside
@@ -952,6 +953,7 @@ shared tops row, which is SWP-2. ALN-4's rule stands untouched and the two items
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
+| SPEC-14 | **No schema field holds electrical output.** Sepp's generator is 25 kVA on a Hatz 3M41 and both figures live in its `notes`, because the closest thing here is the `audio` section, which is about what a cabinet radiates. Worth a `power:` block once there is a second device that needs one — a distro, a second generator — and not before, since a field with one user is a field that will be wrong about the second | P3 | 1h 30m | somewhere for kVA to live that a report can read | a second power device | open |
 | SPEC-1 | Finish GMSS — five specs exist from the builder's own figures; measuring them is what is left | P2 | phys | provenance for 14 cabinets, 994 kg | — | partial |
 | SPEC-5 | Measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec describes a design or a datasheet, not our build | P2 | phys | — | — | partial |
 | SPEC-6 | `audio.drivers` cannot record a count without a size — `size_in` is required, so "2× unknown" has to omit the whole `audio` block | P2 | 45m | `gmss-mid-bass` keeps what is known | — | open |
