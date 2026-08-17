@@ -9,9 +9,10 @@ use App\Spec\DeviceSpec;
 /**
  * The axes the sweep walks, and what each of them means when nobody names a value.
  *
- * Six questions get asked of every rig — whose gear, how many stacks, which alignment, which shape, which cabinets lie
- * down, and what a rolled row does with its odd cabinet — and this is where five of them are turned from what somebody
- * typed into what gets built. The sixth, the stack count, is a literal `[1, 2, 3]` and has nothing to decide.
+ * Seven questions get asked of every rig — whose gear, how many stacks, how separately the systems stand, which
+ * alignment, which shape, which cabinets lie down, and what a rolled row does with its odd cabinet — and this is where
+ * six of them are turned from what somebody typed into what gets built. The seventh, the stack count, is a literal
+ * `[1, 2, 3]` and has nothing to decide.
  *
  * **Why this is not in the command.** `SceneStackCommand` grew past 1900 lines and the parsing was 250 of them, but
  * size was the symptom rather than the reason: none of this touches the solve. An axis is a fact about *what the sweep
@@ -60,6 +61,26 @@ final class SweepAxes
         $stated = self::of($raw, StackShape::class, '--shape');
 
         return is_string($stated) || $stated !== [] ? $stated : StackShape::cases();
+    }
+
+    /**
+     * How separately the systems stand, or the reason one of them is not a value — the seventh axis.
+     *
+     * Returns `[]` when nothing was named, which the caller reads per rig rather than here: separation means nothing
+     * below two owners, so a single-owner rig is offered `pooled` alone and the default cannot be a flat list of
+     * cases. See {@see SystemSplit::forOwnerCount}.
+     *
+     * **`--systems` narrows the axis, it does not collapse the sweep**, which is the same line `--align` and
+     * `--shape` sit on. `--per-owner` is the older way to ask for one value of it and does collapse, because it was
+     * built as "this rig, separated" rather than as an axis — and it stays exactly as it was, since 433 written
+     * scenes record their regeneration with it.
+     *
+     * @param list<string> $raw
+     * @return list<SystemSplit>|string `[]` when none was named
+     */
+    public static function systemSplits(array $raw): array|string
+    {
+        return self::of($raw, SystemSplit::class, '--systems');
     }
 
     /**

@@ -81,6 +81,8 @@
 #
 # Subs reach 0.6 m against a 2.0 m interface. The stack is 0.6 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the subs reach 0.600 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
+#     a sub wing, so the interface decides nothing about it
 #
 # main-sdwa5-3 — sdwa5-3, 5 cabinets in 3 rows:
 #

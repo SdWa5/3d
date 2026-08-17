@@ -4,6 +4,78 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.96.0] - 2026-08-17
+
+The seventh axis's third value, and what measuring it said about the reading everybody had of it.
+
+### Added
+
+- **`tops-shared`, SWP-2's third value, so the separation axis is complete.** Each system's **subs** are its own
+  stack and every top in the rig is one pool dealt across those walls. On the gear we own that is not a subtlety:
+  there are exactly three top types and one belongs to each owner, so `pooled` mixes everything, `systems-apart`
+  puts each owner's tops straight back on that owner's own subs, and only this value can stand a Tecnare on GMSS's
+  wall. **The sweep writes 398 more scenes, 1374 in total against a fuse of 1500**, which is what raising the fuse
+  was for
+- `--systems=VALUE`, repeatable, narrowing the axis the way `--shape` and `--align` do. `--per-owner` is unchanged
+  and still means `systems-apart`, because 433 written scenes record their own regeneration with it
+- `App\Scene\SharedTops` — the deal, in one sentence: **widest top first, each cabinet to the wall with the most
+  unused top face.** So the long throw is placed before the fill, the tops spread across walls instead of piling on
+  one, and every top is dealt somewhere even where no wall has room left. Five tests pin the rule's fairness rather
+  than its optimality, the tie included: the sweep names a file per rig, so two runs that resolved a tie differently
+  would write two files for one rig
+- `StackBlock::topFaceWidthM()`, which is what a thing standing *on* a stack has to fit, as against `widthM()`'s
+  widest tier anywhere. A pyramid's base is its widest row and its top face its narrowest
+- Three tests at the command level, one of them the point of the whole value: some stack carries another system's
+  tops, asserted generically rather than on the pair of ids it happens to produce today
+
+### Changed
+
+- **The deal is a second pass over solved walls, which is what the item asked for and why.** How much top face a
+  wall offers is the solver's answer rather than the inventory's, since the number of rows a wall comes out with is
+  what the fill searches for — so a deal made before the first solve is a deal made against a guess. Each stack is
+  then solved again from its subs plus its dealt share, and the first solve is thrown away apart from its geometry
+- The dealt count is written as `count:` on the stack entry, a key `StackEntry` already had, so a `tops-shared`
+  scene is an ordinary generated scene and re-solves on every build like every other one. **No schema change, no new
+  placement type, and all 1374 scenes replay from their own recorded command to byte-identical files**
+- `SweepAxes` gained the sixth parser and now describes seven axes rather than six
+
+### Fixed
+
+- **70 generated scenes had a sub wall short of its interface and said nothing about it**, and the rule that made
+  them silent was defensible: "nothing to fire over anybody's head means nothing to say". That is right about the
+  tops and wrong about the header, which prints `Subs reach 1.800 m against a 2.000 m interface` for every stack
+  whether or not anything stands on it — so an unexplained miss reads as a solver bug to the next reader. A sub wing
+  now says that nothing stands on it, and the sweep's console note says the same rather than claiming tops fire below
+  head height when there are no tops
+- **The test that was supposed to catch that had a hole in it.** It measured each wall and then looked for the
+  explanation *anywhere in the file*, so a scene whose other stack warned about something covered for a silent one.
+  Only the one scene with no other warning at all ever failed. Each wall is now held to the lines that follow its own
+  header, which is 4413 assertions against 1374, and the tightened version was checked against a pre-fix file rather
+  than trusted: it fails on exactly the wall that used to pass
+- **Neither defect was specific to the new axis value.** `--split=by-type` deals a stack whole types and can leave
+  one of them with no tops the same way, and 69 of the 70 files predate this release
+
+### Known
+
+- **A narrow wall beside two wide ones can be dealt no tops at all**, and that is deliberate rather than a gap in the
+  rule. On the `all` rig at one stack per owner all eight tops went to the sdwa5 and gmss walls and left Sepp's six
+  Achenbachs as a sub wing, because the wide walls still had more unused face than the 1.22 m one had in total. The
+  alternative is worse: forcing a top onto a wall that cannot carry it means the solver drops it and the cabinet is
+  in no stack at all, which this repository treats as the worse failure throughout. What a starved wall must do is
+  say so, and now it does
+- **What `tops-shared` shares is the pool and not the row, and that was settled by measuring rather than by
+  argument.** The tempting reading is one tops row bridging two sub walls, and it cannot be built: the three walls
+  come out at **2.31 / 2.383 / 1.8 m** in the `systems-apart` scenes and **2.44 / 3.61 / 1.8** in the upright
+  variant. Two walls drawn from two different inventories do not come out level, and there is no common module to
+  make them — our cabinet heights are 0.600 / 0.763 / 0.836 / 0.914 / 0.960 m. A row resting on both would hang in
+  the air over the lower one
+- **So SYM-3 did not fall out of this item, contrary to what TODO said for three releases.** A row that really does
+  bridge two walls needs walls that are level by construction, which means a mirrored pair out of one pool. That
+  mechanism is still to be written, and SYM-3 now waits on nothing instead of waiting on SWP-2
+- Adding the value renamed nothing. `tops-shared` is 11 characters against the 13 `systems-apart` had already set
+  the id column to, and **not one of the 976 existing scene files changed** — which is the check that the new value
+  leaks into neither of the other two
+
 ## [0.95.0] - 2026-08-17
 
 The pack as a picture, the wheel arches as boxes, and two specs corrected by their real datasheets.

@@ -59,6 +59,8 @@
 #   1  2× achenbach-18                                                           1.22 m wide
 #
 # Subs reach 0.6 m against a 2.0 m interface. The stack is 0.6 m of cabinet.
+#   * the subs reach 0.600 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
+#     a sub wing, so the interface decides nothing about it
 #
 # main-gmss-1 — gmss-1, 3 cabinets in 2 rows:
 #

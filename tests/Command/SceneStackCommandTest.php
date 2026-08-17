@@ -864,17 +864,39 @@ final class SceneStackCommandTest extends TestCase
             $name = basename($file);
 
             preg_match('/^\s*max_sub_height_m:\s*(\S+)/m', $yaml, $ceiling);
-            preg_match_all('/^# Subs reach ([\d.]+) m against a ([\d.]+) m interface/m', $yaml, $walls);
-            self::assertNotSame([], $walls[1], $name.' records no sub wall height');
 
-            foreach ($walls[1] as $index => $height) {
-                if ((float)$height + 1e-9 < (float)$walls[2][$index]) {
-                    self::assertStringContainsString('m interface asked for', $yaml, $name.' is short and silent');
+            // **Per stack, not per file, and that distinction was a real hole rather than a refinement.** This used to
+            // measure each wall and then look for the explanation anywhere in the file, so a scene whose *other* stack
+            // warned about something covered for a silent one — and **70 shipped scenes had a silent short sub wing
+            // inside them** for exactly that reason, found in 0.96.0 when a scene with no other warning finally
+            // failed. Each wall is now held to the lines that follow its own `Subs reach` header.
+            $blocks = preg_split('/(?=^# Subs reach )/m', $yaml, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $walls = 0;
+            foreach ($blocks as $block) {
+                if (preg_match('/^# Subs reach ([\d.]+) m against a ([\d.]+) m interface/', $block, $wall) !== 1) {
+                    continue;
                 }
-                if ($ceiling !== [] && (float)$height > (float)$ceiling[1] + 1e-9) {
-                    self::assertStringContainsString('m ceiling asked for', $yaml, $name.' is tall and silent');
+                ++$walls;
+                // Only the block's own commentary, which ends where the next stack's does or where the YAML starts.
+                $said = preg_split('/^(# main-|id: )/m', $block)[0] ?? '';
+
+                if ((float)$wall[1] + 1e-9 < (float)$wall[2]) {
+                    self::assertStringContainsString(
+                        'm interface asked for',
+                        $said,
+                        $name.' has a stack short of its interface and says nothing about it',
+                    );
+                }
+                if ($ceiling !== [] && (float)$wall[1] > (float)$ceiling[1] + 1e-9) {
+                    self::assertStringContainsString(
+                        'm ceiling asked for',
+                        $said,
+                        $name.' has a stack over its ceiling and says nothing about it',
+                    );
                 }
             }
+
+            self::assertGreaterThan(0, $walls, $name.' records no sub wall height');
         }
     }
 
@@ -1285,14 +1307,14 @@ final class SceneStackCommandTest extends TestCase
     /**
      * **The sweep offers rigs where the two sound systems stand apart, which it never did before.**
      *
-     * SWP-2's seventh axis. Every generated scene pooled the gear until now — verified rather than assumed, since
-     * not one written file carried `--per-owner` in its recorded command — because naming that option collapses the
-     * sweep to a single point. So a rig with each system in its own stack could be asked for by hand and never came
-     * out of the sweep.
+     * SWP-2's seventh axis, all three values of it. Every generated scene pooled the gear until 0.91.0 — verified
+     * rather than assumed, since not one written file carried `--per-owner` in its recorded command — because naming
+     * that option collapses the sweep to a single point. So a rig with each system in its own stack could be asked
+     * for by hand and never came out of the sweep.
      *
-     * **Separated rigs are not marginal**: on the `gmss` + `sepp` pair the sweep writes 116 of them against 90
-     * pooled, because giving each system its own narrower stack stands up more often than pooling two systems into
-     * one wide one.
+     * **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **116 `systems-apart`,
+     * 105 `tops-shared` and 90 `pooled`**, because a system in its own narrower stack stands up more often than two
+     * systems in one wide one, and the tops of one system standing on the other's subs is a third rig again.
      */
     public function testTheSweepOffersSystemsStandingApartAsWellAsPooled(): void
     {
@@ -1303,20 +1325,25 @@ final class SceneStackCommandTest extends TestCase
 
         foreach ($matches[1] as $id) {
             self::assertMatchesRegularExpression(
-                '/-(pooled|systems-apart)-+/',
+                '/-(pooled|systems-apart|tops-shared)-+/',
                 $id,
                 $id.' does not say how separately its systems stand',
             );
         }
 
-        // **Both values, and the separated half is the larger one.** Asserting only that the field is present would
-        // pass on a sweep that never separated anything, which is precisely the state this axis replaces.
-        $separated = count(array_filter($matches[1], static fn (string $id): bool => str_contains($id, '-systems-apart')));
-        $pooled = count($matches[1]) - $separated;
-        self::assertGreaterThan(0, $pooled);
+        // **Every value writes something, and each is counted for itself.** Asserting only that the field is present
+        // would pass on a sweep that never separated anything, which is precisely the state this axis replaces — and
+        // counting "not pooled" as one number would let a third value that wrote nothing hide behind the second.
+        $count = static fn (string $value): int => count(array_filter(
+            $matches[1],
+            static fn (string $id): bool => str_contains($id, '-'.$value.'-'),
+        ));
+
+        self::assertGreaterThan(0, $count('pooled'));
+        self::assertGreaterThan(0, $count('tops-shared'));
         self::assertGreaterThan(
-            $pooled,
-            $separated,
+            $count('pooled'),
+            $count('systems-apart'),
             'two systems in their own stacks stand up more often than two systems in one',
         );
     }
@@ -1362,6 +1389,9 @@ final class SceneStackCommandTest extends TestCase
      * system. Left to the deduplication instead, every single-owner rig would be solved twice to write one file —
      * and single-owner rigs are 153 of the sweep's scenes, so that is a large fraction of the work spent proving a
      * tautology.
+     *
+     * Both separated values, since the same argument retires both: one system's subs with its own tops dealt back
+     * onto them is the rig `pooled` already wrote.
      */
     public function testASingleOwnerRigIsNotOfferedASeparationItCannotHave(): void
     {
@@ -1369,6 +1399,97 @@ final class SceneStackCommandTest extends TestCase
 
         self::assertStringContainsString('-pooled', $display);
         self::assertStringNotContainsString('-systems-apart', $display);
+        self::assertStringNotContainsString('-tops-shared', $display);
+    }
+
+    /**
+     * **`tops-shared` stands one system's tops on another system's subs, which is the rig neither other value can
+     * express.** SWP-2's third value.
+     *
+     * On the gear we own the difference is not subtle: there are exactly three top types and one belongs to each
+     * owner — three Tecnares to `sdwa5`, two 2-ways to `sepp`, three turbo tops to `gmss`. So `pooled` mixes
+     * everything into one stack and `systems-apart` puts each owner's tops straight back onto that owner's own subs.
+     * Only this value can put a Tecnare on GMSS's wall, and on the `gmss` + `sdwa5` pair it does exactly that.
+     *
+     * **Asserted generically rather than on the pair of ids it happens to produce today.** The claim is that some
+     * stack carries a top from another system, not that GMSS's wall carries the third Tecnare specifically — the
+     * deal spends a measured budget, so which cabinet lands where is a consequence of the walls the solver returned.
+     */
+    public function testTopsSharedStandsOneSystemsTopsOnAnothersSubs(): void
+    {
+        $display = $this->invoke([
+            '--owner' => ['gmss', 'sdwa5'],
+            '--systems' => ['tops-shared'],
+            '--stacks' => '1',
+            '--shape' => ['pyramid'],
+            '--orientation' => ['upright'],
+            '--align' => ['center'],
+            '--dry-run' => true,
+        ])->getDisplay();
+
+        // Which owner each top belongs to, written out rather than loaded, so the test says what it means. A stack
+        // is named `main-<owner>` by the generator, which is what makes the comparison possible at all.
+        $owners = ['tecnare-m2122' => 'sdwa5', 'gmss-turbo-top' => 'gmss', 'eighteensound-2way-15' => 'sepp'];
+
+        $borrowed = [];
+        $stack = null;
+        foreach (explode("\n", $display) as $line) {
+            if (preg_match('/^  - id: main-(\S+)$/', $line, $named) === 1) {
+                $stack = $named[1];
+                continue;
+            }
+            if ($stack === null || preg_match('/^\s+- (?:device: )?(\S+)$/', $line, $device) !== 1) {
+                continue;
+            }
+            $owner = $owners[$device[1]] ?? null;
+            if ($owner !== null && $owner !== $stack) {
+                $borrowed[] = sprintf('%s on the %s stack', $device[1], $stack);
+            }
+        }
+
+        self::assertNotSame(
+            [],
+            $borrowed,
+            'no stack carries another system\'s tops, so this is `systems-apart` under a different name',
+        );
+    }
+
+    /**
+     * **A `tops-shared` rig records its own value**, for the reason the separated rigs do: the axis lives on the rig
+     * rather than on the input, so a replay that read the options back off the command line would rebuild it pooled
+     * under this rig's name.
+     *
+     * `--per-owner` cannot say it. That flag is the older way to ask for one value of the axis and means
+     * `systems-apart`, so the value that has no flag is recorded by name.
+     */
+    public function testATopsSharedRigRecordsItsOwnValue(): void
+    {
+        $display = $this->invoke([
+            '--owner' => ['gmss', 'sdwa5'],
+            '--systems' => ['tops-shared'],
+            '--stacks' => '1',
+            '--shape' => ['pyramid'],
+            '--orientation' => ['upright'],
+            '--align' => ['center'],
+            '--dry-run' => true,
+        ])->getDisplay();
+
+        self::assertStringContainsString('--systems=tops-shared', $display);
+        self::assertStringNotContainsString('--per-owner', $display);
+    }
+
+    /**
+     * A misspelled value on the seventh axis is refused and every allowed one is named, which is the rule
+     * {@see \App\Scene\SweepAxes} holds for all six parsed axes.
+     */
+    public function testAnUnknownSystemsValueNamesTheThreeThereAre(): void
+    {
+        $tester = $this->invoke(['--systems' => ['apart-ish'], '--dry-run' => true]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        foreach (['pooled', 'systems-apart', 'tops-shared'] as $value) {
+            self::assertStringContainsString($value, $tester->getDisplay());
+        }
     }
 
     /**

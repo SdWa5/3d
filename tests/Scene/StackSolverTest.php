@@ -1396,6 +1396,39 @@ final class StackSolverTest extends TestCase
      * @param list<string> $ids
      * @return list<array{DeviceSpec, int}>
      */
+    /**
+     * **A sub wing that falls short of its interface says so, rather than saying nothing.**
+     *
+     * The rule used to be "nothing to fire over anybody's head means nothing to say", which is right about the tops
+     * and wrong about the header: a scene file prints `Subs reach 1.800 m against a 2.000 m interface` for every
+     * stack whether or not anything stands on it, so an unexplained miss reads as a solver bug to the next reader.
+     * The suite caught a shipped scene doing exactly that — the shared tops all went to the two wide walls and left
+     * six Achenbachs as a wing — and the miss is not specific to that axis value, since `--split=by-type` can hand a
+     * stack whole types and give one of them no tops either.
+     *
+     * **And the reason has to be the right one.** "The tops sit lower than ideal" is false of a stack with no tops,
+     * which is why this is a second message rather than the same one with the guard dropped.
+     */
+    public function testASubWingShortOfItsInterfaceSaysNothingStandsOnIt(): void
+    {
+        $result = StackSolver::solve(
+            // Six Achenbachs and no top of any kind, two wide: 1.8 m against a 2.0 m interface.
+            $this->inventory(['achenbach-18']),
+            new Stack(from: [], maxWidthM: 1.30, interfaceHeightM: 2.0, gapM: 0.02),
+        );
+
+        $warnings = implode("\n", $result['warnings']);
+
+        self::assertSame([], $result['problems']);
+        self::assertStringContainsString('m interface asked for', $warnings, 'a short wing must not be silent');
+        self::assertStringContainsString('nothing stands on them', $warnings);
+        self::assertStringNotContainsString(
+            'the tops sit',
+            $warnings,
+            'a stack with no tops cannot have tops sitting low',
+        );
+    }
+
     private function inventory(array $ids): array
     {
         return array_map(

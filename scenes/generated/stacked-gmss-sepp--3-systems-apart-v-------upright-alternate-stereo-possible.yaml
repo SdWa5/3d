@@ -42,6 +42,8 @@
 #
 # Subs reach 0.6 m against a 2.0 m interface. The stack is 0.6 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the subs reach 0.600 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
+#     a sub wing, so the interface decides nothing about it
 #
 # main-sepp-3 — sepp-3, 3 cabinets in 2 rows:
 #

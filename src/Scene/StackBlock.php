@@ -90,6 +90,43 @@ final class StackBlock
         return $widest;
     }
 
+    /**
+     * Whether anything stands on the sub wall — false for a **sub wing**, which is an ordinary thing to build.
+     *
+     * Asked because two messages are wrong without it. Both the file's own header and the sweep's console note report
+     * a wall that falls short of its `interface_height_m`, and both used to explain it as tops firing below head
+     * height. On a stack with no tops that sentence is simply false, and staying silent instead is no better: the
+     * header prints the height against the interface either way, so an unexplained miss reads as a solver bug.
+     */
+    public function hasTops(): bool
+    {
+        foreach ($this->tiers as $tier) {
+            if (!$tier->isSub()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * How wide the **top** of this stack is, which is a different question from {@see widthM} and is asked by
+     * exactly one caller.
+     *
+     * `widthM()` is the widest tier anywhere in the stack, because that is what a neighbouring stack has to clear.
+     * What something standing *on* the stack has to fit is the topmost tier alone, and the two differ by a lot on any
+     * rig that is not a column: a pyramid's base is its widest row and its top face is its narrowest. Used by
+     * {@see SharedTops} to decide which sub wall has room for another top.
+     *
+     * Zero for a stack with no tiers, which is not a real stack and is worth answering rather than crashing on.
+     */
+    public function topFaceWidthM(): float
+    {
+        $top = $this->tiers === [] ? null : $this->tiers[count($this->tiers) - 1];
+
+        return $top?->widthM($this->stack->gapM) ?? 0.0;
+    }
+
     public function cabinets(): int
     {
         $count = 0;

@@ -813,8 +813,9 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 ### scene:stack — writing the scene for you
 
 **The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
-configuration it can stand up: one rig per combination of owners, by one, two and three stacks, in all three shapes, all
-three alignments and all seven orientation/mirror pairs — **396 scenes of ~1200 candidates** on the current inventory, with every
+configuration it can stand up: one rig per combination of owners, by one, two and three stacks, by all three ways the
+systems can stand apart, in all three shapes, all three alignments and all seven orientation/mirror pairs — **1374
+scenes of 2718 candidates** on the current inventory, with every
 refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
 required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
 naming `--align` narrows it to one mode.
@@ -826,6 +827,8 @@ Read the skipped list as well as the scenes. A sweep that writes twenty and sile
 
 A generated scene is named for **all seven axes**, in the order the sweep nests them. Two of the seven arrived late
 and each renamed every file that existed: `possible`/`impossible` in 0.89.0 and `pooled`/`systems-apart` in 0.91.0.
+The separation axis then gained its third value, `tops-shared`, in 0.96.0 and renamed nothing — 11 characters against
+the 13 `systems-apart` had already set the column to, which is why shipping two of three first cost nothing.
 
 ```text
 stacked -gmss------1 -pooled -pyramid -upright     -alternate   -center   -possible
@@ -1112,7 +1115,8 @@ so block and stereo alignment have nothing left to spread it into.
 |--------|---------|
 | `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use) — lowest driven corner first where both cabinets state one, heaviest first where either does not, subs before tops |
 | `--owner=NAME` | repeatable: build from these owners' gear only. Default: **sweep every non-empty combination of them**, so each owner alone, each pair and everything. It narrows one axis rather than collapsing the sweep, so the stack counts, shapes, orientations and mirror styles are still walked |
-| `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here. **Not the same option as `--owner`**, which picks whose gear is in the rig at all |
+| `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here. **Not the same option as `--owner`**, which picks whose gear is in the rig at all. It collapses the sweep to that point, where `--systems=systems-apart` says the same thing as an axis narrowing |
+| `--systems=VALUE` | repeatable: `pooled`, `systems-apart` or `tops-shared`. How separately the systems stand — see [the seventh axis](#how-separately-the-systems-stand-the-seventh-axis). Narrows the axis rather than collapsing the sweep, and it is the only way to ask for `tops-shared`, which has no flag of its own |
 | `--stacks=N` | split each group into N stacks — how a stereo pair is asked for |
 | `--split=MODE` | `by-count` (default) gives every stack a share of every device; `by-type` gives each stack whole device types, balanced by `quantity × width`. **`by-type` is what makes a rig low** — a by-count stack holds every type and is as many rows tall as there are types, where a by-type stack holds two or three. It needs at least one type per stack and says so otherwise |
 | `--target-sub-height=M` | **defaults to 2.5 m** — the sub/top transition the rig *aims at*, as opposed to the two bounds it has to stay between. A preference and never a refusal: it decides which of the legal arrangements comes back, and the bounds decide which are legal. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
@@ -1212,7 +1216,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep, which writes **976** candidates, 898 possible and 78 impossible, 543 pooled and 433 with the systems apart. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep, which writes **1374** candidates, 1259 possible and 115 impossible, 543 pooled, 433 with the systems apart and 398 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1226,22 +1230,54 @@ point. A rig with each system in its own stack could be asked for by hand and ne
 | --- | --- |
 | `pooled` | every stack gets a share of every cabinet, whoever owns it |
 | `systems-apart` | each system is its own group, dealt across the stacks in turn |
-| *subs apart, tops shared* | **not built yet** — see below |
+| `tops-shared` | each system's **subs** are its own group, and every top in the rig is one pool dealt across those walls |
 
-**Separated rigs are not marginal.** On the `gmss` + `sepp` pair the sweep writes **116 separated against 90
-pooled**, because giving each system its own narrower stack stands up more often than pooling two systems into one
-wide one. Across the whole sweep the axis adds **433 scenes to 543**.
+`--systems=VALUE` narrows the axis the way `--shape` and `--align` do, and it is repeatable. `--per-owner` is the
+older way to ask for one value of it, means `systems-apart`, and collapses the sweep rather than narrowing it — it
+stays exactly as it was, because 433 written scenes record their own regeneration with it.
 
-**A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. Leaving
-that to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner rigs
-are 153 of the sweep.
+**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **116 `systems-apart`, 105
+`tops-shared` and 90 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
+one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the axis
+adds **433 + 398 scenes to 543**, for **1374**.
 
-**The third value is not buildable yet and the reason is architectural.** "Subs apart, tops shared" breaks an
-assumption the code holds everywhere — that a stack's tops come from the same pool its subs came from. The solver
-is handed one id list per stack and builds the whole stack from it, so "these subs, those tops" cannot be expressed.
-It needs a second pass that deals the tops after the sub stacks are solved, because only that pass can see the sub
-wall heights the tops row has to sit on. Adding it costs no rename: `systems-apart` is the longest value and
-already sets the field's width.
+**A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
+both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
+Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
+rigs are 153 of the sweep.
+
+##### What `tops-shared` shares is the pool and not the row
+
+**The tempting reading is one tops row bridging two sub walls, and it cannot be built.** That was settled by
+measuring rather than by argument: in the `systems-apart` scenes the three walls come out **2.31 / 2.383 / 1.8 m**
+high, and in the upright variant **2.44 / 3.61 / 1.8**. Two walls drawn from two different inventories do not come
+out level, and there is no common module to make them — our cabinet heights are 0.600 / 0.763 / 0.836 / 0.914 /
+0.960 m, no two of them multiples of anything. A row resting on both would hang in the air over the lower one, which
+no solver can fix. A row that really does bridge two walls belongs to a **mirrored pair out of one pool**, whose
+walls are identical by construction, and that is SYM-3.
+
+**On the gear we own the shared pool is not a subtlety.** There are exactly three top types and one belongs to each
+owner: three Tecnares to `sdwa5`, two 2-ways to `sepp`, three turbo tops to `gmss`. So `pooled` mixes everything
+into one stack, `systems-apart` puts each owner's tops straight back onto that owner's own subs, and only this value
+can stand a Tecnare on GMSS's wall. Borrowing tops across systems is the ordinary shape of a shared gig, and the
+repository supports lending gear on purpose.
+
+**The deal is a second pass over solved walls.** Only a pass that runs after the sub stacks are solved can see how
+much top face each wall offers, because the number of rows a wall comes out with is the solver's decision rather
+than the inventory's. The rule is one sentence: **widest top first, each cabinet to the wall with the most unused top
+face.** Three things follow, all deliberate:
+
+- **The long throw is placed before the fill**, so the biggest boxes get the best walls.
+- **Cabinet by cabinet, so the tops spread rather than pile up.** Three Tecnares across three walls come out one
+  each, because a wall with no tops on it has nothing firing over the crowd.
+- **Every top is dealt somewhere, even where no wall has room left.** The budget goes negative rather than the
+  cabinet being held back, and the solver is the backstop: it reports whatever it cannot carry as `LEFT OUT`.
+
+**The budget does not prove anything fits**, and that boundary matters because it looks like a geometric claim. The
+deal is made on the walls as the first pass solved them, and the second pass re-solves each stack from a different
+inventory — subs plus tops — so the wall it measured may not be the wall it gets. Bearing, height and
+interpenetration are all checked afterwards by the same rules every other rig goes through. What the budget is for is
+spreading the tops sensibly. See `App\Scene\SharedTops`.
 
 #### Possible and impossible, the sixth axis
 
@@ -1276,9 +1312,10 @@ rig out of every geometry rule by naming it.
 
 The candidates share nothing. Each is a solve and a compile over the same inventory, none of them reads what another
 writes, and the file writing happens afterwards on the survivors — so the only thing the loop ever shared was the CPU.
-It is now forked across as many processes as the machine has cores. **Measured on the default sweep, 1206 candidates
-and about 100 minutes of CPU between them: 25 minutes serial against 1m58s across 28 cores**, with byte-identical
-output.
+It is now forked across as many processes as the machine has cores. **Measured on the default sweep as it stood at
+1206 candidates, about 100 minutes of CPU between them: 25 minutes serial against 1m58s across 28 cores**, with
+byte-identical output. The sweep is 2718 candidates since the seventh axis gained its third value and takes just under
+three minutes on the same machine, so the ratio is what this measurement is good for rather than the figure.
 
 Two properties are worth stating, because a fork would break each of them first. **The order out is the order in**:
 results are re-keyed from the candidate list rather than from whichever worker finished first, so the scene list, the

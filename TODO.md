@@ -23,7 +23,7 @@ file: 551 of the sweep's refusals were that one message.
 comes out does not matter at all unless a parameter limiting the width is explicitly passed. That is CVR-8, **built**
 together with CVR-7, and no generated scene carries a width any more.
 
-Where that stands: bare `scene:stack` writes **396 scenes of ~1200 candidates**, every stack's sub/top transition
+Where that stands: bare `scene:stack` writes **1374 scenes of 2718 candidates**, every stack's sub/top transition
 **aimed at 2.5 m** and its miss written on the file where it misses, every refusal named, and every shape rule stated in
 **metres rather than in cabinet counts**. What is still refused is geometry and duplicates — grouped below by cause.
 
@@ -32,8 +32,8 @@ Where that stands: bare `scene:stack` writes **396 scenes of ~1200 candidates**,
 three-stack rigs became possible at all, because a rolled sub wall is short enough for the band where an upright one is
 not. And **the borrowed-gear pairs beat every single owner**: `sdwa5-sepp` writes 50 scenes, more than `all` at 17.
 
-**The target is stated once, in SWP-1**, as a six-axis cross product. All of it exists except the `impossible` half of
-the last axis, which is CVR-5, and SWP-2 then adds a seventh axis.
+**The target is stated once, in SWP-1**, as a six-axis cross product. All of it exists, and the seventh axis SWP-2 added
+is complete as of 0.96.0.
 
 ## How to read this
 
@@ -76,37 +76,39 @@ the last axis, which is CVR-5, and SWP-2 then adds a seventh axis.
 
 Settled with the owner, so a new session can act on it without re-deriving it:
 
-**GEO-12, GEO-11's stack-local half, TOOL-6, TOOL-7 and TOOL-8 are done**, which is why the list now starts where it
-does. TOOL-7 left a narrow remainder, filed as TOOL-15.
+**GEO-12, GEO-11's stack-local half, TOOL-6, TOOL-7, TOOL-8 and SWP-2 are done**, which is why the list now starts
+where it does. TOOL-7 left a narrow remainder, filed as TOOL-15.
 
-1. **SWP-2's third value**, `subs apart, tops shared`, which is the one rig shape the sweep still cannot express.
-   The other two shipped in 0.91.0. This one is architectural rather than an axis value: the solver is handed one id
-   list per stack and builds the whole stack from it, so it needs a second pass that deals the tops after the sub
-   stacks are solved — only that pass can see the sub wall heights the tops row has to sit on. SYM-3's spreading
-   half is the same problem, so design them together.
+**SWP-2's third value shipped in 0.96.0** and cost 398 scenes of the fuse's headroom, so the sweep is 1374 against a
+limit of 1500. What it did *not* settle is SYM-3's spreading half, which this item was supposed to be designed
+together with: the two turned out to be different problems rather than one. `tops-shared` shares the **pool**, and a
+tops row physically bridging two walls needs the walls to be level — which two different owners' inventories never
+are, measured at 2.31 / 2.383 / 1.8 m. A bridging row therefore belongs to a mirrored pair out of one pool, and that
+is SYM-3 alone.
 
-   **The fuse has room for it**, at 1500 against today's 976, and that was the point of the raise.
+**Before the list, one errand: put the Movano on a scale.** LOAD-2 is back at P1 for one reason. Sepp's payload was
+estimated at 1200 kg, documented at 1365 and then **weighed at 1000** — his van is 365 kg heavier than its own
+registration document, because a fit-out added after type approval appears in no field of it. The Movano's 1024 kg is
+exactly the same class of figure and has never been checked. If it is out by anything like as much, the fleet is short
+by well over 300 kg rather than 214.5, and every load plan drawn from it is optimistic in the direction that ends in a
+fine. **One weighbridge ticket settles it**, and no amount of code substitutes.
 
-   **Before that, though: put the Movano on a scale.** LOAD-2 is back at P1 for one reason. Sepp's payload was
-   estimated at 1200 kg, documented at 1365 and then **weighed at 1000** — his van is 365 kg heavier than its own
-   registration document, because a fit-out added after type approval appears in no field of it. The Movano's
-   1024 kg is exactly the same class of figure and has never been checked. If it is out by anything like as much,
-   the fleet is short by well over 300 kg rather than 214.5, and every load plan drawn from it is optimistic in the
-   direction that ends in a fine. **One weighbridge ticket settles it**, and no amount of code substitutes.
+**The runtime cluster came off this list entirely, and it is worth saying why.** TOOL-10 was ranked second on a
+measured 6m40s. The stage now takes **34 s**, because 0.85.0 forked the very thing TOOL-10 was going to teach to skip,
+so it is 1h 30m of work for half a minute and drops to P3 with the rest of them. The lesson is the ranking rather than
+the item: **a priority argued from a measurement expires when the measurement does**, and this one expired inside a
+single release.
 
-   **The runtime cluster came off this list entirely, and it is worth saying why.** TOOL-10 was ranked second on a
-   measured 6m40s. The stage now takes **34 s**, because 0.85.0 forked the very thing TOOL-10 was going to teach to
-   skip, so it is 1h 30m of work for half a minute and drops to P3 with the rest of them. The lesson is the ranking
-   rather than the item: **a priority argued from a measurement expires when the measurement does**, and this one
-   expired inside a single release.
-2. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
+1. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
    cabinets need *is* a gapped row, so the search that landed already does half of it.
-3. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis is the thing that makes the
-   enable/disable surface worth building.
-4. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 falls out of
-   SWP-2 almost entirely and is no longer blocked on anything: the evenness rule is **equal pitch**, settled, and its
-   169 mm cost on the tightest tops row is measured.
-5. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
+2. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis with three values on it is
+   the thing that makes the enable/disable surface worth building — and **the directory is now 1374 files**, which is
+   the half of SWP-3 that has stopped being a preference.
+3. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 did **not**
+   fall out of SWP-2 as this list expected: `tops-shared` shares the pool, where SYM-3 needs a row bridging two walls,
+   which only a mirrored pair can carry level. So the mechanism is still to be built, and the evenness rule is **equal
+   pitch**, settled, with its 169 mm cost on the tightest tops row measured.
+4. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
    stack-local half shipped in 0.83.0 and unblocked GEO-9 and GEO-4 as far as it can; what is left needs the front face
    and the solve to stop depending on each other.
 
@@ -498,7 +500,7 @@ refusing.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties. **No longer blocked on a decision.** The spreading half is SWP-2's shared tops row rather than a change to `Alignment`, and the evenness rule is **equal pitch**, settled by the owner. Both measured, see the section | P1 | 5h | broadest stereo image; the mono spread. Costs 169 mm on the tightest tops row, which only bites where a width is explicitly stated — see CVR-8 | SWP-2 | open |
+| SYM-3 | Stereo/mono placement breadth: subs mono where possible and spread only as far as the tops need; tops as wide and as evenly spaced as possible; symmetry wins ties. **No longer blocked on a decision or on another item.** The spreading half is a tops row shared across a **mirrored pair** rather than a change to `Alignment`, and the evenness rule is **equal pitch**, settled by the owner. Both measured, see the section — and 0.96.0 established that SWP-2's `tops-shared` does *not* supply the mechanism, since it shares the pool rather than the row | P1 | 5h | broadest stereo image; the mono spread. Costs 169 mm on the tightest tops row, which only bites where a width is explicitly stated — see CVR-8 | — | open |
 | SYM-2 | Stack ordering cannot make the flanks *equal*, only place the tall ones | P3 | 1h | 3 of 13 multi-stack scenes are height-asymmetric | GEO-4 | partial |
 
 #### SYM-3 — both blockers settled, and it is now work rather than a decision
@@ -510,7 +512,7 @@ as possible", with symmetry between and inside stacks optimised.
 **Both blockers are settled.** The first turned out to be a different item, and the second was answered by the owner
 after it was measured. Nothing here waits on a decision any more.
 
-##### Resolved: spreading subs is SWP-2, not a new mechanism
+##### Resolved: spreading subs is a shared tops **row**, not a change to `Alignment` — and SWP-2 does not supply it
 
 **Two different things wear the word "spread", and only one of them was ever the problem.**
 
@@ -525,9 +527,15 @@ every tier still sits on a whole stack. **This is what the ask actually wants, a
 
 **What is missing is that every stack carries its own tops row.** `StackSolver::topRow()` builds the tops from what is
 left in *that stack*, so widening the clearance moves the subs and their tops together. The tops cannot be held in place
-while the subs open underneath them, and a top cannot go wider than its own stack. That is exactly **SWP-2's middle
-value, "subs apart, tops shared"**, arriving from the other direction. So this half is not a change to `Alignment` at
-all, and **SYM-3 no longer waits on ALN-4.**
+while the subs open underneath them, and a top cannot go wider than its own stack. So this half is not a change to
+`Alignment` at all, and **SYM-3 no longer waits on ALN-4.**
+
+**It does not wait on SWP-2 either, and that correction is worth keeping.** This section used to say the mechanism *was*
+SWP-2's third value arriving from the other direction. It is not, and 0.96.0 settled it by measuring: `tops-shared`
+shares the **pool**, dealing every top across the sub walls, and a row physically bridging two walls needs those walls
+to be level. Two different owners' walls come out at 2.31 / 2.383 / 1.8 m and there is no common module in our cabinet
+heights to make them agree, so a bridging row can only stand on a **mirrored pair out of one pool** — which is SYM-3's
+own case and nothing SWP-2 built. The mechanism is still to be written.
 
 **One real constraint comes with it, and it is computable rather than a guess.** A tops row spanning two sub stacks has
 cabinets over the gap, which is the same standing-on-air problem one level up. Every top must still land on a third of
@@ -609,39 +617,12 @@ nothing at all: 6 variants refused by GEO-2's family and the rest by the sub hei
 
 ## SWP · the sweep's axes
 
-**What the autogeneration should produce, stated as one cross product.** Today's sweep is **~1200 candidates writing 150
-scenes**; SWP-1's own target is **2646 candidates**, and SWP-2 adds a seventh axis on top of that.
+**What the autogeneration should produce, stated as one cross product.** Today's sweep is **2718 candidates writing
+1374 scenes**, past SWP-1's own target of 2646, and the seventh axis SWP-2 asked for is complete.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SWP-2 | **How separate the sound systems stand**, the seventh axis. **Two of three values shipped in 0.91.0**: `pooled` and `systems-apart`, adding 433 scenes to 543. What is left is **`subs apart, tops shared`**, which breaks the assumption that a stack's tops come from the same pool its subs came from — the solver is handed one id list per stack. It needs a second pass dealing the tops after the sub stacks are solved, so it can see the sub wall heights the tops row sits on. Costs no rename, since `systems-apart` already sets the field width | P2 | 4h | the one rig shape the sweep still cannot express | — | partial |
-| SWP-3 | **Sweep configuration** — turn each axis value on and off individually, **group sound systems so the grouping overrides `owner`**, and let each axis be a **subfolder** instead of a field in the file name, nested in the name's own order with the value in one place or the other but never both. All three stated by the owner | P1 | 12h | control over an output that is ~1200 candidates and growing, a directory somebody can navigate at 396 files and rising, and the grouping is what CVR-3's discriminator question was really asking | decision on the discriminator, see CVR-3 | open |
-
-#### SWP-2 — the one grouping the sweep still cannot express
-
-Where: `SceneStackCommand::groups()`, `SystemSplit`, and a second dealing pass for the tops.
-
-**Two of the three values shipped in 0.91.0.** `pooled` was all the sweep ever wrote, and `systems-apart` gives each
-owner its own group — 433 scenes on top of 543, and **the separated half is the larger one where it applies**: on the
-`gmss` + `sepp` pair, 116 separated against 90 pooled, because each system in its own narrower stack stands up more
-often than two systems in one wide one.
-
-**What is left is `subs apart, tops shared`, and it is architecture rather than an axis value.** It breaks an
-assumption the code holds everywhere: that a stack's tops come from the same pool its subs came from.
-`groups()` returns one id list per stack and the solver builds the whole stack from it, so "these subs, those tops"
-has no way to be expressed.
-
-**Deal the tops in a second pass, not as a second list on the group.** Only a second pass can see the sub wall
-heights, and the tops row has to sit on them. A second list would have to guess.
-
-**SYM-3's spreading half is the same problem**, so design them together. "Spread the subs only as far as the tops
-need" is a solve for the clearance between sub stacks under a shared tops row, and the bound is the bearing rule one
-level up: a top over the gap must still land on a third of its width, which puts a ceiling near 0.600 m for a
-0.450 m top. Build the shared tops row so that clearance is solvable rather than fixed and SYM-3 becomes a ranking
-question instead of a mechanism.
-
-**Room in the fuse**: 1500 against today's 976, which is what the raise was for. Adding the value costs no rename,
-because `systems-apart` is the longest of the three and already sets the id field's width.
+| SWP-3 | **Sweep configuration** — turn each axis value on and off individually, **group sound systems so the grouping overrides `owner`**, and let each axis be a **subfolder** instead of a field in the file name, nested in the name's own order with the value in one place or the other but never both. All three stated by the owner. **`--systems` is the first of them and is one axis only**: 0.96.0 made the separation narrowable by value, which is the pattern the other six should follow rather than a substitute for this | P1 | 12h | control over an output that is 2718 candidates and growing, a directory somebody can navigate at **1374 files** and rising, and the grouping is what CVR-3's discriminator question was really asking | decision on the discriminator, see CVR-3 | open |
 
 #### SWP-3 — configuring the sweep, and grouping systems
 
@@ -912,6 +893,7 @@ until somebody runs this on a small machine.
 | TOOL-13 | **The seating check's memo lives for one solve.** Across a 483-scene sweep every solve rebuilds it from empty, and identical arrangements recur across rigs that share cabinets. Worth a shared cache only once its hit rate across rigs is measured, because the key is a whole arrangement and most of them are unique | P3 | 1h | unmeasured, and possibly nothing | — | open |
 | TOOL-14 | **Every command re-reads and re-parses every spec.** Negligible once, and the regenerate stage makes 483 invocations of it. Last of these by a distance: the cost is unmeasured, the fix touches every command's bootstrap, and TOOL-10 removes most of the invocations that make it matter | P3 | 2h | unmeasured | TOOL-10 first | open |
 | TOOL-9 | **The wall clock is fixed and the CPU bill is not.** 0.85.0 forked the sweep across every core, so 25 minutes became 1m58s with byte-identical output, and that was the whole of the pain. What is left is the bill itself: 1206 candidates cost about 100 minutes of CPU between them, because GEO-12's ladder walks roughly fifty steps where the old cabinet count walked a dozen. **Measured rather than assumed**: the same sweep with the seating check short-circuited off is 20m14s serial, so GEO-11's compile adds only two to four minutes and the ladder is the whole of the rest. The lever is still pruning ladder steps that cannot change the answer, never dropping a dimension. **Demoted because the symptom is gone**, and it comes back the moment somebody runs this on a four-core laptop | P3 | 3h | a sweep that is cheap rather than merely quick, and the same speed on a small machine | — | partial |
+| TOOL-16 | **`SceneStackCommand` is 2098 lines and past the "should refactor" threshold.** It crossed 2000 in 0.96.0 and the growth is not padding: it holds the axis enumeration, the naming, the grouping, four dealing strategies, the solve, the deduplication, the fuse, the writing and the pruning. Two seams are already proven — `SweepAxes` took the parsing out in 0.87.0 and `SharedTops` took the tops deal out in 0.96.0, both because they could be tested without a console. The next two on the same test are **the naming** (a rig plus five axis values to a padded id, which needs no inventory) and **the dealing strategies** (`inventoryFor`, `outerShare`, `dealAll`, `splitRemainder`, which need a device list and nothing else) | P2 | 4h | a file somebody can read, and two more rules testable without a rig | — | open |
 | TOOL-3 | Run `tools/check-glb.py` in CI — needs Blender in the workflow, so probably a separate job gated on `blender/` or `specs/` changing | P2 | 1h 30m | — | — | open |
 | TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
@@ -961,7 +943,8 @@ stated lengths and leaves the geometry alone, is the schema decision the row is 
 **ALN sits below the P1 groups on its own top row.** It used to say here that ALN-4 is what SYM-3 waits on. **That is no
 longer true**, and the reason is worth keeping: SYM-3 wanted to spread the subs, ALN-4 forbids spreading a load-bearing
 tier, and the resolution is that SYM-3 never needed a tier spread at all. It needs sub *stacks* moved apart under a
-shared tops row, which is SWP-2. ALN-4's rule stands untouched and the two items are now independent.
+shared tops row, which is a mechanism nobody has built — SWP-2's third value shares the tops **pool** and not the row,
+measured in 0.96.0. ALN-4's rule stands untouched and the two items are now independent.
 
 ## SCN · scenes and renders
 

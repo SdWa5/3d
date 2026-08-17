@@ -17,6 +17,7 @@ use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
+use App\Scene\SharedTops;
 use App\Scene\Stack;
 use App\Scene\StackBlock;
 use App\Scene\StackEntry;
@@ -209,6 +210,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Build from these owners\' gear only. Default: sweep every combination of them')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
+            ->addOption('systems', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'How separately the systems stand: pooled, systems-apart or tops-shared (each system\'s subs, with every top dealt across those walls). Default: all three where there is more than one owner')
             ->addOption('stacks', null, InputOption::VALUE_REQUIRED, 'Split each group into this many stacks. Default: sweep 1, 2 and 3')
             ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
             ->addOption('max-scenes', null, InputOption::VALUE_REQUIRED, 'Refuse to write more than this many', (string)self::DEFAULT_MAX_SCENES)
@@ -262,7 +264,17 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $rigs = $this->rigsToTry($specs, $input);
+        // **Parsed before the other axes because the rigs are built from it**, and a rig is decided one step earlier
+        // than a shape or an alignment: the separation is a property of the rig, so a misspelling has to be refused
+        // here rather than four lines further down with the rest of them.
+        $splits = SweepAxes::systemSplits($input->getOption('systems'));
+        if (is_string($splits)) {
+            $this->io->error($splits);
+
+            return self::FAILURE;
+        }
+
+        $rigs = $this->rigsToTry($specs, $input, $splits);
 
         $at = $this->readAt((string)$input->getOption('at'));
         if ($at === null) {
@@ -499,14 +511,27 @@ final class SceneStackCommand extends BaseCommand
                 );
             }
             if ($floor > 0.0 && $height + 1e-9 < $floor) {
-                return sprintf(
-                    'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, so the '
-                    .'tops fire below head height',
-                    $whose,
-                    $height,
-                    $floor,
-                    ($floor - $height) * 1000,
-                );
+                // **The reason depends on whether anything stands on the wall**, and reporting the wrong one is worse
+                // than reporting nothing: a sub wing has no tops to fire below head height, so the sentence would be
+                // false about the very rig it is describing. See {@see StackBlock::hasTops}, and
+                // {@see StackChecks::boundsProblems} for the same split in the file's own header.
+                return $block->hasTops()
+                    ? sprintf(
+                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, so the '
+                        .'tops fire below head height',
+                        $whose,
+                        $height,
+                        $floor,
+                        ($floor - $height) * 1000,
+                    )
+                    : sprintf(
+                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, and '
+                        .'nothing stands on them: it is a sub wing, so the interface decides nothing about it',
+                        $whose,
+                        $height,
+                        $floor,
+                        ($floor - $height) * 1000,
+                    );
             }
         }
 
@@ -645,7 +670,7 @@ final class SceneStackCommand extends BaseCommand
      * @param list<DeviceSpec> $specs
      * @return list<array{from: list<string>, stacks: int, suffix: string}>
      */
-    private function rigsToTry(array $specs, InputInterface $input): array
+    private function rigsToTry(array $specs, InputInterface $input, array $splits = []): array
     {
         /** @var list<string> $stated */
         $stated = $input->getOption('from');
@@ -672,8 +697,12 @@ final class SceneStackCommand extends BaseCommand
                 // that refusal lives. Clamping it here silently solved a one-stack rig instead.
                 'stacks' => (int)($statedStacks ?? 1),
                 // The separation is a property of the rig from here on rather than a flag read deep inside the
-                // solve, which is what lets the sweep offer both values of it. On this path the caller stated it.
-                'split' => $input->getOption('per-owner') ? SystemSplit::SystemsApart : SystemSplit::Pooled,
+                // solve, which is what lets the sweep offer all three values of it. On this path the caller stated
+                // it, and **`--systems` wins over `--per-owner`** where somebody names both: it is the option that
+                // can say which of the two separated values was meant, so reading the flag instead would answer a
+                // narrower question than the one asked. Only the first value is used, since a named rig is one rig.
+                'split' => $splits[0]
+                    ?? ($input->getOption('per-owner') ? SystemSplit::SystemsApart : SystemSplit::Pooled),
                 'suffix' => '',
             ]];
         }
@@ -718,7 +747,13 @@ final class SceneStackCommand extends BaseCommand
                 // **SWP-2's axis, and it is offered only where it can mean something.** A rig drawn from one owner
                 // has nothing to separate, so it gets `pooled` alone — see {@see SystemSplit::forOwnerCount}. That
                 // is a third of the sweep not solved twice to produce one file.
-                foreach (SystemSplit::forOwnerCount(count($ownersOf[$label] ?? [])) as $split) {
+                //
+                // `--systems` then narrows what is left, in the enum's own order rather than the order it was typed,
+                // so `--systems=tops-shared --systems=pooled` and the reverse name the same rigs. Intersected rather
+                // than replacing the list, because "offered where it can mean something" is a fact about the rig and
+                // an option may not talk a single-owner rig into a separation it has nothing to separate.
+                $offered = SystemSplit::forOwnerCount(count($ownersOf[$label] ?? []));
+                foreach ($splits === [] ? $offered : array_intersect($offered, $splits) as $split) {
                     $rigs[] = [
                         'from' => $from,
                         'stacks' => $stacks,
@@ -776,10 +811,11 @@ final class SceneStackCommand extends BaseCommand
         InputInterface $input,
         SystemSplit $split = SystemSplit::Pooled,
     ): array|string {
-        $groups = $this->groups($devices, $from, $stacks, $input, $split);
-        if (is_string($groups)) {
-            return $groups;
+        $grouped = $this->groups($devices, $from, $stacks, $input, $split);
+        if (is_string($grouped)) {
+            return $grouped;
         }
+        ['stacks' => $groups, 'tops' => $pool] = $grouped;
 
         // **Mirror if possible, and do not lose gear to get it.** Two ways to deal the inventory out: split every
         // device evenly, which makes the stacks identical, or keep a device whole in the middle stack when there
@@ -809,27 +845,40 @@ final class SceneStackCommand extends BaseCommand
         $firstProblem = null;
 
         foreach ($strategies as [$evenSplit, $placeAll]) {
-            $attempt = [];
-            $problem = null;
-
-            foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
-                // Cast, because PHP turns an array key that looks like a number into one — `--stacks=2` without
-                // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
-                $label = (string)$key;
-                $block = $this->solveGroup(
-                    $devices, $ids, $label, $mode, $shape, $style, $orientation, $maxWidthM, $input,
-                    count($groups) > 1, $index, $of, $evenSplit, $placeAll,
-                );
-                if (is_string($block)) {
-                    $problem = $label === '' ? $block : sprintf('%s: %s', $label, $block);
-                    break;
-                }
-                $attempt[] = $block;
+            $attempt = $this->solveEach(
+                $groups, [], $devices, $mode, $shape, $style, $orientation, $maxWidthM, $input, $evenSplit, $placeAll,
+            );
+            if (is_string($attempt)) {
+                $firstProblem ??= $attempt;
+                continue;
             }
 
-            if ($problem !== null) {
-                $firstProblem ??= $problem;
-                continue;
+            // **SWP-2's SECOND PASS, and it is a second pass rather than a second list because of what it reads.**
+            // A pool of tops is only non-empty under `tops-shared`, and it is dealt against the walls **as they came
+            // out** — how much top face a wall offers is the solver's answer rather than the inventory's, so nothing
+            // before this point could have known it. See {@see SharedTops} for the rule.
+            //
+            // Then every stack is solved again, from its subs plus its dealt share. The first solve is thrown away
+            // apart from its geometry, which is the honest cost of dealing against a solved wall instead of a
+            // guessed one: the sweep forks, so it is CPU rather than anybody's time.
+            if ($pool !== []) {
+                $attempt = $this->solveEach(
+                    $groups,
+                    SharedTops::deal($attempt, $pool, $devices),
+                    $devices,
+                    $mode,
+                    $shape,
+                    $style,
+                    $orientation,
+                    $maxWidthM,
+                    $input,
+                    $evenSplit,
+                    $placeAll,
+                );
+                if (is_string($attempt)) {
+                    $firstProblem ??= $attempt;
+                    continue;
+                }
             }
 
             // **CABINETS FIRST, THEN THE TARGET.** More cabinets always wins, because a cabinet in no rig at all is the
@@ -897,6 +946,52 @@ final class SceneStackCommand extends BaseCommand
         }
 
         return ['yaml' => $yaml, 'bandMiss' => $bandMiss] + $compiled;
+    }
+
+    /**
+     * Every group solved into a block, or the first reason one of them could not be.
+     *
+     * **Extracted because SWP-2 needs to run it twice**, once on the sub walls alone and once on the same walls with
+     * the pooled tops dealt onto them. Inlined in the strategy loop it was one pass by construction, and the second
+     * one would have been a copy — which is how the two would have drifted into solving slightly different rigs.
+     *
+     * `$deal` is empty for every value but `tops-shared`, so this behaves exactly as the inlined loop did for the
+     * other two.
+     *
+     * @param array<string, array{ids: list<string>, index: int, of: int}> $groups
+     * @param array<string, array<string, int>> $deal group label => device id => cabinets dealt to it
+     * @param array<string, DeviceSpec> $devices
+     * @return list<StackBlock>|string
+     */
+    private function solveEach(
+        array $groups,
+        array $deal,
+        array $devices,
+        LayoutMode $mode,
+        StackShape $shape,
+        MirrorStyle $style,
+        ?StackOrientation $orientation,
+        ?float $maxWidthM,
+        InputInterface $input,
+        bool $evenSplit,
+        bool $placeAll,
+    ): array|string {
+        $blocks = [];
+        foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
+            // Cast, because PHP turns an array key that looks like a number into one — `--stacks=2` without
+            // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
+            $label = (string)$key;
+            $block = $this->solveGroup(
+                $devices, $ids, $label, $mode, $shape, $style, $orientation, $maxWidthM, $input,
+                count($groups) > 1, $index, $of, $evenSplit, $placeAll, $deal[$label] ?? [],
+            );
+            if (is_string($block)) {
+                return $label === '' ? $block : sprintf('%s: %s', $label, $block);
+            }
+            $blocks[] = $block;
+        }
+
+        return $blocks;
     }
 
     /**
@@ -977,9 +1072,15 @@ final class SceneStackCommand extends BaseCommand
      *
      * `--stacks=N` then splits each group into that many, evenly, which is how a stereo pair is asked for.
      *
+     * **`tops-shared` takes the tops out of the groups altogether**, which is the one thing here that is not simply a
+     * partition of the device list: each group keeps its owner's subs and the tops come back separately as a pool for
+     * {@see SharedTops} to deal once the walls are solved. A group is still the fill order it arrived in, since
+     * {@see everySpeaker} emits subs low-frequency-first and then tops, so removing the tops is a truncation rather
+     * than a re-sort.
+     *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $from
-     * @return array<string, array{ids: list<string>, index: int, of: int}>|string
+     * @return array{stacks: array<string, array{ids: list<string>, index: int, of: int}>, tops: array<string, int>}|string
      */
     private function groups(
         array $devices,
@@ -1006,9 +1107,26 @@ final class SceneStackCommand extends BaseCommand
             );
         }
 
-        // **Read off the rig rather than off the option, which is what lets one sweep offer both.** `--per-owner`
-        // still decides it for a caller who names a rig by hand; on the sweep the axis decides, and the option is
-        // recorded into each written scene's regenerate line so a replay rebuilds the same grouping.
+        // **THE TOPS COME OUT OF THE INVENTORY BEFORE IT IS GROUPED, and only for `tops-shared`.** Taken out here
+        // rather than after the grouping because the pool is a fact about the rig: every top in it is dealt across
+        // every wall, so which owner it came from stops mattering the moment the value is chosen. What is left in
+        // `$from` is the subs, and each owner's share of those is its wall.
+        $pool = [];
+        if ($systems->sharesTops()) {
+            $subs = [];
+            foreach ($from as $id) {
+                if ($devices[$id]->subtype === 'sub') {
+                    $subs[] = $id;
+                    continue;
+                }
+                $pool[$id] = $devices[$id]->quantity;
+            }
+            $from = $subs;
+        }
+
+        // **Read off the rig rather than off the option, which is what lets one sweep offer all three.**
+        // `--per-owner` still decides it for a caller who names a rig by hand; on the sweep the axis decides, and the
+        // value is recorded into each written scene's regenerate line so a replay rebuilds the same grouping.
         $groups = [];
         if ($systems->isPerOwner()) {
             foreach ($from as $id) {
@@ -1016,6 +1134,12 @@ final class SceneStackCommand extends BaseCommand
             }
         } else {
             $groups[''] = $from;
+        }
+        if ($groups === []) {
+            // Only reachable with `tops-shared`, and only on an inventory of nothing but tops. Worth its own refusal
+            // rather than an empty-stack error further down: there is nothing wrong with the request except that
+            // there are no subs in it, and nothing stands a top up but a sub.
+            return 'tops-shared: this inventory is all tops — there are no subs to make a wall out of';
         }
 
         // Splitting shares each device out rather than each *group*, so both halves of a stereo pair get some
@@ -1043,7 +1167,7 @@ final class SceneStackCommand extends BaseCommand
             }
         }
 
-        return $dealt;
+        return ['stacks' => $dealt, 'tops' => $pool];
     }
 
     /**
@@ -1141,6 +1265,8 @@ final class SceneStackCommand extends BaseCommand
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
+     * @param array<string, int> $tops device id => cabinets dealt to this stack out of the shared pool, `[]` for
+     *     every value of the separation axis but `tops-shared`
      * @return StackBlock|string
      */
     private function solveGroup(
@@ -1158,9 +1284,16 @@ final class SceneStackCommand extends BaseCommand
         int $of,
         bool $evenSplit = true,
         bool $placeAll = false,
+        array $tops = [],
     ): StackBlock|string {
+        // **The dealt tops join the list after the subs, which is where the fill order wants them.** Appended rather
+        // than merged, because `$ids` is a fill order and not a set: {@see everySpeaker} emits subs low-frequency
+        // first and then tops, {@see groups} truncated the tops off the end for `tops-shared`, and this puts back a
+        // different set of them in the same place.
+        $ids = [...$ids, ...array_keys($tops)];
+
         // What the split does with the odd cabinets, named up front rather than left to be inferred from the tiers.
-        $omitted = $this->splitRemainder($devices, $ids, $of, $evenSplit, $placeAll);
+        $omitted = $this->splitRemainder($devices, $ids, $of, $evenSplit, $placeAll, $tops);
 
         // Try the whole group, then the group with one device removed, smallest holding first — the cabinet
         // most likely to be the odd one out is the one there are fewest of.
@@ -1191,7 +1324,7 @@ final class SceneStackCommand extends BaseCommand
             // rebuilt a different one from the same file. See GEO-11 and {@see SceneCompiler::seatingCheck}.
             $placementId = $named ? 'main-'.$label : 'main';
             $solved = StackSolver::solve(
-                $this->inventoryFor($devices, $attempt, $index, $of, $evenSplit, $placeAll),
+                $this->inventoryFor($devices, $attempt, $index, $of, $evenSplit, $placeAll, $tops),
                 $stack,
                 // `center` is written as no alignment at all, so it arrives here as the mode rather than as null —
                 // and `topRow` treats the two identically, which keeps the generated scene and its rebuild agreeing.
@@ -1380,8 +1513,15 @@ final class SceneStackCommand extends BaseCommand
         // `systems-apart` rig — and the replay then rebuilds it pooled, under the separated rig's name, with
         // different geometry and sometimes a different feasibility. Measured before this line existed: 99 of the
         // 976 scenes replayed to a different file, most of them flipping `-possible` to `-impossible`.
-        if ($systems->isPerOwner()) {
+        //
+        // **`--per-owner` for `systems-apart` and `--systems` for the third value**, which is not inconsistency for
+        // its own sake. `--per-owner` is what the 433 separated scenes already record, and emitting `--systems` for
+        // them instead would rewrite every one of those files to say the same thing in different words. The value
+        // that has no flag says so by name.
+        if ($systems === SystemSplit::SystemsApart) {
             $parts[] = '--per-owner';
+        } elseif ($systems !== SystemSplit::Pooled) {
+            $parts[] = '--systems='.$systems->value;
         }
 
         foreach (['no-asymmetry'] as $flag) {
@@ -1455,6 +1595,7 @@ final class SceneStackCommand extends BaseCommand
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
+     * @param array<string, int> $dealt device id => a count decided elsewhere, which overrides the share
      * @return list<array{DeviceSpec, int}>
      */
     private function inventoryFor(
@@ -1464,11 +1605,20 @@ final class SceneStackCommand extends BaseCommand
         int $of,
         bool $evenSplit = true,
         bool $placeAll = false,
+        array $dealt = [],
     ): array {
         $middle = intdiv($of, 2);
 
         return array_map(
-            static function (string $id) use ($devices, $index, $of, $middle, $evenSplit, $placeAll): array {
+            static function (string $id) use ($devices, $index, $of, $middle, $evenSplit, $placeAll, $dealt): array {
+                // **A DEALT COUNT IS AN ANSWER AND NOT A SHARE**, so it wins outright over everything below. The
+                // shared tops of SWP-2 were dealt to *this* stack by {@see SharedTops} across the whole rig, and
+                // dividing that share again by the stack count would deal the pool twice — once across the walls and
+                // once inside each of them.
+                if (isset($dealt[$id])) {
+                    return [$devices[$id], $dealt[$id]];
+                }
+
                 $quantity = $devices[$id]->quantity;
                 $share = intdiv($quantity, $of);
 
@@ -1574,6 +1724,7 @@ final class SceneStackCommand extends BaseCommand
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
+     * @param array<string, int> $dealt device ids whose count was dealt rather than split, which have no remainder
      * @return array<string, string> device id => why some are not in any stack
      */
     private function splitRemainder(
@@ -1582,6 +1733,7 @@ final class SceneStackCommand extends BaseCommand
         int $of,
         bool $evenSplit = true,
         bool $placeAll = false,
+        array $dealt = [],
     ): array {
         if ($of < 2) {
             return [];
@@ -1589,6 +1741,12 @@ final class SceneStackCommand extends BaseCommand
 
         $left = [];
         foreach ($ids as $id) {
+            // A dealt device has no remainder to report, because it was never split: {@see SharedTops} handed this
+            // stack a count across the whole rig. Reporting one would describe an arithmetic the rig did not do.
+            if (isset($dealt[$id])) {
+                continue;
+            }
+
             $quantity = $devices[$id]->quantity;
             $share = intdiv($quantity, $of);
 

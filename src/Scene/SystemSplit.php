@@ -7,29 +7,29 @@ namespace App\Scene;
 /**
  * How separately the sound systems stand, which is SWP-2 and the seventh axis of the sweep.
  *
- * **Every generated scene pooled the gear until now, and that was verified rather than assumed**: not one of the
+ * **Every generated scene pooled the gear until 0.91.0, and that was verified rather than assumed**: not one of the
  * written files carried `--per-owner` in its recorded command, because {@see \App\Command\SceneStackCommand::isSweep}
  * treats naming it as collapsing the sweep to a single point. So a rig where two systems stand as two systems could
  * be asked for by hand and never came out of the sweep.
  *
- * The owner asked for three values. Two are here and the third is not, which is a statement about the code rather
- * than about the idea:
+ * The owner asked for three values and all three are here:
  *
  * | value | what stands where |
  * | --- | --- |
  * | `pooled` | every stack gets a share of every cabinet, whoever owns it |
  * | `systems-apart` | each system is its own stack, subs and tops together |
- * | *subs apart, tops shared* | **not buildable yet** — see below |
+ * | `tops-shared` | each system's **subs** are its own stack, and the tops are one pool dealt across those walls |
  *
- * **The missing value breaks an assumption the code holds everywhere: that a stack's tops come from the same pool
- * its subs came from.** {@see \App\Command\SceneStackCommand::groups} returns one id list per stack and the solver
- * builds the whole stack from it, so "these subs, those tops" cannot be expressed at all. The design decision it
- * needs is recorded in TODO under SWP-2 — a second pass that deals the tops after the sub stacks are solved, rather
- * than a second list on the group, because only the second pass can see the sub wall heights the tops row has to
- * sit on.
+ * **What `tops-shared` shares is the pool and not the row, and that distinction was settled by measuring.** The
+ * tempting reading is one tops row bridging two sub walls, and it cannot be built: in the `systems-apart` scenes the
+ * three walls come out **2.31 / 2.383 / 1.8 m** high, and in the upright variant **2.44 / 3.61 / 1.8**. Two walls
+ * drawn from two different inventories do not come out level, and {@see Stack} says why in its own docblock — our
+ * cabinet heights are 0.600 / 0.763 / 0.836 / 0.914 / 0.960 m with no common module between them. A row resting on
+ * both would hang in the air over the lower one, which no solver can fix. A row that really does bridge two walls
+ * belongs to a **mirrored pair out of one pool**, whose walls are identical by construction, and that is SYM-3.
  *
- * **Adding it later costs no rename**, which is why shipping two of three is not storing up work: `systems-apart`
- * is the longest value and therefore already sets this field's width in every id.
+ * **It cost no rename**, which is why shipping two of three first was not storing up work: `systems-apart` is the
+ * longest value and already set this field's width in every id.
  */
 enum SystemSplit: string
 {
@@ -47,11 +47,40 @@ enum SystemSplit: string
     case SystemsApart = 'systems-apart';
 
     /**
+     * Each system's **subs** in their own stack, with every top in the rig dealt from one pool across those walls.
+     *
+     * **This is the rig neither other value can express**, and on the gear we own it is not a subtle difference:
+     * there are exactly three top types and one belongs to each owner — three Tecnares to `sdwa5`, two 2-ways to
+     * `sepp`, three turbo tops to `gmss`. So `pooled` mixes everything, `systems-apart` puts each owner's tops back
+     * on that owner's own subs, and this is the only one of the three that can stand our Tecnares on Sepp's
+     * Achenbach wall. Borrowing tops across systems is the normal shape of a shared gig and the repository supports
+     * lending gear on purpose.
+     *
+     * **The deal is a second pass over solved walls, not a second list on the group.** Only a pass that runs after
+     * the sub stacks are solved can see how much top face each wall actually offers, because the number of rows a
+     * wall comes out with is the solver's decision rather than the inventory's. See {@see SharedTops} for the rule
+     * and for what it deliberately leaves to the solver.
+     */
+    case TopsShared = 'tops-shared';
+
+    /**
      * Whether this value groups the inventory by who owns each cabinet.
+     *
+     * **Both separated values do**, and that is the point of asking it as a question rather than comparing cases:
+     * `tops-shared` groups the subs by owner exactly as `systems-apart` groups everything, and the two differ only
+     * in what happens to the tops afterwards. {@see sharesTops} is the half that differs.
      */
     public function isPerOwner(): bool
     {
-        return $this === self::SystemsApart;
+        return $this !== self::Pooled;
+    }
+
+    /**
+     * Whether the tops come out of the owner groups and are dealt from one pool instead.
+     */
+    public function sharesTops(): bool
+    {
+        return $this === self::TopsShared;
     }
 
     /**

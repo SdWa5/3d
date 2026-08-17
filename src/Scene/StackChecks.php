@@ -89,8 +89,22 @@ final class StackChecks
         // An **unsupported** tier stays an error ({@see supportChecks}), and that is the line: a cabinet
         // hanging off the edge of its support cannot be built at any price, while tops a bit low can.
         //
-        // Nothing to fire over anybody's head means nothing to say: a stack of subs alone has no interface,
-        // and mentioning one would be noise.
+        // **A wall with no tops on it says so instead of saying nothing**, which is a correction rather than an
+        // addition. The rule used to be "nothing to fire over anybody's head means nothing to say", and that is right
+        // about the *tops* and wrong about the header: the file prints `Subs reach 1.800 m against a 2.000 m
+        // interface` for every stack whether or not anything stands on it, so a silent miss reads as a solver bug to
+        // the next person who opens it. Caught by the suite on
+        // `stacked-all--------1-tops-shared---v-------mixed---centred---center-possible`, where the shared tops all
+        // went to the two wide walls and left Sepp's six Achenbachs as a sub wing — but it was never specific to that
+        // value, since `--split=by-type` can deal a stack whole types and give one of them no tops either.
+        if (!$hasTop && $stack->interfaceHeightM > 0.0 && $subHeight + self::EPSILON_M < $stack->interfaceHeightM) {
+            $warnings[] = sprintf(
+                'the subs reach %.3f m against the %.3f m interface asked for and **nothing stands on them** — this '
+                .'stack is a sub wing, so the interface decides nothing about it',
+                $subHeight,
+                $stack->interfaceHeightM,
+            );
+        }
         if ($hasTop && $stack->interfaceHeightM > 0.0 && $subHeight + self::EPSILON_M < $stack->interfaceHeightM) {
             // "while every tier is still carried" and not "at all": narrowing the rows further would stack
             // higher, but it would also leave the tops overhanging a one-wide column, and support outranks
