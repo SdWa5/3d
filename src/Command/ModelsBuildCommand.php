@@ -77,14 +77,6 @@ final class ModelsBuildCommand extends BaseCommand
         $built = 0;
         $skipped = 0;
         foreach ($selected as $spec) {
-            // A vehicle carries the gear rather than appearing beside it, so there is nothing to model. Reported
-            // rather than filtered out silently, because `--id=opel-movano-l4h3` should say why it built nothing.
-            if (!$spec->category->producesAModel()) {
-                ++$skipped;
-                $this->io->text("  <info>·</info> {$spec->id} is a {$spec->category->value} — nothing to model");
-                continue;
-            }
-
             if (!$force && !$builder->isStale($spec)) {
                 ++$skipped;
                 $this->io->text("  <info>·</info> {$spec->id} up to date");

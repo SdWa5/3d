@@ -14,7 +14,7 @@ final class BuildPlanTest extends TestCase
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(3, $plan['plan_version']);
+        self::assertSame(4, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
@@ -23,6 +23,7 @@ final class BuildPlanTest extends TestCase
         self::assertNull($plan['geometry']['truss'], 'a cabinet has no tubes');
         self::assertNull($plan['geometry']['moving_head']);
         self::assertNull($plan['geometry']['scaffold']);
+        self::assertNull($plan['geometry']['load_bay'], 'a cabinet has no inside to cage');
         self::assertSame('bottom-center', $plan['geometry']['origin']);
         self::assertSame(0.012, $plan['appearance']['grille']['inset_m']);
         self::assertSame(['left', 'right'], $plan['physical']['handles']);

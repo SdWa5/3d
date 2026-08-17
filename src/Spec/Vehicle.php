@@ -94,6 +94,32 @@ final class Vehicle
     }
 
     /**
+     * The bay as the model builder needs it, or null when nobody has measured one.
+     *
+     * **A vehicle with no bay has no model worth drawing**, which is why `shape: load-bay` requires one and
+     * {@see \App\Spec\SpecValidator} refuses the pair otherwise. A wireframe of the outside alone would be a
+     * 6 m box telling a packer nothing it does not already have from `dimensions_m`.
+     *
+     * @return array{width: float, height: float, depth: float, width_between_arches: ?float,
+     *     door_aperture_width: ?float, door_aperture_height: ?float}|null
+     */
+    public function loadBayPlan(): ?array
+    {
+        if ($this->loadBay === null) {
+            return null;
+        }
+
+        return [
+            'width' => $this->loadBay->width,
+            'height' => $this->loadBay->height,
+            'depth' => $this->loadBay->depth,
+            'width_between_arches' => $this->widthBetweenArchesM,
+            'door_aperture_width' => $this->doorApertureWidthM,
+            'door_aperture_height' => $this->doorApertureHeightM,
+        ];
+    }
+
+    /**
      * @return array<string, float|array<string, float>>
      */
     public function toArray(): array

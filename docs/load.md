@@ -111,6 +111,28 @@ The ordering, written down so it can be argued with:
 5. **Weight refuses and space only ranks.** A unit that would put a vehicle over its payload is never placed there;
    a unit that would overfill a bay still is, and the bay is reported as exceeded.
 
+## Seeing it
+
+**Both vans are models now, drawn as cages.** Stated by the owner: the vans need at least wire-type models so a pack
+can be planned. `shape: load-bay` draws three things, each answering a different question —
+
+* the **vehicle outline**, faint, for scale;
+* the **load bay** inside it, in blue, which is the volume cabinets go in;
+* the **floor between the wheel arches**, in yellow, when the spec states it. On the Movano the bay is 1.765 m wide
+  and 1.380 m between the arches, so 385 mm of that width exists only above arch height.
+
+```bash
+ddev exec bin/console models:build --id=opel-movano-l4h3
+```
+
+**Where the bay sits inside the outline is a diagram, not a claim.** It is drawn flush to one end, centred across,
+and resting on the vehicle's own floor line. The real load floor is roughly half a metre up and no registration
+document states it, so drawing it there would be inventing a number — and it changes nothing about a pack, which
+turns on the bay's internal dimensions and on cabinets standing on its floor.
+
+A van whose inside nobody has measured draws its outline alone. That is deliberate: the bay stays optional, because
+a van can be specified from its papers before anybody has been in the back of it.
+
 ## What it does not know yet
 
 The constraints a bounding-box assignment cannot see, and which decide whether a plan is usable:

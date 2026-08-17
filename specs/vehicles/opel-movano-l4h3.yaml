@@ -58,7 +58,10 @@ provenance:
   weight: datasheet
 
 geometry:
-  shape: box
+  # **A cage, not a solid.** The vehicle's outline with its load bay drawn inside it — see
+  # {@see \App\Spec\Shape::LoadBay}. A solid van would be the largest object in any picture that included it and
+  # would hide the rig it is there to carry.
+  shape: load-bay
   # Depth is the fore-aft axis, so the vehicle's 6.848 m length is its depth. Height takes the upper end of the
   # 2792-2808 mm the document states, because a bounding box takes the larger.
   dimensions_m: { width: 2.070, height: 2.808, depth: 6.848 }

@@ -44,6 +44,17 @@ final class ModelBuilder
      * A model is stale when its output is missing or older than any input that shapes it — the
      * spec file itself and the bpy scripts. Comparing against the scripts matters: a change to
      * the geometry builder has to rebuild everything, not just edited specs.
+     *
+     * **Every category produces a model, and for one afternoon one of them did not.** A vehicle was introduced as
+     * the category that is never drawn, on the argument that a 6.8 m solid van would be the largest object in any
+     * picture including it. That argument was right about the *solid* and wrong about the *model*: the owner asked
+     * for wire-type vans so a pack can be planned, so a transporter is now drawn as its own outline with its load
+     * bay caged inside it — {@see \App\Spec\Shape::LoadBay}.
+     *
+     * The half-day in between is worth a line, because it broke `build:all` outright and the loop it broke it in
+     * was a good one: `models:build` skipped the vehicles on purpose, and `library:build` then refused to run
+     * because two models were missing, advising *Run `bin/console models:build` first* — the command that had just
+     * declined to build them.
      */
     public function isStale(DeviceSpec $spec): bool
     {
@@ -110,11 +121,6 @@ final class ModelBuilder
 
         $entries = [];
         foreach ($specs as $spec) {
-            // Nothing to put on the shelf: {@see \App\Spec\Category::producesAModel}. A vehicle has no `.blend`,
-            // so listing it here would point the library script at a file that was never built.
-            if (!$spec->category->producesAModel()) {
-                continue;
-            }
             $entries[] = [
                 'id' => $spec->id,
                 'name' => $spec->name,

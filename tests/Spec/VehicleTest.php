@@ -8,6 +8,7 @@ use App\Spec\ArrayReader;
 use App\Spec\Category;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
+use App\Spec\Shape;
 use App\Spec\SpecValidator;
 use App\Spec\Vehicle;
 use App\Spec\Violation;
@@ -63,7 +64,14 @@ final class VehicleTest extends TestCase
     public function testALoadBayBiggerThanTheVehicleIsRefused(): void
     {
         $messages = $this->validate([
-            'geometry' => ['dimensions_m' => ['width' => 2.07, 'height' => 2.808, 'depth' => 6.848]],
+            // Overriding `geometry` replaces it whole, so the cage shape has to be restated or the validator's
+            // other rule fires first and this test reads the wrong message.
+            'geometry' => [
+                'shape' => 'load-bay',
+                'dimensions_m' => ['width' => 2.07, 'height' => 2.808, 'depth' => 6.848],
+                'origin' => 'bottom-center',
+                'chamfer_m' => 0.02,
+            ],
             'vehicle' => [
                 'permitted_gross_kg' => 3500.0,
                 'load_bay_m' => ['width' => 1.765, 'height' => 3.5, 'depth' => 4.383],
@@ -119,18 +127,48 @@ final class VehicleTest extends TestCase
     }
 
     /**
-     * **A vehicle is never built into geometry**, which every other category is. Without this, `models:build` hands
-     * Blender a 6.8 m white box and `library:build` puts it on the shelf beside the cabinets.
+     * **A vehicle is drawn as a cage, not skipped and not solid**, and this test asserted the opposite for an
+     * afternoon.
+     *
+     * The category arrived as the one thing never turned into geometry, on the argument that a 6.8 m solid van
+     * would be the largest object in any picture that included it. Right about the *solid*, wrong about the
+     * *model*: stated by the owner, the vans need wire-type models so a pack can be planned. So the shape is
+     * `load-bay` — the vehicle's outline with its load bay caged inside it — and `Category::producesAModel()` is
+     * gone, because an abstraction whose only case was wrong is worse than no abstraction.
      */
-    public function testAVehicleIsTheOneCategoryThatProducesNoModel(): void
+    public function testAVehicleIsDrawnAsACageOfItsLoadBay(): void
     {
-        self::assertFalse(Category::Vehicle->producesAModel());
+        $movano = $this->realSpecs()['opel-movano-l4h3'] ?? null;
+        self::assertNotNull($movano);
+        self::assertSame(Shape::LoadBay, $movano->shape);
+        self::assertFalse($movano->shape->isCabinet(), 'a van has no grille, handles or chamfer');
+        self::assertNotNull($movano->vehicle?->loadBayPlan(), 'the cage needs a bay to draw');
+    }
 
-        foreach (Category::cases() as $category) {
-            if ($category !== Category::Vehicle) {
-                self::assertTrue($category->producesAModel(), $category->value.' should still be built');
-            }
-        }
+    /**
+     * **A vehicle drawn as a solid is refused**, which is the thing the cage exists to avoid.
+     *
+     * Note what is *not* refused: a cage with no bay. Requiring both would have made the shape and the bay imply
+     * each other and killed the reason the bay is optional — a van can be specified from its papers before anybody
+     * has been inside it. A bayless vehicle draws its outline alone, which is the honest picture.
+     */
+    public function testAVehicleDrawnAsASolidIsRefused(): void
+    {
+        $messages = $this->validate([
+            'geometry' => [
+                'shape' => 'box',
+                'dimensions_m' => ['width' => 2.07, 'height' => 2.808, 'depth' => 6.848],
+                'origin' => 'bottom-center',
+                'chamfer_m' => 0.02,
+            ],
+            'vehicle' => [
+                'permitted_gross_kg' => 3500.0,
+                'load_bay_m' => ['width' => 1.765, 'height' => 2.048, 'depth' => 4.383],
+            ],
+        ]);
+
+        self::assertNotSame([], $messages);
+        self::assertStringContainsString('drawn as a cage', $messages[0]);
     }
 
     /**
@@ -188,6 +226,22 @@ final class VehicleTest extends TestCase
     }
 
     /**
+     * Every spec in `specs/`, keyed by id.
+     *
+     * @return array<string, DeviceSpec>
+     */
+    private function realSpecs(): array
+    {
+        $specs = [];
+        foreach ((new SpecLoader(dirname(__DIR__, 2).'/specs'))->loadAll()['specs'] as $spec) {
+            /** @var DeviceSpec $spec */
+            $specs[$spec->id] = $spec;
+        }
+
+        return $specs;
+    }
+
+    /**
      * @param array<string, mixed> $overrides
      * @return list<string>
      */
@@ -204,7 +258,8 @@ final class VehicleTest extends TestCase
             'provenance' => 'estimated',
             'audio' => null,
             'geometry' => [
-                'shape' => 'box',
+                // A vehicle is drawn as a cage, which the validator insists on, so the fixture has to be one too.
+                'shape' => 'load-bay',
                 'dimensions_m' => ['width' => 2.07, 'height' => 2.808, 'depth' => 6.848],
                 'origin' => 'bottom-center',
                 'chamfer_m' => 0.02,

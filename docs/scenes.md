@@ -824,11 +824,13 @@ Read the skipped list as well as the scenes. A sweep that writes twenty and sile
 
 #### Every axis is in the name
 
-A generated scene is named for every axis that has a value, in the order the sweep nests them:
+A generated scene is named for **all seven axes**, in the order the sweep nests them. Two of the seven arrived late
+and each renamed every file that existed: `possible`/`impossible` in 0.89.0 and `pooled`/`systems-apart` in 0.91.0.
 
 ```text
-stacked  -gmss------1   -pyramid  -upright       -alternate      -center
-  id      owners+stacks   shape    orientation    mirror style    alignment
+stacked -gmss------1 -pooled -pyramid -upright     -alternate   -center   -possible
+  id     owners+      systems  shape    orientation  mirror       alignment  feasibility
+         stacks       apart?                         style
 ```
 
 Three of them used to be left out at one value each — `pyramid`, `upright` and `alternate` — so that the ordinary rig
@@ -846,10 +848,10 @@ sides, so it belongs to the naming.
 the page:
 
 ```text
-stacked-gmss------1-pyramid-upright-alternate-center.yaml
-stacked-sdwa5-sepp-2-free----turned--column----stereo.yaml
-stacked-all-------3-v-------mixed---centred---block.yaml
-stacked-gmss-sdwa5-2-pyramid-stated--alternate-center.yaml
+stacked-gmss-------1-pooled--------pyramid-upright-alternate-center-possible.yaml
+stacked-sdwa5-sepp--2-systems-apart-free----turned--column----stereo-possible.yaml
+stacked-all--------3-pooled--------v-------mixed---centred---block--impossible.yaml
+stacked-gmss-sdwa5--2-pooled--------pyramid-stated--alternate-center-possible.yaml
 ```
 
 Each width comes from the axis's own enum cases, so a new value widens its column by existing rather than by a number

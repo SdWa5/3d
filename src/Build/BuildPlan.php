@@ -30,8 +30,9 @@ final class BuildPlan
         return [
             // Bumped when the plan's shape changes in a way the bpy side must react to. 2 added
             // `geometry.truss`, which the bpy side branches on to build tubes instead of a shell; 3 added
-            // `moving_head` and `scaffold`, which do the same for two more open-frame shapes.
-            'plan_version' => 3,
+            // `moving_head` and `scaffold`, which do the same for two more open-frame shapes; 4 added
+            // `load_bay`, which draws a transporter as a cage rather than a solid.
+            'plan_version' => 4,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,
@@ -46,6 +47,9 @@ final class BuildPlan
                 'truss' => $spec->truss?->toArray(),
                 'moving_head' => $spec->movingHead?->toArray(),
                 'scaffold' => $spec->scaffold?->toArray(),
+                // The inside of a transporter, for `shape: load-bay`. Null for everything else, like the three
+                // above it — a vehicle is the fourth open-frame shape and needs no new mechanism.
+                'load_bay' => $spec->vehicle?->loadBayPlan(),
                 'origin' => $spec->origin->value,
                 'chamfer_m' => $spec->chamfer,
             ],

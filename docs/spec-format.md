@@ -33,7 +33,7 @@ deviations: |                 # optional: how the build differs from the origina
   Custom grille art, different corner hardware.
 
 geometry:
-  shape: box                  # box | trapezoid | wedge | truss | moving-head | scaffold
+  shape: box                  # box | trapezoid | wedge | truss | moving-head | scaffold | load-bay
   dimensions_m:               # outer dimensions, always the true bounding box
     width: 0.80
     height: 0.58
@@ -43,6 +43,7 @@ geometry:
   truss: null                 # truss only: the tubes — see Shapes below
   moving_head: null           # moving-head only: base, yoke and head
   scaffold: null              # scaffold only: posts, bracing and platform
+  # load-bay takes its geometry from the `vehicle:` block below rather than from a section here
   origin: bottom-center       # bottom-center | rigging-point | geometric-center
   chamfer_m: 0.012            # edge bevel; below half the smallest edge
 
@@ -289,6 +290,7 @@ from a ratio would invent a measurement, which is exactly what `provenance` exis
 | `truss` | `truss` (a block) | chords and bracing instead of a shell — see below |
 | `moving-head` | `moving_head` (a block) | base, yoke arms and head — see below |
 | `scaffold` | `scaffold` (a block) | posts, bracing and a platform — see below |
+| `load-bay` | the [`vehicle`](#vehicle) block's `load_bay_m` | a transporter's **outline with its load bay caged inside it**. A solid van would be the largest object in any picture that included it and would hide the rig it carries. With no bay measured it draws the outline alone, which is the honest picture of a van nobody has been inside |
 
 The front face stays a full `width × height` (or `width × front_height_m`) rectangle in the first three,
 which is why the grille frame works the same way everywhere.

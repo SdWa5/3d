@@ -16,6 +16,9 @@ HORN = "sdwa5-horn"
 ESTIMATED = "sdwa5-estimated"
 COVERAGE = "sdwa5-coverage"
 FAULT = "sdwa5-fault"
+VEHICLE_OUTLINE = "sdwa5-vehicle-outline"
+BAY = "sdwa5-bay"
+BAY_FLOOR = "sdwa5-bay-floor"
 
 
 def hex_to_linear_rgba(value, alpha=1.0):
@@ -101,6 +104,15 @@ def build_set(appearance):
         ESTIMATED: _principled(
             ESTIMATED, hex_to_linear_rgba("#ff8800"), roughness=0.4, emission_strength=2.0
         ),
+        # **A transporter's cage, in three tiers of loudness.** The outline is the vehicle and wants to recede; the
+        # bay is the volume somebody is packing and wants to be read; the floor between the wheel arches is the
+        # part that decides whether a cabinet goes in at all, so it shouts. All three are emissive because a cage
+        # in a dark corner of a frame is a cage nobody sees.
+        VEHICLE_OUTLINE: _principled(
+            VEHICLE_OUTLINE, hex_to_linear_rgba("#4a4a52"), roughness=0.5, emission_strength=0.4
+        ),
+        BAY: _principled(BAY, hex_to_linear_rgba("#33aaff"), roughness=0.4, emission_strength=3.0),
+        BAY_FLOOR: _principled(BAY_FLOOR, hex_to_linear_rgba("#ffcc22"), roughness=0.4, emission_strength=4.0),
         # The coverage cone is drawn as a wireframe, so what this mostly decides is its viewport colour.
         COVERAGE: _principled(
             COVERAGE, hex_to_linear_rgba("#33aaff"), roughness=0.5, emission_strength=1.0

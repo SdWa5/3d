@@ -16,6 +16,7 @@ import bpy
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lib import (  # noqa: E402  (after sys.path)
+    bay,
     drivers,
     export,
     fixture,
@@ -33,6 +34,9 @@ OPEN_FRAME_BUILDERS = {
     "truss": truss.build,
     "moving-head": fixture.build,
     "scaffold": scaffold.build,
+    # A transporter, drawn as its own outline with its load bay caged inside it. Stated by the owner: the vans need
+    # wire-type models so a pack can be planned, and a solid van would hide the rig it is there to carry.
+    "load-bay": bay.build,
 }
 
 

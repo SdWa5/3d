@@ -31,6 +31,16 @@ enum Shape: string
     case Scaffold = 'scaffold';
 
     /**
+     * A transporter's **load bay**, drawn as a wireframe volume inside a wireframe of the vehicle.
+     *
+     * **What you pack into is the inside, so the inside is what the model shows.** Stated by the owner: the vans
+     * need at least wire-type models so a pack can be planned. A solid 6 m van would be the largest object in any
+     * picture that included it and would hide the very thing it is there to help with; a cage shows the volume and
+     * lets cabinets be seen inside it.
+     */
+    case LoadBay = 'load-bay';
+
+    /**
      * Whether the shape is a loudspeaker cabinet, and so gets a grille, handle recesses and drivers.
      *
      * Asked as a question about the shape rather than about {@see Category}, because it is the *geometry*
@@ -44,7 +54,7 @@ enum Shape: string
     {
         return match ($this) {
             self::Box, self::Trapezoid, self::Wedge => true,
-            self::Truss, self::MovingHead, self::Scaffold => false,
+            self::Truss, self::MovingHead, self::Scaffold, self::LoadBay => false,
         };
     }
 }

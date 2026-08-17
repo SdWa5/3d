@@ -31,21 +31,6 @@ enum Category: string
     case Other = 'other';
 
     /**
-     * Whether a device of this category is turned into geometry — a `.glb`, a `.blend` and a slot in the asset
-     * library — or exists only as numbers.
-     *
-     * **Only a vehicle answers no, and it is the first category that ever has.** Everything else in the library is
-     * something you put in a picture. A transporter is the thing the picture's contents are driven to the gig in: it
-     * is never placed in a scene, and a 6.8 m white box parked beside a rig would be the largest object in every
-     * render that included it. Without this, `models:build` hands Blender a van, `library:build` puts it on the
-     * shelf beside the cabinets, and both are work nobody asked for producing an asset nobody wants.
-     */
-    public function producesAModel(): bool
-    {
-        return $this !== self::Vehicle;
-    }
-
-    /**
      * Subtypes considered valid for this category. `Other` accepts anything, which is the
      * escape hatch for gear that does not fit the taxonomy yet.
      *

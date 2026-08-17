@@ -102,7 +102,9 @@ figures are off its registration document, so the number the whole load side tur
 guessed: **1024 kg of payload**, derived as permitted gross minus mass in service with the driver already counted.
 Sepp's Ducato is the one device in the library whose weight has been on a **scale**, and it is 365 kg heavier than
 its registration document — which makes the paper authoritative about what it may weigh and merely historical about
-what it does. `bin/console catalog` reports both
+what it does. **Both vans are drawn as cages** rather than solids: the vehicle's outline, the load bay inside it and
+the floor between the wheel arches, so a pack can be looked at instead of imagined
+([docs/load.md](docs/load.md#seeing-it)). `bin/console catalog` reports both
 as a fleet beside the library and keeps them out of the weight and volume totals, because a van is the container and
 never the load.
 

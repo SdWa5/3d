@@ -34,7 +34,7 @@ final class ShapeTest extends TestCase
      */
     public function testTheOpenFrameShapesAreNotCabinets(): void
     {
-        foreach ([Shape::Truss, Shape::MovingHead, Shape::Scaffold] as $shape) {
+        foreach ([Shape::Truss, Shape::MovingHead, Shape::Scaffold, Shape::LoadBay] as $shape) {
             self::assertFalse($shape->isCabinet(), "{$shape->value} is not a cabinet");
         }
     }
@@ -49,7 +49,7 @@ final class ShapeTest extends TestCase
             $shape->isCabinet();
         }
 
-        self::assertCount(6, Shape::cases(), 'a new shape needs a decision in isCabinet() and a builder');
+        self::assertCount(7, Shape::cases(), 'a new shape needs a decision in isCabinet() and a builder');
     }
 
     /**
@@ -61,5 +61,6 @@ final class ShapeTest extends TestCase
         self::assertSame('truss', Shape::Truss->value);
         self::assertSame('moving-head', Shape::MovingHead->value);
         self::assertSame('scaffold', Shape::Scaffold->value);
+        self::assertSame('load-bay', Shape::LoadBay->value);
     }
 }

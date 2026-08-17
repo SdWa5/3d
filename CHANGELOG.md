@@ -4,6 +4,50 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.92.0] - 2026-08-17
+
+**Stated by the owner: the vans need at least wire-type models so a pack can be planned.** They do, and the category
+that arrived four releases ago as the one thing never drawn is now drawn.
+
+### Added
+
+- **`shape: load-bay` — a transporter as a cage.** Three parts, each answering a different question a packer asks:
+  the vehicle outline for scale, the load bay inside it, and the floor between the wheel arches. On the Movano the
+  bay is 1.765 m wide and 1.380 m between the arches, so 385 mm of that width exists only above arch height, which
+  is the difference between a cabinet fitting on the floor and not
+- `blender/lib/bay.py`, three materials, and one line in `build_model.py`'s dispatch table — the fourth open-frame
+  shape needed no new mechanism, which is what that table was for
+- Two validator rules that keep the category and the shape in step: **a vehicle drawn as a solid is refused**, and a
+  cage with no bay is **not**, because requiring both would make them imply each other and kill the reason the bay
+  is optional. A van can be specified from its papers before anybody has been in the back of it, so a bayless
+  vehicle draws its outline alone — the honest picture of a van whose inside nobody has measured
+
+### Fixed
+
+- **`build:all` was broken outright, and the loop it broke in was a good one.** `models:build` skipped the two
+  vehicles on purpose, and `library:build` then refused to run because two models were missing, advising *Run
+  `bin/console models:build` first* — the command that had just declined to build them. Reported by the owner
+- **`Category::producesAModel()` is gone.** Every category produces a model again, so an abstraction whose only case
+  was wrong is worse than no abstraction. The argument it was built on — that a 6.8 m solid van would be the largest
+  object in any picture including it — was right about the *solid* and wrong about the *model*
+- **The cage's bars are inset so its outer surface is the declared box.** Centred on the edges, a 25 mm bar put half
+  its thickness outside: the Movano came out 2.095 × 2.833 × 6.873 m against a declared 2.070 × 2.808 × 6.848,
+  failing `tools/check-glb.py` on all three axes and on the origin, with its lowest point 12.5 mm below the floor
+
+### Changed
+
+- `plan_version` 3 → 4, for `geometry.load_bay`
+- The asset library holds 20 devices rather than 18, and the count it prints is honest again
+- **`TODO.md` compacted from 1600 lines to 1055.** Eight resolved items were sitting in its tables marked `done`
+  with 428 lines of detail behind them, which the Definition of Done says should have been deleted. Checked before
+  deleting: the seven orientation/mirror pairs and the vacuous-style rule are in `docs/scenes.md`, the packing
+  heuristic in `docs/load.md`, the caging in `docs/pipeline.md`, the release history in this file. LOAD-2 and SWP-2
+  were rewritten rather than trimmed, both having described a state that no longer exists
+- **`docs/scenes.md` showed the five-field id format**, predating both axes added the day before. The diagram and all
+  four examples now show seven
+- Sepp's spec records **two seats** (S1/S2) and the 120 kg nose weight (A12), with the note that a passenger comes
+  off the payload — both stored masses assume a driver and nobody else
+
 ## [0.91.0] - 2026-08-16
 
 SWP-2's separation axis, which is the seventh and the last one stated. **Stated by the owner, shown the measured

@@ -18,6 +18,9 @@
 #   F2  Gesamtgewicht             3500 kg
 #   A10 Nutzlast                  1365 kg
 #   N   Achslasten                2100 kg front, 2400 kg rear
+#   S1  Sitzplätze                2
+#   A12 Stütz-/Sattellast         120 kg
+#   A16 Beg. Plakette             weiß
 #   O1  Anhängelast gebremst      3000 kg          O2 ungebremst 750 kg
 #   P5  Motortype                 F1AE3481D, 2287 ccm, 96 kW, Diesel, EURO 5b
 #   A13 Bereifung                 215/75R16C
@@ -78,7 +81,10 @@ provenance:
   weight: measured
 
 geometry:
-  shape: box
+  # **A cage, not a solid.** The vehicle's outline with its load bay drawn inside it — see
+  # {@see \App\Spec\Shape::LoadBay}. A solid van would be the largest object in any picture that included it and
+  # would hide the rig it is there to carry.
+  shape: load-bay
   # Ducato 250 L3H2 body. Depth is the fore-aft axis, so the vehicle's length is its depth.
   dimensions_m: { width: 2.050, height: 2.522, depth: 5.998 }
   origin: bottom-center
@@ -123,5 +129,9 @@ notes: |
   AND THE SAME QUESTION NOW HANGS OVER THE MOVANO. Its 1024 kg payload comes off field G of its
   Zulassungsbescheinigung — the same class of figure that has just been shown 365 kg light on this van. Until it
   goes on a scale too, the fleet's total payload is one measurement and one assumption.
+
+  TWO SEATS, so a passenger comes off the payload. The weighed 2500 kg had a driver aboard and nobody else, which
+  is the same convention the Movano's field G uses — a second person is another 75 kg of the 1000, and the report
+  has no way to know whether one is coming.
 
   WHAT IS LEFT: a tape measure inside the bay, and one look at the roof to settle L3H2 against L3H3.

@@ -762,6 +762,19 @@ final class SpecValidator
 
         $messages = [];
 
+        // **A vehicle is drawn as a cage, and a bay is still optional.** Requiring both would have made them imply
+        // each other and quietly killed the reason the bay is optional at all: a van can be specified from its
+        // papers before anybody has been inside it, and no registration document states a load bay. So a bayless
+        // vehicle draws its outline alone — which is the honest picture of a van whose inside nobody has measured,
+        // and is still a cage rather than a solid.
+        if ($spec->shape !== Shape::LoadBay) {
+            $messages[] = sprintf(
+                "a vehicle is drawn as a cage, so geometry.shape should be `load-bay` rather than `%s` — a solid"
+                .' van is the largest object in any picture that includes it and hides the rig it carries',
+                $spec->shape->value,
+            );
+        }
+
         if ($vehicle->permittedGrossKg <= $spec->weightKg) {
             $messages[] = sprintf(
                 'vehicle.permitted_gross_kg (%s, Zulassungsbescheinigung F.2) is not above physical.weight_kg'
