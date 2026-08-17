@@ -10,9 +10,10 @@ Three parts, each answering a different question a packer asks:
   equal the declared dimensions — `tools/check-glb.py` checks a model against its own metadata, and a bay-only
   model would fail that check while being perfectly correct about the bay.
 * **The load bay**, in its own colour. This is the volume cabinets go in.
-* **The floor between the wheel arches**, when the spec states it. On our Movano the bay is 1.765 m wide and
-  1.380 m between the arches, so 385 mm of that width exists only above arch height — which is the difference
-  between a cabinet fitting on the floor and not.
+* **The wheel arches themselves**, as solid boxes, when the spec states a width between them. On our Movano the bay
+  is 1.765 m wide and 1.380 m between the arches, so each one reaches in 192.5 mm and 385 mm of the bay's width
+  exists only above arch height — the difference between a cabinet fitting on the floor and not. Their intrusion is
+  derived from those two figures; their length, height and position along the bay are estimates.
 
 **WHERE THE BAY SITS INSIDE THE OUTLINE IS A DIAGRAM, NOT A CLAIM.** It is drawn flush to one end, centred across,
 and resting on the vehicle's own floor line. The real load floor is roughly half a metre up and **no registration
@@ -31,8 +32,18 @@ from . import materials, tubes
 # thin enough not to swallow a 0.4 m cabinet standing beside one.
 BAR_M = 0.025
 
-# The arch band is a floor area rather than a volume, so it is drawn as a thin slab instead of a cage.
-ARCH_SLAB_M = 0.012
+# **THE WHEEL ARCHES, AS SOLID BOXES.** Stated by the owner: model them and estimate the measurements for now.
+# Only two of the three numbers are estimates — the **intrusion is derived**, since a bay 1.765 m wide with 1.380 m
+# between the arches has each one reaching in exactly (1.765 - 1.380) / 2 = 192.5 mm. The length along the vehicle
+# and the height off the floor are the guesses, and they are the generous end of what a 16-inch wheel needs: too
+# big refuses a cabinet that would have fitted, too small promises floor that is not there.
+ARCH_LENGTH_M = 0.70
+ARCH_HEIGHT_M = 0.30
+
+# Where they sit along the bay, as a fraction of its depth measured from the front. **A guess, and the one number
+# here with no derivation behind it** — the axle position is in no document we hold. 0.62 puts them in the rear
+# third, which is where a single rear axle sits on a van of this length.
+ARCH_AT_DEPTH = 0.62
 
 
 def build(plan, material_set):
@@ -69,11 +80,17 @@ def build(plan, material_set):
 
         arches = bay.get("width_between_arches")
         if arches is not None and arches < bay["width"]:
-            emit(
-                (0.0, (front + dims["depth"] / 2.0) / 2.0, ARCH_SLAB_M / 2.0),
-                (arches, bay["depth"], ARCH_SLAB_M),
-                2,
-            )
+            # Solid rather than caged, because an arch is an obstruction and not a volume to fill. Drawn from each
+            # side wall inwards, so the gap between them is the usable floor width the packer actually gets.
+            intrusion = (bay["width"] - arches) / 2.0
+            centre_y = front + bay["depth"] * ARCH_AT_DEPTH
+            for side in (-1.0, 1.0):
+                edge = side * bay["width"] / 2.0
+                emit(
+                    (edge - side * intrusion / 2.0, centre_y, ARCH_HEIGHT_M / 2.0),
+                    (intrusion, ARCH_LENGTH_M, ARCH_HEIGHT_M),
+                    2,
+                )
 
     body = tubes.mesh_object(plan["id"], verts, faces, material_set[materials.VEHICLE_OUTLINE])
     mesh = body.data

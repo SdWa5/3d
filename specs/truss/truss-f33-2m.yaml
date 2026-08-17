@@ -1,24 +1,27 @@
-# Three-point truss, 2 m straight segment — the first non-speaker device in the library.
+# Global Truss F33200, 2 m straight three-point segment. **IDENTIFIED, from the product data.**
 #
-# WHAT WE OWN: "5x 2m three point truss segments". The length and the count are stated; the brand is not, and the
-# cross-section is not. So the length is ours and everything else comes from the class standard, which for a 2 m
-# three-point segment is near-universally the 300 mm one — Global Truss F33, Prolyte X30, Eurotruss FD32 are all
-# within a few millimetres of each other.
+# WHAT WE OWN: five. Three came in a Stairville Wind Up DJ Bundle III and two were bought afterwards, the same
+# segment. The owner supplied the bundle's product data on 2026-08-17, which settles the brand and the model — the
+# guess below was that ours were "an F33 or equivalent", and they are literally F33200.
 #
-# PUBLISHED F33 FIGURES, which is what the numbers below are built from:
+# PUBLISHED F33200 FIGURES, from the product data:
 #
+#   length              2.0 m
+#   tube spacing        290 mm (outer)
 #   main tube (chord)   50 mm diameter, 2 mm wall
-#   diagonal brace      20 mm diameter, 2 mm wall
-#   overall width       290 mm
-#   weights             1.0 m -> 6.4 kg, 1.5 m -> 8.2 kg, 3.0 m -> 14.1 kg
+#   material            AlMgSi F31, TÜV Nord type-tested
+#   weight              9.3 kg
+#   included            one set of conical quick connectors
 #
-# https://globaltruss.de/en/F33-300cm/F33300 and
-# https://www.stagespot.com/global-truss-f33-triangular-truss-straight-segments.html
+# Thomann article 267121, the bundle: https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm
 #
-# THE WEIGHT IS DERIVED FROM THOSE THREE POINTS, not interpolated by eye. They fit a straight line:
-# 2.55 kg + 3.85 kg/m. Check it — 1.0 m gives 6.40 against a published 6.4, 1.5 m gives 8.33 against 8.2, and
-# 3.0 m gives 14.10 against 14.1. The 2.55 kg intercept is the end connectors, which is exactly why a short
-# segment weighs so much per metre. At 2 m that is 2.55 + 7.70 = 10.25, so 10.3 kg.
+# **THE WEIGHT WAS DERIVED AND WAS 1 kg TOO HEAVY.** The old figure came from fitting a line through three
+# published F33 weights — 1.0 m at 6.4 kg, 1.5 m at 8.2, 3.0 m at 14.1 — which gave 2.55 kg + 3.85 kg/m and so
+# 10.25 kg at 2 m. The published F33200 figure is **9.3 kg**. The model was sound, the fit was good on its own
+# points, and it was still 10 % out on the one length nobody had published. Across five segments that is 5 kg.
+#
+# A derivation that reproduces its inputs to two decimal places can still be wrong about the point between them,
+# which is worth remembering the next time a curve looks convincing.
 #
 # THE CROSS-SECTION IS DERIVED FROM THE SAME FIGURES. Chords are 50 mm inside a 290 mm overall width, so the chord
 # centres form an equilateral triangle of side 290 - 50 = 240 mm. Its height is 240 x sqrt(3)/2 = 207.8 mm, and the
@@ -40,9 +43,11 @@ build: original
 # lives in this repository.
 
 provenance:
-  # The tube sizes and the weight model are published figures; that OUR segments are this class is the assumption.
-  dimensions: estimated
-  weight: estimated
+  # Published figures for the identified product. The cross-section is still derived from the tube spacing rather
+  # than stated as a bounding box — see the derivation above — which is why dimensions stay `datasheet` rather than
+  # claiming to be measured.
+  dimensions: datasheet
+  weight: datasheet
 
 geometry:
   shape: truss
@@ -67,7 +72,7 @@ appearance:
 
 physical:
   # 2.55 kg of connectors + 3.85 kg/m x 2 m, from the published weights — see the header.
-  weight_kg: 10.3
+  weight_kg: 9.3
   handles: [ ]
 
 rigging:

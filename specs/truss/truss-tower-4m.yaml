@@ -1,34 +1,52 @@
-# Telescopic crank stand, 4 m — what holds a truss up.
+# Varytec Wind Up 85 kg, a 4 m wind-up lifting stand. **IDENTIFIED, and the guess it replaces was the wrong
+# product with the right numbers.**
 #
-# WHAT WE OWN: "2x 4 meter telescope feet". A 4 m telescopic lifting stand for truss, and the class is well
-# standardised, so unlike the truss segments there is a specific product whose published figures fit exactly:
-# the Global Truss ST-132 medium duty crank stand.
+# WHAT WE OWN: two, from a Stairville Wind Up DJ Bundle III. The owner supplied the bundle's product data on
+# 2026-08-17. Until then this spec assumed a **Global Truss ST-132** on the reasoning that the class is well
+# standardised — and that reasoning got the height and the weight exactly right while naming the wrong machine and
+# overstating what it may carry by 15 kg.
 #
-# PUBLISHED ST-132 FIGURES:
+# PUBLISHED VARYTEC WIND UP 85 kg FIGURES:
 #
-#   max height     4.0 m (13.2 ft)
-#   min height     1.8 m (5.9 ft)
-#   weight         25 kg (55 lb)
-#   max load       100 kg (220 lb)
-#   folded base    8 x 8 in   -> 203 x 203 mm
-#   unfolded base  59 x 59 in -> 1499 x 1499 mm
+#   max height          4.0 m
+#   transport length    1.75 m          <- NOT the same as the modelled height. See below.
+#   weight              25 kg
+#   max load            85 kg
+#   min load            25 kg           <- a wind-up needs load on it to be safe
+#   receiver            1 3/8", takes a 35 mm speaker flange
+#   crossbar (T-bar)    130 x 3.5 x 3.5 cm
+#   max base spread     1.6 m
+#   TÜV tested
 #
-# https://www.globaltruss.com/st-132 and
-# https://www.globaltruss.com/pub/media/globaltrdownloads/downloads/s/t/st132_manual.pdf
+# Thomann article 267121, the bundle: https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm
 #
-# `shape: box`, AND DELIBERATELY SO. A crank stand is a nested telescopic mast on folding outriggers, which is
+# WHAT THE GUESS GOT WRONG, and it is worth keeping: **max load 100 kg against a real 85**. Height and weight
+# matched to the kilogramme, which is exactly what makes a plausible substitution dangerous — the two figures easy
+# to check agreed, so the one that matters for hanging things did not get checked. A truss bar loaded to 100 kg on
+# a pair of stands rated 85 is the sort of error that only shows up once.
+#
+# THE MINIMUM LOAD IS NEW INFORMATION AND HAS NO FIELD. 25 kg minimum is a real constraint on a wind-up: too light
+# and it is unsafe to crank. Nothing in the schema holds a *lower* bound on a load, so it is in the notes.
+#
+# TWO TRUSS ADAPTERS came with the bundle, Varytec 35 mm, for putting a truss on the 1 3/8" receiver. They have no
+# published mass or dimensions and are not specced; they are named here so the inventory is not silently missing a
+# part that a rig needs.
+#
+# `shape: box`, AND DELIBERATELY SO. A wind-up stand is a nested telescopic mast on folding outriggers, which is
 # neither a hexahedron nor a truss — it wants a shape of its own and does not have one yet. A 0.203 m column is a
 # harmless placeholder in a way a solid truss never would be: it occludes almost nothing, and at 4 m tall in a
-# render it reads as roughly the right thing in roughly the right place. Recorded as a follow-up in TODO.md rather
-# than half-built here.
+# render it reads as roughly the right thing in roughly the right place.
 #
-# WHAT THE BOUNDING BOX IS: the MAST, at its full 4 m extension, 203 mm square — the folded base size, which is
-# also about the column's own footprint. THE OUTRIGGERS ARE NOT MODELLED: unfolded they spread to 1.499 x 1.499 m,
-# which is what actually has to be kept clear on a stage and is stated here in the notes rather than drawn. So the
-# footprint this spec reports is the mast's, not the working footprint, and not the folded transport size either.
-# That is the one number to be careful with in the catalog.
+# **WHAT THE BOUNDING BOX IS, AND WHY IT IS WRONG FOR PACKING.** It is the MAST at its full 4 m extension. That is
+# right for a rig render and actively misleading for a load: this stand **transports at 1.75 m**, and the packed
+# convoy render duly showed a 4 m mast standing on a 1 m trailer. A device has an erected size and a transport size
+# and this schema has one field for both. Filed as SPEC-15.
+#
+# THE OUTRIGGERS ARE NOT MODELLED: spread they reach 1.6 m, which is what has to be kept clear on a stage and is
+# stated here rather than drawn. So the footprint this spec reports is the mast's, not the working footprint, and
+# not the transport size either. That is the one number to be careful with in the catalog.
 id: truss-tower-4m
-name: "Truss tower — 4 m crank stand"
+name: "Varytec Wind Up 85 kg — 4 m truss lift"
 category: truss
 subtype: tower
 quantity: 2
@@ -59,20 +77,30 @@ physical:
   handles: [ ]
 
 rigging:
-  # A stand is what gets stood on the floor, not flown. Its own load rating — 100 kg — is a fact about what it can
+  # A stand is what gets stood on the floor, not flown. Its own load rating — 85 kg — is a fact about what it can
   # carry and has nowhere to go in this schema; it is in the notes.
   flyable: false
   points: [ ]
 
 notes: |
-  Stated by the owner: 2 stands, 4 m, telescopic. Modelled on the Global Truss ST-132 medium duty crank stand,
-  whose published figures match that description exactly — https://www.globaltruss.com/st-132.
+  Varytec Wind Up 85 kg, two of them, from a Stairville Wind Up DJ Bundle III. Product data supplied by the owner on
+  2026-08-17, which replaced an assumed Global Truss ST-132.
 
-  Max load 100 kg per stand, which is the number that matters when deciding what may hang from the truss between
-  them. There is no field for it in this schema.
+  MAX LOAD 85 kg PER STAND, and that is the number that decides what may hang from a truss between two of them. The
+  spec previously said 100 kg, inherited from the substituted product — the height and the weight had matched to the
+  kilogramme, which is precisely what made the substitution look safe.
 
-  Min height 1.8 m: a stand does not have to be at full extension, and `dimensions_m.height` is the 4 m maximum.
-  A scene that stands one lower is stating something this spec cannot express.
+  MINIMUM LOAD 25 kg, which has no field anywhere. A wind-up needs weight on it to be safe to crank, so an empty
+  stand is not a lightly loaded stand. Nothing in the schema expresses a lower bound on a load.
 
-  NOT MODELLED: the folding outriggers, which unfolded spread to 1.499 x 1.499 m. That is the working footprint
-  and it is far larger than the 0.203 m mast this spec reports. Keep it in mind when reading a scene's footprint.
+  IT TRANSPORTS AT 1.75 m and is modelled at its erected 4 m, because one field carries both. That is why the packed
+  convoy render showed a mast standing out of a trailer. See SPEC-15.
+
+  THE OUTRIGGERS SPREAD TO 1.6 m and are not modelled. That is the footprint to keep clear on a stage, and it is
+  eight times the 0.203 m column this spec reports.
+
+  THE RECEIVER IS 1 3/8" and takes a 35 mm speaker flange directly. Two Varytec 35 mm truss adapters came with the
+  bundle for mounting truss instead; they are not specced, having no published mass or dimensions.
+
+  THE CROSSBAR that came with each stand is 130 x 3.5 x 3.5 cm. Not specced separately either — it is part of the
+  stand as bought rather than a device in its own right.

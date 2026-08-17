@@ -43,9 +43,9 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `gmss-turbo-top` | — (GMSS self-build) | — | **The owner of GMSS** | "Tops: 45w, 38d, 71h, 26kg each" — dimensions and weight, **neither hedged**. No count |
 | | | | An earlier message from GMSS | "3 turbo top 2500rms" — the count and the power rating. Still the only source for `quantity: 3`, though the photo appears to show **four** |
 | | | | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), [manual](https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt) | 1143 × 502 × 730 mm and 74.8 kg — used as a size anchor before the owner's figures arrived and **contradicted by them**: 61 % too tall, nearly 3× too heavy. Kept as a rejected line of reasoning |
-| `truss-f33-2m` | — (factory truss) | `datasheet` | [Global Truss F33 300](https://globaltruss.de/en/F33-300cm/F33300), [StageSpot](https://www.stagespot.com/global-truss-f33-triangular-truss-straight-segments.html) | Chord Ø 50 × 2 mm, diagonal Ø 20 × 2 mm, overall width 290 mm; weights at 1.0 m / 1.5 m / 3.0 m |
+| `truss-f33-2m` | — (factory truss) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, Thomann article 267121, supplied by the owner 2026-08-17 | **Global Truss F33200 identified outright.** 2.0 m, tube spacing 290 mm outer, chord Ø 50 × 2 mm, AlMgSi F31, TÜV Nord, **9.3 kg**. Three came in the bundle and two were bought afterwards |
 | | | | The owner | That we have **5 segments at 2 m, three-point**. The class is an inference from that |
-| `truss-tower-4m` | — (factory stand) | `datasheet` | [Global Truss ST-132](https://www.globaltruss.com/st-132), [manual](https://www.globaltruss.com/pub/media/globaltrdownloads/downloads/s/t/st132_manual.pdf) | 25 kg, max height 4.0 m, min 1.8 m, max load 100 kg, folded base 8″, unfolded base 59″ |
+| `truss-tower-4m` | — (factory stand) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, supplied by the owner 2026-08-17 | **Varytec Wind Up 85 kg identified**, replacing an assumed Global Truss ST-132. 25 kg, max height 4.0 m, **transport 1.75 m**, **max load 85 kg**, min load 25 kg, 1 3/8″ receiver, crossbar 1300 × 35 × 35 mm, base spread 1.6 m, TÜV |
 | | | | The owner | That we have **2 telescopic stands at 4 m** |
 | `gmss-truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
 | `gmss-tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our ST-132 |
@@ -126,7 +126,25 @@ but rarely the brace pitch. It changes how many diagonals are drawn and nothing 
 
 ### The towers are placeholders, and look it
 
-`truss-tower-4m` matches the Global Truss ST-132 exactly on the stated description, so its **weight and heights are
+**THE TOWER WAS THE WRONG PRODUCT WITH THE RIGHT NUMBERS, AND THAT IS THE INSTRUCTIVE PART.** It was modelled as a
+Global Truss ST-132 on the reasoning that the class is standardised. The real machine is a Varytec Wind Up 85 kg, and
+the substitution got the **height and the weight exactly right** — 4 m and 25 kg to the kilogramme — while
+overstating the **max load by 15 kg**, 100 against 85. The two figures easy to check agreed, so the one that decides
+what may hang from a truss bar never got checked. A truss loaded to 100 kg on a pair of stands rated 85 is an error
+that shows up once.
+
+It also missed two figures the class standard does not carry at all: a **minimum** load of 25 kg, because a wind-up
+needs weight on it to crank safely, and a **transport length of 1.75 m** against the 4 m this spec models. That
+second one is why the packed convoy render showed a mast standing out of a trailer, and it is filed as SPEC-15.
+
+**AND THE TRUSS WEIGHT WAS DERIVED, CONVINCINGLY, AND WRONG.** 10.3 kg came from fitting a line through three
+published F33 weights — 6.4 kg at 1.0 m, 8.2 at 1.5, 14.1 at 3.0 — giving 2.55 kg + 3.85 kg/m, which reproduces all
+three to within 0.13 kg. At 2 m it said 10.25. The published F33200 figure is **9.3 kg**, so the fit was 10 % out on
+the one length nobody had published, and across five segments that is 5 kg. A derivation that matches its own inputs
+can still be wrong between them.
+
+The older reasoning, kept because it is what got replaced: `truss-tower-4m` matched the ST-132 on the stated
+description, so its **weight and heights were
 published**: 25 kg, 4.0 m max, 1.8 m min, 100 kg load. What is estimated is its *shape* — a telescopic mast on
 folding outriggers is neither a hexahedron nor a truss, so it is drawn as a 0.203 m column, which is the folded
 base size. **The outriggers are not modelled**: unfolded they spread to 1.499 × 1.499 m, which is the footprint

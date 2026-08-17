@@ -159,6 +159,50 @@ The ordering, written down so it can be argued with:
 5. **Weight refuses and space only ranks.** A unit that would put a vehicle over its payload is never placed there;
    a unit that would overfill a bay still is, and the bay is reported as exceeded.
 
+## Seeing a pack
+
+```bash
+ddev exec bin/console scene:pack --exclude-owner=gmss --write
+ddev exec bin/console scene:build packed-convoy
+ddev exec bin/console scene:render packed-convoy --quick-preview
+```
+
+**`load:plan` says what goes where and `scene:pack` shows it.** They are separate commands because they answer
+separate questions and one of them is legal: a payload verdict has to be readable without Blender anywhere near it,
+and CI has none. The pack adds geometry on top and nothing else — the assignment, the verdicts and the remainder are
+all the planner's, unchanged.
+
+**The positions come from one stated rule rather than an optimal pack.** Two passes over each bay: **heaviest first
+onto the floor** in rows across the width, then **columns** on top of whatever can hold them. Heaviest-first comes
+from the planner and puts the mass low without a rule of its own. No z is written anywhere — a stacked unit says
+`on:` and names the cabinet beneath it, so measuring a Flexy corrects every pack.
+
+**The floor row stays between the wheel arches**, which is the one piece of real geometry the rule knows. On the
+Movano that is 1.380 m of usable width against a 1.765 m bay.
+
+**What the rule cannot do, and the scene's own notes list it**: nothing is rotated, nothing is interleaved, and a
+trapezoid is packed as its bounding box. A real pack is tighter. Anything the rule cannot place is reported as
+overflow rather than squeezed in — **7 of 32 assigned units on the current pack**, mostly truss segments and
+scaffold towers, all of which would lie down without difficulty. That is LOAD-6.
+
+**Render it with `--labels` or it is a picture of anonymous boxes.** Three cages and twenty-five cabinets say nowhere
+which is which without them:
+
+```bash
+ddev exec bin/console scene:render packed-convoy --labels
+```
+
+One label per device **per vehicle**, with the count in the text — seven Flexys labelled seven times is noise, and the
+same cabinet in two vans is two facts. Plus a legend standing beside the convoy naming what each cage colour means,
+which is knowledge that otherwise lives only in `blender/lib/materials.py`. Labels are drawn at *render* time like
+the aim lines, so the same assembled `.blend` draws with them or without and neither is the canonical picture.
+
+Several labels still sit on top of each other at 960 × 540, since nothing lays them out to avoid it. That is CVR-9.
+
+It is written as an ordinary scene into `scenes/packs/`, so `ShippedScenesTest` sweeps the result for cabinets inside
+each other exactly as it does a rig. If the layout rule produces an overlap, the repository's own checks say so
+rather than the picture merely looking odd.
+
 ## Seeing it
 
 **Both vans are models now, drawn as cages.** Stated by the owner: the vans need at least wire-type models so a pack
@@ -187,7 +231,15 @@ The constraints a bounding-box assignment cannot see, and which decide whether a
 
 * **Heavy low.** A 220 kg wall bass or a 90 kg SKRAM goes on the floor, nothing stacks on a cabinet it would crush,
   and nothing is stacked higher than two people can lift.
-* **Wheel arches narrow the floor.** The Movano's bay is 1.765 m wide and 1.380 m between the arches, so the width a
-  cabinet gets depends on how high it sits.
+* **Wheel arches narrow the floor**, and they are now **drawn** as solid boxes so a clash is visible rather than
+  arithmetic. The Movano's bay is 1.765 m wide and 1.380 m between the arches, so each one reaches in 192.5 mm —
+  derived from those two figures — and the width a cabinet gets depends on how high it sits. Their length, height and
+  position along the bay are estimates; the axle position is in no document we hold.
+* **Nothing turns.** A 2 m truss segment across a 1.38 m floor does not fit and would lie along the bay without
+  difficulty. LOAD-6.
+* **A folding device is modelled erected.** The truss lift transports at 1.75 m and is modelled at its working 4 m,
+  because `dimensions_m` is one field answering two questions. SPEC-15.
+* **Labels overlap.** `--labels` names everything and a legend explains the colours, but eighteen labels at
+  960 × 540 have several sitting on each other. CVR-9.
 * **Racks roll and cabinets do not.**
 * **The door aperture.** A bay big enough for a cabinet that will not go through the doors is no use.

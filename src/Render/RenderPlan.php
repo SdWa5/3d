@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Render;
 
 use App\Scene\PlacedDevice;
+use App\Spec\Category;
 
 /**
  * Works out where the camera and lights go for a scene, from the scene itself.
@@ -105,6 +106,7 @@ final class RenderPlan
         array $resolution = self::DEFAULT_RESOLUTION,
         bool $ground = true,
         string $aimLines = self::AIM_NONE,
+        bool $labels = false,
     ): array {
         ['min' => $min, 'max' => $max] = self::bounds($placed);
         $lines = self::aimLines($placed, $aimLines);
@@ -142,8 +144,164 @@ final class RenderPlan
                 'resolution' => [$resolution[0], $resolution[1]],
             ],
             'aim_lines' => $lines,
+            'labels' => $labels ? self::labels($placed, $min, $max, $radius) : [],
             'scene_bounds' => ['min' => $min, 'max' => $max, 'radius' => $radius],
         ];
+    }
+
+    /**
+     * A name over every device, and a legend beside the scene.
+     *
+     * **A pack render carries three vehicle cages and twenty-five cabinets and said nowhere which was which.**
+     * Stated by the owner: it needs Beschriftungen and a legend. A reader who did not write the code could see that
+     * something was packed and not what.
+     *
+     * **One label per device rather than per unit, placed over the tallest of them.** Seven Flexys labelled seven
+     * times is noise, not information — the count goes in the text instead, so `7x flexy-folded-horn-hybrid` reads
+     * once. Grouped by device *and* by which vehicle's footprint it sits in, because the same cabinet in two vans is
+     * two facts.
+     *
+     * **The legend is the thing that makes a cage picture readable at all.** It names what the colours mean, which
+     * is knowledge that otherwise lives only in `blender/lib/materials.py`.
+     *
+     * @param list<PlacedDevice> $placed
+     * @param array{float, float, float} $min
+     * @param array{float, float, float} $max
+     * @return list<array{text: string, at: array{float, float, float}, size: float}>
+     */
+    private static function labels(array $placed, array $min, array $max, float $radius): array
+    {
+        $vehicles = [];
+        foreach ($placed as $entry) {
+            if ($entry->device->category === Category::Vehicle) {
+                $vehicles[$entry->placementId] = $entry;
+            }
+        }
+
+        // Group the cargo: which vehicle it is standing in, then which device it is.
+        $groups = [];
+        foreach ($placed as $entry) {
+            if ($entry->device->category === Category::Vehicle) {
+                continue;
+            }
+            $inside = self::vehicleAround($entry, $vehicles);
+            $key = $inside.'/'.$entry->device->id;
+            $box = $entry->worldBox();
+            if (!isset($groups[$key])) {
+                $groups[$key] = ['device' => $entry->device->id, 'count' => 0, 'at' => $box['max'], 'x' => $box['min'][0], 'x2' => $box['max'][0]];
+            }
+            ++$groups[$key]['count'];
+            // Anchored over the tallest of the group, centred across all of them.
+            if ($box['max'][2] > $groups[$key]['at'][2]) {
+                $groups[$key]['at'] = $box['max'];
+            }
+            $groups[$key]['x'] = min($groups[$key]['x'], $box['min'][0]);
+            $groups[$key]['x2'] = max($groups[$key]['x2'], $box['max'][0]);
+        }
+
+        // **Sized from the scene rather than fixed, and the first attempt was half what it needed to be.** A label
+        // has to be legible at `--quick-preview`, which is 960 x 540 — the resolution `build:all` uses for every
+        // picture it draws. At `radius / 60` the device names came out around nine pixels tall and were a grey smear.
+        $size = max(0.10, $radius / 30.0);
+        $labels = [];
+
+        foreach ($vehicles as $entry) {
+            $box = $entry->worldBox();
+            $labels[] = [
+                'text' => $entry->device->id,
+                'at' => [
+                    ($box['min'][0] + $box['max'][0]) / 2,
+                    ($box['min'][1] + $box['max'][1]) / 2,
+                    $box['max'][2] + $size * 0.6,
+                ],
+                'size' => $size * 1.7,
+            ];
+        }
+
+        foreach ($groups as $group) {
+            $labels[] = [
+                'text' => sprintf('%d× %s', $group['count'], $group['device']),
+                'at' => [
+                    ($group['x'] + $group['x2']) / 2,
+                    $group['at'][1],
+                    $group['at'][2] + $size * 0.4,
+                ],
+                'size' => $size,
+            ];
+        }
+
+        return [...$labels, ...self::legend($min, $max, $radius, $size, $vehicles !== [])];
+    }
+
+    /**
+     * Which vehicle's footprint a placement stands in, or `-` for none.
+     *
+     * Footprint rather than full box, because a cabinet inside a van is inside it in plan and may stick out of the
+     * top of a trailer — see the packed convoy, where a 4 m mast does exactly that.
+     *
+     * @param array<string, PlacedDevice> $vehicles
+     */
+    private static function vehicleAround(PlacedDevice $entry, array $vehicles): string
+    {
+        $box = $entry->worldBox();
+        $x = ($box['min'][0] + $box['max'][0]) / 2;
+        $y = ($box['min'][1] + $box['max'][1]) / 2;
+
+        foreach ($vehicles as $id => $vehicle) {
+            $outer = $vehicle->worldBox();
+            if ($x >= $outer['min'][0] && $x <= $outer['max'][0] && $y >= $outer['min'][1] && $y <= $outer['max'][1]) {
+                return $id;
+            }
+        }
+
+        return '-';
+    }
+
+    /**
+     * The colour key, standing beside the scene like a placard.
+     *
+     * **On the ground at one end rather than floating above the middle.** The first version put it high over the
+     * far corner, where it read as text hanging in the sky detached from anything — and being high it was also the
+     * part of the frame the camera gives least room to. Standing at one end, starting just off the floor, it reads
+     * as a sign next to the thing it explains.
+     *
+     * Only the lines that can appear. A rig has no cages and no arches, so a rig's legend would be three lines about
+     * things that are not in the picture — worse than no legend, because a reader then trusts it.
+     *
+     * @param array{float, float, float} $min
+     * @param array{float, float, float} $max
+     * @return list<array{text: string, at: array{float, float, float}, size: float}>
+     */
+    private static function legend(array $min, array $max, float $radius, float $size, bool $hasVehicles): array
+    {
+        $rows = ['LEGEND'];
+        if ($hasVehicles) {
+            $rows[] = 'grey cage = vehicle outline';
+            $rows[] = 'blue cage = load bay';
+            $rows[] = 'pale box = wheel arch';
+        }
+        $rows[] = 'red cage = fails a geometry check';
+
+        $labels = [];
+        $lineHeight = $size * 1.45;
+        // **Clear of the vehicles in x, which the first offset was not.** `radius * 0.10` is 0.9 m on the packed
+        // convoy against vans 2 m wide, so the placard landed on top of the Movano and read as text painted across
+        // its side. The offset has to be measured against the scene rather than guessed at: half a radius puts it
+        // beside the convoy with air around it.
+        $top = $lineHeight * count($rows) + $size;
+        foreach ($rows as $index => $row) {
+            $labels[] = [
+                'text' => $row,
+                'at' => [
+                    $max[0] + $radius * 0.5,
+                    $min[1] + $radius * 0.1,
+                    $top - $index * $lineHeight,
+                ],
+                'size' => $index === 0 ? $size * 1.25 : $size,
+            ];
+        }
+
+        return $labels;
     }
 
     /**

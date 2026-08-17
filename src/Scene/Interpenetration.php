@@ -110,6 +110,20 @@ final class Interpenetration
                 if ($j <= $i) {
                     continue;
                 }
+                // **A HOLLOW SHELL CONTAINS RATHER THAN COLLIDES**, which is the one exemption in this sweep. A
+                // load bay is drawn as a cage so the cabinets can be seen inside it, so every unit of a pack is
+                // inside its vehicle's box on purpose — the sweep called the first one 1.09 m inside the Movano and
+                // `scene:build` would have caged the whole load in red. See {@see \App\Spec\Shape::isHollow} for why
+                // only the bay qualifies and a truss does not.
+                //
+                // **It is the pair that is skipped, not the check that is weakened.** Two cabinets in the same place
+                // inside a bay are still reported, which is what makes a pack scene worth sweeping at all. What is
+                // *not* checked anywhere is whether the load sticks out through a wall — that is a containment
+                // question rather than a collision one, and {@see \App\Load\PackLayout} keeps the units inside the
+                // bay it was given while {@see \App\Load\PackSceneWriter} names whatever stands proud of it.
+                if ($a->device->shape->isHollow() || $b->device->shape->isHollow()) {
+                    continue;
+                }
                 // Boxes that do not even share a bounding box cannot intersect, and skipping them is what keeps this
                 // from being the slowest thing in the pipeline.
                 if (!self::boxesTouch($a, $b)) {

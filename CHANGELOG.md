@@ -4,6 +4,71 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.95.0] - 2026-08-17
+
+The pack as a picture, the wheel arches as boxes, and two specs corrected by their real datasheets.
+
+### Added
+
+- **`scene:pack`** — the load plan as a scene: the convoy in a row with each vehicle's load standing inside it.
+  `load:plan` assigns and this places, which are different problems; the positions come from **one stated rule**
+  (heaviest first onto the bay floor in rows, then columns on top) rather than an optimal pack. Written as an
+  ordinary scene into `scenes/packs/`, so `ShippedScenesTest` sweeps it for cabinets inside each other exactly as it
+  does a rig
+- **The wheel arches are modelled as solid boxes.** Stated by the owner. Their intrusion is **derived** — a bay
+  1.765 m wide with 1.380 m between arches gives 192.5 mm each side — and only the length, height and position along
+  the bay are estimates, the last because the axle position is in no document we hold
+- `App\Load\PackLayout` and `PackSceneWriter`, with seven tests pinning the rule's **honesty** rather than its
+  quality: nothing silently dropped, no two units in one place, the floor inside the arches, nothing past the bay
+  depth or through its roof, and a stacked unit always naming a real support
+- **`scene:render --labels` — Beschriftungen and a legend, stated by the owner.** One label per device **per
+  vehicle** with the count in the text, since seven Flexys labelled seven times is noise and the same cabinet in two
+  vans is two facts; the vehicles named; and a legend standing beside the scene naming what each cage colour means,
+  which is knowledge that otherwise lived only in `blender/lib/materials.py`. Drawn at *render* time like the aim
+  lines, so one assembled `.blend` draws with labels or without and neither is canonical. Every label turns to face
+  the camera, because text on a fixed axis is unreadable from half the presets
+- The legend only names what the scene can contain: a rig has no cages and no wheel arches, and a legend a reader
+  trusts about things that are not in the picture is worse than none
+
+### Fixed
+
+- **`truss-f33-2m` is a Global Truss F33200 and weighs 9.3 kg, not 10.3.** The old figure was derived by fitting a
+  line through three published F33 weights, which reproduced all three to within 0.13 kg and was **10 % out at the
+  one length nobody had published**. Across five segments that is 5 kg. Provenance goes from `estimated` to
+  `datasheet` on both dimensions and weight
+- **`truss-tower-4m` is a Varytec Wind Up 85 kg, not the assumed Global Truss ST-132 — the wrong product with the
+  right numbers.** The substitution got height and weight exactly right, 4 m and 25 kg, while **overstating the max
+  load by 15 kg**: 100 against 85. The two figures easy to check agreed, so the one that decides what may hang from a
+  truss bar never got checked. It also missed a **minimum** load of 25 kg, which a wind-up needs to crank safely and
+  which no field holds
+- **A load bay contains rather than collides**, which is what made the pack scene checkable at all. The geometry
+  sweep called the first unit of `packed-convoy` **1.09 m inside the Movano** and would have gone on to say it of
+  all 25, because a vehicle's box and a cabinet standing in it overlap by construction — `scene:build` would have
+  caged the whole load in red. `Shape::isHollow()` is the exemption and only the load bay qualifies: a truss and a
+  scaffold are *open* rather than hollow, their chords are solid, and two of them in one place is a real fault. **The
+  pair is skipped, not the check weakened** — two cabinets in one spot inside a bay are still reported, which is the
+  reason to sweep a pack in the first place. What nothing checks anywhere is whether the load sticks out *through* a
+  wall, which is a containment question rather than a collision one
+- Two flaws in the pack scene's own notes, both found by looking at the render: height warnings were reported by
+  *assignment* rather than by what was drawn, so both scaffold towers were flagged as "drawn standing" when neither
+  had been placed; and a 1.2 m generator on a 1 m trailer was called something that "would have to be laid down",
+  which is false — an open bed has no roof
+
+### Known
+
+- **The pack rule cannot turn anything, and 7 of 32 assigned units are unplaceable because of it** — mostly truss
+  segments and scaffold towers, all of which would lie down without difficulty. Filed as **LOAD-6**, and the
+  geometry is not new: `Orientation` already does this on the rig side
+- **A device has an erected size and a transport size and the schema has one field for both.** The truss lift
+  transports at 1.75 m and is modelled at 4 m, which is why the convoy render shows a mast standing out of a
+  trailer. Filed as **SPEC-15**
+- **Labels overlap each other**, since nothing lays them out to avoid it: eighteen on the packed convoy at
+  960 × 540 have several sitting on one another. A real fix means screen-space placement, which means projecting
+  through the camera. **CVR-9** carries the remainder
+- Two sizing mistakes, both found by looking rather than reasoning: labels at `radius / 60` came out around nine
+  pixels tall at `--quick-preview` and were a grey smear, and the legend offset by a tenth of the radius — 0.9 m
+  against vans 2 m wide — landed on top of the Movano and read as text painted across its side
+
 ## [0.94.0] - 2026-08-17
 
 The trailer, on the owner's instruction, and the field it turned out to need.

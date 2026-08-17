@@ -78,6 +78,10 @@ final class SceneRenderCommand extends BaseCommand
                 "Draw where cabinets point: tops (default) or all. Overrules the scene's own aim_lines",
                 RenderPlan::AIM_NONE,
             )
+            // **Beschriftungen and a legend, stated by the owner.** A pack render carries three vehicle cages and
+            // twenty-five cabinets and said nowhere which was which. An annotation like `--aim-lines` rather than
+            // geometry in the `.blend`, so the same assembled scene draws with or without and neither is canonical.
+            ->addOption('labels', null, InputOption::VALUE_NONE, 'Name every device in the picture and add a colour legend')
             ->addOption('out', 'o', InputOption::VALUE_REQUIRED, 'Output PNG path (single scene only)')
             ->addOption(
                 'out-dir',
@@ -194,6 +198,8 @@ final class SceneRenderCommand extends BaseCommand
                 'resolution' => $settings['resolution'],
                 'ground' => !$settings['noGround'],
                 'aim_lines' => $aimLines ?? RenderPlan::AIM_NONE,
+                // Part of the settings stamp, so turning labels on redraws a picture that is otherwise current.
+                'labels' => (bool)$input->getOption('labels'),
             ];
 
             // Only redraw what has changed. A render is the most expensive thing in the pipeline — and `build:all`
@@ -221,6 +227,7 @@ final class SceneRenderCommand extends BaseCommand
                 $settings['resolution'],
                 !$settings['noGround'],
                 $aimLines,
+                (bool)$input->getOption('labels'),
             ) + [
                 'scene_id' => $scene->id,
                 'scene_blend' => $sceneBlend,
@@ -238,7 +245,7 @@ final class SceneRenderCommand extends BaseCommand
                 $aimLines === RenderPlan::AIM_NONE
                     ? ''
                     : sprintf(', aim lines: %s (%d)', $aimLines, count($plan['aim_lines'])),
-            ));
+            ).($plan['labels'] === [] ? '' : sprintf(', %d labels', count($plan['labels']))));
 
             try {
                 $this->renderPlan($plan, $target, $output);

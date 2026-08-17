@@ -124,6 +124,54 @@ def _set_world(config):
         background.inputs[0].default_value = (red, green, blue, 1.0)
 
 
+def _add_labels(labels, camera):
+    """Draw a text label for each thing named, and a legend block beside the scene.
+
+    **A pack render carries three vehicle cages and twenty-five cabinets and said nowhere which was which.** Stated
+    by the owner: it needs Beschriftungen and a legend. This is the annotation half of that — like the aim lines
+    above, it is drawn at *render* time rather than built into the `.blend`, so the same assembled scene can be drawn
+    with labels or without and neither is the canonical one.
+
+    **Every label faces the camera**, because text lying flat on the ground is unreadable from a three-quarter view
+    and text on a fixed axis is unreadable from half the presets. The render plan states where the camera is, so each
+    label is turned to face it — the same trick `_aim` does for lights, plus a half turn, since a font's readable
+    side is its +Z and `_aim` points −Z at its target.
+
+    Emissive and unlit, so a label in a shadow is still a label.
+    """
+    if not labels:
+        return
+
+    material = bpy.data.materials.new("sdwa5-label")
+    material.use_nodes = True
+    bsdf = material.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    bsdf.inputs["Emission Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    bsdf.inputs["Emission Strength"].default_value = 4.0
+    material.diffuse_color = (1.0, 1.0, 1.0, 1.0)
+
+    eye = Vector(camera["location"])
+
+    for index, label in enumerate(labels):
+        curve = bpy.data.curves.new("label-%d" % index, type="FONT")
+        curve.body = label["text"]
+        curve.size = label.get("size", 0.12)
+        # Centred on its anchor, so a label sits over the thing it names rather than starting there.
+        curve.align_x = "CENTER"
+        curve.align_y = "BOTTOM"
+        # A little depth, so the text catches light from more than one direction and never vanishes edge-on.
+        curve.extrude = 0.004
+
+        obj = bpy.data.objects.new("label-%d" % index, curve)
+        obj.location = tuple(label["at"])
+        obj.data.materials.append(material)
+        bpy.context.scene.collection.objects.link(obj)
+
+        to_eye = eye - Vector(label["at"])
+        if to_eye.length > 1e-6:
+            obj.rotation_euler = to_eye.to_track_quat("Z", "Y").to_euler()
+
+
 def render(plan):
     bpy.ops.wm.open_mainfile(filepath=plan["scene_blend"])
 
@@ -131,6 +179,7 @@ def render(plan):
     _add_camera(plan["camera"])
     _add_lights(plan["lighting"])
     _add_aim_lines(plan.get("aim_lines") or [])
+    _add_labels(plan.get("labels") or [], plan["camera"])
     _set_world(plan["world"])
 
     scene = bpy.context.scene

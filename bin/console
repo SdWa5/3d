@@ -18,6 +18,7 @@ use App\Command\LibraryBuildCommand;
 use App\Command\LoadPlanCommand;
 use App\Command\ModelsBuildCommand;
 use App\Command\SceneBuildCommand;
+use App\Command\ScenePackCommand;
 use App\Command\SceneStackCommand;
 use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
@@ -30,6 +31,7 @@ $app->addCommands([
         new LibraryBuildCommand(),
         new SceneStackCommand(),
         new SceneBuildCommand(),
+        new ScenePackCommand(),
         new SceneRenderCommand(),
         new CatalogCommand(),
         new LoadPlanCommand(),

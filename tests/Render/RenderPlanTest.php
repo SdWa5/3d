@@ -299,6 +299,129 @@ final class RenderPlanTest extends TestCase
     }
 
     /**
+     * **Off unless asked for**, like the aim lines. A render is the thing everybody looks at and most of them want
+     * the picture rather than the annotation.
+     */
+    public function testThereAreNoLabelsUnlessTheyAreAskedFor(): void
+    {
+        $plan = RenderPlan::forScene([$this->at($this->cube(), [0.0, 0.0, 0.0])]);
+
+        self::assertSame([], $plan['labels']);
+    }
+
+    /**
+     * **One label per device, not per unit, with the count in the text.** Seven Flexys labelled seven times is noise
+     * rather than information — and on the packed convoy that is the difference between eighteen labels and thirty.
+     */
+    public function testUnitsOfOneDeviceShareALabelThatCountsThem(): void
+    {
+        $cube = $this->cube();
+        $placed = [
+            $this->at($cube, [0.0, 0.0, 0.0]),
+            $this->at($cube, [1.2, 0.0, 0.0]),
+            $this->at($cube, [2.4, 0.0, 0.0]),
+        ];
+
+        $plan = RenderPlan::forScene($placed, labels: true);
+        $named = array_values(array_filter(
+            $plan['labels'],
+            static fn (array $l): bool => str_contains($l['text'], $cube->id),
+        ));
+
+        self::assertCount(1, $named, 'three of one device is one label');
+        self::assertStringContainsString('3×', $named[0]['text']);
+    }
+
+    /**
+     * **The same device in two vehicles is two labels**, because that is two facts. Grouping by device alone would
+     * say "12× flexy" once and tell a loader nothing about which van to put them in.
+     */
+    public function testTheSameDeviceInTwoVehiclesIsLabelledTwice(): void
+    {
+        $cube = $this->cube();
+        $placed = [
+            $this->vehicle('van-a', [0.0, 0.0, 0.0]),
+            $this->at($cube, [0.0, 0.0, 0.0]),
+            $this->vehicle('van-b', [0.0, 10.0, 0.0]),
+            $this->at($cube, [0.0, 10.0, 0.0]),
+        ];
+
+        $plan = RenderPlan::forScene($placed, labels: true);
+        $named = array_filter(
+            $plan['labels'],
+            static fn (array $l): bool => str_contains($l['text'], $cube->id),
+        );
+
+        self::assertCount(2, $named, 'one label per device per vehicle');
+    }
+
+    /**
+     * **A legend only claims what the picture can contain.** A rig has no cages and no wheel arches, so naming them
+     * would be a legend a reader trusts about things that are not there — worse than no legend at all.
+     */
+    public function testTheLegendOnlyNamesWhatTheSceneCanShow(): void
+    {
+        $rig = RenderPlan::forScene([$this->at($this->cube(), [0.0, 0.0, 0.0])], labels: true);
+        $convoy = RenderPlan::forScene([
+            $this->vehicle('van-a', [0.0, 0.0, 0.0]),
+            $this->at($this->cube(), [0.0, 0.0, 0.0]),
+        ], labels: true);
+
+        $text = static fn (array $plan): string => implode("\n", array_column($plan['labels'], 'text'));
+
+        self::assertStringContainsString('LEGEND', $text($rig));
+        self::assertStringNotContainsString('wheel arch', $text($rig), 'a rig has no arches');
+        self::assertStringContainsString('wheel arch', $text($convoy));
+        self::assertStringContainsString('load bay', $text($convoy));
+    }
+
+    /**
+     * **The legend stands clear of the scene in x**, which the first version did not: it was offset by a tenth of the
+     * radius, 0.9 m on the packed convoy against vans 2 m wide, so it landed on top of the Movano and read as text
+     * painted across its side.
+     */
+    public function testTheLegendStandsClearOfTheScene(): void
+    {
+        $placed = [$this->vehicle('van-a', [0.0, 0.0, 0.0]), $this->at($this->cube(), [0.0, 0.0, 0.0])];
+        $plan = RenderPlan::forScene($placed, labels: true);
+        $widest = $plan['scene_bounds']['max'][0];
+
+        $legend = array_values(array_filter(
+            $plan['labels'],
+            static fn (array $l): bool => str_contains($l['text'], 'LEGEND') || str_contains($l['text'], '='),
+        ));
+
+        self::assertNotSame([], $legend);
+        foreach ($legend as $line) {
+            self::assertGreaterThan($widest, $line['at'][0], 'the legend is inside the scene');
+        }
+    }
+
+    /**
+     * A vehicle, for the label tests. Two metres wide, so a legend offset that fails to clear it is caught.
+     *
+     * @param array{float, float, float} $position
+     */
+    private function vehicle(string $id, array $position): PlacedDevice
+    {
+        $spec = SpecFactory::spec([
+            'id' => $id,
+            'category' => 'vehicle',
+            'subtype' => 'van',
+            'build' => 'original',
+            'clone_of' => null,
+            'audio' => null,
+            'geometry' => [
+                'shape' => 'load-bay',
+                'dimensions_m' => ['width' => 2.0, 'height' => 2.5, 'depth' => 5.0],
+            ],
+            'vehicle' => ['permitted_gross_kg' => 3500.0],
+        ]);
+
+        return new PlacedDevice($id, $spec, $position, new Orientation());
+    }
+
+    /**
      * A placement can ask for a line the mode would have skipped — a sub whose aim you want to see — and
      * refuse one the mode would have drawn. That is the whole point of `aim_lines` per group.
      */

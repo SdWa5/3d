@@ -151,6 +151,38 @@ final class FaultTest extends TestCase
     }
 
     /**
+     * **A load bay contains rather than collides**, which is what makes a pack scene worth sweeping at all.
+     *
+     * The whole load of a van stands inside the van's box on purpose — the vehicle is drawn as a cage precisely so
+     * the cabinets can be seen in it — and without this exemption the sweep called the first unit of
+     * `packed-convoy` **1.09 m inside the Movano** and `scene:build` would have caged the entire load in red.
+     */
+    public function testACabinetInsideALoadBayIsNotAFault(): void
+    {
+        $placed = [self::bay('movano', [0.0, 0.0, 0.0]), self::at('cabinet', [0.0, 0.0, 0.0])];
+
+        self::assertSame([], Interpenetration::faults($placed, 0.001));
+        self::assertSame(0.0, Interpenetration::worst($placed)['separation']);
+    }
+
+    /**
+     * And the check is not weakened by the exemption: two cabinets in one place **inside** a bay are still a fault,
+     * and only the two of them are named. A pack that quietly put two units in one spot would otherwise look
+     * exactly like a good one.
+     */
+    public function testTwoCabinetsInsideOneBayAreStillAFault(): void
+    {
+        $faults = Interpenetration::faults([
+            self::bay('movano', [0.0, 0.0, 0.0]),
+            self::at('buried-a', [0.0, 0.0, 0.0]),
+            self::at('buried-b', [0.2, 0.0, 0.0]),
+        ], 0.001);
+
+        self::assertCount(1, $faults);
+        self::assertSame(['buried-a', 'buried-b'], $faults[0]->placementIds);
+    }
+
+    /**
      * Every marked placement, each once, however many faults name it. A cabinet in two overlaps gets one cage.
      */
     public function testAPlacementNamedTwiceIsMarkedOnce(): void
@@ -183,6 +215,32 @@ final class FaultTest extends TestCase
             ],
             'physical' => ['weight_kg' => 90.0, 'handles' => []],
         ]), '/tmp/skram.yaml');
+
+        return new PlacedDevice($id, $device, $position, new Orientation(0.0, 0.0, 0.0));
+    }
+
+    /**
+     * A transporter big enough to hold the SKRAM above, and the only shape this repository calls hollow.
+     *
+     * @param array{float, float, float} $position
+     */
+    private static function bay(string $id, array $position): PlacedDevice
+    {
+        static $device = null;
+        $device ??= DeviceSpec::fromArray(SpecFactory::specArray([
+            'id' => 'van',
+            'name' => 'Van',
+            'category' => 'vehicle',
+            'subtype' => 'van',
+            'quantity' => 1,
+            'geometry' => [
+                'shape' => 'load-bay',
+                'dimensions_m' => ['width' => 2.070, 'height' => 2.808, 'depth' => 6.848],
+                'origin' => 'bottom-center',
+                'chamfer_m' => 0.0,
+            ],
+            'physical' => ['weight_kg' => 2276.0, 'handles' => []],
+        ]), '/tmp/van.yaml');
 
         return new PlacedDevice($id, $device, $position, new Orientation(0.0, 0.0, 0.0));
     }

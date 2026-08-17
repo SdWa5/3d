@@ -41,6 +41,27 @@ enum Shape: string
     case LoadBay = 'load-bay';
 
     /**
+     * Whether the shape is a **shell you put things inside**, so that something standing in it is the intended
+     * state rather than two solids buried in each other.
+     *
+     * Only the load bay is, and the list is written out for the same reason {@see isCabinet}'s is: a truss and a
+     * scaffold are *open* rather than hollow, their chords and posts are solid, and two of them in the same place
+     * is a real fault that must go on being reported.
+     *
+     * **This is what makes a pack scene checkable at all.** Every unit in a pack stands inside its vehicle's box,
+     * so the geometry sweep called each one 1.09 m inside the van and `scene:build` would have caged the whole
+     * load in red. Asked of the shape rather than of {@see Category} because it is the geometry that decides: the
+     * van is drawn as a cage precisely so the cabinets can be seen inside it.
+     */
+    public function isHollow(): bool
+    {
+        return match ($this) {
+            self::LoadBay => true,
+            self::Box, self::Trapezoid, self::Wedge, self::Truss, self::MovingHead, self::Scaffold => false,
+        };
+    }
+
+    /**
      * Whether the shape is a loudspeaker cabinet, and so gets a grille, handle recesses and drivers.
      *
      * Asked as a question about the shape rather than about {@see Category}, because it is the *geometry*
