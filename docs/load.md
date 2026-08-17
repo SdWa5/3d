@@ -19,9 +19,15 @@ stated on the command line and not baked into the code.
 actually has. Until the trailer is a spec of its own and becomes a third bin — LOAD-5 — naming the device is the only
 way to tell the truth about what the vans carry.
 
-**And the trailer is the interesting part.** The vans are 214.5 kg short of one journey. A trailer takes the
-generator *and* that remainder comfortably: the Ducato tows 3000 kg braked on its papers and the Movano 2500 kg. So
-LOAD-5 is the item most likely to put the whole library on one trip for the first time.
+**And the trailer turns out not to be the answer, which is worth knowing before it is bought.** Sepp is buying one
+at **750 kg permitted gross, ca. 200 kg unladen** — so 550 kg of payload, of which the generator is 465. That leaves
+**85 kg** spare: it is a generator trailer rather than spare space.
+
+The whole load in one journey comes to 2703.5 kg against 2574 kg of capacity, which is **129.5 kg short**. The
+trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new load with it. Closing the
+rest would need a payload near 680 kg — roughly 900 to 1000 kg gross and braked, which both vans tow easily but which
+takes the combination to 4500 kg and has licence implications worth checking first. **750 kg is exactly O2, the
+unbraked limit on both sets of papers.** See LOAD-5.
 
 Without either exclusion the planner is asked to carry 3958.7 kg, which is not a question anybody has.
 

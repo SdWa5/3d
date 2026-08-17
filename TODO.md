@@ -805,8 +805,45 @@ now exist, and whose answer is currently a statement about two estimates rather 
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| LOAD-5 | **A trailer is a third bin, and Sepp is bringing one.** `subtype: trailer` is already accepted by the vehicle category and nothing uses it; `LoadPlanner` already handles any number of bins. What is missing is the trailer's own figures — permitted gross, unladen mass, bed dimensions — and a rule the planner does not have: **a trailer's load is limited by what tows it**, and both vans state that on their papers (O1 3000 kg braked for the Ducato, 2500 for the Movano, 750 unbraked each). **This is the item most likely to put the whole library on one journey**, because the vans are only 214.5 kg short and a trailer swallows that plus the 465 kg generator | P1 | 3h | one trip instead of two, if the trailer's figures allow it | the trailer's papers | needs the owner |
+| LOAD-5 | **A trailer is a third bin, and Sepp is buying one: 750 kg permitted gross, ca. 200 kg unladen.** Stated by the owner on 2026-08-17, before the purchase. **Measured against those figures it does not reach one journey**: 550 kg of payload minus the 465 kg generator leaves 85 kg, so the combined shortfall goes from 214.5 kg to **129.5 kg** rather than to zero. Worth knowing before he buys — see the detail section. The mechanism is mostly already there, since `subtype: trailer` is accepted and `LoadPlanner` takes any number of bins; what is missing is **towing capacity in the schema** (O1/O2 are on both sets of papers and in no field) and a way to say which vehicle tows which trailer | P1 | 3h | the third bin, and an honest answer about whether one journey is possible at all | the trailer existing | needs the owner |
 | LOAD-2 | Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed**: 2500 kg with a full tank and driver, so 1000 kg of payload — **365 kg heavier than its own Zulassungsschein**, which knows nothing about a fit-out added after type approval. **Stefan's Movano has not been weighed** and its 1024 kg is the same class of paper figure that just proved 365 kg optimistic. What is left: **the Movano on a scale**, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3 | P1 | 45m | the difference between a load plan and a fine | — | needs the owner |
+
+#### LOAD-5 — the trailer, and why 750 kg is not enough
+
+Where: `specs/vehicles/` for the trailer itself, a towing block on the vehicle, and a pairing rule the schema has no
+way to express yet.
+
+**Stated by the owner on 2026-08-17, before the purchase: 750 kg permitted gross, ca. 200 kg unladen.** So 550 kg of
+payload, and the generator is 465 of it.
+
+| | |
+| --- | --- |
+| trailer payload | 550 kg |
+| the generator | 465 kg |
+| **spare on the trailer** | **85 kg** |
+
+**IT DOES NOT REACH ONE JOURNEY, WHICH IS THE POINT OF WRITING THIS DOWN NOW.** The whole load is 2703.5 kg — the
+2238.5 kg of van gear plus the generator — against 2574 kg of capacity once the trailer is counted. That is
+**129.5 kg short**. The trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new
+load with it: it is a generator trailer, not spare space.
+
+**What would close the remaining 129.5 kg** is a trailer payload near 680 kg, which means roughly 900 to 1000 kg
+gross and braked. Both vans tow that without difficulty — O1 is 3000 kg braked on the Ducato and 2500 on the Movano.
+Where it stops being a towing question is the **combination mass**: 3500 + 750 is 4250 kg and 3500 + 1000 is 4500,
+and trailer classes above 750 kg have licence implications that are worth checking before buying rather than after.
+**750 kg is also exactly O2, the unbraked limit on both sets of papers**, which is likely why that size was chosen.
+
+**Not specced until it exists.** `specs/` is an inventory of what the collective has, and a trailer nobody owns yet
+would overstate it — the unladen mass is also a "ca." figure that the real machine will settle. The arithmetic above
+is what the decision needs; the spec is one file the day it arrives.
+
+**What the schema is actually missing**, and it is more than the trailer:
+
+* **Towing capacity.** O1 and O2 are on both sets of papers and in no field of any spec. A trailer's laden mass has
+  to be checked against what tows it, and nothing can express that today.
+* **Which vehicle tows which trailer.** A pairing, not a property of either.
+* **An open bed has no height.** `load_bay_m` requires all three axes when present, which is right for a van and
+  wrong for a flatbed. Omitting the bay gives no space answer at all, which is honest but weak.
 
 #### LOAD-2 — both vans documented, neither measured inside
 

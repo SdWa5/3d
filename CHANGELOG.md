@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.93.1] - 2026-08-17
+
+### Changed
+
+- **The trailer Sepp is buying does not reach one journey, and the arithmetic is recorded before the purchase rather
+  than after.** Stated by the owner: 750 kg permitted gross, ca. 200 kg unladen, so 550 kg of payload — and the
+  generator is 465 of it, leaving **85 kg**. The whole load comes to 2703.5 kg against 2574 kg of capacity, which is
+  **129.5 kg short**. The trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new
+  load with it: a generator trailer rather than spare space. Closing the rest needs a payload near 680 kg, roughly
+  900 to 1000 kg gross and braked
+- **Not specced until it exists.** `specs/` is an inventory of what the collective has, and its unladen mass is a
+  "ca." figure the real machine will settle. LOAD-5 carries the arithmetic; the spec is one file the day it arrives
+- LOAD-5 now also names **what the schema is missing beyond the trailer**: towing capacity, which is on both sets of
+  papers (O1 3000/2500 braked, O2 750 unbraked) and in no field of any spec; which vehicle tows which trailer, being
+  a pairing rather than a property of either; and that `load_bay_m` requires all three axes, which is right for a van
+  and wrong for an open flatbed
+
 ## [0.93.0] - 2026-08-17
 
 Sepp bought a 25 kVA generator, and it is the heaviest single object in the library by a factor of two.
