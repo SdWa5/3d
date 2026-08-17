@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.94.0] - 2026-08-17
+
+The trailer, on the owner's instruction, and the field it turned out to need.
+
+### Added
+
+- **`specs/vehicles/trailer-750kg.yaml`** — 750 kg permitted gross, ca. 200 kg unladen, so 550 kg of payload. Not yet
+  bought, which its own notes admit: `quantity: 1` says the fleet has one because the planner needs a bin, and that
+  overstatement is written down rather than hidden
+- **`carried_on`, a field on the device naming the one transporter it may ride on.** Without it the plan was
+  unloadable. `load:plan` scores bins by how strained they are, and a 550 kg trailer holding a 465 kg generator is by
+  far the most strained of the three — so left to the score it sent the generator to a **van** and filled the trailer
+  with speaker cabinets. Legal on every weight check, impossible to load, since two people cannot lift it and no van
+  has a ramp
+- Pinned devices are placed **first**, before anything else can take the room, and **a pin that cannot be honoured
+  leaves the device behind** rather than quietly unpinning it — reporting success on a plan nobody can execute is
+  worse than a remainder
+- A cross-spec validator rule: `carried_on` must name a transporter in the library, and may not appear on one, since
+  a trailer is not cargo. It matters more than it sounds, because the planner leaves a pinned device behind when it
+  cannot find its bin — so a typo would turn "this rides on the trailer" into "this does not travel" while the plan
+  looked complete
+- Four tests
+
+### Known
+
+- **Three bins and 148.2 kg still at home**, against 214.5 kg before the trailer. All three finish within ten
+  kilogrammes of their limit and all three report `UNDECIDED` for it
+- **The trailer states no `load_bay_m` at all, deliberately.** An open bed has a length and a width and no ceiling;
+  `load_bay_m` requires all three axes, so a side height would be read as a roof and refuse anything taller than the
+  sides. No bay means no space answer, which is honest for a flatbed. What is still weak: nothing distinguishes "no
+  bay because it is open" from "no bay because nobody measured it"
+- **Towing is checked nowhere.** O1 and O2 are printed on both sets of papers and stored in no field, and nothing
+  pairs a trailer with the vehicle that tows it. 750 kg is exactly O2 unbraked on both vans, so today the combination
+  is legal by construction rather than by check
+
 ## [0.93.1] - 2026-08-17
 
 ### Changed

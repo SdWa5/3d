@@ -10,11 +10,12 @@ The filename must equal the `id`. Validate with `bin/console specs:validate`.
 ```yaml
 id: top-a                     # lowercase-dashes; must match the filename
 name: "Top A"                 # human label, shown in the catalog and asset browser
-category: speaker             # speaker | truss | rack | stand | other
+category: speaker             # speaker | truss | rack | stand | vehicle | other
 subtype: top                  # see the category table below
 quantity: 2                   # how many of these exist
 owner: sdwa5                  # default sdwa5; lowercase-dashes. Borrowed gear names its owner
 build: self-built             # self-built | own-design | original
+carried_on: null              # optional: the id of the ONE transporter this may ride on. See below
 
 clone_of:                     # required for build: self-built, forbidden otherwise
   manufacturer: Acme          # `unknown` until somebody writes it down
@@ -227,6 +228,26 @@ added.
 | `stand` | `speaker-pole`, `tripod`, `riser` |
 | `vehicle` | `van`, `trailer` — a transporter, see below |
 | `other` | anything — the escape hatch for gear the taxonomy has not caught up with |
+
+### carried_on — the device that can only ride on one bin
+
+**A pack is not free to put every device anywhere, and until this field existed it assumed otherwise.** Sepp's 465 kg
+generator is the case: two people cannot lift it, it needs a ramp or a forklift, and it has no business inside a van.
+`load:plan` scores bins by how strained they are, and a 550 kg trailer holding a 465 kg generator is by far the most
+strained — so left to the score it put the generator in a **van** and filled the trailer with speaker cabinets. A
+plan that passes every weight check and that nobody can load.
+
+```yaml
+carried_on: trailer-750kg
+```
+
+One transporter rather than a list, deliberately. Every case anybody has is "this rides on that", and a list would
+invite a set of permissions nobody can state.
+
+Refused if it names something that is not a transporter in this library, and refused on a transporter itself, since a
+trailer is not cargo. That check is cross-spec and matters more than it sounds: the planner **leaves a pinned device
+behind** when it cannot find its bin, so a typo would quietly turn "this rides on the trailer" into "this does not
+travel" while the load plan looked complete.
 
 ### vehicle
 

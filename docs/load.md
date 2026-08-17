@@ -19,9 +19,8 @@ stated on the command line and not baked into the code.
 actually has. Until the trailer is a spec of its own and becomes a third bin — LOAD-5 — naming the device is the only
 way to tell the truth about what the vans carry.
 
-**And the trailer turns out not to be the answer, which is worth knowing before it is bought.** Sepp is buying one
-at **750 kg permitted gross, ca. 200 kg unladen** — so 550 kg of payload, of which the generator is 465. That leaves
-**85 kg** spare: it is a generator trailer rather than spare space.
+**The trailer is specced and it is not the answer.** 750 kg permitted gross against ca. 200 kg unladen is 550 kg of
+payload, of which the generator is 465 — **85 kg** spare. It is a generator trailer rather than spare space.
 
 The whole load in one journey comes to 2703.5 kg against 2574 kg of capacity, which is **129.5 kg short**. The
 trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new load with it. Closing the
@@ -34,20 +33,49 @@ Without either exclusion the planner is asked to carry 3958.7 kg, which is not a
 ## The answer, today
 
 ```
-opel-movano-l4h3 (sdwa5) — 23 units
-  weight    1023.0 kg of 1024.0 kg payload  (1.0 kg spare)
+opel-movano-l4h3 (sdwa5) — 14 units
+  weight    1018.0 kg of 1024.0 kg payload  (6.0 kg spare)
+  space     14.153 m³ of 15.843 m³ bay  (89 % by bounding box)
 
 fiat-ducato-250-l3h2 (sepp) — 14 units
   weight     997.3 kg of 1000.0 kg payload  (2.7 kg spare)
   space       4.823 m³ of 13.386 m³ bay  (36 % by bounding box)
 
-NOT CARRIED — the fleet has no legal room for these:
-     1 × rack-power-12u, 2 × eighteensound-2way-15, 2 × truss-tower-4m, 4 × truss-f33-2m
-  short by 218.2 kg
+trailer-750kg (sepp) — 3 units
+  weight     540.0 kg of 550.0 kg payload  (10.0 kg spare)
+  space        bay not measured, so no space answer can be given
+     1 × sepp-generator-25kva               465.0 kg
+
+NOT CARRIED — short by 148.2 kg
 ```
 
-**The fleet is 214.5 kg short of carrying the library in one trip**, and both vehicles finish within three
-kilogrammes of their legal limit — which is why both come back `UNDECIDED` rather than as a pass.
+**Three bins, all three within ten kilogrammes of their limit, and 148.2 kg still at home.** Every one of them
+reports `UNDECIDED` for that reason: a margin that small, off masses good to tens of kilogrammes, is not a decision.
+
+## An open bed has no height, so the trailer gets no space answer
+
+The trailer states **no `load_bay_m` at all**, and that is deliberate rather than missing. A flatbed has a length and
+a width and no ceiling: what limits a load on it is the mass and the straps. `load_bay_m` requires all three axes
+when present, so stating a side height as though it were a roof would make the planner refuse anything taller than
+the sides. **A vehicle with no bay gets no space answer**, which is the honest outcome — the constraint on a trailer
+is weight.
+
+## Some devices can only ride on one bin
+
+**`carried_on` is a field on the device, and without it the plan was unloadable.** The planner scores bins by how
+strained they are, and the trailer holding a 465 kg generator against a 550 kg payload is by far the most strained of
+the three. So left to the score it sent the generator to a **van** and filled the trailer with speaker cabinets — a
+plan that passes every weight check and that nobody can load, since two people cannot lift it and no van has a ramp.
+
+```yaml
+carried_on: trailer-750kg
+```
+
+Pinned devices are placed first, before anything else can take the room, and **a pin that cannot be honoured leaves
+the device behind rather than quietly unpinning it**. Sending it to a van instead would report success on a plan that
+cannot be executed, which is worse than a remainder. `specs:validate` refuses a pin naming something that is not a
+transporter, because a typo would otherwise turn "this rides on the trailer" into "this does not travel" while the
+plan looked complete.
 
 ## The number moved twice in a day, and that is the lesson
 
@@ -116,6 +144,7 @@ horn, and the truss towers report the mast's footprint rather than their unfolde
 
 The ordering, written down so it can be argued with:
 
+0. **A pinned device goes to the bin it names**, before anything else can take the room. See above.
 1. **Vehicles are offered largest payload first.** The two are not the same size, so a left-to-right fill would put
    the heavy half in whichever happened to be listed first.
 2. **Cargo is placed heaviest unit first**, not heaviest device. Three 20 kg tops are not a heavier thing than one

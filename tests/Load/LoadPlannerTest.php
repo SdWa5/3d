@@ -101,6 +101,54 @@ final class LoadPlannerTest extends TestCase
     }
 
     /**
+     * **A pinned device rides on the bin it names, even when that bin is the worst choice by every other rule.**
+     *
+     * This is the one case where scoring bins by strain gets the answer exactly backwards. Sepp's 465 kg generator
+     * against a 550 kg trailer is the most strained bin of the three, so left to the score it went to a *van* and
+     * the trailer filled up with speaker cabinets — legal on every weight check and impossible to load, since two
+     * people cannot lift it and no van has a ramp.
+     */
+    public function testAPinnedDeviceRidesOnTheBinItNamesEvenWhenThatBinIsTheWorstChoice(): void
+    {
+        ['plans' => $plans, 'leftovers' => $leftovers] = (new LoadPlanner())->plan([
+            self::van('roomy-van', permittedGross: 4000.0, inService: 3000.0, bay: [2.0, 2.0, 5.0]),
+            self::van('tight-trailer', permittedGross: 750.0, inService: 200.0, bay: null),
+            self::cargo('generator', weight: 465.0, quantity: 1, size: [0.85, 1.2, 1.7], carriedOn: 'tight-trailer'),
+            self::cargo('cabinets', weight: 85.0, quantity: 6, size: [0.6, 0.6, 0.8]),
+        ]);
+
+        self::assertSame([], $leftovers);
+        $byId = [];
+        foreach ($plans as $plan) {
+            foreach ($plan->items as ['spec' => $spec]) {
+                $byId[$spec->id] = $plan->vehicle->id;
+            }
+        }
+
+        self::assertSame('tight-trailer', $byId['generator'], 'the pin has to beat the bin score');
+        self::assertSame('roomy-van', $byId['cabinets'], 'and everything else still balances');
+    }
+
+    /**
+     * **A pin that cannot be honoured leaves the device behind rather than quietly unpinning it.** Sending it to a
+     * van instead would produce a plan nobody can load while reporting success, which is worse than a remainder.
+     */
+    public function testAPinnedDeviceThatWillNotFitItsBinIsLeftBehind(): void
+    {
+        ['plans' => $plans, 'leftovers' => $leftovers] = (new LoadPlanner())->plan([
+            self::van('roomy-van', permittedGross: 4000.0, inService: 3000.0, bay: [2.0, 2.0, 5.0]),
+            self::van('tiny-trailer', permittedGross: 400.0, inService: 200.0, bay: null),
+            self::cargo('generator', weight: 465.0, quantity: 1, size: [0.85, 1.2, 1.7], carriedOn: 'tiny-trailer'),
+        ]);
+
+        self::assertCount(1, $leftovers);
+        self::assertSame('generator', $leftovers[0]['spec']->id);
+        foreach ($plans as $plan) {
+            self::assertSame([], $plan->items, 'nothing should have been placed in the van instead');
+        }
+    }
+
+    /**
      * A device stays together when one vehicle can take all of it, because a matched pair of tops split across two
      * vans is a valid plan and an annoying one.
      */
@@ -155,11 +203,14 @@ final class LoadPlannerTest extends TestCase
      *
      * Three sources, three answers, and only one of them had been near the vehicle:
      *
-     * | source for Sepp's payload | figure | fleet against a 2238.5 kg load |
+     * | source for Sepp's payload | figure | fleet against the load |
      * | --- | --- | --- |
      * | estimated, deliberately cautious | 1200 kg | 14.5 kg short |
      * | his Zulassungsschein, field A10 | 1365 kg | 150.5 kg spare |
      * | **a weighbridge, full tank and driver** | **1000 kg** | **214.5 kg short** |
+     *
+     * The 750 kg trailer then added 550 kg of capacity and the 465 kg generator with it, a net 85 kg, so the
+     * remainder is smaller and still a remainder.
      *
      * The estimate was pessimistic and the document was optimistic, which is not the order anybody expects. A
      * registration document is authoritative about what a vehicle **may** weigh and merely historical about what
@@ -180,7 +231,8 @@ final class LoadPlannerTest extends TestCase
 
         ['plans' => $plans, 'leftovers' => $leftovers] = (new LoadPlanner())->plan($travelling);
 
-        self::assertCount(2, $plans, 'both transporters should be bins');
+        // Three bins now: two vans and the 750 kg trailer Sepp is buying, which the generator is pinned to.
+        self::assertCount(3, $plans, 'every transporter should be a bin');
         foreach ($plans as $plan) {
             self::assertFalse($plan->isOverloaded(), $plan->vehicle->id.' was planned over its legal payload');
             // **And neither bay bursts any more.** With the fleet 14.5 kg short, weight forced all twelve Flexys
@@ -227,12 +279,18 @@ final class LoadPlannerTest extends TestCase
     /**
      * @param list<float> $size width, height, depth
      */
-    private static function cargo(string $id, float $weight, int $quantity, array $size): DeviceSpec
-    {
+    private static function cargo(
+        string $id,
+        float $weight,
+        int $quantity,
+        array $size,
+        ?string $carriedOn = null,
+    ): DeviceSpec {
         return DeviceSpec::fromArray(SpecFactory::specArray([
             'id' => $id,
             'name' => $id,
             'quantity' => $quantity,
+            'carried_on' => $carriedOn,
             'geometry' => [
                 'shape' => 'box',
                 'dimensions_m' => ['width' => $size[0], 'height' => $size[1], 'depth' => $size[2]],

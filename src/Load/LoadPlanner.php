@@ -84,10 +84,55 @@ final class LoadPlanner
             $bins[$index] = ['vehicle' => $vehicle, 'items' => [], 'weight' => 0.0, 'volume' => 0.0];
         }
 
+        // **PINNED DEVICES GO FIRST, ONTO THE BIN THEY NAME.** A pack is not free to put every device anywhere, and
+        // scoring bins by strain gets this exactly backwards on the one case that matters: the trailer holding a
+        // 465 kg generator is the most strained bin of the three, so the generator was sent to a *van* and the
+        // trailer filled with speaker cabinets. Legal on every weight check and impossible to load, since two people
+        // cannot lift it and no van has a ramp. A pin is a fact rather than a preference, so it is placed before
+        // anything else can take the room.
+        //
+        // Partitioned rather than re-sorted. A comparator that only ranks pinnedness would leave the heaviest-first
+        // order to `sort`'s stability, which PHP 8 does guarantee and which is a poor thing for the reader to have
+        // to know.
+        $pinned = [];
+        $free = [];
+        foreach ($cargo as $spec) {
+            if ($spec->carriedOn !== null) {
+                $pinned[] = $spec;
+                continue;
+            }
+            $free[] = $spec;
+        }
+        $cargo = [...$pinned, ...$free];
+
         $leftovers = [];
         foreach ($cargo as $spec) {
             $remaining = $spec->quantity;
             $unitVolume = $spec->dimensions->volumeM3();
+
+            if ($spec->carriedOn !== null) {
+                $target = null;
+                foreach ($vehicles as $index => $vehicle) {
+                    if ($vehicle->id === $spec->carriedOn) {
+                        $target = $index;
+                        break;
+                    }
+                }
+                // A pin naming a vehicle that is not in this run — `--vehicle` narrowed it away, or the spec is
+                // wrong, which `SpecValidator` refuses — leaves the device behind rather than quietly unpinning it.
+                $room = $target === null
+                    ? -INF
+                    : ($vehicles[$target]->vehicle?->payloadKg($vehicles[$target]->weightKg) ?? 0.0)
+                        - $bins[$target]['weight'];
+                if ($target !== null && $room + 1e-9 >= $spec->weightKg * $remaining) {
+                    $bins[$target]['items'][] = ['spec' => $spec, 'count' => $remaining];
+                    $bins[$target]['weight'] += $spec->weightKg * $remaining;
+                    $bins[$target]['volume'] += $unitVolume * $remaining;
+                    continue;
+                }
+                $leftovers[] = ['spec' => $spec, 'count' => $remaining];
+                continue;
+            }
 
             // Whole first: the bin least strained by taking every one of them.
             $whole = $this->bestBinFor($bins, $vehicles, $spec->weightKg * $remaining, $unitVolume * $remaining);

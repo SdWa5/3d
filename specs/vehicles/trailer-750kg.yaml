@@ -1,0 +1,86 @@
+# The 750 kg trailer. NOT YET BOUGHT AS OF 2026-08-17 — it is on order, and it is in here because the owner asked
+# for it to be specced so the pack can be planned around it.
+#
+# WHAT IS KNOWN, stated by the owner on 2026-08-17 before the purchase: **750 kg permitted gross, ca. 200 kg
+# unladen**. So 550 kg of payload. Nothing else about the machine has been supplied — no make, no model, no bed
+# dimensions — because there is no machine yet.
+#
+# **750 kg IS NOT AN ARBITRARY SIZE.** It is exactly O2, the *unbraked* towing limit printed on both vans' papers,
+# and it is the largest trailer class that raises no licence question on its own. That is very likely why it was
+# chosen, and it is a clean fit for towing. It is only the packing arithmetic that comes up short.
+#
+# WHAT IT DOES TO THE PACK, AND IT IS LESS THAN IT LOOKS. 550 kg of payload minus the 465 kg generator leaves
+# **85 kg**. So this is a generator trailer rather than spare space: the whole load comes to 2703.5 kg against
+# 2574 kg of capacity, **129.5 kg short**, where the vans alone were 214.5 kg short. A net gain of 85 kg, because
+# the trailer brings 550 kg of capacity and 465 kg of new load with it. See LOAD-5.
+#
+# **THERE IS NO `load_bay_m` HERE, AND THAT IS DELIBERATE RATHER THAN MISSING.** An open flatbed has a length and a
+# width and *no height*: what limits a load on it is the mass and the straps, not a roof. `load_bay_m` requires all
+# three axes when it is present, which is right for a van and wrong for this — stating a side height as though it
+# were a ceiling would make the planner refuse anything taller than the sides, which is not how a trailer works. A
+# vehicle with no bay gets **no space answer at all**, which is the honest outcome: the constraint on a trailer is
+# weight. See LOAD-5 for the schema gap this is standing in for.
+#
+# THE OUTER BOX IS ESTIMATED and is the towing envelope rather than a bed: overall length including the drawbar,
+# width over the fenders, height over empty sides. A single-axle 750 kg trailer is around 3.0 m by 1.5 m by 1.0 m,
+# and this is the generous end of that. It feeds the cage model and nothing else — no pack decision reads it, since
+# there is no bay.
+#
+# WHAT SETTLES IT: the trailer arriving, and then its own plate. One photograph gives the make, the permitted gross,
+# the real unladen mass and the bed dimensions together. Until then every number here is the owner's intention
+# rather than a measurement. See docs/sources.md.
+id: trailer-750kg
+name: "Trailer 750 kg — single axle, on order"
+category: vehicle
+subtype: trailer
+quantity: 1
+owner: sepp
+build: original
+
+provenance:
+  # Everything is estimated, including the masses: 750 kg is the class the owner intends to buy and 200 kg is a
+  # "ca." figure. Neither has been read off a plate, because there is no plate yet.
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  # A cage, like the vans. With no bay it draws its outline alone, which for a flatbed is the honest picture.
+  shape: load-bay
+  # ESTIMATED. The towing envelope: length over the drawbar, width over the fenders, height over empty sides.
+  dimensions_m: { width: 1.500, height: 1.000, depth: 3.000 }
+  origin: bottom-center
+  chamfer_m: 0.02
+
+appearance:
+  color: "#e8e8e8"
+
+physical:
+  # "ca. 200 kg", the owner's figure. Erring low here would overstate the payload, which is the dangerous
+  # direction, so treat 200 as optimistic and expect the real trailer to be heavier.
+  weight_kg: 200.0
+  handles: [ ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+vehicle:
+  # The class the owner intends to buy. 750 kg gross against 200 kg unladen derives 550 kg of payload.
+  permitted_gross_kg: 750.0
+  # No `load_bay_m` on purpose — see the note at the top of this file.
+
+notes: |
+  PAYLOAD 550 kg, derived from 750 gross and 200 unladen, and both halves are the owner's intention rather than a
+  plate. Of that, 465 kg is the generator, which leaves 85 kg.
+
+  NOT YET BOUGHT as of 2026-08-17. `quantity: 1` says the fleet has one because the planner needs it to be a bin,
+  and this line is where that overstatement is admitted. Correct it the day the trailer either arrives or does not.
+
+  TOWING IS NOT CHECKED ANYWHERE. 750 kg is exactly O2, the unbraked limit on both vans' papers, so the combination
+  is legal by construction today — but O1 and O2 are in no field of any spec and nothing pairs a trailer with the
+  vehicle that tows it, so a bigger trailer would go unchallenged. That is LOAD-5's remaining half.
+
+  AND THE PLANNER WILL PUT THE GENERATOR IN A VAN, WHICH IS WRONG. It scores bins by how strained they are, and the
+  trailer at 465 of 550 kg is the most strained of the three, so a 465 kg machine that two people cannot lift and
+  that has no business in a van gets sent to one. Nothing in the schema says a device can only ride on a
+  particular bin. Use `--exclude=sepp-generator-25kva` until it does.

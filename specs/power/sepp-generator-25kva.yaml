@@ -31,6 +31,11 @@ quantity: 1
 owner: sepp
 build: original
 
+# **It rides on the trailer and nothing else, which the spec now states rather than the invocation.** Two people
+# cannot lift 465 kg, no van has a ramp, and the planner scores bins by strain — so left to itself it sent the
+# generator to a van and filled the trailer with speaker cabinets.
+carried_on: trailer-750kg
+
 provenance:
   # Both estimated, for different reasons. The dimensions are a guess from the output and the engine. The weight is
   # the owner's own figure, which the enum has no case for — the same treatment the GMSS cabinets get, where the
@@ -67,6 +72,6 @@ notes: |
   payload on its own, and it is the first device here that two people cannot carry at all: it needs a ramp, a tail
   lift or a forklift, none of which the load planner knows anything about.
 
-  IT TRAVELS ON A TRAILER, stated by the owner, which is why it does not belong in a van's load.
-  `load:plan --exclude=sepp-generator-25kva` is the invocation that says so until the trailer itself is a spec.
-  See LOAD-5.
+  IT TRAVELS ON THE TRAILER, stated by the owner, and `carried_on: trailer-750kg` above is where that is recorded.
+  It used to need `--exclude=sepp-generator-25kva` on every invocation, which said what it is *not* rather than
+  what it is — and left the trailer free to be filled with cabinets instead.

@@ -50,6 +50,53 @@ final class SpecValidator
         foreach ($this->validateUniqueIds($specs) as $violation) {
             $violations[] = $violation;
         }
+        foreach ($this->validateCarriedOn($specs) as $violation) {
+            $violations[] = $violation;
+        }
+
+        return $violations;
+    }
+
+    /**
+     * `carried_on` has to name a transporter that exists, and a transporter cannot itself be carried.
+     *
+     * **Cross-spec, so it lives up here with the id check rather than in `validateOne`.** A pin naming a device that
+     * is not a vehicle, or not there at all, is the failure mode that matters: {@see \App\Load\LoadPlanner} leaves
+     * a pinned device behind when it cannot find its bin, so a typo would quietly turn "this rides on the trailer"
+     * into "this does not travel" — and the load plan would look complete while a 465 kg generator sat at home.
+     *
+     * @param list<DeviceSpec> $specs
+     * @return list<Violation>
+     */
+    private function validateCarriedOn(array $specs): array
+    {
+        $transporters = [];
+        foreach ($specs as $spec) {
+            if ($spec->category === Category::Vehicle) {
+                $transporters[] = $spec->id;
+            }
+        }
+
+        $violations = [];
+        foreach ($specs as $spec) {
+            if ($spec->carriedOn === null) {
+                continue;
+            }
+            if ($spec->category === Category::Vehicle) {
+                $violations[] = new Violation(
+                    $spec->sourcePath,
+                    'a transporter is not cargo, so `carried_on` does not belong on one',
+                );
+                continue;
+            }
+            if (!in_array($spec->carriedOn, $transporters, true)) {
+                $violations[] = new Violation($spec->sourcePath, sprintf(
+                    "carried_on '%s' is not a transporter in this library. Available: %s",
+                    $spec->carriedOn,
+                    $transporters === [] ? 'none' : implode(', ', $transporters),
+                ));
+            }
+        }
 
         return $violations;
     }

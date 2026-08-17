@@ -61,6 +61,19 @@ final class DeviceSpec
         public readonly ?MeshOverride $meshOverride,
         /** What this transporter can carry. Present exactly when the category is `vehicle`. */
         public readonly ?Vehicle $vehicle,
+        /**
+         * The id of the one transporter this device may ride on, or null when any of them will do.
+         *
+         * **A pack is not free to put every device anywhere, and until this field existed it assumed otherwise.**
+         * Sepp's 465 kg generator is the case: two people cannot lift it, it needs a ramp or a forklift, and it has
+         * no business inside a van at all. The planner scores bins by how strained they are, so it sent the
+         * generator to the *van* and filled the trailer with speaker cabinets — a plan that is legal on every
+         * weight check and impossible to load.
+         *
+         * Deliberately one bin rather than a list. Every case anybody has is "this rides on that", and a list would
+         * invite a set of permissions nobody can state.
+         */
+        public readonly ?string $carriedOn,
         public readonly ?string $notes,
     ) {
     }
@@ -131,6 +144,7 @@ final class DeviceSpec
             vehicle: ($vehicleSection = $reader->optionalSection('vehicle')) !== null
                 ? Vehicle::fromReader($vehicleSection)
                 : null,
+            carriedOn: $reader->optionalString('carried_on'),
             notes: $reader->optionalString('notes'),
         );
     }

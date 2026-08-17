@@ -805,7 +805,7 @@ now exist, and whose answer is currently a statement about two estimates rather 
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| LOAD-5 | **A trailer is a third bin, and Sepp is buying one: 750 kg permitted gross, ca. 200 kg unladen.** Stated by the owner on 2026-08-17, before the purchase. **Measured against those figures it does not reach one journey**: 550 kg of payload minus the 465 kg generator leaves 85 kg, so the combined shortfall goes from 214.5 kg to **129.5 kg** rather than to zero. Worth knowing before he buys — see the detail section. The mechanism is mostly already there, since `subtype: trailer` is accepted and `LoadPlanner` takes any number of bins; what is missing is **towing capacity in the schema** (O1/O2 are on both sets of papers and in no field) and a way to say which vehicle tows which trailer | P1 | 3h | the third bin, and an honest answer about whether one journey is possible at all | the trailer existing | needs the owner |
+| LOAD-5 | **The trailer is specced and is a third bin.** 750 kg gross, ca. 200 kg unladen, so 550 kg of payload — of which the generator is 465, leaving 85. It does **not** reach one journey: 148.2 kg is still left behind, against 214.5 before it. What is left is the schema's side of towing: **O1 and O2 are on both sets of papers and in no field**, nothing pairs a trailer with the vehicle that tows it, and both would go unchallenged for a trailer above 750 kg. 750 is exactly O2 unbraked on both vans, so today it is legal by construction rather than by check | P2 | 2h | a towing check, which nothing performs | the trailer's own plate | partial |
 | LOAD-2 | Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed**: 2500 kg with a full tank and driver, so 1000 kg of payload — **365 kg heavier than its own Zulassungsschein**, which knows nothing about a fit-out added after type approval. **Stefan's Movano has not been weighed** and its 1024 kg is the same class of paper figure that just proved 365 kg optimistic. What is left: **the Movano on a scale**, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3 | P1 | 45m | the difference between a load plan and a fine | — | needs the owner |
 
 #### LOAD-5 — the trailer, and why 750 kg is not enough
@@ -833,17 +833,19 @@ Where it stops being a towing question is the **combination mass**: 3500 + 750 i
 and trailer classes above 750 kg have licence implications that are worth checking before buying rather than after.
 **750 kg is also exactly O2, the unbraked limit on both sets of papers**, which is likely why that size was chosen.
 
-**Not specced until it exists.** `specs/` is an inventory of what the collective has, and a trailer nobody owns yet
-would overstate it — the unladen mass is also a "ca." figure that the real machine will settle. The arithmetic above
-is what the decision needs; the spec is one file the day it arrives.
+**Specced on the owner's instruction, before the purchase.** `specs/` is an inventory of what the collective has, so
+`quantity: 1` for a trailer on order overstates it, and the spec says so in its own notes — that is the honest way to
+carry the tension rather than to hide it. Correct it the day the trailer either arrives or does not.
 
 **What the schema is actually missing**, and it is more than the trailer:
 
 * **Towing capacity.** O1 and O2 are on both sets of papers and in no field of any spec. A trailer's laden mass has
   to be checked against what tows it, and nothing can express that today.
 * **Which vehicle tows which trailer.** A pairing, not a property of either.
-* **An open bed has no height.** `load_bay_m` requires all three axes when present, which is right for a van and
-  wrong for a flatbed. Omitting the bay gives no space answer at all, which is honest but weak.
+* **An open bed has no height**, and the trailer therefore states no `load_bay_m` at all. `load_bay_m` requires all
+  three axes when present, so a side height would be read as a ceiling and the planner would refuse anything taller
+  than the sides. No bay means no space answer, which is the honest outcome for a flatbed: its constraint is mass.
+  What is weak is that nothing distinguishes "no bay because it is open" from "no bay because nobody measured it".
 
 #### LOAD-2 — both vans documented, neither measured inside
 
