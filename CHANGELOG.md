@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.97.0] - 2026-09-02
+
+The spec tree grew a second level, because two more systems were about to land in a flat folder of ten files.
+
+### Changed
+
+- **`specs/` is now `<category>/<owner>/<id>.yaml`.** All 22 specs moved, ours included: there is no unmarked
+  case any more, so `specs/speakers/sdwa5/` sits beside `specs/speakers/gmss/` rather than our gear lying loose
+  in the category folder with everybody else's filed under it. The old convention was a filename prefix and it
+  never held — `gmss-` and `sepp-` were owner prefixes, `rack-` and `truss-` were *category* prefixes, and Sepp's
+  two speakers carried no prefix at all, so the only reliable owner signal was already the `owner` field
+- **No source file changed, and that is a property of the loader rather than luck.** `SpecLoader::files()` has
+  walked `specs/` recursively since generated scenes needed the same trick, `category` comes from the file's own
+  field, and the one filesystem coupling — the basename must equal the `id` — reads `PATHINFO_FILENAME`, which
+  does not care how deep the file sits. `SpecValidator::ID_PATTERN` forbids a slash in an id, so a path can never
+  become part of one
+- `docs/spec-format.md` says outright that the two directory levels are **filing rather than data**: nothing
+  validates that a spec sits in the folder its own fields name, so the two are kept in step by hand and a
+  misfiled spec is misfiled rather than broken
+- `docs/catalog.md` regenerated. Its row order comes from `SpecLoader::files()`'s path sort, so the nesting
+  reshuffled it without a single figure changing
+
+### Fixed
+
+- **`bin/console --version` said 0.65.0 and the project was on 0.96.0**, 31 releases stale, with a `# todo` next
+  to it since the day it was written. It reads `composer.json` now, which is the file this project's own
+  convention bumps, so the number cannot drift again
+
 ## [0.96.0] - 2026-08-17
 
 The seventh axis's third value, and what measuring it said about the reading everybody had of it.

@@ -53,7 +53,7 @@ changes. `origin` only moves the finished model; it never reinterprets the numbe
 ## Naming
 
 One name, used everywhere: spec filename == `id` == Blender collection == Blender body object ==
-exported `.glb` basename. `specs/speakers/top-a.yaml` produces `build/glb/top-a.glb` containing a
+exported `.glb` basename. `specs/speakers/sdwa5/top-a.yaml` produces `build/glb/top-a.glb` containing a
 collection `top-a`. `specs:validate` enforces the filename half of that, and duplicate ids are
 rejected — two devices with one id would silently overwrite each other's model.
 

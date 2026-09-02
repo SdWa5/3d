@@ -71,7 +71,7 @@ stacked rows plus three tops — in about twenty lines. `scene:build` reports it
 Blender is involved, and `scene:render` turns it into a preview image in about 8 seconds without you placing a single
 camera. See [docs/scenes.md](docs/scenes.md).
 
-A **second system is documented rather than owned**: `specs/speakers/gmss-*.yaml` and
+A **second system is documented rather than owned**: [`specs/speakers/gmss/`](specs/speakers/gmss) and
 [`scenes/gmss-full-stack.yaml`](scenes/gmss-full-stack.yaml) describe GMSS (Gena Made Sound System) — six turbo subs
 over a small sub at each column's foot, two 18″ middle subs with a third laid on its side across them, and three
 turbo tops in one row, reconstructed from a site photo and a message. Not one dimension in them is sourced, so all four are `provenance: estimated`, `catalog` lists every one
@@ -136,7 +136,9 @@ its own papers, because shelving fitted after type approval appears in no regist
 
 ## Adding a device
 
-1. Copy an existing file in [`specs/speakers/`](specs/speakers) — the filename must equal the `id`
+1. Copy an existing file from the owner's folder under [`specs/speakers/`](specs/speakers), for example
+   [`specs/speakers/sdwa5/`](specs/speakers/sdwa5) for our own gear. The filename must equal the `id`, and the folder
+   must be the one named after the `owner` field
 2. Fill in the real numbers, from the cloned original's datasheet or by measuring
    ([docs/measuring.md](docs/measuring.md)), and set `provenance` to say which
 3. `ddev exec bin/console specs:validate && ddev exec bin/console models:build --id=<id>`
@@ -147,7 +149,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 ## Repository layout
 
 ```
-specs/          one YAML file per device — speakers/, truss/, lighting/, stands/, racks/, vehicles/
+specs/          one YAML file per device — <category>/<owner>/<id>.yaml
 src/Load/       the pack: which unit rides in which van, and the two verdicts on it
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration

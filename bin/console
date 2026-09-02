@@ -24,7 +24,16 @@ use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
-$app = new Application('sdwa5-3d', '0.65.0'); # todo dynamically get version from composer.json
+// **The version is read from `composer.json` rather than written here.** It had been a literal since 0.65.0
+// and was 31 releases stale by the time anybody looked, which is what a number duplicated between two files
+// does. `composer.json` is the one this project's own convention bumps, so it is the one that decides.
+$version = 'unknown';
+$manifest = json_decode((string) @file_get_contents(dirname(__DIR__).'/composer.json'), true);
+if (is_array($manifest) && is_string($manifest['version'] ?? null)) {
+    $version = $manifest['version'];
+}
+
+$app = new Application('sdwa5-3d', $version);
 $app->addCommands([
         new SpecsValidateCommand(),
         new ModelsBuildCommand(),

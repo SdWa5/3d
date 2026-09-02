@@ -1,7 +1,13 @@
 # Spec format
 
-One YAML file per device under [`specs/`](../specs), grouped by category. The file is the single
+One YAML file per device under [`specs/`](../specs), at `<category>/<owner>/<id>.yaml`. The file is the single
 source of truth: geometry, the catalog and the metadata inside the exported model all come from it.
+
+**The path is filing, not data.** `SpecLoader` reads `specs/` recursively and every fact about a device comes from
+the file's own fields, so the category comes from `category:` and the owner from `owner:` rather than from the two
+directory levels. The levels exist because the tree is read by people: five systems' gear in one flat folder is a
+pile. Nothing enforces that a spec sits in the directory its own fields name, so the two have to be kept in step by
+hand, and a spec filed under the wrong owner is filed wrongly rather than broken.
 
 The filename must equal the `id`. Validate with `bin/console specs:validate`.
 

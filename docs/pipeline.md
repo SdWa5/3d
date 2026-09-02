@@ -3,7 +3,7 @@
 How a spec file becomes a model you can drag into a scene.
 
 ```
-specs/speakers/top-a.yaml          hand-written, the source of truth
+specs/speakers/sdwa5/top-a.yaml    hand-written, the source of truth
         │
         │  bin/console specs:validate      no Blender needed — CI runs this
         ▼
