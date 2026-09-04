@@ -32,26 +32,26 @@ placements:
   # They are also the biggest things here. The wall bass is 1.400 m tall against a SKRAM's 0.914, and the mid bass
   # is 1.200 m **wide** — wider than any other cabinet in the library and the reason the spacing along this row is
   # set from their own widths rather than kept at the 1.0 m the others use.
-  - id: gmss-nuke
-    device: gmss-nuke
+  - id: nuke
+    device: nuke
     at: [ 2.2, 0.0 ]
 
-  - id: gmss-iq-sub
-    device: gmss-iq-sub
+  - id: iq-sub
+    device: iq-sub
     at: [ 3.0, 0.0 ]
 
-  - id: gmss-wall-bass
-    device: gmss-wall-bass
+  - id: wall-bass
+    device: wall-bass
     at: [ 3.9, 0.0 ]
 
   # A metre of clearance either side of this one, not the 0.8 the rest of the row uses: at 1.200 m across it would
   # otherwise touch both neighbours.
-  - id: gmss-mid-bass
-    device: gmss-mid-bass
+  - id: mid-bass
+    device: mid-bass
     at: [ 5.2, 0.0 ]
 
-  - id: gmss-turbo-top
-    device: gmss-turbo-top
+  - id: turbo-top
+    device: turbo-top
     at: [ 6.4, 0.0 ]
 
   # The non-speaker gear, further right again. The truss segment is the point of interest here: it is the only
@@ -66,15 +66,15 @@ placements:
     device: truss-tower-4m
     at: [ 9.2, 0.0 ]
 
-  - id: gmss-tower-5m
-    device: gmss-tower-5m
+  - id: tower-5m
+    device: tower-5m
     at: [ 9.8, 0.0 ]
 
   # A moving head and a scaffold tower, the two shapes that are neither cabinet nor truss. The MAC is the only
   # GMSS device with a datasheet behind it, and the Gerüst at 5 m is the tallest thing in the library — which is
   # what makes this sheet worth rendering from the front: everything is to the same scale.
-  - id: gmss-mac-2000-performance-ii
-    device: gmss-mac-2000-performance-ii
+  - id: mac-2000-performance-ii
+    device: mac-2000-performance-ii
     at: [ 10.8, 0.0 ]
 
   - id: geruest-krause-ah7
@@ -103,7 +103,7 @@ notes: |
   "turbo sub" is two different boxes, six IQ subs and two nukes, and the mid bass turned out to be a single 1.200 m
   cabinet rather than a pair. That is 300 mm of extra sheet, which is why everything right of the mid bass moved.
 
-  THE ONE DELIBERATE OMISSION is `gmss-truss-9m`. It is the same geometry as `truss-f33-2m` at four and a half
+  THE ONE DELIBERATE OMISSION is `truss-9m`. It is the same geometry as `truss-f33-2m` at four and a half
   times the length, so it shows nothing new, and including it would stretch this sheet past 20 m and leave every
   cabinet on it too small to inspect — which is the one thing the sheet exists to allow. Any other device missing
   from here is a bug.

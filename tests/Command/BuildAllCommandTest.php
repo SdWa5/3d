@@ -12,6 +12,7 @@ use App\Command\SceneBuildCommand;
 use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use App\Process\Parallel;
+use App\Tests\Support\ReplaySample;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -60,7 +61,7 @@ final class BuildAllCommandTest extends TestCase
      */
     public function testTheDryRunSaysHowManyGeneratedScenesWouldBeRewritten(): void
     {
-        $count = count(glob(dirname(__DIR__, 2).'/scenes/generated/*.yaml') ?: []);
+        $count = count(self::generatedScenes(dirname(__DIR__, 2).'/scenes/generated'));
         self::assertGreaterThan(0, $count, 'there should be generated scenes to regenerate');
 
         self::assertStringContainsString(
@@ -83,27 +84,81 @@ final class BuildAllCommandTest extends TestCase
      *
      * The cases below carry the padded ids the sweep writes today, where every axis is a fixed-width field and the
      * padding is itself a run of dashes. That is the harshest case the cutting rule has to survive.
+     *
+     * **The inventory left these names when it became a directory** — `stacked-sdwa5-----2-…` is now
+     * `sdwa5/stacked-2-…`. Two of the old-form cases are kept on purpose: the run of padding dashes they carry is
+     * exactly the case a test about not cutting at the last dash wants.
+     *
+     * **AND THE DIRECTORY IS PART OF THE ANSWER NOW, WHICH IS THE 0.98.0 DEFECT THIS TEST DID NOT CATCH.** A
+     * derived file used to be matched by basename alone, and 421 of the 589 generated basenames belong to two or
+     * more inventories — so eleven rigs' artifacts all answered the same id, and the prune compared each of them
+     * against whichever scene it met first. The key is the path relative to the mirrored root, which is why the
+     * root is a second argument rather than something the method guesses.
      */
-    public function testADerivedFileIsMatchedToItsSceneById(): void
+    public function testADerivedFileIsMatchedToItsSceneByItsKey(): void
     {
-        $method = new \ReflectionMethod(BuildAllCommand::class, 'sceneIdOf');
+        $method = new \ReflectionMethod(BuildAllCommand::class, 'sceneKeyOf');
 
         foreach ([
-            'build/scenes/generated/stacked-sdwa5-----2-free----turned--centred---center.blend'
-                => 'stacked-sdwa5-----2-free----turned--centred---center',
-            'build/plans/generated/_scene-stacked-sdwa5-----2-free----turned--centred---center.json'
-                => 'stacked-sdwa5-----2-free----turned--centred---center',
-            'build/renders/generated/stacked-sdwa5-----2-free----turned--centred---center-three-quarter.png'
-                => 'stacked-sdwa5-----2-free----turned--centred---center',
-            'build/renders/studio/generated/stacked-gmss------1-free----upright-alternate-center-front.png'
-                => 'stacked-gmss------1-free----upright-alternate-center',
-        ] as $file => $expected) {
-            self::assertSame($expected, $method->invoke(null, $file), $file);
+            ['build/scenes/generated/stacked-sdwa5-----2-free----turned--centred---center.blend', 'build/scenes',
+                'generated/stacked-sdwa5-----2-free----turned--centred---center'],
+            ['build/plans/generated/_scene-stacked-sdwa5-----2-free----turned--centred---center.json', 'build/plans',
+                'generated/stacked-sdwa5-----2-free----turned--centred---center'],
+            ['build/renders/generated/stacked-sdwa5-----2-free----turned--centred---center-three-quarter.png',
+                'build/renders', 'generated/stacked-sdwa5-----2-free----turned--centred---center'],
+            ['build/renders/studio/generated/stacked-gmss------1-free----upright-alternate-center-front.png',
+                'build/renders/studio', 'generated/stacked-gmss------1-free----upright-alternate-center'],
+            // The shape the sweep writes now: the inventory is a directory, and two inventories share the name.
+            ['build/scenes/generated/gmss/stacked-2-pooled--------free----turned--centred---center.blend',
+                'build/scenes', 'generated/gmss/stacked-2-pooled--------free----turned--centred---center'],
+            ['build/scenes/generated/sdwa5-sepp/stacked-2-pooled--------free----turned--centred---center.blend',
+                'build/scenes', 'generated/sdwa5-sepp/stacked-2-pooled--------free----turned--centred---center'],
+            ['build/renders/generated/next-event/stacked-1-systems-apart-free----upright-alternate-center-possible-three-quarter.png',
+                'build/renders', 'generated/next-event/stacked-1-systems-apart-free----upright-alternate-center-possible'],
+        ] as [$file, $root, $expected]) {
+            self::assertSame($expected, $method->invoke(null, $file, $root), $file);
         }
+
+        // **The two same-named blends above are the point of the whole change**: one basename, two inventories, two
+        // keys. Matched by basename they were one file and ten rigs went unbuilt.
+        self::assertNotSame(
+            $method->invoke(null, 'build/scenes/generated/gmss/x.blend', 'build/scenes'),
+            $method->invoke(null, 'build/scenes/generated/sdwa5-sepp/x.blend', 'build/scenes'),
+        );
 
         // A picture whose name carries no camera says nothing about which scene it belongs to, and guessing would risk
         // pruning a file that is not an orphan.
-        self::assertNull($method->invoke(null, 'build/renders/generated/mystery.png'));
+        self::assertNull($method->invoke(null, 'build/renders/generated/mystery.png', 'build/renders'));
+    }
+
+    /**
+     * Every generated scene under `$directory`, keyed by its path **relative to that directory**.
+     *
+     * Relative rather than by basename, because the generated set gained a directory level per inventory and two
+     * inventories can hold the same file name: `sdwa5/stacked-1-pooled-…` and `gmss/stacked-1-pooled-…` are
+     * different rigs with identical basenames. Keyed by basename this test would have compared one to the other and
+     * called the difference a rebuild.
+     *
+     * @return array<string, string>
+     */
+    private static function generatedScenes(string $directory): array
+    {
+        if (!is_dir($directory)) {
+            return [];
+        }
+
+        $found = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
+        );
+        foreach ($iterator as $file) {
+            if ($file instanceof \SplFileInfo && strtolower($file->getExtension()) === 'yaml') {
+                $found[substr($file->getPathname(), strlen($directory) + 1)] = (string)file_get_contents($file->getPathname());
+            }
+        }
+        ksort($found);
+
+        return $found;
     }
 
     /**
@@ -152,10 +207,12 @@ final class BuildAllCommandTest extends TestCase
      */
     public function testEveryGeneratedSceneRecordsTheCommandThatMadeIt(): void
     {
-        $files = glob(dirname(__DIR__, 2).'/scenes/generated/*.yaml') ?: [];
+        $directory = dirname(__DIR__, 2).'/scenes/generated';
+        $files = array_keys(self::generatedScenes($directory));
         self::assertNotSame([], $files);
 
-        foreach ($files as $file) {
+        foreach ($files as $relative) {
+            $file = $directory.'/'.$relative;
             $yaml = (string)file_get_contents($file);
             self::assertMatchesRegularExpression(
                 '/^#\s{3}bin\/console scene:stack .+$/m',
@@ -213,11 +270,21 @@ final class BuildAllCommandTest extends TestCase
      */
     public function testTheRegenerateStageRewritesTheSceneSetAndReportsWhatItWrote(): void
     {
-        $directory = dirname(__DIR__, 2).'/scenes/generated';
-        $before = [];
-        foreach (glob($directory.'/*.yaml') ?: [] as $file) {
-            $before[basename($file)] = (string)file_get_contents($file);
+        // **THE ONE TEST HERE THAT CANNOT BE SAMPLED, SO IT IS ASKED FOR RATHER THAN RUN.** It drives the
+        // production stage, and the stage replays every scene by definition — that is the whole of what it
+        // promises. At 2688 scenes that is most of an hour, and an hour is a suite nobody runs before committing.
+        //
+        // What still runs every time is the property, on a sample:
+        // {@see testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet} replays the same recorded lines
+        // through the same command and compares the same before-and-after set. What only this one covers is the
+        // *stage* — that it reports the paths it wrote, which is the set the stale deletion is a difference
+        // against. Run it on a release, or whenever `BuildAllCommand` itself is touched.
+        if (getenv('SDWA5_FULL_REPLAY') === false) {
+            self::markTestSkipped('SDWA5_FULL_REPLAY=1 runs the whole regenerate stage — ca. 25 Minuten');
         }
+
+        $directory = dirname(__DIR__, 2).'/scenes/generated';
+        $before = self::generatedScenes($directory);
         self::assertNotSame([], $before);
 
         $command = new BuildAllCommand();
@@ -240,10 +307,7 @@ final class BuildAllCommandTest extends TestCase
 
             self::assertSame(0, $exit, 'the stage itself failed');
 
-            $after = [];
-            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
-                $after[basename($file)] = (string)file_get_contents($file);
-            }
+            $after = self::generatedScenes($directory);
 
             // The two halves the stray-scene defect broke: which files exist, and what is in them.
             self::assertSame(array_keys($before), array_keys($after), 'the stage changed which scenes exist');
@@ -253,17 +317,20 @@ final class BuildAllCommandTest extends TestCase
             // reported nothing would silently make that deletion a no-op rather than an error.
             self::assertSame(
                 array_keys($before),
-                array_values(array_unique(array_map('basename', $written))),
+                array_values(array_unique(array_map(
+                    static fn (string $path): string => substr($path, strlen($directory) + 1),
+                    $written,
+                ))),
                 'every regenerable scene is reported as written',
             );
         } finally {
             // Whatever happened, put the tree back.
-            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
-                if (!isset($before[basename($file)])) {
-                    unlink($file);
+            foreach (array_keys(self::generatedScenes($directory)) as $relative) {
+                if (!isset($before[$relative])) {
+                    unlink($directory.'/'.$relative);
                     continue;
                 }
-                file_put_contents($file, $before[basename($file)]);
+                file_put_contents($directory.'/'.$relative, $before[$relative]);
             }
         }
     }
@@ -358,10 +425,7 @@ final class BuildAllCommandTest extends TestCase
     public function testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet(): void
     {
         $directory = dirname(__DIR__, 2).'/scenes/generated';
-        $before = [];
-        foreach (glob($directory.'/*.yaml') ?: [] as $file) {
-            $before[basename($file)] = (string)file_get_contents($file);
-        }
+        $before = self::generatedScenes($directory);
         self::assertNotSame([], $before);
 
         $application = new Application();
@@ -373,7 +437,11 @@ final class BuildAllCommandTest extends TestCase
             // child dies with the child and comes back as "a worker produced nothing" rather than as the message it
             // was written to give. The exit codes come home and are judged here.
             $exits = Parallel::map(
-                $before,
+                // **SAMPLED, AND THE COMPARISON BELOW IS NOT.** One solve per scene over 2688 scenes is most of
+                // an hour, and a property that costs the output of the thing it tests will always end up there.
+                // What is sampled is what gets *replayed*; `$before` against `$after` still walks the whole set,
+                // because a stale check against a sample would call the rest of the repository stale.
+                ReplaySample::of($before),
                 static function (string $yaml) use ($application): ?int {
                     $command = self::recordedCommandIn($yaml);
                     if ($command === null) {
@@ -392,22 +460,19 @@ final class BuildAllCommandTest extends TestCase
                 self::assertSame(0, $exit, 'replaying '.$name.' failed');
             }
 
-            $after = [];
-            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
-                $after[basename($file)] = (string)file_get_contents($file);
-            }
+            $after = self::generatedScenes($directory);
 
             self::assertSame(array_keys($before), array_keys($after), 'the replay changed which scenes exist');
             self::assertSame($before, $after, 'the replay rebuilt a scene differently from the way it was written');
         } finally {
             // Whatever happened, put the tree back: a failing assertion must not leave 141 stray files behind for the
             // next test — or the next person — to trip over.
-            foreach (glob($directory.'/*.yaml') ?: [] as $file) {
-                if (!isset($before[basename($file)])) {
-                    unlink($file);
+            foreach (array_keys(self::generatedScenes($directory)) as $relative) {
+                if (!isset($before[$relative])) {
+                    unlink($directory.'/'.$relative);
                     continue;
                 }
-                file_put_contents($file, $before[basename($file)]);
+                file_put_contents($directory.'/'.$relative, $before[$relative]);
             }
         }
     }

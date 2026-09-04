@@ -150,6 +150,67 @@ final class DeviceSpec
     }
 
     /**
+     * The same device, in the number somebody is actually bringing.
+     *
+     * **A spec's `quantity` is how many exist, and that is not always how many turn up.** A system owns four tops and
+     * brings two; a cabinet is in the workshop with a blown driver; one event borrows half a rig. The spec must keep
+     * saying what is owned, because that is the fact it was written to record and every other reader of it — the
+     * catalog, the load plan, the weight totals — wants exactly that number. So the difference lives here, on a copy
+     * made for one run of {@see \App\Command\SceneStackCommand}, and nothing on disk changes.
+     *
+     * **Written out in full rather than cloned**, because PHP 8.3 cannot reassign a readonly property outside the
+     * constructor and the `__clone()` route needs a mutable scratch field to smuggle the new value in. Thirty-five
+     * named arguments are tedious and they are also checked by the type system: add a constructor parameter without
+     * adding it here and this stops compiling, where a reflection-based copy would silently carry a stale value.
+     *
+     * Returns `$this` unchanged when the count already matches, so a run with no overrides allocates nothing.
+     */
+    public function withQuantity(int $quantity): self
+    {
+        if ($quantity === $this->quantity) {
+            return $this;
+        }
+
+        return new self(
+            sourcePath: $this->sourcePath,
+            id: $this->id,
+            name: $this->name,
+            category: $this->category,
+            subtype: $this->subtype,
+            quantity: $quantity,
+            owner: $this->owner,
+            build: $this->build,
+            cloneOf: $this->cloneOf,
+            provenance: $this->provenance,
+            deviations: $this->deviations,
+            shape: $this->shape,
+            dimensions: $this->dimensions,
+            backWidth: $this->backWidth,
+            frontHeight: $this->frontHeight,
+            truss: $this->truss,
+            movingHead: $this->movingHead,
+            scaffold: $this->scaffold,
+            origin: $this->origin,
+            chamfer: $this->chamfer,
+            color: $this->color,
+            grilleInset: $this->grilleInset,
+            grilleColor: $this->grilleColor,
+            weightKg: $this->weightKg,
+            handles: $this->handles,
+            flyable: $this->flyable,
+            riggingPoints: $this->riggingPoints,
+            coverage: $this->coverage,
+            passband: $this->passband,
+            drivers: $this->drivers,
+            layout: $this->layout,
+            meshOverride: $this->meshOverride,
+            vehicle: $this->vehicle,
+            carriedOn: $this->carriedOn,
+            notes: $this->notes,
+        );
+    }
+
+    /**
      * Whether this device copies somebody else's design, and so has an original to cite.
      *
      * The build kind is spelled `self-built`; the thing it produces is still a clone, which is why the

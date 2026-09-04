@@ -78,13 +78,20 @@ final class ShippedScenesTest extends TestCase
      */
     public static function sceneCases(): iterable
     {
-        $loader = new SceneLoader(dirname(__DIR__, 2).'/scenes');
+        $project = dirname(__DIR__, 2);
+        $loader = new SceneLoader($project.'/scenes');
         foreach ($loader->files() as $file) {
-            $id = basename($file, '.yaml');
-            if (Feasibility::isImpossibleId($id)) {
+            if (Feasibility::isImpossibleId(basename($file, '.yaml'))) {
                 continue;
             }
-            yield $id => [$id];
+            // **THE PATH, NOT THE ID, AND THAT IS NOT A COSMETIC CHOICE.** The inventory moved out of the generated
+            // file name and into a folder, so ten inventories now hold a
+            // `stacked-1-pooled--------free----turned--alternate-center-possible.yaml` each. Keyed on the id this
+            // provider fed PHPUnit ten identical keys — which it refuses outright — and before it refused, every
+            // one of those cases would have compiled whichever of the ten `SceneLoader::find()` happened to reach
+            // first. A path is unique by construction.
+            $relative = substr($file, strlen($project) + 1);
+            yield $relative => [$relative];
         }
     }
 
@@ -216,9 +223,17 @@ final class ShippedScenesTest extends TestCase
      * plan. Flown cabinets are exempt: hanging in the air is the entire point of them.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
-    public function testEveryCabinetAboveTheFloorHasSomethingUnderIt(string $sceneId): void
+    public function testEveryCabinetStandsOnSomethingAndInsideNothing(string $sceneId): void
     {
-        $this->assertEveryCabinetIsCarried($this->compile($sceneId), $sceneId);
+        // **ONE COMPILE, TWO CHECKS, AND THAT IS WORTH A LINE.** These were two tests over the same data provider,
+        // so every scene in the repository was compiled twice — 25 minutes at 2688 scenes, for two questions that
+        // read the same geometry. Merged, it is half that and nothing is checked less. What a merge usually costs
+        // is a failure that does not name its own cause; it does not here, because each assertion carries its own
+        // message and the scene's path.
+        $placed = $this->compile($sceneId);
+
+        $this->assertEveryCabinetIsCarried($placed, $sceneId);
+        $this->assertNoTwoCabinetsAreInsideEachOther($placed, $sceneId);
     }
 
     /**
@@ -322,11 +337,6 @@ final class ShippedScenesTest extends TestCase
         return $covered / $extent;
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
-    public function testNoTwoCabinetsAreInsideEachOther(string $sceneId): void
-    {
-        $this->assertNoTwoCabinetsAreInsideEachOther($this->compile($sceneId), $sceneId);
-    }
 
     /**
      * @param list<PlacedDevice> $placed
@@ -426,7 +436,10 @@ final class ShippedScenesTest extends TestCase
             $devices[$spec->id] = $spec;
         }
 
-        $scene = (new SceneLoader($project.'/scenes'))->find($sceneId)['scene'];
+        // A case from {@see sceneCases} is a project-relative path and is resolved here rather than left to the
+        // process's working directory; the hand-written cases below are still bare ids, which are unique.
+        $wanted = str_contains($sceneId, '/') ? $project.'/'.$sceneId : $sceneId;
+        $scene = (new SceneLoader($project.'/scenes'))->find($wanted)['scene'];
         self::assertNotNull($scene, "no scene '{$sceneId}'");
 
         $result = (new SceneCompiler($devices))->compile($scene);

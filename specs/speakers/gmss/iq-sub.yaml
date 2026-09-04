@@ -1,0 +1,90 @@
+# GMSS "IQ sub" — the six grille-fronted cabinets that fill the two outer columns in GMSS.jpeg, three to a column.
+#
+# EVERY NUMBER IN THIS FILE NOW COMES FROM THE OWNER OF GMSS, and that is a different situation from the one this
+# file was written in. It replaces a reconstruction from one photograph, which is why the file reads as a
+# correction rather than as a refinement. What he stated, in centimetres and in his own order (w, d, h):
+#
+#     6 IQ subs: 53w, 56d, 67h, 40kg each
+#
+# THIS FILE REPLACES `gmss-turbo-sub.yaml`, AND THAT IS THE POINT OF IT. GMSS's earlier message said "8 turbo
+# subs 3000rms", and eight cabinets in two outer columns is what the photo shows, so one spec of quantity 8 was
+# the obvious reading. It was wrong: asked directly, the owner listed the eight as TWO cabinets — six of these
+# and two "nukes", `nuke.yaml`. So "turbo sub" is his umbrella word for the low end of the outer columns and
+# not the name of a box, and a single spec could never have carried both sets of dimensions.
+#
+#   - The photo agrees once you know to look: SIX cabinets carry a perforated grille across the whole front and a
+#     small blue illuminated logo, three to each outer column, and the two boxes they stand on at ground level
+#     have no grille at all — a plain face with a recessed oval logo. Two cabinet types, 6 + 2, which is the
+#     eight. See `nuke.yaml` for the other two.
+#   - WHAT THE OLD ESTIMATE GOT RIGHT AND WRONG IS WORTH KEEPING, because it says which axis to distrust next
+#     time. Width 0.510 against a stated 0.530 and height 0.637 against 0.670 — both within 35 mm, off a
+#     photograph with nothing of known length in it. Depth 0.765 against a stated 0.560: wrong by 205 mm, more
+#     than a third. The side faces are the foreshortened ones, depth was the axis the old file itself called
+#     "the least certain of the three", and depth is exactly where it missed. A width-to-height ratio survives a
+#     photograph where the cabinet is genuinely front-on — these six are the outer columns, and the left one is —
+#     and depth never does. It does not even survive obliquity: the same box seen at a steep angle on the right of
+#     the frame reads about twice as narrow as it is, which is what misled `turbo-top.yaml`.
+#   - THE WHOLE "SET SCALE" ARGUMENT IS GONE WITH IT. The four GMSS cabinets used to share one 0.85 factor,
+#     derived from the stated 18" driver in what is now `wall-bass.yaml`, precisely because no absolute
+#     dimension was known. Five stated cabinets are five absolute dimensions, so nothing is scaled from anything
+#     any more and the cabinets no longer have to move together. The arithmetic behind that factor is in
+#     CHANGELOG.md and docs/sources.md if anyone ever needs to see how it was built.
+#
+# WHY THIS IS STILL `provenance: estimated` AND NOT SOMETHING BETTER. The enum is datasheet / plans / measured /
+# estimated (see src/Spec/Provenance.php). There is no datasheet — GMSS is a self-built rig and searching for it
+# online returns nothing — and no plans are in our hands. `measured` means somebody here put a tape on the
+# cabinet, which nobody has. "The builder told us over a message" is a fourth kind of source the enum cannot
+# name, so it lands on `estimated`: far better than the photo reconstruction it replaces, still second-hand, and
+# still visibly flagged in the catalog. Round centimetres throughout are honest about that.
+#
+# WHAT IS DELIBERATELY ABSENT: there is still no `audio` block. The 3000 W RMS GMSS quoted was for "8 turbo
+# subs", which is now known to be two different cabinets, so it cannot be pinned on this one — see the notes. No
+# driver size and no passband were ever stated for it either. An 18" is likely behind a grille this size, but
+# likely is not a source. See docs/measuring.md.
+id: iq-sub
+name: "GMSS IQ Sub"
+category: speaker
+subtype: sub
+quantity: 6
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box, which is all the owner gave and all the photo shows. Whatever the loading is inside,
+  # it is not modelled and nothing here claims to know it.
+  shape: box
+  dimensions_m: { width: 0.530, height: 0.670, depth: 0.560 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # Black textured finish, as every cabinet in the photo has.
+  color: "#141414"
+
+physical:
+  # Stated by the owner: 40 kg each. Not calculated any more — the 54 kg here before was a plywood-skin sum, and
+  # it was 35 % over because it was built on a box 205 mm too deep.
+  weight_kg: 40.0
+  handles: [ left, right ]
+
+rigging:
+  # Ground-stacked in the photo, three to a column on top of a nuke. Nothing suggests fly points and none are
+  # visible.
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by the owner of GMSS, answering questions about GMSS.jpeg: "6 IQ subs: 53w, 56d, 67h, 40kg each".
+  Centimetres, width / depth / height. That is the source for every number in this spec.
+
+  THE POWER RATING CANNOT BE ATTRIBUTED TO THIS CABINET. GMSS's earlier message said "8 turbo subs 3000rms",
+  and the eight are now known to be six of these plus two nukes. 3000 W RMS therefore describes a mixed group
+  of two cabinet types — per cabinet, per type or for the lot is not recoverable from the wording — so it is
+  recorded here as history and is not claimed for either spec. The repository has no field for power handling
+  anyway.
+
+  NOT MEASURED BY US, AND NOT FROM A DATASHEET. These are the builder's own figures for his own boxes, which is
+  the best source this cabinet will have short of a tape measure — but it is a message, not a measurement, and
+  the spec stays `estimated` until somebody here measures one.

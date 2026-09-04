@@ -60,13 +60,64 @@ final class Placement
         public readonly ?Alignment $align = null,
         /** A rig stated as constraints instead of tiers; expanded into real placements before compiling. */
         public readonly ?Stack $stack = null,
+        /**
+         * This placement's own focus points, which override the scene's for everything inside it.
+         *
+         * **A SCENE-WIDE FOCUS AIMS EVERY CLUSTER AT ONE POINT, AND THAT IS WRONG THE MOMENT TWO SOUND SYSTEMS
+         * STAND SIDE BY SIDE.** `Focus::point()` measures from the *rig's* front centre, so in a `systems-apart`
+         * rig the outer walls toe inward at a point in front of the middle one — three systems covering one spot
+         * instead of three systems each covering the room in front of it. Stated here, the distance and height
+         * mean the same thing they always did and are measured from **this** placement's own front face.
+         *
+         * Null is the scene's own focus, which is what every hand-written scene wants: a near-fill beside a main
+         * cluster is part of that cluster and aims where it aims.
+         *
+         * @var array<string, Focus>
+         */
+        public readonly array $focusByName = [],
     ) {
+    }
+
+    /**
+     * This placement's own `focus:` block, read exactly the way the scene's own is.
+     *
+     * Absent is the common case and returns nothing, which leaves {@see \App\Scene\SceneSpec::$focusByName} in
+     * charge. The two forms {@see \App\Scene\SceneSpec::readFoci} accepts are both accepted here — one unnamed
+     * focus, or a map of named ones — because a placement that states a focus is stating the same kind of thing
+     * the scene does, one level down.
+     *
+     * @return array<string, Focus>
+     */
+    private static function focusIn(ArrayReader $reader): array
+    {
+        $section = $reader->optionalSection('focus');
+        if ($section === null) {
+            return [];
+        }
+
+        $names = $section->keys();
+        $named = $names !== [] && array_reduce(
+            $names,
+            static fn (bool $carry, string $key): bool => $carry && $section->isSection($key),
+            true,
+        );
+
+        if (!$named) {
+            return ['focus' => Focus::fromReader($section)];
+        }
+
+        $foci = [];
+        foreach ($names as $name) {
+            $foci[$name] = Focus::fromReader($section->requireSection($name));
+        }
+
+        return $foci;
     }
 
     /** Everything a placement may say that is not a group. {@see GroupReader::keys} supplies the rest. */
     private const KEYS = [
         'id', 'device', 'at', 'yaw_deg', 'pitch_deg', 'roll_deg',
-        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack',
+        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack', 'focus',
     ];
 
     public static function fromReader(ArrayReader $reader, int $index): self
@@ -106,6 +157,7 @@ final class Placement
             rollDeg: $reader->optionalFloat('roll_deg', 0.0) ?? 0.0,
             aimAt: $reader->has('aim_at') ? self::readAim($reader) : null,
             aimFocus: $reader->optionalString('aim'),
+            focusByName: self::focusIn($reader),
             on: $reader->optionalString('on'),
             fly: ($fly = $reader->optionalSection('fly')) === null ? null : Fly::fromReader($fly),
             group: GroupReader::read($reader),

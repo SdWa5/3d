@@ -56,7 +56,7 @@ placements:
   # THE MIDDLE BAY, bottom up. The wall basses go on the ground because they are far the heaviest thing in the rig at
   # about 220 kg each — 440 of the stack's 994 kg — and because in the photo they are what the whole centre stands on.
   - id: wall-basses
-    device: gmss-wall-bass
+    device: wall-bass
     at: [ 0.0, 0.0 ]
     row:
       count: 2
@@ -65,13 +65,13 @@ placements:
   # The USB mid bass, lying across both of them exactly as it stands: 1.200 wide by 0.500 tall is already the shape
   # the photograph shows, so there is no roll here and no speculation left in this placement.
   - id: mid-bass
-    device: gmss-mid-bass
+    device: mid-bass
     on: wall-basses
     at: [ 0.0, 0.0 ]
 
   # THE THREE TOPS, ONE ROW, on the mid bass.
   - id: tops
-    device: gmss-turbo-top
+    device: turbo-top
     on: mid-bass
     at: [ 0.0, 0.0 ]
     row:
@@ -90,24 +90,24 @@ placements:
   # at 270 leftward — so centring a body on ±1.075 means placing the point 0.385 m the other way, at ±0.690. The
   # upright IQ subs above them are ordinary and sit on ±1.075 directly.
   - id: nuke-left
-    device: gmss-nuke
+    device: nuke
     at: [ -0.690, 0.0 ]
     roll_deg: 270
 
   - id: column-left
-    device: gmss-iq-sub
+    device: iq-sub
     on: nuke-left
     at: [ -1.075, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
   - id: nuke-right
-    device: gmss-nuke
+    device: nuke
     at: [ 0.690, 0.0 ]
     roll_deg: 90
 
   - id: column-right
-    device: gmss-iq-sub
+    device: iq-sub
     on: nuke-right
     at: [ 1.075, 0.0 ]
     lattice:

@@ -139,11 +139,11 @@ final class LoadPlanCommandTest extends TestCase
     {
         $withIt = $this->invoke(['--exclude-owner' => ['gmss']])->getDisplay();
         $withoutIt = $this->invoke([
-            '--exclude-owner' => ['gmss'], '--exclude' => ['sepp-generator-25kva'],
+            '--exclude-owner' => ['gmss'], '--exclude' => ['generator-25kva'],
         ])->getDisplay();
 
-        self::assertStringContainsString('sepp-generator-25kva', $withIt, 'it is cargo unless excluded');
-        self::assertStringNotContainsString('sepp-generator-25kva', $withoutIt);
+        self::assertStringContainsString('generator-25kva', $withIt, 'it is cargo unless excluded');
+        self::assertStringNotContainsString('generator-25kva', $withoutIt);
     }
 
     /**

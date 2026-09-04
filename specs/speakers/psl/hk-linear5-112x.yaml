@@ -1,0 +1,64 @@
+# HK Audio Linear 5 112 X, PSL's high-mid top. The only cabinet of theirs from a third brand.
+#
+# Figures from PSL's own published technical data, https://pro-sound-light.de/equipment/tontechnik/ — see
+# concert-audio-ef6.yaml for why that counts as a datasheet here. This entry is the fullest on the page:
+# PSL reproduce HK's own data table under the sales copy, so the numbers are the manufacturer's.
+#
+# THE TWO HALVES OF PSL'S OWN PAGE DISAGREE ABOUT THE COVERAGE, AND BOTH ARE QUOTED FROM HK. The sales copy
+# says "das drehbare 60 x 40 CD-Horn" and the data table below it says "Oeffnungswinkel -6 dB (horizontal x
+# vertikal) 60-90 (asymmetrisch) x 55, drehbar". Those are not the same cabinet pattern. `coverage_deg` takes
+# the table's figures, because a data table under an "Index" note about EN 60268-5 is a measurement and the
+# line above it is a headline — and because 60 to 90 asymmetric by 55 is a specific enough claim that nobody
+# writes it by accident. The vertical is the axis the two disagree about most, 40 against 55.
+#
+# THE HORIZONTAL IS A RANGE AND THE FIELD HOLDS ONE NUMBER. 60 is the narrow end, so it is the conservative
+# reading for anything that asks how far a top throws.
+#
+# QUANTITY 1 IS A FLOOR. No package, no drawing. See docs/requests.md.
+id: hk-linear5-112x
+name: "HK Audio Linear 5 112 X"
+category: speaker
+subtype: top
+quantity: 1
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.370, height: 0.668, depth: 0.300 }
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  color: "#141414"
+
+physical:
+  weight_kg: 19.5
+  handles: [ left, right ]
+
+rigging:
+  # Three M8 fly points, positions unpublished. Same rule as the rest of this system's specs.
+  flyable: false
+  points: [ ]
+
+audio:
+  coverage_deg: { horizontal: 60, vertical: 55 }
+  passband_hz:
+    # The -6 dB range from HK's table, 79 Hz to 18 kHz. The -10 dB range is 60 Hz to 19 kHz and is the wider,
+    # softer claim; -6 dB is what every other passband in this repository is quoted at.
+    low_hz: 79
+    high_hz: 18000
+    provenance: datasheet
+  drivers:
+    - { size_in: 12, type: woofer, count: 1 }
+    - { size_in: 1, type: compression-driver, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Passive 2-way high-mid top in a multi-function cabinet, usable as a monitor. 12" with a 2.5" voice coil and
+  a 1" driver with a 1.75" voice coil. Power 500 W RMS / 1000 W programme / 2000 W peak. Impedance 8 Ohm
+  nominal per EN 60268-5. Sensitivity 103 dB at 1 W / 1 m. Max SPL 129 dB average and 135 dB peak. Crossover
+  1.7 kHz. Rotatable CD horn. Duo Tilt 3/7 pole socket, three M8 fly points.

@@ -210,7 +210,7 @@ final class StackSolver
         // rows and 3.240 m. A metre and a sixth of height, and the V gone, out of nothing but the order.
         //
         // The price is stated rather than hidden: a wide-but-shallow type ends up UNDER a deep one, which is the
-        // inversion {@see \App\Command\SceneStackCommand::byFillOrder} exists to prevent. That is why all three shapes
+        // inversion {@see \App\Spec\FillOrder::byFillOrder} exists to prevent. That is why all three shapes
         // are generated — `free` keeps the deepest and heaviest cabinets on the floor and accepts the V, `pyramid`
         // takes the shape and the height and gives up the ordering. None of them is right for every rig.
         //
@@ -236,9 +236,13 @@ final class StackSolver
         // search that can express what our gear needs and one that cannot. `$budget` was one integer applied to every
         // device at once: `perRow: 7` meant seven Flexys at 4.3 m *and* seven mid-bass at 8.5 m, and no setting of it
         // reproduced "as many of each as fit 4.40 m", which is 7 Flexys and 3 mid-bass. Nine of our ten cabinets are
-        // 0.45–0.66 m wide and `gmss-mid-bass` is 1.200 m, so a count stopped standing in for a width the day it
+        // 0.45–0.66 m wide and `mid-bass` is 1.200 m, so a count stopped standing in for a width the day it
         // arrived. A budget divides by each cabinet's own width instead. See {@see budgetLadder} for where the steps
         // come from and why they are not written down anywhere.
+        // The one type the low-end axis is about, named once for the whole search. See {@see LowEndCost::weightOf}
+        // on why a centroid over every sub could not see the arrangement the axis exists to choose.
+        $lowest = LowEndCost::lowestType($inventory);
+
         foreach (self::budgetLadder($inventory, $stack) as $budget) {
             // PACKING IS AN EXTRA CANDIDATE, NOT A REPLACEMENT, and measuring says so plainly: on 2 SKRAMs, 3
             // middle subs, 2 mid-bass and 2 2-ways the ordinary deal finds 1.445 m and the pack 2.465 m, because
@@ -251,7 +255,20 @@ final class StackSolver
             foreach ($stack->maxSubHeightM !== null ? [true, false] : [false] as $packed) {
                 $flanking = $packed ? 0 : self::flankingPairs($inventory, $stack, $budget);
                 for ($pairs = $flanking; $pairs >= 0; --$pairs) {
-                    $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align);
+                    // **THE SPREAD IS A CANDIDATE, OFFERED ONLY WHERE IT COULD WIN.** `central` is the only bias
+                    // that can prefer a type dealt one to a row — it is strictly taller and strictly more central,
+                    // and `low` would reject it every time — so offering it under `low` would double the search to
+                    // produce arrangements nothing can choose. See {@see LowEndCost::lowestType}.
+                    $spreads = $packed || $stack->lowEnd !== LowEndBias::Central
+                        ? [null]
+                        : [null, $lowest];
+                    foreach (array_unique($spreads, SORT_REGULAR) as $spread) {
+                    $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align, $spread);
+                    // A spread that could not be built returns nothing rather than quietly falling back to the
+                    // ordinary arrangement, which would enter the same candidate twice.
+                    if ($tiers === []) {
+                        continue;
+                    }
                     $widestAttempt = $widestAttempt === [] ? $tiers : $widestAttempt;
 
                     if (StackChecks::supportChecks($tiers, $stack)['problems'] !== []) {
@@ -291,6 +308,15 @@ final class StackSolver
                         $miss = $legal
                             ? abs($subs - $stack->targetSubHeightM)
                             : $subs - $stack->maxSubHeightM;
+                        // **THE LOW END'S TWO MEASURES RIDE ON THE SAME SCALAR**, which is the whole of GEO-14's
+                        // second and third quarters: the shapes and the bearing rules decide what is allowed, and
+                        // within that freedom the arrangement that puts the low end where the caller asked wins.
+                        // Added rather than compared separately, because the height band is already a preference
+                        // and two preferences that cannot be traded are two gates. See {@see LowEndCost}.
+                        $miss += $stack->lowEnd->cost(
+                            LowEndCost::lowness($tiers, $stack, $lowest),
+                            LowEndCost::centrality($tiers, $stack, $lowest),
+                        );
                         $better = $legal === $closestCarriedLegal
                             ? $miss < $closestCarriedMiss
                             : $legal;
@@ -308,7 +334,20 @@ final class StackSolver
                             $closestCarried = $tiers;
                         }
                     } elseif (self::reachesInterface($tiers, $stack) && self::survives($survives, $tiers, $seated)) {
-                        return $tiers;
+                        // **NO CEILING USED TO MEAN NO RANKING AT ALL, AND THAT MADE THE LOW-END AXIS INERT.** This
+                        // branch returned the first arrangement that stood up, so on a rig with no
+                        // `max_sub_height_m` nothing was ever compared against anything and both values of the axis
+                        // produced the same file. It ranks now, on the low end alone — there is no band to miss, so
+                        // there is nothing else to weigh — and it still returns the first candidate when the axis
+                        // has no opinion, which is what keeps an unaimed rig as cheap as it was.
+                        $lowEnd = $stack->lowEnd->cost(
+                            LowEndCost::lowness($tiers, $stack, $lowest),
+                            LowEndCost::centrality($tiers, $stack, $lowest),
+                        );
+                        if ($lowEnd < $closestCarriedMiss) {
+                            $closestCarriedMiss = $lowEnd;
+                            $closestCarried = $tiers;
+                        }
                     }
 
                     // The fallback is held to the same bar. It is what gets returned when nothing reached the
@@ -317,6 +356,7 @@ final class StackSolver
                     if ($subs > $tallestCarriedSubs && self::survives($survives, $tiers, $seated)) {
                         $tallestCarriedSubs = $subs;
                         $tallestCarried = $tiers;
+                    }
                     }
                 }
             }
@@ -351,6 +391,7 @@ final class StackSolver
         int $pairs,
         bool $packed = false,
         ?LayoutMode $align = null,
+        ?string $spreadId = null,
     ): array {
         $remaining = [];
         foreach ($inventory as $index => [$device, $count]) {
@@ -376,7 +417,17 @@ final class StackSolver
         }
 
         $tiers = [];
-        if ($pairs > 0) {
+        if ($spreadId !== null) {
+            // **BEFORE THE MIXED BOTTOM ROW, BECAUSE BOTH WANT THE SAME CABINETS.** A mixed bottom row would
+            // consume the very type this is spreading and the spread would have nothing left to deal. Where it
+            // cannot be built the candidate is simply the ordinary one, which is what `null` means here.
+            $spread = self::spreadRows($remaining, $stack, $budget, $spreadId);
+            if ($spread === null) {
+                return [];
+            }
+            [$spreadTiers, $remaining] = $spread;
+            $tiers = $spreadTiers;
+        } elseif ($pairs > 0) {
             $bottom = self::mixedBottomRow($remaining, $stack, $budget, $pairs);
             if ($bottom !== null) {
                 [$tiers[], $remaining] = $bottom;
@@ -441,6 +492,14 @@ final class StackSolver
                 $roll,
                 self::supportOf($tiers, $stack),
             );
+            // **ONE PER ROW WHERE THE CALLER ASKED FOR IT**, which is the candidate the dealer would otherwise
+            // never produce: it takes as many of a type as the budget allows, so two SKRAMs go side by side and
+            // no arrangement anywhere in the search has one above the other. `central` needs that arrangement to
+            // exist before it can prefer it — each cabinet on the centre line rather than the pair straddling it.
+            // Offered as a candidate and ranked like every other, so it wins only where the cost says so.
+            if ($spreadId === $device->id) {
+                $perTier = 1;
+            }
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
             $rows = (int)ceil($count / $perTier);
@@ -462,6 +521,94 @@ final class StackSolver
             $tiers,
             array_keys($tiers),
         );
+    }
+
+    /**
+     * The lowest-reaching type dealt **one to a row, each flanked** — the arrangement `central` exists to choose
+     * and the one nothing else in this solver produces.
+     *
+     * **Two SKRAMs side by side straddle the centre line; one above the other sits on it.** That is the whole of
+     * the difference, and until this existed the second arrangement was not in the search at all: the dealer takes
+     * as many of a type as the budget allows, so both went in one row and the cost had a single candidate to rank.
+     * Capping the type at one per row is not enough either — it gives the cabinet a row of its own, 0.61 m wide
+     * under a 3.6 m row, which fails the support check and is never returned. **A spread cabinet has to be
+     * flanked into a full-width row**, which is what this builds.
+     *
+     * The shape is {@see mixedBottomRow}'s, once per cabinet rather than once per rig, and it obeys the same two
+     * rules: **the centre may not be shorter than its flanks**, or the row has a crater in the middle that the row
+     * above lands either side of, and the flanks come in pairs so the row stays symmetric about its own centre.
+     *
+     * Returns null wherever it cannot be built — no flank type, not enough of it to pair every row, or a flank
+     * taller than the cabinet it stands beside — and null means the search simply does not get this candidate.
+     *
+     * @param array<int, array{DeviceSpec, int}> $remaining
+     * @return array{list<Tier>, array<int, array{DeviceSpec, int}>}|null
+     */
+    private static function spreadRows(array $remaining, Stack $stack, RowBudget $budget, string $spreadId): ?array
+    {
+        $centre = null;
+        foreach ($remaining as $index => [$device, $count]) {
+            if ($device->id === $spreadId && $count > 1) {
+                $centre = $index;
+            }
+        }
+        if ($centre === null) {
+            return null;
+        }
+
+        [$device, $available] = $remaining[$centre];
+        $flank = self::flankingSub($remaining, $centre, $device);
+        if ($flank === null) {
+            return null;
+        }
+
+        [$flankDevice, $flankAvailable] = $remaining[$flank];
+        $roll = self::rollFor($device, $stack);
+        $flankRoll = self::rollFor($flankDevice, $stack);
+
+        // The crater guard, in the same words {@see mixedBottomRow} uses it: a centre shorter than its flanks
+        // leaves the row above hanging over a hole in the middle.
+        if (RolledBox::heightOf($device, $roll) + self::EPSILON_M < RolledBox::heightOf($flankDevice, $flankRoll)) {
+            return null;
+        }
+
+        // How wide a row of the flank device would naturally be, which is the width these rows are built to.
+        // **Capped by the stock as well as by the budget**, because an unbounded budget answers `PHP_INT_MAX` and
+        // a target width computed from that is not a number anybody can build to.
+        $perRow = min(
+            self::perTier(
+                $flankDevice,
+                RowBudget::narrower($budget->ceilingFor($flankDevice, $stack, $flankRoll), $stack->maxWidthM),
+                $stack->gapM,
+                $flankRoll,
+            ),
+            $flankAvailable,
+        );
+        $flankWidth = RolledBox::widthOf($flankDevice, $flankRoll);
+        $target = $perRow * ($flankWidth + $stack->gapM) - $stack->gapM;
+
+        $room = $target - RolledBox::widthOf($device, $roll) - 2 * $stack->gapM;
+        $pairs = (int)floor($room / (2 * ($flankWidth + $stack->gapM)));
+        // Every row gets the same number of pairs, so the stock has to cover all of them — an arrangement whose
+        // last row is thinner than the rest is the stepped wall the bearing rules refuse anyway.
+        $pairs = min($pairs, intdiv($flankAvailable, 2 * $available));
+        if ($pairs < 1) {
+            return null;
+        }
+
+        $tiers = [];
+        for ($row = 0; $row < $available; ++$row) {
+            $tiers[] = new Tier([
+                [$flankDevice, $pairs, $flankRoll],
+                [$device, 1, $roll],
+                [$flankDevice, $pairs, $flankRoll],
+            ]);
+        }
+
+        $remaining[$centre] = [$device, 0];
+        $remaining[$flank] = [$flankDevice, $flankAvailable - 2 * $pairs * $available];
+
+        return [$tiers, $remaining];
     }
 
     /**
@@ -1067,7 +1214,7 @@ final class StackSolver
      * same six types come out in two or three rows.
      *
      * **LOW FREQUENCY STAYS LOW, and that is what stops this being bin-packing.** `$remaining` arrives in `from`
-     * order, which the command builds with {@see \App\Command\SceneStackCommand::byFrequency} — deepest first, so
+     * order, which the command builds with {@see \App\Spec\FillOrder::byFillOrder} — deepest first, so
      * the deepest cabinets end up on the floor carrying everything. A row may therefore only take types that are
      * **adjacent in that order**: the rows are contiguous runs of the list, read bottom-up, and the only decision
      * left is where the cuts go. A 2-way can never land beside an Achenbach because it is nowhere near it in the
@@ -1289,7 +1436,7 @@ final class StackSolver
      * flush wall is not a V.** That failure is the reason this was a cabinet count for two releases.
      *
      * The count worked because our cabinets were mostly one size, and it stopped being defensible the day
-     * `gmss-mid-bass` arrived at 1.200 m beside nine cabinets of 0.45–0.66 m. So the allowance moves here instead of
+     * `mid-bass` arrived at 1.200 m beside nine cabinets of 0.45–0.66 m. So the allowance moves here instead of
      * the unit moving back: `below + 2 × PYRAMID_SHOULDER × cabinet width`, which is exactly what
      * {@see StackChecks::silhouetteProblem} permits. Six on six stays flush and allowed, three on one is still the V
      * and is still refused, and a 1.200 m cabinet is no longer counted as though it were a 0.450 m one.

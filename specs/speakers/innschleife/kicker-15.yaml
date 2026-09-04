@@ -1,0 +1,105 @@
+# THE CABINET IS A SMALL WBIN KICKER, CORRECTED BY INNSCHLEIFE ON 2026-09-03.
+#
+# **THIS FILE WAS CALLED `sbh-18` FOR A DAY AND THAT WAS WRONG.** On 2026-09-02 Innschleife listed what they are
+# bringing — four "SBH 18", four "WSX 18", four "die blauen Kicker 15" — and three sub types at four each was
+# exactly what the three drawn specs said, so the names were mapped one to one onto them. The mapping was read
+# back to Innschleife and came back corrected: **the 60 x 60 is a small wbin kicker**, and the SBH is a cabinet
+# 120 long, 55 wide and 80 deep that appears in no drawing at all. It is `sbh-18.yaml` now, and it is new.
+#
+# **THE LESSON IS THE ONE docs/sources.md ALREADY RECORDS, AND IT IS WIDER THAN IT LOOKED.** That paragraph says
+# to read a count back before writing it down, after "alle 4 kleinen Tops" turned out to be two. The same holds
+# for names, and for the same reason: a mapping that the numbers permit is not a mapping anybody confirmed. Three
+# types at four each made the fit look forced when it was only consistent.
+#
+# IT IS THE BLUE ONE, AND IT IS ELECTRO-VOICE. Both stated by Innschleife on 2026-09-03, in the same breath as
+# the correction: "Electrovoice wbins, sind die blauen." So this cabinet **is** "die blauen Kicker 15" of the
+# event statement — that was a reading an hour earlier and is a statement now — and it is the first Innschleife
+# cabinet with a manufacturer behind it rather than a livery somebody recognised.
+#
+# **WHAT IS STILL OPEN IS WHETHER THESE ARE FACTORY CABINETS OR W-BINS BUILT TO EV\'S PLANS.** Electro-Voice
+# published W-bin drawings and they were built by hand everywhere for twenty years, so "Electrovoice wbins" reads
+# both ways. `build: original` is the weaker of the two assertions available — it says the box came out of a
+# factory and nothing about a model — and if it turns out to be a self-build the field becomes `self-built` with
+# a `clone_of` naming Electro-Voice. On docs/requests.md, together with which model it is.
+#
+# ITS FRONT IS SQUARE, SO A ROLL CHANGES NO DIMENSION AND MAY STILL MEAN SOMETHING. Innschleife build their SBH
+# lying down; nobody has said anything about this cabinet's orientation. If its horn flare is asymmetrical then
+# which way up it stands changes the mouth without changing the box, and **no render in this repository could
+# ever show that** — a rolled square box is drawn exactly like an upright one. Also on docs/requests.md.
+#
+# Innschleife's 60 x 60 sub, the one that stands in their outboard columns.
+#
+# Source and method: see wsx-18.yaml. This image is 60 x 60 px, so 0.600 x 0.600 m.
+#
+# THE SAME FRONT AS OUR ACHENBACH 18, WHICH IS WHERE THE DEPTH COMES FROM AND WHY THE TWO MUST NOT BE
+# CONFUSED. `achenbach-18` is 0.600 x 0.600 x 0.700 with a source for all three axes, so a cabinet with an
+# identical front gets its depth by direct analogy — the strongest analogy available anywhere in this file
+# set, and still an analogy.
+#
+#   * DEPTH 0.700 m, from `achenbach-18`.
+#   * WEIGHT 50 kg, the modelled volume at 200 kg/m3, which lands on the Achenbach's own estimated 50 kg.
+#     Two derivations agreeing is worth a line, but they agree because they are the same box and the same
+#     density rule, so it is one piece of evidence rather than two.
+#
+# IT IS NOT AN ACHENBACH, AND THE DRAWINGS ARE EXPLICIT ABOUT THAT. Both Staudham drawings place six
+# Achenbach 18 and four of these, using two DIFFERENT cabinet images of the same 60 x 60 size in the same
+# drawing. A draughtsman drawing the same cabinet twice reuses the symbol; two symbols mean two cabinets. The
+# 06.12.25 and 2026-02-28 revisions each use a different image for this one, which is one cabinet redrawn
+# rather than two more types, since both sit in the same position at the same size.
+#
+# SUBTYPE `sub` FROM POSITION. In the 06.12.25 drawing these sit in pairs on the two outboard columns with
+# the tops above them.
+#
+# QUANTITY 4 IS THE DRAWN COUNT, twice: four in the 06.12.25 stack and four in the 2026-02-28 revision. See
+# docs/requests.md.
+id: kicker-15
+name: "Innschleife wbin Kicker"
+category: speaker
+subtype: sub
+quantity: 4
+owner: innschleife
+build: original
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.600, height: 0.600, depth: 0.700 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # **BLUE, STATED BY THE OWNERS, AND THE PHOTOGRAPH SAID NEAR BLACK.** Its average is #1D1D1D, which is what this
+  # file carried until Innschleife said "sind die blauen". That is the third time a sampled average has turned out
+  # not to be a paint colour in this folder — our own Flexy averages #C7C7C7 where the cabinet is black — and it
+  # is the first time one has been contradicted outright rather than merely doubted.
+  #
+  # The value below is a mid blue standing in for a shade nobody has measured. It is a better statement than the
+  # average it replaces and it is still not a reading of the paint: one photograph in daylight would settle it.
+  color: "#2f4f8f"
+
+physical:
+  weight_kg: 50.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+# NO `audio` BLOCK. The photograph shows a dark four-cell face and nothing about drivers. A 0.600 m baffle
+# would take an 18", which is a statement about the box rather than about what is in it.
+
+mesh_override: null
+
+notes: |
+  RENAMED TWICE IN TWO DAYS: from its front size to `sbh-18` on 2026-09-02, and to `kicker-15` on
+  2026-09-03 when Innschleife corrected the mapping. See wsx-18.yaml for what a rename costs.
+
+  BEWARE OF THIS ONE IN A CATALOG OR A LOAD PLAN: it is dimensionally identical to `achenbach-18` and weighs
+  the same estimate, so a row naming only a size cannot tell the two apart. The `owner` field is the only
+  thing that distinguishes them, which is another reason not to leave it unstated on a borrowed cabinet.
+
+  Drawn with a different cabinet image in each of the two drawing generations. Both are 60 x 60 and both sit
+  in the same place in the stack, so this is one type; if it turns out to be two, this spec splits.

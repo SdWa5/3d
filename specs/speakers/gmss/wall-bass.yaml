@@ -1,0 +1,104 @@
+# GMSS "wall bass" — the pair of tall fin-mouthed folded horns standing on the ground in the centre of GMSS.jpeg.
+#
+# EVERY NUMBER IN THIS FILE COMES FROM THE OWNER OF GMSS. What he stated, in centimetres and in his own order
+# (w, d, h):
+#
+#     2 wall basses: 66w, 100d, 140h, maybe 220kg each
+#
+# THIS FILE REPLACES `gmss-middle-sub.yaml`. "Middle sub" was never a name, it was a position — the file said so
+# itself — and it existed only because nobody had asked GMSS what the box is called. Now there is a name from the
+# builder, so the id follows it. Same cabinet, same two boxes in the same place in the photo.
+#
+# IT IS ALSO THE CABINET WITH THE STATED 18", AND THAT SURVIVES THE RENAMING BY ELIMINATION. GMSS's first message
+# itemised four groups — "8 turbo subs 3000rms", "Middle subs are 18/1600rms", "USB 2x 700rms mid bass", "3 turbo
+# top 2500rms". The owner's new list itemises five: nukes, IQ subs, wall basses, USB, tops. Turbo subs split into
+# nukes + IQ subs, USB is the mid bass and turbo tops are the tops, which leaves "middle subs" and "wall basses"
+# facing each other with nothing else to pair with. So the 18" driver and the 1600 W RMS belong to this cabinet,
+# and `audio.drivers` keeps them.
+#
+# QUANTITY 3 -> 2, AND THIS IS THE ERROR THE OWNER'S ANSWER ACTUALLY FIXED. The old spec counted "two side by
+# side on the ground plus a third laid on its side above them", and admitted the third was the least certain
+# thing in the file: what the photo shows up there is a cross-braced horn mouth wider than it is tall, and a
+# middle sub on its side was the reading that fitted both that shape and the height the tops end up at. It was a
+# different cabinet. Asked outright, the owner named it: that is the USB mid bass, one cabinet, 1.20 m wide —
+# which is very nearly the 1.32 m of two wall basses side by side, exactly as it sits in the photo. See
+# `mid-bass.yaml`. There are two wall basses.
+#
+# HOW BADLY THE PHOTO RECONSTRUCTION MISSED, because this cabinet is the interesting case of the four:
+#
+#   - 0.595 x 1.020 x 0.850 estimated against 0.660 x 1.400 x 1.000 stated. Height short by 380 mm, depth by
+#     150 mm, width by 65 mm.
+#   - AND THE RATIO WAS WRONG TOO, WHICH IS THE PART WORTH LEARNING FROM. The old files trusted the photograph for
+#     proportions even while distrusting it for absolute size, and read this cabinet as about 1.4 to 1.6 times a
+#     turbo sub's height. Stated, it is 1.40 against the IQ sub's 0.67 — a factor of 2.09. The middle row is
+#     1.00 m deep where the outer columns are 0.56, so it stands further back from a low camera and reads shorter
+#     than it is. A photograph does not give ratios reliably either when the things being compared are not the
+#     same distance away.
+#   - The old 0.85 "set scale", derived from this cabinet's stated 18" to fix the size of all four GMSS boxes at
+#     once, is gone with the estimates it produced. See `iq-sub.yaml`.
+#
+# WHY `provenance: estimated` FOR STATED FIGURES: see `iq-sub.yaml`. The enum has no case for "the builder
+# told us" and `measured` would claim we put a tape on it.
+#
+# THE WEIGHT IS HEDGED BY THE OWNER HIMSELF — "maybe 220kg" — so it is an estimate inside an estimate and is not
+# to be read as a stated fact. `physical.weight_kg` has no way to say that; the notes do.
+#
+# NO PASSBAND. The 1600 W RMS is a power rating and says nothing about where the cabinet is crossed over.
+# Frequencies are exactly the kind of number this repository refuses to invent.
+id: wall-bass
+name: "GMSS Wall Bass"
+category: speaker
+subtype: sub
+quantity: 2
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box; the fold and the finned mouth the photo shows are not modelled, as for every horn in
+  # this repository.
+  shape: box
+  dimensions_m: { width: 0.660, height: 1.400, depth: 1.000 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#141414"
+
+physical:
+  # HEDGED BY THE OWNER: "maybe 220kg". By far the heaviest cabinet in this repository — our SKRAM is 90 kg and
+  # our Flexy 85 — but it is also by far the biggest box in it at 0.92 m3, and 220 kg over that volume is
+  # 238 kg/m3 against the IQ sub's 201 and the nuke's 182 — and it is the biggest box of the three, where skin
+  # area per litre works the other way. A folded horn is mostly internal panels, so being the densest anyway is
+  # the direction that makes sense. Which is a plausibility check, not a source.
+  weight_kg: 220.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+audio:
+  # From GMSS's first message, "Middle subs are 18/1600rms", which the elimination in the header ties to this
+  # cabinet. No passband: see the header.
+  drivers:
+    - { size_in: 18, type: woofer, count: 1 }
+
+notes: |
+  Stated by the owner of GMSS, answering questions about GMSS.jpeg: "2 wall basses: 66w, 100d, 140h, maybe 220kg
+  each". Centimetres, width / depth / height. That is the source for the dimensions and the count.
+
+  THE 220 kg IS THE OWNER'S OWN GUESS, not a figure he gave flat — "maybe 220kg". Treat it as the roughest number
+  in this spec. It matters for planning rather than for drawing: at 220 kg this box is a four-person lift or a
+  machine, where every other cabinet in the library is a two-person lift.
+
+  The 18" driver and 1600 W RMS come from GMSS's earlier message, "Middle subs are 18/1600rms" — attributed to
+  this cabinet by elimination across the two messages, which the header sets out. The repository has no field for
+  power handling, so the rating stays in this note.
+
+  Formerly `gmss-middle-sub`, quantity 3. The renaming is the builder's own name replacing a positional
+  placeholder; the count dropped because the "third" cabinet is the USB mid bass, `mid-bass`.
+
+  NOT MEASURED BY US, AND NOT FROM A DATASHEET. The builder's own figures for his own box; still a message
+  rather than a measurement, so `estimated`.

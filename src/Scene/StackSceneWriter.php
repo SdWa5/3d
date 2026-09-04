@@ -23,8 +23,81 @@ namespace App\Scene;
 final class StackSceneWriter
 {
     /**
+     * The stacks laid out so the tall ones end up where the alignment wants them.
+     *
+     * **The same rule as the tops row, one level up.** {@see StackSolver::topRow} centres the long throw for mono and
+     * {@see StackSolver::stereoTopRow} pushes it to the ends for stereo; a rig of several stacks is the same question
+     * asked of whole stacks. Until now they came out in *solve* order — owner alphabetical, or the order the split
+     * dealt them — and nothing ever looked at their heights, so `both-systems-per-owner` read `3.34 | 3.20 | 1.80`
+     * with the tallest hard left. Seven of thirty multi-stack scenes were wrong that way.
+     *
+     * * **mono** — tallest in the middle, the rest alternating outward. `3.34 | 3.20 | 1.80` becomes
+     *   `3.20 | 3.34 | 1.80`: the biggest pile carries the room from the centre and the small ones widen the coverage.
+     * * **stereo** — tallest at the outer ends, working inward. The mirror, because the point of a stereo rig is the
+     *   width of its image and the main clusters belong as far apart as the stage allows.
+     *
+     * **This improves symmetry and does not deliver it**, which is worth being plain about. Ordering can place the
+     * tall stacks; it cannot make the two flanks *equal*, because that depends on the split giving each stack similar
+     * contents. `--per-owner` puts three different systems side by side and no ordering makes those the same height.
+     *
+     * @param list<StackBlock> $blocks
+     * @param list<string> $order system labels, left to right, or empty for the height rule below
+     * @return list<StackBlock>
+     */
+    public static function byHeight(array $blocks, LayoutMode $mode, array $order = []): array
+    {
+        if ($order !== []) {
+            // **A STATED ORDER BEATS THE HEURISTIC, WHICH IS WHY IT IS CHECKED FIRST AND RETURNS.** Everything
+            // below is a rule about where a *taller* stack reads best, and it is a good rule precisely because
+            // nobody had said where the stacks go. Somebody saying so is a different kind of fact: the systems
+            // stand in the order they were asked for, and a rig that came out `psl | innschleife | ours` because
+            // Innschleife's wall grew 380 mm is not the rig anybody drew on a stage plan.
+            //
+            // Stable, and a block whose label the order does not name keeps its place at the end rather than
+            // being dropped — naming two of three systems is a partial instruction, not a filter.
+            $rank = array_flip(array_values($order));
+            $positions = [];
+            foreach ($blocks as $index => $block) {
+                $positions[$index] = $rank[$block->label] ?? count($rank) + $index;
+            }
+            uksort($blocks, static fn (int $a, int $b): int => $positions[$a] <=> $positions[$b]);
+
+            return array_values($blocks);
+        }
+
+        if (count($blocks) < 3 && $mode !== LayoutMode::Stereo) {
+            // Two stacks have no middle to be in, and no mono ordering can tell them apart.
+            return $blocks;
+        }
+
+        usort(
+            $blocks,
+            static fn (StackBlock $a, StackBlock $b): int => $b->subHeightM() <=> $a->subHeightM(),
+        );
+
+        // Tallest first in `$blocks`. Deal them alternately to build the shape the mode asks for: for mono the
+        // tallest takes the middle and each next one goes to the shorter side, which comes out as a list read from
+        // the centre outward and then flattened; for stereo the same deal read from the ends inward.
+        $left = [];
+        $right = [];
+        foreach ($blocks as $position => $block) {
+            $position % 2 === 0 ? $left[] = $block : $right[] = $block;
+        }
+
+        return $mode === LayoutMode::Stereo
+            // Tallest at the ends: the tall half outward on the left, the rest inward, mirrored on the right.
+            ? [...$left, ...array_reverse($right)]
+            // Tallest central: shorter ones outboard on the left, tallest in the middle, the rest to the right.
+            : [...array_reverse($right), ...$left];
+    }
+
+    /**
      * @param list<StackBlock> $blocks one solved stack each, left to right
      * @param array{float, float} $at where the whole arrangement is centred
+     * @param array<string, int> $stated devices whose count came from a roster or `--quantity` rather than from
+     *     their spec, which must be written into the file whatever the share works out to. See {@see yaml}
+     * @param bool $perSystemFocus whether each block is its own sound system and therefore aims at its own focus
+     *     rather than at the rig's — true for the separated values of {@see SystemSplit}, false for `pooled`
      */
     public static function yaml(
         string $id,
@@ -33,6 +106,8 @@ final class StackSceneWriter
         array $at,
         float $clearanceM,
         string $command = '',
+        array $stated = [],
+        bool $perSystemFocus = false,
     ): string {
         $lines = self::header($blocks, $clearanceM, $command);
 
@@ -57,6 +132,24 @@ final class StackSceneWriter
             $lines[] = sprintf('    at: [%s, %s]', self::number($centres[$index]), self::number($at[1]));
             $lines[] = sprintf('    aim: %s                 # the TOP tiers only; subs fire straight ahead', self::AIM);
 
+            if ($perSystemFocus) {
+                // **ONE FOCUS PER SYSTEM, BECAUSE THREE SYSTEMS SIDE BY SIDE DO NOT SHARE ONE.** The scene's own
+                // focus is measured from the *rig's* front centre, so without this the outer walls toe inward at a
+                // point in front of the middle one — three systems covering one patch of floor rather than each
+                // covering the room in front of it. Written out with the same two points the scene carries, so the
+                // numbers mean what they always meant and only what they are measured from changes.
+                //
+                // Only where the stacks **are** systems. A pooled rig split into two or three is one system in
+                // several piles, and those do share a focus: they are aimed as one cluster and the near-fills of
+                // one belong to the other.
+                $lines[] = '    focus:';
+                foreach (self::focusPoints() as $name => $focus) {
+                    $lines[] = sprintf('      %s:', $name);
+                    $lines[] = sprintf('        distance_m: %s', self::number($focus->distanceM));
+                    $lines[] = sprintf('        height_m: %s', self::number($focus->heightM));
+                }
+            }
+
             if ($block->align !== null) {
                 $lines[] = '    align:';
                 $lines[] = sprintf('      mode: %s', $block->align->value);
@@ -70,6 +163,13 @@ final class StackSceneWriter
                 // Same reason `shape` is written: the `stack:` block is re-solved on every build, so a style left out
                 // comes back as the default and the variant rebuilds as its sibling.
                 $lines[] = sprintf('      mirror_style: %s', $block->stack->mirrorStyle->value);
+            }
+            if ($block->stack->lowEnd !== LowEndBias::Low) {
+                // Written only when it is not the default, like every other key here — and written it must be,
+                // because the `stack:` block is re-solved on every build and a bias left out comes back as `low`.
+                // The two values are two rigs: `central` puts the SKRAMs one above the other on the centre line
+                // where `low` puts both of them on the floor.
+                $lines[] = sprintf('      low_end: %s', $block->stack->lowEnd->value);
             }
             if ($block->stack->shape !== StackShape::Free) {
                 // Written only when it is not the default, like every other key here — but written it must be. The
@@ -99,7 +199,17 @@ final class StackSceneWriter
                 }
 
                 // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
-                $share = $count !== ($owned[$deviceId] ?? $count) ? $count : null;
+                //
+                // **A COUNT THAT CAME FROM A ROSTER IS ALWAYS SOMETHING TO SAY, AND LEAVING IT OUT WROTE FILES
+                // THAT REBUILT INTO A DIFFERENT RIG.** `owned()` reports the quantity of the specs this run was
+                // given, and a roster hands the command specs it has already rewritten — so twelve of twelve ESX
+                // looked like the whole inventory and the shorthand was used. Loading that file back reads the
+                // spec on disk, which says six, and the compiler dealt out a rig with three fewer rows under a
+                // top row laid out for twelve. Two of the sixteen PSL scenes came out with a floating cabinet
+                // that way, under a `-possible` name, because the writer had checked a different rig from the one
+                // it wrote. The file has to be self-contained: whatever the spec says tomorrow, this scene is the
+                // rig somebody actually asked for.
+                $share = $count !== ($owned[$deviceId] ?? $count) || isset($stated[$deviceId]) ? $count : null;
                 // `mix_with` belongs in the same list as the roll and the share: it is part of what the solve
                 // decided, and a mix left out comes back as separate tiers — which is a taller stack, quietly.
                 $mixWith = $block->stack->entryFor($deviceId)?->mixWith ?? [];

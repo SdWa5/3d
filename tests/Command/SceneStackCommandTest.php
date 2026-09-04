@@ -7,6 +7,7 @@ namespace App\Tests\Command;
 use App\Command\SceneStackCommand;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
+use App\Scene\SweepAxes;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use App\Spec\Violation;
@@ -58,7 +59,7 @@ final class SceneStackCommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob(dirname(__DIR__, 2).'/scenes/generated/'.self::THROWAWAY_ID.'*.yaml') ?: [] as $file) {
+        foreach (self::throwaway() as $file) {
             unlink($file);
         }
     }
@@ -79,15 +80,15 @@ final class SceneStackCommandTest extends TestCase
         // multiply them the same way — every value is written by default, so leaving them open would make this assert 4
         // and then 12, and stop saying anything about alignment.
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--max-width' => '3.70', '--systems' => ['pooled'], '--low-end' => ['low'], '--stacks' => '1', '--from' => self::STACKABLE,
             '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ]);
         $display = $tester->getDisplay();
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertSame(2, preg_match_all('/^id: /m', $display), 'center and stereo differ; block does not');
-        self::assertStringContainsString('the same rig as stacked-pyramid-upright-alternate-center', $display);
-        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-stereo', $display);
+        self::assertStringContainsString('the same rig as stacked-1-pooled--------pyramid-upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-stereo', $display);
 
         // In stereo the long throw is at BOTH ends with the fills inboard, and the odd M2122 sits on the centre
         // line so the two clusters stay equal — a palindrome, where the centred row reads
@@ -118,20 +119,19 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheBareCommandWritesScenesAcrossOwnersAndStackCounts(): void
     {
-        $tester = $this->invoke(['--dry-run' => true]);
+        $tester = $this->invoke(['--low-end' => ['low'], '--dry-run' => true]);
         $display = $tester->getDisplay();
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertGreaterThan(8, preg_match_all('/^id: /m', $display), 'the bare command must produce a set');
 
-        // More than one owner, and more than one stack count, or it is not a sweep. `-+` rather than `-` between the
-        // owner label and the stack count, because the label is padded to a fixed width with dashes — see
-        // {@see \App\Command\SceneStackCommand::padded}. Matching a single dash pinned the padding by accident, which
-        // is not what any of these four lines is about.
-        self::assertMatchesRegularExpression('/^id: \S*-sdwa5-+\d/m', $display);
-        self::assertMatchesRegularExpression('/^id: \S*-gmss-+\d/m', $display);
-        self::assertMatchesRegularExpression('/^id: \S*-\w+-+1/m', $display);
-        self::assertMatchesRegularExpression('/^id: \S*-\w+-+2/m', $display);
+        // More than one stack count, or it is not a sweep. **The owner is no longer in the id** — it is the folder
+        // the scene is written into, and the recorded `--into` is where a dry run says so. This used to assert one
+        // `-sdwa5-` id and one `-gmss-` id, which was the powerset default rather than a property of a sweep.
+        self::assertMatchesRegularExpression('/^id: stacked-1-/m', $display);
+        self::assertMatchesRegularExpression('/^id: stacked-2-/m', $display);
+        self::assertStringContainsString('--into=sdwa5-sepp', $display);
+        self::assertDoesNotMatchRegularExpression('/^id: \S*sdwa5/m', $display, 'the inventory is the folder now');
 
         // Every refusal carries a reason — a sweep that drops candidates silently reads as "that is all there is".
         foreach (explode("\n", $display) as $line) {
@@ -142,26 +142,41 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * Naming any of the narrowing options collapses the sweep to that one point.
+     * **Naming a value on an axis switches the other values of that axis off. It does not switch the sweep off.**
      *
-     * The sweep is what *absence* means; nothing that worked before behaves differently.
+     * That is SWP-3's first ask and it used to be true of five axes and false of three: `--from`, `--stacks` and
+     * `--per-owner` were read as "the caller has one specific rig in mind" and collapsed the whole cross product to
+     * a single candidate, so **"sweep everything, but only two stacks" could not be asked for.** Now every option
+     * narrows one axis, and a caller who wants exactly one scene names one value on every axis — which is what a
+     * replay does, and why `build:all` still rewrites one file per recorded line.
      */
-    public function testNamingTheGearOrStackCountCollapsesTheSweep(): void
+    public function testNamingAValueNarrowsThatAxisAndLeavesTheRestSweeping(): void
     {
-        $display = $this->invoke([
-            '--from' => self::STACKABLE, '--stacks' => '1', '--align' => ['center'],
-            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
+        // Every axis named: one rig, and its name carries the value chosen on each of them.
+        $one = $this->invoke([
+            '--systems' => ['pooled'], '--low-end' => ['low'], '--from' => self::STACKABLE, '--stacks' => '1', '--align' => ['center'],
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--mirror-style' => ['alternate'],
+            '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertSame(1, preg_match_all('/^id: /m', $display));
-        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display, 'no owner or stack-count suffix');
+        self::assertSame(1, preg_match_all('/^id: /m', $one));
+        self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $one);
+
+        // The stack count alone: every other axis keeps walking, which is the thing that could not be asked for.
+        $narrowed = $this->invoke(['--owner' => ['gmss'], '--stacks' => '2', '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        $swept = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+
+        $count = preg_match_all('/^id: /m', $narrowed);
+        self::assertGreaterThan(1, $count, 'naming the stack count still collapsed the sweep');
+        self::assertLessThan(preg_match_all('/^id: /m', $swept), $count, 'and it narrowed nothing');
+        self::assertSame(0, preg_match_all('/^id: stacked-[13]-/m', $narrowed), 'only the stated stack count');
     }
 
     /** The fast path: one alignment, one shape and one orientation named outright, exactly one scene. */
     public function testASingleAlignmentProducesExactlyOneScene(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['block'],
+            '--max-width' => '3.70', '--systems' => ['pooled'], '--low-end' => ['low'], '--stacks' => '1', '--from' => self::STACKABLE, '--align' => ['block'],
             '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
         ]);
 
@@ -183,17 +198,17 @@ final class SceneStackCommandTest extends TestCase
     public function testEveryShapeIsWrittenAndThePyramidKeepsThePlainId(): void
     {
         $display = $this->invoke([
-            '--from' => ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'tecnare-m2122'],
+            '--systems' => ['pooled'], '--stacks' => '1', '--from' => ['wall-bass', 'mid-bass', 'iq-sub', 'tecnare-m2122'],
             // 3.5 m, not the 3.0 m default: `free` comes out at 3.240 m here and the band would refuse it, and the
             // subject of this test is the two fill orders rather than which of them meets a ceiling.
             '--max-width' => '3.80', '--interface-height' => '0', '--max-sub-height' => '3.5',
             // One orientation, so the three scenes below are the three shapes rather than shapes times orientations.
-            '--align' => ['center'], '--orientation' => ['upright'], '--dry-run' => true,
+            '--align' => ['center'], '--orientation' => ['upright'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display);
-        self::assertStringContainsString('id: stacked-free----upright-alternate-center', $display);
-        self::assertStringContainsString('id: stacked-v-------upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------free----upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------v-------upright-alternate-center', $display);
 
         // The pyramid puts the IQ subs on the floor, which is the widest row they can make; `free` puts the two wall
         // basses there, which is 1.34 m and two rows more of stack; `v` puts the single mid-bass there at 1.20 m,
@@ -201,9 +216,9 @@ final class SceneStackCommandTest extends TestCase
         // The order is {@see StackShape::cases()}, so 0 is the pyramid, 1 is free and 2 is v.
         preg_match_all('/^#\s+1\s+(\S.*?)\s{2,}[\d.]+ m wide$/m', $display, $bottomRows);
         self::assertCount(3, $bottomRows[1], 'one bottom row per shape');
-        self::assertStringContainsString('gmss-iq-sub', $bottomRows[1][0], 'the pyramid stands on the IQ subs');
-        self::assertStringContainsString('gmss-wall-bass', $bottomRows[1][1], 'and free on the wall basses');
-        self::assertStringContainsString('gmss-mid-bass', $bottomRows[1][2], 'and v on the single mid-bass');
+        self::assertStringContainsString('iq-sub', $bottomRows[1][0], 'the pyramid stands on the IQ subs');
+        self::assertStringContainsString('wall-bass', $bottomRows[1][1], 'and free on the wall basses');
+        self::assertStringContainsString('mid-bass', $bottomRows[1][2], 'and v on the single mid-bass');
     }
 
     /**
@@ -220,9 +235,15 @@ final class SceneStackCommandTest extends TestCase
         // The band is opted out of with the two bounds that are its control, because this is a test about *where*
         // the tall stacks go: three owners give three deliberately unequal stacks, and the tallest of them is over
         // the 3 m ceiling by construction. Holding it to the band would be asserting on a refusal.
-        $shared = ['--per-owner' => true, '--max-width' => '3.70', '--gap' => '0.05',
-            '--interface-height' => '0', '--max-sub-height' => '99', '--shape' => ['pyramid'],
-            '--orientation' => ['upright'], '--mirror-style' => ['alternate'], '--dry-run' => true];
+        // **The three owners are named, because silence stopped meaning "every owner".** A bare `--per-owner` builds
+        // the default inventory now, which is ours and Sepp's — two stacks, and this test is about which of three
+        // unequal ones takes the middle.
+        // **One stack per system and one scene**, which under narrowing means naming the stack count too: three
+        // systems side by side is `--stacks=1`, and leaving it open sweeps 1, 2 and 3 of them.
+        $shared = ['--per-owner' => true, '--owner' => ['gmss', 'innschleife', 'sdwa5', 'sepp'], '--stacks' => '1',
+            '--max-width' => '3.70', '--gap' => '0.05', '--interface-height' => '0', '--max-sub-height' => '99',
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--mirror-style' => ['alternate'],
+            '--low-end' => ['low'], '--dry-run' => true];
 
         $mono = $this->heights($this->invoke($shared + ['--align' => ['center']])->getDisplay());
         self::assertCount(3, $mono);
@@ -250,7 +271,7 @@ final class SceneStackCommandTest extends TestCase
     public function testAnUnknownShapeIsRefusedAndNamesTheAllowedValues(): void
     {
         $tester = $this->invoke([
-            '--from' => self::STACKABLE, '--max-width' => '3.70', '--shape' => ['wedge'], '--dry-run' => true,
+            '--from' => self::STACKABLE, '--max-width' => '3.70', '--shape' => ['wedge'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(1, $tester->getStatusCode());
@@ -262,10 +283,10 @@ final class SceneStackCommandTest extends TestCase
     {
         $this->invoke([
             '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--id' => self::THROWAWAY_ID, '--dry-run' => true,
+            '--id' => self::THROWAWAY_ID, '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertSame([], glob(dirname(__DIR__, 2).'/scenes/generated/'.self::THROWAWAY_ID.'*.yaml') ?: []);
+        self::assertSame([], self::throwaway());
     }
 
     /**
@@ -294,7 +315,7 @@ final class SceneStackCommandTest extends TestCase
     {
         $tester = $this->invoke([
             '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--max-scenes' => '0', '--dry-run' => true,
+            '--max-scenes' => '0', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(1, $tester->getStatusCode());
@@ -311,7 +332,7 @@ final class SceneStackCommandTest extends TestCase
         foreach ([['--max-width' => '10.0'], []] as $widthOption) {
             $tester = $this->invoke($widthOption + [
                 '--from' => self::STACKABLE, '--interface-height' => '2.0',
-                '--align' => ['center'], '--dry-run' => true,
+                '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
             ]);
 
             self::assertSame(0, $tester->getStatusCode(), 'a wide or unbounded stage still solves');
@@ -341,7 +362,7 @@ final class SceneStackCommandTest extends TestCase
         // one. The subject is the SKRAMs sharing a bottom row in the rig this test has always been about.
         $tester = $this->invoke([
             '--max-width' => '5.0', '--interface-height' => '2.0', '--from' => self::OWN_GEAR,
-            '--shape' => ['free'], '--orientation' => ['upright'], '--align' => ['center'], '--dry-run' => true,
+            '--shape' => ['free'], '--orientation' => ['upright'], '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -356,13 +377,20 @@ final class SceneStackCommandTest extends TestCase
      * collective, who owns a cabinet *is* the split between the rigs. Each group becomes its own stack, and
      * the stacks stand side by side rather than merging into one pile.
      *
-     * Three owners now, not two — GMSS is the third, and it is exactly the case this option is for: a second
-     * sound system's gear must not end up in the same pile as the collective's own.
+     * **Two stacks rather than the library's five, and that is the default inventory doing its job.** This test
+     * asserted three when there were three owners, and would have asserted five the day PSL and Innschleife were
+     * specced — five systems side by side, four of them borrowed, from a command line that says nothing about whose
+     * gear. `--per-owner` narrows the separation and not the inventory, so silence falls back to
+     * {@see \App\Scene\SweepAxes::DEFAULT_OWNERS} here exactly as it does for a bare sweep. Naming an owner still
+     * works: `--per-owner --owner=gmss --owner=sdwa5` is two stacks of those two.
      */
     public function testPerOwnerWritesOneStackPerOwnerSideBySide(): void
     {
         $tester = $this->invoke([
-            '--per-owner' => true, '--max-width' => '3.70', '--gap' => '0.05',
+            // **Per SYSTEM, not per owner**, which is why `gmss` is named: `sdwa5` and `sepp` are one system now
+            // and a rig of the two of them has nothing to stand apart. See {@see \App\Scene\SystemGrouping}.
+            '--per-owner' => true, '--owner' => ['gmss', 'sdwa5', 'sepp'], '--stacks' => '1',
+            '--max-width' => '3.70', '--gap' => '0.05',
             // Outside the band by construction — see `testTheTallestStackGoesWhereTheAlignmentWantsIt`. The subject
             // here is which stack each owner's gear lands in.
             '--interface-height' => '0', '--max-sub-height' => '99',
@@ -372,16 +400,17 @@ final class SceneStackCommandTest extends TestCase
             // refuses it. That overlap is not new — it was simply never checked, because `--dry-run` writes no file
             // and only written scenes reach the shipped-scene sweep.
             '--shape' => ['pyramid'], '--mirror-style' => ['alternate'],
-            '--align' => ['center'], '--dry-run' => true,
+            '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
 
         $output = $tester->getDisplay();
-        self::assertStringContainsString('- id: main-sdwa5', $output);
-        self::assertStringContainsString('- id: main-sepp', $output);
+        self::assertStringContainsString('- id: main-ours', $output, 'our gear and Sepp\'s are one wall');
         self::assertStringContainsString('- id: main-gmss', $output);
-        self::assertStringContainsString('3 stacks side by side', $output);
+        self::assertStringNotContainsString('- id: main-sdwa5', $output);
+        self::assertStringNotContainsString('- id: main-sepp', $output);
+        self::assertStringContainsString('2 stacks side by side', $output);
     }
 
     /** `--stacks=2` is how a stereo pair is asked for: each group split evenly into two. */
@@ -389,7 +418,7 @@ final class SceneStackCommandTest extends TestCase
     {
         $tester = $this->invoke([
             '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--stacks' => '2', '--align' => ['center'], '--dry-run' => true,
+            '--stacks' => '2', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -415,8 +444,8 @@ final class SceneStackCommandTest extends TestCase
         // One shape and one orientation, so the count below is the two stacks of one scene rather than the same two
         // stacks across every variant of it.
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE, '--stacks' => '2', '--align' => ['center'],
-            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--dry-run' => true,
+            '--max-width' => '3.70', '--systems' => ['pooled'], '--from' => self::STACKABLE, '--stacks' => '2', '--align' => ['center'],
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -431,8 +460,8 @@ final class SceneStackCommandTest extends TestCase
     public function testAnUnsplitRigKeepsTheShorthandDeviceList(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE,
-            '--align' => ['center'], '--dry-run' => true,
+            '--max-width' => '3.70', '--systems' => ['pooled'], '--stacks' => '1', '--from' => self::STACKABLE,
+            '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         $output = $tester->getDisplay();
@@ -450,12 +479,12 @@ final class SceneStackCommandTest extends TestCase
     public function testOneStackOfEachPairIsTheMirrorImageOfTheOther(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--stacks' => '2', '--align' => ['center'], '--dry-run' => true,
+            '--max-width' => '3.70', '--stacks' => '2', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
             // **The collective's own gear, named.** This used to pass no `--from` at all, which means every speaker in
             // the repository — two sound systems in one stack, and a rig the sub height band refuses. Naming the gear
             // that the two `--roll-mirror` cabinets actually belong to makes it a rig that ships: 2.392 m of subs on a
             // 2.0 m interface, mirrored, which is what this test is about.
-            '--from' => self::OWN_GEAR,
+            '--systems' => ['pooled'], '--low-end' => ['low'], '--from' => self::OWN_GEAR,
             '--shape' => ['free'], '--mirror-style' => ['alternate'],
             '--roll-mirror' => ['skram', 'flexy-folded-horn-hybrid'],
         ]);
@@ -499,7 +528,7 @@ final class SceneStackCommandTest extends TestCase
     public function testASingleStackIsNeverMirrored(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['center'], '--dry-run' => true,
+            '--max-width' => '3.70', '--systems' => ['pooled'], '--stacks' => '1', '--from' => self::STACKABLE, '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertStringNotContainsString('mirror: true', $tester->getDisplay());
@@ -507,7 +536,7 @@ final class SceneStackCommandTest extends TestCase
 
     public function testAStackCountBelowOneIsRejected(): void
     {
-        $tester = $this->invoke(['--stacks' => '0', '--dry-run' => true]);
+        $tester = $this->invoke(['--stacks' => '0', '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
         self::assertStringContainsString('--stacks must be at least 1', $tester->getDisplay());
@@ -526,14 +555,14 @@ final class SceneStackCommandTest extends TestCase
     {
         // No workable arrangement: a 0.2 m stage carries nothing this repository owns.
         $unbuildable = $this->invoke([
-            '--from' => ['flexy-folded-horn-hybrid'], '--max-width' => '0.2', '--dry-run' => true,
+            '--from' => ['flexy-folded-horn-hybrid'], '--max-width' => '0.2', '--low-end' => ['low'], '--dry-run' => true,
         ]);
         self::assertSame(SceneStackCommand::NOTHING_TO_WRITE, $unbuildable->getStatusCode());
         self::assertStringContainsString('No workable arrangement', $unbuildable->getDisplay());
 
         // Unusable request: the same empty candidate list, reached by asking for something incoherent.
         $unusable = $this->invoke([
-            '--from' => ['flexy-folded-horn-hybrid'], '--split' => 'sideways', '--dry-run' => true,
+            '--from' => ['flexy-folded-horn-hybrid'], '--split' => 'sideways', '--low-end' => ['low'], '--dry-run' => true,
         ]);
         self::assertSame(SceneStackCommand::FAILURE, $unusable->getStatusCode());
     }
@@ -555,7 +584,7 @@ final class SceneStackCommandTest extends TestCase
     public function testEveryGeneratedSceneCompilesAndPlacesEveryCabinet(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE, '--id' => self::THROWAWAY_ID,
+            '--max-width' => '3.70', '--systems' => ['pooled'], '--stacks' => '1', '--from' => self::STACKABLE, '--id' => self::THROWAWAY_ID,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -563,9 +592,9 @@ final class SceneStackCommandTest extends TestCase
         // Under `generated/`, which is the one thing the layout rule turns on: everything derived from a scene
         // takes its subdirectory from where the scene itself sits, so a generated rig can never overwrite the
         // build output of a hand-written one that shares its id.
-        $written = glob(dirname(__DIR__, 2).'/scenes/generated/'.self::THROWAWAY_ID.'*.yaml') ?: [];
+        $written = self::throwaway();
         self::assertNotSame([], $written);
-        self::assertSame([], glob(dirname(__DIR__, 2).'/scenes/'.self::THROWAWAY_ID.'*.yaml') ?: []);
+        self::assertSame([], glob(dirname(__DIR__, 2).'/scenes/'.self::THROWAWAY_ID.'*.yaml') ?: [], 'nothing in scenes/ itself');
 
         $devices = [];
         foreach ((new SpecLoader(dirname(__DIR__, 2).'/specs'))->loadAll()['specs'] as $spec) {
@@ -597,7 +626,7 @@ final class SceneStackCommandTest extends TestCase
 
     public function testAnUnknownAlignmentIsRejected(): void
     {
-        $tester = $this->invoke(['--align' => ['blok'], '--dry-run' => true]);
+        $tester = $this->invoke(['--align' => ['blok'], '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
         self::assertStringContainsString("unknown value 'blok'", $tester->getDisplay());
@@ -605,7 +634,7 @@ final class SceneStackCommandTest extends TestCase
 
     public function testAnUnknownDeviceIsRejected(): void
     {
-        $tester = $this->invoke(['--from' => ['nope'], '--dry-run' => true]);
+        $tester = $this->invoke(['--from' => ['nope'], '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
         self::assertStringContainsString("Unknown device 'nope'", $tester->getDisplay());
@@ -628,8 +657,8 @@ final class SceneStackCommandTest extends TestCase
             // Two stacks rather than three: at three, an aimed tops row overlaps itself by 17.6 mm and the generator
             // refuses it now. The point of this test — by-type gives each stack whole types and fewer rows — is the
             // same either way.
-            '--from' => self::OWN_GEAR, '--stacks' => '2', '--max-width' => '3.70',
-            '--interface-height' => '0', '--align' => ['center'], '--dry-run' => true,
+            '--systems' => ['pooled'], '--from' => self::OWN_GEAR, '--stacks' => '2', '--max-width' => '3.70',
+            '--interface-height' => '0', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ];
 
         $byCount = $this->invoke($shared);
@@ -663,8 +692,8 @@ final class SceneStackCommandTest extends TestCase
         // One shape named, because the band no longer refuses the others and two of them now write the same split
         // twice. The subject is what the split does with the odd cabinet, which no shape changes.
         $shared = [
-            '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '2', '--shape' => ['free'],
-            '--orientation' => ['upright'], '--max-width' => '3.70', '--align' => ['center'], '--dry-run' => true,
+            '--systems' => ['pooled'], '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '2', '--shape' => ['free'],
+            '--orientation' => ['upright'], '--max-width' => '3.70', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ];
 
         $dealt = $this->invoke($shared)->getDisplay();
@@ -683,7 +712,7 @@ final class SceneStackCommandTest extends TestCase
             // 3.5 m because this gear comes out at 3.040 m, so the ceiling is met rather than missed. A missed one
             // would be written too — see the band tests — and this is about the key reaching the file.
             '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '3.5',
-            '--interface-height' => '0', '--align' => ['center'], '--dry-run' => true,
+            '--interface-height' => '0', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('max_sub_height_m: 3.5', $display);
@@ -716,23 +745,23 @@ final class SceneStackCommandTest extends TestCase
      * hangs proud. That is filed as TOOL-8 rather than left looking covered. The feature itself is plainly still
      * live: 273 generated scenes carry an overhang warning, against 262 before the change.
      *
-     * `gmss-mid-bass` is left out here and always was — 1.200 m of cabinet that the 3.70 m stage cannot carry beside
+     * `mid-bass` is left out here and always was — 1.200 m of cabinet that the 3.70 m stage cannot carry beside
      * the rest — so that is the rig rather than anything this change did.
      */
     public function testASoloStackSlidesARowRatherThanLosingTheRig(): void
     {
         $display = $this->invoke([
-            '--from' => ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'gmss-nuke', 'gmss-turbo-top'],
+            '--systems' => ['pooled'], '--from' => ['wall-bass', 'mid-bass', 'iq-sub', 'nuke', 'turbo-top'],
             '--max-width' => '3.70', '--stacks' => '1', '--align' => ['center'], '--shape' => ['free'],
-            '--orientation' => ['turned'], '--mirror-style' => ['centred'], '--dry-run' => true,
+            '--orientation' => ['turned'], '--mirror-style' => ['centred'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-free----turned--centred---center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------free----turned--centred---center', $display);
 
         // Carried rather than refused, which is what the name is about. The rig comes out, and the only cabinet it
         // gives up is the one the stage cannot take.
-        self::assertStringContainsString('gmss-mid-bass: LEFT OUT', $display);
-        self::assertStringNotContainsString('gmss-iq-sub: LEFT OUT', $display, 'the subs are all carried');
+        self::assertStringContainsString('mid-bass: LEFT OUT', $display);
+        self::assertStringNotContainsString('iq-sub: LEFT OUT', $display, 'the subs are all carried');
 
         self::assertSame([2.7], $this->heights($display));
     }
@@ -752,13 +781,13 @@ final class SceneStackCommandTest extends TestCase
     public function testARigThatMissesTheSubHeightBandIsWrittenWithTheMeasurement(): void
     {
         $display = $this->invoke([
-            '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '3.0',
-            '--interface-height' => '0', '--align' => ['center'], '--shape' => ['pyramid'], '--dry-run' => true,
+            '--systems' => ['pooled'], '--stacks' => '1', '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '3.0',
+            '--interface-height' => '0', '--align' => ['center'], '--shape' => ['pyramid'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('3.040 m against the 3.000 m ceiling', $display);
         self::assertStringContainsString('40 mm too high', $display);
-        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display, 'the miss no longer costs the rig');
+        self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $display, 'the miss no longer costs the rig');
         self::assertMatchesRegularExpression(
             '/#\s+\*\s+the subs reach 3\.040 m against the 3\.000 m ceiling/',
             $display,
@@ -774,12 +803,12 @@ final class SceneStackCommandTest extends TestCase
     public function testAWallTooShortToClearTheInterfaceIsWrittenWithTheMeasurement(): void
     {
         $display = $this->invoke([
-            '--from' => ['achenbach-18', 'eighteensound-2way-15'], '--max-width' => '3.70',
-            '--interface-height' => '2.0', '--align' => ['center'], '--shape' => ['pyramid'], '--dry-run' => true,
+            '--systems' => ['pooled'], '--stacks' => '1', '--from' => ['achenbach-18', 'eighteensound-2way-15'], '--max-width' => '3.70',
+            '--interface-height' => '2.0', '--align' => ['center'], '--shape' => ['pyramid'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('fire below head height', $display);
-        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display, 'a short wall is a rig, not a refusal');
+        self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $display, 'a short wall is a rig, not a refusal');
     }
 
     /**
@@ -790,11 +819,11 @@ final class SceneStackCommandTest extends TestCase
     public function testStatingABandWideEnoughForAnythingAcceptsTheSameRig(): void
     {
         $display = $this->invoke([
-            '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '99',
-            '--interface-height' => '0', '--align' => ['center'], '--shape' => ['pyramid'], '--dry-run' => true,
+            '--systems' => ['pooled'], '--stacks' => '1', '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '99',
+            '--interface-height' => '0', '--align' => ['center'], '--shape' => ['pyramid'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-pyramid-upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $display);
         self::assertStringNotContainsString('too high', $display);
     }
 
@@ -812,12 +841,12 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testAnUnstatedWidthBoundsNothing(): void
     {
-        $shared = ['--from' => self::OWN_GEAR, '--align' => ['center'], '--shape' => ['free'], '--dry-run' => true];
+        $shared = ['--systems' => ['pooled'], '--stacks' => '1', '--from' => self::OWN_GEAR, '--align' => ['center'], '--shape' => ['free'], '--low-end' => ['low'], '--dry-run' => true];
 
         $unbounded = $this->invoke($shared)->getDisplay();
         $bounded = $this->invoke($shared + ['--max-width' => '2.40'])->getDisplay();
 
-        self::assertStringContainsString('id: stacked-free----upright-alternate-center', $unbounded);
+        self::assertStringContainsString('id: stacked-1-pooled--------free----upright-alternate-center', $unbounded);
         self::assertStringNotContainsString('max_width_m:', $unbounded, 'no bound reaches the re-solved stack');
         self::assertStringNotContainsString('--max-width=', $unbounded, 'and none reaches the recorded command');
         self::assertStringContainsString('max_width_m: 2.4', $bounded, 'a stated one still reaches it');
@@ -856,7 +885,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testEveryGeneratedSceneOutsideItsBandSaysSo(): void
     {
-        $files = glob(dirname(__DIR__, 2).'/scenes/generated/*.yaml') ?: [];
+        $files = self::generatedScenes();
         self::assertNotSame([], $files);
 
         foreach ($files as $file) {
@@ -904,7 +933,7 @@ final class SceneStackCommandTest extends TestCase
     public function testAnUnknownSplitIsRefusedAndNamesTheAllowedValues(): void
     {
         $tester = $this->invoke([
-            '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--split' => 'sideways', '--dry-run' => true,
+            '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--split' => 'sideways', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(1, $tester->getStatusCode());
@@ -918,8 +947,8 @@ final class SceneStackCommandTest extends TestCase
     public function testSplitByTypeWithMoreStacksThanTypesSaysSo(): void
     {
         $tester = $this->invoke([
-            '--from' => self::OWN_GEAR, '--stacks' => '9', '--split' => 'by-type',
-            '--max-width' => '3.70', '--dry-run' => true,
+            '--systems' => ['pooled'], '--from' => self::OWN_GEAR, '--stacks' => '9', '--split' => 'by-type',
+            '--max-width' => '3.70', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(1, $tester->getStatusCode());
@@ -965,7 +994,7 @@ final class SceneStackCommandTest extends TestCase
         // asserts the same thing eight times over, and `testTheBareCommandWritesScenesAcrossOwnersAndStackCounts` is
         // where that whole run is paid for once.
         $display = $this->invoke([
-            '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'],
+            '--low-end' => ['low'], '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'],
         ])->getDisplay();
 
         preg_match_all('/^\s*(?:skipped|id:)\s*(\S+)/m', $display, $matches);
@@ -998,7 +1027,7 @@ final class SceneStackCommandTest extends TestCase
     public function testAnExplicitCentredStyleIsHonouredWithNothingRolled(): void
     {
         $display = $this->invoke([
-            '--dry-run' => true, '--orientation' => ['upright'], '--mirror-style' => ['centred'],
+            '--low-end' => ['low'], '--dry-run' => true, '--orientation' => ['upright'], '--mirror-style' => ['centred'],
             '--align' => ['center'], '--shape' => ['pyramid'],
         ])->getDisplay();
 
@@ -1014,7 +1043,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheSweepOffersTurnedRigsAndNeverRollsATop(): void
     {
-        $display = $this->invoke(['--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid']])->getDisplay();
+        $display = $this->invoke(['--low-end' => ['low'], '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid']])->getDisplay();
 
         self::assertStringContainsString('-turned-', $display);
         self::assertStringContainsString('-mixed-', $display);
@@ -1025,7 +1054,7 @@ final class SceneStackCommandTest extends TestCase
         preg_match_all('/(\S+) rolled \d+°/', $display, $rolled);
         foreach (array_unique($rolled[1]) as $id) {
             self::assertContains($id, [
-                'flexy-folded-horn-hybrid', 'skram', 'gmss-iq-sub', 'gmss-nuke', 'gmss-wall-bass', 'gmss-mid-bass',
+                'flexy-folded-horn-hybrid', 'skram', 'iq-sub', 'nuke', 'wall-bass', 'mid-bass',
                 'achenbach-18',
             ], $id.' is a top and was rolled');
         }
@@ -1033,32 +1062,83 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * The inventory axis is every non-empty combination of owners, and the **pairs** are the ones that were missing.
+     * A bare sweep builds **one** inventory, and it is our gear and Sepp's.
      *
-     * Borrowing gear between owners is something this repository supports on purpose, and until the combinations landed
-     * the sweep jumped from one owner straight to all of them. The pair is not a curiosity either: `sdwa5-sepp` writes
-     * more scenes than any single owner and more than `all`, because `sepp`'s six Achenbachs cannot stand alone and are
-     * excellent under somebody else's tops.
+     * **This test used to assert the opposite and the replacement is the point.** The inventory axis was every
+     * non-empty combination of owners — seven of them for three owners, which read as generosity and was where the
+     * finding came from that `sdwa5-sepp` writes more scenes than any single owner. Five owners make that powerset 31
+     * inventories, 26 of them rigs nobody will ever build, and the sweep goes past its own fuse before it writes
+     * anything. Stated by the owner: the sweep is always run against a subset, and the default subset is the pair.
      *
-     * Narrowed hard on the other axes, because this test is about which *inventories* are offered and a bare sweep
-     * would be the same assertion at eight times the runtime.
+     * So the finding is kept as the default rather than as an enumeration, and the other inventories are one
+     * `--owner` away. Asserted on the recorded `--into`, which is where the inventory lives now — a directory under
+     * `scenes/generated/` rather than a dash-padded field in every file name inside it.
+     *
+     * Narrowed hard on the other axes, because this test is about which *inventory* is offered and a bare sweep would
+     * be the same assertion at eight times the runtime.
      */
-    public function testTheSweepOffersEveryCombinationOfOwners(): void
+    public function testABareSweepBuildsTheDefaultInventoryAlone(): void
     {
         $display = $this->invoke([
-            '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'], '--orientation' => ['upright'],
+            '--low-end' => ['low'], '--dry-run' => true, '--align' => ['center'], '--shape' => ['pyramid'], '--orientation' => ['upright'],
         ])->getDisplay();
 
-        // `rtrim` because the owner column is padded out to the widest label the gear list can make, so `gmss` reads
-        // `gmss------` in a name. The padding is the point of the scheme and is not what this test is about.
-        preg_match_all('/^\s*(?:skipped|id:)\s*stacked-([a-z0-9-]+?)-\d/m', $display, $matches);
-        $inventories = array_values(array_unique(array_map(
-            static fn (string $label): string => rtrim($label, '-'),
-            $matches[1],
-        )));
-        sort($inventories);
+        preg_match_all('/--into=([a-z0-9-]+)/', $display, $matches);
+        $inventories = array_values(array_unique($matches[1]));
 
-        self::assertSame(['all', 'gmss', 'gmss-sdwa5', 'gmss-sepp', 'sdwa5', 'sdwa5-sepp', 'sepp'], $inventories);
+        self::assertSame(['sdwa5-sepp'], $inventories);
+        self::assertSame(SweepAxes::DEFAULT_OWNERS, ['sdwa5', 'sepp'], 'the default moved and this test did not');
+    }
+
+    /**
+     * A swept scene is written **into its inventory's folder**, and its name does not repeat the inventory.
+     *
+     * The two halves are one rule: SWP-3 says an axis value appears in the path or in the name and never in both,
+     * and the system name inside a folder named after the system said it 271 times over. Asserted on a real write
+     * rather than on a dry run, because the directory is the thing under test — a dry run prints the YAML and never
+     * touches the tree.
+     *
+     * Narrowed to one point on every other axis so this writes one file, and cleaned up in `finally` so a failure
+     * cannot leave a stray behind for the shipped-scene sweep to trip over.
+     */
+    public function testASweptSceneGoesIntoItsInventorysFolderAndDropsItFromTheName(): void
+    {
+        $generated = dirname(__DIR__, 2).'/scenes/generated/sepp';
+        $before = glob($generated.'/zz-test-*.yaml') ?: [];
+        self::assertSame([], $before, 'a previous run left a stray behind');
+
+        try {
+            $tester = $this->invoke([
+                '--owner' => ['sepp'], '--align' => ['center'], '--shape' => ['pyramid'],
+                '--orientation' => ['turned'], '--mirror-style' => ['alternate'], '--systems' => ['pooled'],
+                '--id' => 'zz-test-into', '--force' => true,
+            ]);
+
+            self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+
+            $written = glob($generated.'/zz-test-into-*.yaml') ?: [];
+            self::assertNotSame([], $written, 'nothing landed in scenes/generated/sepp/');
+            foreach ($written as $file) {
+                self::assertStringNotContainsString('sepp', basename($file), 'the folder already says whose gear it is');
+                // The recorded line has to carry the folder, or a replay lands in scenes/generated/ itself.
+                self::assertStringContainsString('--into=sepp', (string)file_get_contents($file));
+            }
+        } finally {
+            foreach (glob($generated.'/zz-test-*.yaml') ?: [] as $file) {
+                unlink($file);
+            }
+        }
+    }
+
+    /** `--into` refuses anything that is not a directory name, rather than creating one. */
+    public function testAnIntoThatIsNotADirectoryNameIsRefused(): void
+    {
+        $tester = $this->invoke([
+            '--from' => self::OWN_GEAR, '--into' => '../escape', '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('is not a directory name', $tester->getDisplay());
     }
 
     /**
@@ -1071,18 +1151,18 @@ final class SceneStackCommandTest extends TestCase
     public function testOwnerNarrowsTheInventoryWithoutCollapsingTheSweep(): void
     {
         $display = $this->invoke([
-            '--dry-run' => true, '--owner' => ['sepp', 'gmss'], '--align' => ['center'],
+            '--low-end' => ['low'], '--dry-run' => true, '--owner' => ['sepp', 'gmss'], '--align' => ['center'],
             '--shape' => ['pyramid'], '--orientation' => ['upright'],
         ])->getDisplay();
 
-        preg_match_all('/^\s*(?:skipped|id:)\s*stacked-([a-z0-9-]+?)-(\d)/m', $display, $matches);
+        preg_match_all('/^\s*(?:skipped|id:)\s*stacked-(\d)/m', $display, $matches);
 
-        // The owners in the specs' own order, whichever order they were typed in, so the file has one name.
-        self::assertSame(['gmss-sepp'], array_values(array_unique(array_map(
-            static fn (string $label): string => rtrim($label, '-'),
-            $matches[1],
-        ))));
-        self::assertSame(['1', '2', '3'], array_values(array_unique($matches[2])), 'the stack counts still sweep');
+        // **The inventory is read off the folder rather than off the id**, because that is where it went in 0.98.0.
+        // The label is still the owners in the specs' own order whichever order they were typed in, so the rig has
+        // one name — that half of the promise is unchanged and is what this line pins.
+        preg_match_all('/--into=(\S+)/', $display, $folders);
+        self::assertSame(['gmss-sepp'], array_values(array_unique($folders[1])));
+        self::assertSame(['1', '2', '3'], array_values(array_unique($matches[1])), 'the stack counts still sweep');
     }
 
     /**
@@ -1102,12 +1182,12 @@ final class SceneStackCommandTest extends TestCase
     {
         $display = $this->invoke([
             '--owner' => ['gmss'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['free'],
-            '--orientation' => ['upright'], '--dry-run' => true,
+            '--orientation' => ['upright'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         // Read off the resolved `--from` in the recorded line, which is where the narrowing has to land: an unsplit rig
         // writes its stack as the shorthand list of ids, so there is no `device:` key to assert on.
-        self::assertStringContainsString('--from=gmss-wall-bass', $display);
+        self::assertStringContainsString('--from=wall-bass', $display);
         self::assertStringNotContainsString('flexy-folded-horn-hybrid', $display);
         self::assertStringNotContainsString('achenbach-18', $display);
     }
@@ -1115,7 +1195,7 @@ final class SceneStackCommandTest extends TestCase
     /** Naming both `--owner` and `--from` is refused rather than one of them being quietly dropped. */
     public function testOwnerAndFromTogetherAreRefused(): void
     {
-        $tester = $this->invoke(['--owner' => ['gmss'], '--from' => self::OWN_GEAR, '--dry-run' => true]);
+        $tester = $this->invoke(['--owner' => ['gmss'], '--from' => self::OWN_GEAR, '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
 
@@ -1129,19 +1209,19 @@ final class SceneStackCommandTest extends TestCase
     /** An unknown `--owner` names the owners there are rather than building everything instead. */
     public function testAnUnknownOwnerIsRefusedAndNamesTheAllowedValues(): void
     {
-        $tester = $this->invoke(['--owner' => ['nobody'], '--dry-run' => true]);
+        $tester = $this->invoke(['--owner' => ['nobody'], '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
         $wrapped = (string)preg_replace('/\s+/', ' ', $tester->getDisplay());
         self::assertStringContainsString("--owner: unknown value 'nobody'", $wrapped);
-        self::assertStringContainsString('allowed: gmss, sdwa5, sepp', $wrapped);
+        self::assertStringContainsString('allowed: gmss, innschleife, psl, sdwa5, sepp', $wrapped);
     }
 
     /** An unknown `--orientation` names the values there are rather than falling back to one of them. */
     public function testAnUnknownOrientationIsRefusedAndNamesTheAllowedValues(): void
     {
         $tester = $this->invoke([
-            '--from' => self::OWN_GEAR, '--orientation' => ['sideways'], '--dry-run' => true,
+            '--from' => self::OWN_GEAR, '--orientation' => ['sideways'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(1, $tester->getStatusCode());
@@ -1170,7 +1250,7 @@ final class SceneStackCommandTest extends TestCase
     {
         $turned = 0;
         $upright = 0;
-        foreach (glob(dirname(__DIR__, 2).'/scenes/generated/*.yaml') ?: [] as $file) {
+        foreach (self::generatedScenes() as $file) {
             $yaml = (string)file_get_contents($file);
             $name = basename($file);
 
@@ -1208,7 +1288,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheFillOrderIsFrequencyFirstAndOnlyWhereBothCabinetsStateOne(): void
     {
-        $order = (new \ReflectionMethod(SceneStackCommand::class, 'byFillOrder'))->invoke(null);
+        $order = \App\Spec\FillOrder::byFillOrder();
 
         $deep = SpecFactory::spec([
             'id' => 'light-and-deep',
@@ -1252,16 +1332,16 @@ final class SceneStackCommandTest extends TestCase
     public function testAWrittenSceneRebuildsToTheSubWallItsOwnHeaderReports(): void
     {
         $tester = $this->invoke([
-            '--from' => [
-                'gmss-wall-bass', 'gmss-mid-bass', 'skram', 'flexy-folded-horn-hybrid', 'gmss-nuke',
-                'achenbach-18', 'gmss-iq-sub', 'tecnare-m2122', 'eighteensound-2way-15', 'gmss-turbo-top',
+            '--systems' => ['pooled'], '--from' => [
+                'wall-bass', 'mid-bass', 'skram', 'flexy-folded-horn-hybrid', 'nuke',
+                'achenbach-18', 'iq-sub', 'tecnare-m2122', 'eighteensound-2way-15', 'turbo-top',
             ],
             '--orientation' => ['turned'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['free'],
             '--mirror-style' => ['alternate'], '--id' => self::THROWAWAY_ID,
         ]);
         self::assertSame(0, $tester->getStatusCode());
 
-        $written = glob(dirname(__DIR__, 2).'/scenes/generated/'.self::THROWAWAY_ID.'*.yaml') ?: [];
+        $written = self::throwaway();
         self::assertCount(1, $written);
         $contents = (string)file_get_contents($written[0]);
 
@@ -1318,7 +1398,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheSweepOffersSystemsStandingApartAsWellAsPooled(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--dry-run' => true])->getDisplay();
+        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
 
         preg_match_all('/^id: (\S+)$/m', $display, $matches);
         self::assertNotSame([], $matches[1]);
@@ -1361,7 +1441,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testASeparatedRigRecordsTheSeparationInItsOwnRegenerateLine(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--dry-run' => true])->getDisplay();
+        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
 
         // Split on the section title the dry run prints before each file, not on the `id:` line inside the YAML —
         // the recorded command sits in the header *above* that line, so splitting there puts the two in different
@@ -1375,9 +1455,9 @@ final class SceneStackCommandTest extends TestCase
             }
             ++$separated;
             self::assertStringContainsString(
-                '--per-owner',
+                '--systems=systems-apart',
                 $parts[$i + 1] ?? '',
-                $name.' does not record its own separation, so a replay would rebuild it pooled',
+                $name.' does not record its own separation, so a replay would rebuild it three ways',
             );
         }
 
@@ -1395,7 +1475,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testASingleOwnerRigIsNotOfferedASeparationItCannotHave(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss'], '--dry-run' => true])->getDisplay();
+        $display = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
 
         self::assertStringContainsString('-pooled', $display);
         self::assertStringNotContainsString('-systems-apart', $display);
@@ -1424,12 +1504,12 @@ final class SceneStackCommandTest extends TestCase
             '--shape' => ['pyramid'],
             '--orientation' => ['upright'],
             '--align' => ['center'],
-            '--dry-run' => true,
+            '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         // Which owner each top belongs to, written out rather than loaded, so the test says what it means. A stack
         // is named `main-<owner>` by the generator, which is what makes the comparison possible at all.
-        $owners = ['tecnare-m2122' => 'sdwa5', 'gmss-turbo-top' => 'gmss', 'eighteensound-2way-15' => 'sepp'];
+        $owners = ['tecnare-m2122' => 'sdwa5', 'turbo-top' => 'gmss', 'eighteensound-2way-15' => 'sepp'];
 
         $borrowed = [];
         $stack = null;
@@ -1471,7 +1551,7 @@ final class SceneStackCommandTest extends TestCase
             '--shape' => ['pyramid'],
             '--orientation' => ['upright'],
             '--align' => ['center'],
-            '--dry-run' => true,
+            '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('--systems=tops-shared', $display);
@@ -1484,7 +1564,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testAnUnknownSystemsValueNamesTheThreeThereAre(): void
     {
-        $tester = $this->invoke(['--systems' => ['apart-ish'], '--dry-run' => true]);
+        $tester = $this->invoke(['--systems' => ['apart-ish'], '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
         foreach (['pooled', 'systems-apart', 'tops-shared'] as $value) {
@@ -1503,7 +1583,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testEveryWrittenSceneSaysWhetherItStandsUp(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss'], '--dry-run' => true])->getDisplay();
+        $display = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
 
         preg_match_all('/^id: (\S+)$/m', $display, $matches);
         self::assertNotSame([], $matches[1]);
@@ -1520,14 +1600,14 @@ final class SceneStackCommandTest extends TestCase
     /**
      * **A rig that does not stand up is written rather than refused, and it says so in its own header.**
      *
-     * The whole of CVR-5. "A `gmss-turbo-top` would stand at 0.660 m with nothing under it across x" took a debug
+     * The whole of CVR-5. "A `turbo-top` would stand at 0.660 m with nothing under it across x" took a debug
      * dump, two probes and a corrected coordinate mapping to understand; the same rig as a picture, with that
      * cabinet caged in red, says it at a glance. The two checks that name a cabinet therefore stopped refusing and
      * started reporting.
      */
     public function testARigThatDoesNotStandUpIsWrittenWithTheReasonInItsHeader(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss'], '--dry-run' => true])->getDisplay();
+        $display = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
 
         self::assertMatchesRegularExpression('/^id: \S+-impossible$/m', $display, 'no impossible rig was written');
         self::assertStringContainsString('THIS RIG DOES NOT STAND UP', $display);
@@ -1542,7 +1622,7 @@ final class SceneStackCommandTest extends TestCase
     public function testARigWithNoArrangementAtAllIsStillRefusedRatherThanDrawn(): void
     {
         $tester = $this->invoke([
-            '--from' => ['flexy-folded-horn-hybrid'], '--max-width' => '0.2', '--dry-run' => true,
+            '--from' => ['flexy-folded-horn-hybrid'], '--max-width' => '0.2', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(SceneStackCommand::NOTHING_TO_WRITE, $tester->getStatusCode());
@@ -1562,7 +1642,7 @@ final class SceneStackCommandTest extends TestCase
      */
     public function testTheSweepSaysTheSameThingInOneProcessAsInTwentyEight(): void
     {
-        $shared = ['--owner' => ['gmss'], '--dry-run' => true];
+        $shared = ['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true];
 
         $serial = $this->invoke($shared + ['--jobs' => '1']);
         $parallel = $this->invoke($shared);
@@ -1572,6 +1652,204 @@ final class SceneStackCommandTest extends TestCase
         self::assertSame($serial->getDisplay(), $parallel->getDisplay());
         // And it is a sweep rather than a single rig, or the two paths would agree by never diverging.
         self::assertGreaterThan(1, preg_match_all('/^id: /m', $parallel->getDisplay()));
+    }
+
+    /**
+     * **A roster builds the rig it states, not the rig the specs describe.**
+     *
+     * The THL-4 variant is the sharp one: `thl4` is brought and `tms4` is left at
+     * home at zero, so the cabinet that every other Innschleife rig is built with must not appear anywhere in the
+     * output — not in a stack, not in a refusal, not in the recorded line's `--from` list.
+     */
+    public function testARosterBuildsWithTheCountsItStatesRatherThanTheSpecs(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-thl4'], '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('thl4', $tester->getDisplay());
+        self::assertStringNotContainsString('device: tms4', $tester->getDisplay());
+        self::assertStringNotContainsString('--from=tms4', $tester->getDisplay());
+    }
+
+    /**
+     * **The recorded line carries the counts and never the roster that stated them.**
+     *
+     * A roster is a file that can be edited, and a replay has to rebuild *this* scene — the same argument the
+     * `--from` list is written out on. Recording `--roster=` instead would make every replay depend on what the
+     * file says on the day it runs, so a corrected roster would silently rewrite last week's rigs under their old
+     * names.
+     */
+    public function testTheRecordedLineCarriesTheCountsRatherThanTheRoster(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-thl4'], '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertStringContainsString('--quantity=tms4:0', $tester->getDisplay());
+        self::assertStringNotContainsString('--roster=', $tester->getDisplay());
+    }
+
+    /**
+     * A count that already matches the spec changes no rig, so it is not recorded — a `--quantity` in a replay
+     * line that does nothing is noise, and it would also trip the refusal below for a run that overrode nothing.
+     */
+    public function testACountThatMatchesTheSpecIsNotRecorded(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['innschleife'],
+            '--quantity' => ['kicker-15:4'],
+            '--into' => 'zz-test-roster',
+            '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringNotContainsString('--quantity=', $tester->getDisplay());
+    }
+
+    /**
+     * **A changed rig under an unchanged name is the one failure this command must not have.** Every other axis is
+     * in the file name or in the folder, so two rigs cannot collide; a count override is in neither, and a sweep
+     * would write its files over the ones a bare sweep just wrote.
+     */
+    public function testACountOverrideWithNoFolderToWriteIntoIsRefused(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['innschleife'], '--quantity' => ['thl4:0'], '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString('changes the rig without changing its name', $tester->getDisplay());
+    }
+
+    /**
+     * One roster names the folder itself, which is what stops the two variants of one event overwriting each
+     * other while both are `--owner=innschleife`.
+     */
+    public function testASingleRosterNamesTheFolderTheScenesAreFiledUnder(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-thl4'], '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertStringContainsString('--into=innschleife-next-event-thl4', $tester->getDisplay());
+    }
+
+    public function testAnUnknownRosterIsRefusedWithTheOnesThereAre(): void
+    {
+        $tester = $this->invoke(['--roster' => ['no-such-event'], '--low-end' => ['low'], '--dry-run' => true]);
+
+        self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString('no roster named no-such-event', $tester->getDisplay());
+        self::assertStringContainsString('innschleife-next-event-thl4', $tester->getDisplay());
+    }
+
+    public function testACountForADeviceThatDoesNotExistIsRefused(): void
+    {
+        $tester = $this->invoke([
+            '--quantity' => ['no-such-cabinet:2'], '--into' => 'zz-test-roster', '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString("no device is called 'no-such-cabinet'", $tester->getDisplay());
+    }
+
+    public function testACountThatIsNotAWholeNumberOfUnitsIsRefused(): void
+    {
+        $tester = $this->invoke([
+            '--quantity' => ['tecnare-m2122:two'], '--into' => 'zz-test-roster', '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString('expects DEVICE:COUNT', $tester->getDisplay());
+    }
+
+    /**
+     * **A scene built from a roster states its counts, and the file is worthless without them.**
+     *
+     * A `stack:` block is re-solved on every build, so a count left out comes back as whatever the spec says
+     * today. That is not a cosmetic difference: twelve ESX laid out under five EF 6, rebuilt from a spec that
+     * says six, produced a rig three rows shorter with a top row still spread for the taller one — a floating
+     * cabinet, in a file the writer had already named `-possible` because it checked the rig it meant rather
+     * than the rig it wrote. `ShippedScenesTest` caught two of them.
+     */
+    public function testARosterBuiltSceneStatesItsCountsInTheFileItWrites(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['psl'], '--roster' => ['psl-next-event'], '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString("- device: concert-audio-esx\n          count: 12", $tester->getDisplay());
+        self::assertStringContainsString("- device: concert-audio-ef6\n          count: 5", $tester->getDisplay());
+    }
+
+    /**
+     * Every throwaway file this test wrote, **at any depth** under `scenes/generated/`.
+     *
+     * A one-level `glob()` was enough while every generated scene sat in that one directory. It stopped being
+     * enough when the inventory became a folder, and it would stop being enough again the moment another axis
+     * does — and the failure is not a red test, it is throwaway files left behind in a tracked directory on every
+     * run. Cleaned up by name rather than by directory, since the real generated set lives in the same tree.
+     *
+     * @return list<string>
+     */
+    private static function throwaway(string $prefix = self::THROWAWAY_ID): array
+    {
+        $root = dirname(__DIR__, 2).'/scenes/generated';
+        $found = [];
+        foreach (self::generatedScenes() as $file) {
+            if (str_starts_with(basename($file), $prefix)) {
+                $found[] = $file;
+            }
+        }
+        // Also the root of `scenes/` itself, where a run that names no inventory writes.
+        foreach (glob(dirname($root).'/'.$prefix.'*.yaml') ?: [] as $file) {
+            $found[] = $file;
+        }
+        sort($found);
+
+        return $found;
+    }
+
+    /**
+     * Every generated scene on disk, wherever it is filed.
+     *
+     * **A FLAT GLOB STOPPED SEEING ANY OF THEM AND SAID NOTHING.** The inventory moved out of the file name and
+     * into a folder in 0.98.0, so `scenes/generated/*.yaml` matches nothing at all now — and a test that loops over
+     * an empty list passes every assertion inside the loop. Two tests here were reduced to that, and one of them
+     * only failed because it counts what it saw at the end.
+     *
+     * @return list<string>
+     */
+    private static function generatedScenes(): array
+    {
+        $root = dirname(__DIR__, 2).'/scenes/generated';
+
+        return [...glob($root.'/*.yaml') ?: [], ...glob($root.'/*/*.yaml') ?: []];
+    }
+
+    /**
+     * **A separated rig gives every system its own focus points; a pooled one does not.**
+     *
+     * The scene's focus is measured from the *rig's* front centre, so three systems side by side would all aim at
+     * a point in front of the middle one — covering one patch of floor between them instead of each covering the
+     * room it stands in front of. A pooled rig split into two or three stacks is one system in several piles and
+     * shares a focus, because it is aimed as one cluster.
+     */
+    public function testEachSystemGetsItsOwnFocusAndAPooledRigDoesNot(): void
+    {
+        $shared = ['--owner' => ['gmss', 'sepp'], '--stacks' => '1', '--shape' => ['free'],
+            '--orientation' => ['upright'], '--mirror-style' => ['alternate'], '--align' => ['center'],
+            '--low-end' => ['low'], '--dry-run' => true];
+
+        $apart = $this->invoke($shared + ['--systems' => ['systems-apart']])->getDisplay();
+        $pooled = $this->invoke($shared + ['--systems' => ['pooled']])->getDisplay();
+
+        // One `focus:` under each of the two walls, and the placements keep aiming at it by name.
+        self::assertSame(2, preg_match_all('/^    focus:$/m', $apart), 'one focus per system');
+        self::assertSame(0, preg_match_all('/^    focus:$/m', $pooled), 'a pooled rig is one system');
     }
 
     private function invoke(array $options): CommandTester

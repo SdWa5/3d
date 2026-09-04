@@ -1,0 +1,70 @@
+# Concert Audio ESF, the single-18 kick sub of the EVOLUTION series. PSL's mid sub, sitting above the ESX and
+# below the EF 6 tops in their "Evolution Mod System".
+#
+# Figures from PSL's own published technical data, https://pro-sound-light.de/equipment/tontechnik/ — see
+# concert-audio-ef6.yaml for why that counts as a datasheet here.
+#
+# THE BOX IS THE EF 6's BOX, AND THE SOURCE SAYS SO IN WORDS AS WELL AS IN NUMBERS: "identische Abmessungen wie
+# EF-6 System", and it then prints the same "780 x 588 / 224 x 720 mm (H x B x T)". So this is the same
+# trapezoid with an 18" in it instead of a coaxial horn, which is a deliberate piece of system design rather
+# than a coincidence — the two stack and fly interchangeably. Repeating a figure is normally a warning sign in
+# a spec, so it is worth recording that here it is the point.
+#
+# QUANTITY 2 IS A PACKAGE FLOOR. "Evolution Mod System 1" is stated as two EF-6, two ESF and two ESX. No source
+# says how many PSL owns, and this cabinet appears in none of our setup drawings at all, so 2 is what can be
+# defended and nothing more. See docs/requests.md.
+id: concert-audio-esf
+name: "Concert Audio ESF"
+category: speaker
+subtype: sub
+quantity: 2
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  # The EF 6's trapezoid, unchanged: 588 mm front, 224 mm back.
+  shape: trapezoid
+  dimensions_m: { width: 0.588, height: 0.780, depth: 0.720 }
+  back_width_m: 0.224
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  # White, like the rest of PSL's Evolution gear. See concert-audio-ef6.yaml.
+  color: "#f2f2f0"
+
+physical:
+  weight_kg: 46.0
+  # "vier grosse Metallgriffe und acht Griffschalen", as the EF 6.
+  handles: [ left, right ]
+
+rigging:
+  # Same "integriertes EVOLUTION Flugsystem" as the EF 6, same reason it is false here: no published point
+  # positions. See concert-audio-ef6.yaml.
+  flyable: false
+  points: [ ]
+
+audio:
+  # "Abstrahlwinkel: radial" — which is a statement that there is no pattern to record rather than a number.
+  passband_hz:
+    # "40 - 220 Hz / -6 dB ohne Controller, 37 Hz / -6 dB mit Systemcontroller".
+    low_hz: 37
+    high_hz: 220
+    driven_from_hz: 40
+    provenance: datasheet
+  drivers:
+    - { size_in: 18, type: woofer, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Bass-reflex, 1x 18" long-throw with a 100 mm voice coil. Power 1400 W programme / 7000 W peak. Impedance
+  8 Ohm. Sensitivity 96 dB at 1 W, 131 dB peak at 1 m. Connectors 2x Speakon NL-4, pin 2. Integrated EVOLUTION
+  fly system with connector elements.
+
+  46 kg in the same 0.330 m3 box that weighs 65 kg as an EF 6, which is the 19 kg of coaxial horn, second
+  driver and crossover that the fullrange version carries.
+
+  No baffle layout: the driver sits behind a grille and no cut-out diameter is published.

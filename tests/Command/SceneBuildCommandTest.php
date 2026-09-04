@@ -38,8 +38,19 @@ final class SceneBuildCommandTest extends TestCase
         self::assertStringContainsString('full-rig-all-tops', $tester->getDisplay());
     }
 
+    /**
+     * **Gated, because its cost is a compile of every scene in the repository and that work is already done.**
+     * `scene:build` with no argument compiles all 2688 of them — 13 minutes — and
+     * {@see \App\Tests\Scene\ShippedScenesTest} compiles the same set every run to a stricter standard, so what
+     * is lost by asking for this one is the command's own no-argument path rather than any coverage of the scenes.
+     * `SDWA5_FULL_REPLAY=1` runs it, and a release should.
+     */
     public function testBuildingEveryScenePicksUpTheShippedOne(): void
     {
+        if (getenv('SDWA5_FULL_REPLAY') === false) {
+            self::markTestSkipped('SDWA5_FULL_REPLAY=1 compiles every scene through the command — ca. 15 Minuten');
+        }
+
         $tester = new CommandTester(new SceneBuildCommand());
         $exit = $tester->execute(['--dry-run' => true]);
 

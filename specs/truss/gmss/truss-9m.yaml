@@ -1,0 +1,64 @@
+# GMSS's truss — a 9 m span.
+#
+# STATED BY GMSS: "9m truss". That is the whole of it: a length, no cross-section, no brand, no segment count.
+# Unlike GMSS's cabinets there is at least a real number here, which is why TODO 7.5 said this needs less invention
+# than they did — the length is the hard part of a truss and it is the part that was given.
+#
+# MODELLED AS ONE 9 m RUN, not as an invented number of segments. Real trussing is bolted up from segments and 9 m
+# is almost certainly three 3 m pieces or similar, but the number of segments is not stated and guessing it would
+# add a fact nobody gave. A single run has the right span, the right cross-section and the right weight; what it
+# does not show is the couplers.
+#
+# CROSS-SECTION AND WEIGHT come from the same 300 mm class standard as `truss-f33-2m` — see that file for the
+# published F33 figures and the derivation. THREE-POINT IS AN ASSUMPTION HERE where it was stated for ours: GMSS
+# said "truss" and nothing more. Three-point is the commonest span truss and the photo is not sharp enough at that
+# distance to count chords.
+#
+# WEIGHT, from the F33 model of 2.55 kg of connectors + 3.85 kg/m: 2.55 + 34.65 = 37.2 kg as one run. Bolted up
+# from three 3 m segments it would be 3 x 14.1 = 42.3 kg, because each segment carries its own pair of connectors.
+# The 37.2 is the honest figure for what is modelled; the 42.3 is the more likely figure for what is on the truck.
+id: truss-9m
+name: "GMSS Truss — 9 m span"
+category: truss
+subtype: straight
+quantity: 1
+owner: gmss
+build: original
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: truss
+  # 9 m along x; the cross-section is the F33 class standard, derived in `truss-f33-2m.yaml`.
+  dimensions_m: { width: 9.000, height: 0.258, depth: 0.290 }
+  origin: bottom-center
+  chamfer_m: 0.0
+
+  truss:
+    chords: 3
+    chord_diameter_m: 0.050
+    diagonal_diameter_m: 0.020
+    bay_length_m: 0.500
+
+appearance:
+  color: "#9A9EA3"
+
+physical:
+  # 2.55 + 3.85 x 9 = 37.2, for one continuous run. See the header for why the segmented figure is higher.
+  weight_kg: 37.2
+  handles: [ ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by GMSS, in a list of the whole system: "9m truss 2 pcs towers max 5.2m". The span is the only truss
+  number given.
+
+  Everything except the 9 m is the 300 mm three-point class standard — see `truss-f33-2m.yaml` for the published
+  figures and docs/sources.md for the provenance. Three-point itself is an assumption: GMSS said "truss".
+
+  A 9 m span on two 5.2 m towers is a goalpost, which is what `tower-5m.yaml` is for.

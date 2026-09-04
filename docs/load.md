@@ -4,16 +4,19 @@ Which gear rides in which transporter, and whether the fleet may legally carry i
 
 ```bash
 # the invocation this collective actually uses
-ddev exec bin/console load:plan --exclude-owner=gmss --exclude=sepp-generator-25kva
+ddev exec bin/console load:plan --owner=sdwa5 --owner=sepp --exclude=generator-25kva
 
 ddev exec bin/console load:plan --owner=sepp                 # one owner's gear only
 ddev exec bin/console load:plan --vehicle=opel-movano-l4h3   # Sepp is not coming
 ```
 
-**`--exclude-owner=gmss --exclude=sepp-generator-25kva` is the real one**, and the second half of it is newer than
-the first. GMSS's gear does not travel in these two vans, and Sepp's 465 kg generator travels on a **trailer** — both
-stated by the owner, both facts about arrangements between people rather than properties of the cabinets, so both are
-stated on the command line and not baked into the code.
+**`--owner=sdwa5 --owner=sepp --exclude=generator-25kva` is the real one**, and it is a whitelist because the
+blacklist stopped working. It was `--exclude-owner=gmss` while GMSS was the only borrowed system; PSL and Innschleife
+then arrived and 36 borrowed cabinets and 2.2 tonnes of somebody else's gear silently joined the load. **Naming the
+four systems that do not travel with us is a list that grows every time somebody lends us a rig; naming the two that
+do is a list that does not.** Sepp's 465 kg generator travels on a **trailer** — stated by the owner, a fact about
+an arrangement between people rather than a property of the cabinet, so both halves are stated on the command line
+and not baked into the code.
 
 **Without the exclusion the generator eats 465 kg of van payload** and the plan reports a 679.5 kg shortfall nobody
 actually has. Until the trailer is a spec of its own and becomes a third bin — LOAD-5 — naming the device is the only
@@ -22,15 +25,22 @@ way to tell the truth about what the vans carry.
 **The trailer is specced and it is not the answer.** 750 kg permitted gross against ca. 200 kg unladen is 550 kg of
 payload, of which the generator is 465 — **85 kg** spare. It is a generator trailer rather than spare space.
 
-The whole load in one journey comes to 2703.5 kg against 2574 kg of capacity, which is **129.5 kg short**. The
+The whole load in one journey comes to 2698.5 kg against 2574 kg of capacity. Re-measured on 2026-09-02 the
+planner leaves three devices behind and reports **134.9 kg short** — more than the 124 kg the two totals differ by,
+because a bin pack cannot fill every bin to the last kilogramme. **Without the generator the same plan fits
+everything with 340.5 kg spare**, so the generator is the shortfall rather than the gear. The
 trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new load with it. Closing the
 rest would need a payload near 680 kg — roughly 900 to 1000 kg gross and braked, which both vans tow easily but which
 takes the combination to 4500 kg and has licence implications worth checking first. **750 kg is exactly O2, the
 unbraked limit on both sets of papers.** See LOAD-5.
 
-Without either exclusion the planner is asked to carry 3958.7 kg, which is not a question anybody has.
+Without the owner filter the planner is asked to carry every cabinet in the library, four borrowed systems
+included, and reports itself **3629.9 kg short**. That is not a question anybody has: GMSS, PSL and Innschleife
+arrive in their own vans, so the number is arithmetic about a convoy that does not exist.
 
 ## The answer, today
+
+Re-measured on 2026-09-02, with the generator on the load:
 
 ```
 opel-movano-l4h3 (sdwa5) — 14 units
@@ -38,19 +48,27 @@ opel-movano-l4h3 (sdwa5) — 14 units
   space     14.153 m³ of 15.843 m³ bay  (89 % by bounding box)
 
 fiat-ducato-250-l3h2 (sepp) — 14 units
-  weight     997.3 kg of 1000.0 kg payload  (2.7 kg spare)
+  weight     996.3 kg of 1000.0 kg payload  (3.7 kg spare)
   space       4.823 m³ of 13.386 m³ bay  (36 % by bounding box)
 
-trailer-750kg (sepp) — 3 units
-  weight     540.0 kg of 550.0 kg payload  (10.0 kg spare)
+trailer-750kg (sepp) — 4 units
+  weight     549.3 kg of 550.0 kg payload  (0.7 kg spare)
   space        bay not measured, so no space answer can be given
-     1 × sepp-generator-25kva               465.0 kg
+     1 × generator-25kva               465.0 kg
 
-NOT CARRIED — short by 148.2 kg
+NOT CARRIED — short by 134.9 kg
+     2 × eighteensound-2way-15               82.0 kg
+     1 × truss-tower-4m                      25.0 kg
+     1 × geruest-krause-ah7                  84.0 kg
 ```
 
-**Three bins, all three within ten kilogrammes of their limit, and 148.2 kg still at home.** Every one of them
+**Three bins, all three within six kilogrammes of their limit, and 134.9 kg still at home.** Every one of them
 reports `UNDECIDED` for that reason: a margin that small, off masses good to tens of kilogrammes, is not a decision.
+
+**Leave the generator behind and the same plan fits everything with 340.5 kg spare.** That is the sentence worth
+taking away from this page: the fleet carries the gear, and what it cannot also carry is one 465 kg generator on a
+trailer that has 550 kg of payload. Two journeys or a bigger trailer are the only two answers, and LOAD-5 costs the
+second one.
 
 ## An open bed has no height, so the trailer gets no space answer
 
@@ -79,11 +97,15 @@ plan looked complete.
 
 ## The number moved twice in a day, and that is the lesson
 
-| source for Sepp's payload | figure | the fleet against a 2238.5 kg load |
+| source for Sepp's payload | figure | the two vans against a 2238.5 kg load |
 | --- | --- | --- |
 | estimated, deliberately cautious | 1200 kg | 14.5 kg short |
 | his Zulassungsschein, field A10 | 1365 kg | 150.5 kg **spare** |
 | **a weighbridge — full tank, driver aboard** | **1000 kg** | **214.5 kg short** |
+
+Those three are the **two vans** against the gear, which is the comparison that was available when the number
+moved. With the trailer counted as a third bin the same load fits with 340.5 kg spare, and it is the generator that
+does not — see above. The lesson below is about the sources rather than about the total.
 
 **The estimate was pessimistic and the document was optimistic**, which is not the order anybody expects. The
 estimate guessed heavy on purpose, reasoning that an ex-fleet van carries shelving a catalogue kerb weight knows
@@ -162,7 +184,7 @@ The ordering, written down so it can be argued with:
 ## Seeing a pack
 
 ```bash
-ddev exec bin/console scene:pack --exclude-owner=gmss --write
+ddev exec bin/console scene:pack --owner=sdwa5 --owner=sepp --write
 ddev exec bin/console scene:build packed-convoy
 ddev exec bin/console scene:render packed-convoy --quick-preview
 ```

@@ -118,8 +118,8 @@ placements:
     device: trailer-750kg
     at: [ 0, 17.346 ]
 
-  - id: trailer-750kg-sepp-generator-25kva-1
-    device: sepp-generator-25kva
+  - id: trailer-750kg-generator-25kva-1
+    device: generator-25kva
     at: [ 0, 16.696 ]
 
   - id: trailer-750kg-achenbach-18-2
@@ -149,5 +149,5 @@ notes: |
     rack-power-12u has no room left in opel-movano-l4h3
     achenbach-18 has no room left in fiat-ducato-250-l3h2
     truss-f33-2m has no room left in fiat-ducato-250-l3h2
-    sepp-generator-25kva stands 1.200 m proud on trailer-750kg, an open bed with no roof to check it against
+    generator-25kva stands 1.200 m proud on trailer-750kg, an open bed with no roof to check it against
     truss-tower-4m stands 4.000 m proud on trailer-750kg, an open bed with no roof to check it against

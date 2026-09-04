@@ -6,6 +6,7 @@ namespace App\Tests\Load;
 
 use App\Load\LoadPlan;
 use App\Load\LoadPlanner;
+use App\Scene\SweepAxes;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use App\Tests\Support\SpecFactory;
@@ -223,10 +224,14 @@ final class LoadPlannerTest extends TestCase
     public function testOurOwnFleetCannotCarryOurOwnGearAndSaysSo(): void
     {
         $specs = (new SpecLoader(dirname(__DIR__, 2).'/specs'))->loadAll()['specs'];
-        // GMSS does not travel in these two vans. Stated by the owner, and it is the whole of why this is close.
+        // **OURS AND SEPP'S, NAMED AS A WHITELIST RATHER THAN AS `!== 'gmss'`.** It was the blacklist until PSL and
+        // Innschleife were specced, at which point 36 borrowed cabinets and 2.2 tonnes of somebody else's gear
+        // silently joined the load — and the test still passed, because a fleet that is already short stays short.
+        // A borrowed system arrives in its own vans; the reason GMSS was excluded was never that it is GMSS.
+        // {@see \App\Scene\SweepAxes::DEFAULT_OWNERS} is the same list for the same reason.
         $travelling = array_values(array_filter(
             $specs,
-            static fn (DeviceSpec $spec): bool => $spec->owner !== 'gmss',
+            static fn (DeviceSpec $spec): bool => in_array($spec->owner, SweepAxes::DEFAULT_OWNERS, true),
         ));
 
         ['plans' => $plans, 'leftovers' => $leftovers] = (new LoadPlanner())->plan($travelling);

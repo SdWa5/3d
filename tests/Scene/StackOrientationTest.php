@@ -45,10 +45,10 @@ final class StackOrientationTest extends TestCase
      */
     public function testTurnedRollsEverySubAndNoTop(): void
     {
-        $ids = ['flexy-folded-horn-hybrid', 'skram', 'gmss-mid-bass', 'achenbach-18', 'tecnare-m2122', 'gmss-turbo-top'];
+        $ids = ['flexy-folded-horn-hybrid', 'skram', 'mid-bass', 'achenbach-18', 'tecnare-m2122', 'turbo-top'];
 
         self::assertSame(
-            ['flexy-folded-horn-hybrid', 'skram', 'gmss-mid-bass', 'achenbach-18'],
+            ['flexy-folded-horn-hybrid', 'skram', 'mid-bass', 'achenbach-18'],
             StackOrientation::Turned->rolls($this->devices, $ids),
         );
     }
@@ -56,16 +56,16 @@ final class StackOrientationTest extends TestCase
     /**
      * `mixed` rolls a sub only where rolling makes it wider and shorter, which is the whole reason to roll one.
      *
-     * Two cabinets are left standing and for two different reasons. `gmss-mid-bass` is 1.200 × 0.500 — the one sub
+     * Two cabinets are left standing and for two different reasons. `mid-bass` is 1.200 × 0.500 — the one sub
      * already wider than it is tall — so rolling it would make the wall *taller* and the row narrower, the opposite of
      * what the mode is for. `achenbach-18` is 0.600 × 0.600, where rolling is geometrically nothing at all.
      */
     public function testMixedLeavesTheCabinetsThatGainNothingStanding(): void
     {
-        $ids = ['flexy-folded-horn-hybrid', 'gmss-mid-bass', 'achenbach-18', 'gmss-wall-bass'];
+        $ids = ['flexy-folded-horn-hybrid', 'mid-bass', 'achenbach-18', 'wall-bass'];
 
         self::assertSame(
-            ['flexy-folded-horn-hybrid', 'gmss-wall-bass'],
+            ['flexy-folded-horn-hybrid', 'wall-bass'],
             StackOrientation::Mixed->rolls($this->devices, $ids),
         );
     }
@@ -84,7 +84,7 @@ final class StackOrientationTest extends TestCase
         self::assertFalse(StackOrientation::Mixed->rollsAnything($this->devices, $sepp));
 
         // And a rig of nothing but tops has nothing for either of them.
-        $tops = ['tecnare-m2122', 'gmss-turbo-top'];
+        $tops = ['tecnare-m2122', 'turbo-top'];
         self::assertFalse(StackOrientation::Turned->rollsAnything($this->devices, $tops));
         self::assertFalse(StackOrientation::Mixed->rollsAnything($this->devices, $tops));
     }

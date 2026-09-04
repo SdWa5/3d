@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * The checks answering with identities instead of with prose.
  *
- * **The point of CVR-5 is that a sentence is the wrong answer for a geometry failure.** "A `gmss-turbo-top` would
+ * **The point of CVR-5 is that a sentence is the wrong answer for a geometry failure.** "A `turbo-top` would
  * stand at 4.668 m with nothing under it across x" took a debug dump, two probes and a corrected coordinate mapping
  * to understand; a picture with that cabinet in a red cage says it at a glance. The checks always knew which cabinet
  * they objected to and formatted the identity away. What is tested here is that they no longer do, and — the part

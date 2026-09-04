@@ -53,6 +53,14 @@ enum Feasibility: string
      */
     public static function isImpossibleId(string $id): bool
     {
-        return str_contains($id, '-'.self::Impossible->value);
+        // **Matched as a name suffix OR as a whole path segment**, so that the answer survives the axis becoming a
+        // folder. Today feasibility is a field in the name and `-impossible` is the whole of it; the day somebody
+        // runs `--folders=feasibility` the value moves into the path, and a check that only knew the suffix would
+        // quietly return false for every impossible rig — which would turn `ShippedScenesTest` into an assertion
+        // that hundreds of deliberately unbuildable rigs stand up.
+        $path = str_replace('\\', '/', $id);
+
+        return str_contains($path, '-'.self::Impossible->value)
+            || str_contains('/'.$path.'/', '/'.self::Impossible->value.'/');
     }
 }

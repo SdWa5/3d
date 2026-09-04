@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Spec;
 
+use App\Spec\DeviceSpec;
 use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -84,5 +85,40 @@ final class DeviceSpecTest extends TestCase
         $metadata = SpecFactory::spec(['geometry' => ['chamfer_m' => 0.01]])->toMetadataArray();
 
         self::assertSame(0.01, $metadata['chamfer_m']);
+    }
+
+    /**
+     * **A count override copies the spec and leaves every other field exactly where it was.** The wither writes out
+     * thirty-five named arguments by hand, so the failure it can have is a dropped or crossed field rather than a
+     * wrong quantity — which is what this compares, field by field, rather than spot-checking three of them.
+     */
+    public function testWithQuantityChangesTheCountAndNothingElse(): void
+    {
+        $spec = SpecFactory::spec(['quantity' => 4]);
+
+        $brought = $spec->withQuantity(2);
+
+        self::assertSame(2, $brought->quantity);
+        self::assertSame(4, $spec->quantity, 'the original is untouched');
+        foreach ((new \ReflectionClass(DeviceSpec::class))->getProperties() as $property) {
+            if ($property->getName() === 'quantity') {
+                continue;
+            }
+            self::assertSame(
+                $property->getValue($spec),
+                $property->getValue($brought),
+                sprintf('%s was not carried across', $property->getName()),
+            );
+        }
+    }
+
+    /**
+     * The same count is the same object, so a run with no overrides allocates nothing.
+     */
+    public function testWithQuantityReturnsTheSameSpecWhenTheCountAlreadyMatches(): void
+    {
+        $spec = SpecFactory::spec(['quantity' => 4]);
+
+        self::assertSame($spec, $spec->withQuantity(4));
     }
 }

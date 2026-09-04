@@ -1,0 +1,64 @@
+# the box pro TP218/1600, PSL's double-18 touring sub. Their heaviest The Box cabinet at 82 kg.
+#
+# Figures from PSL's own published technical data, https://pro-sound-light.de/equipment/tontechnik/ — see
+# concert-audio-ef6.yaml for why that counts as a datasheet here.
+#
+# THE PAGE NAMES TWO DIFFERENT REVISIONS AND THE FIGURES ARE IDENTICAL. The equipment page says "TP218/1600
+# MkIII" and the package pages say "TP TP218/1600 MK2", and every published number — 1600 W AES, 100 dB,
+# 4 Ohm, 34 to 150 Hz, 82 kg, 1200 x 550 x 680 — is the same in both. So either PSL has both revisions or one
+# of the two pages is out of date, and it makes no difference to any figure in this file. The id carries no
+# revision for that reason. On the request list as a question rather than as a missing number.
+#
+# 82 kg NET AND 90 kg SHIPPING, AND THE NET FIGURE IS THE RIGHT ONE HERE. The package page prints both. A
+# shipping weight includes the pallet and the carton, which is not what a load plan or a stack stability check
+# is asking about.
+id: thebox-tp218-1600
+name: "the box pro TP218/1600"
+category: speaker
+subtype: sub
+quantity: 2
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.550, height: 1.200, depth: 0.680 }
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  # Birch multiplex with black anti-slip paint.
+  color: "#141414"
+
+physical:
+  weight_kg: 82.0
+  # "12 Griffe" — twelve of them, faces unstated.
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+audio:
+  passband_hz:
+    low_hz: 34
+    high_hz: 150
+    provenance: datasheet
+  drivers:
+    - { size_in: 18, type: woofer, count: 2 }
+
+mesh_override: null
+
+notes: |
+  Passive bass-reflex sub, 2x 18". Power 1600 W AES / 3200 W peak. Impedance 4 Ohm. Sensitivity 100 dB SPL,
+  136 dB max. Frequency range 34 - 150 Hz with no low-pass. Speakon 4-pole in and out on pin 1. Twelve
+  handles, 100 mm Blue Wheels castors, birch multiplex with black anti-slip paint. M20 adapter bolts and
+  covers available.
+
+  The same 0.550 x 0.680 footprint as the TP 118/800 at twice the height, which is the pair working as one
+  system: a 118 stacks on a 218 flush.
+
+  Quantity 2 is a package floor: "Bundle 2" states two of these and "Bundle 3" two more alongside two TP118s.
+  See docs/requests.md.

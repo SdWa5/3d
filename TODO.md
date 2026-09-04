@@ -68,7 +68,7 @@ is complete as of 0.96.0.
   problem seen from three sides. While working inside any of the three: fix every bug hit immediately, and implement
   every related TODO it turns up immediately, rather than filing it for later.
 * **Every silhouette rule is a width, in metres, never a cabinet count.** Stated by the owner for the pyramid, the V and
-  the tower alike. Nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is 1.200 m, so a count stopped
+  the tower alike. Nine of our ten cabinets are 0.45–0.66 m wide and `mid-bass` is 1.200 m, so a count stopped
   standing in for a width the day it arrived. They all live in `StackChecks::silhouetteProblem()`; anything new goes
   there too.
 
@@ -90,7 +90,7 @@ is SYM-3 alone.
 estimated at 1200 kg, documented at 1365 and then **weighed at 1000** — his van is 365 kg heavier than its own
 registration document, because a fit-out added after type approval appears in no field of it. The Movano's 1024 kg is
 exactly the same class of figure and has never been checked. If it is out by anything like as much, the fleet is short
-by well over 300 kg rather than 214.5, and every load plan drawn from it is optimistic in the direction that ends in a
+by well over 250 kg rather than 134.9, and every load plan drawn from it is optimistic in the direction that ends in a
 fine. **One weighbridge ticket settles it**, and no amount of code substitutes.
 
 **The runtime cluster came off this list entirely, and it is worth saying why.** TOOL-10 was ranked second on a
@@ -132,7 +132,7 @@ GEO-3, GEO-6 and GEO-10 are done and their rows are deleted — the CHANGELOG ha
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | GEO-13 | **Gaps inside a row, chosen rather than constant.** `gap_m` is one uniform working gap everywhere and nothing can space a row out. The **checking** half is already built and load-bearing — see the section — so what is missing is the half that proposes the gaps. **Same lever as GEO-12**: a row-width budget wider than the cabinets need *is* a gapped row | P2 | 6h | rows that reach wider than their cabinet count allows, which is what a wide base and SYM-3's equal pitch both want | GEO-12 | open |
-| GEO-14 | **The lowest and most powerful subs belong as low and as central as the rig allows.** Stated by the owner and **settled on four counts**: the shapes keep priority, height and acoustics are traded off as **differently weighted metrics** rather than one gating the other, "central" is the **rig's** centre line for `center` and `block` and **each stack's own** for `stereo`, and the fill key is frequency. The frequency quarter is **done**. What is left is the weighted objective and the two centring rules it scores. **Power is in no spec field** | P1 | 7h | the acoustic reason the fill order exists at all, and the first rule that reaches across stacks rather than inside one | SPEC-13 for power, and where the weights live | partial |
+| GEO-14 | **The lowest subs belong as low and as central as the rig allows — built as the eighth sweep axis, and two of its four quarters are closed.** `--low-end=central|low` ranks the arrangements the shapes and the bearing rules already accept, never refusing one and never narrowing a rig, and `StackSolver::spreadRows()` adds the candidate the search did not contain: the lowest type one to a row, each cabinet flanked into a full-width row, which is what puts two SKRAMs one above the other on the centre line. **What is left is quarter 4, central across stacks**: in a 2- or 3-stack rig nothing puts the deepest cabinets in the inner stacks, `StackDeal::byType()` balances on `quantity × width` alone, and `$index === $middle` in `inventoryFor()` is the existing inner/outer vocabulary to build it on. **And the power half cannot be built at all** — no wattage, sensitivity or SPL on a `DeviceSpec` — which is SPEC-13 | P2 | 4h | the low end in the inner stacks of a split rig, which is the only quarter with no incumbent rule to argue with | SPEC-13 for the power half | partial |
 | GEO-11 | **Stack-local half DONE in 0.83.0**, scene-level half open. `StackSolver::solve()` takes a seating predicate and `SceneCompiler` supplies it, so the fill refuses an arrangement that overlaps *while it is still searching* rather than the whole rig being discarded at the end. It caught a rig being shipped with two cabinets inside each other. **What is left is aiming and cross-placement alignment**, which is the genuinely circular half: aiming needs the front face, the front face needs every placement, and every placement needs the solve | P1 | 6h | GEO-4, the rest of GEO-5 and GEO-9's tower | — | partial |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective, which is GEO-11. **Both must be width rules**, stated by the owner, so they belong in `StackChecks::silhouetteProblem()` beside the other three | P1 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | GEO-11 | measured |
 | GEO-4 | Multi-stack row sliding. **Measured three times and still net negative** (10 scenes against 11). The lookahead bound is built and correct and does not help, because gravity decides support before the compiler decides final x. Waits on GEO-11 | P2 | 6h | 2 `LEFT OUT` cabinets, and `--per-owner` writing at all | GEO-11 | measured |
@@ -356,59 +356,22 @@ approximation is too strict and belongs in the second half instead.
 
 #### GEO-5 — closed by 0.81.0, and one negative result worth not repeating
 
-**The item this section was written about is gone.** The pyramid's cap was a cabinet count justified by "the cabinets are
-all 0.45–0.66 m wide, so a row of `n` is about `n` cabinets across", which stopped being true when `gmss-mid-bass` at
-1.200 m arrived. 0.81.0 made every shape rule a width in `StackChecks::silhouetteProblem()`, so the false premise is
-gone and `perRowCap()`'s count survives only as a search hint.
+**The item is gone**: the pyramid's cap was a cabinet count resting on "every cabinet is 0.45–0.66 m wide", which
+`mid-bass` at 1.200 m falsified, and 0.81.0 made every shape rule a width in `StackChecks::silhouetteProblem()`.
 
-**Kept because it was tried twice and reverted twice:** a *pure* width bound, with no shoulder allowance, is worse than
-the count rule it replaces. Bounding a row by the row below gave 7 scenes against 11 with 2 interpenetrations, and
-bounding by the base gave 8 with 3. A tolerance is not the lever either — 10 mm and 30 mm both gave the same 7 scenes as
-no tolerance at all. What made 0.81.0's version work is the shoulder, `PYRAMID_SHOULDER = 0.1` of the outboard cabinet
-per side, and both bounds on that number are measured in the CHANGELOG.
-
-**Why the pure bound fails is structural, and it is the part that is still open.** A width bound makes rows narrower,
-narrower rows make more of them, and a wall of many thin rows is a staircase that `Gravity` splits into runs inside each
-other — measured at 127 mm. That is GEO-11, and it is also why the sweep got four times slower in 0.81.0: the width
-rules refuse arrangements mid-search, so the solver walks far more of the space before it settles.
+**Kept because it was tried twice and reverted twice.** A *pure* width bound, with no shoulder allowance, is worse
+than the count rule: bounding by the row below gave 7 scenes against 11 with 2 interpenetrations, bounding by the
+base gave 8 with 3, and a tolerance is not the lever either. What makes it work is `PYRAMID_SHOULDER = 0.1` of the
+outboard cabinet per side; both bounds on that number are measured in the CHANGELOG. **Why the pure bound fails is
+structural and is still open as GEO-11**: narrower rows make more rows, and a wall of many thin rows is a staircase
+`Gravity` splits into runs inside each other.
 
 #### Kept from GEO-2, which is closed: splitting the tops row is the wrong lever
 
-**The item is done and its row is deleted. This section stays for the negative results in it**, which are the sort of
-thing that gets retried every six months by somebody who has not read them.
-
-Where: `StackSolver::topRow()`; the rule already exists in `swallows()`.
-
-**Splitting the tops across two rows was tried three times and never nets positive.** Both systems' eight tops come out
-3.921 m in one row on a 2.420 m sub wall, so the outer turbo top at each end is over air entirely. Measured against a
-baseline of 10 scenes written and 23 refusals across the three families:
-
-| attempt | written | interpen | top-on-nothing | nothing-under | bearing |
-|---|---|---|---|---|---|
-| baseline | 10 | 0 | 12 | 6 | 5 |
-| unbounded loop | 9 | 12 | 14 | 0 | 0 |
-| capped at two rows | 9 | 2 | 16 | 4 | 4 |
-
-The unbounded version cascaded, since each row becomes the next one's support and each budget is narrower: eight tops
-became seven ever-thinner rows, a 7-tier rig grew to 13, and gravity broke those rows into runs overlapping by 203 mm.
-Capping at two rows fixes the cascade and still loses a scene.
-
-**AND THE SHAPE OF THE WALL IS NOT THE LEVER EITHER**, which was a previous version of this entry and is refuted by
-measurement. `topRow()` puts every top in one row unconditionally, so the row is **3.921 m wide for the `all`
-inventory's 8 tops at every stage width on the ladder from 2.00 m to 6.00 m**. Dead flat, because nothing about it
-responds to the stage. So GEO-9 buys this nothing and re-measuring after it is pointless.
-
-**What actually caused the family was two movers, and the lesson outlived the fix.** x came from an alignment solve and
-z from a gravity seat, and nothing reconciled them — `align.outside` on a near-field fill in 0.74.0, and
-`Stack::spreadApart()` on a stereo tops row in 0.74.1. Floating refusals went 6 → 3 → 1. **Any future code that moves a
-finished run must call `Gravity::reseat()` afterwards**, and the reason it is easy to forget is that nothing downstream
-notices: the compiler reads the run's stated height and the tier checks read bearings computed before the move. That is
-written into `reseat()`'s own docblock, which is where it belongs.
-
-**Two traps cleared on the way, both still live.** `CONTACT_TOLERANCE_M` is 0.001 m and the measured `dz` was exactly
-`0.0000`, so the `z` gate is innocent whenever this shape recurs. And comparing *box* centres instead of positions
-invents displacements that are not there, because a yawed trapezoid's box is inflated asymmetrically — two turbo-tops
-measured 0.6125 m and 0.8263 m wide on a 0.45 m cabinet. Compare `liftedPosition()`, never `worldBox()`.
+**Measured and rejected.** Splitting a too-wide tops row into two rows makes the rig taller without making it
+narrower, because the widest row is what a stage bound reads and the second row inherits the first one's width.
+What retires those refusals is a narrower inventory, not a cleverer row: 8 tops in one row are 3.921 m against a
+3.80 m stage, so no geometry stands `all-1` up.
 
 #### GEO-9 — the two shapes that are missing
 
@@ -447,7 +410,7 @@ Where: `Gravity::slidSeats()` (bounded by `Stack::$slideSlackM`), `Stack::spread
 
 A row does not have to be centred on what carries it, and 0.70.0 acts on that where nothing stands beside the stack —
 which is what recovered `stacked-gmss-1-center` at 2.84 m. **This is the concrete instance of the goal's "do not use
-fewer speakers":** `stacked-all-2-center` ships with `gmss-mid-bass: LEFT OUT, it cannot be carried in this stack`, for
+fewer speakers":** `stacked-all-2-center` ships with `mid-bass: LEFT OUT, it cannot be carried in this stack`, for
 exactly the bearing failure a slide fixes.
 
 **The bound is written, it is safe, and it is not the problem. Measured twice.** `max(0.0, clearance / 2 - gap)` follows
@@ -546,7 +509,7 @@ sentence the ask was always making and nothing could express.
 ##### Equal air against equal pitch, and why it was a real question
 
 **"Evenly spaced" has two meanings and they stop agreeing the moment the cabinets differ in width.** Our tops are 0.450
-(`gmss-turbo-top`), 0.4656 (`eighteensound-2way-15`) and 0.500 (`tecnare-m2122`), so equal *air* between boxes and equal
+(`turbo-top`), 0.4656 (`eighteensound-2way-15`) and 0.500 (`tecnare-m2122`), so equal *air* between boxes and equal
 *pitch* between centres are different placements. Pinning the outer two to the envelope — which is what "as wide apart
 as possible" means — leaves no freedom to satisfy both.
 
@@ -617,73 +580,25 @@ nothing at all: 6 variants refused by GEO-2's family and the rest by the sub hei
 
 ## SWP · the sweep's axes
 
-**What the autogeneration should produce, stated as one cross product.** Today's sweep is **2718 candidates writing
-1374 scenes**, past SWP-1's own target of 2646, and the seventh axis SWP-2 asked for is complete.
+**What the autogeneration should produce, stated as one cross product. Nothing is open here.** All seven axes
+exist, and SWP-3's three asks are built: **every option narrows one axis instead of collapsing the sweep**, a
+**grouping** says which owners are one system, and **each axis is a directory level or a name field** by
+`--folders`. SWP-1's powerset over owners is deliberately retired — five owners make 31 inventories, 26 of them
+rigs nobody would build — so a run builds one subset and silence means `sdwa5` + `sepp`.
 
-| ID | Item | Prio | Effort | Buys | Needs | State |
-|----|------|------|--------|------|-------|-------|
-| SWP-3 | **Sweep configuration** — turn each axis value on and off individually, **group sound systems so the grouping overrides `owner`**, and let each axis be a **subfolder** instead of a field in the file name, nested in the name's own order with the value in one place or the other but never both. All three stated by the owner. **`--systems` is the first of them and is one axis only**: 0.96.0 made the separation narrowable by value, which is the pattern the other six should follow rather than a substitute for this | P1 | 12h | control over an output that is 2718 candidates and growing, a directory somebody can navigate at **1374 files** and rising, and the grouping is what CVR-3's discriminator question was really asking | decision on the discriminator, see CVR-3 | open |
-
-#### SWP-3 — configuring the sweep, and grouping systems
-
-Where: `SweepAxes`, `SceneStackCommand`'s option list, and whatever CVR-3's discriminator turns out to be.
-
-Three asks, all from the owner, and they are one item because they are the same surface.
-
-**1. Every axis value on and off individually.** Part of this exists and part of it does not, and the difference matters
-before anybody estimates it. `--shape`, `--align`, `--orientation`, `--mirror-style` and `--owner` are repeatable, so
-naming a subset already narrows that axis — `--shape=pyramid --shape=v` is `free` switched off today. What is missing is
-that `--from`, `--stacks` and `--per-owner` **collapse the sweep entirely** rather than narrowing one axis, so there is
-no way to say "sweep everything, but only two stacks". `isSweep()` is the line that decides it.
-
-**2. Grouping sound systems, overriding `owner`.** `sdwa5` and `sepp` are two owners and are sometimes one system, and
-today there is no way to say so: `--owner=sdwa5 --owner=sepp` narrows the sweep to that one combined inventory rather
-than telling it to treat the two as one system across the whole sweep. **This is CVR-3's question arriving with an
-answer attached** — that section asked what the right discriminator is and refused to invent a `system:` field to serve a
-layout. A grouping stated at invocation time rather than in the specs is a different answer from a spec field, and it is
-the one the owner asked for.
-
-**3. Each axis may become a subfolder, nested in the same order the file name uses.** Stated by the owner. The sweep
-writes 396 files into one flat directory and the count only grows, so the configuration decides per axis whether it is
-a directory level or a field in the name.
-
-**The rule is that an axis value appears in exactly one of the two, never in both.** A file under
-`free/turned/column/` is not called `stacked-all-2-free-turned-column-center` as well — it is `stacked-all-2-center`.
-Otherwise every path states the same fact twice and a rename has two places to go wrong.
-
-The nesting order is the name's order, which is the order the sweep itself nests: **rig (owners and stack count),
-shape, orientation, mirror style, alignment.** Naming a directory level moves that field out of the name and leaves the
-remaining fields in their existing order, so switching a level on or off is a move rather than a rewrite.
-
-Three things this has to answer, and two of them are already load-bearing elsewhere:
-
-* **`SceneLoader::files()` is recursive and an id is the file's basename**, so directories cost the loader nothing
-  today. What they do cost is uniqueness: `free/…/stacked-all-2-center` and `v/…/stacked-all-2-center` are two files
-  with **the same id**, and the whole repository keys scenes by id. Either the id keeps the axis values the path
-  dropped, which contradicts the rule above, or ids stop being basenames.
-* **`build:all` replays each scene's recorded command and prunes what the sweep no longer writes.** Both walk paths, so
-  a layout change is a change to the prune's idea of stale — and the prune is the thing that once deleted 742 files.
-* **`--id` is what a replay reconstructs the path from**, so whatever the layout is has to be derivable from the
-  recorded line alone, without reading the file it is in.
-
-**The three interact, which is why they are one item.** A grouping changes what `ownerCombinations()` enumerates, the
-enable/disable surface is where a grouping would be stated, and the layout is per axis — so all three are the same
-per-axis configuration seen three ways. Building them separately means building that surface three times.
-
-**Decide before code:** whether the configuration lives on the command line, in a config file, or both. Repeatable
-options are fine for four axes and stop being fine at seven with groupings and a per-axis layout flag; a file is
-testable and is one more thing to keep in step with `--help`.
+**The inventory is three questions rather than one.** Whose gear is in the rig is `--owner`; **how much of it turns
+up** is a roster in [`rosters/`](rosters), because a spec's `quantity` is what a system owns and an event is what it
+brings; and **who counts as one system** is `--group`, stated at invocation time rather than in the specs. All three
+are written up in [docs/scenes.md](docs/scenes.md).
 
 ## CVR · coverage, and the inputs that were secretly gates
 
-**Most of the sweep's candidates used to be refused, and the largest share was not geometry.** It was that two inputs
-stated as preferences were enforced as gates: the height band, which is CVR-7, and the stage width, which is CVR-8.
-Both were settled by the owner in the same direction, neither was a claim that the number is wrong, and **both are
-built**. The sweep went from 150 scenes of 1206 candidates to **396**, and the 551 refusals that were band misses are
-gone. What is left refused is geometry and duplicates.
-
-**The one thing they cost is filed as GEO-12**, because it belongs to the solver rather than to coverage: the width
-ladder was also a search dimension, and without it 18 scenes are lost and 28 more sit further from the aim.
+**Most of the sweep's candidates used to be refused, and the largest share was not geometry** but two inputs stated
+as preferences and enforced as gates: the height band (CVR-7) and the stage width (CVR-8). **Both are built** and
+the sweep went from 150 scenes of 1206 candidates to 396. The reasoning lives in
+[docs/scenes.md](docs/scenes.md#the-sub-height-band-which-is-an-aim-rather-than-a-gate), where a reader of the
+behaviour looks for it. **What they cost is filed as GEO-12**: the width ladder was also a search dimension, and
+without it 18 scenes are lost and 28 more sit further from the aim.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
@@ -741,25 +656,15 @@ A **stage deck is a property of the venue rather than gear we own**, so modellin
 cheap option (ca. 4h) if it is wanted. A **speaker stand is gear**, and `specs/stands/` holds only the two Krause AH7
 scaffold towers — so height, weight and quantity would all have to be invented, which the spec rules forbid. Say what we
 own and it becomes buildable. **Flying** is the third answer and the most expensive: we own 2 `truss-tower-4m`, 2
-`gmss-tower-5m`, 5 `truss-f33-2m` and 1 `gmss-truss-9m`, SCN-1 wants the Tecnare tops flown, and INFO-1 records that the
+`tower-5m`, 5 `truss-f33-2m` and 1 `truss-9m`, SCN-1 wants the Tecnare tops flown, and INFO-1 records that the
 4 m towers cannot clear a combined rig.
 
-#### CVR-3 — `owner` is standing in for "system"
+#### CVR-3 — `owner` was standing in for "system", and no longer is
 
-**The owner has since answered this, and the answer is SWP-3.** Grouping is stated at invocation time — `sdwa5` and
-`sepp` swept as one system when that is the gig — rather than as a field in the specs. So the discriminator stays
-`owner` in the data and a grouping sits on top of it. What is below was written before that and is kept because it is
-still the reason a spec field would have been wrong.
-
-`owner` is not quite the right discriminator: the repository deliberately supports borrowing gear between owners, so a
-rig can legitimately mix them. It separates the two systems in practice, and inventing a `system:` field to serve a
-sweep would be inventing a property to serve a layout. **Decide the discriminator before writing code.**
-
-**This item got considerably more valuable, and the note that used to be here got it backwards.** It read "the one-stack
-mixed rig now fails on the tops row and one top floating at 4.196 m, that is GEO-2, not a `--from` problem". The width
-arithmetic in GEO-2 says the reverse: 8 tops in one row are 3.921 m, wider than the widest wall a 3.80 m stage can carry,
-so `all-1` cannot be made to stand by any geometry. It is a `--from` problem, and narrowing the default retires **12 of
-GEO-2's 22 refusals** without touching the solver.
+**Answered, and the answer is a grouping rather than a spec field.** `owner` stays the discriminator in the data,
+because the repository deliberately supports borrowing gear between owners and a `system:` field on a cabinet would
+be a fact about one gig written onto an object. `App\Scene\SystemGrouping` sits on top of it and is stated at
+invocation time: `sdwa5` and `sepp` are one system by default, `--group=NAME:owner+owner` says otherwise for a run.
 
 ## LOAD · transporters and packing
 
@@ -787,7 +692,7 @@ now exist, and whose answer is currently a statement about two estimates rather 
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| LOAD-5 | **The trailer is specced and is a third bin.** 750 kg gross, ca. 200 kg unladen, so 550 kg of payload — of which the generator is 465, leaving 85. It does **not** reach one journey: 148.2 kg is still left behind, against 214.5 before it. What is left is the schema's side of towing: **O1 and O2 are on both sets of papers and in no field**, nothing pairs a trailer with the vehicle that tows it, and both would go unchallenged for a trailer above 750 kg. 750 is exactly O2 unbraked on both vans, so today it is legal by construction rather than by check | P2 | 2h | a towing check, which nothing performs | the trailer's own plate | partial |
+| LOAD-5 | **The trailer is specced and is a third bin.** 750 kg gross, ca. 200 kg unladen, so 550 kg of payload — of which the generator is 465, leaving 85. It does **not** reach one journey: re-measured on 2026-09-02 the plan is **134.9 kg short** with the generator aboard and leaves three devices behind, against 214.5 kg short over the two vans alone before the trailer existed. Without the generator the same plan fits everything with **340.5 kg spare**, so what the fleet cannot carry is the generator rather than the gear. What is left is the schema's side of towing: **O1 and O2 are on both sets of papers and in no field**, nothing pairs a trailer with the vehicle that tows it, and both would go unchallenged for a trailer above 750 kg. 750 is exactly O2 unbraked on both vans, so today it is legal by construction rather than by check | P2 | 2h | a towing check, which nothing performs | the trailer's own plate | partial |
 | LOAD-6 | **A pack has to be allowed to turn things over, and nothing does.** Stated by the owner as an important aspect. `PackLayout` places every unit in its spec orientation, so a 2 m truss segment across a 1.38 m floor simply does not fit and is reported as overflow — it would lie along the bay without difficulty. Measured on the current pack: **7 of 32 assigned units are unplaceable**, and truss segments and scaffold towers are most of them. Two parts: the layout has to try a unit's six axis-aligned orientations, and `Orientation` already exists for exactly that on the rig side, so the geometry is not new. What is new is the choice of which orientation, which is a search rather than a rule | P1 | 4h | most of the 9 unplaceable units, and a pack that stops lying about long objects | — | open |
 | LOAD-2 | Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed**: 2500 kg with a full tank and driver, so 1000 kg of payload — **365 kg heavier than its own Zulassungsschein**, which knows nothing about a fit-out added after type approval. **Stefan's Movano has not been weighed** and its 1024 kg is the same class of paper figure that just proved 365 kg optimistic. What is left: **the Movano on a scale**, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3 | P1 | 45m | the difference between a load plan and a fine | — | needs the owner |
 
@@ -805,12 +710,13 @@ payload, and the generator is 465 of it.
 | the generator | 465 kg |
 | **spare on the trailer** | **85 kg** |
 
-**IT DOES NOT REACH ONE JOURNEY, WHICH IS THE POINT OF WRITING THIS DOWN NOW.** The whole load is 2703.5 kg — the
-2238.5 kg of van gear plus the generator — against 2574 kg of capacity once the trailer is counted. That is
-**129.5 kg short**. The trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new
+**IT DOES NOT REACH ONE JOURNEY, WHICH IS THE POINT OF WRITING THIS DOWN NOW.** The whole load is 2698.5 kg — the
+2233.5 kg of van gear plus the generator — against 2574 kg of capacity once the trailer is counted. Re-measured on
+2026-09-02 that is **134.9 kg short**, which is more than the 124.5 kg the totals differ by because a bin pack
+cannot fill every bin to the last kilogramme. The trailer is a net gain of only 85 kg, because it brings 550 kg of capacity and 465 kg of new
 load with it: it is a generator trailer, not spare space.
 
-**What would close the remaining 129.5 kg** is a trailer payload near 680 kg, which means roughly 900 to 1000 kg
+**What would close the remaining 134.9 kg** is a trailer payload near 680 kg, which means roughly 900 to 1000 kg
 gross and braked. Both vans tow that without difficulty — O1 is 3000 kg braked on the Ducato and 2500 on the Movano.
 Where it stops being a towing question is the **combination mass**: 3500 + 750 is 4250 kg and 3500 + 1000 is 4500,
 and trailer classes above 750 kg have licence implications that are worth checking before buying rather than after.
@@ -886,6 +792,8 @@ until somebody runs this on a small machine.
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
+| TOOL-17 | **The suite went from 1 h 17 min to about 25, and the four measurements are worth keeping.** `BuildAllCommandTest`'s replay was 26 minutes and is 34 seconds: it replays a printed-seed sample (`tests/Support/ReplaySample.php`), while the before-and-after comparison still walks the whole set — a stale check against a sample would call the rest of the repository stale. `ShippedScenesTest` was 25 minutes and is 15: it compiled every scene **twice**, once per data-provider test, and now compiles once and asserts both. `SceneStackCommandTest` was 12 and is 7, because 61 invocations that are about something else now state `--low-end` rather than sweeping it. Two paths are gated behind `SDWA5_FULL_REPLAY=1`, both of which cost a full pass over the tree and neither of which is the only cover for what it checks: the regenerate **stage** end to end, and `scene:build` with no argument. **What is left is `ShippedScenesTest` at 15 minutes**, and it should stay whole rather than be sampled — it is the repository's promise that every scene stands up, and it caught two floating cabinets that existed in exactly 2 files of 2688 | P2 | 1h | a suite somebody runs before committing | — | partial |
+| TOOL-16 | **The last two extractions out of `SceneStackCommand`.** It came down from 2357 lines to 1374 in 0.100.0 — seven collaborators, all green — and the two that are left are the ones whose methods run inside the `Parallel` fork and already take up to fifteen arguments: `build`/`solveEach`/`solveGroup`/`stackFor` into a `StackCandidate`, and the option parsing into a `StackRequest`. Moving them as they stand is parameter plumbing; doing it properly means resolving the options into a value object first, so the collaborator is constructed once in the parent and the fork copies it rather than reaching back for `$this`. **`SceneStackCommandTest:1613` is the guard**: it asserts serial and parallel output are byte-identical | P3 | 4h | a command under 800 lines, and a solve that can be tested without a command | — | open |
 | TOOL-15 | **A scene the sweep collapses as a duplicate survives the replay**, which is what is left of TOOL-7 after 0.84.0 closed the rest of it. Dedup is a decision across the whole sweep — "the same rig as X" — and a replay is one file with nothing to compare against, so it rebuilds itself happily. **Measured: 6 of 489**, all six confirmed duplicates of a sibling that is also on disk, deleted by hand. Narrow and cosmetic next to what it was: nothing is lost, the rig exists under the other name, and the pipeline no longer aborts. The honest fix is the one TOOL-7 named, which is running the sweep as the stage instead of replaying files | P3 | 3h | a tree that matches a fresh `--force` sweep without `comm` and `rm` | — | measured |
 | TOOL-10 | **`build:all`'s regenerate stage is the one stage with no staleness check**, and its own comment boasts that every stage skips what is already current. It replays all 483 recorded commands unconditionally, when a generated scene can only change if a spec or the solver did — both ordinary mtime inputs, and exactly the shape of the three checks `Staleness` already serves. **Re-measured after 0.85.0 and demoted on the number: the stage is 34 s, not the 6m40s it was ranked on.** 1h 30m of work for 34 s is no longer the cheapest thing in the file, and it was only ever cheapest because the stage was slow | P3 | 1h 30m | 34 s off every build where nothing changed | — | measured |
 | TOOL-11 | **`scene:render` compiles the whole scene again**, rather than reading anything `scene:build` produced from the identical inventory a moment earlier. `build/plans/` holds `_library.json`, per-model plans and `_render-*.json`, but no compiled-scene plan a later stage reads back — so the natural place for the answer exists and is unused. Re-solving *from the file* is a stated design choice and this does not touch it: the specs demonstrably have not changed between two stages of one build | P1 | 2h 30m | one solve per scene per build instead of two, on every render pass | — | open |
@@ -924,7 +832,7 @@ those the sheet records, and which it only implies, is not something to invent f
 * **Provenance applies here exactly as it does to a dimension.** A crossover frequency is trivially easy to invent,
   impossible to check by looking at a render, and it silently decides what every cabinet is asked to do. Same rule as
   `audio.passband_hz`, same reason.
-* **`gmss-nuke`'s "8 turbo subs 3000rms" is a rating covering two cabinet types together**, which is already recorded
+* **`nuke`'s "8 turbo subs 3000rms" is a rating covering two cabinet types together**, which is already recorded
   as unsplittable. A routing model has to be able to say that rather than force a number per box.
 
 **Cabling is geometry as well as topology**, and this is the part worth deciding early. A cable run has a length, and a
@@ -953,12 +861,44 @@ measured in 0.96.0. ALN-4's rule stands untouched and the two items are now inde
 | SCN-1 | `full-rig-truss-three-quarter.png`: add the two SKRAMs; Gerüste replace the truss stands (remove those), turned 90° with fronts aligned to the system front; fly the Tecnare tops wide apart on the truss; 18Sound 2-ways near field beside them | P2 | 1h 15m | — | CVR-1 (flying) | open |
 | SCN-2 | `everything-three-quarter.png`: remove unused truss stands, turn Gerüste 90°, align their fronts with the system front | P2 | 30m | — | — | open |
 | SCN-8 | `end-fire-lattice-three-quarter.png`: vertical gaps between the subs; add the two SKRAMs, Achenbach, Tecnare and 2-way tops | P2 | 45m | — | — | open |
+| SCN-10 | **A photograph of the cabinet's front on the model's front face**, so a render is recognisable rather than merely correct. Stated by the owner. The material exists already: PSL's `PSL_Subs_px.png` and `PSL_Top_px.png` are front faces at **1 px = 1 cm**, and every setup drawing in Drive embeds one per cabinet type. See the section below for where it goes in the schema and why the file cannot be committed | P3 | 5h | five Innschleife cabinets that currently differ only in their bounding box, and every borrowed cabinet nobody here has seen | — | open |
 | SCN-9 | **Several scenes in one image, as an overview.** An option on `scene:render` that lays out more than one scene in a single picture, so a set can be compared at a glance instead of by opening 450 files one at a time. **The sweep is what makes this worth having**: an axis is only legible side by side, and today the only way to see what `pyramid` does against `free` is to flick between two windows | P3 | 4h | 450 generated scenes that nobody can currently take in | — | open |
 | SCN-3 | `detail-check-turned-three-quarter.png`: add missing stuff | P3 | 20m | — | — | open |
 | SCN-7 | End-fire setup: add the other sub and the tops | P3 | 30m | — | — | open |
 | SCN-4 | Daylight renders: the insides of speakers come out a little too dark | P3 | 30m | — | — | open |
 | SCN-5 | Finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done | P3 | 2h | — | — | partial |
 | SCN-6 | Fly-through renders, combined with a new project from the audio routing table | P3 | 3h | — | — | open |
+
+#### SCN-10 — a front-face image, and the three places it has to fit
+
+Where: `appearance` in `src/Spec/DeviceSpec.php:126-128`, the build plan in `src/Build/ModelBuilder.php`, and
+`blender/build_model.py`.
+
+**Why it is worth having is the two new systems.** `kicker-15` and `achenbach-18` are the same box to
+the millimetre and differ only in `owner`; `wsx-18`, `-95x57` and `-43x87` are three grey rectangles
+in a render. Nobody who has not stood next to that rig can tell any of them apart, and the front is exactly where a
+cabinet's identity lives — a horn mouth, a grille, a purple badge.
+
+**The schema.** `appearance.front_image`, beside `appearance.color` and `appearance.grille`. A path, plus a statement
+of what the pixels mean rather than just the file: these images are **scaled photographs**, so a wrongly cropped one
+would stretch silently across a baffle and look plausible. `cm_per_px: 1` says the image is the cabinet's own front
+at the scale Drive's drawings use, and a mismatch against `dimensions_m` is then a validation error rather than a
+render nobody questions.
+
+**Where the file lives: outside git, next to the meshes.** `mesh_override` already solved this exact problem —
+project-root-relative path, resolved in `ModelBuilder::meshPath()`, nothing binary committed, and
+`meshes/README.md` carries the `rclone` line to fetch each one. A front-face photograph is somebody else's
+photograph as often as not, so the licensing paragraph in `docs/sources.md` applies to it unchanged.
+
+**The render.** UV-map the front face and hand the image through the build plan the way a mesh override is handed
+through. **It must not fight `audio.layout`**: a cabinet with modelled horn mouths has real geometry on its front,
+so for those the image is a material and not a substitute, and for a cabinet with no layout at all — which is every
+Innschleife and every GMSS box — it is the only thing the front will ever show.
+
+**One thing to decide before building it.** A rolled cabinet's front is still its front, but a photograph applied to
+a `turned` cabinet has to rotate with it or it reads as a texture bug. `orientationFor()` knows which cabinets are
+rolled; the image's own orientation is a property of the file. Those two have to agree, and that is the part a test
+should pin rather than an eye.
 
 #### SCN-5 — what is left of the scene work
 
@@ -981,7 +921,7 @@ measured in 0.96.0. ALN-4's rule stands untouched and the two items are now inde
 | SPEC-15 | **A device has an erected size and a transport size and the schema has one field for both.** The 4 m truss lift transports at 1.75 m, its published figure, and is modelled at 4 m because that is what a rig render needs — so the packed convoy render showed a mast standing out of a trailer. Same for the 5 m scaffold tower. `dimensions_m` cannot answer both questions, and a pack that reads the erected size will always be wrong about anything that folds. Needs a `transport:` block that defaults to `dimensions_m` when a device does not fold | P1 | 2h | a pack that is right about every folding device, which is four of ours | — | open |
 | SPEC-1 | Finish GMSS — five specs exist from the builder's own figures; measuring them is what is left | P2 | phys | provenance for 14 cabinets, 994 kg | — | partial |
 | SPEC-5 | Measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec describes a design or a datasheet, not our build | P2 | phys | — | — | partial |
-| SPEC-6 | `audio.drivers` cannot record a count without a size — `size_in` is required, so "2× unknown" has to omit the whole `audio` block | P2 | 45m | `gmss-mid-bass` keeps what is known | — | open |
+| SPEC-6 | `audio.drivers` cannot record a count without a size — `size_in` is required, so "2× unknown" has to omit the whole `audio` block | P2 | 45m | `mid-bass` keeps what is known | — | open |
 | SPEC-8 | Two amplifier facts, both settled by reading the front panels: the fourth amp (EP4000 2U/16.6 kg vs Proline 3000 3U/37 kg — 69 kg vs 79 per rack), and "gisen md60", which matches no product | P2 | phys | rack weights | — | open |
 | SPEC-11 | **Two 3 × 3 m tents** — new gear, no spec, no model. The 3 × 3 m footprint is what we call them by; make, model, eave and ridge height, packed size and weight are all unsourced, and a tent is a frame with a canopy rather than a box | P2 | phys | two items of gear that exist and are invisible to every scene and every pack | — | open |
 | SPEC-12 | **Five Euro pallets** — new gear, no spec, no model. Footprint is the EPAL standard, so it can be sourced rather than measured, but ours need weighing and their condition and height class checking. They are what a riser is built from, so CVR-1 wants them modelled | P2 | phys | five items of gear, and a real answer to what a top stands on | — | open |
@@ -1046,7 +986,7 @@ speakers/. A rack needed no new geometry at all: a case is a box.
 
 1. **Lighting**: 2× 600 W RGB LED strobe, 1 mini moving head, 1 mini laser. No brands stated, so no dimensions — the
    weakest-sourced group left. `shape: moving-head` already exists for the mini head.
-2. **A telescoping mast shape.** `truss-tower-4m` and `gmss-tower-5m` are `shape: box` — a 0.203 m column, the folded
+2. **A telescoping mast shape.** `truss-tower-4m` and `tower-5m` are `shape: box` — a 0.203 m column, the folded
    base size. A crank stand is a nested mast on folding outriggers and neither is drawn. The outriggers matter most:
    unfolded they spread to 1.499 × 1.499 m, which is what must be kept clear at the feet, where the scene shows a column
    a fifth of that. A `mast` shape taking a section count and the folded/unfolded base fixes both.

@@ -26,7 +26,7 @@ use App\Spec\DeviceSpec;
  * * **{@see Turned}** — every sub rolled, whatever it measures. The literal reading of "all cabinets on their sides",
  *   tops excepted.
  * * **{@see Mixed}** — rolled only where rolling makes the cabinet **wider and shorter**, which is the whole reason to
- *   roll one. That leaves `gmss-mid-bass` standing, at 1.200 × 0.500 the one sub already wider than it is tall, where
+ *   roll one. That leaves `mid-bass` standing, at 1.200 × 0.500 the one sub already wider than it is tall, where
  *   rolling would make the wall *taller* and the row narrower; and it leaves the 0.600 × 0.600 `achenbach-18` standing,
  *   where rolling is geometrically nothing at all.
  *

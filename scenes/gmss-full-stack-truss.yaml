@@ -52,19 +52,19 @@ placements:
   # to 2.920. The width is what matters in THIS scene rather than the height: it moves the stack out under the
   # fixtures. See the goalpost note below.
   - id: wall-basses
-    device: gmss-wall-bass
+    device: wall-bass
     at: [ 0.0, 0.0 ]
     row:
       count: 2
       gap_m: 0.02
 
   - id: mid-bass
-    device: gmss-mid-bass
+    device: mid-bass
     on: wall-basses
     at: [ 0.0, 0.0 ]
 
   - id: tops
-    device: gmss-turbo-top
+    device: turbo-top
     on: mid-bass
     at: [ 0.0, 0.0 ]
     row:
@@ -72,24 +72,24 @@ placements:
       gap_m: 0.02
 
   - id: nuke-left
-    device: gmss-nuke
+    device: nuke
     at: [ -0.690, 0.0 ]
     roll_deg: 270
 
   - id: column-left
-    device: gmss-iq-sub
+    device: iq-sub
     on: nuke-left
     at: [ -1.075, 0.0 ]
     lattice:
       count: [ 1, 1, 3 ]
 
   - id: nuke-right
-    device: gmss-nuke
+    device: nuke
     at: [ 0.690, 0.0 ]
     roll_deg: 90
 
   - id: column-right
-    device: gmss-iq-sub
+    device: iq-sub
     on: nuke-right
     at: [ 1.075, 0.0 ]
     lattice:
@@ -98,15 +98,15 @@ placements:
   # ─── THE GOALPOST ─────────────────────────────────────────────────────────────────────────────────────────────
   # The towers stand outboard of the stack, 9 m apart so the truss's ends land on them.
   - id: tower-left
-    device: gmss-tower-5m
+    device: tower-5m
     at: [ -4.500, 0.0 ]
 
   - id: tower-right
-    device: gmss-tower-5m
+    device: tower-5m
     at: [ 4.500, 0.0 ]
 
   - id: truss
-    device: gmss-truss-9m
+    device: truss-9m
     at: [ 0.0, 0.0 ]
     fly:
       height_m: 5.200
@@ -115,7 +115,7 @@ placements:
   # All four on one bar, and `fly.id` is what says so: the report adds them into a single 158 kg total instead of
   # four separate hangs, because what gets checked against a truss's capacity is the sum.
   - id: macs
-    device: gmss-mac-2000-performance-ii
+    device: mac-2000-performance-ii
     at: [ 0.0, 0.0 ]
     # UPSIDE DOWN, because that is how a fixture hangs — see the header. Rolled, `fly.height_m` is the fixture's
     # top rather than its bottom, so 5.130 hangs the base 70 mm under the truss and the head down to 4.387.

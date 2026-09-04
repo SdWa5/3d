@@ -1,0 +1,56 @@
+# the box pro Achat 115 M, the 15" version of PSL's small fullrange top.
+#
+# Figures from PSL's own published technical data, https://pro-sound-light.de/equipment/tontechnik/ — see
+# concert-audio-ef6.yaml for why that counts as a datasheet here.
+#
+# THE ORDER HERE IS STATED AND IT IS NOT THE USUAL ONE: "Abmessungen (B x T x H): 436 x 438 x 766 mm" puts
+# depth in the middle. So 436 wide, 766 tall, 438 deep, and reading it as the page's more common B x H x T
+# would give a 438 mm tall cabinet with a 15" driver in it.
+#
+# QUANTITY 1 IS THE FLOOR AND IT IS AN ADMISSION, NOT A FIGURE. This cabinet is in no published package and in
+# none of our drawings, so nothing states how many exist. `quantity` cannot be zero — the validator refuses it
+# and the sweep filters on it — so 1 is the smallest thing that can be written. It is almost certainly wrong,
+# tops being bought in pairs, and inventing the 2 would be worse. See docs/requests.md.
+id: thebox-achat-115m
+name: "the box pro Achat 115 M"
+category: speaker
+subtype: top
+quantity: 1
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.436, height: 0.766, depth: 0.438 }
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  color: "#141414"
+
+physical:
+  weight_kg: 32.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+audio:
+  coverage_deg: { horizontal: 60, vertical: 40 }
+  passband_hz:
+    low_hz: 60
+    high_hz: 17000
+    provenance: datasheet
+  drivers:
+    - { size_in: 15, type: woofer, count: 1 }
+    - { size_in: 1.4, type: compression-driver, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Passive 2-way multi-function top, usable as a monitor. 15" woofer and a 1.4" neodymium mid-high driver with
+  a 3" voice coil. Power 350 W RMS / 1400 W peak. Impedance 8 Ohm. Max SPL 131 dB. 60 x 40 degrees. Pole
+  socket, Aeroquip rail on top, eye bolt on the back. Black structured paint.

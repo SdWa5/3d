@@ -47,6 +47,8 @@ placements:
 | `placements[].roll_deg` | rotation about the front-to-back axis — 180 turns a cabinet upside down, 90 lays it on its side, and either way it keeps facing forward |
 | `placements[].aim` | the name of a focus — `focus` for the single unnamed one, or any key of a named `focus` map. The compiler works out yaw *and* down-tilt |
 | `placements[].aim_at` | `[x, y]` or `[x, y, z]` — aim at a named point instead |
+| `stack.low_end` | `low` or `central` — where the lowest-reaching cabinets belong. See [where the low end goes](#where-the-low-end-goes) |
+| `placements[].focus` | this placement's own focus points, in either form the scene's `focus` takes, measured from **its own** front face. Overrides the scene's for everything inside it. See [each system aims at its own focus](#each-system-aims-at-its-own-focus) |
 | `focus` *(scene level)* | one focus, `{ distance_m, height_m, x_m }`, or a map of named ones, `{ near: {…}, far: {…} }`. Defaults: 10 m out, 1.8 m high, rig centre |
 | `placements[].repeat` | `{ count, step: [x, y, z] }` — repeat along a stated vector |
 | `placements[].lattice` | `{ count: [nx, ny, nz], gap_m, step_m, roll_cycle, cycle_axis }` — a 1/2/3-D grid, spaced from what it replicates, centred on `at` in x and y, stacking upward in z |
@@ -578,7 +580,7 @@ top-heavy, a V balanced on its point.
 
 **Every shape rule is a width, in metres.** Stated by the owner of the gear, and it is not a stylistic preference:
 the pyramid was written as a *count* — no row holding more cabinets than the row below — and the premise that makes
-a count stand in for a width is false. Nine of our ten cabinets are 0.45–0.66 m wide and `gmss-mid-bass` is
+a count stand in for a width is false. Nine of our ten cabinets are 0.45–0.66 m wide and `mid-bass` is
 **1.200 m**, so "no more cabinets" and "no wider" stopped meaning the same thing the day it arrived. The V made it
 obvious: built on a count rule it produced **21 stacks that narrow against 8 that widen**, and `free` widened more
 often than the shape named after widening.
@@ -592,7 +594,7 @@ often than the shape named after widening.
 **The pyramid's tenth of a cabinet is derived from the two cases either side of it**, not chosen. It cannot be zero:
 six Achenbachs are 3.700 m on six Flexys' 3.646, 27 mm proud per side out of a 600 mm cabinet, and a rule without an
 allowance splits them into two rows of three — whereupon the 1.84 m row cannot carry the tops and a 2-way is dropped
-from the rig. It cannot be a whole cabinet either: `2× gmss-nuke + 1× gmss-mid-bass` is 2.420 m on a 1.890 m row,
+from the rig. It cannot be a whole cabinet either: `2× nuke + 1× mid-bass` is 2.420 m on a 1.890 m row,
 265 mm proud per side out of a 590 mm cabinet, and that reads as a V to anybody looking at it. A tenth separates them
 cleanly, and it is a fraction rather than a number of millimetres so it scales with whatever cabinet ends the row.
 
@@ -812,13 +814,30 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 ### scene:stack — writing the scene for you
 
-**The default is a sweep, not a single rig.** `bin/console scene:stack` with no options writes every sensible
-configuration it can stand up: one rig per combination of owners, by one, two and three stacks, by all three ways the
-systems can stand apart, in all three shapes, all three alignments and all seven orientation/mirror pairs — **1374
-scenes of 2718 candidates** on the current inventory, with every
-refusal printed and its reason given. That is the project's goal expressed as a default, and it is worth stating because the flags below read as
-required and are not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as
-naming `--align` narrows it to one mode.
+**The default is a sweep of one inventory, not of every rig the library can name.** `bin/console scene:stack` with no
+options writes every sensible configuration it can stand up **out of our own gear and Sepp's, pooled** — by one, two
+and three stacks, by all three ways the systems can stand apart, in all three shapes, all three alignments and all
+seven orientation/mirror pairs. **271 scenes**, with every refusal printed and its reason given.
+
+**THE INVENTORY AXIS USED TO BE A POWERSET AND IS NOW A CHOICE.** Three owners made seven inventories, which read as
+generosity and produced the finding this default rests on: a borrowed rig writes more scenes than any single owner,
+because Sepp's six Achenbachs cannot stand alone and are excellent under somebody else's tops. Five owners make that
+powerset **31** inventories, 26 of them multi-system rigs nobody will ever build, and the sweep trips its own fuse
+before writing anything. Stated by the owner: the sweep is always run against a subset, and the default subset is the
+pair. So the finding became the default and the enumeration went.
+
+Every other inventory is one option away and **writes into its own folder**:
+
+```bash
+bin/console scene:stack                                          # scenes/generated/sdwa5-sepp/
+bin/console scene:stack --owner=gmss                             # scenes/generated/gmss/
+bin/console scene:stack --owner=psl --owner=innschleife \
+                        --owner=sdwa5 --owner=sepp               # scenes/generated/innschleife-psl-sdwa5-sepp/
+```
+
+That is the project's goal expressed as a default, and it is worth stating because the flags read as required and are
+not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as naming `--align`
+narrows it to one mode. `--owner` is the exception and narrows the inventory without collapsing anything else.
 
 Read the skipped list as well as the scenes. A sweep that writes twenty and silently drops fifteen would look like
 "that is all there is"; the reasons are how you find out which rigs the inventory cannot build.
@@ -831,10 +850,16 @@ The separation axis then gained its third value, `tops-shared`, in 0.96.0 and re
 the 13 `systems-apart` had already set the column to, which is why shipping two of three first cost nothing.
 
 ```text
-stacked -gmss------1 -pooled -pyramid -upright     -alternate   -center   -possible
-  id     owners+      systems  shape    orientation  mirror       alignment  feasibility
-         stacks       apart?                         style
+gmss/ stacked -1     -pooled -pyramid -upright     -alternate   -center   -possible
+ ^      id     stacks  systems  shape    orientation  mirror       alignment  feasibility
+ inventory             apart?                         style
 ```
+
+**The inventory is the directory and is deliberately not in the name as well.** SWP-3's rule is that an axis value
+appears in the path or in the name and never in both, and the system name inside a folder named after the system is
+redundant: it was stated 271 times in `scenes/generated/` where once in a directory name says the same thing. It also
+removes the trap described below — the owner column had to be padded to the widest label the *specs* could produce,
+so speccing a fifth owner would have renamed all 1374 files without changing a single rig.
 
 Three of them used to be left out at one value each — `pyramid`, `upright` and `alternate` — so that the ordinary rig
 kept a short id. The price was a directory nobody could read: a gap in a name does not say *which* value was omitted,
@@ -851,18 +876,21 @@ sides, so it belongs to the naming.
 the page:
 
 ```text
-stacked-gmss-------1-pooled--------pyramid-upright-alternate-center-possible.yaml
-stacked-sdwa5-sepp--2-systems-apart-free----turned--column----stereo-possible.yaml
-stacked-all--------3-pooled--------v-------mixed---centred---block--impossible.yaml
-stacked-gmss-sdwa5--2-pooled--------pyramid-stated--alternate-center-possible.yaml
+gmss/stacked-1-pooled--------pyramid-upright-alternate-center-possible.yaml
+sdwa5-sepp/stacked-2-systems-apart-free----turned--column----stereo-possible.yaml
+gmss-sdwa5-sepp/stacked-3-pooled--------v-------mixed---centred---block--impossible.yaml
+gmss-sdwa5/stacked-2-pooled--------pyramid-stated--alternate-center-possible.yaml
 ```
 
 Each width comes from the axis's own enum cases, so a new value widens its column by existing rather than by a number
-written somewhere. **The owner column is measured over every combination the specs allow, not over the ones a given run
-walks**, which is the one trap in this: pad to what the run happens to hold and `--owner=gmss` would name a rig
-`stacked-gmss-1-…` where the full sweep names the identical rig `stacked-gmss------1-…`. One rig, two file names,
-decided by an option meant to narrow the sweep rather than to rename it. The last field stays ragged, because nothing is
-lined up behind it and a run of dashes before `.yaml` buys the reader nothing.
+written somewhere. The last field stays ragged, because nothing is lined up behind it and a run of dashes before
+`.yaml` buys the reader nothing.
+
+**A replay has to be told its folder, which is the one cost of the directory.** The recorded `Regenerate it with:`
+line names cabinets with `--from` rather than owners — deliberately, so that measuring a new sub does not change what
+a replay rebuilds — so a replayed command has no inventory to derive and carries `--into=<inventory>` instead. Without
+it the whole set would replay into `scenes/generated/` itself, where identically-named siblings from different
+inventories would overwrite each other.
 
 **The mirror style is written even where it decides nothing**, and that is deliberate rather than an oversight. The
 sweep only ever pairs `upright` with `alternate`, so a style says nothing about an upright rig — but
@@ -1013,10 +1041,13 @@ The scene file records `target_sub_height_m` **only when it is not the default**
 always written. A default written into every file would state a number that says nothing and would have to be
 rewritten in every one of them the day the default moves.
 
-#### The inventory axis, and why the borrowed rigs beat the owned ones
+#### The inventory axis, and why the borrowed rig became the default
 
-The sweep builds from **every non-empty combination of owners** — each alone, each pair, and everything. It used to offer
-each owner and then everything, and the gap in the middle turned out to be where most of the output is:
+The sweep builds from **one subset of owners**: `--owner` names it, and silence means
+`SweepAxes::DEFAULT_OWNERS`, which is `sdwa5` and `sepp` pooled as one rig. Stated by the owner.
+
+**It used to be every non-empty combination**, and that is worth keeping because the finding is what the default now
+encodes. Measured on a 66-candidate sweep, back when there were three owners:
 
 | inventory | scenes written |
 | --- | --- |
@@ -1024,19 +1055,276 @@ each owner and then everything, and the gap in the middle turned out to be where
 | `gmss-sdwa5` | 25 |
 | `sdwa5` | 22 |
 | `gmss` | 21 |
-| `all` | 17 |
+| `all` (three owners) | 17 |
 | `gmss-sepp` | 13 |
 | `sepp` | 0 |
 
 That is the shape of a shared gig rather than a curiosity. `sepp`'s eight cabinets **cannot stand alone** — six
-Achenbachs and two 2-ways cannot fill a 2 m wall however they are stacked, so every `sepp`-only rig is refused — and they
-are excellent *under* somebody else's tops. Borrowing gear between owners is something this repository supports on
-purpose, and the pairs are what that looks like as a rig. `all` writes fewer than the best pair because 41 cabinets in
-one rig is two complete sound systems, where 25 is a gig.
+Achenbachs and two 2-ways cannot fill a 2 m wall however they are stacked, so every `sepp`-only rig was refused — and
+they are excellent *under* somebody else's tops. And the everything rig wrote fewer than the best pair, because 41
+cabinets in one rig is two complete sound systems where 25 is a gig.
 
-`owner` is the only discriminator the specs carry, and it is admittedly not quite the right one: "owner" and "system"
-are different questions once gear is lent. It is what exists, it separates the two systems in practice, and inventing a
-`system:` field to serve a sweep would be inventing a property to serve a layout.
+**So the powerset had already answered its own question, and then it stopped scaling.** Five owners make it 31
+inventories, 26 of them multi-system rigs — Innschleife subs under PSL tops with our Tecnare on top is arithmetic
+rather than a gig — and the sweep trips `--max-scenes` before writing a file. Worse, the owner column in every file
+name was padded to the widest label the *specs* could produce, so speccing a fifth owner renamed all 1374 committed
+scenes without changing one rig.
+
+**What replaced it is a subset per run and a folder per subset.** Eleven inventories are committed and each is
+one command:
+
+| folder | inventory | scenes |
+| --- | --- | --- |
+| `sdwa5-sepp/` | the default: ours and Sepp's | 100 |
+| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 311 |
+| `gmss-sdwa5/` | GMSS and ours | 308 |
+| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 326 |
+| `gmss/` | GMSS alone | 97 |
+| `sdwa5/` | ours alone | 49 |
+| `sepp/` | Sepp's alone | 7 |
+| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 277 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 337 |
+| `innschleife-next-event-thl4/` | what Innschleife are bringing on its own, with their two big tops | 71 |
+| `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6 | 16 |
+
+**`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
+counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
+One system has nothing to separate. See below.
+
+**`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
+which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
+and the day two more were specced the same word meant five systems and 101 units. `gmss-sdwa5-sepp` means the same rig
+whoever gets specced next.
+
+`owner` is still the only discriminator the specs carry, and it is admittedly not quite the right one: "owner" and
+"system" are different questions once gear is lent. It is what exists, it separates the systems in practice, and
+inventing a `system:` field to serve a sweep would be inventing a property to serve a layout. What the default subset
+does is make that gap cheap — a grouping stated at invocation time rather than in the specs, which is what SWP-3's
+second ask was really after.
+
+#### Rosters — what a system brings, against what it owns
+
+A spec's `quantity` is **how many exist**. It is not how many turn up. Innschleife own five cabinet types and bring
+four of them; a box is in the workshop with a blown driver; a rental company brings twelve of a sub its published
+package lists six of. None of that is a correction to a spec, so none of it is written into one.
+
+**A roster is a file in [`rosters/`](../rosters) stating what one system brings to one event**, and it overrides the
+counts it names for one run of `scene:stack` and nothing else:
+
+```yaml
+id: psl-next-event
+name: "PSL, next event — twelve ESX under five EF 6"
+
+brings:
+  concert-audio-esx: 12
+  concert-audio-ef6: 5
+  thebox-tp218-1600: 0        # not this time
+```
+
+```bash
+bin/console scene:stack --owner=psl --roster=psl-next-event
+```
+
+Four things about it are worth knowing before writing one.
+
+**It changes counts and nothing else.** It does not select owners, name a rig or decide a layout. `--owner` still
+says whose gear is in the inventory, and a device the file never mentions keeps the quantity its spec states. That
+is what makes rosters composable: state Innschleife's counts and our own gear is untouched, all of it, exactly as a
+bare sweep would build it. Two rosters in one run compose the same way, and two rosters that disagree about one
+device are refused rather than resolved — neither file is newer than the other, so there is nothing to prefer.
+
+**Zero is how a cabinet stays at home**, and naming it at zero is not the same as leaving it out. Left out means
+"bring whatever the spec says". So a statement like "PSL are bringing the following" is written with a zero for
+every cabinet it excludes, which is why that roster has eight of them.
+
+**A roster names the folder its scenes are written into.** Both variants of one event are `--owner=innschleife`, so
+without that they would land in `innschleife/` under the same file names as the rigs built from everything
+Innschleife own, and the last run would win. The roster's id is the one name that tells them apart. `--quantity`
+carries no name of its own, so a run that uses it without `--into` is refused rather than allowed to overwrite:
+
+```bash
+bin/console scene:stack --owner=innschleife --quantity=thl4:2 --into=a-name-for-it
+```
+
+**The recorded regenerate line carries the counts, never the roster.** It is the same argument the `--from` list is
+written out on: a replay has to rebuild *that* scene, and a roster is a file somebody can edit. Recording
+`--roster=` would make every replay depend on what the file says on the day it runs, so a roster corrected next
+week would silently rewrite last week's rigs under their old names. The roster is the human-facing record and the
+way a folder is generated in the first place; the line inside a scene file pins the numbers.
+
+#### A scene's key is its path, and its `id` is a label
+
+**Two notions where there used to be one, and the reason is a defect that shipped for a release.** When the
+inventory became a directory, 2072 generated scenes came to share 589 basenames — 421 of those names belonging to
+two or more inventories. Everything downstream keyed a scene by its `id`, which is its basename, so eleven
+different rigs wrote one `build/scenes/generated/<id>.blend` and one render: the first inventory in sort order won,
+and the other ten were found to have an artifact newer than their own source and **skipped as up to date**. The
+failure mode of a wrongly-keyed artifact is a skipped rebuild, which looks exactly like a current one.
+
+* **The key** is the path below `scenes/`, without the extension —
+  `generated/sdwa5-sepp/stacked-1-pooled--------free----mixed---alternate-center-possible`. It is unique by
+  construction, it exists for hand-written scenes too, and it is what every derived path and every set comparison
+  uses. `SceneLoader::keyOf()` and `BaseCommand::sceneKey()`.
+* **The `id:` field** is the label: what `scene:build` prints and what reaches Blender's log. Today every scene's
+  id equals its basename; the point is that only the key is guaranteed to be unique.
+
+Every derived artifact mirrors the scene's own directory, so `scenes/generated/gmss/x.yaml` builds to
+`build/scenes/generated/gmss/x.blend`. `scene:build` and `scene:render` accept either form, and a bare basename
+that names more than one scene is refused with the paths rather than resolved by sort order.
+
+#### Each system aims at its own focus
+
+**A scene's `focus:` is measured from the *rig's* front centre**, which is exactly right for a cluster and the
+near-fills beside it, and wrong the moment two sound systems stand side by side: the outer walls swing back toward
+a point in front of the middle one, so three systems cover one patch of floor between them instead of each
+covering the room it stands in front of. On a two-wall rig that is 23° and 26° of yaw on cabinets that should be
+facing straight ahead.
+
+**A placement may state a `focus:` of its own**, in either of the two forms the scene's own takes, and it means the
+same thing measured from that placement's own front face:
+
+```yaml
+  - id: main-innschleife
+    at: [3.6, 0.0]
+    aim: far
+    focus:
+      far:  { distance_m: 10.0, height_m: 1.8 }
+      near: { distance_m: 2.0, height_m: 1.8 }
+```
+
+`scene:stack` writes one per wall **when the walls are systems** — `systems-apart` and `tops-shared` — and none at
+all for `pooled`, because a pooled rig split into two or three stacks is one system in several piles and is aimed
+as one cluster. A hand-written scene is untouched unless it adds the block: a fill beside a main cluster belongs to
+that cluster and aims where it aims.
+
+The point is resolved once, at expansion, and written into each cabinet as an ordinary `aim_at`, so nothing
+downstream has to ask which focus a cabinet meant.
+
+#### Systems, which are not owners
+
+**`owner` is what a spec records and it is not quite the right discriminator.** `sdwa5` and `sepp` are two owners
+and one system: they travel together and they are what stands on a stage when this collective plays. Until SWP-3
+nothing could say so, and `--systems=systems-apart` read the owner field — so the rig for the next event came out
+as **four** walls, Sepp's standing apart from ours, in a render nobody could have built.
+
+```bash
+bin/console scene:stack --group=borrowed:gmss+psl --owner=gmss --owner=psl
+```
+
+`App\Scene\SystemGrouping` holds it. The default is one line — `ours` is `sdwa5` and `sepp` — and every owner it
+does not name is its own system under its own name. `--group=NAME:owner+owner` replaces the default for a run
+rather than adding to it, so the option states the whole truth about the run it is typed on.
+
+**Stated at invocation time rather than in the specs, and that is the answer CVR-3 held out for.** Who owns a
+cabinet is a fact about the cabinet; who counts as one system is a fact about one gig. This repository deliberately
+supports lending gear between owners, so a `system:` field on a spec would be a layout written onto an object.
+
+It changes exactly two things and the second is easy to miss:
+
+* **How the walls are divided.** `StackDeal::groups()` partitions on the system, so `systems-apart` gives three
+  walls for the next event: `main-ours` at 25 cabinets, `main-psl` at 17, `main-innschleife` at 14.
+* **Whether the separation axis is offered at all.** It is counted in systems now, and a rig drawn from one system
+  gets `pooled` alone — which is why the default inventory lost two thirds of its scenes rather than gaining any.
+
+A stated grouping is recorded into each scene's regenerate line, because the grouping decides how many walls a
+separated rig has and a replay without it would rebuild three systems as four.
+
+#### Every option narrows one axis, and none of them collapses the sweep
+
+`--shape=pyramid` has always narrowed the shape axis and left everything else walking. `--from`, `--stacks` and
+`--per-owner` did not: they were read as *"the caller has one specific rig in mind"* and collapsed the whole cross
+product to a single candidate. So **"sweep everything, but only two stacks" could not be asked for.**
+
+```bash
+bin/console scene:stack --owner=gmss --stacks=2    # 48 scenes: one stack count, every other axis still walking
+```
+
+There is one path now. A caller who wants exactly one scene names one value on every axis — which is what a replay
+does, and why `build:all` still rewrites exactly one file per recorded line. Two consequences worth knowing:
+
+* **The scene id carries the rig fields.** `--id` records the base alone and the stack count and separation are
+  rebuilt from `--stacks` and `--systems`, because a name built without them would give two different rigs the
+  same file name the moment `--from` stopped collapsing the sweep.
+* **`--per-owner` is an alias of `--systems=systems-apart`** and is no longer what a scene records. The flag can
+  only say one of the three separations, and a replay has to name the one it was.
+
+#### Where the low end goes
+
+**The lowest cabinets end up low because the fill deals them first, and central only by accident.**
+`StackSolver::centred()` puts the *tallest* segment in the middle because that is what carries the row above —
+measured at 14 % bearing when it sits outboard — and nothing anywhere aimed a low-frequency cabinet at the centre
+line. So the SKRAMs came out in the middle of the floor row and it read as luck, because it was.
+
+```bash
+bin/console scene:stack --low-end=central
+```
+
+| value | what it builds |
+| --- | --- |
+| `low` | what the solver has always done: both SKRAMs side by side on the floor, straddling the centre line |
+| `central` | one SKRAM on the floor centre and the second directly above it, each flanked to the row's width |
+
+**`low` costs nothing, deliberately.** The fill already deals the lowest-reaching type first and it already lands
+on the floor, so pricing that would re-rank every rig in the repository to express a preference they already
+satisfy — eleven solver tests said so out loud when it did. It is also declared first, so where the two values
+agree the deduplication keeps the `low` name and an unchanged rig is not renamed to claim a preference it merely
+happens to satisfy. On the GMSS inventory `central` differs on **7 rigs of 104**; on Sepp's eight cabinets, none.
+
+**Two measures, weighted four to one.** How high the low-frequency mass sits above the floor, and how far it sits
+from the centre line. Both are `moment / mass` over the same cabinets, the shape `Stability::tips()` already used
+to decide whether a row topples, with the weight changed from *how heavy* to *how low it reaches* — the passband
+where a cabinet states one, mass where it does not, under the guard `byFillOrder()` states in words: **frequency
+decides only between two cabinets that both state one.** Power is not in the schema at all, so the "most powerful"
+half of the ask cannot be weighed and is filed as SPEC-13.
+
+Two things it took a measurement to get right, both worth knowing before touching it:
+
+* **The measure is about one type, not about every sub.** A centroid over the whole wall is dominated by whatever
+  there are most of — twelve Flexys against two SKRAMs move it by centimetres however the SKRAMs are placed — so
+  it could not see the arrangement it exists to choose.
+* **And it counts each cabinet, not each run.** `Tier::seats()` reports a run at its own centre, so a pair read as
+  one lump at their midpoint, and an arrangement with the pair shoved up a row and off to one side scored as *more*
+  central than the same pair straddling the middle on the floor.
+
+**Nothing is refused for it and no rig comes out narrower.** The shapes keep priority and the bearing rules keep
+their keys — re-keying `centred()` or `mixedBottomRow()` on frequency would break the reason they exist — and this
+only ranks the arrangements they already accept. The one thing it adds to the search is a candidate that spreads
+the lowest type one to a row, each cabinet flanked into a full-width row, because a bare spread gives it a 0.61 m
+row of its own that cannot carry the row above and is never returned.
+
+#### Each axis is a directory level or a name field, never both
+
+`--folders=<axis>[,<axis>…]` decides, from `inventory`, `stacks`, `systems`, `shape`, `orientation`,
+`mirror-style`, `align` and `feasibility`. **The default is `inventory` alone, which is exactly the tree above** —
+the mechanism ships without moving a file.
+
+```bash
+bin/console scene:stack --owner=sepp --folders=shape,feasibility
+# scenes/generated/sepp/v/possible/stacked-1-pooled--------upright-alternate-center.yaml
+```
+
+Four rules make it work rather than merely run.
+
+**A value is in the path or in the name and never in both.** Otherwise every path states the same fact twice and a
+rename has two places to go wrong. The nesting order is the order the name already reads in, so switching a level
+on is a *move*: the field leaves the name and becomes a directory in the same position.
+
+**A directory carries the raw value; the padding stays in the name.** A file name is read in columns so every
+field is padded to its axis's widest value, and `v` becomes `v------`. A directory has no column to line up with,
+and padding it would rename every directory the day an axis gains a longer case.
+
+**The inventory is permanently a folder.** It is the only axis whose value cannot be recovered from a scene's own
+recorded line — that line names cabinets rather than owners, on purpose — so putting it in the name would mean
+inventing a second option to carry the label.
+
+**At most three levels.** The cardinalities are 11 × 3 × 3 × 3 × 4 × 3 × 3 × 2, so switching them all on gives more
+directories than files. A fourth is refused rather than silently produced, the same way `--max-scenes` refuses
+rather than truncating.
+
+A non-default layout is recorded as `--folders=` in each scene's line; the default records nothing. Every
+folder-able value except the inventory is already in the line, so what a replay is missing is not the values but
+which axes are folders — without it the replay lands in the right directory and rebuilds a name still carrying the
+value that moved out of it, writing a second file beside the first with neither reported stale.
 
 #### The orientation axis, and why laying subs down is the biggest lever there is
 
@@ -1069,7 +1357,7 @@ is near-omnidirectional, which is why the same objection does not reach a sub.
 
 **`mixed` is read off the specs and states no new fact about the gear.** `subtype` and `dimensions_m` are both recorded
 already, so the rule needs nothing measured: roll a sub where its height exceeds its width. Two cabinets are left
-standing by it and for two different reasons. `gmss-mid-bass` is 1.200 × 0.500, the one sub already wider than it is
+standing by it and for two different reasons. `mid-bass` is 1.200 × 0.500, the one sub already wider than it is
 tall, so rolling it would make the wall *taller* and the row narrower; `achenbach-18` is 0.600 × 0.600, where rolling is
 geometrically nothing at all. This matters beyond tidiness — the repository refuses to invent physical properties to
 serve a layout, which is why `--roll-mirror` names cabinets outright rather than deriving them from a "horn-loaded"
@@ -1288,7 +1576,7 @@ anybody makes.
 
 A rig that floats a top or buries two cabinets in each other **used to be refused with a sentence**. It is now
 written, named `-impossible`, and `scene:build` cages the offending cabinets in red so the failure is something to
-look at. "A `gmss-turbo-top` would stand at 0.660 m with nothing under it across x" took a debug dump, two probes
+look at. "A `turbo-top` would stand at 0.660 m with nothing under it across x" took a debug dump, two probes
 and a corrected coordinate mapping to understand; the picture takes a second.
 
 Measured on the default sweep: **483 possible and 60 impossible**. The 60 is smaller than the 144 refusals it comes
@@ -1736,7 +2024,7 @@ anything hangs from anything:
 
 ```yaml
   - id: macs
-    device: gmss-mac-2000-performance-ii
+    device: mac-2000-performance-ii
     at: [ 0.0, 0.0 ]
     roll_deg: 180
     fly:

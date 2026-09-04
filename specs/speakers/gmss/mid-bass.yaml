@@ -1,0 +1,98 @@
+# GMSS mid bass, the "USB" — the single wide cross-braced horn mouth lying across the two wall basses in GMSS.jpeg.
+#
+# EVERY NUMBER IN THIS FILE COMES FROM THE OWNER OF GMSS. What he stated, in centimetres and in his own order
+# (w, d, h):
+#
+#     USB: 120w, 60d, 50h, ~120kg
+#
+# THE CABINET IS THE SAME ONE THIS FILE ALWAYS DESCRIBED IN ITS FIRST LINE, and the owner's answer confirms it:
+# asked which box the mid bass is, he pointed at the horn in the middle — "That's the mid bass (usb)". So the
+# cross-braced mouth above the wall basses is this spec, `id` unchanged.
+#
+# WHAT WAS WRONG WAS THE COUNT AND WITH IT THE POSITION. `quantity: 2` came from reading the low plain-faced box
+# at the foot of each outer column as a mid bass and assuming a symmetrical pair — docs/sources.md said so
+# outright, "the short wide box at the foot of each column ... the turbo subs stand on it". Both of those boxes
+# are turbo subs: "the ones on the outside of the bottom row are also turbo subs", and they are the nukes,
+# `nuke.yaml`. There is exactly ONE mid bass and it is not on the ground.
+#
+#   - The stated 1.20 m width is what makes the single-cabinet reading certain rather than merely allowed. Two
+#     wall basses side by side are 2 x 0.66 = 1.32 m, and in the photo this horn spans almost exactly the pair it
+#     rests on. One 1.20 m cabinet does that. Two would need the stack to be 2.40 m wide across the middle, which
+#     the photo plainly is not.
+#   - It also explains the old `gmss-middle-sub` quantity of 3: the "third middle sub laid on its side" was this
+#     cabinet all along. A mouth wider than it is tall is what a 1.20 x 0.50 front looks like — no cabinet had to
+#     be lying down for the photo to make sense. See `wall-bass.yaml`.
+#   - Against the old estimate, 0.595 x 0.425 x 0.595: width short by 605 mm, i.e. the old box was half the
+#     cabinet. That is what happens when a count is wrong — two half-width boxes fill the same span as one real
+#     one, and every consistency check still passes.
+#
+# "USB" IS STILL UNRESOLVED, AND STILL LEFT UNRESOLVED. The owner uses it as this cabinet's name and did not say
+# what it stands for. It may be a driver brand, a cabinet model or an abbreviation of something local; picking one
+# would be inventing a manufacturer, so `clone_of` stays absent rather than plausible. A wrong `clone_of` is worse
+# than none, because provenance is the whole point of that block.
+#
+# WHY `provenance: estimated` FOR STATED FIGURES: see `iq-sub.yaml`. The enum has no case for "the builder
+# told us" and `measured` would claim we put a tape on it. The weight here is hedged by the owner as well
+# ("~120kg"), which makes it the softest number in the file.
+#
+# TWO DRIVERS IS STATED, THEIR SIZE IS NOT — AND THE SCHEMA CANNOT SAY THAT. "USB 2x 700rms mid bass" from GMSS's
+# first message gives the count and only the count, but `audio.drivers` requires a `size_in` on every entry, so
+# the choice is to invent a size or to leave the whole block out. It is left out and the count lives in the notes.
+# A mid-bass horn 1.20 m across is usually 2 x 12" or 2 x 15", but usually is not a source. Recorded in TODO.md as
+# a schema gap.
+id: mid-bass
+name: "GMSS Mid Bass (USB)"
+category: speaker
+subtype: sub
+quantity: 1
+owner: gmss
+build: own-design
+
+provenance: estimated
+
+geometry:
+  # Block-level outer box. The horn flare and its cross brace are the clearest features in the whole photo and
+  # are still not modelled — the model is a block, as it is for every horn in this repository.
+  shape: box
+  dimensions_m: { width: 1.200, height: 0.500, depth: 0.600 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  color: "#141414"
+
+physical:
+  # HEDGED BY THE OWNER: "~120kg". THE ONE FIGURE IN THE GMSS SET WORTH DOUBTING, and it is flagged here rather
+  # than quietly adjusted. Over 0.36 m3 it works out at 333 kg/m3, where the wall bass is 238, the IQ sub 201 and
+  # the nuke 182 — so this would be the densest cabinet GMSS owns, at less than half the volume of the wall
+  # bass under it. A calculated 18 mm plywood skin of 3.24 m2 is 40 kg, and horn panels plus two mid-bass drivers
+  # bring that to roughly 80. 120 kg is reachable with thicker ply and heavy drivers; it is not the number the
+  # box suggests. Left exactly as stated, because a hedge from the builder still outranks arithmetic from us.
+  weight_kg: 120.0
+  handles: [ left, right ]
+
+rigging:
+  # Stood on top of the two wall basses in the photo, carrying the tops. No fly points visible or stated.
+  flyable: false
+  points: [ ]
+
+notes: |
+  Stated by the owner of GMSS, answering questions about GMSS.jpeg: "USB: 120w, 60d, 50h, ~120kg". Centimetres,
+  width / depth / height. Asked which cabinet the mid bass is, he answered "That's the mid bass (usb)" of the
+  cross-braced horn in the middle of the stack — which is the source for the identity and for `quantity: 1`.
+
+  THE WEIGHT IS THE OWNER'S OWN APPROXIMATION, "~120kg", and the arithmetic disagrees with it more than anywhere
+  else in this set — see the comment on `weight_kg`. First cabinet to put on a scale.
+
+  `subtype: sub` because the schema's speaker subtypes are top / sub / monitor / line-array-element and there is
+  no mid-bass among them. `achenbach-18` sits in the same place for the same reason — it is driven from 38 Hz and
+  reaches 1500 Hz, and it is a `sub` because that is the nearest thing the taxonomy has.
+
+  Two drivers at 700 W RMS come from GMSS's first message, verbatim "USB 2x 700rms mid bass". Their size is not
+  stated and is not guessed at, and neither is what "USB" refers to.
+
+  Formerly quantity 2, described as the box at the foot of each outer column. Those two boxes are the nukes,
+  `nuke.yaml`. There is one mid bass.
+
+  NOT MEASURED BY US, AND NOT FROM A DATASHEET. The builder's own figures for his own box; still a message rather
+  than a measurement, so `estimated`.

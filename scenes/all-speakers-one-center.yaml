@@ -64,12 +64,12 @@ placements:
         - skram
         - flexy-folded-horn-hybrid
         - achenbach-18
-        - gmss-iq-sub
-        - gmss-wall-bass
-        # gmss-mid-bass is deliberately NOT here — see the note below.
-        - gmss-nuke
+        - iq-sub
+        - wall-bass
+        # mid-bass is deliberately NOT here — see the note below.
+        - nuke
         - tecnare-m2122
-        - gmss-turbo-top
+        - turbo-top
         - eighteensound-2way-15
 
 notes: |

@@ -233,12 +233,12 @@ final class GravityTest extends TestCase
      */
     public function testARunMovedOffItsSupportIsReseatedOntoWhateverItIsNowOver(): void
     {
-        $wall = $this->devices['gmss-wall-bass'];
-        $mid = $this->devices['gmss-mid-bass'];
+        $wall = $this->devices['wall-bass'];
+        $mid = $this->devices['mid-bass'];
 
         // One stepped tier: two wall basses on the left, one much shorter mid bass to the right of them.
         $resolved = Gravity::resolve(
-            [new Tier([[$wall, 2], [$mid, 1]]), Tier::of($this->devices['gmss-turbo-top'], 1)],
+            [new Tier([[$wall, 2], [$mid, 1]]), Tier::of($this->devices['turbo-top'], 1)],
             0.02,
             'main',
         );
@@ -282,9 +282,9 @@ final class GravityTest extends TestCase
      */
     public function testARunOverNothingReportsFullBearingAndIsOnlyDetectableByItsSupport(): void
     {
-        $wall = $this->devices['gmss-wall-bass'];
+        $wall = $this->devices['wall-bass'];
         $resolved = Gravity::resolve(
-            [Tier::of($wall, 2), Tier::of($this->devices['gmss-turbo-top'], 1)],
+            [Tier::of($wall, 2), Tier::of($this->devices['turbo-top'], 1)],
             0.02,
             'main',
         );
@@ -325,7 +325,7 @@ final class GravityTest extends TestCase
         $tiers = [
             new Tier([
                 [$this->devices['flexy-folded-horn-hybrid'], 1, 0.0],
-                [$this->devices['gmss-wall-bass'], 1, 0.0],
+                [$this->devices['wall-bass'], 1, 0.0],
             ]),
             new Tier([
                 [$this->devices['achenbach-18'], 1, 0.0],
@@ -352,17 +352,17 @@ final class GravityTest extends TestCase
      * lookahead onto the tier above already used it — the row's *own* score did not, one line apart, so a slide could
      * beat a legal arrangement by abandoning a cabinet.
      *
-     * Measured on the case that found it: `2× gmss-nuke + 1× gmss-mid-bass` is 2.420 m on two wall basses' 1.340 m,
+     * Measured on the case that found it: `2× nuke + 1× mid-bass` is 2.420 m on two wall basses' 1.340 m,
      * carried at 8.5 % centred, and the slide replaced it with an arrangement carrying a run on nothing at all. The
      * row is far too wide for that support either way — what this pins is that the repair does not make it worse.
      */
     public function testARepairIsNeverTakenByAbandoningACabinet(): void
     {
         $tiers = [
-            Tier::of($this->devices['gmss-wall-bass'], 2),
+            Tier::of($this->devices['wall-bass'], 2),
             new Tier([
-                [$this->devices['gmss-nuke'], 2, 0.0],
-                [$this->devices['gmss-mid-bass'], 1, 0.0],
+                [$this->devices['nuke'], 2, 0.0],
+                [$this->devices['mid-bass'], 1, 0.0],
             ]),
         ];
 

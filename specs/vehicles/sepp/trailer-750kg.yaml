@@ -83,4 +83,4 @@ notes: |
   AND THE PLANNER WILL PUT THE GENERATOR IN A VAN, WHICH IS WRONG. It scores bins by how strained they are, and the
   trailer at 465 of 550 kg is the most strained of the three, so a 465 kg machine that two people cannot lift and
   that has no business in a van gets sent to one. Nothing in the schema says a device can only ride on a
-  particular bin. Use `--exclude=sepp-generator-25kva` until it does.
+  particular bin. Use `--exclude=generator-25kva` until it does.

@@ -168,7 +168,20 @@ final class SceneBuildCommand extends BaseCommand
                 return array_map([$loader, 'load'], $loader->files());
             }
 
-            ['scene' => $scene, 'known' => $known] = $loader->find($nameOrPath);
+            ['scene' => $scene, 'known' => $known, 'ambiguous' => $ambiguous] = $loader->find($nameOrPath);
+            // **AN ID THAT NAMES TEN SCENES IS NOT A SCENE**, and picking the first was how this behaved until the
+            // inventory became a folder. Every generated rig of every inventory carries the same basename now, so
+            // the answer is the paths and a request to name one.
+            if ($ambiguous !== []) {
+                $this->io->error(sprintf(
+                    "'%s' names %d scenes — say which:\n  %s",
+                    $nameOrPath,
+                    count($ambiguous),
+                    implode("\n  ", array_map(fn (string $p): string => $this->relative($p), $ambiguous)),
+                ));
+
+                return null;
+            }
             if ($scene === null) {
                 $this->io->error(sprintf(
                     "Unknown scene '%s'%s",

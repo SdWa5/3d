@@ -149,7 +149,7 @@ stage runs — a dry run runs nothing, so nothing downstream would catch the typ
 ### A cabinet the checks object to is caged in red
 
 **Every check in this repository used to answer with a sentence and then throw the geometry away**, which is the
-wrong way round for the failures that are hard to picture. "A `gmss-turbo-top` would stand at 4.668 m with nothing
+wrong way round for the failures that are hard to picture. "A `turbo-top` would stand at 4.668 m with nothing
 under it across x" took a debug dump, two probes and a corrected coordinate mapping to understand. A picture with
 that one cabinet in a red cage says it at a glance.
 

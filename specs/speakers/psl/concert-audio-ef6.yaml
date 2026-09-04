@@ -1,0 +1,83 @@
+# Concert Audio EF 6, the fullrange top of the EVOLUTION series and PSL's main top.
+#
+# PSL is Pro Sound & Light (Paunzhausen), a rental company rather than a self-build crew, so unlike GMSS every
+# figure here is published by the people who own the cabinets: https://pro-sound-light.de/equipment/tontechnik/
+# lists the full technical data for their whole speaker inventory. That is a datasheet in the sense this
+# repository means it — the owner's own published spec for a catalogue product — so `provenance: datasheet`.
+#
+# THE CABINET IS A TRAPEZOID AND THE SOURCE SAYS SO OUTRIGHT: "780 x 588 / 224 x 720 mm (H x B x T)". The two
+# widths are the front and the back face, which is what `back_width_m` is for. 588 across the front narrowing to
+# 224 across the back over 720 mm of depth is a 14 degree taper per side, which is what makes the array the
+# datasheet talks about possible at all.
+#
+# WHITE, NOT BLACK, AND THAT IS PSL'S CABINET RATHER THAN THE PRODUCT. The catalogue describes the finish as
+# black; the "Evolution Mod System" and "Hornsystem Mod" packages are described as "in weiss ein echter
+# Hingucker" and the setup drawing's own cabinet images are white. So the colour here is PSL's build of a black
+# product, and it is the one field in this file that does not come from the technical data.
+#
+# QUANTITY 4 IS THE PACKAGE FIGURE, CONFIRMED BY THE DRAWING. "Hornsystem Mod" is stated as four horn tops plus
+# six hybrid-horn subs, and PSL_SdWa5_Kraut_V7 places exactly four of these. Two independent statements of the
+# same number, which is better than either alone — but neither is an inventory, so it is a floor rather than a
+# count. See docs/requests.md.
+id: concert-audio-ef6
+name: "Concert Audio EF 6"
+category: speaker
+subtype: top
+quantity: 4
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  # Tapered cabinet: 588 mm across the front, 224 mm across the back.
+  shape: trapezoid
+  dimensions_m: { width: 0.588, height: 0.780, depth: 0.720 }
+  back_width_m: 0.224
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  # PSL's cabinets are white. See the header.
+  color: "#f2f2f0"
+
+physical:
+  weight_kg: 65.0
+  # "vier grosse Metallgriffe und acht Griffschalen" — four handles and eight recessed grips, whose faces the
+  # source does not name, so only the side pair is modelled.
+  handles: [ left, right ]
+
+rigging:
+  # The catalogue states an "integriertes EVOLUTION Flugsystem mit Verbinderelementen", so this cabinet does fly.
+  # WHERE ITS POINTS ARE IS PUBLISHED NOWHERE, and the validator rightly refuses `flyable: true` with no points,
+  # since a fly point nobody can place is worse than no fly point at all. Left false until PSL states the
+  # positions; it is on the request list.
+  flyable: false
+  points: [ ]
+
+audio:
+  coverage_deg: { horizontal: 55, vertical: 40 }
+  passband_hz:
+    # "Frequenzbereich: 70 - 17.000 Hz +/- 3 dB ueber Systemcontroller" — the controller is part of the system
+    # rather than an extension of it, so this is the cabinet's stated range.
+    low_hz: 70
+    high_hz: 17000
+    provenance: datasheet
+  drivers:
+    - { size_in: 12, type: woofer, count: 2 }
+    - { size_in: 1.5, type: compression-driver, count: 1 }
+
+mesh_override: null
+
+notes: |
+  2-way active fullrange top, switchable to passive as the EF6p (66 kg in that version). GFK fullrange coaxial
+  horn across the whole cabinet front, constant directivity. 12" voice coils 76 mm, 1.5" compression driver
+  75 mm. Impedance 8 Ohm low-mid and 8 Ohm mid-high, 8 Ohm fullrange passive. Power 1000 W programme /
+  2000 W peak low-mid and 160 W / 640 W mid-high. Sensitivity 109 dB low-mid and 112 dB mid-high at 1 W / 1 m,
+  146 dB peak at 1 m at 1200 Hz. Connectors 2x Speakon NL-4.
+
+  Coverage is stated as 55 x 40 degrees at -6 dB between 600 and 10000 Hz, which is a narrower band than the
+  passband and is the figure the array design rests on.
+
+  No baffle layout: the front is one coaxial horn mouth across the whole face, and neither its mouth size nor
+  its flare law is published. Modelling it would be inventing it.

@@ -95,7 +95,17 @@ final class SceneCompiler
                 continue;
             }
 
-            $target = $placement->aimAt ?? ($placement->aimFocus === null ? null : $focusPoints[$placement->aimFocus]);
+            // **A PLACEMENT'S OWN FOCUS BEATS THE SCENE'S, AND IS MEASURED FROM THE PLACEMENT.** Everything above
+            // resolved the scene's focus points once, from the *rig's* front centre, which is right for a cluster
+            // and its near-fills and wrong for two systems standing side by side. A placement that states its own
+            // is stating "ten metres in front of **me**". See {@see withOwnFocus}, which does the same thing one
+            // level down for the cabinets a `stack:` expands into.
+            $own = $placement->aimFocus === null ? null : ($placement->focusByName[$placement->aimFocus] ?? null);
+            $target = $placement->aimAt ?? match (true) {
+                $own !== null => $own->point($this->frontCentre([$placement])),
+                $placement->aimFocus === null => null,
+                default => $focusPoints[$placement->aimFocus],
+            };
             // An arc's radius depends on how far the cabinets are tilted, and the tilt depends on where
             // they stand — so the arc is solved at the tilt of its anchor, which stands on `at` facing
             // straight ahead. Across a three-wide arc the individual tilts differ by 0.03°.
@@ -346,7 +356,8 @@ final class SceneCompiler
                     foreach ($solved['warnings'] as $warning) {
                         $warn("placement '{$placement->id}': {$warning}");
                     }
-                    array_push($expanded, ...$placement->stack->expand($placement, $solved['tiers']));
+                    $own = $placement->stack->expand($placement, $solved['tiers']);
+                    array_push($expanded, ...$this->withOwnFocus($placement, $own));
                     continue;
                 }
             }
@@ -357,6 +368,65 @@ final class SceneCompiler
         }
 
         return $expanded;
+    }
+
+    /**
+     * A stack's cabinets aimed at **its own** focus rather than at the rig's, where the placement states one.
+     *
+     * **A SCENE-WIDE FOCUS IS ONE POINT, AND THREE SOUND SYSTEMS STANDING SIDE BY SIDE DO NOT SHARE ONE.**
+     * {@see Focus::point} measures out from the *rig's* front centre, which is right for a cluster and its
+     * near-fills and wrong for `systems-apart`: the outer walls toe inward at a spot in front of the middle one,
+     * so three systems cover one patch of floor instead of each covering the room in front of it. That is what a
+     * render of the next event showed, and it is what `focus:` on a placement fixes.
+     *
+     * **Resolved to a point here rather than carried as a name**, because everything downstream reads
+     * {@see Placement::$aimAt} already and a second focus lookup one level down would be a second answer to
+     * "which focus does this cabinet mean". The point is computed from the expanded cabinets' own front face, so
+     * "10 m out at ear height" means ten metres in front of **this** wall.
+     *
+     * A placement with no `focus:` of its own is returned untouched, which is every hand-written scene: a fill
+     * beside a main cluster belongs to that cluster and aims where it aims.
+     *
+     * @param list<Placement> $expanded
+     * @return list<Placement>
+     */
+    private function withOwnFocus(Placement $placement, array $expanded): array
+    {
+        if ($placement->focusByName === []) {
+            return $expanded;
+        }
+
+        $frontCentre = $this->frontCentre($expanded);
+        $points = array_map(
+            static fn (Focus $focus): array => $focus->point($frontCentre),
+            $placement->focusByName,
+        );
+
+        $aimed = [];
+        foreach ($expanded as $copy) {
+            $point = $copy->aimFocus === null ? null : ($points[$copy->aimFocus] ?? null);
+            $aimed[] = $point === null ? $copy : new Placement(
+                id: $copy->id,
+                deviceId: $copy->deviceId,
+                at: $copy->at,
+                yawDeg: $copy->yawDeg,
+                pitchDeg: $copy->pitchDeg,
+                rollDeg: $copy->rollDeg,
+                aimAt: $point,
+                // **The name is dropped with the point put in its place**, because a placement carrying both is
+                // refused — see the validation that says naming `aim` and `aim_at` together is two answers.
+                aimFocus: null,
+                on: $copy->on,
+                fly: $copy->fly,
+                group: $copy->group,
+                aimLines: $copy->aimLines,
+                align: $copy->align,
+                stack: $copy->stack,
+                focusByName: $copy->focusByName,
+            );
+        }
+
+        return $aimed;
     }
 
     /**

@@ -56,6 +56,49 @@ final class SceneLoader
     }
 
     /**
+     * A scene's **key**: its path under `scenes/`, without the extension.
+     *
+     * **THE BASENAME STOPPED BEING UNIQUE IN 0.98.0 AND NOTHING NOTICED FOR A RELEASE.** The inventory moved out of
+     * the generated file name and into a folder, which was right, and from that moment 2072 generated scenes shared
+     * 589 basenames — 421 of those names belonging to two or more inventories at once. Everything that keys a scene
+     * by its `id` therefore keyed eleven different rigs the same way: `build/scenes/generated/<id>.blend` was written
+     * by whichever inventory sorted first, and the other ten were then found to have an artifact newer than their own
+     * source and were skipped as up to date. Silently, because a skipped rebuild looks exactly like a current one.
+     *
+     * **The key is the path because the path is the only thing that is unique for every scene in the repository.**
+     * Not the axis tuple: `scenes/` also holds twenty hand-written scenes and a pack, which have no axes, and an
+     * identity that exists for swept scenes alone is a second identity scheme rather than an identity.
+     *
+     * **The `id:` field inside the file keeps its job and loses the other one.** It is the label — what
+     * `scene:build` prints, what reaches Blender's log — and it is no longer what anything is filed under. Today
+     * every one of the 2092 scenes has an `id` equal to its basename, so the two agree wherever they are compared;
+     * the point is that only one of them is guaranteed to.
+     */
+    public function keyOf(string $file): string
+    {
+        $root = rtrim(str_replace('\\', '/', $this->scenesDir), '/').'/';
+        $path = str_replace('\\', '/', $file);
+        $relative = str_starts_with($path, $root) ? substr($path, strlen($root)) : basename($path);
+
+        return preg_replace('/\.ya?ml$/', '', $relative) ?? $relative;
+    }
+
+    /**
+     * The directory a scene sits in, relative to `scenes/` — `generated/sdwa5-sepp`, `packs`, or the empty string
+     * for a scene in the root.
+     *
+     * This is what every derived artifact's directory is composed from, so that a `.blend` and a `.png` are as
+     * unique as the scene they come from. See {@see \App\Command\BaseCommand::derivedDir}.
+     */
+    public function relativeDirOf(string $file): string
+    {
+        $key = $this->keyOf($file);
+        $slash = strrpos($key, '/');
+
+        return $slash === false ? '' : substr($key, 0, $slash);
+    }
+
+    /**
      * Whether this scene was written by `scene:stack` rather than by a person — which is to say, whether it lives
      * under `generated/`.
      *
@@ -97,23 +140,46 @@ final class SceneLoader
      * Finds a scene by id or by path, so `scene:build staudham` and
      * `scene:build scenes/staudham.yaml` both work.
      *
-     * @return array{scene: SceneSpec|null, known: list<string>}
+     * **A BARE ID IS NO LONGER UNIQUE AND THIS USED TO TAKE THE FIRST ONE IT SAW.** The inventory moved out of the
+     * generated file name and into a folder, which is right — a name inside a folder named after the system stated
+     * it twice — and it made ten different rigs share the basename
+     * `stacked-1-pooled--------free----turned--alternate-center-possible`. This method walked the file list and
+     * returned on the first match, so `scene:build` on that name built whichever inventory sorted first, silently,
+     * and a data provider keyed on those ids collapsed ten scenes into one. **A path always wins and is always
+     * unambiguous**, so the fix is to keep looking rather than to return early, and to hand an ambiguity back as
+     * one rather than resolving it by sort order.
+     *
+     * @return array{scene: SceneSpec|null, known: list<string>, ambiguous: list<string>} `ambiguous` holds the
+     *     matching paths when a bare id names more than one scene, and is empty otherwise
      */
     public function find(string $nameOrPath): array
     {
         $known = [];
+        $matches = [];
+        $wanted = realpath($nameOrPath);
+        // **The key is tried before the basename**, because it is the only form that always resolves: every scene
+        // has one and no two share one. `scene:build generated/gmss/stacked-1-…` is therefore always answerable,
+        // where the basename it ends with names ten other rigs as well.
+        $trimmed = preg_replace('/\.ya?ml$/', '', trim($nameOrPath, '/')) ?? $nameOrPath;
         foreach ($this->files() as $file) {
-            if ($file === $nameOrPath || realpath($file) === realpath($nameOrPath)) {
-                return ['scene' => $this->load($file), 'known' => $known];
+            if ($file === $nameOrPath || ($wanted !== false && realpath($file) === $wanted)) {
+                return ['scene' => $this->load($file), 'known' => $known, 'ambiguous' => []];
+            }
+            if ($this->keyOf($file) === $trimmed) {
+                return ['scene' => $this->load($file), 'known' => $known, 'ambiguous' => []];
             }
 
             $id = pathinfo($file, PATHINFO_FILENAME);
-            $known[] = $id;
+            $known[] = $this->keyOf($file);
             if ($id === $nameOrPath) {
-                return ['scene' => $this->load($file), 'known' => $known];
+                $matches[] = $file;
             }
         }
 
-        return ['scene' => null, 'known' => $known];
+        if (count($matches) === 1) {
+            return ['scene' => $this->load($matches[0]), 'known' => $known, 'ambiguous' => []];
+        }
+
+        return ['scene' => null, 'known' => $known, 'ambiguous' => $matches];
     }
 }

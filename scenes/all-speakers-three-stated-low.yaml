@@ -74,15 +74,15 @@ placements:
       from:
         - device: flexy-folded-horn-hybrid
           count: 6
-        - device: gmss-iq-sub
+        - device: iq-sub
           count: 6
         # ON THEIR SIDES, as in `gmss-full-stack.yaml`. Rolled, a nuke is 0.770 x 0.590 rather than 0.590 x 0.770,
         # so the pair makes a wider and lower row — which is what carries the tops above them. Upright, the 1.450 m
         # top row stood on a 1.230 m row and overhung 110 mm each side; turned, nothing in this stack overhangs.
-        - device: gmss-nuke
+        - device: nuke
           count: 2
           roll_mirror: 90
-        - device: gmss-turbo-top
+        - device: turbo-top
           count: 3
 
   # ─── C: everything that comes in ones and twos ────────────────────────────────────────────────────────────────
@@ -101,9 +101,9 @@ placements:
       from:
         - device: skram
           count: 2
-        - device: gmss-wall-bass
+        - device: wall-bass
           count: 2
-        - device: gmss-mid-bass
+        - device: mid-bass
           count: 1
         - device: eighteensound-2way-15
           count: 2

@@ -8,7 +8,7 @@ namespace App\Scene;
  * One cabinet the geometry checks object to, named rather than described.
  *
  * **Every check in this repository answers with a sentence and then throws the geometry away**, which is the wrong
- * way round for the failures that are hard to picture — and that is most of them. "A `gmss-turbo-top` would stand at
+ * way round for the failures that are hard to picture — and that is most of them. "A `turbo-top` would stand at
  * 4.668 m with nothing under it across x" took a debug dump, two probes and a corrected coordinate mapping to
  * understand. A picture with that one cabinet in a red cage says it in a second. The checks already know which
  * cabinet they object to; until now the answer was formatted into prose and the identity was lost with it.

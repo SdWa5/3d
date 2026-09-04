@@ -108,6 +108,14 @@ final class Stack
         public readonly MirrorStyle $mirrorStyle = MirrorStyle::Alternate,
         public readonly ?float $slideSlackM = null,
         public readonly float $targetSubHeightM = self::DEFAULT_TARGET_SUB_HEIGHT_M,
+        /**
+         * Where the lowest-reaching cabinets belong — as central as the rig allows, or as low as it allows.
+         *
+         * **Stated in the file and not only on the command line, because a `stack:` block is re-solved on every
+         * build.** An axis that existed at sweep time alone would come back as the default the first time
+         * anything rebuilt the scene, and the two variants would be one file. See {@see LowEndBias}.
+         */
+        public readonly LowEndBias $lowEnd = LowEndBias::Low,
     ) {
     }
 
@@ -115,7 +123,7 @@ final class Stack
     {
         $allowed = [
             'from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
-            'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m',
+            'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m', 'low_end',
         ];
         $unknown = $reader->unknownKeys($allowed);
         if ($unknown !== []) {
@@ -148,6 +156,12 @@ final class Stack
             // it. `.inf` is the value a solo stack carries, and YAML parses it to a float INF.
             slideSlackM: $reader->optionalFloat('slide_slack_m'),
             shape: self::shapeFrom($reader->optionalString('shape')),
+            lowEnd: LowEndBias::tryFrom($reader->optionalString('low_end') ?? LowEndBias::Low->value)
+                ?? throw new InvalidSpecException(sprintf(
+                    "stack.low_end: unknown value '%s' (allowed: %s)",
+                    (string)$reader->optionalString('low_end'),
+                    implode(', ', array_column(LowEndBias::cases(), 'value')),
+                )),
             mirrorStyle: MirrorStyle::tryFrom($reader->optionalString('mirror_style') ?? MirrorStyle::Alternate->value)
                 ?? throw new InvalidSpecException(sprintf(
                     "stack.mirror_style: unknown value '%s' (allowed: %s)",

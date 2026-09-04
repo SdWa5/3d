@@ -4,6 +4,349 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.104.0] - 2026-09-04
+
+The test suite, from 1 h 17 min to about 25.
+
+### Changed
+
+- **`BuildAllCommandTest`'s replay: 26 minutes to 34 seconds.** Replaying every generated scene's own recorded
+  command costs one solve per scene, and the set grew from 1374 to 2688 as the sweep gained three axes — a test
+  whose cost scales with the output of the thing it tests always ends up here. It replays a **sample with the seed
+  printed** now (`tests/Support/ReplaySample.php`): a fresh draw each run covers the set over a week, and
+  `SDWA5_REPLAY_SEED=…` repeats a failure exactly. **What is sampled is what gets replayed** — the
+  before-and-after comparison still walks the whole tree, because a stale check against a sample would call the
+  rest of the repository stale
+- **`ShippedScenesTest`: 25 minutes to 15, with the same 128 348 assertions.** It was two data-provider tests over
+  the same set, so every scene was compiled **twice** for two questions that read the same geometry. One compile,
+  both assertions, each keeping its own failure message
+- **`SceneStackCommandTest`: 12 minutes to 7.** 61 invocations that are about an alignment or a shape now state
+  `--low-end` instead of sweeping it, which is the same idiom those tests already use for the axes they are not
+  testing
+- **Two paths are behind `SDWA5_FULL_REPLAY=1`**, both costing a full pass over the tree and neither the only
+  cover for what it checks: the regenerate **stage** end to end, and `scene:build` with no argument — the scenes
+  it compiles are compiled every run by `ShippedScenesTest` to a stricter standard
+
+## [0.103.0] - 2026-09-04
+
+An eighth sweep axis: where the lowest-reaching cabinets belong.
+
+### Added
+
+- **`--low-end=central|low`**, and `low_end:` in a `stack:` block so a rebuild is faithful. `low` is what the
+  solver has always done — both SKRAMs side by side on the floor, straddling the centre line. `central` puts one
+  on the floor centre and the second **directly above it**, each flanked to the row's width
+- **A candidate the search did not previously contain.** The dealer takes as many of a type as the row budget
+  allows, so both SKRAMs went in one row and there was nothing to rank against it. Capping the type at one per row
+  is not enough either: that gives the cabinet a 0.61 m row of its own under a 3.6 m row, which fails the support
+  check and is never returned. `StackSolver::spreadRows()` builds the flanked version, obeying the same two rules
+  `mixedBottomRow()` does — the centre may not be shorter than its flanks, and the flanks come in pairs
+- Two measures weighted four to one, both `moment / mass` over the same cabinets — the shape `Stability::tips()`
+  already used — with the weight changed from how heavy a cabinet is to **how low it reaches**: the passband where
+  it states one, mass where it does not, under the guard `byFillOrder()` states in words
+
+### Changed
+
+- **`low` costs nothing, and that is the design rather than an omission.** The fill already deals the
+  lowest-reaching type first and it already lands on the floor, so pricing that re-ranked every rig in the
+  repository to express a preference they already satisfy — **eleven solver tests failed** when it did. It is also
+  declared first, so where the two values agree the deduplication keeps the `low` name and an unchanged rig is not
+  renamed to claim a preference it merely happens to satisfy
+- **The axis is measured, not assumed**: `central` differs on **7 rigs of 104** on the GMSS inventory and on none
+  of Sepp's eight cabinets. Where it changes nothing it writes nothing
+
+### Fixed
+
+- **Two things the first implementation got wrong, both found by measuring rather than by reading.** The centroid
+  was taken over every sub, so twelve Flexys drowned out two SKRAMs and the measure could not see the arrangement
+  it exists to choose — it is about the lowest-reaching type alone now. And it weighed a *run* at its own centre,
+  so a pair read as one lump at their midpoint and an arrangement with the pair shoved up a row and off to one
+  side scored as **more central** than the same pair straddling the middle on the floor. Each cabinet carries its
+  own distance now
+
+## [0.102.0] - 2026-09-03
+
+Each sound system aims at its own focus.
+
+### Added
+
+- **`focus:` on a placement**, in either of the two forms the scene's own takes, measured from **that placement's**
+  front face rather than the rig's. `scene:stack` writes one per wall for `systems-apart` and `tops-shared`, and
+  none for `pooled` — a pooled rig split into two or three stacks is one system in several piles and is aimed as
+  one cluster
+- The point is resolved at expansion and written into each cabinet as an ordinary `aim_at`, so nothing downstream
+  has to ask which focus a cabinet meant
+
+### Fixed
+
+- **Three systems standing side by side all aimed at one point in front of the middle one.** `Focus::point()`
+  measures out from the *rig's* front centre, which is right for a cluster and the near-fills beside it and wrong
+  for separated systems: measured on a two-wall rig, the outer wall's tops came out at **23° and 26° of yaw** when
+  they should have been facing straight ahead, so the systems covered one patch of floor between them instead of
+  each covering the room in front of it. Hand-written scenes are unaffected — a fill beside a main cluster belongs
+  to that cluster and aims where it aims
+
+## [0.101.0] - 2026-09-03
+
+Innschleife read the name mapping back and corrected most of it. A cabinet nobody had drawn now has a spec, two
+ids swapped, one lost its name again and one gained a manufacturer.
+
+### Added
+
+- **`sbh-18`, the one Innschleife cabinet no drawing shows and the only one whose dimensions its builders stated.**
+  "120 lang, 55 breit, 80 tief" — three edges, in centimetres, from the people who built it, which is a better
+  source than anything else in that folder. Upright it is 0.550 × 1.200 × 0.800; **they build it lying**, so four
+  side by side are **4.80 m of horn mouth**, which is what "als großes Horn" meant. Weight 106 kg is the modelled
+  volume at 200 kg/m³ and is the only number in the file nobody stated
+- **The sweep already contains the rig they described**, which is worth knowing before building a mechanism for
+  it: rolling the SBH makes it wider, so `--orientation=turned` and `--orientation=mixed` both lay it down. The
+  `mixed` variant of an Innschleife rig is the closest thing in the sweep to how they actually stack
+
+### Changed
+
+- **Two ids swapped, and the mapping that produced them is a lesson rather than a bug.** On 2026-09-02 Innschleife
+  listed four "SBH 18", four "WSX 18" and four "die blauen Kicker 15" — three sub types at four each — and the
+  three specs drawn from their setup drawings were three sub types at four each, so the names were mapped one to
+  one. **A mapping the numbers permit is not a mapping anybody confirmed.** The 0.600 × 0.600 box is a small
+  Electro-Voice wbin, `sbh-18` → `kicker-15`; the old `kicker-15` is neither the SBH nor the blue one and goes
+  back to a front-size id as `sub-95x57`
+- **`kicker-15` has a manufacturer and a colour, both stated**: "Electrovoice wbins, sind die blauen". `build`
+  becomes `original`, and the near-black #1D1D1D sampled off the drawing's photograph is replaced by a mid blue
+  standing in for a shade nobody has measured — **the third time in that folder a photograph's average has turned
+  out not to be a paint colour, and the first time one has been contradicted outright**
+- **`top-43x87` is `tms4`**: "Die kleinen sind Turbosound Tms4." First Innschleife cabinet with a manufacturer and
+  a model behind it rather than a livery somebody recognised
+- **`sub-95x57` is the one left over.** Four sub types where the statement listed three, so the roster names it at
+  **0** — a cabinet named at zero is one somebody decided to leave at home, where one left out of a roster is one
+  nobody thought about
+- **20 Innschleife cabinets, 1506 kg**, and 38 devices, 101 units and 6740.4 kg in the library
+
+### Fixed
+
+- **A published figure that contradicts a stated name is recorded as a contradiction rather than resolved.** The
+  published Turbosound TMS-4 is 1143 × 502 × 730 mm, which is `thl4`'s front to the millimetre — the cabinet
+  Innschleife call the THL-4 — while they call the 0.430 × 0.870 one the TMS-4. Either the names sit on the wrong
+  boxes, a drawn front is wrong by 270 mm, or the published figures are another revision. **No published figure
+  was copied into either spec**, because a Turbosound of a similar class was once let in as a size anchor for
+  `turbo-top` and came out 61 % too tall against the builder's own numbers
+
+## [0.100.0] - 2026-09-03
+
+SWP-3, all three asks, and a defect found while designing it that had been silently skipping rebuilds since 0.98.0.
+
+### Fixed
+
+- **A scene's identity is its path now, and eleven rigs were sharing one `.blend` before it was.** The inventory
+  became a directory in 0.98.0 and from that moment 2072 generated scenes shared **589 basenames — 421 of them
+  belonging to two or more inventories**. Everything downstream keyed a scene by its `id`, which is its basename, so
+  the first inventory in sort order wrote `build/scenes/generated/<id>.blend` and the other ten were then found to
+  have an artifact newer than their own source and **skipped as up to date**. The failure mode of a wrongly-keyed
+  artifact is a skipped rebuild, which looks exactly like a current one. Three places had already worked around it
+  by keying on the path — `SceneLoader::find()`, `ShippedScenesTest` and `BuildAllCommandTest` — so the repository
+  had decided; nothing had told `emit()`, `derivedDir()` or `prune()`
+- **Every derived artifact mirrors its scene's directory.** `scenes/generated/gmss/x.yaml` builds to
+  `build/scenes/generated/gmss/x.blend`, and the prune walks the derived tree recursively and matches by key. Its
+  four `glob()` calls were one level deep, which reads to a prune as "nothing derived exists"
+
+### Added
+
+- **`--group=NAME:owner+owner`, and `sdwa5` and `sepp` are one system by default.** `owner` is what a spec records
+  and is not quite the right discriminator: the two travel together and are what stands on a stage when this
+  collective plays. `systems-apart` read the owner field, so the rig for the next event came out as **four** walls
+  with Sepp's standing apart from ours. It is three now — `main-ours` at 25 cabinets, `main-psl` at 17,
+  `main-innschleife` at 14. Stated at invocation time rather than as a `system:` field on a spec, which is the
+  answer CVR-3 held out for: who owns a cabinet is a fact about the cabinet, who counts as one system is a fact
+  about one gig
+- **`--folders=<axis>[,<axis>…]`**, making any axis a directory level instead of a name field — `inventory`,
+  `stacks`, `systems`, `shape`, `orientation`, `mirror-style`, `align`, `feasibility`. A value appears in the path
+  or in the name and never in both, the nesting order is the order the name already reads in, and a directory
+  carries the raw value while the padding stays in the name
+- **The default layout is `inventory` alone, which is exactly the tree that already existed**, so the mechanism
+  shipped without moving a file. A non-default layout is recorded as `--folders=` in each scene's own line, because
+  what a replay is missing is not the values — every folder-able one is already in the line — but which axes are
+  folders
+- **The inventory axis is permanently a folder** and the ceiling is three levels. The inventory is the only axis
+  whose value cannot be recovered from a recorded line, and the cardinalities are 11 × 3 × 3 × 3 × 4 × 3 × 3 × 2, so
+  all eight would give more directories than files. A fourth is refused rather than silently produced
+
+### Changed
+
+- **Every option narrows one axis. None of them collapses the sweep.** `--from`, `--stacks` and `--per-owner` were
+  read as "the caller has one specific rig in mind", so **"sweep everything, but only two stacks" could not be
+  asked for**. It can: `--owner=gmss --stacks=2` writes 48 scenes with every other axis still walking
+- **A scene id carries the stack count and the separation, and `--id` records the base alone.** Both are rebuilt
+  from `--stacks` and `--systems`, and `--per-owner` is an alias rather than something a scene records — a flag can
+  only name one of the three separations and a replay has to name the one it was
+- **The default sweep writes 100 scenes rather than 271**, and that is the grouping doing its job: 171 of those
+  files were the separation axis solving our own system standing apart from itself. **1899 generated scenes across
+  eleven inventories**, down from 2072
+- **`src/Command/SceneStackCommand.php` is 1321 lines, down from 2357.** Seven collaborators, each taking the shape
+  the file's own docblock had already argued for — pure static, returns `array|string`, the command turns the string
+  into an error. `StackChecks` gained the height band, `StackSceneWriter` the block ordering, `SweepAxes` the rig
+  enumeration and the naming, and `CandidateCheck`, `FillOrder`, `StackDeal` and `RecordedCommand` are new
+- **`TODO.md` compacted from 1122 lines to 1020.** SWP-3 and CVR-3 are closed and deleted rather than ticked, and
+  GEO-5's and GEO-2's arguments are compacted to what a later measurement did not supersede
+
+## [0.99.0] - 2026-09-02
+
+Both borrowed systems said what they are bringing, which named four cabinets, proved a fifth exists and made the
+difference between what a system owns and what turns up a thing the sweep can express.
+
+### Added
+
+- **Rosters.** A file in [`rosters/`](rosters) states what one system brings to one event, as counts that override
+  the specs for one run: `bin/console scene:stack --owner=psl --roster=psl-next-event`. A spec's `quantity` is how
+  many exist and it stays that, because the catalog, the load plan and every weight total want exactly that number
+- **A roster overrides counts and nothing else**, so it composes: state Innschleife's counts and our own gear is
+  untouched, all of it. Two rosters in one run compose the same way, and two that disagree about one device are
+  refused rather than resolved — neither file is newer than the other, so there is nothing to prefer
+- **Zero is how a cabinet stays at home**, and naming it at zero is not the same as leaving it out, which means
+  "bring whatever the spec says". `psl-next-event` therefore carries eight zeros: "the following" means the
+  following
+- `--quantity DEVICE:COUNT` on `scene:stack`, the same statement typed at a shell for the question nobody will ask
+  twice. It wins over a roster where both name a device, being the newer of the two by construction
+- **A roster names the folder its scenes are written into**, and `--quantity` without `--into` is refused. Both
+  variants of one event are `--owner=innschleife`, so without a name of their own they would overwrite each other
+  and the plain Innschleife sweep as well. Every other axis is in the file name or the folder; a count is in
+  neither, and that is the one collision this command must not have
+- **The recorded regenerate line carries the counts, never the roster**, on the same argument the `--from` list is
+  written out on. A roster is a file somebody can edit, and recording `--roster=` would let a correction next week
+  silently rewrite last week's rigs under their old names
+- `scenes/generated/innschleife-next-event-thl4/` (71 scenes) and `scenes/generated/psl-next-event/` (16)
+- **`thl4`, the cabinet this repository refused to spec.** A purple 0.500 × 1.140 m box appears in the first two
+  revisions of the 06.12.25 Staudham drawing and in none after, and 0.98.0 left it unspecced because "a spec for a
+  box that may have been a draughting error would be worse than the question". Innschleife are bringing two of
+  them, so it is real, and a cabinet somebody plans to put in a van is not a draughting error. Depth 0.520 m from
+  `tecnare-m2122`, the same 0.500 m width and the same class; weight 59 kg by the 200 kg/m³ model and **probably
+  light**, since the Tecnare runs 272 kg/m³. `build: original` is the one assertion made, and it is the weaker of
+  the two available: a box called THL4 in Turbosound livery did not come off Innschleife's own drawing board
+- **1082 kg of Innschleife gear across 16 cabinets**, and 37 devices, 97 units and 6316.4 kg in the library
+
+### Changed
+
+- **Four of the five Innschleife cabinets are named.** `wsx-18`, `sbh-18`, `kicker-15` and `thl4` replace the front
+  sizes their ids used to carry. Three sub types at four each is exactly what the specs already said, so the
+  mapping the counts imply is the only one the numbers allow — and the WSX reading is better than that: the
+  published Martin Audio WSX is roughly 1100 × 545 × 890 mm, and this spec's 0.570 × 1.100 front was read off a
+  drawing with a 0.900 depth derived from our own horn subs months before anybody said the word
+- **The small tops keep their front-size id**, because "die kleinen Tops" is a description beside the THL-4 rather
+  than a name. It is the one cabinet of the five nobody has named
+- **Every borrowed system's ids lost their owner prefix.** `gmss-iq-sub` is `iq-sub`, `psl-thebox-pa302` is
+  `thebox-pa302`, and so on for 24 devices. A spec lives at `<category>/<owner>/<id>.yaml`, so an id repeating the
+  owner said it twice — the same redundancy 0.98.0 removed from the generated scene file names, in the place it
+  had been left. Our own and Sepp's ids never carried one, so this is the convention arriving rather than changing
+- **The mapping is second-hand and is going back to Innschleife**, and one piece of evidence pulls against it: the
+  "blauen Kicker" photograph averages near black. If a name comes back wrong the fix is another rename of the same
+  shape. [docs/requests.md](docs/requests.md) carries the open question
+- **PSL stated what they are bringing to the next event**, which is the first figure about that inventory that did not come
+  from a published package. The specs keep their sourced 6 and 4 — "brought to one gig" and "owned" are different
+  facts — and `docs/requests.md` carries the open question of how many they own, which it has since the
+  specs were written
+- **A spoken count outranks a drawing, and this one was misremembered.** The statement said "alle 4 kleinen Tops",
+  the ids and quantity were changed on exactly that principle, and reading the mapping back produced "small tops
+  nur 2x". The principle holds; the lesson is to read a count back before writing it down
+
+### Fixed
+
+- **A generated scene built from a roster did not state its counts, so rebuilding it produced a different rig.** A
+  `stack:` block is re-solved on every build and the writer only spells a count out when the share differs from
+  what the specs own — and a roster hands the command specs it has already rewritten, so twelve of twelve ESX
+  looked like the whole inventory and took the shorthand. Loading that file back reads the spec on disk, which
+  says six. **Two of the sixteen PSL scenes came out with a cabinet standing on nothing, under a `-possible`
+  name**, because the writer had checked the rig it meant rather than the rig it wrote. A count that came from a
+  roster is now always written
+- **`SceneLoader::find()` returned the first file whose basename matched, and basenames stopped being unique in
+  0.98.0.** Ten inventories each hold a
+  `stacked-1-pooled--------free----turned--alternate-center-possible.yaml` now, so `scene:build` on that name
+  built whichever inventory sorted first, silently. A bare id that names more than one scene is reported as the
+  ambiguity it is, with the paths, and a path still resolves as before
+- **`ShippedScenesTest` was checking nine scenes and reporting that it checked every one.** Its data provider was
+  keyed on the same non-unique id, and PHPUnit refuses duplicate keys — which is how this surfaced. Keyed on the
+  path it runs **2735 cases** instead of 9, and that is what caught the two floating cabinets above
+
+## [0.98.0] - 2026-09-02
+
+Two more sound systems, and the sweep stopped enumerating inventories because five owners is where that stops
+working.
+
+### Added
+
+- **PSL, ten specs, every figure `datasheet`.** PSL is Pro Sound & Light in Paunzhausen, a rental company rather
+  than a crew, and they publish the full technical data for the whole inventory they hire out. So unlike GMSS this
+  is a borrowed system whose dimensions and weights are sourced on both axes: the Concert Audio EVOLUTION trio
+  (EF 6, ESF, ESX), five the box pro cabinets, one the box, one HK Audio. **22 cabinets, 1280.7 kg**
+- **The EF 6 and the ESF are the same trapezoid**, 588 mm across the front and 224 across the back, and the source
+  says so in words as well as figures — "identische Abmessungen wie EF-6 System". Repeating a dimension is normally
+  a warning sign in a spec; here it is the point, because the two stack and fly interchangeably
+- **The ESX is drawn on its side and specced upright**, which looked like a contradiction and is not: the datasheet
+  says 1180 × 590 × 915 (H × B × T) and our own setup drawing shows it 118 cm wide by 59 high with the two 18″ side
+  by side. Same box, rolled 90°, which is what `--orientation=turned` already produces. At **33 Hz** it is the
+  lowest-reaching cabinet anybody here publishes a figure for, so `Passband::orderingLowHz()` puts it under PSL's
+  own ESF
+- **Innschleife, four specs, and not one of them is named.** They publish nothing, so the only source in existence
+  is two Staudham setup drawings in our Drive which embed one photograph per cabinet type at **1 px = 1 cm** — a
+  scale the owner states outright. Front width and height are therefore read rather than inferred, and depth,
+  weight, drivers, coverage and counts have no source at all. **14 cabinets, 964.0 kg**
+- Each Innschleife id is its own front size (`innschleife-sub-57x110` and so on) until somebody reads a badge. The
+  rename will cost a file move, an id change and a sweep regeneration, and that price was taken deliberately: a
+  spec that exists can be rendered and argued with, and the GMSS reconstruction is what made the right questions
+  askable
+- **[docs/requests.md](docs/requests.md)**, one row per missing figure with what reads it, so a spec's weakest
+  field is a question somebody can answer rather than a footnote nobody reads. Rows are deleted rather than ticked,
+  like `TODO.md`
+- `--into=NAME` on `scene:stack`, naming the subdirectory of `scenes/generated/` to write into. A replay needs it:
+  the recorded line names cabinets rather than owners, so it has no inventory to derive
+- **SCN-10**, the front-face image, filed with its design rather than built. The material already exists — PSL's
+  `PSL_Subs_px.png` is a front face at 1 px = 1 cm — and four Innschleife cabinets currently differ only in their
+  bounding box
+
+### Changed
+
+- **The sweep builds one inventory instead of every combination of owners.** Stated by the owner: it is always run
+  against a subset, and the default subset is our gear and Sepp's pooled as one rig. A bare `scene:stack` writes
+  **271 scenes**. The powerset was seven inventories for three owners and would have been **31** for five, 26 of
+  them multi-system rigs nobody will ever build, past the fuse before writing a file
+- **What the powerset bought is kept as the default rather than re-derived every run.** Its finding was that a
+  borrowed rig writes more scenes than any single owner, because Sepp's six Achenbachs cannot stand alone and are
+  excellent under somebody else's tops. That answer was worth having once
+- **The inventory is a directory now and has left the file name.** `scenes/generated/sdwa5-sepp/stacked-2-…` rather
+  than `scenes/generated/stacked-sdwa5-sepp--2-…`, which is SWP-3's rule that an axis value appears in the path or
+  in the name and never in both — **the system name inside a folder named after the system stated it 271 times over**
+- **That also removes a trap rather than just a redundancy.** The owner column was padded to the widest label the
+  *specs* could produce, deliberately, so that a narrowed run and a full sweep named the same rig identically.
+  Speccing a fifth owner would therefore have renamed all 1374 committed scenes without changing one rig.
+  `SweepAxes::labelWidth()` is deleted
+- **`all` is gone as a label.** A subset covering every owner was called `all`, which was shorter and stayed
+  correct exactly as long as the owner list did: it meant three systems and 39 cabinets, and two more specs later
+  the same word meant five systems and 95 units. Every one of the 331 files carrying it described a rig that no
+  longer had that name. `gmss-sdwa5-sepp` means the same rig whoever gets specced next
+- **All 1374 generated scenes were regenerated into eight folders and every per-inventory count came out
+  identical** — 271, 311, 308, 331, 97, 49, 7. That is the check that the change is a rename and not a different
+  sweep
+- **Silence means the default inventory on the named-rig path too.** A bare `--per-owner` used to mean every owner,
+  which with five owners stood five systems side by side, four of them borrowed, from a command line that says
+  nothing about whose gear
+- `load:plan` and `scene:pack` are documented with `--owner=sdwa5 --owner=sepp` rather than
+  `--exclude-owner=gmss`. **A blacklist of borrowed systems grows every time somebody lends us a rig; a whitelist
+  of the two that travel with us does not** — and the blacklist had already gone wrong silently, quietly planning
+  2.2 tonnes of PSL and Innschleife gear into our two vans
+- `bin/console --version` reads `composer.json`, and `docs/inventory.md` was rewritten: it still said "all five
+  enclosures listed as owned" and had never gained GMSS
+
+### Fixed
+
+- **`BuildAllCommand` globbed the generated set flatly in four places**, which the new directory level would have
+  broken silently in the worst possible direction: the replay would have found nothing to replay, the stale check
+  nothing stale, and `prune()` would then have deleted every derived artifact on the grounds that its scene no
+  longer existed. One recursive helper answers all four
+- **The fleet's shortfall was three different numbers across three files and all three were stale.** Re-measured:
+  the two vans and the trailer carry our two systems' gear with **340.5 kg spare**, and the same plan including
+  Sepp's 465 kg generator is **134.9 kg short** with three devices left behind. So the shortfall is the generator
+  rather than the gear, which is not what any of `README.md`'s 214.5 kg, `docs/load.md`'s 129.5 or `TODO.md`'s
+  148.2 said
+- `LoadPlannerTest` filtered the fleet with `owner !== 'gmss'` and **still passed** once PSL and Innschleife were
+  specced, because a fleet that is already short stays short. It names the two owners that travel now
+
 ## [0.97.0] - 2026-09-02
 
 The spec tree grew a second level, because two more systems were about to land in a flat folder of ten files.

@@ -13,12 +13,12 @@ use App\Spec\DeviceSpec;
  * a cabinet count with a width for a good reason: one integer applied to every device at once meant `perRow: 7` was
  * seven Flexys at 4.3 m *and* seven mid-bass at 8.5 m, and no setting of it expressed "as many of each as fit 4.40 m",
  * which is 7 Flexys and 3 mid-bass. Our cabinets run 0.45 m to 1.200 m, so a count stopped standing in for a width the
- * day `gmss-mid-bass` arrived.
+ * day `mid-bass` arrived.
  *
  * **But deleting the count cost 49 rigs**, and that is the same shape of loss CVR-8 caused by deleting the width
  * ladder: a mechanism built for one reason turning out to be load-bearing for a second nobody wrote down. A count says
  * "the same number of every type", a width says "the same metres of every type", and an arrangement like
- * `2× gmss-nuke + 1× gmss-mid-bass` is reachable from the first and from no value of the second. Every one of the 49
+ * `2× nuke + 1× mid-bass` is reachable from the first and from no value of the second. Every one of the 49
  * was refused on bearing rather than on the search running out, so they were arrangements the search could no longer
  * propose at all.
  *

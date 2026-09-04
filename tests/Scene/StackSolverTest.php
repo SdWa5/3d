@@ -28,8 +28,8 @@ final class StackSolverTest extends TestCase
 {
     /** Every speaker in the library, in the order the command deals them. */
     private const EVERY_SPEAKER = [
-        'gmss-wall-bass', 'gmss-mid-bass', 'skram', 'flexy-folded-horn-hybrid', 'gmss-nuke', 'achenbach-18',
-        'gmss-iq-sub', 'tecnare-m2122', 'gmss-turbo-top', 'eighteensound-2way-15',
+        'wall-bass', 'mid-bass', 'skram', 'flexy-folded-horn-hybrid', 'nuke', 'achenbach-18',
+        'iq-sub', 'tecnare-m2122', 'turbo-top', 'eighteensound-2way-15',
     ];
 
     /** @var array<string, DeviceSpec> */
@@ -1187,14 +1187,14 @@ final class StackSolverTest extends TestCase
      */
     public function testAPyramidPutsTheWidestRowMakingTypeOnTheFloor(): void
     {
-        $ids = ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub', 'tecnare-m2122'];
+        $ids = ['wall-bass', 'mid-bass', 'iq-sub', 'tecnare-m2122'];
 
         $free = $this->solveTo($ids, maxWidthM: 3.80, maxSubHeightM: 3.0, shape: StackShape::Free);
         $pyramid = $this->solveTo($ids, maxWidthM: 3.80, maxSubHeightM: 3.0, shape: StackShape::Pyramid);
 
         self::assertSame([], $pyramid['problems']);
-        self::assertStringContainsString('gmss-wall-bass', $free['tiers'][0]->label());
-        self::assertStringContainsString('gmss-iq-sub', $pyramid['tiers'][0]->label());
+        self::assertStringContainsString('wall-bass', $free['tiers'][0]->label());
+        self::assertStringContainsString('iq-sub', $pyramid['tiers'][0]->label());
 
         // 2.070 m, and it went 2.070 → 2.570 → 2.070 across two releases for two different reasons that are worth
         // keeping apart. `target_sub_height_m` took it to 2.570, because the pyramid had several arrangements that
@@ -1219,14 +1219,14 @@ final class StackSolverTest extends TestCase
     public function testACraterIsRefusedAndAShoulderIsNot(): void
     {
         $crater = $this->solveTo(
-            ['gmss-wall-bass', 'gmss-mid-bass', 'gmss-iq-sub'],
+            ['wall-bass', 'mid-bass', 'iq-sub'],
             maxWidthM: 3.80,
             maxSubHeightM: null,
         );
         foreach ($crater['tiers'] as $tier) {
             // The mid bass never ends up flanked on both sides by a wall bass.
             self::assertDoesNotMatchRegularExpression(
-                '/gmss-wall-bass.*gmss-mid-bass.*gmss-wall-bass/',
+                '/wall-bass.*mid-bass.*wall-bass/',
                 $tier->label(),
             );
         }

@@ -14,11 +14,11 @@ The filename must equal the `id`. Validate with `bin/console specs:validate`.
 ## Full example
 
 ```yaml
-id: top-a                     # lowercase-dashes; must match the filename
+id: top-a                     # lowercase-dashes; must match the filename, must not repeat the owner
 name: "Top A"                 # human label, shown in the catalog and asset browser
 category: speaker             # speaker | truss | rack | stand | vehicle | other
 subtype: top                  # see the category table below
-quantity: 2                   # how many of these exist
+quantity: 2                   # how many of these exist — see rosters/ for how many turn up
 owner: sdwa5                  # default sdwa5; lowercase-dashes. Borrowed gear names its owner
 build: self-built             # self-built | own-design | original
 carried_on: null              # optional: the id of the ONE transporter this may ride on. See below
@@ -125,14 +125,36 @@ both driven from 38 Hz, and the one that stops sooner (Flexy at 200 Hz against t
 more sub-like of the two, so it belongs lower. A spec with no passband at all sorts last within its band and
 falls back to how much row the device can make.
 
-The gear list as it stands — the tops carry no passband, because nothing needs one: subs always go below tops,
-and the tops all share a single row ordered by width.
+The gear list as it stands. **Ours carry none on the tops**, because nothing needs one: subs always go below
+tops, and the tops all share a single row ordered by width. PSL's cabinets carry one on every device, tops
+included, because PSL publish theirs — a passband is recorded when there is a source for it rather than when
+the solver happens to need it.
 
 | Device | Covers | Driven from |
 |--------|--------|-------------|
 | `skram` | 15 – 120 Hz | — |
+| `thebox-tp218-1600` | 34 – 150 Hz | — |
+| `thebox-tp118-800` | 35 – 150 Hz | — |
+| `concert-audio-esx` | 33 – 220 Hz | **38 Hz** |
 | `flexy-folded-horn-hybrid` | 38 – 200 Hz | — |
 | `achenbach-18` | 35 – 1500 Hz | **38 Hz** |
+| `concert-audio-esf` | 37 – 220 Hz | **40 Hz** |
+| `thebox-pa302` | 40 – 20 000 Hz | — |
+| `thebox-achat-112m` | 60 – 18 000 Hz | — |
+| `thebox-achat-115m` | 60 – 17 000 Hz | — |
+| `concert-audio-ef6` | 70 – 17 000 Hz | — |
+| `hk-linear5-112x` | 79 – 18 000 Hz | — |
+
+**Sorted by what the solver sorts on**, which is `driven_from_hz` where it exists and `low_hz` otherwise — so the
+ESX's 33 Hz reads out of order and sits above the Flexy in a stack, because it is driven from 38 like the
+Achenbach. The SKRAM goes lowest of everything on 15 Hz, having no operating corner stated to override it. PSL's
+ESX is nevertheless the deepest cabinet anybody here *publishes* a figure for.
+
+**Nine of our own and every GMSS and Innschleife cabinet have no passband at all**, and that is a refusal
+rather than a gap. GMSS's builder stated dimensions and weights and no frequencies; Innschleife's cabinets are
+known from a photograph. A spec with no passband sorts last within its band and falls back to how much row the
+device can make, so those cabinets are ordered by size — which is a worse answer than a frequency and a much
+better one than an invented frequency.
 
 ### The coverage cone
 

@@ -29,27 +29,58 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 2, owner, 60–20000 Hz, 550 W |
 | `achenbach-18` | Achenbach 18 | `cad` | `Achenbach 18/Achenbach 18.FCStd` | Panel geometry: 600 × 700 × 18 top/bottom, 18 × 700 × 564 sides → 0.600 × 0.600 × 0.700 m |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 4, owner, driver B&C 18TBW100, 35–1000 Hz, 1000 W |
-| `gmss-iq-sub` | — (GMSS self-build) | — | **The owner of GMSS**, answering questions about `GMSS.jpeg` | "6 IQ subs: 53w, 56d, 67h, 40kg each" — count, all three dimensions and the weight |
+| `iq-sub` | — (GMSS self-build) | — | **The owner of GMSS**, answering questions about `GMSS.jpeg` | "6 IQ subs: 53w, 56d, 67h, 40kg each" — count, all three dimensions and the weight |
 | | | | An earlier message from GMSS | "8 turbo subs 3000rms" — now known to cover **two** cabinets, 6 IQ subs + 2 nukes, so the power rating cannot be attributed to either |
 | | | | `GMSS.jpeg`, one site photo, no scale reference | Which cabinets these are: the six grille-fronted boxes with a blue illuminated logo, **three to an outer column** |
-| `gmss-nuke` | — (GMSS self-build) | — | **The owner of GMSS** | "2 nukes: 59w, 70d, 77h, 58kg each", and that the outer bottom-row boxes are turbo subs — "the ones on the outside of the bottom row are also turbo subs" |
+| `nuke` | — (GMSS self-build) | — | **The owner of GMSS** | "2 nukes: 59w, 70d, 77h, 58kg each", and that the outer bottom-row boxes are turbo subs — "the ones on the outside of the bottom row are also turbo subs" |
 | | | | `GMSS.jpeg` | Which cabinets these are: the two on the ground at the foot of each outer column, **no grille**, plain face with a recessed oval. Previously mis-read as the mid bass |
-| `gmss-wall-bass` | — (GMSS self-build) | — | **The owner of GMSS** | "2 wall basses: 66w, 100d, 140h, maybe 220kg each" — count and dimensions stated, the **weight hedged by him** |
+| `wall-bass` | — (GMSS self-build) | — | **The owner of GMSS** | "2 wall basses: 66w, 100d, 140h, maybe 220kg each" — count and dimensions stated, the **weight hedged by him** |
 | | | | An earlier message from GMSS | "Middle subs are 18/1600rms" — an 18″ driver and 1600 W RMS, tied to this cabinet by elimination across the two messages |
 | | | | `GMSS.jpeg` | Which cabinets these are: the pair of fin-mouthed folded horns standing in the centre of the stack |
-| `gmss-mid-bass` | — (GMSS self-build) | — | **The owner of GMSS** | "USB: 120w, 60d, 50h, ~120kg" (weight **hedged**), and the identity: asked which box the mid bass is, "That's the mid bass (usb)" of the horn in the middle. So **one** cabinet, not two |
+| `mid-bass` | — (GMSS self-build) | — | **The owner of GMSS** | "USB: 120w, 60d, 50h, ~120kg" (weight **hedged**), and the identity: asked which box the mid bass is, "That's the mid bass (usb)" of the horn in the middle. So **one** cabinet, not two |
 | | | | An earlier message from GMSS | "USB 2x 700rms mid bass" — two drivers at 700 W RMS. Their size is not stated, nor is what "USB" refers to |
 | | | | `GMSS.jpeg` | Which cabinet this is: the single wide cross-braced horn mouth lying across the two wall basses. Its stated 1.20 m spans the 1.32 m pair, which is what makes one cabinet certain rather than merely allowed |
-| `gmss-turbo-top` | — (GMSS self-build) | — | **The owner of GMSS** | "Tops: 45w, 38d, 71h, 26kg each" — dimensions and weight, **neither hedged**. No count |
+| `turbo-top` | — (GMSS self-build) | — | **The owner of GMSS** | "Tops: 45w, 38d, 71h, 26kg each" — dimensions and weight, **neither hedged**. No count |
 | | | | An earlier message from GMSS | "3 turbo top 2500rms" — the count and the power rating. Still the only source for `quantity: 3`, though the photo appears to show **four** |
 | | | | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), [manual](https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt) | 1143 × 502 × 730 mm and 74.8 kg — used as a size anchor before the owner's figures arrived and **contradicted by them**: 61 % too tall, nearly 3× too heavy. Kept as a rejected line of reasoning |
+| `concert-audio-ef6` | — (factory cabinet) | `datasheet` | **[PSL's own published technical data](https://pro-sound-light.de/equipment/tontechnik/)**, retrieved 2026-09-02 | "780 x 588 / 224 x 720 mm (H x B x T)", 65 kg, 2× 12″ with 76 mm coils, 1.5″ compression driver with a 75 mm coil, 70–17 000 Hz ±3 dB, 55° × 40° at −6 dB from 600–10 000 Hz, 8 Ω per section, 1000 W programme low-mid and 160 W mid-high, 109/112 dB sensitivity, 146 dB peak. **The two widths are the front and back faces**, which is what makes it a trapezoid |
+| | | | `setups/PSL_SdWa5_Kraut_26_05_23/`, our own drawing at 1 px = 1 cm | Independent confirmation of 0.59 × 0.78 m to the centimetre, and the **white** finish — the catalogue's own is black |
+| | | | The "Hornsystem Mod" package, same site | **Quantity 4**: "vier Horntopteile", agreeing with the four the drawing places |
+| `concert-audio-esf` | — (factory cabinet) | `datasheet` | Same PSL page | "identische Abmessungen wie EF-6 System" **in words as well as in figures**, then the same 780 × 588/224 × 720 mm. 46 kg, 1× 18″ long-throw with a 100 mm coil, 40–220 Hz −6 dB and 37 Hz with the controller, 8 Ω, 1400 W programme, 96 dB / 131 dB peak. Radial pattern, so no coverage figure |
+| | | | The "Evolution Mod System 1" package | **Quantity 2**, a package floor. This cabinet appears in none of our drawings |
+| `concert-audio-esx` | — (factory cabinet) | `datasheet` | Same PSL page | "1180 x 590 x 915 mm (H x B x T o. Rollen)", 94 kg, 2× 18″ with 100 mm coils, 38–220 Hz −6 dB and 33 Hz with the controller, 39 Hz resonance, 2 × 8 Ω, 2800 W programme, 99 dB / 138 dB peak, 18 mm birch ply, ten metal handles, four 100 mm castors, 2 mm mesh grille at 70 % over acoustic foam. **The depth excludes the castors** |
+| | | | `setups/PSL_SdWa5_Kraut_26_05_23/` | **Quantity 6**, agreeing with the "Hornsystem Mod" package's "sechs Hybrid-Horn Subwoofer". The drawing has them **rolled**, 118 wide by 59 high, which is the same box on its side |
+| `thebox-achat-112m` | — (factory cabinet) | `datasheet` | Same PSL page | 360 × 600 × 365 mm, 21 kg, 12″ + 1.4″ neodymium with a 3″ coil, 60–18 000 Hz, 60° × 40° rotatable, 8 Ω, 350 W RMS, 131 dB max. **The axis order is not stated for this one entry** and is read as width × height × depth, which is the page's usual order and the only reading that holds a 12″ driver |
+| | | | Bundles 1, 2 and 3, same site | **Quantity 2**, a floor. Three packages each name two, which bounds nothing since Bundle 3 shows the packages are not disjoint |
+| `thebox-achat-115m` | — (factory cabinet) | `datasheet` | Same PSL page | "(B x T x H): 436 x 438 x 766 mm" — **depth in the middle**, stated. 32 kg, 15″ + 1.4″, 60–17 000 Hz, 60° × 40°, 350 W RMS, 131 dB max |
+| `thebox-dsp-112` | — (factory cabinet) | `datasheet` | Same PSL page | "(B x H x T): 348 x 607 x 355 mm", 14.6 kg **including its amplifier**, 12″ + 1″ with a 1.4″ coil, 300 W RMS class-D, DSP with four presets, 134 dB max, 90° × 60°. **No frequency range is published**, so the spec carries no passband |
+| `thebox-pa302` | — (factory cabinet) | `datasheet` | Same PSL page | "(H x B x T): 61,5 x 42 x 39 cm", 18.6 kg, 12″ plus a horn with a 44 mm titanium driver, 40–20 000 Hz, 55° × 55–100° VCD, 300 W RMS, 121 dB max, moulded PP cabinet, three M8 points on top. **44 mm is a voice coil**, not a throat, so the HF driver is not in `audio.drivers` |
+| `thebox-tp118-800` | — (factory cabinet) | `datasheet` | Same PSL page | "(B x H x T): 55 x 61,8 x 68 cm ohne Rollen", 37 kg, 1× 18″, 35–150 Hz at **−3 dB** rather than the −6 dB the Concert Audio cabinets are quoted at, 8 Ω, 600 W RMS, 96 dB / 129 dB peak |
+| | | | Bundles 1 and 3 | **Quantity 2**, a floor |
+| `thebox-tp218-1600` | — (factory cabinet) | `datasheet` | Same PSL page | "(H x B x T): 1200 x 550 x 680 mm", **82 kg net** (90 kg shipping, which includes the pallet), 2× 18″, 34–150 Hz with no low-pass, 4 Ω, 1600 W AES, 100 dB / 136 dB max, twelve handles, 100 mm castors. The equipment page calls it **MkIII** and the package pages **MK2** with identical figures |
+| | | | Bundles 2 and 3 | **Quantity 2**, a floor |
+| `hk-linear5-112x` | — (factory cabinet) | `datasheet` | Same PSL page, which reproduces **HK's own data table** | "(BxHxT): 37 x 66,8 x 30 cm", 19.5 kg, 12″ with a 2.5″ coil + 1″ with a 1.75″ coil, −6 dB 79 Hz–18 kHz (−10 dB 60 Hz–19 kHz), 8 Ω per EN 60268-5, 103 dB, 129 dB average and 135 dB peak, crossover 1.7 kHz. **The page carries two coverage figures**, 60° × 40° in the sales copy and 60–90° asymmetric × 55° in the table. The table is used |
+| `wsx-18` | — (unidentified) | — | `setups/Staudham_Sdwa5_Innschleife_06_12_25/` and `setups/06.12.25 Staudham/`, **one embedded photograph per cabinet type at 1 px = 1 cm**, a scale stated by the owner | Front **0.570 × 1.100 m** and nothing else. Mid grey, a wide curved horn mouth over four cells. Placed on the ground beside our Flexy subs, which is what makes it a `sub`. Four copies drawn |
+| | | `estimated` | Depth **0.900 m** by analogy with our own horn subs (Flexy 0.964, SKRAM 0.813, Achenbach 0.700) | The deepest class we have figures for, at the deep end because it is the tallest |
+| | | `estimated` | Weight **110 kg**, modelled volume at 200 kg/m³ | This library's central density. Twenty cabinets run 139–333 kg/m³, mean 212, and the wooden horn subs sit at 196–199 |
+| `sub-95x57` | — (unidentified) | — | Same two drawings | Front **0.950 × 0.570 m**. Near black, two horn mouths side by side. Placed above the Achenbach row and under the tops, which is a mid-bass position. Four copies drawn. **The one Innschleife cabinet nobody has named**, and the one their event statement did not mention |
+| `sbh-18` | — (name only) | — | **Innschleife, 2026-09-03: "120 lang, 55 breit, 80 tief"** | The only Innschleife cabinet no drawing shows, and the only one whose three edges the builders stated. Upright it is 0.550 × 1.200 × 0.800; they build it **lying**, so four side by side are **4.80 m of horn mouth** — "als großes Horn". Weight 106 kg is the modelled volume at 200 kg/m³ and is the one number here nobody stated |
+| | | `estimated` | Depth **0.600 m** from `mid-bass` (1.200 × 0.500 × 0.600), the one cabinet here of the same shape; weight **65 kg** at 200 kg/m³ | |
+| `kicker-15` | Electro-Voice wbin, model unknown | — | The two drawings, plus Innschleife on 2026-09-03: *"Electrovoice wbins, sind die blauen"* | Front **0.600 × 0.600 m**, four-cell face. **Exactly `achenbach-18`'s front**, and drawn with a *different* symbol in the same drawing, which is what proves it is a different cabinet. Four copies drawn, in the outboard columns. **The manufacturer and the colour are stated; the model and whether it is factory or built to EV's published W-bin plans are not** |
+| | | `estimated` | Depth **0.700 m** from `achenbach-18`'s identical front; weight **50 kg** at 200 kg/m³, which lands on the Achenbach's own estimate | The strongest analogy in this set, and still an analogy. One piece of evidence rather than two, since both derivations start from the same box |
+| `tms4` | — (unidentified) | — | Same two drawings | Front **0.430 × 0.870 m**. **Purple with a script logo**, four stacked sections, a round horn mouth at the top. Two copies in the top row of the right-hand column, mirroring our two Tecnare on the left |
+| | | `estimated` | Depth **0.430 m** from `eighteensound-2way-15` (0.466 × 0.836 × 0.427), the nearest front; weight **32 kg** at 200 kg/m³ | For scale, the 18sound at nearly the same volume is 41 kg and `turbo-top` at two thirds of it is 26 |
+| | | — | [Turbosound TMS-3](http://www.warehousesound.com/turtms3.php) | **A rejected identification, recorded so it is not tried again.** The purple livery is Turbosound's, but the TMS-3 is 1019 × 844 × 578 mm and 134 kg, nothing like this cabinet. A brand is not a model |
+| `thl4` | — (name unconfirmed) | — | The **first two revisions only** of `setups/Staudham_Sdwa5_Innschleife_06_12_25/`, two copies, plus Innschleife's own statement of 2026-09-02 that they are bringing two | Front **0.500 × 1.140 m**. Purple, like the small top. Gone from every later drawing revision, which is why it went unspecced until the statement proved it real rather than a draughting correction |
+| | | `estimated` | Depth **0.520 m** from `tecnare-m2122` (0.500 × 0.960 × 0.520), **the same width to the millimetre** and the same class, a big multi-way top; weight **59 kg** at 200 kg/m³ | The weight is the least trustworthy figure in the spec and is probably light: the Tecnare runs 272 kg/m³, which would put this box at 81 kg |
+| | | — | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), 1143 × 502 × 730 mm and 74.8 kg | **A match to the millimetre that identifies nothing, recorded so it is not mistaken for a source, and it carries two figures this spec deliberately does not use.** The owners call it a THL-4 and the drawn front is the TMS-4's published size exactly, so its published depth of **730 mm** and weight of **74.8 kg** are candidates for the 0.520 m and 59 kg derived above. They are not adopted, because THL-4 and TMS-4 are two designations from one manufacturer and this repository has already been burned by letting a same-class Turbosound set a cabinet's size — that is the `turbo-top` line above, 61 % too tall. **If the badge confirms the model, those two numbers replace the derivation in one edit**, and the direction is worth knowing meanwhile: both are larger than what the spec states |
 | `truss-f33-2m` | — (factory truss) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, Thomann article 267121, supplied by the owner 2026-08-17 | **Global Truss F33200 identified outright.** 2.0 m, tube spacing 290 mm outer, chord Ø 50 × 2 mm, AlMgSi F31, TÜV Nord, **9.3 kg**. Three came in the bundle and two were bought afterwards |
 | | | | The owner | That we have **5 segments at 2 m, three-point**. The class is an inference from that |
 | `truss-tower-4m` | — (factory stand) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, supplied by the owner 2026-08-17 | **Varytec Wind Up 85 kg identified**, replacing an assumed Global Truss ST-132. 25 kg, max height 4.0 m, **transport 1.75 m**, **max load 85 kg**, min load 25 kg, 1 3/8″ receiver, crossbar 1300 × 35 × 35 mm, base spread 1.6 m, TÜV |
 | | | | The owner | That we have **2 telescopic stands at 4 m** |
-| `gmss-truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
-| `gmss-tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our ST-132 |
-| `gmss-mac-2000-performance-ii` | — (factory fixture) | `datasheet` | [Martin MAC 2000 Performance II](https://www.martin.com/en-US/products/mac-2000-performance-ii) | 408 × 490 × 743 mm head straight up, 39.5 kg, 1200 W lamp, 540°/267° pan and tilt |
+| `truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
+| `tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our ST-132 |
+| `mac-2000-performance-ii` | — (factory fixture) | `datasheet` | [Martin MAC 2000 Performance II](https://www.martin.com/en-US/products/mac-2000-performance-ii) | 408 × 490 × 743 mm head straight up, 39.5 kg, 1200 W lamp, 540°/267° pan and tilt |
 | | | | A message from GMSS | That they have **4 of them** — "4pcs Martin mac performance 2", read as the Performance II |
 | `geruest-krause-ah7` | — (factory scaffold) | `datasheet` | [Krause Plattformgerüst AH7](https://www.bauhaus.at/kleingerueste/krause-plattformgeruest-ah7/p/29059229) | Arbeitshöhe 7 m, platform 1.50 × 0.60 m rated 200 kg, frame field 1.50 × 0.65 m, ~84 kg |
 | | | | The owner | That we have **2 of them**, and the AH7 convention: 7 m working height means a **5 m platform** |
@@ -151,7 +182,7 @@ base size. **The outriggers are not modelled**: unfolded they spread to 1.499 ×
 that actually has to be kept clear on a stage. So the footprint these specs report is the mast's — not the working
 footprint, and not the folded transport size either. It is the one number in them to be careful with.
 
-`gmss-tower-5m` has no datasheet behind it at all. Its 33 kg is our ST-132's published 25 kg at 4 m scaled by
+`tower-5m` has no datasheet behind it at all. Its 33 kg is our ST-132's published 25 kg at 4 m scaled by
 height into a taller class — an inference from one datapoint in a neighbouring class, and the first number to
 replace if GMSS ever names the brand.
 
@@ -235,11 +266,11 @@ every weight:
 
 | Device | Stated by the owner | m (w × h × d) | kg |
 |--------|--------------------|---------------|----|
-| `gmss-nuke` | "2 nukes: 59w, 70d, 77h, 58kg each" | 0.590 × 0.770 × 0.700 | 58 |
-| `gmss-iq-sub` | "6 IQ subs: 53w, 56d, 67h, 40kg each" | 0.530 × 0.670 × 0.560 | 40 |
-| `gmss-wall-bass` | "2 wall basses: 66w, 100d, 140h, maybe 220kg each" | 0.660 × 1.400 × 1.000 | 220 *(hedged)* |
-| `gmss-mid-bass` | "USB: 120w, 60d, 50h, ~120kg" | 1.200 × 0.500 × 0.600 | 120 *(hedged)* |
-| `gmss-turbo-top` | "Tops: 45w, 38d, 71h, 26kg each" | 0.450 × 0.710 × 0.380 | 26 |
+| `nuke` | "2 nukes: 59w, 70d, 77h, 58kg each" | 0.590 × 0.770 × 0.700 | 58 |
+| `iq-sub` | "6 IQ subs: 53w, 56d, 67h, 40kg each" | 0.530 × 0.670 × 0.560 | 40 |
+| `wall-bass` | "2 wall basses: 66w, 100d, 140h, maybe 220kg each" | 0.660 × 1.400 × 1.000 | 220 *(hedged)* |
+| `mid-bass` | "USB: 120w, 60d, 50h, ~120kg" | 1.200 × 0.500 × 0.600 | 120 *(hedged)* |
+| `turbo-top` | "Tops: 45w, 38d, 71h, 26kg each" | 0.450 × 0.710 × 0.380 | 26 |
 
 That is 994 kg of GMSS speaker across 14 cabinets, of which the two wall basses are 440.
 
@@ -258,11 +289,11 @@ more than the numbers:
 
 | Owner's entry | Spec now | Was | Why |
 |---------------|----------|-----|-----|
-| 2 nukes | `gmss-nuke` | *split out* | "8 turbo subs" is **two** cabinets: 6 IQ subs + 2 nukes. The nukes are the plain-faced boxes on the ground at the foot of each outer column — no grille, recessed oval logo — which `gmss-mid-bass` had claimed as its own pair |
-| 6 IQ subs | `gmss-iq-sub` | `gmss-turbo-sub` (qty 8) | The six grille-fronted boxes, three to an outer column. "Turbo sub" is GMSS's umbrella word for the outer columns' low end, not the name of a box, so no spec keeps that id |
-| 2 wall basses | `gmss-wall-bass` | `gmss-middle-sub` (qty 3) | Same cabinet, and now with a name from the builder instead of a position. Its "third" cabinet was never a wall bass |
-| USB | `gmss-mid-bass` (qty **1**) | `gmss-mid-bass` (qty 2) | The owner confirmed the horn in the middle *is* the mid bass. It is one cabinet 1.20 m wide, which is what the old set had modelled twice at half the width and once more as a middle sub laid on its side |
-| Tops | `gmss-turbo-top` | `gmss-turbo-top` (unchanged id) | "3 turbo top" was GMSS's own wording, so the id stands. Count still from the first message |
+| 2 nukes | `nuke` | *split out* | "8 turbo subs" is **two** cabinets: 6 IQ subs + 2 nukes. The nukes are the plain-faced boxes on the ground at the foot of each outer column — no grille, recessed oval logo — which `mid-bass` had claimed as its own pair |
+| 6 IQ subs | `iq-sub` | `gmss-turbo-sub` (qty 8) | The six grille-fronted boxes, three to an outer column. "Turbo sub" is GMSS's umbrella word for the outer columns' low end, not the name of a box, so no spec keeps that id |
+| 2 wall basses | `wall-bass` | `gmss-middle-sub` (qty 3) | Same cabinet, and now with a name from the builder instead of a position. Its "third" cabinet was never a wall bass |
+| USB | `mid-bass` (qty **1**) | `mid-bass` (qty 2) | The owner confirmed the horn in the middle *is* the mid bass. It is one cabinet 1.20 m wide, which is what the old set had modelled twice at half the width and once more as a middle sub laid on its side |
+| Tops | `turbo-top` | `turbo-top` (unchanged id) | "3 turbo top" was GMSS's own wording, so the id stands. Count still from the first message |
 
 `quantity: 3` on the tops is the one count the owner did **not** restate, and the photo appears to show four — three
 on the mid bass plus one on the right-hand outer column. Left at 3, flagged in the spec: it is the next thing to ask.
@@ -273,11 +304,11 @@ Worth keeping, because the reconstruction is exactly the kind of work this repos
 
 | Device | Photo reconstruction | Stated | Where it went |
 |--------|---------------------|--------|---------------|
-| `gmss-iq-sub` | 0.510 × 0.637 × 0.765, 54 kg | 0.530 × 0.670 × 0.560, 40 kg | Width and height within 35 mm. **Depth wrong by 205 mm** |
-| `gmss-wall-bass` | 0.595 × 1.020 × 0.850, 81 kg | 0.660 × 1.400 × 1.000, 220 kg | Height short by 380 mm, weight by 139 kg |
-| `gmss-mid-bass` | 0.595 × 0.425 × 0.595, 45 kg | 1.200 × 0.500 × 0.600, 120 kg | Width short by 605 mm — the old box was **half the cabinet**, because the count was wrong |
-| `gmss-turbo-top` | 0.391 × 0.935 × 0.552, 56 kg | 0.450 × 0.710 × 0.380, 26 kg | 225 mm too tall, more than twice the weight |
-| `gmss-nuke` | modelled as part of two other specs | 0.590 × 0.770 × 0.700, 58 kg | A cabinet that was never a cabinet |
+| `iq-sub` | 0.510 × 0.637 × 0.765, 54 kg | 0.530 × 0.670 × 0.560, 40 kg | Width and height within 35 mm. **Depth wrong by 205 mm** |
+| `wall-bass` | 0.595 × 1.020 × 0.850, 81 kg | 0.660 × 1.400 × 1.000, 220 kg | Height short by 380 mm, weight by 139 kg |
+| `mid-bass` | 0.595 × 0.425 × 0.595, 45 kg | 1.200 × 0.500 × 0.600, 120 kg | Width short by 605 mm — the old box was **half the cabinet**, because the count was wrong |
+| `turbo-top` | 0.391 × 0.935 × 0.552, 56 kg | 0.450 × 0.710 × 0.380, 26 kg | 225 mm too tall, more than twice the weight |
+| `nuke` | modelled as part of two other specs | 0.590 × 0.770 × 0.700, 58 kg | A cabinet that was never a cabinet |
 
 Three lessons, and the first two are the ones the old files predicted about themselves:
 
@@ -288,9 +319,9 @@ Three lessons, and the first two are the ones the old files predicted about them
   turbo sub's height. Stated, it is 1.400 against 0.670 — a factor of **2.09**. The middle row is 1.00 m deep where
   the outer columns are 0.56, so it stands further back and reads shorter than it is. Obliquity does the same to
   width: the IQ sub is 1.26:1 tall to wide, it reads about 1.39:1 in the nearly front-on left-hand column and about
-  2.4:1 where the same box is seen at a steep angle on the right. That is why `gmss-turbo-top`, which sits entirely
+  2.4:1 where the same box is seen at a steep angle on the right. That is why `turbo-top`, which sits entirely
   in the oblique part of the frame, read as a much narrower cabinet than it is.
-* **A cabinet of a similar shape is not evidence of size.** `gmss-turbo-top` was anchored to the Turbosound TMS-4
+* **A cabinet of a similar shape is not evidence of size.** `turbo-top` was anchored to the Turbosound TMS-4
   (1143 × 502 × 730 mm, 74.8 kg) on the grounds that a published cabinet of the same class beats a photograph. The
   real box is 710 mm tall and 26 kg. The refusal to write `clone_of: Turbosound` was right; letting the TMS-4 set
   the size anyway was not.
@@ -309,18 +340,18 @@ together.
 
 | Device | logo-scale (0.52–0.54) | Flexy-matched (0.55) | 18″-driver scale (0.85) | stated |
 |--------|------------------------|----------------------|-------------------------|--------|
-| `gmss-iq-sub` (was `gmss-turbo-sub`) | 0.800 × 0.950 × 0.900 | 0.600 × 0.750 × 0.900 | 0.510 × 0.637 × 0.765 | 0.530 × 0.670 × 0.560 |
-| `gmss-wall-bass` (was `gmss-middle-sub`) | 0.900 × 1.350 × 1.100 | 0.700 × 1.200 × 1.000 | 0.595 × 1.020 × 0.850 | 0.660 × 1.400 × 1.000 |
-| `gmss-mid-bass` | 0.900 × 0.600 × 0.850 | 0.700 × 0.500 × 0.700 | 0.595 × 0.425 × 0.595 | 1.200 × 0.500 × 0.600 |
-| `gmss-turbo-top` | 0.460 × 1.150 × 0.700 | 0.460 × 1.100 × 0.650 | 0.391 × 0.935 × 0.552 | 0.450 × 0.710 × 0.380 |
+| `iq-sub` (was `gmss-turbo-sub`) | 0.800 × 0.950 × 0.900 | 0.600 × 0.750 × 0.900 | 0.510 × 0.637 × 0.765 | 0.530 × 0.670 × 0.560 |
+| `wall-bass` (was `gmss-middle-sub`) | 0.900 × 1.350 × 1.100 | 0.700 × 1.200 × 1.000 | 0.595 × 1.020 × 0.850 | 0.660 × 1.400 × 1.000 |
+| `mid-bass` | 0.900 × 0.600 × 0.850 | 0.700 × 0.500 × 0.700 | 0.595 × 0.425 × 0.595 | 1.200 × 0.500 × 0.600 |
+| `turbo-top` | 0.460 × 1.150 × 0.700 | 0.460 × 1.100 × 0.650 | 0.391 × 0.935 × 0.552 | 0.450 × 0.710 × 0.380 |
 
 The 0.85 set scale had brought every GMSS cabinet *below* our own gear one for one. The stated figures scatter:
 
-* `gmss-wall-bass` is now the **biggest and heaviest cabinet in this repository** — larger than our Flexy
+* `wall-bass` is now the **biggest and heaviest cabinet in this repository** — larger than our Flexy
   (0.591 × 0.763 × 0.964) on all three axes, and 220 kg against the SKRAM's 90.
-* `gmss-nuke` is about the Flexy's width and height but 264 mm shallower and 27 kg lighter.
-* `gmss-iq-sub` is smaller and lighter than anything we own, and there are six of them.
-* `gmss-turbo-top` is a much smaller box than our `tecnare-m2122` (0.50 × 0.96 × 0.52, 68 kg) — 26 kg against 68.
+* `nuke` is about the Flexy's width and height but 264 mm shallower and 27 kg lighter.
+* `iq-sub` is smaller and lighter than anything we own, and there are six of them.
+* `turbo-top` is a much smaller box than our `tecnare-m2122` (0.50 × 0.96 × 0.52, 68 kg) — 26 kg against 68.
 
 So GMSS is not uniformly bigger or smaller than our rig, which is precisely what a single set scale could never
 express. Scenes that compare the two systems — the `both-systems-*` set — were laid out against the old numbers.
@@ -400,6 +431,108 @@ every number in his spec.
 
 **Nothing identifying is recorded.** The VIN, the registration plate and the owner's home address are all on the
 Movano's papers and none of them is a packing input.
+
+### PSL: a rental company publishes what a self-build crew cannot
+
+PSL is **Pro Sound & Light** in Paunzhausen, a rental firm rather than a crew, and that single fact makes their
+ten specs the best-sourced borrowed gear in this repository. Their own site prints the full technical data for
+every cabinet they hire out — dimensions, weight, drivers, power, impedance, sensitivity, coverage — so all ten
+are `provenance: datasheet` on both axes.
+
+**That is a different kind of source from a manufacturer's datasheet and it is worth naming.** The Tecnare
+figures come from Tecnare; the PSL figures come from the *owner of the cabinets*, republishing what the
+manufacturer told them. For a factory product the two agree, and where PSL reproduce HK's own data table under
+their sales copy it is visibly the same document. The place it stops being equivalent is the finish: PSL's
+Concert Audio cabinets are **white** and the catalogue's own product is black, so the colour comes from our
+drawing and their "Mod" package descriptions rather than from the technical data.
+
+**What a rental catalogue cannot tell you is how many there are**, and that is the whole of PSL's request list.
+A package that says "vier Horntopteile, sechs Hybrid-Horn Subwoofer" states a *configuration*, not an
+inventory, and Bundle 3 proves the packages overlap by pairing subwoofers from two other bundles. Four of the
+ten specs are in no package at all and carry `quantity: 1`, which is the floor the validator allows rather
+than a count.
+
+**Two of their pages disagree with each other, in a way worth keeping.** The equipment page calls the double-18
+sub a MkIII and the package pages call it a MK2, with every published figure identical. And the HK top's sales
+copy says 60° × 40° where the data table under it says 60–90° asymmetric × 55°. The spec follows the table on
+the grounds that a measurement under an EN 60268-5 note beats a headline, and 40 against 55 vertical is a real
+disagreement rather than rounding.
+
+**One number is missing from the geometry rather than from the notes.** The ESX's published depth and the
+TP118's published width are both "ohne Rollen", and both cabinets have castors. A sub on its wheels is the one
+at the bottom of the stack, so the height a rig is built from is about 100 mm short — and because the ESX is
+stacked both upright and rolled, there is no single axis to correct.
+
+### Innschleife: a scaled drawing, which is a photograph with one number added
+
+Innschleife publish nothing and searching for them returns nothing, so their five specs rest entirely on two
+setup drawings in our own Drive. Each embeds one photograph per cabinet type, and the owner states the scale
+outright: **one pixel is one centimetre.** So the embedded image's pixel size *is* the cabinet's front size.
+
+**That one number is what separates this from the GMSS photo reconstruction, and it separates it only on two
+axes.** The GMSS work had a site photograph with no scale reference in it and had to derive one — three times,
+each differently, before the builder's own figures arrived and replaced all of it. Here the scale is given, so
+width and height are read rather than inferred. Depth and weight are in exactly the same position as they were
+for GMSS, and the lesson recorded below applies unchanged: **front-on ratios survive a photograph; depth does
+not.** The IQ sub's depth was wrong by 205 mm, a third of the cabinet, while its width and height came out
+within 35 mm.
+
+**So the five depths are analogies to cabinets that do have a source**, each named in the table above, and the
+five weights are the modelled volume at **200 kg/m³** — this library's own central density, with twenty
+cabinets running 139 to 333 kg/m³ and a mean of 212. The method is reproducible and its error bar is ±50 %,
+which on 1082 kg of Innschleife gear is ±541 kg.
+
+**A SECOND SOURCE ARRIVED ON 2026-09-02, AND IT IS BETTER THAN THE DRAWINGS ON EVERYTHING IT TOUCHES — AND IT
+TOOK TWO PASSES TO READ.**
+Innschleife said what they are bringing to the next event and named the cabinets doing it: four "SBH 18", four
+"WSX 18", four "die blauen Kicker 15" and either the small tops or the two big "THL4". Three sub types at four
+each is exactly what the drawings had already produced, so the mapping is the only one the numbers allow, and
+four of the five ids are those names now. It is second-hand and is going back to them for confirmation, and one
+piece of evidence pulls against it: the "blauen Kicker" photograph averages #1D201C, which is not blue. **A
+photograph's average is not a paint colour** — our own Flexy averages #C7C7C7 where the cabinet is black — so
+this is a case of the method's known weakness rather than a contradiction, and the spec's colour is the thing
+most likely to be wrong.
+
+**READ BACK TO THEM ON 2026-09-03, TWO OF THE THREE SUB NAMES WERE WRONG.** The 0.600 × 0.600 box is a small
+Electro-Voice wbin and *is* the blue kicker; the SBH is a 1.20 × 0.55 × 0.80 horn that appears in no drawing at
+all and now has a spec of its own; and the 0.950 × 0.570 cabinet is left with no name and no place in the
+statement. **A mapping the numbers permit is not a mapping anybody confirmed** — three types at four each made the
+fit look forced when it was only consistent. The count lesson below and this one are the same lesson.
+
+It also settled the one question the drawings could not answer either way, which is worth more than the names:
+**the 0.500 × 1.140 m purple box is a real cabinet.** They are bringing two. A spec for a possible draughting
+error would have been worse than the question; a cabinet somebody plans to load into a van is not one.
+
+Two facts from the drawings are worth more than the numbers:
+
+* **Two different symbols of the same size mean two different cabinets.** Both drawings place six Achenbach 18
+  and four 0.600 × 0.600 m boxes using two different photographs, and a draughtsman drawing one cabinet twice
+  reuses the symbol. Without that observation the two would be indistinguishable — same front, same estimated
+  weight, and only the `owner` field to tell them apart.
+* **The purple livery is Turbosound's and it identifies no model.** A 0.500 × 1.140 m purple sibling appears in
+  the first two revisions and in none after, and its size matches the **TMS-4's published 502 × 1143 mm to the
+  millimetre** — the same cabinet this repository once used as a size anchor for `turbo-top` and was
+  contradicted about. The specced 0.430 × 0.870 m top matches no Turbosound whose figures could be found; the
+  TMS-3 is 1019 × 844 × 578 mm and 134 kg. **Not writing `clone_of: Turbosound` on the strength of a colour is
+  the same call that was right for the GMSS top**, and letting a same-class cabinet set the size anyway is the
+  part that was wrong there. Neither is done here.
+
+**Where the counts come from.** Four, four, four and two, which is what the drawings draw — **and what the owner
+confirmed, cabinet by cabinet, on 2026-09-02.** A drawing shows what came to one gig, and `turbo-top` is the
+standing example of what that costs: a stated three against a photograph showing four, still unresolved. Here
+the two sources agree, which is the first time that has happened for a borrowed system. The THL-4's two is the
+owner's figure alone, since no drawing places it.
+
+**Two corrections ran the other way and both came from reading the statement back.** The first: it said "alle 4
+kleinen Tops", the `tms4` count was raised to four on the principle that a spoken count outranks a drawing,
+and the answer was "small tops nur 2x". The second: two of the three sub names were on the wrong cabinets. The
+principle holds in both cases and the statement was misremembered in both. **Read a count and a name back before
+writing either down** — and note that the second correction cost two renames of ids that generated scenes refer
+to, where the first cost one number.
+
+**What is brought is not what is owned**, and the difference now has a home: [`rosters/`](../rosters) holds what
+a system brings to one event, as counts that override the specs for one run. The specs keep saying what exists.
+Every gap in both systems is listed in [requests.md](requests.md).
 
 ### Not owned
 
@@ -487,4 +620,6 @@ from outside, so there is nothing to model.
 | Original | Datasheet | Retrieved |
 |----------|-----------|-----------|
 | Tecnare L2122LT | https://www.tecnare.co/wp-content/uploads/2020/01/l2122lt.pdf | 2026-07-30 |
+| PSL's whole speaker inventory | https://pro-sound-light.de/equipment/tontechnik/ | 2026-09-02 |
+| PSL's packages, for the counts | https://pro-sound-light.de/equipment/komplettpakete/ | 2026-09-02 |
 | Eighteen Sound 15″ 2 Ways Kit | `18sound/18sound_15 2ways.pdf` in Drive (© Eighteen Sound 2013) | 2026-07-30 |

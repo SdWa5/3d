@@ -31,6 +31,129 @@ final class StackChecks
     private const EPSILON_M = 1e-9;
 
     /**
+     * What a metre outside the band costs against a metre away from the target, when {@see heightCost} ranks two
+     * ways of dealing the same cabinets out.
+     *
+     * Twice, which is the smallest number that says "outside is worse" without turning a preference back into the
+     * gate it just stopped being. A rig 100 mm over the ceiling still beats one 400 mm from the aim, and that is the
+     * right way round: both are buildable and the second is further from what was asked for.
+     *
+     * **Inert at the default band, and deliberately kept anyway** — the same argument {@see StackSolver::fill} makes
+     * about the same numbers. 2.5 m is the midpoint of 2–3 m, so every in-band arrangement is already nearer the aim
+     * than every out-of-band one and the penalty changes no ranking. It stops being redundant the moment somebody
+     * states a target off the midpoint: `--target-sub-height=2.2 --max-sub-height=3.0` puts a 3.05 m wall 850 mm from
+     * the aim and a 1.40 m wall 800 mm from it, and only the penalty knows one of the two is over the ceiling.
+     */
+    public const OUT_OF_BAND_PENALTY = 2.0;
+
+    /**
+     * The first stack whose sub/top transition falls outside the band the scene asked for, or null when every stack
+     * is inside it. **A sentence about the rig, never a reason to refuse it.**
+     *
+     * **STATED BY THE OWNER: THE INTERFACE HEIGHT IS AN OPTIMISATION PROBLEM, NOT A HARD CONSTRAINT.** Tops standing
+     * below or above head height is not a reason to refuse a rig or to call a scene invalid. This used to return a
+     * refusal, on every invocation rather than only on the sweep, and it was by a wide margin the largest single
+     * source of skipped candidates in the command — 258 of them in one family, more than every geometry rule in the
+     * repository put together. Each one was a rig that stands up perfectly well and is merely shorter or taller than
+     * ideal.
+     *
+     * What the three height keys mean now is one thing rather than three:
+     *
+     * * **`target_sub_height_m`** is what the solver optimises, and it always was.
+     * * **`interface_height_m`** and **`max_sub_height_m`** are the band around it. They still steer — the solver
+     *   prefers an arrangement inside them ({@see StackSolver::fill}) and {@see \App\Command\SceneStackCommand::build} ranks a miss as a cost — and
+     *   neither can throw the rig away any more.
+     *
+     * **What stays a gate is everything about whether the rig stands up**: bearing, support, the pillar rule, the
+     * silhouette rules and interpenetration. That is the line, and it is a different question from whether the rig
+     * sounds right. A cabinet hanging off the edge of its support cannot be built at any price; tops a bit low can.
+     *
+     * The message carries the measured height and the bound it missed, because a number is what makes it judgeable.
+     * The same sentence reaches the file itself through {@see boundsProblems}, which has reported both
+     * misses as warnings since long before this stopped refusing them.
+     *
+     * @param list<StackBlock> $blocks
+     */
+    public static function bandMiss(array $blocks): ?string
+    {
+        foreach ($blocks as $block) {
+            $height = $block->subHeightM();
+            $floor = $block->stack->interfaceHeightM;
+            $ceiling = $block->stack->maxSubHeightM;
+            $whose = $block->label === '' ? 'stack\'s' : $block->label.' stack\'s';
+
+            if ($ceiling !== null && $height > $ceiling + 1e-9) {
+                return sprintf(
+                    'the %s subs reach %.3f m against the %.3f m ceiling asked for — %.0f mm too high, and the rig is '
+                    .'written with that miss on it',
+                    $whose,
+                    $height,
+                    $ceiling,
+                    ($height - $ceiling) * 1000,
+                );
+            }
+            if ($floor > 0.0 && $height + 1e-9 < $floor) {
+                // **The reason depends on whether anything stands on the wall**, and reporting the wrong one is worse
+                // than reporting nothing: a sub wing has no tops to fire below head height, so the sentence would be
+                // false about the very rig it is describing. See {@see StackBlock::hasTops}, and
+                // {@see StackChecks::boundsProblems} for the same split in the file's own header.
+                return $block->hasTops()
+                    ? sprintf(
+                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, so the '
+                        .'tops fire below head height',
+                        $whose,
+                        $height,
+                        $floor,
+                        ($floor - $height) * 1000,
+                    )
+                    : sprintf(
+                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, and '
+                        .'nothing stands on them: it is a sub wing, so the interface decides nothing about it',
+                        $whose,
+                        $height,
+                        $floor,
+                        ($floor - $height) * 1000,
+                    );
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * How badly one stack's sub wall misses what was asked of it, as a single number the deal strategies are ranked
+     * on — **distance from the target, and a steeper price outside the band**.
+     *
+     * The target is the aim and the two bounds are no longer gates ({@see bandMiss}), so without this they would
+     * mean nothing at all here: two deal strategies placing the same cabinets would be separated by pure distance
+     * from 2.5 m and a stated ceiling would have no say in which one wins. A miss has to cost something, and what it
+     * may no longer cost is the rig. See {@see OUT_OF_BAND_PENALTY} for what the multiplier is worth.
+     */
+    /**
+     * How badly one stack's sub wall misses what was asked of it, as a single number the deal strategies are ranked
+     * on — **distance from the target, and a steeper price outside the band**.
+     *
+     * The target is the aim and the two bounds are no longer gates ({@see bandMiss}), so without this they would
+     * steer nothing at all: an arrangement 400 mm short of the aim and one 100 mm over the ceiling would rank the
+     * same. See {@see OUT_OF_BAND_PENALTY} for what the multiplier is worth and why it is inert at the default band.
+     */
+    public static function heightCost(StackBlock $block, float $target): float
+    {
+        $height = $block->subHeightM();
+        $floor = $block->stack->interfaceHeightM;
+        $ceiling = $block->stack->maxSubHeightM;
+
+        $outside = 0.0;
+        if ($ceiling !== null && $height > $ceiling) {
+            $outside = $height - $ceiling;
+        } elseif ($floor > 0.0 && $height < $floor) {
+            $outside = $floor - $height;
+        }
+
+        return abs($height - $target) + self::OUT_OF_BAND_PENALTY * $outside;
+    }
+
+    /**
      * How far a tier may hang over the one below it before it is worth saying so, per side.
      *
      * A centimetre. Below that it is a cabinet edge sitting proud of a joint, which is normal and is what
@@ -43,7 +166,7 @@ final class StackChecks
      * outboard cabinet** rather than as a number of millimetres.
      *
      * A tenth. Derived from the two cases either side of it: six Achenbachs on six Flexys stand 27 mm proud per side
-     * out of a 600 mm cabinet and are flush by any reading, and `2× gmss-nuke + 1× gmss-mid-bass` stands 265 mm proud
+     * out of a 600 mm cabinet and are flush by any reading, and `2× nuke + 1× mid-bass` stands 265 mm proud
      * out of a 590 mm one and reads as a V. A fraction rather than a constant so it scales with whatever cabinet is on
      * the end of the row, the same way {@see Gravity::MIN_BEARING} and {@see StackSolver::OVERHANG_PER_SIDE} do.
      */
@@ -233,7 +356,7 @@ final class StackChecks
      *
      * **Stated by the owner: the pyramid, the V and the tower are all width rules.** Counting cabinets was how the
      * pyramid was written, and the premise it rests on is false — nine of our ten cabinets are 0.45–0.66 m wide and
-     * `gmss-mid-bass` is **1.200 m**, so "no more cabinets than the row below" and "no wider than the row below"
+     * `mid-bass` is **1.200 m**, so "no more cabinets than the row below" and "no wider than the row below"
      * stopped meaning the same thing the day it arrived. The V made the failure obvious rather than causing it: built
      * on a count rule it produced **21 stacks that narrow against 8 that widen**, and `free` widened more often than
      * the shape named after widening.
@@ -247,7 +370,7 @@ final class StackChecks
      * It cannot be zero: six Achenbachs are 3.700 m on six Flexys' 3.646 — 27 mm per side, a flush wall by any reading
      * — and a rule without an allowance splits them into two rows of three, whereupon the 1.84 m row cannot carry the
      * tops and a 2-way is dropped from the rig. It cannot be a whole cabinet either, which was the first thing tried
-     * here: `2× gmss-nuke + 1× gmss-mid-bass` is 2.420 m on a 1.890 m row, 265 mm per side, and one nuke is 590 — so a
+     * here: `2× nuke + 1× mid-bass` is 2.420 m on a 1.890 m row, 265 mm per side, and one nuke is 590 — so a
      * one-cabinet allowance passes a row that reads as a V to anybody looking at it.
      *
      * A tenth of a cabinet separates them cleanly: 27 mm against the 60 it allows, and 265 against the 59 it does not.

@@ -1,0 +1,64 @@
+# the box pro Achat 112 M, PSL's small fullrange top. The one cabinet that appears in all three of their
+# "The Box Pro Bundle" packages, so it is their bread-and-butter DJ and wedding top rather than festival gear.
+#
+# Figures from PSL's own published technical data, https://pro-sound-light.de/equipment/tontechnik/ — see
+# concert-audio-ef6.yaml for why that counts as a datasheet here.
+#
+# THE AXIS ORDER IS NOT STATED FOR THIS ONE. The catalogue prints "Abmessungen: 360 x 600 x 365 mm" with no
+# "B x H x T" behind it, where every other entry on the page names its order. Read as width, height, depth,
+# which is the order the rest of the page uses and the only reading that gives an upright top: 360 wide by
+# 600 tall is a 12" cabinet, and 600 wide by 360 tall would not hold a 12" driver at all. The manufacturer's
+# own listing agrees. Worth a line because a silently reordered axis is how a render ends up wrong in a way
+# no total catches.
+id: thebox-achat-112m
+name: "the box pro Achat 112 M"
+category: speaker
+subtype: top
+quantity: 2
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  # Multi-function cabinet, so the outer box is not a plain rectangle in reality — it has the angled monitor
+  # face every wedge-capable top has. The published figures are the bounding box and that is what is modelled.
+  shape: box
+  dimensions_m: { width: 0.360, height: 0.600, depth: 0.365 }
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  # "Finish: Strukturlack Schwarz".
+  color: "#141414"
+
+physical:
+  weight_kg: 21.0
+  handles: [ left, right ]
+
+rigging:
+  # An "Aeroquipschiene auf der Oberseite" and an "Anschlagoese auf der Rueckseite" are rigging hardware, but
+  # neither is given a position. Same reason as the EF 6: false until somebody states where they are.
+  flyable: false
+  points: [ ]
+
+audio:
+  coverage_deg: { horizontal: 60, vertical: 40 }
+  passband_hz:
+    low_hz: 60
+    high_hz: 18000
+    provenance: datasheet
+  drivers:
+    - { size_in: 12, type: woofer, count: 1 }
+    - { size_in: 1.4, type: compression-driver, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Passive 2-way multi-function top, usable as a monitor. 12" woofer and a 1.4" neodymium mid-high driver with
+  a 3" voice coil. Power 350 W RMS / 1400 W peak. Impedance 8 Ohm. Max SPL 131 dB. Rotatable 60 x 40 degree
+  horn. 36 mm pole socket, Aeroquip rail on top, eye bolt on the back.
+
+  Quantity 2 is a package floor rather than a count: "The Box Pro Bundle 1", "Bundle 2" and "Bundle 3" each
+  state two of these. Three packages naming two each says nothing about whether PSL owns two or six, and
+  Bundle 3's four subwoofers show the packages are not disjoint sets of stock. See docs/requests.md.

@@ -1,0 +1,47 @@
+# WHAT PSL IS BRINGING TO THE NEXT EVENT: twelve of their biggest sub and five of their biggest top.
+#
+# Stated by PSL to Stefan on 2026-09-02, as "12x the biggest / most powerful sub they have" and "5x the biggest /
+# most powerful top they have". THE CABINETS ARE NOT NAMED IN THAT STATEMENT AND THE SPECS ANSWER IT WITHOUT
+# AMBIGUITY, which is the one piece of reading this file does:
+#
+#   * THE SUB IS THE `concert-audio-esx`. It is 0.590 x 1.180 x 0.915 m and 94 kg against 82 for the next heaviest,
+#     it carries two 18" against everything else's one, and at 33 Hz it reaches lower than any cabinet anybody in
+#     this library publishes a figure for. Biggest and most powerful pick the same box, which is what makes the
+#     statement safe to act on.
+#   * THE TOP IS THE `concert-audio-ef6` at 65 kg, where the next is 32. The other five tops are 12" and 15" boxes
+#     between 14.6 and 32 kg, so there is nothing to weigh up.
+#   * They are the two halves of one system — PSL's published "Hornsystem Mod" package is exactly these two — so a
+#     rig of twelve subs under five tops is that package scaled up rather than two cabinets picked off a list.
+#
+# TWELVE AND FIVE ARE MORE THAN THE SPECS SAY EXIST, AND THAT IS NOT AN ERROR IN EITHER PLACE. The specs say six
+# and four, sourced from the package PSL publish and confirmed by our own Kraut drawing placing exactly six and
+# four. What a rental company publishes as a package is not an inventory, and docs/requests.md has carried "how
+# many do they own" as an open question since the specs were written, and this file does not answer it.
+# The specs keep their sourced figures and the open question stays in
+# docs/requests.md, because "brought to one gig" and "owned" are different facts and this file is for the first.
+#
+# EIGHT ZEROS, BECAUSE THE STATEMENT IS EXHAUSTIVE. "The following" means the following and nothing else, so every
+# other PSL cabinet is named at zero rather than left out — left out means "whatever the spec says", which would
+# quietly add nine more boxes to the rig. See src/Spec/Roster.php.
+id: psl-next-event
+name: "PSL, next event — twelve ESX under five EF 6"
+
+brings:
+  concert-audio-esx: 12         # "12x the biggest / most powerful sub they have"
+  concert-audio-ef6: 5          # "5x the biggest / most powerful top they have"
+  concert-audio-esf: 0
+  thebox-tp118-800: 0
+  thebox-tp218-1600: 0
+  thebox-achat-112m: 0
+  thebox-achat-115m: 0
+  thebox-dsp-112: 0
+  thebox-pa302: 0
+  hk-linear5-112x: 0
+
+notes: |
+  A rig from this roster is 1128 kg of sub and 325 kg of top by the published figures, all of it arriving in PSL's
+  own vehicles. The load plan does not see it: `load:plan` looks at our gear and Sepp's, which is what travels in
+  our vans.
+
+  The ESX is published without its castors, four 100 mm ones, so a wall built from these is about 100 mm taller in
+  the yard than in the file. On twelve cabinets that is worth knowing before a truss height is fixed.

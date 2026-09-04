@@ -47,22 +47,52 @@ abstract class BaseCommand extends Command
         return $this->projectDir().'/specs';
     }
 
+    /**
+     * Where the event rosters live — beside `specs/` rather than inside it, since {@see SpecLoader} would read one
+     * as a broken device. {@see \App\Spec\RosterLoader} says why at length.
+     */
+    protected function rostersDir(): string
+    {
+        return $this->projectDir().'/rosters';
+    }
+
     protected function scenesDir(): string
     {
         return $this->projectDir().'/scenes';
     }
 
     /**
-     * `$directory` for a hand-written scene, and its `generated/` subdirectory for a generated one.
+     * `$directory` with the scene's **own directory under `scenes/`** composed onto it.
      *
      * One rule applied to every directory a scene produces something in — the assembled `.blend`, the build plan,
-     * the renders — so that everything derived from `scenes/generated/x.yaml` lands under a `generated/` of its
-     * own and nothing generated is ever mixed in with work somebody wrote by hand. Composed onto whatever
-     * directory the caller already decided on, `--out-dir` included, rather than replacing it.
+     * the renders — so that everything derived from `scenes/generated/gmss/x.yaml` lands in
+     * `<directory>/generated/gmss/` and nothing generated is ever mixed in with work somebody wrote by hand.
+     * Composed onto whatever directory the caller already decided on, `--out-dir` included, rather than replacing it.
+     *
+     * **IT USED TO APPEND `generated` AND NOTHING ELSE, AND THAT WAS A DATA-LOSS BUG FROM 0.98.0 ONWARDS.** The
+     * derived file was then named by the scene's `id`, which is its basename — and basenames stopped being unique
+     * the moment the inventory became a folder. Eleven rigs wrote one `.blend`: the first inventory in sort order
+     * won, and every other scene of that name was found to have an artifact newer than its own source and skipped
+     * as up to date. Mirroring the whole relative directory is what makes a derived path as unique as its scene.
+     * {@see \App\Scene\SceneLoader::keyOf} carries the full argument.
      */
     protected function derivedDir(string $directory, SceneSpec $scene): string
     {
-        return rtrim($directory, '/').(SceneLoader::isGenerated($scene) ? '/'.SceneLoader::GENERATED : '');
+        $relative = (new SceneLoader($this->scenesDir()))->relativeDirOf($scene->sourcePath);
+
+        return rtrim($directory, '/').($relative === '' ? '' : '/'.$relative);
+    }
+
+    /**
+     * What a scene is filed under: its path below `scenes/`, without the extension.
+     *
+     * The one answer to "is this the same scene?" — used by the prune to compare the set that exists against the
+     * set a run wrote, and by anything else that needs a name that cannot collide. `$scene->id` is the label and
+     * is not that. See {@see \App\Scene\SceneLoader::keyOf}.
+     */
+    protected function sceneKey(SceneSpec $scene): string
+    {
+        return (new SceneLoader($this->scenesDir()))->keyOf($scene->sourcePath);
     }
 
     protected function loader(): SpecLoader

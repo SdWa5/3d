@@ -1,0 +1,85 @@
+# Innschleife's SBH 18, THE ONE CABINET OF THEIRS THAT NO DRAWING SHOWS AND THE ONLY ONE WHOSE DIMENSIONS THEY
+# STATED THEMSELVES.
+#
+# WHERE THE NUMBERS COME FROM. Innschleife, on 2026-09-03, in their own words: "120 lang, 55 breit, 80 tief."
+# Three edges of a cabinet, in centimetres, from the people who built it. That is a better source than everything
+# else in this folder, where four specs rest on a photograph in a setup drawing at one pixel to the centimetre and
+# have their depth derived by analogy.
+#
+# **WHICH EDGE IS WHICH FOLLOWS FROM HOW THEY BUILD IT.** "Wir bauen die SBH liegend als großes Horn." The long
+# edge lies horizontally, so standing the cabinet is 0.550 wide and 1.200 tall, and lying it is 1.200 wide and
+# 0.550 tall. **This file states the cabinet standing**, which is this schema's convention, and a generated scene
+# lays it down with `roll_mirror` — see the notes.
+#
+# FOUR OF THEM LYING SIDE BY SIDE ARE 4.80 M OF HORN MOUTH, which is what "als großes Horn" describes and is by
+# some distance the widest row anything in this library can make. It is also why the roll is not cosmetic here:
+# upright, four of them are 2.20 m and a different rig entirely.
+#
+# THIS SPEC EXISTS BECAUSE A NAME MAPPING WAS WRONG, and the story is worth keeping because it cost two renames.
+# On 2026-09-02 Innschleife listed four "SBH 18", four "WSX 18" and four "die blauen Kicker 15" — three sub types
+# at four each — and the three specs drawn from their setup drawings were three sub types at four each. The names
+# were mapped one to one onto them, and `sbh-18` became the 0.600 x 0.600 box. Reading the mapping back produced
+# the correction: that box is a small wbin kicker, and the SBH is this cabinet, which the drawings never showed.
+# **A mapping the numbers permit is not a mapping anybody confirmed.** docs/sources.md carries the lesson.
+#
+#   * WIDTH 0.550, HEIGHT 1.200 and DEPTH 0.800 m, all three stated by the owner. No axis here is derived, which
+#     makes this the only Innschleife cabinet whose footprint a load plan could be trusted on.
+#   * WEIGHT 106 kg is the modelled volume at 200 kg/m3, this library's central density, exactly as its four
+#     siblings — 0.528 m3 at 200. **It is the only number in this file nobody stated**, and it is the first one to
+#     replace. A 0.528 m3 horn sub is a big cabinet: our Flexy is 0.435 m3 at 85 kg, which is 196 kg/m3, so 106
+#     is consistent with the wooden horn subs we do have figures for rather than merely with the rule.
+#
+# PROVENANCE `estimated` ON BOTH AXES, AND THE DIMENSIONS DESERVE BETTER. The enum has no case for "the builder
+# said so" — docs/sources.md records the same problem for GMSS, whose figures came from its builder and are
+# `estimated` for the same reason. The dimensions here are as good as a tape measure held by somebody else; the
+# weight is a model. Reading one field for both hides that, and there is nowhere else to put it.
+id: sbh-18
+name: "Innschleife SBH 18"
+category: speaker
+subtype: sub
+quantity: 4
+owner: innschleife
+build: own-design
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.550, height: 1.200, depth: 0.800 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # No photograph of this cabinet exists in anything we hold, so there is nothing to sample. Near black, which is
+  # what every other Innschleife sub but the 57x110 reads as. It is a placeholder and it says so.
+  color: "#1d1d1d"
+
+physical:
+  weight_kg: 106.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+# NO `audio` BLOCK. "SBH 18" says a sub bass horn with an 18", which is a driver size and not a passband, and this
+# repository does not write a frequency range it was not given. `Passband::orderingLowHz()` therefore cannot rank
+# this cabinet and the fill order falls back to mass — where, at 106 kg, it goes to the floor anyway.
+
+mesh_override: null
+
+notes: |
+  INNSCHLEIFE BUILD THESE LYING DOWN, and the sweep already produces that rig rather than needing a new one.
+  Rolling this cabinet makes it wider — 0.550 becomes 1.200 — so both `--orientation=turned`, which rolls every
+  sub, and `--orientation=mixed`, which rolls only what gets wider, lay it down. The `mixed` variant of an
+  Innschleife rig is the closest thing in the sweep to the rig they describe.
+
+  THE WIDEST ROW IN THE LIBRARY. Four of these lying side by side are 4.80 m before any gap, against 3.64 m for
+  six of PSL's ESX and 3.70 m for six Achenbachs. Every silhouette rule here is a width in metres rather than a
+  cabinet count, so a wall built on this row has a base almost nothing can taper from — expect the `pyramid`
+  variants of an Innschleife rig to come out short, and the `free` ones to carry it.
+
+  NOTHING IS KNOWN ABOUT THE HORN ITSELF. Whether the flare is asymmetrical, what drives it, how low it reaches:
+  none of it. docs/requests.md asks, and the answer would be the first `audio` block any Innschleife spec has.

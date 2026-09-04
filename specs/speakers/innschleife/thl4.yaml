@@ -1,0 +1,100 @@
+# Innschleife's big top, THE ONE THIS REPOSITORY DELIBERATELY REFUSED TO SPEC UNTIL 2026-09-02.
+#
+# WHY IT EXISTS NOW, AND WHY IT DID NOT BEFORE. `tms4` records the refusal in its own notes: a
+# purple 0.500 x 1.140 m cabinet appears in the first two revisions of the 06.12.25 Staudham drawing, twice, and is
+# gone from every later revision in favour of the smaller top. Either it was a drawing correction or it was a real
+# cabinet Innschleife stopped bringing, and "a spec for a box that may have been a draughting error would be worse
+# than the question". The question was on docs/requests.md.
+#
+# IT IS ANSWERED. Innschleife stated what they are bringing to the next event, and it is four subs of each type plus
+# EITHER all four small tops OR "die 2 großen THL4". A cabinet somebody plans to put in a van is not a draughting
+# error, so the box is real, there are two of them, and it has a name.
+#
+# THE NAME IS SECOND-HAND AND THE SIZE IS NOT A CONFIRMATION OF IT. "THL4" reached this file through Stefan rather
+# than off the badge, and the front size makes that both better and worse:
+#
+#   * 0.500 x 1.140 m is the published Turbosound TMS-4's 502 x 1143 mm TO THE MILLIMETRE. docs/sources.md already
+#     cites those figures for a different cabinet and records what went wrong there — the TMS-4's size was let in as
+#     an anchor for `turbo-top` and was contradicted by the builder's own numbers.
+#   * So the match says the drawing is of a real Turbosound-sized box rather than a rectangle somebody sketched, and
+#     it says nothing about whether that box is a THL-4 or a TMS-4. TWO SIMILAR MODEL DESIGNATIONS FROM ONE
+#     MANUFACTURER IS EXACTLY THE PLACE A SECOND-HAND NAME GOES WRONG.
+#
+# `build: original` IS THE ONE ASSERTION MADE HERE, AND IT IS THE WEAKER OF THE TWO AVAILABLE. The enum offers
+# self-built, own-design and original. `own-design` would say Innschleife drew it, which nobody believes of a
+# cabinet called THL4 in classic Turbosound livery; `original` says only that it came out of a factory. No
+# `clone_of`, because that block is for a cabinet we built from somebody else's drawing, and no manufacturer or
+# model field anywhere in this file — a name nobody has read off the badge is not an identification, which is the
+# same rule the sibling top's purple paint was refused under.
+#
+# EVERY NUMBER BUT THE FRONT IS DERIVED, exactly as for the four siblings, and the method is written out once in
+# wsx-18.yaml.
+#
+#   * WIDTH and HEIGHT 0.500 x 1.140 m, the embedded photograph's pixel size at the one pixel to the centimetre the
+#     drawing's owner states.
+#   * DEPTH 0.520 m from `tecnare-m2122`, which is 0.500 x 0.960 x 0.520 — THE SAME WIDTH TO THE MILLIMETRE and the
+#     same class of cabinet, a big multi-way top. It is the closest analogy in the library and it is still an
+#     analogy.
+#   * WEIGHT 59 kg is the modelled volume at 200 kg/m3, this library's central density, which is what the four
+#     siblings use. IT IS THE LEAST TRUSTWORTHY NUMBER IN THIS FILE AND IS PROBABLY LIGHT: the Tecnare at 0.2496 m3
+#     weighs 68 kg, which is 272 kg/m3, because a big three-way is full of magnets and horn. At that density this
+#     box would be 81 kg. 200 is kept for consistency with the siblings rather than because it is the better guess,
+#     and the spread on the method is +/- 50 %.
+#
+# THE TMS-4'S OWN DEPTH AND WEIGHT ARE PUBLISHED, AND THEY ARE DELIBERATELY NOT USED. docs/sources.md cites
+# 1143 x 502 x 730 mm and 74.8 kg for it. If this cabinet is that cabinet, the depth here is 210 mm short and the
+# weight 16 kg light, and both would be replaced in one edit. They are not adopted today for the reason the whole
+# file is careful: THL-4 and TMS-4 are two designations from one manufacturer, the name reached us through a third
+# party, and this repository has already let a same-class Turbosound set a cabinet's size once. `turbo-top` was
+# anchored to the TMS-4 and came out 61 % too tall against the builder's own figures. **THE DIRECTION IS WORTH
+# CARRYING THOUGH: both published numbers are larger than what this spec states, so a rig built from it is
+# optimistic on depth and on weight rather than pessimistic.**
+id: thl4
+name: "Innschleife THL-4 top"
+category: speaker
+subtype: top
+quantity: 2
+owner: innschleife
+build: original
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.500, height: 1.140, depth: 0.520 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # The same purple as the small top, and read the same way: a body colour rather than the photograph's average.
+  # See tms4.yaml.
+  color: "#3d1f4a"
+
+physical:
+  weight_kg: 59.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+# NO `audio` BLOCK. No passband, no coverage, no driver complement. A model designation is not a datasheet, and
+# writing a Turbosound's published figures into this file would be sourcing a cabinet on a name nobody has
+# confirmed — which is the mistake docs/sources.md records for `turbo-top`, made once already.
+
+mesh_override: null
+
+notes: |
+  RENAME THIS SPEC IF THE BADGE SAYS SOMETHING ELSE. The id carries a name that arrived by word of mouth, which is
+  a step up from the front-size ids its siblings carry and is not the same thing as having read it. A rename costs
+  a file move, an id change and a sweep regeneration.
+
+  IT IS THE TALLEST TOP IN THE LIBRARY at 1.140 m, half a metre taller than our Tecnare, which matters for the
+  sub/top transition: two of these on a sub wall put the interface where a `--max-sub-height` of 3.0 m has already
+  spent most of its budget. rosters/innschleife-next-event-thl4.yaml is the rig that brings them.
+
+  ONLY THE EARLIEST DRAWING REVISIONS SHOW IT, so there is one source for its size and no second look at it. The
+  later revisions replace it with `tms4`, and the owner's "either the four small ones or the two
+  big ones" is the first thing that explains why: they are alternatives to each other rather than a correction.

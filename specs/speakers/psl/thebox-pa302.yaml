@@ -1,0 +1,65 @@
+# the box PA302, a plastic-moulded fullrange top. The cheapest cabinet in the library and the only one whose
+# enclosure is not wood.
+#
+# Figures from PSL's own published technical data, https://pro-sound-light.de/equipment/tontechnik/ — see
+# concert-audio-ef6.yaml for why that counts as a datasheet here.
+#
+# A MOULDED PLASTIC CABINET IS THE WORST FIT FOR `shape: box` IN THIS REPOSITORY. A PP moulding is curved on
+# every face and its published dimensions are the bounding box of something that has no flat sides at all, so
+# the modelled volume overstates the real one by more than any wooden cabinet's does. It is drawn as a box
+# because that is what the source gives, and the error is in the direction of a box that is too big rather
+# than too small, which is the safe direction for a pack and the wrong one for a render.
+#
+# QUANTITY 1 IS A FLOOR. No package, no drawing. See docs/requests.md.
+id: thebox-pa302
+name: "the box PA302"
+category: speaker
+subtype: top
+quantity: 1
+owner: psl
+build: original
+
+provenance: datasheet
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.420, height: 0.615, depth: 0.390 }
+  origin: bottom-center
+  chamfer_m: 0.010
+
+appearance:
+  # Black polypropylene rather than paint.
+  color: "#1a1a1a"
+
+physical:
+  weight_kg: 18.6
+  handles: [ left, right ]
+
+rigging:
+  # Three M8 fly points on the top face, which is more than most cabinets here publish — but where they sit is
+  # not stated, so the same rule applies as everywhere else in this system's specs.
+  flyable: false
+  points: [ ]
+
+audio:
+  # "Abstrahlwinkel (Horn): 55 x 55-100 (VCD)" — the horizontal is fixed and the vertical is variable by
+  # rotating the horn, so 55 is the narrow end of a range rather than the figure. Recorded as 55 x 55 with the
+  # range in the notes, because `coverage_deg` holds one number per axis.
+  coverage_deg: { horizontal: 55, vertical: 55 }
+  passband_hz:
+    low_hz: 40
+    high_hz: 20000
+    provenance: datasheet
+  drivers:
+    # THE HF DRIVER IS DELIBERATELY ABSENT. The source says "Horn mit 44 mm Titaniumtreiber", and 44 mm is a
+    # voice coil diameter rather than a driver or throat size. `Driver` requires `size_in`, and converting a
+    # voice coil to a throat size is arithmetic on a number that means something else. See SPEC-6.
+    - { size_in: 12, type: woofer, count: 1 }
+
+mesh_override: null
+
+notes: |
+  Passive 2-way fullrange top in a moulded PP cabinet, usable as a monitor. 12" woofer and a horn with a 44 mm
+  titanium driver. Power 300 W RMS / 600 W peak. Impedance 8 Ohm. Max level 121 dB. Frequency range
+  40 - 20000 Hz. Horn coverage 55 degrees horizontal by 55 to 100 degrees vertical, rotatable (VCD). Speakon
+  in and out, pole socket, three M8 fly points on top.

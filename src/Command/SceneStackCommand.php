@@ -6,29 +6,38 @@ namespace App\Command;
 
 use App\Process\Parallel;
 use App\Scene\Alignment;
+use App\Scene\CandidateCheck;
 use App\Scene\Feasibility;
 use App\Scene\GroupStack;
 use App\Scene\Interpenetration;
 use App\Scene\LayoutMode;
+use App\Scene\LowEndBias;
 use App\Scene\MirrorStyle;
 use App\Scene\RolledBox;
 use App\Scene\Placement;
 use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
+use App\Scene\SceneLayout;
 use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
 use App\Scene\SharedTops;
 use App\Scene\Stack;
 use App\Scene\StackBlock;
+use App\Scene\StackChecks;
+use App\Scene\StackDeal;
 use App\Scene\StackEntry;
 use App\Scene\StackOrientation;
 use App\Scene\StackSceneWriter;
 use App\Scene\StackShape;
 use App\Scene\StackSolver;
 use App\Scene\SweepAxes;
+use App\Scene\SystemGrouping;
 use App\Scene\SystemSplit;
 use App\Scene\SplitMode;
 use App\Spec\DeviceSpec;
+use App\Spec\FillOrder;
+use App\Spec\InvalidSpecException;
+use App\Spec\RosterLoader;
 use App\Spec\Violation;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -113,44 +122,9 @@ final class SceneStackCommand extends BaseCommand
      */
     private const DEFAULT_MAX_SUB_HEIGHT_M = 3.0;
 
-    /**
-     * What a metre outside the band costs against a metre away from the target, when {@see heightCost} ranks two
-     * ways of dealing the same cabinets out.
-     *
-     * Twice, which is the smallest number that says "outside is worse" without turning a preference back into the
-     * gate it just stopped being. A rig 100 mm over the ceiling still beats one 400 mm from the aim, and that is the
-     * right way round: both are buildable and the second is further from what was asked for.
-     *
-     * **Inert at the default band, and deliberately kept anyway** — the same argument {@see StackSolver::fill} makes
-     * about the same numbers. 2.5 m is the midpoint of 2–3 m, so every in-band arrangement is already nearer the aim
-     * than every out-of-band one and the penalty changes no ranking. It stops being redundant the moment somebody
-     * states a target off the midpoint: `--target-sub-height=2.2 --max-sub-height=3.0` puts a 3.05 m wall 850 mm from
-     * the aim and a 1.40 m wall 800 mm from it, and only the penalty knows one of the two is over the ceiling.
-     */
-    private const OUT_OF_BAND_PENALTY = 2.0;
 
-    /**
-     * What the orientation axis is called in a scene name when `--roll-mirror` named the cabinets outright.
-     *
-     * **The one axis value with no enum case behind it, and it needs one anyway.** `--orientation=MODE` says *which*
-     * cabinets lie down by a rule — every sub, or only the ones that get wider on their side — where `--roll-mirror`
-     * lists them, and {@see SweepAxes::orientations} represents that as a null orientation. Left unnamed it was the
-     * one gap left in a scheme whose whole point is that a reader never has to know what a missing field meant.
-     *
-     * **Not a {@see StackOrientation} case**, deliberately. An enum case would be offerable as `--orientation=stated`,
-     * which means nothing without a `--roll-mirror` beside it and would have to be refused wherever it appeared alone.
-     * The name is a fact about how the rig was *asked for* rather than about which cabinets ended up on their sides,
-     * so it belongs to the naming rather than to the axis.
-     */
-    private const STATED_ORIENTATION = 'stated';
 
-    /**
-     * The filler that pads an axis value out to its axis's widest one.
-     *
-     * A dash, so a name is one alphabet rather than two. The fields are fixed-width and positional, so nothing reads
-     * a name by splitting on the separator any more and a run of dashes costs no ambiguity.
-     */
-    private const NAME_PAD = '-';
+
 
     /**
      * The scene files this run actually wrote, absolute, in the order they were written.
@@ -202,6 +176,9 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('gap', null, InputOption::VALUE_REQUIRED, 'Working gap between neighbours, in metres', '0.02')
             ->addOption('at', null, InputOption::VALUE_REQUIRED, 'Where the rig is centred, as X,Y', '-0.302,0')
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
+            ->addOption('low-end', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Where the lowest cabinets belong: central (on the centre line) or low (on the floor). Default: both')
+            ->addOption('folders', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Axes to make directory levels instead of name fields: inventory, stacks, systems, shape, orientation, mirror-style, align, feasibility. Default: inventory')
+            ->addOption('into', null, InputOption::VALUE_REQUIRED, 'Subdirectory of scenes/generated/ to write into. Default: the inventory being swept')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
             ->addOption('shape', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'pyramid (rows narrow going up) or free (as wide as bearing allows). Default: both')
             ->addOption('mirror-style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'What a turned row does with its odd cabinet: alternate (side flips per row), centred (unrolled in the middle) or column (same side every row). Default: all three where something is rolled')
@@ -209,7 +186,11 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Build from these owners\' gear only. Default: sweep every combination of them')
-            ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per owner, side by side, instead of one rig from everything')
+            ->addOption('roster', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A file in rosters/ stating what a system brings to one event. Overrides the specs\' quantities. Repeatable')
+            ->addOption('quantity', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'DEVICE:COUNT — build with this many of a device instead of the number its spec states. 0 leaves it at home. Repeatable')
+            ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per system, side by side, instead of one rig from everything')
+            ->addOption('order', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'System names, left to right, overriding the tallest-in-the-middle rule. Repeatable or comma-separated')
+            ->addOption('group', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'NAME:owner+owner — owners that are one sound system. Repeatable. Default: sdwa5 and sepp are `ours`')
             ->addOption('systems', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'How separately the systems stand: pooled, systems-apart or tops-shared (each system\'s subs, with every top dealt across those walls). Default: all three where there is more than one owner')
             ->addOption('stacks', null, InputOption::VALUE_REQUIRED, 'Split each group into this many stacks. Default: sweep 1, 2 and 3')
             ->addOption('clearance', null, InputOption::VALUE_REQUIRED, 'Air between neighbouring stacks, in metres', '0.5')
@@ -218,6 +199,37 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite an existing scene file')
             ->addOption('jobs', 'j', InputOption::VALUE_REQUIRED, 'Processes to solve the sweep in — 1 is serial, 0 is one per core', '0');
     }
+
+    /**
+     * The counts this run overrode, device id to units, sorted by id.
+     *
+     * **A property rather than an argument threaded through the solve**, because the only thing that needs it is the
+     * recorded command line at the far end of {@see build}, and the eight frames in between have no business
+     * knowing a count was overridden at all — that is the point of rewriting the specs up front.
+     *
+     * @var array<string, int>
+     */
+    private array $counts = [];
+
+    /**
+     * Every option's declared default, by name — what {@see RecordedCommand} compares a stated value against.
+     *
+     * **Read off the `InputDefinition` once, in the parent, and passed down.** The recorded line only writes a
+     * value out when it differs from the default, so this map decides the contents of 2072 files; and the line is
+     * assembled inside a forked child, where reaching back for `$this->getDefinition()` would work by accident of
+     * the fork copying the object rather than by design.
+     *
+     * @var array<string, mixed>
+     */
+    private array $defaults = [];
+
+    /**
+     * Which owners are one sound system for this run.
+     *
+     * Resolved in `execute()` and therefore before {@see \App\Process\Parallel} forks, for the same reason
+     * {@see $counts} is: {@see StackDeal::groups} runs in a child and a child cannot ask the parent anything.
+     */
+    private SystemGrouping $grouping;
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -229,6 +241,43 @@ final class SceneStackCommand extends BaseCommand
             $devices[$spec->id] = $spec;
         }
 
+        // **APPLIED BEFORE ANYTHING READS A QUANTITY, WHICH IS WHY IT IS THE FIRST THING THAT HAPPENS.** A count
+        // reaches the solver through a dozen paths — the fill order, the by-type balance, the owner list, the
+        // silhouette widths — and threading an override down all of them would be a dozen chances to miss one. The
+        // specs are rewritten here instead, once, and everything downstream goes on reading `->quantity` in
+        // ignorance. See {@see \App\Spec\Roster} for why the count lives outside the spec file at all.
+        $layout = SceneLayout::of((array)$input->getOption('folders'));
+        if (is_string($layout)) {
+            $this->io->error($layout);
+
+            return self::FAILURE;
+        }
+
+        $grouping = SystemGrouping::of((array)$input->getOption('group'));
+        if (is_string($grouping)) {
+            $this->io->error($grouping);
+
+            return self::FAILURE;
+        }
+        $this->grouping = $grouping;
+
+        $counts = $this->countOverrides($input, $devices);
+        if (is_string($counts)) {
+            $this->io->error($counts);
+
+            return self::FAILURE;
+        }
+        foreach ($counts as $id => $count) {
+            $devices[$id] = $devices[$id]->withQuantity($count);
+        }
+        $this->counts = $counts;
+        foreach ($this->getDefinition()->getOptions() as $option) {
+            $this->defaults[$option->getName()] = $option->getDefault();
+        }
+        // Keyed by id in the order the specs were loaded, so this is the same list in the same order — the sort
+        // that gives every command stable output is not disturbed by an override.
+        $specs = array_values($devices);
+
         $missing = array_values(array_diff((array)$input->getOption('from'), array_keys($devices)));
         if ($missing !== []) {
             $this->io->error(sprintf("Unknown device '%s'", $missing[0]));
@@ -236,7 +285,7 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        // Checked here rather than inside {@see SweepAxes::ownerCombinations}, because a misspelled owner has to be a refusal that
+        // Checked here rather than inside {@see SweepAxes::inventory}, because a misspelled owner has to be a refusal that
         // names the owners there are. Silently intersecting it away would leave the whole inventory built instead, which
         // is the opposite of what was asked for and looks like a working run.
         $owners = array_values(array_unique(array_map(
@@ -274,7 +323,57 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $rigs = $this->rigsToTry($specs, $input, $splits);
+        $lowEnds = SweepAxes::lowEndBiases($input->getOption('low-end'));
+        if (is_string($lowEnds)) {
+            $this->io->error($lowEnds);
+
+            return self::FAILURE;
+        }
+
+        $rigs = SweepAxes::rigsToTry(
+            $specs,
+            (array)$input->getOption('from'),
+            $input->getOption('stacks') === null ? null : (string)$input->getOption('stacks'),
+            (array)$input->getOption('owner'),
+            (bool)$input->getOption('per-owner'),
+            $this->grouping,
+            $splits,
+        );
+
+        // **THE OUTPUT DIRECTORY IS THE RUN'S INVENTORY, AND A RUN HAS EXACTLY ONE.**
+        // {@see SweepAxes::inventory} returns a single subset, so every rig in `$rigs` shares a label and
+        // reading it off the first is a fact rather than a shortcut. A stated `--into` wins, which is what a replay
+        // uses: the recorded line names a cabinet list rather than an owner, so it cannot re-derive its own folder.
+        $into = (string)($input->getOption('into') ?? '');
+        /** @var list<string> $rosters */
+        $rosters = $input->getOption('roster');
+        if ($into === '' && count($rosters) === 1) {
+            // **ONE ROSTER NAMES THE FOLDER, BECAUSE THE RIG IT BUILDS IS NOT THE INVENTORY'S RIG.** Both variants of
+            // Innschleife's next event are `--owner=innschleife`, so both would be filed under `innschleife/` beside
+            // the rigs built from everything they own, under the same file names, and the last run would win. The
+            // roster's id is the one name that tells the three apart.
+            $into = $rosters[0];
+        }
+        if ($into === '' && $counts !== []) {
+            // **A CHANGED RIG UNDER AN UNCHANGED NAME IS THE ONE FAILURE THIS COMMAND MUST NOT HAVE.** Every other
+            // axis is in the file name or in the folder, so two different rigs cannot collide; a count override is
+            // in neither, and the sweep would quietly write its files over the ones a bare sweep just wrote. Two
+            // rosters cannot pick between their own names either, so both cases end here.
+            $this->io->error(
+                '--quantity changes the rig without changing its name — say --into=NAME for the folder to write it '
+                .'into, or state the counts as a single --roster, whose id names the folder',
+            );
+
+            return self::FAILURE;
+        }
+        if ($into === '') {
+            $into = (string)($rigs[0]['inventory'] ?? '');
+        }
+        if (preg_match('/^[a-z0-9]*(?:-[a-z0-9]+)*$/', $into) !== 1) {
+            $this->io->error('--into: '.$into.' is not a directory name — lowercase words separated by single dashes');
+
+            return self::FAILURE;
+        }
 
         $at = $this->readAt((string)$input->getOption('at'));
         if ($at === null) {
@@ -317,6 +416,7 @@ final class SceneStackCommand extends BaseCommand
         $statedWidth = $this->readFloat($input, 'max-width');
 
         $candidates = [];
+        $directories = [];
         $skipped = [];
         $noted = [];
 
@@ -324,6 +424,7 @@ final class SceneStackCommand extends BaseCommand
         // The four nested loops decide *which* rigs there are, which is arithmetic over the axes and costs nothing;
         // the solve behind each one is a minute of CPU on the big rigs. Splitting the two is the whole of the change.
         $tasks = [];
+        $axisValues = [];
         $requestProblem = null;
         foreach ($rigs as $rig) {
             // **THE REQUEST-LEVEL HALF OF A REFUSAL, ASKED ONCE PER RIG AND ASKED HERE.** {@see groups} reads only
@@ -335,16 +436,25 @@ final class SceneStackCommand extends BaseCommand
             //
             // Asked in the parent on purpose. A fork hands each child a copy of this object, so anything a child
             // records about the run dies with it, and this has to survive to decide the exit code.
-            $rigProblem = $this->groups($devices, $rig['from'], $rig['stacks'], $input, $rig['split']);
+            $rigProblem = StackDeal::groups(
+                $devices,
+                $rig['from'],
+                $rig['stacks'],
+                (float)$input->getOption('clearance'),
+                (string)$input->getOption('split'),
+                $this->grouping,
+                $rig['split'],
+            );
             if (is_string($rigProblem)) {
                 $requestProblem ??= $rigProblem;
             }
             foreach ($shapes as $shape) {
                 foreach (SweepAxes::pairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
+                        foreach ($lowEnds as $lowEnd) {
                         // **EVERY AXIS IS IN THE NAME, AT A FIXED WIDTH**, in the order the sweep nests them: the rig
                         // (owners and stack count), then shape, orientation, mirror style, alignment. See
-                        // {@see padded} for why the widths, and {@see STATED_ORIENTATION} for the one value that has
+                        // {@see SweepAxes::padded} for why the widths, and {@see SweepAxes::STATED_ORIENTATION} for the one value that has
                         // no enum case behind it.
                         //
                         // Three axes used to be omitted at one value each — `pyramid`, `upright` and `alternate` — so
@@ -361,26 +471,46 @@ final class SceneStackCommand extends BaseCommand
                         // known here — the name is completed after {@see sweep} returns. The alignment is padded
                         // now that something lines up behind it; whatever ends up last stays ragged, which is the
                         // rule this always followed.
-                        $name = sprintf(
-                            '%s%s-%s-%s-%s-%s',
-                            (string)$input->getOption('id'),
-                            $rig['suffix'],
-                            self::padded($shape->value, StackShape::class),
-                            self::padded($orientation?->value ?? self::STATED_ORIENTATION, StackOrientation::class),
-                            self::padded($style->value, MirrorStyle::class),
-                            self::padded($mode->value, LayoutMode::class),
-                        );
+                        // **THE LAYOUT DECIDES WHICH OF THESE ARE IN THE NAME AND WHICH ARE DIRECTORIES**, and at
+                        // the default layout it produces exactly the string the `sprintf` here used to: the base
+                        // id, then the stack count, the separation, the shape, the orientation, the mirror style
+                        // and the alignment, each padded to its axis's widest value. See {@see SceneLayout}.
+                        $raw = [
+                            'inventory' => $into,
+                            'stacks' => (string)$rig['stacks'],
+                            'systems' => $rig['split']->value,
+                            'shape' => $shape->value,
+                            'orientation' => $orientation?->value ?? SweepAxes::STATED_ORIENTATION,
+                            'mirror-style' => $style->value,
+                            'align' => $mode->value,
+                            'low-end' => $lowEnd->value,
+                        ];
+                        // Padded for the name and raw for the path — see {@see SceneLayout::pathFor} on why a
+                        // directory does not carry a column's padding.
+                        $values = [
+                            'inventory' => $into,
+                            'stacks' => $raw['stacks'],
+                            'systems' => SweepAxes::padded($raw['systems'], SystemSplit::class),
+                            'shape' => SweepAxes::padded($raw['shape'], StackShape::class),
+                            'orientation' => SweepAxes::padded($raw['orientation'], StackOrientation::class),
+                            'mirror-style' => SweepAxes::padded($raw['mirror-style'], MirrorStyle::class),
+                            'align' => SweepAxes::padded($raw['align'], LayoutMode::class),
+                            'low-end' => SweepAxes::padded($raw['low-end'], LowEndBias::class),
+                        ];
+                        $name = $layout->nameFor((string)$input->getOption('id'), $values);
                         if (is_string($rigProblem)) {
                             $skipped[$name] = $rigProblem;
                             continue;
                         }
-                        $tasks[$name] = [$rig, $shape, $style, $orientation, $mode];
+                        $tasks[$name] = [$rig, $shape, $style, $orientation, $mode, $lowEnd];
+                        $axisValues[$name] = [$values, $raw];
+                        }
                     }
                 }
             }
         }
 
-        foreach ($this->sweep($tasks, $devices, $at, $statedWidth, $input) as $stem => $built) {
+        foreach ($this->sweep($tasks, $devices, $at, $statedWidth, $input, $into) as $stem => $built) {
             if (is_string($built)) {
                 // No rig at all, so no side of the feasibility axis to put it on. Reported under the stem, because
                 // a name for a file that was never written would be a name for nothing.
@@ -392,7 +522,11 @@ final class SceneStackCommand extends BaseCommand
             // possible or impossible — never a variant of the same rig — so this doubles the sweep rather than
             // multiplying it, and both halves are ordinary generated scenes.
             $feasibility = Feasibility::of($built['faults']);
-            $name = $stem.'-'.$feasibility->value;
+            [$values, $raw] = $axisValues[$stem] ?? [[], []];
+            $values['feasibility'] = $feasibility->value;
+            $raw['feasibility'] = $feasibility->value;
+            $name = $layout->nameFor((string)$input->getOption('id'), $values);
+            $directories[$name] = $layout->pathFor($raw);
             if ($feasibility === Feasibility::Impossible) {
                 // **The file says why it is named impossible, in its own header.** Everything else in a generated
                 // scene is a constraint the compiler re-solves; this is the one line that is an *answer*, and it is
@@ -418,7 +552,7 @@ final class SceneStackCommand extends BaseCommand
             $candidates[$name] = $built;
         }
 
-        $candidates = $this->deduplicate($candidates, $skipped);
+        $candidates = CandidateCheck::deduplicate($candidates, $skipped);
 
         foreach ($skipped as $name => $reason) {
             $this->io->text(sprintf('  <comment>skipped</comment> %s — %s', $name, $reason));
@@ -461,331 +595,16 @@ final class SceneStackCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        return $this->emit($candidates, (bool)$input->getOption('dry-run'), (bool)$input->getOption('force'));
-    }
-
-    /**
-     * The first stack whose sub/top transition falls outside the band the scene asked for, or null when every stack
-     * is inside it. **A sentence about the rig, never a reason to refuse it.**
-     *
-     * **STATED BY THE OWNER: THE INTERFACE HEIGHT IS AN OPTIMISATION PROBLEM, NOT A HARD CONSTRAINT.** Tops standing
-     * below or above head height is not a reason to refuse a rig or to call a scene invalid. This used to return a
-     * refusal, on every invocation rather than only on the sweep, and it was by a wide margin the largest single
-     * source of skipped candidates in the command — 258 of them in one family, more than every geometry rule in the
-     * repository put together. Each one was a rig that stands up perfectly well and is merely shorter or taller than
-     * ideal.
-     *
-     * What the three height keys mean now is one thing rather than three:
-     *
-     * * **`target_sub_height_m`** is what the solver optimises, and it always was.
-     * * **`interface_height_m`** and **`max_sub_height_m`** are the band around it. They still steer — the solver
-     *   prefers an arrangement inside them ({@see StackSolver::fill}) and {@see build} ranks a miss as a cost — and
-     *   neither can throw the rig away any more.
-     *
-     * **What stays a gate is everything about whether the rig stands up**: bearing, support, the pillar rule, the
-     * silhouette rules and interpenetration. That is the line, and it is a different question from whether the rig
-     * sounds right. A cabinet hanging off the edge of its support cannot be built at any price; tops a bit low can.
-     *
-     * The message carries the measured height and the bound it missed, because a number is what makes it judgeable.
-     * The same sentence reaches the file itself through {@see StackChecks::boundsProblems}, which has reported both
-     * misses as warnings since long before this stopped refusing them.
-     *
-     * @param list<StackBlock> $blocks
-     */
-    private static function bandMiss(array $blocks): ?string
-    {
-        foreach ($blocks as $block) {
-            $height = $block->subHeightM();
-            $floor = $block->stack->interfaceHeightM;
-            $ceiling = $block->stack->maxSubHeightM;
-            $whose = $block->label === '' ? 'stack\'s' : $block->label.' stack\'s';
-
-            if ($ceiling !== null && $height > $ceiling + 1e-9) {
-                return sprintf(
-                    'the %s subs reach %.3f m against the %.3f m ceiling asked for — %.0f mm too high, and the rig is '
-                    .'written with that miss on it',
-                    $whose,
-                    $height,
-                    $ceiling,
-                    ($height - $ceiling) * 1000,
-                );
-            }
-            if ($floor > 0.0 && $height + 1e-9 < $floor) {
-                // **The reason depends on whether anything stands on the wall**, and reporting the wrong one is worse
-                // than reporting nothing: a sub wing has no tops to fire below head height, so the sentence would be
-                // false about the very rig it is describing. See {@see StackBlock::hasTops}, and
-                // {@see StackChecks::boundsProblems} for the same split in the file's own header.
-                return $block->hasTops()
-                    ? sprintf(
-                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, so the '
-                        .'tops fire below head height',
-                        $whose,
-                        $height,
-                        $floor,
-                        ($floor - $height) * 1000,
-                    )
-                    : sprintf(
-                        'the %s subs reach only %.3f m against the %.3f m interface asked for — %.0f mm short, and '
-                        .'nothing stands on them: it is a sub wing, so the interface decides nothing about it',
-                        $whose,
-                        $height,
-                        $floor,
-                        ($floor - $height) * 1000,
-                    );
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * How badly one stack's sub wall misses what was asked of it, as a single number the deal strategies are ranked
-     * on — **distance from the target, and a steeper price outside the band**.
-     *
-     * The target is the aim and the two bounds are no longer gates ({@see bandMiss}), so without this they would
-     * mean nothing at all here: two deal strategies placing the same cabinets would be separated by pure distance
-     * from 2.5 m and a stated ceiling would have no say in which one wins. A miss has to cost something, and what it
-     * may no longer cost is the rig. See {@see OUT_OF_BAND_PENALTY} for what the multiplier is worth.
-     */
-    /**
-     * One axis value padded to the width of the widest value that axis has, so the fields line up down a listing.
-     *
-     * **A directory of 396 files is read in columns or not at all.** Unpadded, `stacked-all-3-v-mixed-centred-block`
-     * and `stacked-gmss-sdwa5-2-pyramid-upright-alternate-center` share a scheme that nothing about looking at them
-     * reveals: every field starts at a different place, so comparing two rigs means parsing both names first. Padded,
-     * the shape column is the shape column in every row.
-     *
-     * **The width comes from the enum rather than from a number written here**, so a new case widens the column by
-     * existing. That renames every scene the day an axis gains a value, which is the honest price and is a thing that
-     * already happens for other reasons — the same release that adds a shape regenerates the set anyway.
-     *
-     * @param class-string<\BackedEnum> $axis
-     */
-    private static function padded(string $value, string $axis): string
-    {
-        $width = 0;
-        foreach ($axis::cases() as $case) {
-            $width = max($width, strlen((string)$case->value));
-        }
-        // The orientation axis carries one value that is not a case of it, so the column has to clear that too.
-        if ($axis === StackOrientation::class) {
-            $width = max($width, strlen(self::STATED_ORIENTATION));
-        }
-
-        return str_pad($value, $width, self::NAME_PAD);
-    }
-
-    private static function heightCost(StackBlock $block, float $target): float
-    {
-        $height = $block->subHeightM();
-        $floor = $block->stack->interfaceHeightM;
-        $ceiling = $block->stack->maxSubHeightM;
-
-        $outside = 0.0;
-        if ($ceiling !== null && $height > $ceiling) {
-            $outside = $height - $ceiling;
-        } elseif ($floor > 0.0 && $height < $floor) {
-            $outside = $floor - $height;
-        }
-
-        return abs($height - $target) + self::OUT_OF_BAND_PENALTY * $outside;
-    }
-
-    /**
-     * The stacks laid out so the tall ones end up where the alignment wants them.
-     *
-     * **The same rule as the tops row, one level up.** {@see StackSolver::topRow} centres the long throw for mono and
-     * {@see StackSolver::stereoTopRow} pushes it to the ends for stereo; a rig of several stacks is the same question
-     * asked of whole stacks. Until now they came out in *solve* order — owner alphabetical, or the order the split
-     * dealt them — and nothing ever looked at their heights, so `both-systems-per-owner` read `3.34 | 3.20 | 1.80`
-     * with the tallest hard left. Seven of thirty multi-stack scenes were wrong that way.
-     *
-     * * **mono** — tallest in the middle, the rest alternating outward. `3.34 | 3.20 | 1.80` becomes
-     *   `3.20 | 3.34 | 1.80`: the biggest pile carries the room from the centre and the small ones widen the coverage.
-     * * **stereo** — tallest at the outer ends, working inward. The mirror, because the point of a stereo rig is the
-     *   width of its image and the main clusters belong as far apart as the stage allows.
-     *
-     * **This improves symmetry and does not deliver it**, which is worth being plain about. Ordering can place the
-     * tall stacks; it cannot make the two flanks *equal*, because that depends on the split giving each stack similar
-     * contents. `--per-owner` puts three different systems side by side and no ordering makes those the same height.
-     *
-     * @param list<StackBlock> $blocks
-     * @return list<StackBlock>
-     */
-    private static function byHeight(array $blocks, LayoutMode $mode): array
-    {
-        if (count($blocks) < 3 && $mode !== LayoutMode::Stereo) {
-            // Two stacks have no middle to be in, and no mono ordering can tell them apart.
-            return $blocks;
-        }
-
-        usort(
-            $blocks,
-            static fn (StackBlock $a, StackBlock $b): int => $b->subHeightM() <=> $a->subHeightM(),
+        return $this->emit(
+            $candidates,
+            (bool)$input->getOption('dry-run'),
+            (bool)$input->getOption('force'),
+            $directories,
         );
-
-        // Tallest first in `$blocks`. Deal them alternately to build the shape the mode asks for: for mono the
-        // tallest takes the middle and each next one goes to the shorter side, which comes out as a list read from
-        // the centre outward and then flattened; for stereo the same deal read from the ends inward.
-        $left = [];
-        $right = [];
-        foreach ($blocks as $position => $block) {
-            $position % 2 === 0 ? $left[] = $block : $right[] = $block;
-        }
-
-        return $mode === LayoutMode::Stereo
-            // Tallest at the ends: the tall half outward on the left, the rest inward, mirrored on the right.
-            ? [...$left, ...array_reverse($right)]
-            // Tallest central: shorter ones outboard on the left, tallest in the middle, the rest to the right.
-            : [...array_reverse($right), ...$left];
     }
 
-    /**
-     * Every rig worth trying — which gear, and how many stacks to split it into.
-     *
-     * **THIS IS THE PROJECT'S GOAL EXPRESSED AS A DEFAULT.** As many *sensible* configurations as possible out of one
-     * command in its default settings. Before this, the bare command wrote **nothing at all**: `--from` defaulted to
-     * every speaker in the repository, which since the GMSS cabinets arrived means two sound systems in one stack —
-     * a rig nobody would build, whose eight tops alone are 3.921 m and refuse on any stage we own. Meanwhile every
-     * generated scene had to spell four to six flags out to get anywhere.
-     *
-     * So absence now means *sweep*, the way it already does for `--align` and `--shape`:
-     *
-     * * **one rig per non-empty combination of owners** ({@see SweepAxes::ownerCombinations}) — each owner alone, each pair, and
-     *   everything. `owner` is the only discriminator the specs carry, and it is admittedly not quite the right one —
-     *   the repository deliberately supports borrowing gear between owners, so "owner" and "system" are not the same
-     *   question. It is what exists, it separates the two systems in practice, and inventing a `system:` field to serve
-     *   a sweep would be inventing a property to serve a layout. The *pairs* are what that borrowing looks like as a
-     *   rig, and they were the gap: the sweep used to jump from one owner straight to all of them.
-     * * **one, two and three stacks** — the counts somebody actually varies when planning a gig.
-     *
-     * Naming each rig into the scene id is what keeps the files apart, and it reads as what it is:
-     * `stacked-sdwa5-2-free-stereo` is our gear, two stacks, free shape, stereo.
-     *
-     * **Naming any of `--from`, `--stacks` or `--per-owner` collapses the sweep to that single point**, exactly as
-     * naming `--align` collapses it to one mode. Nothing that worked before works differently; the only change is what
-     * *silence* means. `--owner` is the exception and narrows one axis instead of collapsing the sweep, since it says
-     * whose gear to build from and nothing about the rig — see {@see SweepAxes::ownerCombinations}.
-     *
-     * @param list<DeviceSpec> $specs
-     * @return list<array{from: list<string>, stacks: int, suffix: string}>
-     */
-    private function rigsToTry(array $specs, InputInterface $input, array $splits = []): array
-    {
-        /** @var list<string> $stated */
-        $stated = $input->getOption('from');
-        $statedStacks = $input->getOption('stacks');
 
-        /** @var list<string> $owners */
-        $owners = $input->getOption('owner');
 
-        // Any of the three narrowing options means the caller has a specific rig in mind.
-        if (!$this->isSweep($input)) {
-            // **`--owner` still binds on this path**, which is what stops it being silently ignored the moment somebody
-            // writes `--owner=gmss --stacks=2`. `--from` names the cabinets outright and wins, and naming both is
-            // refused in `execute()` rather than resolved here.
-            $narrowed = $owners === []
-                ? $specs
-                : array_values(array_filter(
-                    $specs,
-                    static fn (DeviceSpec $spec): bool => in_array($spec->owner, $owners, true),
-                ));
-
-            return [[
-                'from' => $stated !== [] ? $stated : $this->everySpeaker($narrowed),
-                // NOT clamped to 1: an explicit `--stacks=0` is a mistake worth refusing, and {@see groups} is where
-                // that refusal lives. Clamping it here silently solved a one-stack rig instead.
-                'stacks' => (int)($statedStacks ?? 1),
-                // The separation is a property of the rig from here on rather than a flag read deep inside the
-                // solve, which is what lets the sweep offer all three values of it. On this path the caller stated
-                // it, and **`--systems` wins over `--per-owner`** where somebody names both: it is the option that
-                // can say which of the two separated values was meant, so reading the flag instead would answer a
-                // narrower question than the one asked. Only the first value is used, since a named rig is one rig.
-                'split' => $splits[0]
-                    ?? ($input->getOption('per-owner') ? SystemSplit::SystemsApart : SystemSplit::Pooled),
-                'suffix' => '',
-            ]];
-        }
-
-        $byOwner = [];
-        foreach ($specs as $spec) {
-            if ($spec->category->value === 'speaker' && $spec->quantity > 0) {
-                $byOwner[$spec->owner][] = $spec;
-            }
-        }
-        ksort($byOwner);
-
-        $combinations = SweepAxes::ownerCombinations(array_keys($byOwner), $owners);
-
-        $groups = [];
-        $ownersOf = [];
-        foreach ($combinations as $subset) {
-            $owned = [];
-            foreach ($subset as $owner) {
-                $owned = [...$owned, ...$byOwner[$owner]];
-            }
-            $label = SweepAxes::labelFor($subset, count($byOwner));
-            $groups[$label] = $this->everySpeaker($owned);
-            $ownersOf[$label] = $subset;
-        }
-
-        // **THE LABEL COLUMN IS AS WIDE AS THE GEAR LIST MAKES IT, NOT AS WIDE AS THIS RUN NEEDS.** Measured over
-        // every combination the *specs* allow rather than over `$combinations`, which `--owner` narrows: pad to what
-        // this run happens to hold and `--owner=gmss` would name its rigs `stacked-gmss-1-…` while the full sweep
-        // names the identical rig `stacked-gmss------1-…`. One rig, two file names, decided by an option that is
-        // supposed to narrow the sweep rather than to rename it.
-        $width = SweepAxes::labelWidth(array_keys($byOwner));
-
-        $rigs = [];
-        foreach ($groups as $label => $from) {
-            foreach ([1, 2, 3] as $stacks) {
-                // A stack cannot hold fewer than one device type, so asking for more stacks than types is not a rig
-                // worth reporting a refusal for — it is arithmetic. Skipped silently, unlike a solve that fails.
-                if (count($from) < $stacks) {
-                    continue;
-                }
-                // **SWP-2's axis, and it is offered only where it can mean something.** A rig drawn from one owner
-                // has nothing to separate, so it gets `pooled` alone — see {@see SystemSplit::forOwnerCount}. That
-                // is a third of the sweep not solved twice to produce one file.
-                //
-                // `--systems` then narrows what is left, in the enum's own order rather than the order it was typed,
-                // so `--systems=tops-shared --systems=pooled` and the reverse name the same rigs. Intersected rather
-                // than replacing the list, because "offered where it can mean something" is a fact about the rig and
-                // an option may not talk a single-owner rig into a separation it has nothing to separate.
-                $offered = SystemSplit::forOwnerCount(count($ownersOf[$label] ?? []));
-                foreach ($splits === [] ? $offered : array_intersect($offered, $splits) as $split) {
-                    $rigs[] = [
-                        'from' => $from,
-                        'stacks' => $stacks,
-                        'split' => $split,
-                        'suffix' => sprintf(
-                            '-%s-%d-%s',
-                            str_pad((string)$label, $width, self::NAME_PAD),
-                            $stacks,
-                            self::padded($split->value, SystemSplit::class),
-                        ),
-                    ];
-                }
-            }
-        }
-
-        return $rigs;
-    }
-
-    /**
-     * Whether this invocation is the sweep or one rig somebody named.
-     *
-     * **Only one question depends on it now, which is which rigs to try.** It used to decide a second one as well —
-     * whether a wall outside the sub height band was a skip or a rig for a different stage — and that second reading
-     * is gone in both directions: nothing is skipped for missing the band, and there is no stage to move it to. A
-     * named rig and a swept one are built the same way and differ only in how many of them there are.
-     */
-    private function isSweep(InputInterface $input): bool
-    {
-        return $input->getOption('from') === []
-            && $input->getOption('stacks') === null
-            && !$input->getOption('per-owner');
-    }
 
     /**
      * One candidate scene, or the reason there is none.
@@ -805,13 +624,23 @@ final class SceneStackCommand extends BaseCommand
         StackShape $shape,
         MirrorStyle $style,
         ?StackOrientation $orientation,
+        LowEndBias $lowEnd,
         int $stacks,
         string $baseId,
         ?float $maxWidthM,
         InputInterface $input,
         SystemSplit $split = SystemSplit::Pooled,
+        string $into = '',
     ): array|string {
-        $grouped = $this->groups($devices, $from, $stacks, $input, $split);
+        $grouped = StackDeal::groups(
+            $devices,
+            $from,
+            $stacks,
+            (float)$input->getOption('clearance'),
+            (string)$input->getOption('split'),
+            $this->grouping,
+            $split,
+        );
         if (is_string($grouped)) {
             return $grouped;
         }
@@ -846,7 +675,8 @@ final class SceneStackCommand extends BaseCommand
 
         foreach ($strategies as [$evenSplit, $placeAll]) {
             $attempt = $this->solveEach(
-                $groups, [], $devices, $mode, $shape, $style, $orientation, $maxWidthM, $input, $evenSplit, $placeAll,
+                $groups, [], $devices, $mode, $shape, $style, $orientation, $lowEnd, $maxWidthM, $input,
+                $evenSplit, $placeAll,
             );
             if (is_string($attempt)) {
                 $firstProblem ??= $attempt;
@@ -870,6 +700,7 @@ final class SceneStackCommand extends BaseCommand
                     $shape,
                     $style,
                     $orientation,
+                    $lowEnd,
                     $maxWidthM,
                     $input,
                     $evenSplit,
@@ -904,7 +735,7 @@ final class SceneStackCommand extends BaseCommand
             // and a bound that cannot refuse and cannot rank would mean nothing whatsoever.
             $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $attempt));
             $miss = max(array_map(
-                static fn (StackBlock $b): float => self::heightCost($b, $target),
+                static fn (StackBlock $b): float => StackChecks::heightCost($b, $target),
                 $attempt,
             ));
 
@@ -922,9 +753,9 @@ final class SceneStackCommand extends BaseCommand
         // Measured before the blocks are reordered, and **reported rather than refused whoever asked for it**. The
         // sweep used to treat a wall outside the band as a rig for a different stage and a named rig as a warning,
         // which was two answers to one question; now both are the warning, and there is no stage to move it to.
-        $bandMiss = self::bandMiss($blocks);
+        $bandMiss = StackChecks::bandMiss($blocks);
 
-        $blocks = self::byHeight($blocks, $mode);
+        $blocks = StackSceneWriter::byHeight($blocks, $mode, self::statedOrder($input));
 
         $clearance = (float)$input->getOption('clearance');
         $yaml = StackSceneWriter::yaml(
@@ -933,14 +764,19 @@ final class SceneStackCommand extends BaseCommand
             blocks: $blocks,
             at: $at,
             clearanceM: $clearance,
-            command: $this->commandLine(
-                $input, $mode, $shape, $style, $orientation, $stacks, $baseId, $maxWidthM, $from, $split,
+            command: RecordedCommand::line(
+                $input, $mode, $shape, $style, $orientation, $lowEnd, $stacks, $baseId, $maxWidthM, $from, $split, $into,
+                $this->counts, $this->defaults,
             ),
+            stated: $this->counts,
+            // Each block is a system exactly when the separation says so, which is what decides whether they
+            // share a focus. See {@see StackSceneWriter::yaml}.
+            perSystemFocus: $split->isPerOwner(),
         );
 
         // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
         // one of the possibilities, whatever the solver thought of the tiers.
-        $compiled = $this->compileYaml($yaml, $devices);
+        $compiled = CandidateCheck::compileYaml($yaml, $devices);
         if (is_string($compiled)) {
             return $compiled;
         }
@@ -971,6 +807,7 @@ final class SceneStackCommand extends BaseCommand
         StackShape $shape,
         MirrorStyle $style,
         ?StackOrientation $orientation,
+        LowEndBias $lowEnd,
         ?float $maxWidthM,
         InputInterface $input,
         bool $evenSplit,
@@ -982,7 +819,7 @@ final class SceneStackCommand extends BaseCommand
             // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
             $label = (string)$key;
             $block = $this->solveGroup(
-                $devices, $ids, $label, $mode, $shape, $style, $orientation, $maxWidthM, $input,
+                $devices, $ids, $label, $mode, $shape, $style, $orientation, $lowEnd, $maxWidthM, $input,
                 count($groups) > 1, $index, $of, $evenSplit, $placeAll, $deal[$label] ?? [],
             );
             if (is_string($block)) {
@@ -1009,14 +846,20 @@ final class SceneStackCommand extends BaseCommand
      * scene list, the skip list and therefore the deduplication all come out in the order a serial run produced.
      * Without that the output would be correct and unstable, which is worse than slow.
      *
-     * @param array<string, array{array{from: list<string>, stacks: int, suffix: string}, StackShape, MirrorStyle,
+     * @param array<string, array{array{from: list<string>, stacks: int, inventory: string, suffix: string}, StackShape, MirrorStyle,
      *     ?StackOrientation, LayoutMode}> $tasks
      * @param array<string, DeviceSpec> $devices
      * @param list<float> $at
      * @return array<string, array{yaml: string, bandMiss: ?string, cabinets: int, fingerprint: string}|string>
      */
-    private function sweep(array $tasks, array $devices, array $at, ?float $statedWidth, InputInterface $input): array
-    {
+    private function sweep(
+        array $tasks,
+        array $devices,
+        array $at,
+        ?float $statedWidth,
+        InputInterface $input,
+        string $into,
+    ): array {
         return Parallel::map(
             $tasks,
             fn (array $task): array|string => $this->build(
@@ -1027,11 +870,13 @@ final class SceneStackCommand extends BaseCommand
                 $task[1],
                 $task[2],
                 $task[3],
+                $task[5],
                 $task[0]['stacks'],
-                (string)$input->getOption('id').$task[0]['suffix'],
+                (string)$input->getOption('id'),
                 $statedWidth,
                 $input,
                 $task[0]['split'],
+                $into,
             ),
             (int)$input->getOption('jobs'),
         );
@@ -1062,197 +907,7 @@ final class SceneStackCommand extends BaseCommand
             ? implode("\n", $lines)."\n".$yaml
             : substr($yaml, 0, $first)."\n".implode("\n", $lines).substr($yaml, $first);
     }
-    /**
-     * The device ids to build each stack from, in order.
-     *
-     * `--per-owner` groups by {@see DeviceSpec::$owner} and adds **no new concept**: who owns a cabinet is
-     * already recorded, and for this collective it is exactly the split between the rigs — `sdwa5` runs the
-     * Flexys, SKRAMs and M2122s, `sepp` the Achenbachs and 2-ways. A `system:` field would have duplicated it
-     * value for value.
-     *
-     * `--stacks=N` then splits each group into that many, evenly, which is how a stereo pair is asked for.
-     *
-     * **`tops-shared` takes the tops out of the groups altogether**, which is the one thing here that is not simply a
-     * partition of the device list: each group keeps its owner's subs and the tops come back separately as a pool for
-     * {@see SharedTops} to deal once the walls are solved. A group is still the fill order it arrived in, since
-     * {@see everySpeaker} emits subs low-frequency-first and then tops, so removing the tops is a truncation rather
-     * than a re-sort.
-     *
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $from
-     * @return array{stacks: array<string, array{ids: list<string>, index: int, of: int}>, tops: array<string, int>}|string
-     */
-    private function groups(
-        array $devices,
-        array $from,
-        int $stacks,
-        InputInterface $input,
-        // Named `$systems` and not `$split`, because `--split` is a different axis entirely — it decides whether a
-        // stack gets a share of every device type or whole types each, and it is resolved a few lines below.
-        SystemSplit $systems = SystemSplit::Pooled,
-    ): array|string {
-        if ($stacks < 1) {
-            return '--stacks must be at least 1';
-        }
-        if ((float)$input->getOption('clearance') < 0.0) {
-            return '--clearance must not be negative';
-        }
 
-        $split = SplitMode::tryFrom((string)$input->getOption('split'));
-        if ($split === null) {
-            return sprintf(
-                "--split: unknown value '%s' (allowed: %s)",
-                $input->getOption('split'),
-                implode(', ', array_column(SplitMode::cases(), 'value')),
-            );
-        }
-
-        // **THE TOPS COME OUT OF THE INVENTORY BEFORE IT IS GROUPED, and only for `tops-shared`.** Taken out here
-        // rather than after the grouping because the pool is a fact about the rig: every top in it is dealt across
-        // every wall, so which owner it came from stops mattering the moment the value is chosen. What is left in
-        // `$from` is the subs, and each owner's share of those is its wall.
-        $pool = [];
-        if ($systems->sharesTops()) {
-            $subs = [];
-            foreach ($from as $id) {
-                if ($devices[$id]->subtype === 'sub') {
-                    $subs[] = $id;
-                    continue;
-                }
-                $pool[$id] = $devices[$id]->quantity;
-            }
-            $from = $subs;
-        }
-
-        // **Read off the rig rather than off the option, which is what lets one sweep offer all three.**
-        // `--per-owner` still decides it for a caller who names a rig by hand; on the sweep the axis decides, and the
-        // value is recorded into each written scene's regenerate line so a replay rebuilds the same grouping.
-        $groups = [];
-        if ($systems->isPerOwner()) {
-            foreach ($from as $id) {
-                $groups[$devices[$id]->owner][] = $id;
-            }
-        } else {
-            $groups[''] = $from;
-        }
-        if ($groups === []) {
-            // Only reachable with `tops-shared`, and only on an inventory of nothing but tops. Worth its own refusal
-            // rather than an empty-stack error further down: there is nothing wrong with the request except that
-            // there are no subs in it, and nothing stands a top up but a sub.
-            return 'tops-shared: this inventory is all tops — there are no subs to make a wall out of';
-        }
-
-        // Splitting shares each device out rather than each *group*, so both halves of a stereo pair get some
-        // of every cabinet instead of one taking the subs and the other the tops. The index and count travel
-        // with the group so the share can be worked out **without losing the remainder**: three M2122s over two
-        // stacks is 2 + 1, not one each with the third quietly unplaced.
-        $dealt = [];
-        foreach ($groups as $label => $ids) {
-            // By type, the stack's own list *is* its share, so `of` is 1 and nothing is divided further. That is
-            // what makes a by-type stack low: it holds two or three types where a by-count stack holds all nine.
-            $perStack = $split === SplitMode::ByType && $stacks > 1
-                ? $this->byType($devices, $ids, $stacks)
-                : null;
-            if (is_string($perStack)) {
-                return $perStack;
-            }
-
-            for ($stack = 0; $stack < $stacks; ++$stack) {
-                $key = $stacks === 1
-                    ? (string)$label
-                    : ($label === '' ? (string)($stack + 1) : $label.'-'.($stack + 1));
-                $dealt[$key] = $perStack === null
-                    ? ['ids' => $ids, 'index' => $stack, 'of' => $stacks]
-                    : ['ids' => $perStack[$stack], 'index' => $stack, 'of' => 1];
-            }
-        }
-
-        return ['stacks' => $dealt, 'tops' => $pool];
-    }
-
-    /**
-     * Whole device types dealt one stack each, balanced by how much **row** each type is.
-     *
-     * Balanced on `quantity × width` — the linear metres a type needs — and not on cabinet count, because that is
-     * what decides how many rows a stack ends up with and so how tall it is. It is also the measure
-     * {@see byFillOrder} already breaks its own ties on, so nothing new is being invented to rank cabinets.
-     *
-     * Longest-processing-time greedy: the biggest type goes to the emptiest stack, repeatedly. It is the standard
-     * answer to this shape of problem and within a third of optimal for it, which is far inside the accuracy of
-     * the cabinet dimensions themselves.
-     *
-     * **A stack of tops alone is folded away**, because nothing stands on the floor to hold them up: the tops go
-     * to whichever stack carries the most sub, which is the one best able to take them. A stack of subs and no
-     * tops is left alone — that is a sub wing, and a perfectly ordinary thing to build.
-     *
-     * Each stack's list is then put back into the fill order it arrived in, so the deepest cabinets still end up on
-     * the floor and the tops still come last. `by-type` decides *which* stack a type is in; it never reorders one.
-     *
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $ids
-     * @return list<list<string>>|string one list per stack, or why the split cannot be made
-     */
-    private function byType(array $devices, array $ids, int $stacks): array|string
-    {
-        if (count($ids) < $stacks) {
-            return sprintf(
-                '--split=by-type: %d device types cannot fill %d stacks — each stack gets whole types, so there '
-                .'has to be at least one each. Use --split=by-count, or fewer stacks',
-                count($ids),
-                $stacks,
-            );
-        }
-
-        $bySize = $ids;
-        usort(
-            $bySize,
-            static fn (string $a, string $b): int => $devices[$b]->quantity * $devices[$b]->dimensions->width
-                <=> $devices[$a]->quantity * $devices[$a]->dimensions->width,
-        );
-
-        $assigned = array_fill(0, $stacks, []);
-        $load = array_fill(0, $stacks, 0.0);
-        foreach ($bySize as $id) {
-            $target = (int)array_search(min($load), $load, true);
-            $assigned[$target][] = $id;
-            $load[$target] += $devices[$id]->quantity * $devices[$id]->dimensions->width;
-        }
-
-        $subLoad = [];
-        foreach ($assigned as $stack => $own) {
-            $subLoad[$stack] = 0.0;
-            foreach ($own as $id) {
-                if ($devices[$id]->subtype === 'sub') {
-                    $subLoad[$stack] += $devices[$id]->quantity * $devices[$id]->dimensions->width;
-                }
-            }
-        }
-        $carries = (int)array_search(max($subLoad), $subLoad, true);
-        foreach ($assigned as $stack => $own) {
-            if ($subLoad[$stack] > 0.0 || $stack === $carries) {
-                continue;
-            }
-            $assigned[$carries] = [...$assigned[$carries], ...$own];
-            $assigned[$stack] = [];
-        }
-
-        $ordered = [];
-        foreach ($assigned as $own) {
-            $ordered[] = array_values(array_filter($ids, static fn (string $id): bool => in_array($id, $own, true)));
-        }
-
-        foreach ($ordered as $stack => $own) {
-            if ($own === []) {
-                return sprintf(
-                    '--split=by-type: stack %d ends up empty — its only types were tops, which have nothing to '
-                    .'stand on, and they went to the stack carrying the most sub. Use fewer stacks',
-                    $stack + 1,
-                );
-            }
-        }
-
-        return $ordered;
-    }
 
     /**
      * One group solved into a block, dropping whatever cannot be carried and saying so.
@@ -1277,6 +932,7 @@ final class SceneStackCommand extends BaseCommand
         StackShape $shape,
         MirrorStyle $style,
         ?StackOrientation $orientation,
+        LowEndBias $lowEnd,
         ?float $maxWidthM,
         InputInterface $input,
         bool $named,
@@ -1287,13 +943,13 @@ final class SceneStackCommand extends BaseCommand
         array $tops = [],
     ): StackBlock|string {
         // **The dealt tops join the list after the subs, which is where the fill order wants them.** Appended rather
-        // than merged, because `$ids` is a fill order and not a set: {@see everySpeaker} emits subs low-frequency
+        // than merged, because `$ids` is a fill order and not a set: {@see \App\Spec\FillOrder::everySpeaker} emits subs low-frequency
         // first and then tops, {@see groups} truncated the tops off the end for `tops-shared`, and this puts back a
         // different set of them in the same place.
         $ids = [...$ids, ...array_keys($tops)];
 
         // What the split does with the odd cabinets, named up front rather than left to be inferred from the tiers.
-        $omitted = $this->splitRemainder($devices, $ids, $of, $evenSplit, $placeAll, $tops);
+        $omitted = StackDeal::splitRemainder($devices, $ids, $of, $evenSplit, $placeAll, $tops);
 
         // Try the whole group, then the group with one device removed, smallest holding first — the cabinet
         // most likely to be the odd one out is the one there are fewest of.
@@ -1310,7 +966,7 @@ final class SceneStackCommand extends BaseCommand
         $firstProblem = null;
         foreach ($candidates as $attempt) {
             $stack = $this->stackFor(
-                $attempt, $input, $devices, $maxWidthM, $shape, $style, $orientation,
+                $attempt, $input, $devices, $maxWidthM, $shape, $style, $orientation, $lowEnd,
                 2 * $index < $of - 1, $of === 1,
             );
             $problems = $stack->problems();
@@ -1319,12 +975,12 @@ final class SceneStackCommand extends BaseCommand
             }
 
             // **THE SAME QUESTION THE COMPILER WILL ASK**, and asking a different one is a defect rather than a
-            // shortcut. This used to solve with no seating check and then hand the answer to {@see compileYaml},
+            // shortcut. This used to solve with no seating check and then hand the answer to {@see CandidateCheck::compileYaml},
             // which re-solves *with* one — so the command wrote the arrangement its own solve liked and the compiler
             // rebuilt a different one from the same file. See GEO-11 and {@see SceneCompiler::seatingCheck}.
             $placementId = $named ? 'main-'.$label : 'main';
             $solved = StackSolver::solve(
-                $this->inventoryFor($devices, $attempt, $index, $of, $evenSplit, $placeAll, $tops),
+                StackDeal::inventoryFor($devices, $attempt, $index, $of, $evenSplit, $placeAll, $tops),
                 $stack,
                 // `center` is written as no alignment at all, so it arrives here as the mode rather than as null —
                 // and `topRow` treats the two identically, which keeps the generated scene and its rebuild agreeing.
@@ -1377,6 +1033,7 @@ final class SceneStackCommand extends BaseCommand
         StackShape $shape = StackShape::Free,
         MirrorStyle $style = MirrorStyle::Alternate,
         ?StackOrientation $orientation = null,
+        LowEndBias $lowEnd = LowEndBias::Low,
         bool $mirror = false,
         bool $solo = false,
     ): Stack {
@@ -1422,6 +1079,7 @@ final class SceneStackCommand extends BaseCommand
             targetSubHeightM: $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
             shape: $shape,
             mirrorStyle: $style,
+            lowEnd: $lowEnd,
             // **STILL ONLY A SOLO STACK, AND IT IS NOT FOR WANT OF THE BOUND.** The bound a multi-stack rig needs is
             // `max(0.0, clearance / 2 - gap)`, since {@see StackSceneWriter::centres} leaves exactly `--clearance`
             // between two envelopes and half of it each, less a working gap, keeps two rows sliding towards each other
@@ -1442,109 +1100,114 @@ final class SceneStackCommand extends BaseCommand
         );
     }
 
+
     /**
-     * The command that produced this scene, written out so the file can be regenerated without being read first.
+     * The count every device is built with where that is not the number its spec states, or the reason the run
+     * cannot start.
      *
-     * Reconstructed from what the command actually **used**, not echoed from the command line: `--from` is
-     * expanded to the resolved device list rather than left implicit, and `--align` names the one mode this file
-     * is, not the three that were tried. So the line reproduces this scene specifically, which is the only useful
-     * thing it could say — and a default that changes later shows up here instead of being silently inherited.
+     * **Two ways in, and they are the same fact at two levels of permanence.** `--roster` reads a file somebody
+     * committed, which is where "what Innschleife brings on the 6th" belongs; `--quantity` is the same statement
+     * typed at a shell, for the question nobody will ask twice. So `--quantity` wins where both name a device: the
+     * typed value is the newer of the two by construction, and a file that a caller has deliberately overridden on
+     * the command line is not an argument for refusing to run.
      *
-     * Value options are only emitted when they differ from their default, so an ordinary rig's line stays short
-     * enough to read.
+     * **Two rosters naming the same device is a refusal, though**, and the difference is worth stating. Neither file
+     * is newer than the other, both were written on purpose, and picking one by argument order would make the rig
+     * depend on the order two options were typed in. There is nothing to prefer, so there is nothing to do but say
+     * so and name both files.
      *
-     * **`--id` is emitted even though the file's own `id:` is right below it**, because the line has to be runnable
-     * rather than merely informative: `build:all` replays it, and without the prefix every scene would regenerate as
-     * `stacked-<mode>` and overwrite one file. The prefix is the id less the alignment suffix.
-     *
-     * @param list<string> $from
+     * @param array<string, DeviceSpec> $devices
+     * @return array<string, int>|string
      */
-    private function commandLine(
-        InputInterface $input,
-        LayoutMode $mode,
-        StackShape $shape,
-        MirrorStyle $style,
-        ?StackOrientation $orientation,
-        int $stacks,
-        string $baseId,
-        ?float $maxWidthM,
-        array $from,
-        SystemSplit $systems,
-    ): string {
-        $parts = ['bin/console scene:stack'];
+    private function countOverrides(InputInterface $input, array $devices): array|string
+    {
+        $loader = new RosterLoader($this->rostersDir());
+        $counts = [];
+        $statedBy = [];
 
-        // **THE STATED WIDTH, AND NOTHING WHEN NONE WAS STATED.** `--max-width` is not in the loop below with the
-        // other value options because it has no default to compare against any more: the option is either given, in
-        // which case the replay has to be given it too or it would rebuild a different rig, or it is absent, in which
-        // case writing one out would invent the bound this command just stopped inventing.
-        if ($maxWidthM !== null) {
-            $parts[] = sprintf('--max-width=%s', rtrim(rtrim(sprintf('%.2f', $maxWidthM), '0'), '.'));
-        }
+        /** @var list<string> $rosters */
+        $rosters = $input->getOption('roster');
+        foreach ($rosters as $id) {
+            try {
+                $roster = $loader->load($id);
+            } catch (InvalidSpecException $e) {
+                $available = $loader->available();
 
-        foreach ([
-            'min-width', 'max-height', 'interface-height', 'max-sub-height', 'target-sub-height', 'gap', 'at', 'split',
-            'clearance',
-        ] as $option) {
-            $value = $input->getOption($option);
-            if ($value !== null && (string)$value !== (string)$this->getDefinition()->getOption($option)->getDefault()) {
-                $parts[] = sprintf('--%s=%s', $option, $value);
+                return sprintf(
+                    '--roster=%s: %s%s',
+                    $id,
+                    $e->getMessage(),
+                    $available === [] ? '' : ' (there is '.implode(', ', $available).')',
+                );
+            }
+
+            foreach ($roster->brings as $device => $count) {
+                if (!isset($devices[$device])) {
+                    return sprintf("%s: no device is called '%s'", $this->relative($roster->sourcePath), $device);
+                }
+                if (isset($statedBy[$device]) && $counts[$device] !== $count) {
+                    return sprintf(
+                        "--roster: %s says %d× %s and %s says %d× — the two rosters disagree and neither is newer",
+                        $statedBy[$device],
+                        $counts[$device],
+                        $device,
+                        $id,
+                        $count,
+                    );
+                }
+                $counts[$device] = $count;
+                $statedBy[$device] = $id;
             }
         }
-        // **THE MODE, NOT THE CABINETS IT RESOLVED TO.** `--orientation=turned` means "every sub", and writing the
-        // resolved list out instead would freeze today's inventory into the file: measure a new sub, or correct one whose
-        // height turns out to be under its width, and the replay would rebuild the rig the mode no longer asks for. The
-        // stated form is only recorded where it is what the caller actually said.
-        if ($orientation !== null) {
-            $parts[] = '--orientation='.$orientation->value;
-        } else {
-            /** @var list<string> $turned */
-            $turned = $input->getOption('roll-mirror');
-            foreach ($turned as $id) {
-                $parts[] = '--roll-mirror='.$id;
+
+        /** @var list<string> $stated */
+        $stated = $input->getOption('quantity');
+        foreach ($stated as $pair) {
+            $parts = explode(':', $pair);
+            if (count($parts) !== 2 || preg_match('/^\d+$/', $parts[1]) !== 1) {
+                return sprintf("--quantity=%s expects DEVICE:COUNT, a whole number of units", $pair);
             }
-        }
-        /** @var list<string> $mixes */
-        $mixes = $input->getOption('mix');
-        foreach ($mixes as $mix) {
-            $parts[] = '--mix='.$mix;
-        }
-        // **THE SEPARATION HAS TO BE WRITTEN OUT, AND IT IS NOT AN OPTION THE SWEEP SET.** SWP-2's axis lives on
-        // the rig rather than on the input, so reading `--per-owner` off the input records nothing for a swept
-        // `systems-apart` rig — and the replay then rebuilds it pooled, under the separated rig's name, with
-        // different geometry and sometimes a different feasibility. Measured before this line existed: 99 of the
-        // 976 scenes replayed to a different file, most of them flipping `-possible` to `-impossible`.
-        //
-        // **`--per-owner` for `systems-apart` and `--systems` for the third value**, which is not inconsistency for
-        // its own sake. `--per-owner` is what the 433 separated scenes already record, and emitting `--systems` for
-        // them instead would rewrite every one of those files to say the same thing in different words. The value
-        // that has no flag says so by name.
-        if ($systems === SystemSplit::SystemsApart) {
-            $parts[] = '--per-owner';
-        } elseif ($systems !== SystemSplit::Pooled) {
-            $parts[] = '--systems='.$systems->value;
+            if (!isset($devices[$parts[0]])) {
+                return sprintf("--quantity: no device is called '%s'", $parts[0]);
+            }
+            $counts[$parts[0]] = (int)$parts[1];
         }
 
-        foreach (['no-asymmetry'] as $flag) {
-            if ($input->getOption($flag)) {
-                $parts[] = '--'.$flag;
+        // Sorted by device id, so the recorded command line comes out the same whichever order the options were
+        // typed in — a replay that differs from its own scene only in the order of two flags is a diff nobody wants
+        // to read, and {@see \App\Command\BuildAllCommand} compares those lines.
+        ksort($counts);
+
+        // A count that matches the spec is dropped rather than carried: it changes no rig, and carrying it would put
+        // a `--quantity` in the recorded line that does nothing, and — worse — would trip the `--into` refusal for a
+        // run that has not actually overridden anything.
+        return array_filter($counts, static fn (int $count, string $id): bool => $count !== $devices[$id]->quantity, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * The left-to-right order of the stacks, as `--order` states it.
+     *
+     * A comma list or a repeatable option, both flattened, because the two forms read the same and refusing one of
+     * them would be a rule nobody can guess. Empty when nothing was stated, which is what leaves
+     * {@see StackSceneWriter::byHeight} in charge.
+     *
+     * @return list<string>
+     */
+    private static function statedOrder(InputInterface $input): array
+    {
+        $order = [];
+        /** @var list<string> $stated */
+        $stated = $input->getOption('order');
+        foreach ($stated as $group) {
+            foreach (explode(',', $group) as $name) {
+                $name = trim($name);
+                if ($name !== '') {
+                    $order[] = $name;
+                }
             }
         }
-        // The swept axes are written out explicitly, because the whole point of the recorded line is that it
-        // reproduces THIS scene rather than the sweep it came from.
-        foreach ($from as $id) {
-            $parts[] = '--from='.$id;
-        }
-        $parts[] = '--stacks='.$stacks;
-        $parts[] = '--align='.$mode->value;
-        $parts[] = '--shape='.$shape->value;
-        $parts[] = '--mirror-style='.$style->value;
-        // **THE SWEPT NAME, not the base `--id`.** The sweep builds a scene's name from the base plus which rig it is
-        // — `stacked` + `-gmss-1` — and a replay runs narrowed, so it contributes no suffix of its own. Recording the
-        // bare base made every replay write `stacked-center` over the top of one file while the 37 real ones went
-        // stale, and the prune then removed them: 742 files, because the derived artifacts went with them.
-        $parts[] = '--id='.$baseId;
 
-        return implode(' ', $parts);
+        return $order;
     }
 
     /**
@@ -1574,116 +1237,8 @@ final class SceneStackCommand extends BaseCommand
         return $mixes;
     }
 
-    /**
-     * This stack's share of each device — **symmetric, and never split below what a row needs**.
-     *
-     * Two rules, both learned from what the even split produced.
-     *
-     * **A device too small to split is not split.** Fewer than two per stack cannot flank a mixed row
-     * ({@see StackSolver} needs two to make a pair) and cannot be flanked into one either, so one SKRAM per
-     * half left the row above it standing on 49.9 % of its own width and the solver dropped the pair
-     * altogether — 180 kg of sub in no rig at all. The pair goes whole to the **middle** stack instead:
-     * `intdiv($of, 2)`, which is the middle of three and the right-hand one of two.
-     *
-     * **The rest is shared evenly, and `$placeAll` decides what happens to the remainder.** Three M2122s over two
-     * stacks split evenly are 1 + 1 with the third out of the rig: symmetric, and a stereo pair that really is a
-     * pair — one side would otherwise get a wider top row, a different interface height and a different rig. But
-     * a cabinet in no rig at all is its own kind of wrong, so `$placeAll` deals the remainder instead
-     * ({@see dealAll}) and the rig comes out 1 + 2. Both are offered, the one that stands up more cabinets wins,
-     * and `--no-asymmetry` withdraws the offer. Either way the odd cabinet is **named** by
-     * {@see splitRemainder} rather than silently dropped or silently lopsided.
-     *
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $ids
-     * @param array<string, int> $dealt device id => a count decided elsewhere, which overrides the share
-     * @return list<array{DeviceSpec, int}>
-     */
-    private function inventoryFor(
-        array $devices,
-        array $ids,
-        int $index,
-        int $of,
-        bool $evenSplit = true,
-        bool $placeAll = false,
-        array $dealt = [],
-    ): array {
-        $middle = intdiv($of, 2);
 
-        return array_map(
-            static function (string $id) use ($devices, $index, $of, $middle, $evenSplit, $placeAll, $dealt): array {
-                // **A DEALT COUNT IS AN ANSWER AND NOT A SHARE**, so it wins outright over everything below. The
-                // shared tops of SWP-2 were dealt to *this* stack by {@see SharedTops} across the whole rig, and
-                // dividing that share again by the stack count would deal the pool twice — once across the walls and
-                // once inside each of them.
-                if (isset($dealt[$id])) {
-                    return [$devices[$id], $dealt[$id]];
-                }
 
-                $quantity = $devices[$id]->quantity;
-                $share = intdiv($quantity, $of);
-
-                // Two cases keep a device whole. **Fewer than one per stack** — there are simply not enough to
-                // go round, and splitting three stacks' worth out of two 2-ways leaves every one of them out.
-                // **Fewer than two per stack, for a sub** — a sub has to flank a mixed row or be flanked into
-                // one, and neither works with one cabinet. Tops are exempt from the second: nothing stands on a
-                // top, so one Tecnare per stack is a perfectly good top row, and applying the rule to them made
-                // the middle stack hoard every one and left the outer stacks a row of subs with nothing above.
-                if ($share < 1 || (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub')) {
-                    // A **sub** goes to the middle: weight belongs low and central, and a sub has to be part of a
-                    // row that carries something. A **top** goes to the outermost stacks instead, because the tops
-                    // too few to give every stack one are the small boxes — near-field fill, which belongs at the
-                    // edges of the rig rather than stacked in its centre.
-                    return $devices[$id]->subtype === 'sub'
-                        ? [$devices[$id], $index === $middle ? $quantity : 0]
-                        : [$devices[$id], self::outerShare($quantity, $index, $of)];
-                }
-
-                return [$devices[$id], $placeAll ? self::dealAll($quantity, $index, $of) : $share];
-            },
-            $ids,
-        );
-    }
-
-    /**
-     * How many of `$quantity` this stack gets when they are dealt **outermost first, in pairs**.
-     *
-     * Pairs, so the rig stays symmetric: `(0, of-1)`, then `(1, of-2)`, and so on. An odd one left at the end goes
-     * to the middle stack of an odd-numbered rig rather than to one side, since a lone fill on the left is worse
-     * than a lone fill in the centre. Two 2-ways across three stacks come out one, none, one.
-     */
-    private static function outerShare(int $quantity, int $index, int $of): int
-    {
-        for ($pair = 0; $quantity >= 2 && $pair < intdiv($of, 2); ++$pair) {
-            if ($index === $pair || $index === $of - 1 - $pair) {
-                return 1;
-            }
-            $quantity -= 2;
-        }
-
-        return $quantity > 0 && $of % 2 === 1 && $index === intdiv($of, 2) ? $quantity : 0;
-    }
-
-    /**
-     * This stack's share when **every cabinet is placed** — the even share, plus its part of the remainder.
-     *
-     * The remainder goes through {@see outerShare}, so the leftovers land outermost-first in pairs and the split
-     * stays as symmetric as the counts allow: three Tecnares across two stacks come out one and two rather than
-     * one each with the third unplaced.
-     *
-     * `outerShare` leaves a single cabinet out when the rig has an **even** number of stacks, because there is no
-     * middle stack to give it to. Placing everything means it has to go somewhere, and it goes to the stack just
-     * right of the centre line — the same side {@see \App\Scene\Tier::mirrored} and
-     * {@see \App\Scene\StackSolver::centred} put an odd cabinet, so a rig is asymmetric the same way throughout
-     * rather than one way per rule.
-     */
-    private static function dealAll(int $quantity, int $index, int $of): int
-    {
-        $share = intdiv($quantity, $of);
-        $rest = $quantity - $share * $of;
-        $odd = $rest % 2 === 1 && $of % 2 === 0 && $index === intdiv($of, 2) ? 1 : 0;
-
-        return $share + self::outerShare($rest, $index, $of) + $odd;
-    }
 
     /**
      * The tops that are fill rather than long throw: every one narrower than the widest top in the stack.
@@ -1719,182 +1274,13 @@ final class SceneStackCommand extends BaseCommand
         ));
     }
 
-    /**
-     * What an even split leaves over, per device, so the report can name it instead of it just being absent.
-     *
-     * @param array<string, DeviceSpec> $devices
-     * @param list<string> $ids
-     * @param array<string, int> $dealt device ids whose count was dealt rather than split, which have no remainder
-     * @return array<string, string> device id => why some are not in any stack
-     */
-    private function splitRemainder(
-        array $devices,
-        array $ids,
-        int $of,
-        bool $evenSplit = true,
-        bool $placeAll = false,
-        array $dealt = [],
-    ): array {
-        if ($of < 2) {
-            return [];
-        }
 
-        $left = [];
-        foreach ($ids as $id) {
-            // A dealt device has no remainder to report, because it was never split: {@see SharedTops} handed this
-            // stack a count across the whole rig. Reporting one would describe an arithmetic the rig did not do.
-            if (isset($dealt[$id])) {
-                continue;
-            }
 
-            $quantity = $devices[$id]->quantity;
-            $share = intdiv($quantity, $of);
-
-            // The same condition {@see inventoryFor} keeps a device whole on: those are all placed, in one
-            // stack, so there is no remainder to report. Guarding on the share alone skipped the tops with one
-            // per stack, which is exactly the case this exists for — the odd third M2122.
-            if ($share < 1) {
-                continue;
-            }
-
-            // A sub kept whole because it could not be split. Said out loud, because the header otherwise shows
-            // both SKRAMs in one stack and gives no hint that the other arrangement was tried and refused — which
-            // is the single thing about a split rig people ask about.
-            if (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub') {
-                $left[$id] = sprintf(
-                    'KEPT TOGETHER, all %d in one stack — %d stacks would take one each, and one on its own cannot be '
-                    .'flanked into a row that carries anything: the row above it ends up half off its support. '
-                    .'Turning them makes the split work, which is what the -turned rig does',
-                    $quantity,
-                    $of,
-                );
-                continue;
-            }
-
-            $over = $quantity - $share * $of;
-            if ($over < 1) {
-                continue;
-            }
-
-            // Placed but unevenly, which is worth saying for the same reason leaving it out was: a reader comparing
-            // two stacks needs to know the difference is the remainder rather than a solve that went differently.
-            $left[$id] = $placeAll
-                ? sprintf(
-                    'SPLIT UNEVENLY, %d of %d over %d stacks — %d each and the remaining %d dealt outermost first, '
-                    .'so the stacks are not identical. --no-asymmetry leaves them out instead',
-                    $over,
-                    $quantity,
-                    $of,
-                    $share,
-                    $over,
-                )
-                : sprintf(
-                    'LEFT OUT, %d of %d — %d stacks take %d each, and an odd cabinet would make one stack '
-                    .'a different rig from the others',
-                    $over,
-                    $quantity,
-                    $of,
-                    $share,
-                );
-        }
-
-        return $left;
-    }
-
-    /**
-     * What the scene actually resolves to — how many cabinets, and a fingerprint of where they all end up —
-     * or the first error it produces.
-     *
-     * The fingerprint is the **solved geometry**, not the file, and that distinction is the whole point of
-     * it: two arrangements can differ in what they *say* and still be the same rig. Once every top shares one
-     * row, that row is mixed, `align` has nothing left to distribute, and `center`/`block`/`stereo` all come
-     * out identical — three files implying a choice that does not exist.
-     *
-     * @param array<string, DeviceSpec> $devices
-     * @return array{cabinets: int, fingerprint: string}|string
-     */
-    private function compileYaml(string $yaml, array $devices): array|string
-    {
-        try {
-            /** @var array<string, mixed> $data */
-            $data = Yaml::parse($yaml);
-            $scene = SceneSpec::fromArray($data, 'generated');
-        } catch (\Throwable $e) {
-            return 'the generated scene does not parse: '.$e->getMessage();
-        }
-
-        $result = (new SceneCompiler($devices))->compile($scene);
-        $errors = Violation::errorsIn($result['violations']);
-        if ($errors !== []) {
-            return $errors[0]->message;
-        }
-
-        // **THE TWO CHECKS THAT NAME A CABINET NO LONGER REFUSE — THEY REPORT.** A rig that floats a top or buries
-        // two cabinets in each other is still not one somebody can build, but it *is* a rig, and CVR-5's whole
-        // argument is that a picture of it beats a sentence about it. So the faults travel back with the geometry
-        // and {@see Feasibility} decides which side of the axis the candidate lands on. Everything above this line
-        // is still a refusal, because a scene that will not parse or that the compiler rejects has no geometry to
-        // look at in the first place.
-        //
-        // The compiler cannot see either of these on its own: `on:` reads a top face, and nothing downstream
-        // compares two finished placements.
-        $faults = [
-            ...PlacementChecks::floatingFaults($result['placed']),
-            ...Interpenetration::faults($result['placed'], self::CONTACT_TOLERANCE_M),
-        ];
-
-        $marks = [];
-        foreach ($result['placed'] as $entry) {
-            $position = $entry->liftedPosition();
-            $marks[] = sprintf(
-                '%s@%.6F,%.6F,%.6F/%.4F',
-                $entry->device->id,
-                $position[0],
-                $position[1],
-                $position[2],
-                $entry->yawDeg(),
-            );
-        }
-        sort($marks);
-
-        return ['cabinets' => count($result['placed']), 'fingerprint' => implode('|', $marks), 'faults' => $faults];
-    }
-
-    /**
-     * Drops arrangements that place their cabinets in exactly the same spots as an earlier one.
-     *
-     * `stereo` on an odd tier of three resolves identically to `block` — the leftover cabinet centres on
-     * `at` and the outer two land on the envelope edges — and writing that rig twice under two names would
-     * suggest a choice that does not exist.
-     *
-     * @param array<string, array{yaml: string, cabinets: int, fingerprint: string}> $candidates
-     * @param array<string, string> $skipped
-     * @return array<string, array{yaml: string, cabinets: int, fingerprint: string}>
-     */
-    private function deduplicate(array $candidates, array &$skipped): array
-    {
-        $kept = [];
-        $seen = [];
-
-        foreach ($candidates as $name => $candidate) {
-            $fingerprint = $candidate['fingerprint'];
-            $existing = array_search($fingerprint, $seen, true);
-            if ($existing !== false) {
-                $skipped[$name] = sprintf('the same rig as %s', $existing);
-                continue;
-            }
-
-            $seen[$name] = $fingerprint;
-            $kept[$name] = $candidate;
-        }
-
-        return $kept;
-    }
 
     /**
      * @param array<string, array{yaml: string, cabinets: int, fingerprint: string}> $candidates
      */
-    private function emit(array $candidates, bool $dryRun, bool $force): int
+    private function emit(array $candidates, bool $dryRun, bool $force, array $directories): int
     {
         $exit = self::SUCCESS;
         // Cleared here rather than left to accumulate, so the property always describes *this* run. A caller reading
@@ -1906,9 +1292,20 @@ final class SceneStackCommand extends BaseCommand
         // basename. Written next to the hand-written scenes, a regenerated file silently rewrote a comment table
         // somebody had read, and there was nothing in either file saying which kind it was.
         $directory = $this->scenesDir().'/'.SceneLoader::GENERATED;
-
+        // **ONE DIRECTORY PER INVENTORY, WHICH IS SWP-3's SUBFOLDER FOR THE FIRST AXIS.** `sdwa5-sepp` names a
+        // folder rather than a dash-padded field in every file name inside it, so the system is stated once instead
+        // of 271 times and what varies between siblings is all the name carries. A named rig has no inventory and
+        // writes here; a replay of a swept scene *is* a named rig and is told the folder by `--into`.
+        //
+        // Everything downstream is indifferent to the extra level: {@see SceneLoader::files} is recursive,
+        // {@see SceneLoader::isGenerated} looks for `/generated/` anywhere in the path, and a scene's id has always
+        // been its basename rather than its path.
         foreach ($candidates as $name => $candidate) {
-            $path = $directory.'/'.$name.'.yaml';
+            // **PER SCENE, BECAUSE THE LAYOUT MAY PUT MORE THAN THE INVENTORY IN THE PATH.** At the default
+            // layout every candidate of a run shares one directory — the inventory — and this is the same answer
+            // for all of them; with `--folders=shape` two siblings of one run land in two directories.
+            $relative = $directories[$name] ?? '';
+            $path = $directory.($relative === '' ? '' : '/'.$relative).'/'.$name.'.yaml';
             $yaml = str_replace('id: placeholder', 'id: '.$name, $candidate['yaml']);
 
             if ($dryRun) {
@@ -1916,8 +1313,9 @@ final class SceneStackCommand extends BaseCommand
                 $this->io->writeln($yaml);
                 continue;
             }
-            if (!is_dir($directory) && !@mkdir($directory, 0o775, true) && !is_dir($directory)) {
-                $this->io->error('Could not create '.$this->relative($directory));
+            $target = dirname($path);
+            if (!is_dir($target) && !@mkdir($target, 0o775, true) && !is_dir($target)) {
+                $this->io->error('Could not create '.$this->relative($target));
 
                 return self::FAILURE;
             }
@@ -1951,92 +1349,8 @@ final class SceneStackCommand extends BaseCommand
         return $exit;
     }
 
-    /**
-     * Every speaker in the library, subs before tops — the order the fill needs and the one nobody should
-     * have to type out.
-     *
-     * @param list<DeviceSpec> $specs
-     * @return list<string>
-     */
-    private function everySpeaker(array $specs): array
-    {
-        $subs = [];
-        $tops = [];
-        foreach ($specs as $spec) {
-            if ($spec->category->value !== 'speaker' || $spec->quantity < 1) {
-                continue;
-            }
-            $spec->subtype === 'sub' ? $subs[] = $spec : $tops[] = $spec;
-        }
-
-        usort($subs, self::byFillOrder());
-        usort($tops, self::byFillOrder());
-
-        return array_map(static fn (DeviceSpec $s): string => $s->id, [...$subs, ...$tops]);
-    }
 
 
-    /**
-     * Deepest first, so the lowest cabinets end up on the floor carrying everything.
-     *
-     * **THE KEY IS FREQUENCY, STATED BY THE OWNER, AND IT DECIDES ONLY BETWEEN TWO CABINETS THAT BOTH STATE ONE.**
-     * That second half is what makes it work, because it is the half the earlier frequency-first sort did not have.
-     * That version read a missing passband as `INF` and fell back to `quantity × width`, which is "the most numerous
-     * cabinet on the floor" and put the 40 kg IQ subs under the 220 kg wall basses with all four GMSS subs above six
-     * Achenbachs. Nine of our ten speakers have no passband at all, so the fallback was doing nearly all of the work
-     * and doing it on a row-making heuristic rather than on anything physical.
-     *
-     * **Weight is the fallback and it is a good one**, which is why nothing breaks. It is stated for every cabinet,
-     * and it is what {@see \App\Scene\Gravity} and three separate comments in {@see \App\Scene\StackSolver} already
-     * appeal to when they say weight belongs low and central.
-     *
-     * **This change is inert on the gear we own**, and that was checked rather than assumed:
-     *
-     * * **our measured gear**: SKRAM 15 Hz, Flexy 38-200, Achenbach 38-1500 on the driven corner, against SKRAM
-     *   90 kg, Flexy 85, Achenbach 50. The same order either way. The Achenbach reaches 35 Hz and would sort under
-     *   the Flexy on capability, but it is high-passed at 38 on purpose so that it sits *above* the Flexys, which is
-     *   exactly what {@see \App\Spec\Passband::orderingLowHz} exists to express, and the high corner then separates
-     *   the two the same way the mass does
-     * * **GMSS's own rig**: not one of its four cabinets states a passband, so all four fall through to wall bass
-     *   220 kg, mid bass 120, nuke 58, IQ sub 40. That is exactly how the builder stacks them, wall basses on the
-     *   ground with the mid bass across them and a nuke on the ground with the IQ subs on it. It was described to us
-     *   rather than derived, so it is a real check rather than a circular one
-     *
-     * So no generated scene moves today. What changes is which rule wins the day a spec separates them, and the
-     * owner has stated that it is the frequency. See **GEO-14** for the rest of that rule, which is the half about
-     * being central rather than low, and for the power figure that no spec carries yet.
-     *
-     * @return callable(DeviceSpec, DeviceSpec): int
-     */
-    private static function byFillOrder(): callable
-    {
-        return static function (DeviceSpec $a, DeviceSpec $b): int {
-            // **BOTH SIDES OR NEITHER, AND THAT GUARD IS THE WHOLE DIFFERENCE BETWEEN THIS AND THE VERSION THAT
-            // BROKE.** The earlier frequency-first sort read a missing passband as `INF` and fell back to
-            // `quantity × width`, which sorted every cabinet without one *above* every cabinet with one: the 40 kg
-            // IQ subs went under the 220 kg wall basses and all four GMSS subs above six Achenbachs. Absence of a
-            // measurement is not a measurement, so a pair where either side is silent is left for the mass to
-            // decide rather than being ranked on a number one of them does not have.
-            if ($a->passband !== null && $b->passband !== null) {
-                $low = $a->passband->orderingLowHz() <=> $b->passband->orderingLowHz();
-                if ($low !== 0) {
-                    return $low;
-                }
-
-                $high = $a->passband->highHz <=> $b->passband->highHz;
-                if ($high !== 0) {
-                    return $high;
-                }
-            }
-
-            $mass = ($b->weightKg ?? 0.0) <=> ($a->weightKg ?? 0.0);
-            if ($mass !== 0) {
-                return $mass;
-            }
-
-            return $b->quantity * $b->dimensions->width <=> $a->quantity * $a->dimensions->width;
-        };
-    }
 
     /**
      * A stand-in for the placement this block will be written as, for the seating check alone.

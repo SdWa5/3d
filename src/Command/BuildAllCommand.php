@@ -232,7 +232,7 @@ final class BuildAllCommand extends BaseCommand
     {
         // Listed first because it runs first, and named with the count so a dry run says how many files a real run
         // would rewrite — which is the one thing about this stage worth knowing before starting it.
-        $generated = glob($this->scenesDir().'/'.SceneLoader::GENERATED.'/*.{yaml,yml}', GLOB_BRACE) ?: [];
+        $generated = self::generatedScenes($this->scenesDir().'/'.SceneLoader::GENERATED);
         $rows = [['scene:stack', sprintf('replaying %d generated scenes\' own commands', count($generated))]];
 
         foreach ($stages as [$name, $arguments]) {
@@ -322,7 +322,7 @@ final class BuildAllCommand extends BaseCommand
     private function replayRecorded(InputInterface $input, OutputInterface $output, ?string $directory = null): array
     {
         $directory ??= $this->scenesDir().'/'.SceneLoader::GENERATED;
-        $files = glob($directory.'/*.{yaml,yml}', GLOB_BRACE) ?: [];
+        $files = self::generatedScenes($directory);
         if ($files === []) {
             return [self::SUCCESS, []];
         }
@@ -469,7 +469,7 @@ final class BuildAllCommand extends BaseCommand
         }
 
         $removed = [];
-        foreach (glob($directory.'/*.{yaml,yml}', GLOB_BRACE) ?: [] as $file) {
+        foreach (self::generatedScenes($directory) as $file) {
             if (!self::isStaleScene($file, $written, (string)file_get_contents($file))) {
                 continue;
             }
@@ -496,6 +496,54 @@ final class BuildAllCommand extends BaseCommand
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Every generated scene file under `$directory`, **recursively and sorted**.
+     *
+     * One helper rather than four `glob()` calls, because the generated set gained a directory level per inventory
+     * and a flat `glob($directory.'/*.{yaml,yml}')` silently stopped seeing any of it. Silently is the word that
+     * matters here: the replay stage would have reported nothing to replay, the stale check would have found nothing
+     * stale, and {@see prune} would then have deleted every derived artifact on the grounds that its scene no longer
+     * existed. All four read the same set, so all four ask the same question in the same place.
+     *
+     * The same walk {@see \App\Scene\SceneLoader::files} does, for the same reason.
+     *
+     * @return list<string>
+     */
+    private static function generatedScenes(string $directory): array
+    {
+        return self::filesUnder($directory, ['yaml', 'yml']);
+    }
+
+    /**
+     * Every file under `$directory` with one of these extensions, recursively and sorted.
+     *
+     * The same walk again, for the derived side. {@see prune}'s four `glob()` calls were one level deep and the
+     * derived tree gained the same directory levels the scene tree did, so they saw an empty set — which reads to
+     * the prune as "nothing derived exists" rather than as "look deeper".
+     *
+     * @param list<string> $extensions lowercase, without the dot
+     * @return list<string>
+     */
+    private static function filesUnder(string $directory, array $extensions): array
+    {
+        if (!is_dir($directory)) {
+            return [];
+        }
+
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
+        );
+        foreach ($iterator as $file) {
+            if ($file instanceof \SplFileInfo && in_array(strtolower($file->getExtension()), $extensions, true)) {
+                $files[] = $file->getPathname();
+            }
+        }
+        sort($files);
+
+        return $files;
     }
 
     /**
@@ -533,31 +581,42 @@ final class BuildAllCommand extends BaseCommand
      */
     private function prune(): int
     {
-        $ids = [];
-        foreach (glob($this->scenesDir().'/'.SceneLoader::GENERATED.'/*.{yaml,yml}', GLOB_BRACE) ?: [] as $scene) {
-            $ids[pathinfo($scene, PATHINFO_FILENAME)] = true;
+        $loader = new SceneLoader($this->scenesDir());
+        $keys = [];
+        foreach (self::generatedScenes($this->scenesDir().'/'.SceneLoader::GENERATED) as $scene) {
+            $keys[$loader->keyOf($scene)] = true;
         }
-        if ($ids === []) {
+        if ($keys === []) {
             // No generated scenes at all is far more likely to be a bad run than an instruction to empty the tree.
             return self::SUCCESS;
         }
 
+        // **KEYED BY PATH, NOT BY BASENAME, AND WALKED RECURSIVELY.** Both halves of that broke together in 0.98.0:
+        // the derived tree mirrors the scene tree, so a one-level `glob()` found none of it, and a basename is
+        // shared by up to eleven inventories, so any file it did find was matched against the wrong scene. Each
+        // root below is the directory the mirrored path is relative to.
         $build = $this->projectDir().'/build';
         $removed = [];
-        $derived = [
-            ...(glob($build.'/scenes/'.SceneLoader::GENERATED.'/*') ?: []),
-            ...(glob($build.'/plans/'.SceneLoader::GENERATED.'/*') ?: []),
-            ...(glob($build.'/renders/'.SceneLoader::GENERATED.'/*.png') ?: []),
-            ...(glob($build.'/renders/*/'.SceneLoader::GENERATED.'/*.png') ?: []),
+        $roots = [
+            $build.'/scenes' => self::filesUnder($build.'/scenes/'.SceneLoader::GENERATED, ['blend', 'blend1']),
+            $build.'/plans' => self::filesUnder($build.'/plans/'.SceneLoader::GENERATED, ['json']),
+            $build.'/renders' => self::filesUnder($build.'/renders/'.SceneLoader::GENERATED, ['png']),
         ];
-
-        foreach ($derived as $file) {
-            $id = self::sceneIdOf($file);
-            if (!is_file($file) || $id === null || isset($ids[$id])) {
-                continue;
+        foreach (glob($build.'/renders/*', GLOB_ONLYDIR) ?: [] as $variant) {
+            if (basename($variant) !== SceneLoader::GENERATED) {
+                $roots[$variant] = self::filesUnder($variant.'/'.SceneLoader::GENERATED, ['png']);
             }
-            if (@unlink($file)) {
-                $removed[] = $this->relative($file);
+        }
+
+        foreach ($roots as $root => $derived) {
+            foreach ($derived as $file) {
+                $key = self::sceneKeyOf($file, (string)$root);
+                if (!is_file($file) || $key === null || isset($keys[$key])) {
+                    continue;
+                }
+                if (@unlink($file)) {
+                    $removed[] = $this->relative($file);
+                }
             }
         }
 
@@ -579,30 +638,38 @@ final class BuildAllCommand extends BaseCommand
     }
 
     /**
-     * The scene id a derived file belongs to, or null when its name says nothing.
+     * The scene **key** a derived file belongs to, or null when its name says nothing.
      *
-     * The three shapes it has to read are `<id>.blend`, `_scene-<id>.json` and `<id>-<camera>.png`. A camera suffix is
-     * stripped from a known list rather than by taking everything before the last dash, because scene ids contain
-     * dashes themselves — `stacked-sdwa5-2-center-three-quarter.png` would otherwise resolve to a scene called
-     * `stacked-sdwa5-2-center-three`.
+     * The three shapes it has to read are `<name>.blend`, `_scene-<name>.json` and `<name>-<camera>.png`. A camera
+     * suffix is stripped from a known list rather than by taking everything before the last dash, because scene
+     * names contain dashes themselves — `stacked-sdwa5-2-center-three-quarter.png` would otherwise resolve to a
+     * scene called `stacked-sdwa5-2-center-three`.
+     *
+     * **The directory travels with the name**, which is the whole of the 0.98.0 fix: `$root` is the directory the
+     * derived tree mirrors `scenes/` from, so `build/scenes/generated/gmss/x.blend` under root `build/scenes`
+     * answers `generated/gmss/x` — the same key the scene itself has. Without it, eleven inventories' artifacts all
+     * answered `x` and the prune matched them against whichever scene it met first.
      */
-    private static function sceneIdOf(string $file): ?string
+    private static function sceneKeyOf(string $file, string $root): ?string
     {
         $name = pathinfo($file, PATHINFO_FILENAME);
+        $prefix = rtrim(str_replace('\\', '/', $root), '/').'/';
+        $directory = str_replace('\\', '/', pathinfo($file, PATHINFO_DIRNAME)).'/';
+        $relative = str_starts_with($directory, $prefix) ? substr($directory, strlen($prefix)) : '';
         if (str_starts_with($name, '_scene-')) {
-            return substr($name, strlen('_scene-'));
+            return $relative.substr($name, strlen('_scene-'));
         }
         if (str_ends_with($file, '.png')) {
             foreach (['three-quarter', 'front', 'side', 'top', 'iso'] as $camera) {
                 if (str_ends_with($name, '-'.$camera)) {
-                    return substr($name, 0, -strlen('-'.$camera));
+                    return $relative.substr($name, 0, -strlen('-'.$camera));
                 }
             }
 
             return null;
         }
 
-        return $name;
+        return $relative.$name;
     }
 
     /**

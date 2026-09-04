@@ -3,6 +3,9 @@ name: Tests
 on:
   push:
   workflow_dispatch:
+  # The full pass, nightly. See `full` below for why it is not on every push.
+  schedule:
+    - cron: '17 3 * * *'
 
 jobs:
   phpunit:
@@ -23,3 +26,29 @@ jobs:
       - run: bin/console specs:validate
 
       - run: bin/console scene:build --dry-run
+
+  # **The same suite with nothing sampled, nightly and on demand.**
+  #
+  # `composer test` replays a seeded *sample* of the generated scenes rather than all 2688 of them, because one
+  # solve per scene is 26 minutes and a suite nobody runs before committing is worth less than a fast one. The
+  # sample is a fresh draw each run and prints its seed, so the set is covered over a week of pushes and any
+  # failure is reproducible — but "over a week" is not "before this merge", which is what this job is for.
+  #
+  # It also un-skips the two paths whose cost is a full pass over the tree: the regenerate stage end to end, and
+  # `scene:build` with no argument.
+  full:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - run: composer install --prefer-dist --no-progress --no-interaction
+
+      - run: composer test
+        env:
+          SDWA5_FULL_REPLAY: '1'
