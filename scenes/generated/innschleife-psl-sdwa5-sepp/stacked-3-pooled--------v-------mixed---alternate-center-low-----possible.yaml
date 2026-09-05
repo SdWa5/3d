@@ -7,27 +7,26 @@
 #
 #   bin/console scene:stack --orientation=mixed --systems=pooled --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=3 --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=3
+#     --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
 # main-1 — 1, 18 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× sub-95x57 + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× kicker-15 + 1× achenbach-18 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90°   10.682 m wide
-#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thl4 + 1× eighteensound-2way-15 + 1× tms4 + 1× thebox-achat-112m   2.9436 m wide
+#   1  1× sbh-18 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× sub-60x60 + 1× achenbach-18 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90°   10.682 m wide
+#   2  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m   2.9436 m wide
 #
 # Subs reach 0.6 m against a 2.0 m interface. The stack is 1.74 m of cabinet.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
@@ -36,7 +35,7 @@
 #
 # main-2 — 2, 31 cabinets in 2 rows:
 #
-#   1  1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× sub-95x57 + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× kicker-15 + 1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 + 1× kicker-15 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× sub-95x57 + 1× thebox-tp118-800 rolled 90° + 1× sbh-18 rolled 90° + 1× thebox-tp218-1600 rolled 90°   21.796 m wide
+#   1  1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× sub-60x60 + 1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 + 1× sub-60x60 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× kicker-15 + 1× thebox-tp118-800 rolled 90° + 1× sbh-18 rolled 90° + 1× thebox-tp218-1600 rolled 90°   21.796 m wide
 #   2  1× thebox-dsp-112 + 1× hk-linear5-112x + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 2× concert-audio-ef6     3.37 m wide
 #
 # Subs reach 0.61 m against a 2.0 m interface. The stack is 1.57 m of cabinet.
@@ -44,9 +43,9 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
@@ -55,17 +54,17 @@
 #
 # main-3 — 3, 18 cabinets in 2 rows:
 #
-#   1  1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× kicker-15 + 1× achenbach-18 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sub-95x57 + 1× sbh-18 rolled 90°   10.682 m wide
-#   2  1× thebox-achat-112m + 1× tms4 + 1× eighteensound-2way-15 + 1× thl4 + 1× tecnare-m2122 + 1× concert-audio-ef6   2.9436 m wide
+#   1  1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× sub-60x60 + 1× achenbach-18 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× kicker-15 + 1× sbh-18 rolled 90°   10.682 m wide
+#   2  1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   2.9436 m wide
 #
 # Subs reach 0.6 m against a 2.0 m interface. The stack is 1.74 m of cabinet.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
@@ -107,24 +106,24 @@ placements:
         - device: concert-audio-esx
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 1
         - device: achenbach-18
           count: 2
-        - device: kicker-15
+        - device: sub-60x60
           count: 1
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 1
           aim: near
         - device: concert-audio-ef6
           count: 1
-        - device: thl4
+        - device: tms2
           count: 1
           aim: near
         - device: eighteensound-2way-15
-          count: 1
-          aim: near
-        - device: tms4
           count: 1
           aim: near
         - device: thebox-achat-112m
@@ -157,11 +156,11 @@ placements:
         - device: concert-audio-esx
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 2
         - device: achenbach-18
           count: 2
-        - device: kicker-15
+        - device: sub-60x60
           count: 2
         - device: thebox-tp118-800
           roll_mirror: 90.0
@@ -203,24 +202,24 @@ placements:
         - device: concert-audio-esx
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 1
         - device: achenbach-18
           count: 2
-        - device: kicker-15
+        - device: sub-60x60
           count: 1
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 1
           aim: near
         - device: concert-audio-ef6
           count: 1
-        - device: thl4
+        - device: tms2
           count: 1
           aim: near
         - device: eighteensound-2way-15
-          count: 1
-          aim: near
-        - device: tms4
           count: 1
           aim: near
         - device: thebox-achat-112m

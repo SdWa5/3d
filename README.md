@@ -188,7 +188,7 @@ stays text-only and diffable.
 
 ## Current state
 
-**Five systems, 38 devices, 101 units, 6740.4 kg, 43.6 m³.** `bin/console catalog` is the authority and
+**Five systems, 38 devices, 101 units, 6804.0 kg, 44.0 m³.** `bin/console catalog` is the authority and
 [docs/catalog.md](docs/catalog.md) is its written form. What we own ourselves is the first two rows:
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |

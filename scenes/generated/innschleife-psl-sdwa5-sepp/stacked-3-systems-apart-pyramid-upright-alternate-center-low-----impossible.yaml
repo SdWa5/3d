@@ -3,8 +3,8 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-innschleife-3/1b and main-innschleife-3/1a are 0.0032 m inside each other
-#   * main-innschleife-1/1a and main-innschleife-1/1b are 0.0032 m inside each other
+#   * main-innschleife-3/1b and main-innschleife-3/1a are 0.0111 m inside each other
+#   * main-innschleife-1/1a and main-innschleife-1/1b are 0.0111 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -13,11 +13,10 @@
 #
 #   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=3 --align=center --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=3
+#     --align=center --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 9 stacks side by side, with 0.5 m of air between them.
 #
@@ -83,7 +82,7 @@
 #
 # main-innschleife-1 — innschleife-1, 2 cabinets in 1 row:
 #
-#   1  1× thl4 + 1× tms4                                                        0.95 m wide
+#   1  1× tms4 + 1× tms2                                                        0.95 m wide
 #
 # Subs reach 0.0 m against a 2.0 m interface. The stack is 1.14 m of cabinet.
 #   * wsx-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
@@ -92,10 +91,10 @@
 #   * sbh-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
-#   * sub-95x57: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
-#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#   * sub-60x60: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
 #   * the subs reach 0.000 m against the 2.000 m interface asked for, so the tops sit 2000 mm lower than ideal —
@@ -103,8 +102,8 @@
 #
 # main-innschleife-2 — innschleife-2, 16 cabinets in 3 rows:
 #
-#   1  4× sub-95x57                                                              3.86 m wide
-#   2  2× kicker-15 + 2× wsx-18 + 2× kicker-15                                 3.64 m wide
+#   1  4× kicker-15                                                              3.86 m wide
+#   2  2× sub-60x60 + 2× wsx-18 + 2× sub-60x60                                 3.64 m wide
 #   3  1× wsx-18 + 4× sbh-18 + 1× wsx-18                                       3.44 m wide
 #
 # Subs reach 2.87 m against a 2.0 m interface. The stack is 2.87 m of cabinet.
@@ -114,16 +113,16 @@
 #   * sbh-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
-#   * sub-95x57: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
-#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#   * sub-60x60: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
 #
 # main-innschleife-3 — innschleife-3, 2 cabinets in 1 row:
 #
-#   1  1× tms4 + 1× thl4                                                        0.95 m wide
+#   1  1× tms2 + 1× tms4                                                        0.95 m wide
 #
 # Subs reach 0.0 m against a 2.0 m interface. The stack is 1.14 m of cabinet.
 #   * wsx-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
@@ -132,10 +131,10 @@
 #   * sbh-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
-#   * sub-95x57: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
-#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#   * sub-60x60: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
 #   * the subs reach 0.000 m against the 2.000 m interface asked for, so the tops sit 2000 mm lower than ideal —
@@ -335,9 +334,9 @@ placements:
       shape: pyramid
       mirror: true             # the mirror image of stack innschleife-1
       from:
-        - device: thl4
-          count: 1
         - device: tms4
+          count: 1
+        - device: tms2
           count: 1
           aim: near
 
@@ -360,8 +359,8 @@ placements:
       from:
         - wsx-18
         - sbh-18
-        - sub-95x57
         - kicker-15
+        - sub-60x60
 
   # innschleife-3, 2 cabinets in 1 row
   - id: main-innschleife-3
@@ -380,9 +379,9 @@ placements:
       gap_m: 0.02
       shape: pyramid
       from:
-        - device: thl4
-          count: 1
         - device: tms4
+          count: 1
+        - device: tms2
           count: 1
           aim: near
 

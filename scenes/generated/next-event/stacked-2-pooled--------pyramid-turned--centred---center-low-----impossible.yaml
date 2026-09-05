@@ -3,13 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * a tecnare-m2122 stands at 0.600 m with nothing under it across x
-#   * main-1/2c and main-1/2a-2 are 0.4700 m inside each other
-#   * main-2/2c and main-2/2e-1 are 0.4157 m inside each other
-#   * main-1/2a-2 and main-1/2d are 0.2813 m inside each other
-#   * main-2/2e-1 and main-2/2b are 0.0956 m inside each other
-#   * main-1/1g and main-1/2a-2 are 0.0100 m inside each other
-#   * main-2/1g and main-2/2e-1 are 0.0100 m inside each other
+#   * a tecnare-m2122 stands at 2.701 m with nothing under it across x
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -18,10 +12,10 @@
 #
 #   bin/console scene:stack --orientation=turned --systems=pooled --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
-#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
-#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --quantity=tms2:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=kicker-15 --from=achenbach-18 --from=tms4 --from=tecnare-m2122 --from=concert-audio-ef6
 #     --from=eighteensound-2way-15 --stacks=2 --align=center --low-end=low --shape=pyramid --mirror-style=centred
 #     --id=stacked --into=next-event
 #
@@ -29,29 +23,30 @@
 #
 # main-1 — 1, 27 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 3× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× kicker-15 rolled 270° + 2× achenbach-18 rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90° + 1× kicker-15 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 3× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°   20.592 m wide
-#   2  2× concert-audio-ef6 + 1× tecnare-m2122 + 1× thl4 + 1× eighteensound-2way-15   2.7216 m wide
+#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 3× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 1× skram rolled 270° + 2× kicker-15 rolled 90° + 1× achenbach-18 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 3× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°   20.532 m wide
+#   2  2× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15   2.7216 m wide
 #
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.75 m of cabinet.
+# Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 5 over 2 stacks — 2 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
+#   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
+#     0.950 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 29 cabinets in 2 rows:
+# main-2 — 2, 29 cabinets in 5 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 3× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× kicker-15 rolled 270° + 1× achenbach-18 rolled 270° + 1× skram rolled 270° + 2× achenbach-18 rolled 90° + 1× kicker-15 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 3× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°   20.592 m wide
-#   2  1× eighteensound-2way-15 + 1× thl4 + 1× tecnare-m2122 + 3× concert-audio-ef6 + 1× tecnare-m2122   3.8496 m wide
+#   1  3× concert-audio-esx rolled 270° + 3× concert-audio-esx rolled 90°     7.18 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
+#   3  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°     4.66 m wide
+#   4  1× achenbach-18 rolled 270° + 2× kicker-15 rolled 270° + 1× skram rolled 90° + 2× achenbach-18 rolled 90°    3.954 m wide
+#   5  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6 + 1× tecnare-m2122   3.8496 m wide
 #
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.75 m of cabinet.
+# Subs reach 2.701 m against a 2.0 m interface. The stack is 3.841 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 5 over 2 stacks — 2 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
 #
 id: stacked-2-pooled--------pyramid-turned--centred---center-low-----impossible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -67,7 +62,7 @@ focus:
 placements:
   # 1, 27 cabinets in 2 rows
   - id: main-1
-    at: [-10.848, 0.0]
+    at: [-4.142, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -92,27 +87,27 @@ placements:
         - device: concert-audio-esx
           count: 6
           roll_mirror: 90.0
-        - device: achenbach-18
-          count: 3
-          roll_mirror: 90.0
         - device: kicker-15
           count: 2
           roll_mirror: 90.0
+        - device: achenbach-18
+          count: 3
+          roll_mirror: 90.0
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 1
           aim: near
         - device: concert-audio-ef6
           count: 2
-        - device: thl4
-          count: 1
-          aim: near
         - device: eighteensound-2way-15
           count: 1
           aim: near
 
-  # 2, 29 cabinets in 2 rows
+  # 2, 29 cabinets in 5 rows
   - id: main-2
-    at: [10.244, 0.0]
+    at: [10.214, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -136,20 +131,20 @@ placements:
         - device: concert-audio-esx
           count: 6
           roll_mirror: 90.0
-        - device: achenbach-18
-          count: 3
-          roll_mirror: 90.0
         - device: kicker-15
           count: 2
           roll_mirror: 90.0
+        - device: achenbach-18
+          count: 3
+          roll_mirror: 90.0
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 2
           aim: near
         - device: concert-audio-ef6
           count: 3
-        - device: thl4
-          count: 1
-          aim: near
         - device: eighteensound-2way-15
           count: 1
           aim: near

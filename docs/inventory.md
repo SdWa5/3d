@@ -15,7 +15,7 @@ the specs in [`specs/`](../specs) — this page records where it came from and w
 
 ## What is in the specs
 
-**Five systems, 38 devices, 101 units, 6740.4 kg.** `bin/console catalog` is the authority and
+**Five systems, 38 devices, 101 units, 6804.0 kg.** `bin/console catalog` is the authority and
 [catalog.md](catalog.md) is its written form; this table is the shape of the library rather than its contents.
 
 | System | Owner | Cabinets | kg | Provenance | Where the numbers came from |

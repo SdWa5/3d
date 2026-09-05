@@ -7,10 +7,10 @@
 #
 #   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
-#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
-#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --quantity=tms2:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=kicker-15 --from=achenbach-18 --from=tms4 --from=tecnare-m2122 --from=concert-audio-ef6
 #     --from=eighteensound-2way-15 --stacks=2 --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate
 #     --id=stacked --into=next-event
 #
@@ -68,18 +68,18 @@
 #
 # main-innschleife-1 — innschleife-1, 7 cabinets in 3 rows:
 #
-#   1  1× kicker-15 + 2× wsx-18 + 1× kicker-15                                  2.4 m wide
+#   1  1× kicker-15 + 2× wsx-18 + 1× kicker-15                                  3.1 m wide
 #   2  2× sbh-18                                                                 1.12 m wide
-#   3  1× thl4                                                                    0.5 m wide
+#   3  1× tms4                                                                    0.5 m wide
 #
 # Subs reach 2.3 m against a 2.0 m interface. The stack is 3.44 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 # main-innschleife-2 — innschleife-2, 7 cabinets in 3 rows:
 #
-#   1  1× kicker-15 + 2× wsx-18 + 1× kicker-15                                  2.4 m wide
+#   1  1× kicker-15 + 2× wsx-18 + 1× kicker-15                                  3.1 m wide
 #   2  2× sbh-18                                                                 1.12 m wide
-#   3  1× thl4                                                                    0.5 m wide
+#   3  1× tms4                                                                    0.5 m wide
 #
 # Subs reach 2.3 m against a 2.0 m interface. The stack is 3.44 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -98,7 +98,7 @@ focus:
 placements:
   # ours-1, 12 cabinets in 4 rows
   - id: main-ours-1
-    at: [-6.974, 0.0]
+    at: [-7.674, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -130,7 +130,7 @@ placements:
 
   # ours-2, 13 cabinets in 4 rows
   - id: main-ours-2
-    at: [-4.05, 0.0]
+    at: [-4.75, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -161,7 +161,7 @@ placements:
 
   # psl-1, 8 cabinets in 3 rows
   - id: main-psl-1
-    at: [-1.433, 0.0]
+    at: [-2.133, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -186,7 +186,7 @@ placements:
 
   # psl-2, 9 cabinets in 3 rows
   - id: main-psl-2
-    at: [0.877, 0.0]
+    at: [0.177, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -210,7 +210,7 @@ placements:
 
   # innschleife-1, 7 cabinets in 3 rows
   - id: main-innschleife-1
-    at: [3.482, 0.0]
+    at: [3.132, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -234,12 +234,12 @@ placements:
           count: 2
         - device: kicker-15
           count: 2
-        - device: thl4
+        - device: tms4
           count: 1
 
   # innschleife-2, 7 cabinets in 3 rows
   - id: main-innschleife-2
-    at: [6.382, 0.0]
+    at: [6.732, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -262,6 +262,6 @@ placements:
           count: 2
         - device: kicker-15
           count: 2
-        - device: thl4
+        - device: tms4
           count: 1
 

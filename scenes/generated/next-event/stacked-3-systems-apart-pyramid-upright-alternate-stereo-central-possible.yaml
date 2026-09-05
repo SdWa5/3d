@@ -7,10 +7,10 @@
 #
 #   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
-#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
-#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --quantity=tms2:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=kicker-15 --from=achenbach-18 --from=tms4 --from=tecnare-m2122 --from=concert-audio-ef6
 #     --from=eighteensound-2way-15 --stacks=3 --align=stereo --low-end=central --shape=pyramid --mirror-style=alternate
 #     --id=stacked --into=next-event
 #
@@ -81,12 +81,12 @@
 #
 # main-innschleife-1 — innschleife-1, 4 cabinets in 4 rows:
 #
-#   1  1× kicker-15                                                               0.6 m wide
+#   1  1× kicker-15                                                              0.95 m wide
 #   2  1× wsx-18                                                                 0.57 m wide
 #   3  1× sbh-18                                                                 0.55 m wide
-#   4  1× thl4                                                                    0.5 m wide
+#   4  1× tms4                                                                    0.5 m wide
 #
-# Subs reach 2.9 m against a 2.0 m interface. The stack is 4.04 m of cabinet.
+# Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
@@ -97,7 +97,7 @@
 #
 # main-innschleife-2 — innschleife-2, 6 cabinets in 2 rows:
 #
-#   1  1× kicker-15 + 2× wsx-18 + 1× kicker-15                                  2.4 m wide
+#   1  1× kicker-15 + 2× wsx-18 + 1× kicker-15                                  3.1 m wide
 #   2  2× sbh-18                                                                 1.12 m wide
 #
 # Subs reach 2.3 m against a 2.0 m interface. The stack is 2.3 m of cabinet.
@@ -111,12 +111,12 @@
 #
 # main-innschleife-3 — innschleife-3, 4 cabinets in 4 rows:
 #
-#   1  1× kicker-15                                                               0.6 m wide
+#   1  1× kicker-15                                                              0.95 m wide
 #   2  1× wsx-18                                                                 0.57 m wide
 #   3  1× sbh-18                                                                 0.55 m wide
-#   4  1× thl4                                                                    0.5 m wide
+#   4  1× tms4                                                                    0.5 m wide
 #
-# Subs reach 2.9 m against a 2.0 m interface. The stack is 4.04 m of cabinet.
+# Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
@@ -139,7 +139,7 @@ focus:
 placements:
   # ours-1, 8 cabinets in 4 rows
   - id: main-ours-1
-    at: [-7.428, 0.0]
+    at: [-8.128, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -170,7 +170,7 @@ placements:
 
   # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
-    at: [-5.402, 0.0]
+    at: [-6.102, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -198,7 +198,7 @@ placements:
 
   # ours-3, 8 cabinets in 4 rows
   - id: main-ours-3
-    at: [-3.376, 0.0]
+    at: [-4.076, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -228,7 +228,7 @@ placements:
 
   # psl-1, 6 cabinets in 3 rows
   - id: main-psl-1
-    at: [-1.666, 0.0]
+    at: [-2.366, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -254,7 +254,7 @@ placements:
 
   # psl-2, 5 cabinets in 3 rows
   - id: main-psl-2
-    at: [0.034, 0.0]
+    at: [-0.666, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -279,7 +279,7 @@ placements:
 
   # psl-3, 6 cabinets in 3 rows
   - id: main-psl-3
-    at: [1.734, 0.0]
+    at: [1.034, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -304,7 +304,7 @@ placements:
 
   # innschleife-1, 4 cabinets in 4 rows
   - id: main-innschleife-1
-    at: [3.134, 0.0]
+    at: [2.609, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -329,7 +329,7 @@ placements:
           count: 1
         - device: kicker-15
           count: 1
-        - device: thl4
+        - device: tms4
           count: 1
 
   # innschleife-2, 6 cabinets in 2 rows
@@ -361,7 +361,7 @@ placements:
 
   # innschleife-3, 4 cabinets in 4 rows
   - id: main-innschleife-3
-    at: [7.134, 0.0]
+    at: [7.659, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -385,6 +385,6 @@ placements:
           count: 1
         - device: kicker-15
           count: 1
-        - device: thl4
+        - device: tms4
           count: 1
 

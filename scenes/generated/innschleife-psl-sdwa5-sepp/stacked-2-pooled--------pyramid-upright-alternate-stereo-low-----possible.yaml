@@ -7,18 +7,17 @@
 #
 #   bin/console scene:stack --orientation=upright --systems=pooled --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=2 --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=2
+#     --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
 # main-1 — 1, 31 cabinets in 2 rows:
 #
-#   1  1× sub-95x57 + 1× kicker-15 + 2× achenbach-18 + 1× thebox-tp118-800 + 3× flexy-folded-horn-hybrid + 1× concert-audio-esf + 1× skram + 1× wsx-18 + 2× concert-audio-esx + 1× thebox-tp218-1600 + 2× sbh-18 + 1× concert-audio-esx + 1× wsx-18 + 3× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× kicker-15 + 1× sub-95x57   15.214 m wide
-#   2  1× concert-audio-ef6 + 1× thebox-achat-112m + 1× tms4 + 1× eighteensound-2way-15 + 1× thl4 + 1× tecnare-m2122 + 1× concert-audio-ef6   3.5516 m wide
+#   1  1× kicker-15 + 1× sub-60x60 + 2× achenbach-18 + 1× thebox-tp118-800 + 3× flexy-folded-horn-hybrid + 1× concert-audio-esf + 1× skram + 1× wsx-18 + 2× concert-audio-esx + 1× thebox-tp218-1600 + 2× sbh-18 + 1× concert-audio-esx + 1× wsx-18 + 3× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× sub-60x60 + 1× kicker-15   15.214 m wide
+#   2  1× concert-audio-ef6 + 1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   3.5516 m wide
 #
 # Subs reach 1.2 m against a 2.0 m interface. The stack is 2.34 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -29,8 +28,8 @@
 #
 # main-2 — 2, 32 cabinets in 2 rows:
 #
-#   1  1× sub-95x57 + 1× kicker-15 + 1× achenbach-18 + 3× flexy-folded-horn-hybrid + 1× wsx-18 + 1× concert-audio-esx + 2× sbh-18 + 1× thebox-tp218-1600 + 2× concert-audio-esx + 1× wsx-18 + 1× skram + 1× concert-audio-esf + 3× flexy-folded-horn-hybrid + 1× thebox-tp118-800 + 2× achenbach-18 + 1× kicker-15 + 1× sub-95x57   15.214 m wide
-#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thl4 + 1× eighteensound-2way-15 + 1× tms4 + 1× thebox-achat-112m + 1× tecnare-m2122 + 1× concert-audio-ef6   4.0716 m wide
+#   1  1× kicker-15 + 1× sub-60x60 + 1× achenbach-18 + 3× flexy-folded-horn-hybrid + 1× wsx-18 + 1× concert-audio-esx + 2× sbh-18 + 1× thebox-tp218-1600 + 2× concert-audio-esx + 1× wsx-18 + 1× skram + 1× concert-audio-esf + 3× flexy-folded-horn-hybrid + 1× thebox-tp118-800 + 2× achenbach-18 + 1× sub-60x60 + 1× kicker-15   15.214 m wide
+#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms4 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m + 1× tecnare-m2122 + 1× concert-audio-ef6   4.0716 m wide
 #
 # Subs reach 1.2 m against a 2.0 m interface. The stack is 2.34 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -76,28 +75,28 @@ placements:
           count: 6
         - device: concert-audio-esx
           count: 3
-        - device: sub-95x57
+        - device: kicker-15
           count: 2
         - device: achenbach-18
           count: 3
-        - device: kicker-15
+        - device: sub-60x60
           count: 2
         - device: thebox-tp118-800
           count: 1
         - device: concert-audio-esf
           count: 1
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 1
           aim: near
         - device: concert-audio-ef6
           count: 2
-        - device: thl4
+        - device: tms2
           count: 1
           aim: near
         - device: eighteensound-2way-15
-          count: 1
-          aim: near
-        - device: tms4
           count: 1
           aim: near
         - device: thebox-achat-112m
@@ -128,28 +127,28 @@ placements:
           count: 6
         - device: concert-audio-esx
           count: 3
-        - device: sub-95x57
+        - device: kicker-15
           count: 2
         - device: achenbach-18
           count: 3
-        - device: kicker-15
+        - device: sub-60x60
           count: 2
         - device: thebox-tp118-800
           count: 1
         - device: concert-audio-esf
           count: 1
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 2
           aim: near
         - device: concert-audio-ef6
           count: 2
-        - device: thl4
+        - device: tms2
           count: 1
           aim: near
         - device: eighteensound-2way-15
-          count: 1
-          aim: near
-        - device: tms4
           count: 1
           aim: near
         - device: thebox-achat-112m

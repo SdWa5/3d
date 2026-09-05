@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.105.0] - 2026-09-05
+
+Every Innschleife cabinet identified. Four estimates became datasheet figures, and none of it came from asking.
+
+### Changed
+
+- **Both purple tops identified from published figures, and Innschleife had both names on the wrong box.** The
+  big top's drawn 0.500 × 1.140 m front is the published **Turbosound TMS-4**'s 502 × 1143 mm; the small top's
+  0.430 × 0.870 m is the **TMS-2**'s 432 × 865 mm. Both inside the drawing's own 1 px = 1 cm resolution. The
+  THL-4 they named fits neither at 1007 × 574 × 718, and the TMS-3 misses too at 1019 × 844 × 578 — one model in
+  the series matches and its neighbours miss by a lot, which is what separates an identification from a
+  resemblance. `thl4` → `tms4`, and the old `tms4` → `tms2`
+- **Four estimates became `provenance: datasheet`, every one of them optimistic.** `tms4` depth **0.520 → 0.730 m**
+  and weight **59 → 74.8 kg**; `tms2` depth **0.430 → 0.578 m** and weight **32 → 48 kg**. That is **358 mm of
+  depth and 31.8 kg** the rigs did not know about, on the axis this repository has already been badly wrong
+  about — the GMSS reconstruction missed the IQ sub's depth by 205 mm having got its width and height inside
+  35 mm. Width and height stay the **drawn** ones: where a measurement of this gear and a measurement of the
+  model both exist, the first wins and 2 mm changes no rig
+- **The sub mapping went round a full circle and came back.** Innschleife stated for the next event that they are
+  **not** bringing the four black JBL 60 × 60 and are bringing the blue Electro-Voice 95 × 57 instead. That names
+  the blue EV as the 0.950 × 0.570 cabinet and "die blauen Kicker 15" with it, which is where `kicker-15` sat on
+  02.09 before a correction moved it and got it wrong. So `sub-95x57` → `kicker-15` (blue, Electro-Voice) and the
+  old `kicker-15` → `sub-60x60` (black, JBL, model unknown). The 60 × 60's colour goes back to the photograph's
+  near-black #1D1D1D, which had been right all along
+- **The event rig changed shape, not just labels.** The EV is 0.950 m wide against the JBL's 0.600, so four of
+  them are a 3.80 m row before any gap against 2.40 m, and every silhouette rule here is a width in metres.
+  `next-event` came out at **480** scenes against 506, `innschleife-next-event-thl4` became
+  `innschleife-next-event-tms4` at **146** against 101, and `innschleife-psl-sdwa5-sepp` **422** against 423.
+  Each folder was deleted before regenerating, so no stale name survived. 2706 scenes in total
+- The roster and its scene folder follow the cabinet: `rosters/innschleife-next-event-tms4.yaml`. Library totals
+  **6804.0 kg** across 101 units, Innschleife **1569.6 kg** across 20
+
+### Fixed
+
+- **`docs/sources.md` now records that "read a name back before writing it down" is necessary and not
+  sufficient.** Reading the mapping back on 03.09 is exactly what produced the wrong sub mapping, because the
+  question and the answer both pointed with words and a confirmation about the wrong cabinet reads like a
+  confirmation. Four corrections in four days are written out in sequence. What worked was numbers held against
+  published figures, and one unprompted sentence naming a colour, a manufacturer and a size together
+- **The render script never rebuilt models**, so the first re-render after the rename failed **197 of 197** with
+  "these models are missing or out of date". `models:build` is its first line now
+- **`docs/requests.md` now says when nothing is being asked.** Its six Innschleife rows read as a queue somebody
+  is waiting on, and they are not — the owner's call is that Innschleife know their own tops and that the JBL
+  model and the wbin's provenance can wait. The rows stay as a record of the gaps; the file says so at the top
+
 ## [0.104.2] - 2026-09-05
 
 `--order` stopped moving the rigs it has nothing to say about.

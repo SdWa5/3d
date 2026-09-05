@@ -7,11 +7,10 @@
 #
 #   bin/console scene:stack --orientation=turned --systems=tops-shared --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=3 --align=center --low-end=low --shape=free --mirror-style=centred --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=3
+#     --align=center --low-end=low --shape=free --mirror-style=centred --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 9 stacks side by side, with 0.5 m of air between them.
 #
@@ -48,7 +47,7 @@
 # main-psl-1 — psl-1, 5 cabinets in 2 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   2  1× tecnare-m2122 + 1× thl4 + 1× thebox-achat-112m                        1.4 m wide
+#   2  1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-112m                        1.4 m wide
 #
 # Subs reach 0.59 m against a 2.0 m interface. The stack is 1.73 m of cabinet.
 #   * the subs reach 0.590 m against the 2.000 m interface asked for, so the tops sit 1410 mm lower than ideal —
@@ -60,7 +59,7 @@
 #   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
 #   3  1× thebox-tp118-800 rolled 270° + 1× thebox-tp118-800 rolled 90°      1.256 m wide
 #   4  1× concert-audio-esf rolled 270° + 1× concert-audio-esf rolled 90°     1.58 m wide
-#   5  1× tms4                                                                   0.43 m wide
+#   5  1× tms2                                                                   0.43 m wide
 #
 # Subs reach 2.278 m against a 2.0 m interface. The stack is 3.148 m of cabinet.
 #   * the 1× concert-audio-esf rolled 270° + 1× concert-audio-esf rolled 90° row is 1.580 m on a 1.256 m row, so
@@ -69,25 +68,25 @@
 # main-psl-3 — psl-3, 5 cabinets in 2 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   2  1× thebox-pa302 + 1× eighteensound-2way-15 + 1× tecnare-m2122         1.4256 m wide
+#   2  1× thebox-pa302 + 1× eighteensound-2way-15 + 1× tms4                  1.4256 m wide
 #
-# Subs reach 0.59 m against a 2.0 m interface. The stack is 1.55 m of cabinet.
+# Subs reach 0.59 m against a 2.0 m interface. The stack is 1.73 m of cabinet.
 #   * the subs reach 0.590 m against the 2.000 m interface asked for, so the tops sit 1410 mm lower than ideal —
 #     0.590 m is the most they reach while every tier is still carried
 #
 # main-innschleife-1 — innschleife-1, 9 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× kicker-15 rolled 90° + 1× sub-95x57 rolled 90°     3.53 m wide
-#   2  2× concert-audio-ef6 + 1× thl4 + 1× thebox-achat-115m + 1× tms4       2.622 m wide
+#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× sub-60x60 rolled 90° + 1× kicker-15 rolled 90°     3.53 m wide
+#   2  2× concert-audio-ef6 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× tms2    2.622 m wide
 #
-# Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.
+# Subs reach 0.95 m against a 2.0 m interface. The stack is 1.91 m of cabinet.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
 #     0.950 m is the most they reach while every tier is still carried
@@ -96,8 +95,8 @@
 #
 #   1  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   2  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   3  1× sub-95x57 rolled 270° + 1× sub-95x57 rolled 90°                     1.16 m wide
-#   4  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.22 m wide
+#   3  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
+#   4  1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90°                     1.22 m wide
 #   5  1× thebox-achat-112m                                                      0.36 m wide
 #
 # Subs reach 2.67 m against a 2.0 m interface. The stack is 3.27 m of cabinet.
@@ -105,18 +104,18 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
 #     each side
-#   * the 1× kicker-15 rolled 270° + 1× kicker-15 rolled 90° row is 1.220 m on a 1.160 m row, so it overhangs 30
+#   * the 1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90° row is 1.220 m on a 1.160 m row, so it overhangs 30
 #     mm each side
 #
 # main-innschleife-3 — innschleife-3, 9 cabinets in 2 rows:
 #
-#   1  1× sub-95x57 rolled 270° + 1× kicker-15 rolled 270° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°     3.53 m wide
+#   1  1× kicker-15 rolled 270° + 1× sub-60x60 rolled 270° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°     3.53 m wide
 #   2  1× hk-linear5-112x + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 2× concert-audio-ef6   2.5916 m wide
 #
 # Subs reach 0.95 m against a 2.0 m interface. The stack is 1.91 m of cabinet.
@@ -124,9 +123,9 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
 #     0.950 m is the most they reach while every tier is still carried
@@ -240,9 +239,9 @@ placements:
         - device: concert-audio-esx
           count: 2
           roll_mirror: 90.0
-        - device: tecnare-m2122
+        - device: tms4
           count: 1
-        - device: thl4
+        - device: tecnare-m2122
           count: 1
         - device: thebox-achat-112m
           count: 1
@@ -274,7 +273,7 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-esf
           roll_mirror: 90.0
-        - device: tms4
+        - device: tms2
           count: 1
 
   # psl-3, 5 cabinets in 2 rows
@@ -297,7 +296,7 @@ placements:
         - device: concert-audio-esx
           count: 2
           roll_mirror: 90.0
-        - device: tecnare-m2122
+        - device: tms4
           count: 1
         - device: eighteensound-2way-15
           count: 1
@@ -329,20 +328,20 @@ placements:
         - device: sbh-18
           count: 1
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 1
           roll_mirror: 90.0
-        - device: kicker-15
+        - device: sub-60x60
           count: 1
           roll_mirror: 90.0
         - device: concert-audio-ef6
           count: 2
-        - device: thl4
+        - device: tecnare-m2122
           count: 1
           aim: near
         - device: thebox-achat-115m
           aim: near
-        - device: tms4
+        - device: tms2
           count: 1
           aim: near
 
@@ -369,10 +368,10 @@ placements:
         - device: sbh-18
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 2
           roll_mirror: 90.0
-        - device: kicker-15
+        - device: sub-60x60
           count: 2
           roll_mirror: 90.0
         - device: thebox-achat-112m
@@ -401,10 +400,10 @@ placements:
         - device: sbh-18
           count: 1
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 1
           roll_mirror: 90.0
-        - device: kicker-15
+        - device: sub-60x60
           count: 1
           roll_mirror: 90.0
         - device: concert-audio-ef6

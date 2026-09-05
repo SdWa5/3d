@@ -146,7 +146,7 @@ final class RecordedCommand
         }
         // **THE COUNTS, NOT THE ROSTER THAT STATED THEM.** The same argument the `--from` list below is written out
         // on: a replay has to rebuild *this* scene, and a roster is a file that can be edited. Recording
-        // `--roster=innschleife-next-event-thl4` would make every replay of every scene in that folder depend on
+        // `--roster=innschleife-next-event-tms4` would make every replay of every scene in that folder depend on
         // what the file says today, and a roster corrected next week would silently rewrite last week's rigs under
         // their old names. The roster stays the human-facing record and the way the folder is generated in the
         // first place; the line that rebuilds one file pins the numbers.

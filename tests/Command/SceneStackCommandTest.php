@@ -1754,20 +1754,20 @@ final class SceneStackCommandTest extends TestCase
     /**
      * **A roster builds the rig it states, not the rig the specs describe.**
      *
-     * The THL-4 variant is the sharp one: `thl4` is brought and `tms4` is left at
+     * The big-top variant is the sharp one: `tms4` is brought and `tms2` is left at
      * home at zero, so the cabinet that every other Innschleife rig is built with must not appear anywhere in the
      * output — not in a stack, not in a refusal, not in the recorded line's `--from` list.
      */
     public function testARosterBuildsWithTheCountsItStatesRatherThanTheSpecs(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-thl4'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-tms4'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
-        self::assertStringContainsString('thl4', $tester->getDisplay());
-        self::assertStringNotContainsString('device: tms4', $tester->getDisplay());
-        self::assertStringNotContainsString('--from=tms4', $tester->getDisplay());
+        self::assertStringContainsString('tms4', $tester->getDisplay());
+        self::assertStringNotContainsString('device: tms2', $tester->getDisplay());
+        self::assertStringNotContainsString('--from=tms2', $tester->getDisplay());
     }
 
     /**
@@ -1781,10 +1781,10 @@ final class SceneStackCommandTest extends TestCase
     public function testTheRecordedLineCarriesTheCountsRatherThanTheRoster(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-thl4'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-tms4'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertStringContainsString('--quantity=tms4:0', $tester->getDisplay());
+        self::assertStringContainsString('--quantity=tms2:0', $tester->getDisplay());
         self::assertStringNotContainsString('--roster=', $tester->getDisplay());
     }
 
@@ -1813,7 +1813,7 @@ final class SceneStackCommandTest extends TestCase
     public function testACountOverrideWithNoFolderToWriteIntoIsRefused(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--quantity' => ['thl4:0'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--quantity' => ['tms4:0'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
@@ -1827,10 +1827,10 @@ final class SceneStackCommandTest extends TestCase
     public function testASingleRosterNamesTheFolderTheScenesAreFiledUnder(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-thl4'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-tms4'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertStringContainsString('--into=innschleife-next-event-thl4', $tester->getDisplay());
+        self::assertStringContainsString('--into=innschleife-next-event-tms4', $tester->getDisplay());
     }
 
     public function testAnUnknownRosterIsRefusedWithTheOnesThereAre(): void
@@ -1839,7 +1839,7 @@ final class SceneStackCommandTest extends TestCase
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('no roster named no-such-event', $tester->getDisplay());
-        self::assertStringContainsString('innschleife-next-event-thl4', $tester->getDisplay());
+        self::assertStringContainsString('innschleife-next-event-tms4', $tester->getDisplay());
     }
 
     public function testACountForADeviceThatDoesNotExistIsRefused(): void

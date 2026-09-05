@@ -1,0 +1,57 @@
+# WHAT INNSCHLEIFE IS BRINGING TO THE NEXT EVENT, in the variant with their two big tops.
+#
+# Stated by Innschleife to Stefan on 2026-09-02: "Also wir nehmen 4x Sbh 18, 4x Wsx 18, 4x die blauen Kicker 15,
+# und entweder alle 4 kleinen Tops oder die 2 großen Thl4." The small tops are two rather than four, corrected the
+# same day when the mapping was read back.
+#
+# **THE NAMES MOVED TWICE AND THE COUNTS NEVER DID.** On 2026-09-03 Innschleife corrected the sub mapping: the
+# 0.60 x 0.60 is a small wbin kicker rather than the SBH, and the SBH is a 1.20 x 0.55 x 0.80 horn that appears in
+# no drawing. "Electrovoice wbins, sind die blauen" settled which sub is the blue kicker. What is left over is
+# `sub-95x57`, which nobody has named and nobody put in the statement.
+#
+# **ON 2026-09-05 INNSCHLEIFE SWAPPED A SUB, AND THE SENTENCE THAT DID IT ALSO FIXED THE MAPPING.** They are
+# **not** bringing the four black JBL 60 x 60 and are bringing **the blue Electro-Voice 95 x 57 instead**. Three
+# facts in one line: which box comes, what colour it is, and who made it. That names the blue EV as the 0.95 x
+# 0.57 cabinet, and "die blauen Kicker 15" with it — which is where `kicker-15` sat on 2026-09-02 before a
+# correction moved it to the 60 x 60 and got it wrong. So the id came back and the 60 x 60 is `sub-60x60`, an
+# unnamed black JBL. **The count did not change: four either way, of a different cabinet.**
+#
+# WHAT THAT SWAP COSTS THE RIG. The 60 x 60 JBL is 0.600 wide and the EV is 0.950, so a row of four goes from
+# 2.40 m to 3.80 m before any gap, and every silhouette rule here is a width in metres rather than a cabinet
+# count. Four of these are the widest sub row Innschleife can field.
+#
+# **AND ON 2026-09-05 THE TOPS MOVED TOO, THIS TIME AGAINST PUBLISHED FIGURES RATHER THAN AGAINST A STATEMENT.**
+# This file used to say `thl4: 2`. It does not, because there is no THL-4: the big top's drawn 0.500 x 1.140 m
+# front is the published Turbosound TMS-4's 502 x 1143 mm, and the small top's 0.430 x 0.870 m is the TMS-2's
+# 432 x 865 mm. Both inside the drawing's own 1 px = 1 cm resolution. The published THL-4.3 is 1007 x 574 x 718 mm
+# and matches neither. So Innschleife's "die kleinen sind Tms4" was one digit out and their "die 2 großen Thl4"
+# was the wrong series, and both cabinets are TMS.
+#
+# THE OTHER HALF OF THE EITHER/OR IS NOT WRITTEN, DELIBERATELY. An `innschleife-next-event-small-tops` roster
+# existed for an hour and was dropped on the owner's word, because nobody is comparing the two rigs right now and
+# a second folder of scenes is a second folder to keep true. Bringing it back is five lines: copy this file, swap
+# the two top counts, rename the id to match the file. The fork itself is real and is recorded in the two top
+# specs, which is where it belongs.
+#
+# WHAT THE FORK IS ACTUALLY ASKING. It is two tops either way, so this is not about how many cabinets go up. It is
+# 0.430 x 0.870 x 0.578 m each against 0.500 x 1.140 x 0.730 m each: 0.270 m taller on top of a sub wall the sweep
+# already aims to keep under 3.0 m, 0.070 m wider in a row whose width every silhouette check reads, and 0.152 m
+# deeper in a footprint every load plan reads. So the two rosters are the same rig twice with a different answer
+# to "how high and how deep does this end up", and that is what to compare them for.
+id: innschleife-next-event-tms4
+name: "Innschleife, next event — two TMS-4"
+
+brings:
+  wsx-18: 4         # "4x Wsx 18"
+  sbh-18: 4         # "4x Sbh 18" — the 0.55 x 1.20 horn, built lying down
+  kicker-15: 4      # "die blauen Kicker 15", the 0.95 x 0.57 Electro-Voice wbins — stated again 2026-09-05
+  sub-60x60: 0      # the black JBLs, explicitly NOT coming this time
+  tms2: 0           # the small tops, left at home in this variant
+  tms4: 2           # "die 2 großen Thl4", which are TMS-4s
+
+notes: |
+  Both tops carry `provenance: datasheet` on dimensions and weight since 2026-09-05, which no other Innschleife
+  cabinet does. **A rig built from this roster is no longer optimistic on the tops** — the TMS-4's depth went from
+  an estimated 0.520 m to a published 0.730 m and its weight from 59 kg to 74.8 kg, so the earlier warning that
+  this roster was lighter on paper than in the van no longer applies to the tops. It still applies to the four
+  sub types, whose weights are all a 200 kg/m³ volume model.

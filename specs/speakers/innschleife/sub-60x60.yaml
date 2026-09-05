@@ -1,0 +1,80 @@
+# Innschleife's black JBL 60 x 60 sub. THE MANUFACTURER IS STATED AND THE MODEL IS NOT, so the id is its front
+# size — the same convention `sub-95x57` was under, and this cabinet has now taken that cabinet's place in it.
+#
+# **IT WAS `kicker-15` FOR TWO DAYS AND THAT WAS WRONG.** The sequence is written out in kicker-15.yaml and the
+# short version is that a name landed here on 2026-09-03 and left on 2026-09-05. Innschleife stated for the next
+# event that they are **not** bringing the four black JBL 60 x 60 and are bringing the blue Electro-Voice 95 x 57
+# instead. That sentence names three things at once — a colour, a manufacturer and a size — and it puts "die
+# blauen Kicker 15" on the other cabinet, where it had been on 2026-09-02 before a correction moved it here.
+#
+# **JBL IS NEW INFORMATION AND IT IS ALL THERE IS.** No model, no series, no year. `build: original` says only
+# that it came out of a factory, which is what a JBL is, and there is no `clone_of` because that block is for a
+# cabinet we built from somebody else's drawing. The schema has no manufacturer field, so the name lives in this
+# header. A model would be worth having: unlike the Electro-Voice, a JBL sub of a stated model has published
+# dimensions and a published weight, and this spec has neither.
+#
+# **THE COLOUR IS BACK TO THE PHOTOGRAPH, WHICH WAS RIGHT ALL ALONG.** This file carried #1D1D1D, sampled off the
+# drawing's own cabinet photograph, until 2026-09-03 turned it blue on the strength of "Electrovoice wbins, sind
+# die blauen". That statement was about the other box. So the average and the owners never actually disagreed
+# here, and the two days in which they appeared to is a record of a mapping error rather than of a paint colour.
+#
+# Source and method: see wsx-18.yaml. Two Staudham setup drawings, one embedded cabinet photograph each, at one
+# pixel to the centimetre. This image is 60 x 60 px, so 0.600 x 0.600 m.
+#
+#   * DEPTH 0.700 m from `achenbach-18`, which has an identical 0.600 x 0.600 front. AN ANALOGY, NOT A
+#     MEASUREMENT, and both Innschleife tops had their analogous depths corrected upward by 148 and 210 mm the
+#     moment they were identified.
+#   * WEIGHT 50 kg is the modelled volume at 200 kg/m3, this library's central density. Both tops came out 16 kg
+#     heavy against that model once measured.
+#
+# QUANTITY 4 IS THE DRAWN COUNT and it is no longer the event count. Four appear in both drawing generations, and
+# `quantity` is what Innschleife own rather than what they bring — the roster says they are staying home this
+# time. See rosters/innschleife-next-event-tms4.yaml.
+id: sub-60x60
+name: "Innschleife JBL 60x60 sub"
+category: speaker
+subtype: sub
+quantity: 4
+owner: innschleife
+build: original
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.600, height: 0.600, depth: 0.700 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # Sampled off the drawing's cabinet photograph (#1D1D1D). Near black, which is what the owners call it — see the
+  # header on the two days this said blue and why. A photograph's average is not a paint colour, so this is the
+  # weaker kind of evidence even when it agrees with the statement.
+  color: "#1d1d1d"
+
+physical:
+  weight_kg: 50.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+# NO `audio` BLOCK. The photograph shows a dark four-cell face and nothing about drivers. A 0.600 m baffle
+# would take an 18", which is a statement about the box rather than about what is in it.
+
+mesh_override: null
+
+notes: |
+  RENAMED THREE TIMES IN FOUR DAYS: from its front size to `sbh-18` on 2026-09-02, to `kicker-15` on 2026-09-03,
+  and back to its front size on 2026-09-05 when the blue Electro-Voice turned out to be the other cabinet. See
+  wsx-18.yaml for what a rename costs.
+
+  BEWARE OF THIS ONE IN A CATALOG OR A LOAD PLAN: it is dimensionally identical to `achenbach-18` and weighs the
+  same estimate, so a row naming only a size cannot tell the two apart. The `owner` field is the only thing that
+  distinguishes them, which is another reason not to leave it unstated on a borrowed cabinet.
+
+  Drawn with a different cabinet image in each of the two drawing generations. Both are 60 x 60 and both sit in
+  the same place in the stack, so this is one type; if it turns out to be two, this spec splits.

@@ -5,6 +5,7 @@
 #
 #   * a concert-audio-ef6 stands at 3.540 m with nothing under it across x
 #   * a concert-audio-ef6 stands at 3.540 m with nothing under it across x
+#   * main-psl/7b-2 and main-innschleife/5a are 0.1780 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -13,10 +14,10 @@
 #
 #   bin/console scene:stack --orientation=turned --systems=systems-apart --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
-#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
-#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --quantity=tms2:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=kicker-15 --from=achenbach-18 --from=tms4 --from=tecnare-m2122 --from=concert-audio-ef6
 #     --from=eighteensound-2way-15 --stacks=1 --align=center --low-end=low --shape=free --mirror-style=centred
 #     --id=stacked --into=next-event
 #
@@ -49,16 +50,15 @@
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 5× concert-audio-ef6 row is 3.020 m on a 2.380 m row, so it overhangs 320 mm each side
 #
-# main-innschleife — innschleife, 14 cabinets in 4 rows:
+# main-innschleife — innschleife, 14 cabinets in 5 rows:
 #
 #   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
-#   2  1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90°              2.99 m wide
-#   3  2× kicker-15 rolled 270° + 1× kicker-15 + 1× kicker-15 rolled 90° + 1× sbh-18 rolled 90°     3.68 m wide
-#   4  2× thl4                                                                   1.02 m wide
+#   2  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
+#   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
+#   4  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90°                     2.34 m wide
+#   5  2× tms4                                                                   1.02 m wide
 #
-# Subs reach 2.37 m against a 2.0 m interface. The stack is 3.51 m of cabinet.
-#   * the 2× kicker-15 rolled 270° + 1× kicker-15 + 1× kicker-15 rolled 90° + 1× sbh-18 rolled 90° row is 3.680
-#     m on a 2.990 m row, so it overhangs 345 mm each side
+# Subs reach 2.62 m against a 2.0 m interface. The stack is 3.76 m of cabinet.
 #
 id: stacked-1-systems-apart-free----turned--centred---center-low-----impossible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -124,7 +124,7 @@ placements:
         - device: concert-audio-ef6
           count: 5
 
-  # innschleife, 14 cabinets in 4 rows
+  # innschleife, 14 cabinets in 5 rows
   - id: main-innschleife
     at: [4.198, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -148,5 +148,5 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           roll_mirror: 90.0
-        - thl4
+        - tms4
 

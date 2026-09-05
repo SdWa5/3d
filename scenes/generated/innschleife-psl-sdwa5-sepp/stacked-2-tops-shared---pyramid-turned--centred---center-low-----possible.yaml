@@ -7,11 +7,10 @@
 #
 #   bin/console scene:stack --orientation=turned --systems=tops-shared --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=2 --align=center --low-end=low --shape=pyramid --mirror-style=centred --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=2
+#     --align=center --low-end=low --shape=pyramid --mirror-style=centred --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 6 stacks side by side, with 0.5 m of air between them.
 #
@@ -31,7 +30,7 @@
 #
 #   1  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
 #   2  1× skram rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90° + 1× skram rolled 90°    3.708 m wide
-#   3  1× thebox-dsp-112 + 1× tms4 + 1× thl4 + 1× tecnare-m2122 + 2× concert-audio-ef6    3.054 m wide
+#   3  1× thebox-dsp-112 + 1× tms2 + 1× tecnare-m2122 + 1× tms4 + 2× concert-audio-ef6    3.054 m wide
 #
 # Subs reach 1.201 m against a 2.0 m interface. The stack is 2.341 m of cabinet.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
@@ -43,9 +42,9 @@
 # main-psl-1 — psl-1, 8 cabinets in 2 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
-#   2  2× concert-audio-ef6 + 1× thl4 + 1× thebox-achat-115m + 1× thebox-achat-112m    2.552 m wide
+#   2  2× concert-audio-ef6 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-achat-112m    2.552 m wide
 #
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.32 m of cabinet.
+# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.14 m of cabinet.
 #   * thebox-tp218-1600: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
 #     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
 #     split work, which is what the -turned rig does
@@ -63,9 +62,9 @@
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
 #   2  1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esf + 1× thebox-tp218-1600 rolled 90°    3.028 m wide
 #   3  1× thebox-tp118-800 rolled 270° + 1× concert-audio-esf + 1× thebox-tp118-800 rolled 90°    1.864 m wide
-#   4  1× hk-linear5-112x + 1× eighteensound-2way-15 + 1× tecnare-m2122      1.3756 m wide
+#   4  1× hk-linear5-112x + 1× eighteensound-2way-15 + 1× tms4               1.3756 m wide
 #
-# Subs reach 2.74 m against a 2.0 m interface. The stack is 3.7 m of cabinet.
+# Subs reach 2.74 m against a 2.0 m interface. The stack is 3.88 m of cabinet.
 #   * thebox-tp218-1600: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
 #     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
 #     split work, which is what the -turned rig does
@@ -82,9 +81,9 @@
 #
 #   1  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
-#   3  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.22 m wide
-#   4  1× sub-95x57 rolled 270° + 1× sub-95x57 rolled 90°                     1.16 m wide
-#   5  1× tms4                                                                   0.43 m wide
+#   3  1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90°                     1.22 m wide
+#   4  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
+#   5  1× tms2                                                                   0.43 m wide
 #
 # Subs reach 2.67 m against a 2.0 m interface. The stack is 3.54 m of cabinet.
 #
@@ -92,8 +91,8 @@
 #
 #   1  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
-#   3  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.22 m wide
-#   4  1× sub-95x57 rolled 270° + 1× sub-95x57 rolled 90°                     1.16 m wide
+#   3  1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90°                     1.22 m wide
+#   4  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
 #   5  1× thebox-pa302                                                           0.42 m wide
 #
 # Subs reach 2.67 m against a 2.0 m interface. The stack is 3.285 m of cabinet.
@@ -172,13 +171,13 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-ef6
           count: 2
+        - device: tms4
+          count: 1
+          aim: near
         - device: tecnare-m2122
           count: 1
           aim: near
-        - device: thl4
-          count: 1
-          aim: near
-        - device: tms4
+        - device: tms2
           count: 1
           aim: near
         - device: thebox-dsp-112
@@ -208,7 +207,7 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-ef6
           count: 2
-        - device: thl4
+        - device: tecnare-m2122
           count: 1
           aim: near
         - device: thebox-achat-115m
@@ -244,7 +243,7 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-esf
           roll_mirror: 90.0
-        - device: tecnare-m2122
+        - device: tms4
           count: 1
         - device: eighteensound-2way-15
           count: 1
@@ -277,13 +276,13 @@ placements:
         - device: sbh-18
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
-          count: 2
-          roll_mirror: 90.0
         - device: kicker-15
           count: 2
           roll_mirror: 90.0
-        - device: tms4
+        - device: sub-60x60
+          count: 2
+          roll_mirror: 90.0
+        - device: tms2
           count: 1
 
   # innschleife-2, 9 cabinets in 5 rows
@@ -310,10 +309,10 @@ placements:
         - device: sbh-18
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
+        - device: kicker-15
           count: 2
           roll_mirror: 90.0
-        - device: kicker-15
+        - device: sub-60x60
           count: 2
           roll_mirror: 90.0
         - thebox-pa302

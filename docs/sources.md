@@ -63,17 +63,19 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `wsx-18` | — (unidentified) | — | `setups/Staudham_Sdwa5_Innschleife_06_12_25/` and `setups/06.12.25 Staudham/`, **one embedded photograph per cabinet type at 1 px = 1 cm**, a scale stated by the owner | Front **0.570 × 1.100 m** and nothing else. Mid grey, a wide curved horn mouth over four cells. Placed on the ground beside our Flexy subs, which is what makes it a `sub`. Four copies drawn |
 | | | `estimated` | Depth **0.900 m** by analogy with our own horn subs (Flexy 0.964, SKRAM 0.813, Achenbach 0.700) | The deepest class we have figures for, at the deep end because it is the tallest |
 | | | `estimated` | Weight **110 kg**, modelled volume at 200 kg/m³ | This library's central density. Twenty cabinets run 139–333 kg/m³, mean 212, and the wooden horn subs sit at 196–199 |
-| `sub-95x57` | — (unidentified) | — | Same two drawings | Front **0.950 × 0.570 m**. Near black, two horn mouths side by side. Placed above the Achenbach row and under the tops, which is a mid-bass position. Four copies drawn. **The one Innschleife cabinet nobody has named**, and the one their event statement did not mention |
+| `kicker-15` | **Electro-Voice wbin**, model unknown | — | The two drawings, plus Innschleife on 2026-09-05: *"nicht die 4 schwarzen JBL 60x60, stattdessen die blaue Electro-Voice 95x57"* | Front **0.950 × 0.570 m**. Two horn mouths side by side across the full width. Placed above the Achenbach row and under the tops, which is a mid-bass position. Four copies drawn, and four are coming to the next event. **The manufacturer and the colour are stated; the model and whether it is factory or built to EV's published W-bin plans are not** |
+| | | `estimated` | Depth **0.600 m** from `mid-bass` (1.200 × 0.500 × 0.600), the one cabinet here of the same shape; weight **65 kg** at 200 kg/m³ | Both Innschleife tops had analogous depths corrected upward by 148 and 210 mm the moment they were identified, so read this as probably short |
+| | | — | The colour, which the photograph contradicts | The drawing's own photograph averages **#1D201C**, near black, and the owners say blue. Same conflict `sub-60x60` had for two days in the other direction, and it resolves the same way: an average is not a paint colour. Our own Flexy averages #C7C7C7 where the cabinet is black |
 | `sbh-18` | — (name only) | — | **Innschleife, 2026-09-03: "120 lang, 55 breit, 80 tief"** | The only Innschleife cabinet no drawing shows, and the only one whose three edges the builders stated. Upright it is 0.550 × 1.200 × 0.800; they build it **lying**, so four side by side are **4.80 m of horn mouth** — "als großes Horn". Weight 106 kg is the modelled volume at 200 kg/m³ and is the one number here nobody stated |
 | | | `estimated` | Depth **0.600 m** from `mid-bass` (1.200 × 0.500 × 0.600), the one cabinet here of the same shape; weight **65 kg** at 200 kg/m³ | |
-| `kicker-15` | Electro-Voice wbin, model unknown | — | The two drawings, plus Innschleife on 2026-09-03: *"Electrovoice wbins, sind die blauen"* | Front **0.600 × 0.600 m**, four-cell face. **Exactly `achenbach-18`'s front**, and drawn with a *different* symbol in the same drawing, which is what proves it is a different cabinet. Four copies drawn, in the outboard columns. **The manufacturer and the colour are stated; the model and whether it is factory or built to EV's published W-bin plans are not** |
+| `sub-60x60` | **JBL**, model unknown | — | The two drawings, plus Innschleife on 2026-09-05: *"die 4 schwarzen JBL 60x60"* | Front **0.600 × 0.600 m**, four-cell face, near black. **Exactly `achenbach-18`'s front**, and drawn with a *different* symbol in the same drawing, which is what proves it is a different cabinet. Four copies drawn, and **none coming to the next event**. A model would be worth having: a JBL of a stated model has published dimensions and a weight, and this spec has neither |
 | | | `estimated` | Depth **0.700 m** from `achenbach-18`'s identical front; weight **50 kg** at 200 kg/m³, which lands on the Achenbach's own estimate | The strongest analogy in this set, and still an analogy. One piece of evidence rather than two, since both derivations start from the same box |
-| `tms4` | — (unidentified) | — | Same two drawings | Front **0.430 × 0.870 m**. **Purple with a script logo**, four stacked sections, a round horn mouth at the top. Two copies in the top row of the right-hand column, mirroring our two Tecnare on the left |
-| | | `estimated` | Depth **0.430 m** from `eighteensound-2way-15` (0.466 × 0.836 × 0.427), the nearest front; weight **32 kg** at 200 kg/m³ | For scale, the 18sound at nearly the same volume is 41 kg and `turbo-top` at two thirds of it is 26 |
-| | | — | [Turbosound TMS-3](http://www.warehousesound.com/turtms3.php) | **A rejected identification, recorded so it is not tried again.** The purple livery is Turbosound's, but the TMS-3 is 1019 × 844 × 578 mm and 134 kg, nothing like this cabinet. A brand is not a model |
-| `thl4` | — (name unconfirmed) | — | The **first two revisions only** of `setups/Staudham_Sdwa5_Innschleife_06_12_25/`, two copies, plus Innschleife's own statement of 2026-09-02 that they are bringing two | Front **0.500 × 1.140 m**. Purple, like the small top. Gone from every later drawing revision, which is why it went unspecced until the statement proved it real rather than a draughting correction |
-| | | `estimated` | Depth **0.520 m** from `tecnare-m2122` (0.500 × 0.960 × 0.520), **the same width to the millimetre** and the same class, a big multi-way top; weight **59 kg** at 200 kg/m³ | The weight is the least trustworthy figure in the spec and is probably light: the Tecnare runs 272 kg/m³, which would put this box at 81 kg |
-| | | — | [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php), 1143 × 502 × 730 mm and 74.8 kg | **A match to the millimetre that identifies nothing, recorded so it is not mistaken for a source, and it carries two figures this spec deliberately does not use.** The owners call it a THL-4 and the drawn front is the TMS-4's published size exactly, so its published depth of **730 mm** and weight of **74.8 kg** are candidates for the 0.520 m and 59 kg derived above. They are not adopted, because THL-4 and TMS-4 are two designations from one manufacturer and this repository has already been burned by letting a same-class Turbosound set a cabinet's size — that is the `turbo-top` line above, 61 % too tall. **If the badge confirms the model, those two numbers replace the derivation in one edit**, and the direction is worth knowing meanwhile: both are larger than what the spec states |
+| `tms2` | **Turbosound TMS-2**, identified 2026-09-05 | `datasheet` | Front off the two drawings; depth and weight off [Turbosound TMS-2](http://warehousesound.com/turtms2.php), **432 × 865 × 578 mm and 48 kg** | Drawn front **0.430 × 0.870 m**, which is the published 432 × 865 to **2 and 5 mm** — inside the drawing's own 1 px = 1 cm resolution. **Purple with a script logo**, four stacked sections, a round horn mouth at the top, which is the published 15"/10"/1" complement. Two copies in the top row of the right-hand column, mirroring our two Tecnare on the left |
+| | | — | The width and height are **not** taken from the datasheet | 0.430 × 0.870 drawn is kept over 0.432 × 0.865 published. Where a measurement of *this gear* and a measurement of *the model* both exist the first wins, and 2 mm changes no rig. Depth and weight are adopted only because no measurement of them exists |
+| | | — | What the identification moved | Depth **0.430 → 0.578 m** and weight **32 → 48 kg**, both estimates optimistic. Its sibling moved 210 mm and 15.8 kg in the same direction, so the 200 kg/m³ model reads light on a big multi-way top rather than at random |
+| `tms4` | **Turbosound TMS-4**, identified 2026-09-05 | `datasheet` | Front off the **first two revisions only** of `setups/Staudham_Sdwa5_Innschleife_06_12_25/`; depth and weight off [Turbosound TMS-4](https://www.warehousesound.com/turtms4.php) and the [manual](https://archive.org/stream/Turbosound/Turbosound%20TMS-4_djvu.txt), **1143 × 502 × 730 mm and 74.8 kg** (45" × 19.75" × 28.75", 165 lb) | Drawn front **0.500 × 1.140 m**, which is the published 502 × 1143 to **2 and 3 mm**. Purple, like the small top. Gone from every later drawing revision, which is why it went unspecced until Innschleife's statement proved it real rather than a draughting correction |
+| | | — | **The owners called this one a THL-4 and it is not.** | The published THL-4.3 is **1007 × 574 × 718 mm and 92 kg**, which misses both purple cabinets by over 70 mm on both edges. The TMS-3 misses too at 1019 × 844 × 578. One model in the series matches and its neighbours miss by a lot, which is what separates an identification from a resemblance — and is why the `turbo-top` precedent below does not apply here |
+| | | — | What the identification moved | Depth **0.520 → 0.730 m** and weight **59 → 74.8 kg**. The spec's own header had predicted the weight would come out light, on the grounds that a big three-way runs nearer 272 kg/m³ than 200 |
 | `truss-f33-2m` | — (factory truss) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, Thomann article 267121, supplied by the owner 2026-08-17 | **Global Truss F33200 identified outright.** 2.0 m, tube spacing 290 mm outer, chord Ø 50 × 2 mm, AlMgSi F31, TÜV Nord, **9.3 kg**. Three came in the bundle and two were bought afterwards |
 | | | | The owner | That we have **5 segments at 2 m, three-point**. The class is an inference from that |
 | `truss-tower-4m` | — (factory stand) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, supplied by the owner 2026-08-17 | **Varytec Wind Up 85 kg identified**, replacing an assumed Global Truss ST-132. 25 kg, max height 4.0 m, **transport 1.75 m**, **max load 85 kg**, min load 25 kg, 1 3/8″ receiver, crossbar 1300 × 35 × 35 mm, base spread 1.6 m, TÜV |
@@ -480,7 +482,7 @@ within 35 mm.
 **So the five depths are analogies to cabinets that do have a source**, each named in the table above, and the
 five weights are the modelled volume at **200 kg/m³** — this library's own central density, with twenty
 cabinets running 139 to 333 kg/m³ and a mean of 212. The method is reproducible and its error bar is ±50 %,
-which on 1082 kg of Innschleife gear is ±541 kg.
+which on 1569.6 kg of Innschleife gear is ±785 kg — though the two tops are now datasheet figures and out of that error bar.
 
 **A SECOND SOURCE ARRIVED ON 2026-09-02, AND IT IS BETTER THAN THE DRAWINGS ON EVERYTHING IT TOUCHES — AND IT
 TOOK TWO PASSES TO READ.**
@@ -520,15 +522,31 @@ Two facts from the drawings are worth more than the numbers:
 **Where the counts come from.** Four, four, four and two, which is what the drawings draw — **and what the owner
 confirmed, cabinet by cabinet, on 2026-09-02.** A drawing shows what came to one gig, and `turbo-top` is the
 standing example of what that costs: a stated three against a photograph showing four, still unresolved. Here
-the two sources agree, which is the first time that has happened for a borrowed system. The THL-4's two is the
-owner's figure alone, since no drawing places it.
+the two sources agree, which is the first time that has happened for a borrowed system. The TMS-4's two is the
+owner's figure alone, since only the earliest drawing revisions place it.
 
-**Two corrections ran the other way and both came from reading the statement back.** The first: it said "alle 4
-kleinen Tops", the `tms4` count was raised to four on the principle that a spoken count outranks a drawing,
-and the answer was "small tops nur 2x". The second: two of the three sub names were on the wrong cabinets. The
-principle holds in both cases and the statement was misremembered in both. **Read a count and a name back before
-writing either down** — and note that the second correction cost two renames of ids that generated scenes refer
-to, where the first cost one number.
+**Four corrections ran the other way, and the sequence is the most useful thing in this section.**
+
+1. It said "alle 4 kleinen Tops", the small top's count was raised to four on the principle that a spoken count
+   outranks a drawing, and the answer was "small tops nur 2x". Cost: one number.
+2. Reading the sub mapping back moved two of three names. Cost: two renames of ids that generated scenes refer to.
+3. **That second correction was itself wrong**, and it took until 2026-09-05 to find out. `kicker-15` had been on
+   the 0.950 × 0.570 cabinet on 02.09, moved to the 0.600 × 0.600 on 03.09, and moved back on 05.09.
+4. Both purple tops were named one box over, and no amount of asking would have caught it.
+
+**So "read a name back before writing it down" is necessary and it is not sufficient.** Reading it back is exactly
+what produced correction 2, and correction 2 was the error — the confirmation came back about the wrong cabinet,
+because the question and the answer both pointed with words rather than with numbers. What finally settled the
+subs was an unprompted sentence naming a colour, a manufacturer and a size *together*: "nicht die 4 schwarzen JBL
+60x60, stattdessen die blaue Electro-Voice 95x57". Three coordinates fix a cabinet where one name does not.
+
+**And what settled the tops was not asking at all.** Innschleife had already given their best answer twice, and
+both times it was wrong. Holding the drawn fronts against published figures identified both: the big one is the
+TMS-4 to 2 and 3 mm, the small one the TMS-2 to 2 and 5 mm, and the THL-4 they named fits neither. **A
+measurement that matches a published measurement is an identification** — the `turbo-top` precedent above warns
+against the opposite move, letting a *name* set an unmeasured size, and the two are not the same thing. The
+payoff was four estimates becoming datasheet figures, every one of them optimistic: 358 mm of depth and 31.8 kg
+that the rigs did not know about.
 
 **What is brought is not what is owned**, and the difference now has a home: [`rosters/`](../rosters) holds what
 a system brings to one event, as counts that override the specs for one run. The specs keep saying what exists.

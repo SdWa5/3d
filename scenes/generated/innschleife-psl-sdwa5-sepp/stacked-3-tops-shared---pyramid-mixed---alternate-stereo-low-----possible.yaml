@@ -7,11 +7,10 @@
 #
 #   bin/console scene:stack --orientation=mixed --systems=tops-shared --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=3 --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=3
+#     --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 9 stacks side by side, with 0.5 m of air between them.
 #
@@ -31,7 +30,7 @@
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.786 m wide
-#   3  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6    2.166 m wide
+#   3  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms2 + 1× concert-audio-ef6    2.166 m wide
 #
 # Subs reach 1.21 m against a 2.0 m interface. The stack is 2.17 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -43,7 +42,7 @@
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× tms4 + 1× thebox-achat-112m                                           0.81 m wide
+#   4  1× tms2 + 1× thebox-achat-112m                                           0.81 m wide
 #
 # Subs reach 1.782 m against a 2.0 m interface. The stack is 2.652 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -53,7 +52,7 @@
 # main-psl-1 — psl-1, 6 cabinets in 2 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   2  1× thebox-pa302 + 1× thl4 + 1× tecnare-m2122 + 1× concert-audio-ef6    2.068 m wide
+#   2  1× thebox-pa302 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6    2.068 m wide
 #
 # Subs reach 0.59 m against a 2.0 m interface. The stack is 1.73 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -74,7 +73,7 @@
 # main-psl-3 — psl-3, 6 cabinets in 2 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thl4 + 1× hk-linear5-112x    2.018 m wide
+#   2  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× hk-linear5-112x    2.018 m wide
 #
 # Subs reach 0.59 m against a 2.0 m interface. The stack is 1.73 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -85,8 +84,8 @@
 #
 #   1  1× sbh-18 rolled 270°                                                     1.2 m wide
 #   2  1× wsx-18 rolled 90°                                                      1.1 m wide
-#   3  1× sub-95x57                                                              0.95 m wide
-#   4  1× kicker-15                                                               0.6 m wide
+#   3  1× kicker-15                                                              0.95 m wide
+#   4  1× sub-60x60                                                               0.6 m wide
 #
 # Subs reach 2.29 m against a 2.0 m interface. The stack is 2.29 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -94,17 +93,17 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
 # main-innschleife-2 — innschleife-2, 9 cabinets in 5 rows:
 #
 #   1  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
-#   3  2× sub-95x57                                                              1.92 m wide
-#   4  2× kicker-15                                                              1.22 m wide
+#   3  2× kicker-15                                                              1.92 m wide
+#   4  2× sub-60x60                                                              1.22 m wide
 #   5  1× eighteensound-2way-15                                                0.4656 m wide
 #
 # Subs reach 2.29 m against a 2.0 m interface. The stack is 3.126 m of cabinet.
@@ -113,17 +112,17 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
 # main-innschleife-3 — innschleife-3, 4 cabinets in 4 rows:
 #
 #   1  1× sbh-18 rolled 90°                                                      1.2 m wide
 #   2  1× wsx-18 rolled 270°                                                     1.1 m wide
-#   3  1× sub-95x57                                                              0.95 m wide
-#   4  1× kicker-15                                                               0.6 m wide
+#   3  1× kicker-15                                                              0.95 m wide
+#   4  1× sub-60x60                                                               0.6 m wide
 #
 # Subs reach 2.29 m against a 2.0 m interface. The stack is 2.29 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -131,9 +130,9 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
 id: stacked-3-tops-shared---pyramid-mixed---alternate-stereo-low-----possible
@@ -208,7 +207,7 @@ placements:
         - device: tecnare-m2122
           count: 1
           aim: near
-        - device: tms4
+        - device: tms2
           count: 1
           aim: near
 
@@ -236,7 +235,7 @@ placements:
           roll_mirror: 90.0
         - device: achenbach-18
           count: 2
-        - device: tms4
+        - device: tms2
           count: 1
         - device: thebox-achat-112m
           count: 1
@@ -267,10 +266,10 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-ef6
           count: 1
-        - device: tecnare-m2122
+        - device: tms4
           count: 1
           aim: near
-        - device: thl4
+        - device: tecnare-m2122
           count: 1
           aim: near
         - device: thebox-pa302
@@ -334,10 +333,10 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-ef6
           count: 1
-        - device: tecnare-m2122
+        - device: tms4
           count: 1
           aim: near
-        - device: thl4
+        - device: tecnare-m2122
           count: 1
           aim: near
         - device: hk-linear5-112x
@@ -369,9 +368,9 @@ placements:
         - device: sbh-18
           count: 1
           roll_mirror: 90.0
-        - device: sub-95x57
-          count: 1
         - device: kicker-15
+          count: 1
+        - device: sub-60x60
           count: 1
 
   # innschleife-2, 9 cabinets in 5 rows
@@ -399,9 +398,9 @@ placements:
         - device: sbh-18
           count: 2
           roll_mirror: 90.0
-        - device: sub-95x57
-          count: 2
         - device: kicker-15
+          count: 2
+        - device: sub-60x60
           count: 2
         - device: eighteensound-2way-15
           count: 1
@@ -431,8 +430,8 @@ placements:
         - device: sbh-18
           count: 1
           roll_mirror: 90.0
-        - device: sub-95x57
-          count: 1
         - device: kicker-15
+          count: 1
+        - device: sub-60x60
           count: 1
 

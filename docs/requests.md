@@ -32,40 +32,66 @@ existence is two setup drawings in our own Drive:
 Each drawing embeds one photograph per cabinet type at **one pixel to the centimetre**, so the front width and
 height are readable and nothing else is. Four cabinet types are drawn. **Two more are specced from what
 Innschleife said**, which is now the better source of the two by some distance — and for the SBH it is the only
-one, since no drawing shows that cabinet at any size. **20 cabinets, 1506 kg as estimated.**
+one, since no drawing shows that cabinet at any size. **20 cabinets, 1569.6 kg — and the two Turbosound tops are datasheet figures since 2026-09-05, so the estimate now covers four cabinet types rather than six.**
 
-### The identities, four of which arrived on 2026-09-02
+### The identities, settled on 2026-09-05 after three wrong mappings
 
-**Three names are settled and one cabinet is left over.** Innschleife said what they are bringing — four "SBH 18",
-four "WSX 18", four "die blauen Kicker 15" — and three sub types at four each was exactly what the three drawn
-specs said, so the names were mapped one to one onto them on 2026-09-02. **Reading the mapping back corrected two
-of the three at once**: the 0.600 × 0.600 box is a small Electro-Voice wbin and *is* the blue kicker, and the SBH
-is a 1.20 × 0.55 × 0.80 horn that appears in no drawing at all. So there are four sub types where the statement
-listed three, and `sub-95x57` is the one nobody has named and nobody is bringing.
+**All six cabinets have an identity now, and only one of them came from asking.** Innschleife said what they are
+bringing — four "SBH 18", four "WSX 18", four "die blauen Kicker 15" — and three sub types at four each was exactly
+what the three drawn specs said, so the names were mapped one to one onto them on 2026-09-02. That fit looked
+forced when it was only consistent, and there turned out to be **four** sub types rather than three.
 
-**A MAPPING THE NUMBERS PERMIT IS NOT A MAPPING ANYBODY CONFIRMED.** Three types at four each made the fit look
-forced when it was only consistent. That is the same lesson the count correction taught a day earlier, and it now
-covers names as well.
+| cabinet | identity | how it was settled |
+|---|---|---|
+| 0.570 × 1.100 | Martin Audio WSX | matched on all three edges |
+| 0.550 × 1.200 | SBH, own design | the owners stated three edges outright, no drawing shows it |
+| 0.950 × 0.570 | **Electro-Voice wbin**, `kicker-15` | named in a 2026-09-05 sentence about the van |
+| 0.600 × 0.600 | **JBL**, model unknown, `sub-60x60` | same sentence |
+| 0.500 × 1.140 | **Turbosound TMS-4** | drawn front against the published 502 × 1143 |
+| 0.430 × 0.870 | **Turbosound TMS-2** | drawn front against the published 432 × 865 |
+
+**A MAPPING THE NUMBERS PERMIT IS NOT A MAPPING ANYBODY CONFIRMED, AND READING IT BACK IS NOT ENOUGH EITHER.**
+Reading the mapping back on 03.09 moved `kicker-15` onto the 0.600 × 0.600 box, and that was wrong — it moved
+back on 05.09. The question and the answer both pointed with words, so a confirmation about the wrong cabinet
+read as a confirmation. What worked was numbers: a published measurement for the tops, and a sentence naming a
+colour, a manufacturer and a size together for the subs.
+
+**FOUR OF THE SIX QUESTIONS CLOSED ON 2026-09-05, AND NOT ONE OF THEM CLOSED BY ASKING.**
+
+* **Both purple tops were identified from published figures.** The big one is the Turbosound **TMS-4** (drawn
+  0.500 × 1.140 against a published 502 × 1143) and the small one the **TMS-2** (0.430 × 0.870 against 432 × 865).
+  The THL-4 Innschleife named fits neither at 1007 × 574. The owner settled the method: a cabinet whose
+  measurements match a published one is that cabinet.
+* **The blue Electro-Voice and the exact blue both answered themselves**, in one sentence about what is going in
+  the van: *"nicht die 4 schwarzen JBL 60x60, stattdessen die blaue Electro-Voice 95x57"*. That named the 0.950 ×
+  0.570 cabinet as the blue EV, put `kicker-15` back on it, and made the 0.600 × 0.600 a black JBL.
+
+**THE PATTERN IS WORTH MORE THAN THE ANSWERS.** Every one of these had been asked, twice in two cases, and asking
+produced a wrong answer each time. What worked was a measurement held against a published figure, and a statement
+that named a colour, a manufacturer and a size together instead of a name on its own. See
+[sources.md](sources.md) for the full sequence of four corrections.
+
+**NOTHING BELOW IS BEING ASKED RIGHT NOW.** The owner's call on 2026-09-05: Innschleife know what their own tops
+are, and the JBL model and the wbin's provenance are not worth a message today. The rows stay because they are the
+gaps a future reader would otherwise rediscover, not because anybody is waiting on an answer.
 
 | Ask | Cabinet | What is known |
 |---|---|---|
 | Ask | Cabinet | What is known |
 |---|---|---|
-| **What is the 0.950 × 0.570 m cabinet?** | `sub-95x57` | **The one left over, and the highest-value question here.** Four are drawn, near black, two horn mouths side by side, placed above the Achenbach row and below the tops. It carried the name "blaue Kicker 15" for an hour on 2026-09-02 and lost it again when that turned out to be the wbin. It was not in the event statement either, so the roster leaves it at home |
-| **Are the wbins factory cabinets or built to EV's plans?** | `kicker-15` | Stated: "Electrovoice wbins, sind die blauen". Electro-Voice published W-bin drawings and they were built by hand for twenty years, so the phrase reads both ways. `build: original` is the weaker assertion — a factory box, no model. If it is a self-build the field becomes `self-built` with a `clone_of`. **And which model?** |
-| **What blue?** | `kicker-15` | The photograph averages #1D1D1D, near black, which is what the spec carried until the owners said otherwise. The value in it now is a mid blue standing in for a shade nobody has measured. One photograph in daylight settles it |
-| **Is the SBH's horn flare asymmetrical?** | `sbh-18`, `kicker-15` | Innschleife build the SBH lying down. For the SBH that changes the box — 0.550 wide becomes 1.200 — so the sweep's `turned` and `mixed` variants show it. **The wbin's front is square**, so if it is ever laid down the box does not change at all and no render could show it; only an asymmetrical flare would make the orientation mean anything |
-| **What drives any of them?** | all six | Not one Innschleife spec has an `audio` block. "SBH 18" and "Kicker 15" name driver sizes and nothing else — no passband, no coverage, no count. `Passband::orderingLowHz()` decides which cabinet goes at the bottom of a stack, so with none of them stating one the fill order runs entirely on mass |
-| **Which purple cabinet is the TMS-4?** | `tms4`, `thl4` | **The sharpest question in this file, and it is worth asking exactly this way.** You say the small tops are Turbosound TMS-4 and the big ones THL-4. The published TMS-4 is **1143 × 502 × 730 mm and 74.8 kg**, which is the *big* one's front to the millimetre — the small ones measure 0.430 × 0.870 in both your drawings. Either the two names sit on the wrong boxes, or one of the drawn fronts is wrong by 270 mm, or the published figures are a different revision. **No published figure has been copied into either spec**, because a Turbosound of a similar class was once let in as a size anchor for `turbo-top` and came out 61 % too tall |
-| **Is the 0.600 × 0.600 m box one cabinet or two?** | `kicker-15` | The two drawing generations use two different photographs of the same size in the same position. Read as one cabinet redrawn; if it is two, the spec splits |
+| **Which JBL is the 0.600 × 0.600 m box?** | `sub-60x60` | **The highest-value question here now.** Innschleife said on 2026-09-05 that these are "die 4 schwarzen JBL 60x60", which is a manufacturer and nothing more. A JBL of a stated model has a published depth and weight, and this spec has neither — both are analogies off `achenbach-18`'s identical front. The two Turbosound tops are the worked example of what a model name is worth: naming them moved 358 mm of depth and 31.8 kg |
+| **Are the wbins factory cabinets or built to EV's plans?** | `kicker-15` | Stated: "Electrovoice wbins, sind die blauen", and on 2026-09-05 confirmed as the 0.950 × 0.570 cabinet. Electro-Voice published W-bin drawings and they were built by hand for twenty years, so the phrase reads both ways. `build: original` is the weaker assertion — a factory box, no model. If it is a self-build the field becomes `self-built` with a `clone_of`. **And which model?** |
+| **Is the SBH's horn flare asymmetrical?** | `sbh-18`, `sub-60x60` | Innschleife build the SBH lying down. For the SBH that changes the box — 0.550 wide becomes 1.200 — so the sweep's `turned` and `mixed` variants show it. **The JBL's front is square**, so if it is ever laid down the box does not change at all and no render could show it; only an asymmetrical flare would make the orientation mean anything |
+| **What drives any of them?** | the four unmeasured ones | `tms4` and `tms2` have published complements — 18"/10"/1" and 15"/10"/1" — that are deliberately not written into the specs yet, because adopting a passband changes `Passband::orderingLowHz()` and therefore which cabinet goes where in every stack. The other four state nothing at all. "SBH 18" and "Kicker 15" name driver sizes and nothing else |
+| **Is the 0.600 × 0.600 m box one cabinet or two?** | `sub-60x60` | The two drawing generations use two different photographs of the same size in the same position. Read as one cabinet redrawn; if it is two, the spec splits |
 | **How many of each, and does the SBH ever stand up?** | all six | Answered for the event and worth keeping as a warning. The statement said "alle 4 kleinen Tops" and was corrected to two; the name mapping it implied was corrected the next day on two cabinets at once. **Read a count and a name back before writing either down** |
 
 ### The figures
 
 | Field | Cabinet | Now | Why it matters |
 |---|---|---|---|
-| `geometry.dimensions_m.depth` | all but `sbh-18` | Derived by analogy: 0.900 from our horn subs' 0.700–0.964, 0.600 from `mid-bass`, 0.700 from `achenbach-18`'s identical front, 0.430 from `eighteensound-2way-15` | **The axis this repository has already been badly wrong about.** The GMSS reconstruction missed the IQ sub's depth by 205 mm, a third of the cabinet, having got its width and height inside 35 mm. Depth decides the footprint every load plan and every stack clearance is computed from |
-| `physical.weight_kg` | all six | Modelled volume at 200 kg/m³, this library's own central density | Twenty cabinets here run 139 to 333 kg/m³, so the method carries ±50 %. On 1506 kg of Innschleife gear that is ±753 kg, against a fleet whose real payload is already one weighbridge ticket and one assumption. See [load.md](load.md) |
+| `geometry.dimensions_m.depth` | `wsx-18`, `kicker-15`, `sub-60x60` | Derived by analogy: 0.900 from our horn subs' 0.700–0.964, 0.600 from `mid-bass`, 0.700 from `achenbach-18`'s identical front, 0.430 from `eighteensound-2way-15` | **The axis this repository has already been badly wrong about.** The GMSS reconstruction missed the IQ sub's depth by 205 mm, a third of the cabinet, having got its width and height inside 35 mm. Depth decides the footprint every load plan and every stack clearance is computed from |
+| `physical.weight_kg` | the four without a datasheet | Modelled volume at 200 kg/m³, this library's own central density | Twenty cabinets here run 139 to 333 kg/m³, so the method carries ±50 %. On 1506 kg of Innschleife gear that is ±753 kg, against a fleet whose real payload is already one weighbridge ticket and one assumption. See [load.md](load.md) |
 | `quantity` | all six | The drawn count for four of them — 4, 4, 4, 2 — and the owner confirms all four. The THL-4's 2 is the owner's own figure | A drawing shows what came to one gig, and for once the two agree. Every generated rig is built from these counts, so a wrong count is a wrong rig rather than a wrong number — and `turbo-top` is the worked example, where a photograph showing four against a stated three is still unresolved |
 | `audio.passband_hz` | all six | **Absent.** No spec claims one | `Passband::orderingLowHz()` decides which cabinet goes at the bottom of a stack. With no passband the fill falls back to mass, so an Innschleife sub is ordered by how heavy it is rather than by how low it goes |
 | `audio.drivers` | all six | **Absent.** The photographs show mouths and cells, which describe a front rather than a driver | Nothing in a render depends on it, but it is the difference between a cabinet and a box |

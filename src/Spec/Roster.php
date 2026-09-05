@@ -20,7 +20,7 @@ namespace App\Spec;
  * gear is untouched, all of it, exactly as a bare sweep would build it.
  *
  * **Zero is how a cabinet stays at home.** It is a count like any other and every consumer already drops a device
- * with no units, so `thl4: 0` is the honest way to write "not this time" — honest because it names
+ * with no units, so `tms2: 0` is the honest way to write "not this time" — honest because it names
  * the cabinet it is excluding, where simply leaving the line out would mean "bring whatever the spec says".
  */
 final class Roster

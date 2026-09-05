@@ -15,11 +15,10 @@
 #
 #   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=1 --align=center --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=1
+#     --align=center --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
@@ -41,14 +40,17 @@
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 4 rows:
+# main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  4× sub-95x57                                                              3.86 m wide
-#   2  2× kicker-15 + 2× wsx-18 + 2× kicker-15                                 3.64 m wide
-#   3  1× wsx-18 + 4× sbh-18 + 1× wsx-18                                       3.44 m wide
-#   4  1× tms4 + 2× thl4 + 1× tms4                                             1.92 m wide
+#   1  4× kicker-15                                                              3.86 m wide
+#   2  4× sub-60x60                                                              2.46 m wide
+#   3  4× wsx-18                                                                 2.34 m wide
+#   4  4× sbh-18                                                                 2.26 m wide
+#   5  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #
-# Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
+# Subs reach 3.47 m against a 2.0 m interface. The stack is 4.61 m of cabinet.
+#   * the subs reach 3.470 m against the 3.000 m ceiling asked for, so they stand 470 mm too high — 3.470 m is the
+#     nearest the 2.500 m target that every tier is still carried at
 #
 id: stacked-1-systems-apart-pyramid-upright-alternate-center-low-----impossible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -121,7 +123,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 4 rows
+  # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
     at: [5.9035, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -141,9 +143,9 @@ placements:
       from:
         - wsx-18
         - sbh-18
-        - sub-95x57
         - kicker-15
-        - thl4
-        - device: tms4
+        - sub-60x60
+        - tms4
+        - device: tms2
           aim: near
 

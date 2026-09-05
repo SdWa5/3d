@@ -1,0 +1,98 @@
+# Innschleife's small top, IDENTIFIED AS A TURBOSOUND TMS-2 ON 2026-09-05.
+#
+# **THE FRONT MATCHES THE PUBLISHED CABINET TO 2 AND 5 MILLIMETRES.** The drawn front is 0.430 x 0.870 m at the
+# one pixel to the centimetre the drawing's owner states. The published TMS-2 is **432 x 865 x 578 mm and 48 kg**,
+# quoted verbatim off warehousesound.com/turtms2.php. Both measured edges agree inside the drawing's own
+# resolution, which is the same quality of match that identified its big sibling as the TMS-4.
+#
+# **INNSCHLEIFE WERE ONE DIGIT OUT, NOT WRONG ABOUT THE BRAND.** Sammy said "Die kleinen sind Turbosound Tms4.
+# Also tops" on 2026-09-03. Turbosound is right, TMS is right, the number is not: the TMS-4 is 1143 x 502 x 730 mm,
+# which is the *big* purple top. So both purple cabinets are TMS series and the two names sat one box over —
+# the big one they called "die 2 großen THL4" is the TMS-4, and this is the TMS-2. The THL-4 does not enter into
+# it at all: the published THL-4.3 is 1007 x 574 x 718 mm and matches neither cabinet.
+#
+# Stefan settled the method on 2026-09-05: a cabinet whose measurements match a published one is that cabinet.
+#
+# **DEPTH AND WEIGHT ARE THE DATASHEET'S NOW, AND BOTH ESTIMATES WERE OPTIMISTIC.**
+#
+#   * DEPTH 0.578 m against the 0.430 m estimated by analogy with `eighteensound-2way-15`: **148 mm deeper**.
+#     Depth is what every stack clearance and load plan is computed from, and it is the axis this repository has
+#     already been badly wrong about — the GMSS reconstruction missed the IQ sub's depth by 205 mm having got its
+#     width and height inside 35 mm. See docs/sources.md.
+#   * WEIGHT 48 kg against the 32 kg modelled at 200 kg/m3: **16 kg heavier each**. Its sibling missed by 15.8 kg
+#     in the same direction, so the density model reads light on a big multi-way top rather than at random.
+#
+# **WIDTH AND HEIGHT STAY THE DRAWN ONES**, 0.430 x 0.870 rather than the published 0.432 x 0.865. Where a
+# measurement of this gear and a measurement of the model both exist, the one taken off this gear wins, and 2 mm
+# changes no rig. Depth and weight are adopted only because there is no measurement of them at all.
+#
+# `build: original` AND NO `clone_of`. `clone_of` is for a cabinet we built from somebody else's drawing, and this
+# is a factory box. The schema has no manufacturer/model pair, so the identification lives here and in
+# docs/sources.md rather than in a field.
+#
+# NO `audio` BLOCK, EVEN THOUGH THE DATASHEET HAS ONE. Published: 400 W RMS, 104 dB, 65 Hz to 17 kHz, 70 x 70
+# dispersion, 15"/10"/1". None of it is written here yet, because adopting a passband changes
+# `Passband::orderingLowHz()` and therefore which cabinet goes where in every stack, and a coverage figure changes
+# what CVR checks. Both are rig changes rather than documentation changes and are worth doing deliberately.
+#
+# THE COUNT IS TWO, STATED BY THE OWNER ON 2026-09-02, and it nearly went the other way. Innschleife said they
+# are bringing four subs of each of the three types and then "entweder alle 4 kleinen Tops oder die 2 großen
+# Thl4". THE FOUR IN THAT SENTENCE WAS CORRECTED TO TWO the same day, on the mapping being read back. A spoken
+# count outranks a drawing and the first reading raised this to four on exactly that principle; the principle
+# holds and the statement was misremembered. Both Staudham revisions draw two.
+#
+# SUBTYPE `top` FROM POSITION. In the 06.12.25 drawing two of these stand in the top row of the right-hand
+# outboard column, mirroring our two Tecnare tops on the left.
+id: tms2
+name: "Innschleife Turbosound TMS-2"
+category: speaker
+subtype: top
+quantity: 2
+owner: innschleife
+build: original
+
+provenance:
+  # `datasheet` on both. The front is drawn and the depth and weight are published, and the enum has one value
+  # for the pair — so this says the cabinet is identified rather than that every number came off the same page.
+  dimensions: datasheet
+  weight: datasheet
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.430, height: 0.870, depth: 0.578 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # Purple. The photograph averages #231126 because most of its area is shadowed horn mouth, so this value is
+  # a reading of the cabinet's body rather than that average — see wsx-18.yaml on why an average is not a paint
+  # colour. The colour is worth carrying because it is the only thing that makes this cabinet identifiable in a
+  # render, and because it is one clue to who built it.
+  color: "#3d1f4a"
+
+physical:
+  weight_kg: 48.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+# NO `audio` BLOCK, WHICH COSTS MORE ON A TOP THAN ON A SUB. A top's coverage is what decides where it is aimed,
+# and `aim: far` in a generated scene is a geometric statement that owes nothing to this field, so nothing breaks.
+# But a rig that mixes our 60 x 40 Tecnare with an unknown pattern is a rig nobody can check for coverage, which
+# is what CVR wants and cannot have here.
+
+mesh_override: null
+
+notes: |
+  IDENTIFIED ON 2026-09-05, having spent two days holding its sibling's name. See wsx-18.yaml for what a rename
+  costs, and the header for how one digit moved both cabinets.
+
+  The photograph shows four sections stacked: a round horn mouth at the top, two rectangular openings below it
+  and a plain lower panel carrying the logo. The published complement is a 15" on a Turbobass, a 10" on a
+  Turbomid and a 1" HF, which is what those four sections are.
+
+  IT IS THE ALTERNATIVE TO `tms4` RATHER THAN ITS REPLACEMENT. The later drawing revisions show these instead of
+  the big pair, which read as a correction until Innschleife said "either the four small ones or the two big
+  ones". Two rigs, not one drawing fixed.

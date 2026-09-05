@@ -5,7 +5,9 @@
 #
 #   * a concert-audio-ef6 stands at 3.540 m with nothing under it across x
 #   * a concert-audio-ef6 stands at 3.540 m with nothing under it across x
-#   * main-psl/7b-2 and main-innschleife/7b are 0.4570 m inside each other
+#   * main-psl/7b-2 and main-innschleife/6b are 0.6000 m inside each other
+#   * main-psl/7b-2 and main-innschleife/7b are 0.1980 m inside each other
+#   * main-psl/7b-2 and main-innschleife/5b are 0.0500 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -14,10 +16,10 @@
 #
 #   bin/console scene:stack --orientation=turned --systems=systems-apart --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
-#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
-#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --quantity=tms2:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=kicker-15 --from=achenbach-18 --from=tms4 --from=tecnare-m2122 --from=concert-audio-ef6
 #     --from=eighteensound-2way-15 --stacks=1 --align=center --low-end=low --shape=v --mirror-style=centred --id=stacked
 #     --into=next-event
 #
@@ -49,18 +51,18 @@
 #
 # main-innschleife — innschleife, 14 cabinets in 7 rows:
 #
-#   1  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.22 m wide
-#   2  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.22 m wide
+#   1  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
+#   2  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
 #   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   4  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   5  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
 #   6  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   7  2× thl4                                                                   1.02 m wide
+#   7  2× tms4                                                                   1.02 m wide
 #
-# Subs reach 3.44 m against a 2.0 m interface. The stack is 4.58 m of cabinet.
-#   * the subs reach 3.440 m against the 3.000 m ceiling asked for, so they stand 440 mm too high — 3.440 m is the
+# Subs reach 4.14 m against a 2.0 m interface. The stack is 5.28 m of cabinet.
+#   * the subs reach 4.140 m against the 3.000 m ceiling asked for, so they stand 1140 mm too high — 4.140 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° row is 2.220 m on a 1.220 m row, so it overhangs 500 mm
+#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° row is 2.220 m on a 1.160 m row, so it overhangs 530 mm
 #     each side
 #   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
 #     each side
@@ -156,5 +158,5 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           roll_mirror: 90.0
-        - thl4
+        - tms4
 

@@ -7,11 +7,10 @@
 #
 #   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife --from=wsx-18
 #     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
-#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
-#     --stacks=2 --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked
-#     --into=innschleife-psl-sdwa5-sepp
+#     --from=kicker-15 --from=achenbach-18 --from=sub-60x60 --from=thebox-tp118-800 --from=concert-audio-esf --from=tms4
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --from=thebox-pa302
+#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=2
+#     --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
 #
 # 6 stacks side by side, with 0.5 m of air between them.
 #
@@ -73,31 +72,31 @@
 #
 #   1  2× sbh-18                                                                 1.12 m wide
 #   2  2× wsx-18                                                                 1.16 m wide
-#   3  2× kicker-15                                                              1.22 m wide
-#   4  2× sub-95x57                                                              1.92 m wide
-#   5  1× thl4 + 1× tms4                                                        0.95 m wide
+#   3  2× sub-60x60                                                              1.22 m wide
+#   4  2× kicker-15                                                              1.92 m wide
+#   5  1× tms4 + 1× tms2                                                        0.95 m wide
 #
 # Subs reach 3.47 m against a 2.0 m interface. The stack is 4.61 m of cabinet.
 #   * the subs reach 3.470 m against the 3.000 m ceiling asked for, so they stand 470 mm too high — 3.470 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 2× wsx-18 row is 1.160 m on a 1.120 m row, so it overhangs 20 mm each side
-#   * the 2× kicker-15 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
-#   * the 2× sub-95x57 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
+#   * the 2× sub-60x60 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
+#   * the 2× kicker-15 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
 #
 # main-innschleife-2 — innschleife-2, 10 cabinets in 5 rows:
 #
 #   1  2× sbh-18                                                                 1.12 m wide
 #   2  2× wsx-18                                                                 1.16 m wide
-#   3  2× kicker-15                                                              1.22 m wide
-#   4  2× sub-95x57                                                              1.92 m wide
-#   5  1× tms4 + 1× thl4                                                        0.95 m wide
+#   3  2× sub-60x60                                                              1.22 m wide
+#   4  2× kicker-15                                                              1.92 m wide
+#   5  1× tms2 + 1× tms4                                                        0.95 m wide
 #
 # Subs reach 3.47 m against a 2.0 m interface. The stack is 4.61 m of cabinet.
 #   * the subs reach 3.470 m against the 3.000 m ceiling asked for, so they stand 470 mm too high — 3.470 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 2× wsx-18 row is 1.160 m on a 1.120 m row, so it overhangs 20 mm each side
-#   * the 2× kicker-15 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
-#   * the 2× sub-95x57 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
+#   * the 2× sub-60x60 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
+#   * the 2× kicker-15 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
 #
 id: stacked-2-systems-apart-v-------upright-alternate-center-low-----possible
 name: "Solved rig — 6 stacks side by side, tiers centred"
@@ -255,13 +254,13 @@ placements:
           count: 2
         - device: sbh-18
           count: 2
-        - device: sub-95x57
-          count: 2
         - device: kicker-15
           count: 2
-        - device: thl4
-          count: 1
+        - device: sub-60x60
+          count: 2
         - device: tms4
+          count: 1
+        - device: tms2
           count: 1
           aim: near
 
@@ -286,13 +285,13 @@ placements:
           count: 2
         - device: sbh-18
           count: 2
-        - device: sub-95x57
-          count: 2
         - device: kicker-15
           count: 2
-        - device: thl4
-          count: 1
+        - device: sub-60x60
+          count: 2
         - device: tms4
+          count: 1
+        - device: tms2
           count: 1
           aim: near
 
