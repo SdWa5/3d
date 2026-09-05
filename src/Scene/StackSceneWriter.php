@@ -41,12 +41,40 @@ final class StackSceneWriter
      * contents. `--per-owner` puts three different systems side by side and no ordering makes those the same height.
      *
      * @param list<StackBlock> $blocks
-     * @param list<string> $order system labels, left to right, or empty for the height rule below
+     * @param list<string> $order system labels, left to right. Empty — or naming none of these blocks, which
+     *     is what a system order does to a `pooled` rig — leaves the height rule below in charge
      * @return list<StackBlock>
      */
     public static function byHeight(array $blocks, LayoutMode $mode, array $order = []): array
     {
-        if ($order !== []) {
+        $rank = array_flip(array_values($order));
+
+        // **THE ORDER NAMES A SYSTEM, AND A LABEL CARRIES ITS STACK NUMBER TOO.** `--stacks=2` labels the blocks
+        // `ours-1`, `ours-2`, `psl-1` and so on, so matching the label whole meant `--order=ours,psl,innschleife`
+        // named nothing in any multi-stack rig and 533 of them silently kept the height rule — which mirrored each
+        // system's pair about the centre and put `ours` in the *middle*, the opposite of a stated order that begins
+        // with it. Ranking on the system part instead keeps a system's stacks adjacent, because equal ranks hold
+        // their relative order under PHP's stable sort. Stated by the owner: strictly left to right, grouped.
+        $rankOf = static function (string $label) use ($rank): ?int {
+            return $rank[$label] ?? $rank[preg_replace('/-\d+$/', '', $label)] ?? null;
+        };
+
+        // **AN ORDER THAT NAMES NONE OF THESE BLOCKS IS NOT AN INSTRUCTION ABOUT THEM.** `--order` states where
+        // *systems* go, and a `pooled` rig has no systems — its stacks are labelled `1`, `2`, `3`, so a system
+        // order names nothing in it. Returning early on a non-empty order regardless put every such rig in *solve*
+        // order and skipped the height rule entirely, which is a silent geometry change in the one mode the option
+        // cannot be about: sweeping `next-event` with `--order=ours,psl,innschleife` moved 8 `pooled` ids, five of
+        // them across the possible/impossible line. So the stated path is taken only when it has something to say.
+        $named = false;
+        foreach ($blocks as $block) {
+            if ($rankOf($block->label) !== null) {
+                $named = true;
+
+                break;
+            }
+        }
+
+        if ($named) {
             // **A STATED ORDER BEATS THE HEURISTIC, WHICH IS WHY IT IS CHECKED FIRST AND RETURNS.** Everything
             // below is a rule about where a *taller* stack reads best, and it is a good rule precisely because
             // nobody had said where the stacks go. Somebody saying so is a different kind of fact: the systems
@@ -55,10 +83,9 @@ final class StackSceneWriter
             //
             // Stable, and a block whose label the order does not name keeps its place at the end rather than
             // being dropped — naming two of three systems is a partial instruction, not a filter.
-            $rank = array_flip(array_values($order));
             $positions = [];
             foreach ($blocks as $index => $block) {
-                $positions[$index] = $rank[$block->label] ?? count($rank) + $index;
+                $positions[$index] = $rankOf($block->label) ?? count($rank) + $index;
             }
             uksort($blocks, static fn (int $a, int $b): int => $positions[$a] <=> $positions[$b]);
 

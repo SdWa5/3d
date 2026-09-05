@@ -5,15 +5,31 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=turned --systems=tops-shared --quantity=concert-audio-ef6:5
-#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0
-#     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
-#     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18
-#     --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=achenbach-18 --from=kicker-15
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --stacks=2 --align=stereo
-#     --low-end=central --shape=v --mirror-style=centred --id=stacked --into=next-event
+#   bin/console scene:stack --orientation=turned --systems=tops-shared --order=ours,psl,innschleife
+#     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
+#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
+#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --from=eighteensound-2way-15 --stacks=2 --align=stereo --low-end=central --shape=v --mirror-style=centred
+#     --id=stacked --into=next-event
 #
 # 6 stacks side by side, with 0.5 m of air between them.
+#
+# main-ours-1 — ours-1, 11 cabinets in 4 rows:
+#
+#   1  1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90°     1.84 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
+#   4  1× eighteensound-2way-15 + 1× concert-audio-ef6                        1.0736 m wide
+#
+# Subs reach 2.126 m against a 2.0 m interface. The stack is 2.962 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid
+#     rolled 90° row is 2.157 m on a 1.840 m row, so it overhangs 159 mm each side
 #
 # main-ours-2 — ours-2, 13 cabinets in 5 rows:
 #
@@ -30,6 +46,15 @@
 #     which is what the -turned rig does
 #   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid
 #     rolled 90° row is 2.157 m on a 1.848 m row, so it overhangs 154 mm each side
+#
+# main-psl-1 — psl-1, 8 cabinets in 3 rows:
+#
+#   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
+#   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
+#   3  1× thl4 + 1× concert-audio-ef6                                          1.108 m wide
+#
+# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.5 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 # main-psl-2 — psl-2, 8 cabinets in 3 rows:
 #
@@ -72,30 +97,6 @@
 #   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
 #     each side
 #
-# main-ours-1 — ours-1, 11 cabinets in 4 rows:
-#
-#   1  1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90°     1.84 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   4  1× eighteensound-2way-15 + 1× concert-audio-ef6                        1.0736 m wide
-#
-# Subs reach 2.126 m against a 2.0 m interface. The stack is 2.962 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid
-#     rolled 90° row is 2.157 m on a 1.840 m row, so it overhangs 159 mm each side
-#
-# main-psl-1 — psl-1, 8 cabinets in 3 rows:
-#
-#   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
-#   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
-#   3  1× thl4 + 1× concert-audio-ef6                                          1.108 m wide
-#
-# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.5 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#
 id: stacked-2-tops-shared---v-------turned--centred---stereo-central-possible
 name: "Solved rig — 6 stacks side by side, tiers split left and right"
 
@@ -108,9 +109,43 @@ focus:
     height_m: 1.8
 
 placements:
+  # ours-1, 11 cabinets in 4 rows
+  - id: main-ours-1
+    at: [-8.0405, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      mirror_style: centred
+      low_end: central
+      shape: v
+      mirror: true             # the mirror image of stack ours-1
+      from:
+        - device: flexy-folded-horn-hybrid
+          count: 6
+          roll_mirror: 90.0
+        - device: achenbach-18
+          count: 3
+          roll_mirror: 90.0
+        - device: concert-audio-ef6
+          count: 1
+        - device: eighteensound-2way-15
+          count: 1
+          aim: near
+
   # ours-2, 13 cabinets in 5 rows
   - id: main-ours-2
-    at: [-8.0405, 0.0]
+    at: [-5.3835, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -143,9 +178,40 @@ placements:
           count: 1
           aim: near
 
+  # psl-1, 8 cabinets in 3 rows
+  - id: main-psl-1
+    at: [-2.31, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      mirror_style: centred
+      low_end: central
+      shape: v
+      mirror: true             # the mirror image of stack psl-1
+      from:
+        - device: concert-audio-esx
+          count: 6
+          roll_mirror: 90.0
+        - device: concert-audio-ef6
+          count: 1
+        - device: thl4
+          count: 1
+          aim: near
+
   # psl-2, 8 cabinets in 3 rows
   - id: main-psl-2
-    at: [-4.967, 0.0]
+    at: [1.18, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -175,7 +241,7 @@ placements:
 
   # innschleife-1, 8 cabinets in 4 rows
   - id: main-innschleife-1
-    at: [-1.762, 0.0]
+    at: [4.385, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -212,7 +278,7 @@ placements:
 
   # innschleife-2, 8 cabinets in 4 rows
   - id: main-innschleife-2
-    at: [1.158, 0.0]
+    at: [7.305, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -243,71 +309,6 @@ placements:
         - device: concert-audio-ef6
           count: 1
         - device: tecnare-m2122
-          count: 1
-          aim: near
-
-  # ours-1, 11 cabinets in 4 rows
-  - id: main-ours-1
-    at: [3.9465, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      mirror_style: centred
-      low_end: central
-      shape: v
-      mirror: true             # the mirror image of stack ours-1
-      from:
-        - device: flexy-folded-horn-hybrid
-          count: 6
-          roll_mirror: 90.0
-        - device: achenbach-18
-          count: 3
-          roll_mirror: 90.0
-        - device: concert-audio-ef6
-          count: 1
-        - device: eighteensound-2way-15
-          count: 1
-          aim: near
-
-  # psl-1, 8 cabinets in 3 rows
-  - id: main-psl-1
-    at: [7.02, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      mirror_style: centred
-      low_end: central
-      shape: v
-      mirror: true             # the mirror image of stack psl-1
-      from:
-        - device: concert-audio-esx
-          count: 6
-          roll_mirror: 90.0
-        - device: concert-audio-ef6
-          count: 1
-        - device: thl4
           count: 1
           aim: near
 

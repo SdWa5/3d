@@ -256,6 +256,91 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
+     * A stated `--order` puts the systems where it says, whatever their heights.
+     *
+     * The height rule is a good default precisely because nobody had said where the stacks go. Somebody saying so
+     * is a different kind of fact, and it has to win — a stage plan that reshuffles itself when one wall grows
+     * 380 mm is not a stage plan. The `--low-end` axis is what exposed this in the shipped tree: two variants of
+     * one `next-event` rig differing in nothing but that flag stood `innschleife | psl | ours` and
+     * `ours | psl | innschleife`, because moving the SKRAMs changed which wall was tallest.
+     */
+    public function testAStatedOrderPutsTheSystemsWhereItSays(): void
+    {
+        $shared = ['--per-owner' => true, '--owner' => ['gmss', 'innschleife', 'sdwa5', 'sepp'], '--stacks' => '1',
+            '--max-width' => '3.70', '--gap' => '0.05', '--interface-height' => '0', '--max-sub-height' => '99',
+            '--shape' => ['pyramid'], '--orientation' => ['upright'], '--mirror-style' => ['alternate'],
+            '--low-end' => ['low'], '--align' => ['center'], '--dry-run' => true];
+
+        self::assertSame(
+            ['ours', 'gmss', 'innschleife'],
+            $this->labels($this->invoke($shared + ['--order' => ['ours,gmss,innschleife']])->getDisplay()),
+        );
+
+        // The reverse, so the assertion is about the order rather than about one arrangement the heights happen
+        // to produce anyway.
+        self::assertSame(
+            ['innschleife', 'gmss', 'ours'],
+            $this->labels($this->invoke($shared + ['--order' => ['innschleife', 'gmss', 'ours']])->getDisplay()),
+        );
+    }
+
+    /**
+     * **A system's stacks stay together and the systems run left to right**, which is the multi-stack case.
+     *
+     * `--stacks=2` labels the blocks `ours-1`, `ours-2`, `psl-1` and so on, so an order naming systems matched
+     * nothing and 533 scenes kept the height rule — which mirrors each pair about the centre and puts `ours` in
+     * the middle, the opposite of an order beginning with it. Stated by the owner: strictly left to right,
+     * grouped. Equal ranks hold their relative order under PHP's stable sort, which is what keeps a pair adjacent.
+     */
+    public function testEachSystemsStacksStayTogetherInTheStatedOrder(): void
+    {
+        $display = $this->invoke([
+            '--owner' => ['innschleife', 'psl', 'sdwa5', 'sepp'], '--systems' => ['systems-apart'],
+            '--stacks' => '2', '--max-width' => '3.70', '--gap' => '0.05', '--interface-height' => '0',
+            '--max-sub-height' => '99', '--shape' => ['free'], '--orientation' => ['upright'],
+            '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--align' => ['center'],
+            '--order' => ['ours,psl,innschleife'], '--dry-run' => true,
+        ])->getDisplay();
+
+        $labels = $this->labels($display);
+        self::assertNotEmpty($labels, 'the rig has to stand up for this to say anything');
+
+        // Collapsed to one entry per run: grouped means each system appears as a single run.
+        $runs = [];
+        foreach ($labels as $label) {
+            if ($runs === [] || end($runs) !== $label) {
+                $runs[] = $label;
+            }
+        }
+
+        self::assertSame(['ours', 'psl', 'innschleife'], $runs);
+    }
+
+    /**
+     * **An order naming none of the stacks leaves the height rule alone**, which is the `pooled` case.
+     *
+     * `--order` states where *systems* go, and a pooled rig has no systems — its stacks are labelled `1`, `2`, `3`.
+     * Returning early on any non-empty order put every pooled rig in solve order and skipped the height rule, a
+     * silent geometry change in the one mode the option cannot be about. Sweeping `next-event` with
+     * `--order=ours,psl,innschleife` moved 8 pooled ids that way, five of them across the possible/impossible line.
+     */
+    public function testAnOrderThatNamesNoneOfTheStacksLeavesTheHeightRuleInCharge(): void
+    {
+        $shared = ['--owner' => ['gmss', 'innschleife', 'sdwa5', 'sepp'], '--systems' => ['pooled'],
+            '--stacks' => '3', '--max-width' => '3.70', '--gap' => '0.05', '--interface-height' => '0',
+            '--max-sub-height' => '99', '--shape' => ['pyramid'], '--orientation' => ['upright'],
+            '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--align' => ['center'],
+            '--dry-run' => true];
+
+        $without = $this->heights($this->invoke($shared)->getDisplay());
+        $with = $this->heights($this->invoke($shared + ['--order' => ['ours,psl,innschleife']])->getDisplay());
+
+        self::assertCount(3, $without);
+        self::assertSame($without, $with, 'a system order says nothing about a pooled rig and must not move it');
+        self::assertSame(max($without), $without[1], 'and the height rule still has the tallest in the middle');
+    }
+
+    /**
      * The sub heights of each stack, left to right, off the header the writer prints.
      *
      * @return list<float>
@@ -265,6 +350,18 @@ final class SceneStackCommandTest extends TestCase
         preg_match_all('/^# Subs reach ([\d.]+) m/m', $display, $matches);
 
         return array_map(floatval(...), $matches[1]);
+    }
+
+    /**
+     * The system label of each stack, left to right, off the placement ids the writer prints.
+     *
+     * @return list<string>
+     */
+    private function labels(string $display): array
+    {
+        preg_match_all('/^  - id: main-([a-z0-9-]+?)(?:-\d+)?$/m', $display, $matches);
+
+        return $matches[1];
     }
 
     /** An unknown `--shape` names the values there are rather than falling back to one. */

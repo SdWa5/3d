@@ -13,12 +13,13 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=upright --systems=systems-apart --from=wsx-18 --from=sbh-18 --from=skram
-#     --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=sub-95x57
-#     --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf --from=tecnare-m2122
-#     --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4 --from=thebox-pa302
-#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=1
-#     --align=center --low-end=central --shape=v --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
+#   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife --from=wsx-18
+#     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
+#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
+#     --stacks=1 --align=center --low-end=central --shape=v --mirror-style=alternate --id=stacked
+#     --into=innschleife-psl-sdwa5-sepp
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
@@ -39,6 +40,15 @@
 #   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is 2.511 m on a 2.424 m row,
 #     so it overhangs 44 mm each side
 #
+# main-psl — psl, 22 cabinets in 2 rows:
+#
+#   1  1× thebox-tp118-800 + 1× concert-audio-esf + 3× concert-audio-esx + 2× thebox-tp218-1600 + 3× concert-audio-esx + 1× concert-audio-esf + 1× thebox-tp118-800    7.136 m wide
+#   2  1× thebox-dsp-112 + 1× thebox-achat-112m + 1× hk-linear5-112x + 1× thebox-pa302 + 1× thebox-achat-115m + 4× concert-audio-ef6 + 1× thebox-achat-112m    4.826 m wide
+#
+# Subs reach 1.2 m against a 2.0 m interface. The stack is 1.98 m of cabinet.
+#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
+#     1.200 m is the most they reach while every tier is still carried
+#
 # main-innschleife — innschleife, 20 cabinets in 9 rows:
 #
 #   1  2× sbh-18                                                                 1.12 m wide
@@ -57,15 +67,6 @@
 #   * the 2× wsx-18 row is 1.160 m on a 1.120 m row, so it overhangs 20 mm each side
 #   * the 2× kicker-15 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
 #   * the 2× sub-95x57 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
-#
-# main-psl — psl, 22 cabinets in 2 rows:
-#
-#   1  1× thebox-tp118-800 + 1× concert-audio-esf + 3× concert-audio-esx + 2× thebox-tp218-1600 + 3× concert-audio-esx + 1× concert-audio-esf + 1× thebox-tp118-800    7.136 m wide
-#   2  1× thebox-dsp-112 + 1× thebox-achat-112m + 1× hk-linear5-112x + 1× thebox-pa302 + 1× thebox-achat-115m + 4× concert-audio-ef6 + 1× thebox-achat-112m    4.826 m wide
-#
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 1.98 m of cabinet.
-#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
-#     1.200 m is the most they reach while every tier is still carried
 #
 id: stacked-1-systems-apart-v-------upright-alternate-center-central-impossible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -105,36 +106,9 @@ placements:
         - device: eighteensound-2way-15
           aim: near
 
-  # innschleife, 20 cabinets in 9 rows
-  - id: main-innschleife
-    at: [-2.6144, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      low_end: central
-      shape: v
-      from:
-        - wsx-18
-        - sbh-18
-        - sub-95x57
-        - kicker-15
-        - thl4
-        - device: tms4
-          aim: near
-
   # psl, 22 cabinets in 2 rows
   - id: main-psl
-    at: [2.4136, 0.0]
+    at: [-0.0064, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -165,5 +139,32 @@ placements:
         - device: hk-linear5-112x
           aim: near
         - device: thebox-dsp-112
+          aim: near
+
+  # innschleife, 20 cabinets in 9 rows
+  - id: main-innschleife
+    at: [5.0216, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      low_end: central
+      shape: v
+      from:
+        - wsx-18
+        - sbh-18
+        - sub-95x57
+        - kicker-15
+        - thl4
+        - device: tms4
           aim: near
 

@@ -5,32 +5,25 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=upright --systems=tops-shared --from=wsx-18 --from=sbh-18 --from=skram
-#     --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=sub-95x57
-#     --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf --from=tecnare-m2122
-#     --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4 --from=thebox-pa302
-#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=3
-#     --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
+#   bin/console scene:stack --orientation=upright --systems=tops-shared --order=ours,psl,innschleife --from=wsx-18
+#     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
+#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
+#     --stacks=3 --align=stereo --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked
+#     --into=innschleife-psl-sdwa5-sepp
 #
 # 9 stacks side by side, with 0.5 m of air between them.
 #
-# main-innschleife-2 — innschleife-2, 10 cabinets in 4 rows:
+# main-ours-1 — ours-1, 7 cabinets in 4 rows:
 #
-#   1  2× sub-95x57                                                              1.92 m wide
-#   2  1× kicker-15 + 1× wsx-18 + 1× kicker-15                                 1.81 m wide
-#   3  2× sbh-18 + 1× wsx-18                                                    1.71 m wide
-#   4  1× tecnare-m2122 + 1× tms4                                               0.95 m wide
+#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   3  2× achenbach-18                                                           1.22 m wide
+#   4  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 2.87 m against a 2.0 m interface. The stack is 3.83 m of cabinet.
+# Subs reach 2.126 m against a 2.0 m interface. The stack is 2.962 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
 #
 # main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
@@ -53,24 +46,24 @@
 # Subs reach 2.126 m against a 2.0 m interface. The stack is 2.892 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-innschleife-3 — innschleife-3, 7 cabinets in 2 rows:
+# main-psl-1 — psl-1, 3 cabinets in 2 rows:
 #
-#   1  1× sbh-18 + 1× kicker-15 + 1× sub-95x57                                 2.14 m wide
-#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thl4 + 1× thebox-achat-112m    2.008 m wide
+#   1  2× concert-audio-esx                                                       1.2 m wide
+#   2  1× tms4                                                                   0.43 m wide
 #
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.34 m of cabinet.
+# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.05 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wsx-18: LEFT OUT, it cannot be carried in this stack — a concert-audio-ef6 in the 1× concert-audio-ef6 + 1×
-#     tecnare-m2122 + 1× thl4 + 1× thebox-achat-112m row would land on only 32% of its own width — it is touching what
-#     carries it rather than sitting on it. Line the segments up with what carries them
-#   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
-#     1.200 m is the most they reach while every tier is still carried
+#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
+#     1.180 m is the most they reach while every tier is still carried
+#
+# main-psl-2 — psl-2, 12 cabinets in 3 rows:
+#
+#   1  1× concert-audio-esx + 2× concert-audio-esf + 1× concert-audio-esx     2.416 m wide
+#   2  1× thebox-tp218-1600 + 2× thebox-tp118-800 + 1× thebox-tp218-1600       2.26 m wide
+#   3  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× hk-linear5-112x + 1× thebox-dsp-112    1.866 m wide
+#
+# Subs reach 2.38 m against a 2.0 m interface. The stack is 3.34 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 # main-psl-3 — psl-3, 3 cabinets in 2 rows:
 #
@@ -78,16 +71,6 @@
 #   2  1× thebox-pa302                                                           0.42 m wide
 #
 # Subs reach 1.18 m against a 2.0 m interface. The stack is 1.795 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
-#     1.180 m is the most they reach while every tier is still carried
-#
-# main-psl-1 — psl-1, 3 cabinets in 2 rows:
-#
-#   1  2× concert-audio-esx                                                       1.2 m wide
-#   2  1× tms4                                                                   0.43 m wide
-#
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.05 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
 #     1.180 m is the most they reach while every tier is still carried
@@ -110,24 +93,42 @@
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
 #
-# main-ours-1 — ours-1, 7 cabinets in 4 rows:
+# main-innschleife-2 — innschleife-2, 10 cabinets in 4 rows:
 #
-#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× eighteensound-2way-15                                                0.4656 m wide
+#   1  2× sub-95x57                                                              1.92 m wide
+#   2  1× kicker-15 + 1× wsx-18 + 1× kicker-15                                 1.81 m wide
+#   3  2× sbh-18 + 1× wsx-18                                                    1.71 m wide
+#   4  1× tecnare-m2122 + 1× tms4                                               0.95 m wide
 #
-# Subs reach 2.126 m against a 2.0 m interface. The stack is 2.962 m of cabinet.
+# Subs reach 2.87 m against a 2.0 m interface. The stack is 3.83 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
+#     are not identical. --no-asymmetry leaves them out instead
+#   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
+#     are not identical. --no-asymmetry leaves them out instead
+#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
 #
-# main-psl-2 — psl-2, 12 cabinets in 3 rows:
+# main-innschleife-3 — innschleife-3, 7 cabinets in 2 rows:
 #
-#   1  1× concert-audio-esx + 2× concert-audio-esf + 1× concert-audio-esx     2.416 m wide
-#   2  1× thebox-tp218-1600 + 2× thebox-tp118-800 + 1× thebox-tp218-1600       2.26 m wide
-#   3  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× hk-linear5-112x + 1× thebox-dsp-112    1.866 m wide
+#   1  1× sbh-18 + 1× kicker-15 + 1× sub-95x57                                 2.14 m wide
+#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thl4 + 1× thebox-achat-112m    2.008 m wide
 #
-# Subs reach 2.38 m against a 2.0 m interface. The stack is 3.34 m of cabinet.
+# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.34 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * wsx-18: LEFT OUT, it cannot be carried in this stack — a concert-audio-ef6 in the 1× concert-audio-ef6 + 1×
+#     tecnare-m2122 + 1× thl4 + 1× thebox-achat-112m row would land on only 32% of its own width — it is touching what
+#     carries it rather than sitting on it. Line the segments up with what carries them
+#   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
+#     are not identical. --no-asymmetry leaves them out instead
+#   * sub-95x57: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
+#     1.200 m is the most they reach while every tier is still carried
 #
 id: stacked-3-tops-shared---pyramid-upright-alternate-stereo-low-----possible
 name: "Solved rig — 9 stacks side by side, tiers split left and right"
@@ -141,9 +142,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # innschleife-2, 10 cabinets in 4 rows
-  - id: main-innschleife-2
-    at: [-9.2905, 0.0]
+  # ours-1, 7 cabinets in 4 rows
+  - id: main-ours-1
+    at: [-9.6405, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -159,24 +160,18 @@ placements:
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: pyramid
+      mirror: true             # the mirror image of stack ours-1
       from:
-        - device: wsx-18
+        - device: flexy-folded-horn-hybrid
+          count: 4
+        - device: achenbach-18
           count: 2
-        - device: sbh-18
-          count: 2
-        - device: sub-95x57
-          count: 2
-        - device: kicker-15
-          count: 2
-        - device: tecnare-m2122
+        - device: eighteensound-2way-15
           count: 1
-        - device: tms4
-          count: 1
-          aim: near
 
   # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
-    at: [-6.905, 0.0]
+    at: [-7.605, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -203,7 +198,7 @@ placements:
 
   # ours-3, 7 cabinets in 4 rows
   - id: main-ours-3
-    at: [-4.8695, 0.0]
+    at: [-5.5695, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -226,69 +221,9 @@ placements:
           count: 2
         - thebox-achat-115m
 
-  # innschleife-3, 7 cabinets in 2 rows
-  - id: main-innschleife-3
-    at: [-2.6895, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      shape: pyramid
-      from:
-        - device: sbh-18
-          count: 1
-        - device: sub-95x57
-          count: 1
-        - device: kicker-15
-          count: 1
-        - device: concert-audio-ef6
-          count: 1
-        - device: tecnare-m2122
-          count: 1
-          aim: near
-        - device: thl4
-          count: 1
-          aim: near
-        - device: thebox-achat-112m
-          count: 1
-          aim: near
-
-  # psl-3, 3 cabinets in 2 rows
-  - id: main-psl-3
-    at: [-0.5195, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      shape: pyramid
-      from:
-        - device: concert-audio-esx
-          count: 2
-        - thebox-pa302
-
   # psl-1, 3 cabinets in 2 rows
   - id: main-psl-1
-    at: [1.1805, 0.0]
+    at: [-3.8595, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -311,9 +246,66 @@ placements:
         - device: tms4
           count: 1
 
+  # psl-2, 12 cabinets in 3 rows
+  - id: main-psl-2
+    at: [-1.5515, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      shape: pyramid
+      from:
+        - thebox-tp218-1600
+        - device: concert-audio-esx
+          count: 2
+        - thebox-tp118-800
+        - concert-audio-esf
+        - device: concert-audio-ef6
+          count: 1
+        - device: tecnare-m2122
+          count: 1
+          aim: near
+        - device: hk-linear5-112x
+          aim: near
+        - device: thebox-dsp-112
+          aim: near
+
+  # psl-3, 3 cabinets in 2 rows
+  - id: main-psl-3
+    at: [0.7565, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      shape: pyramid
+      from:
+        - device: concert-audio-esx
+          count: 2
+        - thebox-pa302
+
   # innschleife-1, 8 cabinets in 2 rows
   - id: main-innschleife-1
-    at: [3.6455, 0.0]
+    at: [3.2215, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -348,9 +340,9 @@ placements:
           count: 1
           aim: near
 
-  # ours-1, 7 cabinets in 4 rows
-  - id: main-ours-1
-    at: [6.1205, 0.0]
+  # innschleife-2, 10 cabinets in 4 rows
+  - id: main-innschleife-2
+    at: [6.0465, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -366,18 +358,24 @@ placements:
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: pyramid
-      mirror: true             # the mirror image of stack ours-1
       from:
-        - device: flexy-folded-horn-hybrid
-          count: 4
-        - device: achenbach-18
+        - device: wsx-18
           count: 2
-        - device: eighteensound-2way-15
+        - device: sbh-18
+          count: 2
+        - device: sub-95x57
+          count: 2
+        - device: kicker-15
+          count: 2
+        - device: tecnare-m2122
           count: 1
+        - device: tms4
+          count: 1
+          aim: near
 
-  # psl-2, 12 cabinets in 3 rows
-  - id: main-psl-2
-    at: [8.4385, 0.0]
+  # innschleife-3, 7 cabinets in 2 rows
+  - id: main-innschleife-3
+    at: [8.5765, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -394,18 +392,21 @@ placements:
       gap_m: 0.02
       shape: pyramid
       from:
-        - thebox-tp218-1600
-        - device: concert-audio-esx
-          count: 2
-        - thebox-tp118-800
-        - concert-audio-esf
+        - device: sbh-18
+          count: 1
+        - device: sub-95x57
+          count: 1
+        - device: kicker-15
+          count: 1
         - device: concert-audio-ef6
           count: 1
         - device: tecnare-m2122
           count: 1
           aim: near
-        - device: hk-linear5-112x
+        - device: thl4
+          count: 1
           aim: near
-        - device: thebox-dsp-112
+        - device: thebox-achat-112m
+          count: 1
           aim: near
 

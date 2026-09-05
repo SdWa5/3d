@@ -4,6 +4,75 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.104.2] - 2026-09-05
+
+`--order` stopped moving the rigs it has nothing to say about.
+
+### Fixed
+
+- **A `--order` naming none of a rig's stacks skipped the height rule anyway.** `StackSceneWriter::byHeight()`
+  returned on the stated path whenever the order was non-empty, without checking whether it named any of the
+  blocks in front of it. `--order` states where *systems* go and a `pooled` rig has no systems — its stacks are
+  labelled `1`, `2`, `3` — so a system order named nothing in one, every block fell through to `count($rank) +
+  $index`, and the rig came out in **solve order** with tallest-in-the-middle never applied. That is a silent
+  geometry change in the one mode the option cannot be about. **Measured on the `next-event` sweep: 8 `pooled`
+  ids moved, five of them across the possible/impossible line.** The stated path is now taken only when the order
+  names at least one block present, and a partial order still ranks what it names and leaves the rest at the end
+- **A multi-stack rig ignored `--order` entirely, for the same reason one level down.** `--stacks=2` labels the
+  blocks `ours-1`, `ours-2`, `psl-1` and so on, so an order naming *systems* matched no label whole and **533 of
+  the 799 multi-system scenes kept the height rule** — which mirrors each system's pair about the centre line and
+  puts `ours` in the *middle*, the opposite of a stated order that begins with it. The rank is taken on the system
+  part of the label now, so a system's stacks stay adjacent under PHP's stable sort and the systems run left to
+  right as stated. Stated by the owner: strictly left to right, grouped, rather than the mirrored stage the height
+  rule happened to produce
+- **Both affected inventories regenerated with the order recorded in every file.** `next-event` (506) and
+  `innschleife-psl-sdwa5-sepp` (423) now carry `--order=ours,psl,innschleife` in their replay lines, so a rebuild
+  is faithful. **799 of 799 multi-system scenes read `ours | psl | innschleife`**, against 34 of 266 before. The
+  `gmss` inventories are left on the height rule on purpose, no order having been stated for gmss
+- **One rig changed feasibility, and it is a real consequence rather than an artefact.**
+  `stacked-2-tops-shared---v-------upright-alternate-center-low-----possible` is now `-impossible`: grouping a
+  system's two stacks side by side instead of on opposite sides of the stage changed its geometry, and a 6×
+  `flexy-folded-horn-hybrid` row of 3.646 m now sits on a 2.451 m support and overhangs 292 mm each side. Every
+  other id in both inventories is unchanged. **The old name was left behind on disk as a stale file** — a
+  `scene:stack --force` overwrites what it writes and never deletes what it stops writing, which is worth knowing
+  before any future regeneration
+- Three tests, none of which existed: `--order` puts the systems where it says whatever their heights, asserted in
+  both directions so it is the order being tested rather than an arrangement the heights produce anyway; each
+  system's stacks stay together in the stated order; and an order naming none of the stacks leaves the height rule
+  in charge, which is the `pooled` regression above
+
+## [0.104.1] - 2026-09-04
+
+Documentation caught up with the tree. No behaviour changed.
+
+### Fixed
+
+- **Every scene count in the docs was from an older sweep, and the inventory table was stale in nine of its eleven
+  rows.** The sweep has grown from 1374 to **2688** across three axes since those numbers were written, so
+  `README.md`, `docs/pipeline.md` and `docs/scenes.md` carried figures that were each individually plausible and
+  collectively wrong. Every one of them is re-measured: the default sweep is **146 scenes and no impossible ones**,
+  the committed tree is **2327 possible and 361 impossible**, the separation axis splits **868 / 937 / 883** across
+  `systems-apart` / `tops-shared` / `pooled`, and single-owner rigs are **301** rather than 153. The table now sums
+  to 2688 exactly, which is the check that was missing
+- **`--max-scenes` was compared against the wrong quantity.** `docs/scenes.md` read its 1500 default against the
+  whole tree, which now exceeds it and made the fuse look broken. **It counts one invocation**, and the largest
+  committed run is `next-event` at 506, so nothing is near it. The default is unchanged and the sentence now says
+  what it counts
+- **`--low-end` was missing from `README.md` entirely.** The option shipped in 0.103.0 and the command table never
+  gained it, so the one axis somebody would go looking for after seeing a SKRAM in the middle of a render was the
+  one the README did not mention
+- **Six options had shipped without ever reaching the option table in `docs/scenes.md`**: `--roster`,
+  `--quantity`, `--group`, `--folders`, `--order` and `--low-end`. `README.md` gained `--order` and `--roster`
+  beside them. **`--order` turned out to be used by no committed scene at all** — 0 of 2688 record it, so every
+  multi-system rig stands in height order instead. **Measured, that order is not merely wrong but unstable**: of
+  the 266 named three-wall scenes in `next-event` and `innschleife-psl-sdwa5-sepp` all six permutations occur and
+  only 34 are the one asked for, and a single rig's `--low-end=central` and `--low-end=low` variants come out in
+  opposite orders because changing where the SKRAMs sit changed which wall is tallest. Filed as `SCN-11` rather
+  than fixed here, because the fix is a regeneration of 929 scenes and a re-render
+- **`TOOL-16` was in `TODO.md` twice.** The older row still described `SceneStackCommand` at 2098 lines and asked
+  for the naming and dealing extractions, both of which shipped in 0.100.0 as `SceneLayout` and `StackDeal`. The
+  surviving row carries today's figure, which is 1425 rather than 1374 because the low-end axis added 51 lines
+
 ## [0.104.0] - 2026-09-04
 
 The test suite, from 1 h 17 min to about 25.

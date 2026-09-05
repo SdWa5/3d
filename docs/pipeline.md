@@ -137,7 +137,7 @@ the one the serial order would have named first.
 
 The variant sweep is a **flag** rather than the default, and that is a reversal of 0.70.0. Every scene under each of
 the four lighting presets, each with and without aim lines, is eight passes into eight folders under `build/renders/`
-— which at 483 generated scenes is 3864 pictures out of the slowest tool in the repository. Stated by the owner:
+— which at 2688 generated scenes is 21 504 pictures out of the slowest tool in the repository. Stated by the owner:
 the lighting variants go if they are what holds `build:all` up. They were. `--every-variant` asks for the eight back,
 and the useful-by-default argument still stands for everything cheap.
 
@@ -195,7 +195,7 @@ matters for the one thing a level cannot say, like a 4K frame at 16 samples to c
 levels at once is refused.
 
 The two compound, which is why the variant sweep is no longer the default: eight variants at 2.9× a frame is about
-**23×** one render of one scene, times 483 scenes. `--every-variant --quick-preview` brings the whole of it back
+**23×** one render of one scene, times 2688 scenes. `--every-variant --quick-preview` brings the whole of it back
 under the cost of a single default pass.
 
 **Raising the default does make existing renders stale**, as of the settings stamp above — so the PNGs still on

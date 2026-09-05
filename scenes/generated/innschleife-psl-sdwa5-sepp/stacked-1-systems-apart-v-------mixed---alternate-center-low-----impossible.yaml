@@ -11,32 +11,15 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=mixed --systems=systems-apart --from=wsx-18 --from=sbh-18 --from=skram
-#     --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=sub-95x57
-#     --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf --from=tecnare-m2122
-#     --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4 --from=thebox-pa302
-#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=1
-#     --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
+#   bin/console scene:stack --orientation=mixed --systems=systems-apart --order=ours,psl,innschleife --from=wsx-18
+#     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
+#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
+#     --stacks=1 --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked
+#     --into=innschleife-psl-sdwa5-sepp
 #
 # 3 stacks side by side, with 0.5 m of air between them.
-#
-# main-innschleife — innschleife, 20 cabinets in 6 rows:
-#
-#   1  4× kicker-15                                                              2.46 m wide
-#   2  3× sub-95x57                                                              2.89 m wide
-#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sub-95x57           3.19 m wide
-#   4  2× wsx-18 rolled 270° + 1× sbh-18 rolled 90°                           3.44 m wide
-#   5  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
-#   6  1× tms4 + 2× thl4 + 1× tms4                                             1.92 m wide
-#
-# Subs reach 2.86 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
-#   * the 3× sub-95x57 row is 2.890 m on a 2.460 m row, so it overhangs 215 mm each side
-#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sub-95x57 row is 3.190 m on a 2.890 m row, so it
-#     overhangs 150 mm each side
-#   * the 2× wsx-18 rolled 270° + 1× sbh-18 rolled 90° row is 3.440 m on a 3.190 m row, so it overhangs 125 mm
-#     each side
-#   * the 1× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 3.640 m on a 3.440 m row, so it overhangs 100 mm
-#     each side
 #
 # main-ours — ours, 25 cabinets in 8 rows:
 #
@@ -66,6 +49,24 @@
 #   * the subs reach 0.590 m against the 2.000 m interface asked for, so the tops sit 1410 mm lower than ideal —
 #     0.590 m is the most they reach while every tier is still carried
 #
+# main-innschleife — innschleife, 20 cabinets in 6 rows:
+#
+#   1  4× kicker-15                                                              2.46 m wide
+#   2  3× sub-95x57                                                              2.89 m wide
+#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sub-95x57           3.19 m wide
+#   4  2× wsx-18 rolled 270° + 1× sbh-18 rolled 90°                           3.44 m wide
+#   5  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
+#   6  1× tms4 + 2× thl4 + 1× tms4                                             1.92 m wide
+#
+# Subs reach 2.86 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
+#   * the 3× sub-95x57 row is 2.890 m on a 2.460 m row, so it overhangs 215 mm each side
+#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sub-95x57 row is 3.190 m on a 2.890 m row, so it
+#     overhangs 150 mm each side
+#   * the 2× wsx-18 rolled 270° + 1× sbh-18 rolled 90° row is 3.440 m on a 3.190 m row, so it overhangs 125 mm
+#     each side
+#   * the 1× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 3.640 m on a 3.440 m row, so it overhangs 100 mm
+#     each side
+#
 id: stacked-1-systems-apart-v-------mixed---alternate-center-low-----impossible
 name: "Solved rig — 3 stacks side by side, tiers centred"
 
@@ -78,37 +79,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # innschleife, 20 cabinets in 6 rows
-  - id: main-innschleife
-    at: [-8.3056, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      shape: v
-      from:
-        - device: wsx-18
-          roll_mirror: 90.0
-        - device: sbh-18
-          roll_mirror: 90.0
-        - sub-95x57
-        - kicker-15
-        - thl4
-        - device: tms4
-          aim: near
-
   # ours, 25 cabinets in 8 rows
   - id: main-ours
-    at: [-4.73, 0.0]
+    at: [-8.87, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -135,7 +108,7 @@ placements:
 
   # psl, 22 cabinets in 2 rows
   - id: main-psl
-    at: [3.2736, 0.0]
+    at: [-0.8664, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -169,5 +142,33 @@ placements:
         - device: hk-linear5-112x
           aim: near
         - device: thebox-dsp-112
+          aim: near
+
+  # innschleife, 20 cabinets in 6 rows
+  - id: main-innschleife
+    at: [7.7016, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: v
+      from:
+        - device: wsx-18
+          roll_mirror: 90.0
+        - device: sbh-18
+          roll_mirror: 90.0
+        - sub-95x57
+        - kicker-15
+        - thl4
+        - device: tms4
           aim: near
 

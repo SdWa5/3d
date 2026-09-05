@@ -5,13 +5,14 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=turned --systems=tops-shared --quantity=concert-audio-ef6:5
-#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0
-#     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
-#     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18
-#     --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=achenbach-18 --from=kicker-15
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --stacks=1 --align=stereo
-#     --low-end=low --shape=free --mirror-style=centred --id=stacked --into=next-event
+#   bin/console scene:stack --orientation=turned --systems=tops-shared --order=ours,psl,innschleife
+#     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
+#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
+#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --from=eighteensound-2way-15 --stacks=1 --align=stereo --low-end=low --shape=free --mirror-style=centred
+#     --id=stacked --into=next-event
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #

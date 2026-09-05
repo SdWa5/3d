@@ -816,8 +816,12 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 **The default is a sweep of one inventory, not of every rig the library can name.** `bin/console scene:stack` with no
 options writes every sensible configuration it can stand up **out of our own gear and Sepp's, pooled** — by one, two
-and three stacks, by all three ways the systems can stand apart, in all three shapes, all three alignments and all
-seven orientation/mirror pairs. **271 scenes**, with every refusal printed and its reason given.
+and three stacks, in all three shapes, all three alignments, all seven orientation/mirror pairs and both ends of the
+low-end axis. **146 scenes, every one of them possible**, with every refusal printed and its reason given.
+
+**The separation axis contributes nothing here, and that is the grouping working.** `sdwa5` and `sepp` are one
+system by default, so a rig that separates them has nothing to separate and `pooled` is the only value offered. The
+271 this default used to write were mostly that axis solving our own system against itself.
 
 **THE INVENTORY AXIS USED TO BE A POWERSET AND IS NOW A CHOICE.** Three owners made seven inventories, which read as
 generosity and produced the finding this default rests on: a borrowed rig writes more scenes than any single owner,
@@ -1075,21 +1079,21 @@ one command:
 
 | folder | inventory | scenes |
 | --- | --- | --- |
-| `sdwa5-sepp/` | the default: ours and Sepp's | 100 |
-| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 311 |
-| `gmss-sdwa5/` | GMSS and ours | 308 |
-| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 326 |
-| `gmss/` | GMSS alone | 97 |
-| `sdwa5/` | ours alone | 49 |
+| `sdwa5-sepp/` | the default: ours and Sepp's | 146 |
+| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 353 |
+| `gmss-sdwa5/` | GMSS and ours | 482 |
+| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 477 |
+| `gmss/` | GMSS alone | 111 |
+| `sdwa5/` | ours alone | 66 |
 | `sepp/` | Sepp's alone | 7 |
-| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 277 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 337 |
-| `innschleife-next-event-thl4/` | what Innschleife are bringing on its own, with their two big tops | 71 |
+| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 423 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 506 |
+| `innschleife-next-event-thl4/` | what Innschleife are bringing on its own, with their two big tops | 101 |
 | `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6 | 16 |
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate. See below.
+One system has nothing to separate, so it writes 146 today against `next-event`'s 506. See below.
 
 **`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
 which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
@@ -1422,6 +1426,12 @@ so block and stereo alignment have nothing left to spread it into.
 | `--shape=MODE` | repeatable: `pyramid`, `free`, `v`. Default all three — **one scene each**, and every one names its shape in its id. All three are width rules in metres, see [the three shapes](#the-three-shapes) |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
+| `--low-end=MODE` | repeatable: `low` or `central`. Where the lowest-reaching cabinets belong. Default both — **one scene each**. `low` puts them on the floor, `central` pulls them onto the centre line even when that costs a row, which is what stacks two SKRAMs one above the other. See [where the low end goes](#where-the-low-end-goes) |
+| `--roster=ID` | repeatable: a file in `rosters/` stating what a system brings to one event, overriding the specs' quantities for this run. **A count of zero means left at home**, which is a different fact from a device the roster never names. The roster's id names the folder |
+| `--quantity=DEVICE:COUNT` | repeatable: build with this many instead of the number the spec states. **Requires `--into=NAME`** — it changes the rig without changing its name, so the folder has to be said out loud |
+| `--group=NAME:owner+owner` | repeatable: which owners are **one sound system**. Default `ours:sdwa5+sepp`, so a separated rig gives us one wall rather than two |
+| `--order=NAME[,NAME]` | repeatable or comma-separated: system labels **left to right**, overriding the tallest-in-the-middle rule. A label the order does not name keeps its place at the end, so naming two of three systems is a partial instruction rather than a filter. **The rank is taken on the system part of the label**, so `--stacks=2`'s `ours-1` and `ours-2` both match `ours` and stay adjacent; and an order naming **none** of a rig's stacks, which is what a system order is to a `pooled` rig, leaves the height rule alone rather than silently putting it in solve order. `next-event` and `innschleife-psl-sdwa5-sepp` are generated with `--order=ours,psl,innschleife` |
+| `--folders=AXIS[,AXIS]` | repeatable or comma-separated: axes to make directory levels instead of name fields — `inventory`, `stacks`, `systems`, `shape`, `orientation`, `mirror-style`, `align`, `low-end`, `feasibility`. Default `inventory`. **At most three**, for the same reason `--max-scenes` refuses rather than truncates |
 
 **A near-field fill goes to the outer stacks, on the inner side, aimed at the near focus.** Three rules that only
 make sense together:
@@ -1504,7 +1514,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep, which writes **1374** candidates, 1259 possible and 115 impossible, 543 pooled, 433 with the systems apart and 398 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2688 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates, 1259 possible and 115 impossible, 543 pooled, 433 with the systems apart and 398 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1524,15 +1534,18 @@ point. A rig with each system in its own stack could be asked for by hand and ne
 older way to ask for one value of it, means `systems-apart`, and collapses the sweep rather than narrowing it — it
 stays exactly as it was, because 433 written scenes record their own regeneration with it.
 
-**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **116 `systems-apart`, 105
-`tops-shared` and 90 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
-one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the axis
-adds **433 + 398 scenes to 543**, for **1374**.
+**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
+`tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
+one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
+values come to **868 `systems-apart`, 937 `tops-shared` and 883 `pooled`**, for **2688** — within 8 % of each
+other, which is the measurement this paragraph exists to lose if the axis ever became mostly one rig.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 153 of the sweep.
+rigs are 301 of the sweep across five folders: `gmss` 111, `innschleife-next-event-thl4` 101, `sdwa5` 66,
+`psl-next-event` 16 and `sepp` 7. **`sdwa5-sepp` is single-owner too**, by grouping rather than by ownership, which
+is why it writes 146 `pooled` scenes and no separated ones.
 
 ##### What `tops-shared` shares is the pool and not the row
 
@@ -1579,9 +1592,11 @@ written, named `-impossible`, and `scene:build` cages the offending cabinets in 
 look at. "A `turbo-top` would stand at 0.660 m with nothing under it across x" took a debug dump, two probes
 and a corrected coordinate mapping to understand; the picture takes a second.
 
-Measured on the default sweep: **483 possible and 60 impossible**. The 60 is smaller than the 144 refusals it comes
-from, because 84 of those produce the same impossible geometry as a sibling and collapse in the deduplication —
-which they had never reached before, having been thrown away one step earlier.
+Measured across the committed sweep: **2327 possible and 361 impossible**. The default `sdwa5-sepp` inventory has
+none at all, so the examples live in the borrowed rigs, where a wall has cabinets it cannot carry. **The refusal
+and deduplication figures behind that 361 have not been re-measured** since the grouping and low-end axes landed;
+the older sweep collapsed 144 refusals into 60 names because 84 of them produced the same impossible geometry as a
+sibling, and the mechanism is unchanged even though the counts are not.
 
 **Every id says which side it is on**, including the possible ones. A name with a gap in it says a value was left
 out and never which one, which is the same argument that took `pyramid`, `upright` and `alternate` out of hiding.

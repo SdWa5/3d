@@ -5,28 +5,15 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=upright --systems=tops-shared --from=wsx-18 --from=sbh-18 --from=skram
-#     --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=sub-95x57
-#     --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf --from=tecnare-m2122
-#     --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4 --from=thebox-pa302
-#     --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112 --stacks=1
-#     --align=stereo --low-end=low --shape=free --mirror-style=alternate --id=stacked --into=innschleife-psl-sdwa5-sepp
+#   bin/console scene:stack --orientation=upright --systems=tops-shared --order=ours,psl,innschleife --from=wsx-18
+#     --from=sbh-18 --from=skram --from=thebox-tp218-1600 --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=sub-95x57 --from=achenbach-18 --from=kicker-15 --from=thebox-tp118-800 --from=concert-audio-esf
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --from=tms4
+#     --from=thebox-pa302 --from=thebox-achat-115m --from=thebox-achat-112m --from=hk-linear5-112x --from=thebox-dsp-112
+#     --stacks=1 --align=stereo --low-end=low --shape=free --mirror-style=alternate --id=stacked
+#     --into=innschleife-psl-sdwa5-sepp
 #
 # 3 stacks side by side, with 0.5 m of air between them.
-#
-# main-innschleife — innschleife, 19 cabinets in 4 rows:
-#
-#   1  2× wsx-18 + 4× sbh-18 + 2× wsx-18                                       4.62 m wide
-#   2  2× sub-95x57 + 2× kicker-15 + 2× sub-95x57                               5.1 m wide
-#   3  2× kicker-15                                                              1.22 m wide
-#   4  1× eighteensound-2way-15 + 1× tms4 + 1× thebox-achat-112m             1.2956 m wide
-#
-# Subs reach 2.4 m against a 2.0 m interface. The stack is 3.27 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× sub-95x57 + 2× kicker-15 + 2× sub-95x57 row is 5.100 m on a 4.620 m row, so it overhangs 240 mm each
-#     side
-#   * the 1× eighteensound-2way-15 + 1× tms4 + 1× thebox-achat-112m row is 1.296 m on a 1.220 m row, so it
-#     overhangs 38 mm each side
 #
 # main-ours — ours, 28 cabinets in 4 rows:
 #
@@ -54,6 +41,20 @@
 #     hk-linear5-112x + 1× thebox-dsp-112 + 1× concert-audio-ef6 row is 3.930 m on a 3.556 m row, so it overhangs 187 mm
 #     each side
 #
+# main-innschleife — innschleife, 19 cabinets in 4 rows:
+#
+#   1  2× wsx-18 + 4× sbh-18 + 2× wsx-18                                       4.62 m wide
+#   2  2× sub-95x57 + 2× kicker-15 + 2× sub-95x57                               5.1 m wide
+#   3  2× kicker-15                                                              1.22 m wide
+#   4  1× eighteensound-2way-15 + 1× tms4 + 1× thebox-achat-112m             1.2956 m wide
+#
+# Subs reach 2.4 m against a 2.0 m interface. The stack is 3.27 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the 2× sub-95x57 + 2× kicker-15 + 2× sub-95x57 row is 5.100 m on a 4.620 m row, so it overhangs 240 mm each
+#     side
+#   * the 1× eighteensound-2way-15 + 1× tms4 + 1× thebox-achat-112m row is 1.296 m on a 1.220 m row, so it
+#     overhangs 38 mm each side
+#
 id: stacked-1-tops-shared---free----upright-alternate-stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
 
@@ -66,41 +67,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # innschleife, 19 cabinets in 4 rows
-  - id: main-innschleife
-    at: [-5.2198, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      from:
-        - wsx-18
-        - sbh-18
-        - sub-95x57
-        - kicker-15
-        - device: eighteensound-2way-15
-          count: 1
-        - device: tms4
-          count: 1
-          aim: near
-        - device: thebox-achat-112m
-          count: 1
-          aim: near
-
   # ours, 28 cabinets in 4 rows
   - id: main-ours
-    at: [0.2832, 0.0]
+    at: [-5.3168, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -138,7 +107,7 @@ placements:
 
   # psl, 20 cabinets in 3 rows
   - id: main-psl
-    at: [5.201, 0.0]
+    at: [-0.399, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -176,5 +145,37 @@ placements:
         - device: hk-linear5-112x
           aim: near
         - device: thebox-dsp-112
+          aim: near
+
+  # innschleife, 19 cabinets in 4 rows
+  - id: main-innschleife
+    at: [4.6158, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      from:
+        - wsx-18
+        - sbh-18
+        - sub-95x57
+        - kicker-15
+        - device: eighteensound-2way-15
+          count: 1
+        - device: tms4
+          count: 1
+          aim: near
+        - device: thebox-achat-112m
+          count: 1
           aim: near
 

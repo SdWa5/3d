@@ -4,32 +4,27 @@
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
 #   * a concert-audio-ef6 stands at 2.360 m with nothing under it across x
+#   * main-ours/5b and main-psl/5a-1 are 0.6230 m inside each other
+#   * main-ours/6c-1 and main-psl/5a-1 are 0.1737 m inside each other
+#   * main-ours/6c-2 and main-psl/5a-1 are 0.1675 m inside each other
+#   * main-ours/4a-3 and main-psl/5a-1 are 0.0130 m inside each other
+#   * main-ours/4b-1 and main-psl/5a-1 are 0.0130 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=mixed --systems=systems-apart --quantity=concert-audio-ef6:5
-#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0
-#     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
-#     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18
-#     --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=achenbach-18 --from=kicker-15
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --stacks=1 --align=block
-#     --low-end=low --shape=pyramid --mirror-style=column --id=stacked --into=next-event
+#   bin/console scene:stack --orientation=mixed --systems=systems-apart --order=ours,psl,innschleife
+#     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
+#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
+#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --from=eighteensound-2way-15 --stacks=1 --align=block --low-end=low --shape=pyramid --mirror-style=column
+#     --id=stacked --into=next-event
 #
 # 3 stacks side by side, with 0.5 m of air between them.
-#
-# main-psl — psl, 17 cabinets in 5 rows:
-#
-#   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   2  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   3  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   4  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   5  5× concert-audio-ef6                                                      3.02 m wide
-#
-# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.14 m of cabinet.
-# `align: block` spreads the top tier onto the edges of the row carrying it.
 #
 # main-ours — ours, 25 cabinets in 6 rows:
 #
@@ -44,6 +39,17 @@
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is 2.511 m on a 2.468 m row,
 #     so it overhangs 22 mm each side
+#
+# main-psl — psl, 17 cabinets in 5 rows:
+#
+#   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   2  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   3  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   4  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   5  5× concert-audio-ef6                                                      3.02 m wide
+#
+# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.14 m of cabinet.
+# `align: block` spreads the top tier onto the edges of the row carrying it.
 #
 # main-innschleife — innschleife, 14 cabinets in 5 rows:
 #
@@ -68,36 +74,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # psl, 17 cabinets in 5 rows
-  - id: main-psl
-    at: [-4.178, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: block
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      mirror_style: column
-      shape: pyramid
-      from:
-        - device: concert-audio-esx
-          count: 12
-          roll_mirror: 90.0
-        - device: concert-audio-ef6
-          count: 5
-
   # ours, 25 cabinets in 6 rows
   - id: main-ours
-    at: [-0.332, 0.0]
+    at: [-4.412, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -124,6 +103,33 @@ placements:
         - tecnare-m2122
         - device: eighteensound-2way-15
           aim: near
+
+  # psl, 17 cabinets in 5 rows
+  - id: main-psl
+    at: [-0.566, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: block
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      mirror_style: column
+      shape: pyramid
+      from:
+        - device: concert-audio-esx
+          count: 12
+          roll_mirror: 90.0
+        - device: concert-audio-ef6
+          count: 5
 
   # innschleife, 14 cabinets in 5 rows
   - id: main-innschleife

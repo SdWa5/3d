@@ -5,24 +5,25 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=upright --systems=systems-apart --quantity=concert-audio-ef6:5
-#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0
-#     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
-#     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18
-#     --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=achenbach-18 --from=kicker-15
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4 --from=eighteensound-2way-15 --stacks=1 --align=stereo
-#     --low-end=central --shape=pyramid --mirror-style=alternate --id=stacked --into=next-event
+#   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife
+#     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
+#     --quantity=hk-linear5-112x:0 --quantity=sub-95x57:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
+#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=achenbach-18 --from=kicker-15 --from=tecnare-m2122 --from=concert-audio-ef6 --from=thl4
+#     --from=eighteensound-2way-15 --stacks=1 --align=stereo --low-end=central --shape=pyramid --mirror-style=alternate
+#     --id=stacked --into=next-event
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-innschleife — innschleife, 14 cabinets in 4 rows:
+# main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  4× kicker-15                                                              2.46 m wide
-#   2  4× wsx-18                                                                 2.34 m wide
-#   3  4× sbh-18                                                                 2.26 m wide
-#   4  1× thl4 + 1× thl4                                                        1.02 m wide
+#   1  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
+#   2  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
+#   3  6× achenbach-18                                                            3.7 m wide
+#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
 #
-# Subs reach 2.9 m against a 2.0 m interface. The stack is 4.04 m of cabinet.
+# Subs reach 2.428 m against a 2.0 m interface. The stack is 3.388 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 # main-psl — psl, 17 cabinets in 3 rows:
@@ -34,14 +35,14 @@
 # Subs reach 2.36 m against a 2.0 m interface. The stack is 3.14 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-ours — ours, 25 cabinets in 4 rows:
+# main-innschleife — innschleife, 14 cabinets in 4 rows:
 #
-#   1  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
-#   2  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
-#   3  6× achenbach-18                                                            3.7 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
+#   1  4× kicker-15                                                              2.46 m wide
+#   2  4× wsx-18                                                                 2.34 m wide
+#   3  4× sbh-18                                                                 2.26 m wide
+#   4  1× thl4 + 1× thl4                                                        1.02 m wide
 #
-# Subs reach 2.428 m against a 2.0 m interface. The stack is 3.388 m of cabinet.
+# Subs reach 2.9 m against a 2.0 m interface. The stack is 4.04 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 id: stacked-1-systems-apart-pyramid-upright-alternate-stereo-central-possible
@@ -56,61 +57,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # innschleife, 14 cabinets in 4 rows
-  - id: main-innschleife
-    at: [-4.76, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      low_end: central
-      shape: pyramid
-      from:
-        - wsx-18
-        - sbh-18
-        - kicker-15
-        - thl4
-
-  # psl, 17 cabinets in 3 rows
-  - id: main-psl
-    at: [-1.21, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      low_end: central
-      shape: pyramid
-      from:
-        - device: concert-audio-esx
-          count: 12
-        - device: concert-audio-ef6
-          count: 5
-
   # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [3.248, 0.0]
+    at: [-3.852, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -135,4 +84,56 @@ placements:
         - tecnare-m2122
         - device: eighteensound-2way-15
           aim: near
+
+  # psl, 17 cabinets in 3 rows
+  - id: main-psl
+    at: [0.606, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      low_end: central
+      shape: pyramid
+      from:
+        - device: concert-audio-esx
+          count: 12
+        - device: concert-audio-ef6
+          count: 5
+
+  # innschleife, 14 cabinets in 4 rows
+  - id: main-innschleife
+    at: [4.156, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      low_end: central
+      shape: pyramid
+      from:
+        - wsx-18
+        - sbh-18
+        - kicker-15
+        - thl4
 
