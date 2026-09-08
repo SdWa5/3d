@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.110.1] - 2026-09-09
+
+A resolved row was still sitting in the list, and deleting it would have lost the one decision it carried.
+
+### Removed
+
+- **The `SCN-11` row, which had been marked "Done in 0.104.2" rather than deleted.** This file's own
+  convention is that resolved rows are deleted and never ticked, so it was a leftover. Its two bug
+  descriptions already live in the 0.104.2 entry below.
+
+### Added
+
+- **`INFO-2` records the one thing that row held and nothing else did.** The gmss inventories are
+  deliberately left on the height rule while `ours`, `psl` and `innschleife` are ordered by `--order`,
+  because no order was ever stated for gmss and inventing one would put cabinets somewhere nobody
+  asked for. That is a standing decision rather than a finished task, so it belongs in the INFO group,
+  and deleting the row without moving it first would have lost it.
+
 ## [0.110.0] - 2026-09-08
 
 A measurement in 0.108.0 was overstated, and correcting it makes the same argument stronger.
