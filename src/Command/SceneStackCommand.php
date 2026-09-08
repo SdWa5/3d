@@ -389,7 +389,7 @@ final class SceneStackCommand extends BaseCommand
         // **NULL WHEN NOBODY STATED ONE, and that is the whole of CVR-8.** It used to fall back to a 3.70 m default,
         // so every generated scene was solved against a stage nobody had asked for and a rig too wide for it was
         // refused for a reason that came from this line rather than from the request. {@see Stack::$maxWidthM} has
-        // always been nullable and {@see StackSolver::ceilingFor} has always read null as "no bound at all" — the
+        // always been nullable and {@see StackMetrics::ceilingFor} has always read null as "no bound at all" — the
         // unbounded path was there the whole time and simply never reached.
         //
         // **AND THE WIDTH LADDER WENT WITH IT.** The sweep used to walk a rig up and down a list of stage widths to
@@ -1093,7 +1093,7 @@ final class SceneStackCommand extends BaseCommand
                 $ids,
             ),
             // The width the *caller* settled on, and **null is one of the answers** rather than a missing value:
-            // an unstated `--max-width` is a stage nobody bounded, which {@see StackSolver::ceilingFor} reads as no
+            // an unstated `--max-width` is a stage nobody bounded, which {@see StackMetrics::ceilingFor} reads as no
             // bound at all. Passed down rather than read off the option here, so there is one place that decides it.
             maxWidthM: $maxWidthM,
             minWidthM: $this->readFloat($input, 'min-width'),
@@ -1266,7 +1266,7 @@ final class SceneStackCommand extends BaseCommand
     /**
      * The tops that are fill rather than long throw: every one narrower than the widest top in the stack.
      *
-     * Not a new idea — {@see StackSolver::topRow} already centres the widest and puts "the smaller boxes, which
+     * Not a new idea — {@see StackTops::topRow} already centres the widest and puts "the smaller boxes, which
      * are fills, outboard of it". This gives them the *aim* to match, which a stack could not express before: one
      * `aim` covered every top it carried, so a 2-way beside an M2122 was thrown at the same far focus as the long
      * throw instead of at the front row.

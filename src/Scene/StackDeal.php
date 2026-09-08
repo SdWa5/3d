@@ -321,7 +321,7 @@ final class StackDeal
      * `outerShare` leaves a single cabinet out when the rig has an **even** number of stacks, because there is no
      * middle stack to give it to. Placing everything means it has to go somewhere, and it goes to the stack just
      * right of the centre line — the same side {@see Tier::mirrored} and
-     * {@see StackSolver::centred} put an odd cabinet, so a rig is asymmetric the same way throughout
+     * {@see StackMetrics::centred} put an odd cabinet, so a rig is asymmetric the same way throughout
      * rather than one way per rule.
      */
     public static function dealAll(int $quantity, int $index, int $of): int

@@ -353,7 +353,7 @@ final class SceneCompiler
 
             if ([] === $problems) {
                 // The placement's own alignment decides the ORDER of the tops row as well as its spacing:
-                // stereo puts the long throws at the ends, everything else centres them. See StackSolver::topRow.
+                // stereo puts the long throws at the ends, everything else centres them. See StackTops::topRow.
                 $solved = StackSolver::solve(
                     $inventory,
                     $placement->stack,

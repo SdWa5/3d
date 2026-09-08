@@ -385,7 +385,7 @@ final class Gravity
      * shoulder by 5.6 mm — whereupon falling does what falling does and lifts a whole 2-way onto 1.2 % of its
      * own footprint. Seating each end segment on the shoulder it was going to catch lands the fills squarely,
      * raised and outboard, with the Tecnares centred on the Achenbachs between them. Which is how anybody rigs
-     * outboard fills anyway, and it is the shape {@see StackSolver::topRow} already builds — widest cluster in
+     * outboard fills anyway, and it is the shape {@see StackTops::topRow} already builds — widest cluster in
      * the middle, the small boxes outside it — finally given the x positions to match.
      *
      * Null unless each of the three groups fits the span it would be given. A segment wider than its shoulder

@@ -20,7 +20,7 @@ namespace App\Scene;
  * * **{@see Centred}** — leave the middle cabinet standing, so a row of five is 2 rolled left, 1 upright, 2 rolled
  *   right: genuinely symmetric row by row. The cost is real and geometric — a Flexy on its side is 591 mm tall and
  *   763 upright, so that cabinet stands 172 mm proud and whatever sits on the row has to bridge the step. Expect
- *   {@see StackSolver::swallows} and {@see StackChecks::bearingProblems} to refuse it wherever something does, which
+ *   {@see StackMetrics::swallows} and {@see StackChecks::bearingProblems} to refuse it wherever something does, which
  *   is most places; a top row is where it builds.
  * * **{@see Column}** — send the extra to the same side on every row, so the spares line up as one straight column from
  *   floor to top. The stack is then lopsided by one cabinet overall, which {@see Alternate} spends its zig-zag to

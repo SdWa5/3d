@@ -1255,7 +1255,7 @@ does, and why `build:all` still rewrites exactly one file per recorded line. Two
 #### Where the low end goes
 
 **The lowest cabinets end up low because the fill deals them first, and central only by accident.**
-`StackSolver::centred()` puts the *tallest* segment in the middle because that is what carries the row above —
+`StackMetrics::centred()` puts the *tallest* segment in the middle because that is what carries the row above —
 measured at 14 % bearing when it sits outboard — and nothing anywhere aimed a low-frequency cabinet at the centre
 line. So the SKRAMs came out in the middle of the floor row and it read as luck, because it was.
 

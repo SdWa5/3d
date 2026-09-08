@@ -205,6 +205,41 @@ either way; the difference is that nobody has to know to ask.
 Add `-v` to any build command to see Blender's own output; without it only one line per model is
 printed, because Blender is extremely chatty.
 
+## The solver's five classes
+
+`StackSolver` was 1995 lines and 38 methods, all of them `private static` behind one public entry point. It is 979
+lines now, and the four classes beside it are a **strict layering** rather than four buckets of related names:
+
+```
+StackMetrics          nothing calls out of it
+  ├─ StackMix         the mixed row, reads Metrics only
+  ├─ StackLifts       the reserved flank, reads Metrics only
+  │    └─ StackTops   the tops row, reads Metrics, Mix and Lifts
+  └─ StackSolver      the search, reads all four; nothing reads it
+```
+
+**The layering is the design, and the alternative was measured before it was rejected.** Grouping the methods by
+subject alone put `widthAbove` and `liftAbove` in different classes that call each other, and `lastRowWidth` and
+`liftPairs` likewise, which is a cycle in both directions. Moving `lastRowWidth` into `StackLifts` and
+`widthAbove` into `StackTops` removes both, so the dependency graph is a directed acyclic graph and each class can
+be read without the one above it.
+
+`StackMetrics` exists because 12 of the 38 methods called nothing at all, and three of them are asked for
+everywhere: `rollFor` from sixteen call sites, `perTier` from eight, `share` from five. Anything that measures one
+cabinet, one row or one tier and needs no other answer to do it belongs there, and the two tolerances `EPSILON_M`
+and `OVERHANG_PER_SIDE` with it. **Adding a method there that calls out of the class puts the cycle back.**
+
+**What stayed is the search**: `solve`, `fill`, `fillWith`, `packedRows`, `packTo`, `spreadRows`, `budgetLadder`,
+`rowSizeFor`, `ceilingFor`, `survives`, `fingerprint` and `orderingProblems`. That is deliberate rather than
+leftover. `fill`, `fillWith`, `packedRows` and `packTo` are 564 of those lines and they are where GEO-11, GEO-13
+and GEO-14 all land, so the extraction took the stable part out of the way of the volatile part rather than
+pretending to simplify the volatile part.
+
+**A move refactor here is provable, which is why it was safe to do at all.** The 2707 scenes under
+`scenes/generated/` are a golden master: a `scene:stack --force` after the move has to leave `git status` on that
+directory empty, and `SceneStackCommandTest::testTheSweepSaysTheSameThingInOneProcessAsInTwentyEight()` asserts
+serial and parallel output are byte-identical on top of it.
+
 ## Static checks
 
 Three tools read the code without running it, and `composer static` runs the two PHP ones together.

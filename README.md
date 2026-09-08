@@ -172,6 +172,7 @@ Field reference: [docs/spec-format.md](docs/spec-format.md).
 ```
 specs/          one YAML file per device — <category>/<owner>/<id>.yaml
 src/Load/       the pack: which unit rides in which van, and the two verdicts on it
+src/Scene/      the solver and the scene compiler — five layered classes, see docs/pipeline.md
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/

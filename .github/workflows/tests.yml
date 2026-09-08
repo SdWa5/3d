@@ -3,15 +3,18 @@ name: Tests
 on:
   push:
   workflow_dispatch:
-  # The full pass, nightly. See `full` below for why it is not on every push.
-  schedule:
-    - cron: '17 3 * * *'
+  # **THE NIGHTLY SCHEDULE IS GONE, BECAUSE THE JOB IT EXISTED FOR CANNOT SUCCEED.** `full` ran on 5, 6 and 7
+  # September and was cancelled all three times with "the job has exceeded the maximum execution time of
+  # 6h0m0s", which is a hard GitHub ceiling rather than a setting. Measured on run 34099956636: `phpunit`
+  # 3 h 07 m 52 s and `full` 6 h 01 m 17 s, so roughly 548 minutes a night that bought nothing at all. The
+  # nightly `phpunit` was the same sampled run a push already does, so removing the trigger loses only the
+  # unattended repetition. `full` is `workflow_dispatch` only until it is made to fit, which is TOOL-20.
 
 jobs:
   phpunit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -36,7 +39,7 @@ jobs:
   static:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -63,11 +66,16 @@ jobs:
   #
   # It also un-skips the two paths whose cost is a full pass over the tree: the regenerate stage end to end, and
   # `scene:build` with no argument.
+  #
+  # **IT DOES NOT FIT IN A GITHUB JOB AS WRITTEN.** Three cancellations at the 6-hour ceiling say so, and the
+  # local number says why: 23 m 20 s here against 2 h 15 m 20 s for the sampled `phpunit` on a runner, so the
+  # runner is roughly 5.8× slower and the un-sampled replay of 1374 scenes has nowhere near the headroom. Until
+  # it is sharded over a matrix or sampled harder — TOOL-20 — this is a button somebody presses, not a schedule.
   full:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -100,7 +108,7 @@ jobs:
     env:
       GITLEAKS_VERSION: 8.30.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # The history scan needs the history.
           fetch-depth: 0

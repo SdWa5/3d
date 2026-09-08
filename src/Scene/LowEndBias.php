@@ -9,7 +9,7 @@ namespace App\Scene;
  *
  * **The eighth axis of the sweep, and the one that is an acoustic preference rather than a shape.** In every rig
  * this repository has produced, the lowest cabinets end up low because {@see \App\Spec\FillOrder::byFillOrder}
- * deals them first, and central only by accident: {@see StackSolver::centred} puts the **tallest** segment in the
+ * deals them first, and central only by accident: {@see StackMetrics::centred} puts the **tallest** segment in the
  * middle because that is what carries the row above — measured at 14 % bearing when it sits outboard instead —
  * and nothing anywhere aims a low-frequency cabinet at the centre line. So the SKRAMs come out in the middle of
  * the floor row and it reads as luck, because it is.

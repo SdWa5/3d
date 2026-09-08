@@ -4,6 +4,49 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.109.0] - 2026-09-08
+
+`StackSolver` split into five layered classes, the command's test suite split by axis, and a nightly job that
+could never finish taken off its schedule.
+
+### Changed
+
+- **`StackSolver` went from 1995 lines to 979**, and the four classes beside it are a strict layering rather
+  than four buckets of related names. `StackMetrics` calls nothing; `StackMix` and `StackLifts` read only it;
+  `StackTops` reads those three; `StackSolver` reads all four and nothing reads it. **The alternative was
+  measured before it was rejected**: grouping by subject alone put `widthAbove` and `liftAbove` in classes that
+  call each other, and `lastRowWidth` and `liftPairs` likewise, so `lastRowWidth` went into `StackLifts` and
+  `widthAbove` into `StackTops` and both cycles are gone
+- **`StackMetrics` is 12 of the 38 methods, chosen for calling nothing at all.** Three of them carry the
+  solve: `rollFor` from sixteen call sites, `perTier` from eight, `share` from five. `EPSILON_M` and
+  `OVERHANG_PER_SIDE` moved with them and are `public` now, since four classes read them
+- **What stayed is the search, deliberately.** `fill`, `fillWith`, `packedRows` and `packTo` are 564 of the
+  remaining lines and are exactly where GEO-11, GEO-13 and GEO-14 land, so this took the stable part out of the
+  way of the volatile part rather than pretending to simplify the volatile part
+- **`SceneStackCommandTest` went from 1956 lines to 663**, split by the axis each suite varies:
+  `SceneStackMirrorTest` (226), `SceneStackSystemsTest` (478), `SceneStackFeasibilityTest` (423) and
+  `SceneStackRosterTest` (151), with the fixture and the cleanup in `SceneStackTestCase` (134). **Low-end did
+  not become a file**: it is two tests of about 60 lines, so it stayed with the sweep. The roster tests are the
+  fourth suite instead, being nine tests with one subject
+- `actions/checkout@v4` to `@v5` in all four jobs. GitHub forces v4 onto Node 24 and annotates every run
+
+### Fixed
+
+- **The nightly schedule is gone, because the job it existed for cannot succeed.** `full` ran on 5, 6 and 7
+  September and was cancelled all three times with "the job has exceeded the maximum execution time of
+  6h0m0s", a hard GitHub ceiling rather than a setting. Measured on run 34099956636: `phpunit` 3 h 07 m 52 s
+  and `full` 6 h 01 m 17 s, so about 548 minutes a night that bought nothing and roughly 1644 across the three.
+  The nightly `phpunit` was the same sampled run a push already does, so the trigger's removal loses only the
+  unattended repetition. `full` is `workflow_dispatch` only until it is made to fit, which is TOOL-20
+- A line reference in `TOOL-16` that the test split invalidated. It names the test rather than line 1613 now
+
+### Added
+
+- `docs/pipeline.md` has a **The solver's five classes** section with the layering, why the cycles were
+  avoided, and the golden-master argument that makes a move refactor provable here
+- `TODO.md` gains **TOOL-20**, the `full` job against the 6-hour ceiling, and **TOOL-21**, the 2 h 15 m every
+  push costs on a runner and why `paths-ignore` is not free while the `secrets` job shares the trigger
+
 ## [0.108.0] - 2026-09-08
 
 The Audio Routing sheet was read, which unblocked SIG-1, answered its schema question and turned up four

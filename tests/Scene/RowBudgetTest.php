@@ -19,7 +19,7 @@ final class RowBudgetTest extends TestCase
      * **Null means no bound at all, on either side and in the answer.**.
      *
      * Worth its own test because the convention is load-bearing and easy to get wrong in the other direction:
-     * {@see \App\Scene\StackSolver::perTier} reads null as unbounded and `INF` as a trap, since `(int)floor(INF)` is
+     * {@see \App\Scene\StackMetrics::perTier} reads null as unbounded and `INF` as a trap, since `(int)floor(INF)` is
      * undefined in PHP and came out as a row of one — every tier a pillar, from a stack with no stated width at all.
      */
     public function testNullIsNoBoundRatherThanAZeroWidthOne(): void

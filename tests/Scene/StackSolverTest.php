@@ -1242,7 +1242,7 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * Like {@see self::solve()} but hands back the whole result, so a test can read the warnings or assert on a
+     * Like {@see StackSolver::solve()} but hands back the whole result, so a test can read the warnings or assert on a
      * refusal, and takes the counts the scenario needs rather than the whole inventory.
      *
      * @param list<string> $ids
@@ -1305,7 +1305,7 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * Like {@see self::solve()}, but pins Achenbach to the four this scenario's numbers were computed
+     * Like {@see StackSolver::solve()}, but pins Achenbach to the four this scenario's numbers were computed
      * against — see testAStatedCountOverridesWhatTheInventoryHolds. Six real Achenbachs are their own
      * row's full 3.70 m stage width and can never again be narrower than what stands under them, which
      * is exactly the geometry these particular scenarios exist to demonstrate.

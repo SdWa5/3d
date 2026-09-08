@@ -54,7 +54,7 @@ final class RowBudget
      * The tighter of two width bounds, where **null means no bound at all** on either side.
      *
      * Here rather than in {@see StackSolver} because this class is where the null convention is defined, and it has to
-     * be the same everywhere: {@see StackSolver::perTier} reads null as unbounded and `INF` as a trap. Writing
+     * be the same everywhere: {@see StackMetrics::perTier} reads null as unbounded and `INF` as a trap. Writing
      * `min($a, $b)` by hand at each site is what would put an `INF` in eventually.
      */
     public static function narrower(?float $a, ?float $b): ?float
@@ -81,7 +81,7 @@ final class RowBudget
     /**
      * This budget as a width for one device, or null when it bounds that device not at all.
      *
-     * Null rather than `INF` for "no bound", which is what {@see StackSolver::perTier} understands. Handing it `INF`
+     * Null rather than `INF` for "no bound", which is what {@see StackMetrics::perTier} understands. Handing it `INF`
      * casts to `(int)floor(INF)` in there, which is undefined in PHP and came out as a row of one — every tier a
      * pillar, from a stack with no stated width at all.
      */

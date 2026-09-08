@@ -25,8 +25,8 @@ final class StackSceneWriter
     /**
      * The stacks laid out so the tall ones end up where the alignment wants them.
      *
-     * **The same rule as the tops row, one level up.** {@see StackSolver::topRow} centres the long throw for mono and
-     * {@see StackSolver::stereoTopRow} pushes it to the ends for stereo; a rig of several stacks is the same question
+     * **The same rule as the tops row, one level up.** {@see StackTops::topRow} centres the long throw for mono and
+     * {@see StackTops::stereoTopRow} pushes it to the ends for stereo; a rig of several stacks is the same question
      * asked of whole stacks. Until now they came out in *solve* order — owner alphabetical, or the order the split
      * dealt them — and nothing ever looked at their heights, so `both-systems-per-owner` read `3.34 | 3.20 | 1.80`
      * with the tallest hard left. Seven of thirty multi-stack scenes were wrong that way.
