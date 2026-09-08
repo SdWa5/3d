@@ -94,7 +94,7 @@ final class FillOrder
                 }
             }
 
-            $mass = ($b->weightKg ?? 0.0) <=> ($a->weightKg ?? 0.0);
+            $mass = $b->weightKg <=> $a->weightKg;
             if (0 !== $mass) {
                 return $mass;
             }

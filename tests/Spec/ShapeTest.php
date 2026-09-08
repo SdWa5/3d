@@ -45,11 +45,12 @@ final class ShapeTest extends TestCase
      */
     public function testEveryShapeIsClassified(): void
     {
+        $classified = [];
         foreach (Shape::cases() as $shape) {
-            $shape->isCabinet();
+            $classified[$shape->value] = $shape->isCabinet();
         }
 
-        self::assertCount(7, Shape::cases(), 'a new shape needs a decision in isCabinet() and a builder');
+        self::assertCount(7, $classified, 'a new shape needs a decision in isCabinet() and a builder');
     }
 
     /**

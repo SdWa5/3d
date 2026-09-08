@@ -7,6 +7,9 @@ include = ["blender/**/*.py", "tools/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RET"]
+# UP031 wants f-strings in place of percent formatting, which is 52 `print()` calls across the Blender
+# scripts and buys nothing but the risk of a typo inside a message somebody reads on a console.
+ignore = ["UP031"]
 
 [tool.ruff.lint.per-file-ignores]
 # bpy is resolved by Blender at runtime and is not installable, so an unresolved import is expected.

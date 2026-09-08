@@ -205,6 +205,43 @@ either way; the difference is that nobody has to know to ask.
 Add `-v` to any build command to see Blender's own output; without it only one line per model is
 printed, because Blender is extremely chatty.
 
+## Static checks
+
+Three tools read the code without running it, and `composer static` runs the two PHP ones together.
+
+| tool | scope | command |
+|---|---|---|
+| PHPStan, level 5 | `src`, `tests` | `ddev exec composer stan` |
+| PHP-CS-Fixer, Symfony ruleset | `src`, `tests`, `bin/console` | `ddev exec composer cs`, `cs-fix` to apply |
+| Ruff | `blender/`, `tools/` | `pipx run 'ruff==0.16.6' check .` |
+
+**Level 5 is a measured choice.** The counts when PHPStan first ran over this repository were 1 error at level 0,
+18 at level 2, 51 at level 4, 64 at level 5, 231 at level 8 and 522 at max. Level 5 is where the errors stop being
+missing annotations and start being real ones, so all 64 were fixed rather than baselined and `phpstan.neon`
+carries no ignores. A new error therefore fails the build instead of joining a list nobody reads.
+
+**What the first pass actually found**, since that is the argument for keeping it:
+
+* `Stack.php` documented its run shape as `App\Scene\DeviceSpec`, a class that does not exist — the import was
+  missing and the name resolved into the wrong namespace, so twelve array shapes described nothing. The same in
+  `SceneStackCommand` for `Fault`.
+* Three shapes had gone stale against the code: the rig tuple lost `split` when SWP-2 added it, the sweep task
+  tuple lost the `LowEndBias` that `$task[5]` reads, and the built-scene shape lost the `faults` that
+  `Feasibility::of()` reads. Every one of them was a docblock that no longer described its own data.
+* `Stack::nearest()` ended in a fallback that could never run and would have thrown if it had, because it indexed
+  `$references[0]` on the array it was guarding against being empty.
+* `assertLessThan()` was called with four arguments in `StackSolverTest`. PHP drops a surplus argument to a
+  userland function silently, so the warnings the author passed for a failing run were never in the message.
+* `ShapeTest` called `isCabinet()` and threw the result away, and one array literal named `--low-end` twice.
+
+**Ruff is pinned to an exact version**, because `pipx run ruff` takes whatever is newest and a release that adds a
+rule would fail a push that changed no Python. `UP031` is ignored: it wants f-strings in place of percent
+formatting in 52 `print()` calls, which buys nothing but the risk of a typo inside a console message.
+
+**`bpy` cannot be type-checked from outside Blender**, so nothing here does. Ruff's lint rules are what is
+checkable, and they found an unused `import bpy`, a dead `along = 1 - axis` in the flare solver and two
+simplifications.
+
 ## Why PHP and Python
 
 PHP owns the specs: loading, validation, the catalog, deciding what needs rebuilding. Python owns

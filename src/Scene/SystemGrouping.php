@@ -76,7 +76,7 @@ final class SystemGrouping
                 }
                 $seen[$owner] = $parts[0];
             }
-            $systems[$parts[0]] = array_values($owners);
+            $systems[$parts[0]] = $owners;
         }
 
         return new self($systems);

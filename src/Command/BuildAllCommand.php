@@ -208,9 +208,7 @@ final class BuildAllCommand extends BaseCommand
                 if (null !== $lighting) {
                     $arguments['--lighting'] = $lighting;
                 }
-                if (null !== $aim) {
-                    $arguments['--aim-lines'] = $aim;
-                }
+                $arguments['--aim-lines'] = $aim;
 
                 $folder = trim(($lighting ?? 'default').(RenderPlan::AIM_NONE === $aim ? '' : '-aim'), '-');
                 if (!$plain) {

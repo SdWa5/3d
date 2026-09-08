@@ -581,7 +581,7 @@ final class SceneStackCommandTest extends TestCase
             // the repository — two sound systems in one stack, and a rig the sub height band refuses. Naming the gear
             // that the two `--roll-mirror` cabinets actually belong to makes it a rig that ships: 2.392 m of subs on a
             // 2.0 m interface, mirrored, which is what this test is about.
-            '--systems' => ['pooled'], '--low-end' => ['low'], '--from' => self::OWN_GEAR,
+            '--systems' => ['pooled'], '--from' => self::OWN_GEAR,
             '--shape' => ['free'], '--mirror-style' => ['alternate'],
             '--roll-mirror' => ['skram', 'flexy-folded-horn-hybrid'],
         ]);

@@ -298,7 +298,7 @@ final class SweepAxes
      *
      * @param list<DeviceSpec> $specs
      *
-     * @return list<array{from: list<string>, stacks: int, inventory: string, suffix: string}>
+     * @return list<array{from: list<string>, stacks: int, split: SystemSplit, inventory: string, suffix: string}>
      */
     public static function rigsToTry(
         array $specs,

@@ -790,9 +790,18 @@ distance, because a stage that skips its work beats a stage that does it quickly
 the same reason. TOOL-12, TOOL-13 and TOOL-14 all shave CPU off a sweep that no longer hurts, so they are speculative
 until somebody runs this on a small machine.
 
+**0.107.0 added the static checks, and they are a gate rather than a report.** PHPStan at level 5, PHP-CS-Fixer on
+the Symfony ruleset and Ruff over `blender/` and `tools/`, all three in the `static` job beside the suite. The level
+was chosen from measured counts rather than from taste, all 64 errors at that level were fixed instead of baselined,
+and what the pass found is the argument for it: twelve array shapes in `Stack.php` named a class that does not exist,
+three more had gone stale against their own data, and a `Stack::nearest()` fallback would have thrown if the case it
+guarded had ever occurred. See [docs/pipeline.md](docs/pipeline.md#static-checks).
+
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | TOOL-17 | **The suite went from 1 h 17 min to about 25, and the four measurements are worth keeping.** `BuildAllCommandTest`'s replay was 26 minutes and is 34 seconds: it replays a printed-seed sample (`tests/Support/ReplaySample.php`), while the before-and-after comparison still walks the whole set — a stale check against a sample would call the rest of the repository stale. `ShippedScenesTest` was 25 minutes and is 15: it compiled every scene **twice**, once per data-provider test, and now compiles once and asserts both. `SceneStackCommandTest` was 12 and is 7, because 61 invocations that are about something else now state `--low-end` rather than sweeping it. Two paths are gated behind `SDWA5_FULL_REPLAY=1`, both of which cost a full pass over the tree and neither of which is the only cover for what it checks: the regenerate **stage** end to end, and `scene:build` with no argument. **What is left is `ShippedScenesTest` at 15 minutes**, and it should stay whole rather than be sampled — it is the repository's promise that every scene stands up, and it caught two floating cabinets that existed in exactly 2 files of 2688 | P2 | 1h | a suite somebody runs before committing | — | partial |
+| TOOL-19 | **A regeneration commit buries every code change in it, and the scenes have to stay readable on the web.** The last three commits touched 1208, 937 and 4167 files, one of them at 514 463 insertions, because a cabinet rename rewrites the whole tree. Git's rename detection gives up above 2733 files and says so on every `git log --stat`. Gitignoring `scenes/generated/` is **not** the answer — stated by the owner, the point of committing them is that any scene can be read on GitHub without a checkout and a solve. So the fix has to keep the files and cut the churn, and which way is a call rather than work: separate every regeneration into its own commit as a rule, set `diff.renameLimit`, move the tree to its own repository behind a submodule pointer, or hold it on a branch of its own. **The cheap half is free**: a commit that is either code or regeneration, never both, costs nothing but discipline and is what makes a diff reviewable again | P2 | 3h | a code diff somebody can actually read, and `git log --stat` that works | decision | decision |
+| TOOL-18 | **PHPStan levels 6 to 8, which is 167 further errors and almost entirely annotations.** Level 5 is clean and enforced; the step up is missing generic array-shape and iterable annotations on internal helpers, measured at 231 errors at level 8 and 522 at max. Worth doing precisely because the level-5 pass proved the shapes go stale: three of them had lost a key the code was already reading. Do it a level at a time, because level 6 alone is the `iterable` and `array` annotations and is the bulk of the value | P3 | 5h | shapes that cannot drift from their data unnoticed, which is what caught `split`, `faults` and `LowEndBias` | — | open |
 | TOOL-16 | **The last two extractions out of `SceneStackCommand`.** It came down from 2357 lines to 1374 in 0.100.0 and is 1425 today, the low-end axis having added 51 — seven collaborators, all green — and the two that are left are the ones whose methods run inside the `Parallel` fork and already take up to fifteen arguments: `build`/`solveEach`/`solveGroup`/`stackFor` into a `StackCandidate`, and the option parsing into a `StackRequest`. Moving them as they stand is parameter plumbing; doing it properly means resolving the options into a value object first, so the collaborator is constructed once in the parent and the fork copies it rather than reaching back for `$this`. **`SceneStackCommandTest:1613` is the guard**: it asserts serial and parallel output are byte-identical | P3 | 4h | a command under 800 lines, and a solve that can be tested without a command | — | open |
 | TOOL-15 | **A scene the sweep collapses as a duplicate survives the replay**, which is what is left of TOOL-7 after 0.84.0 closed the rest of it. Dedup is a decision across the whole sweep — "the same rig as X" — and a replay is one file with nothing to compare against, so it rebuilds itself happily. **Measured: 6 of 489**, all six confirmed duplicates of a sibling that is also on disk, deleted by hand. Narrow and cosmetic next to what it was: nothing is lost, the rig exists under the other name, and the pipeline no longer aborts. The honest fix is the one TOOL-7 named, which is running the sweep as the stage instead of replaying files | P3 | 3h | a tree that matches a fresh `--force` sweep without `comm` and `rm` | — | measured |
 | TOOL-10 | **`build:all`'s regenerate stage is the one stage with no staleness check**, and its own comment boasts that every stage skips what is already current. It replays all 483 recorded commands unconditionally, when a generated scene can only change if a spec or the solver did — both ordinary mtime inputs, and exactly the shape of the three checks `Staleness` already serves. **Re-measured after 0.85.0 and demoted on the number: the stage is 34 s, not the 6m40s it was ranked on.** 1h 30m of work for 34 s is no longer the cheapest thing in the file, and it was only ever cheapest because the stage was slow | P3 | 1h 30m | 34 s off every build where nothing changed | — | measured |
@@ -805,6 +814,46 @@ until somebody runs this on a small machine.
 | TOOL-2 | Asset previews are blank because they cannot render in background mode — generate them in the GUI once, or find a headless way | P3 | 1h | — | — | open |
 | TOOL-1 | `inventory:import` — the first import was by hand because the source is several spreadsheets and CAD files and every number needed a provenance decision. Worth building when the gear list next grows; see [docs/inventory.md](docs/inventory.md) | P3 | 3h | — | — | open |
 | TOOL-4 | GDTF/MVR export once the standard covers audio devices — the models are already glTF, which is what GDTF embeds, so mostly packaging and metadata mapping | P3 | 3h | — | — | open |
+
+#### TOOL-19 — the regeneration diff, and why gitignoring the tree is refused
+
+Where: `scenes/generated/`, 2707 files and 18 MB of YAML at an average of 7192 bytes each.
+
+**The requirement first, because it rules out the obvious fix.** The scenes are committed so that any one of them
+can be opened on GitHub and read, with no checkout, no container and no solve. That is stated by the owner and it
+is not negotiable, so every option below keeps the files in a repository somebody can browse.
+
+**What it costs today**, measured on the three most recent regenerations:
+
+| commit | files | insertions | deletions |
+|---|---|---|---|
+| 0.105.0 | 1208 | 39 454 | 40 193 |
+| 0.104.2 | 937 | 71 715 | 70 611 |
+| 0.104.0 | 4167 | 514 463 | 185 584 |
+
+Each of those also carried real code: 19, 8 and 105 non-scene files respectively. A reviewer looking for the
+`kicker-15` rename in 0.105.0 is looking for 5 spec files among 1189 scenes.
+
+**And `.git` is not the problem.** The pack is 4.55 MiB for the whole history, because YAML this repetitive
+compresses to almost nothing. Any argument for moving the tree has to rest on reviewability rather than on size.
+
+**Four candidates, cheapest first.**
+
+* **One commit per kind, as a rule.** A commit is either code or regeneration and never both. Costs nothing,
+  needs no tooling, and fixes the one thing that actually hurts. It leaves `git blame` on a scene meaningless,
+  which it is anyway.
+* **`diff.renameLimit`.** Git skips exhaustive rename detection above 2733 files and prints a warning instead, so
+  a folder rename reads as thousands of deletions and additions. One config line makes `git log --stat` work
+  again. It does not reduce the diff, only the lie about it.
+* **A submodule.** `scenes/generated/` becomes its own repository, still browsable on the web, and the parent
+  records one pointer per regeneration. That gives an exact pairing between a code commit and the scenes it
+  produced, which none of the others do. It is also the option that makes a fresh clone a two-step affair.
+* **A branch of its own.** The generated tree lives on `scenes` and never on `main`. Browsable, and `main`'s
+  history becomes pure code — but the pairing between code and scenes is then a convention in a commit message
+  rather than something git enforces.
+
+The first two are compatible with all of the others and with each other, which is why the effort above is 3h
+rather than a range: it assumes the two cheap halves plus whichever structural one is chosen.
 
 ## SIG · signal chain, amplifiers and DSP
 

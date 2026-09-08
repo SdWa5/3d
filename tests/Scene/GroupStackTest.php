@@ -135,11 +135,11 @@ final class GroupStackTest extends TestCase
         $mirrored = $this->copies(new GroupStack([$fan, $turned]), $device);
 
         self::assertEqualsWithDelta(
-            -($upright[0]->rotation?->yawDeg ?? 0.0),
-            $mirrored[0]->rotation?->yawDeg ?? 0.0,
+            -($upright[0]->rotation->yawDeg ?? 0.0),
+            $mirrored[0]->rotation->yawDeg ?? 0.0,
             1e-9,
         );
-        self::assertEqualsWithDelta(180.0, abs($mirrored[0]->rotation?->rollDeg ?? 0.0), 1e-9);
+        self::assertEqualsWithDelta(180.0, abs($mirrored[0]->rotation->rollDeg ?? 0.0), 1e-9);
     }
 
     /**

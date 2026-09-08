@@ -240,7 +240,7 @@ final class StackSceneWriter
                 $share = $count !== ($owned[$deviceId] ?? $count) || isset($stated[$deviceId]) ? $count : null;
                 // `mix_with` belongs in the same list as the roll and the share: it is part of what the solve
                 // decided, and a mix left out comes back as separate tiers — which is a taller stack, quietly.
-                $mixWith = $block->stack->entryFor($deviceId)?->mixWith ?? [];
+                $mixWith = $block->stack->entryFor($deviceId)->mixWith ?? [];
                 if (null === $roll && null === $share && [] === $mixWith && null === $block->stack->entryFor($deviceId)?->aim) {
                     $lines[] = sprintf('        - %s', $deviceId);
                     continue;

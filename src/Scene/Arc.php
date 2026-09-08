@@ -353,6 +353,9 @@ final class Arc implements Group
      * depends on both. Rules that need an angle are skipped for a single-cabinet arc, which never uses
      * one.
      *
+     * @param array{min: array{float, float, float}, max: array{float, float, float}}|array{} $cellBox ignored by an
+     *                                                                                                 arc, whose spacing comes from the cabinet's own plan outline — see {@see Group::problems}
+     *
      * @return list<string>
      */
     public function problems(DeviceSpec $device, float $pitchDeg, float $rollDeg = 0.0, array $cellBox = []): array

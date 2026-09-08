@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Process\Parallel;
 use App\Scene\Alignment;
 use App\Scene\CandidateCheck;
+use App\Scene\Fault;
 use App\Scene\Feasibility;
 use App\Scene\GroupStack;
 use App\Scene\Interpenetration;
@@ -14,7 +15,6 @@ use App\Scene\LayoutMode;
 use App\Scene\LowEndBias;
 use App\Scene\MirrorStyle;
 use App\Scene\Placement;
-use App\Scene\PlacementChecks;
 use App\Scene\RolledBox;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLayout;
@@ -143,14 +143,6 @@ final class SceneStackCommand extends BaseCommand
      * scene need not define `near`, and aiming at a focus that is not there is an error.
      */
     private const NEAR_FOCUS = 'near';
-
-    /**
-     * How close two faces count as touching — the same millimetre `ShippedScenesTest` uses, so they agree.
-     *
-     * Taken from {@see PlacementChecks} rather than restated, because the checks that moved there use the same
-     * number for the same reason and two copies of a tolerance drift the first time one of them is tuned.
-     */
-    private const CONTACT_TOLERANCE_M = PlacementChecks::CONTACT_TOLERANCE_M;
 
     protected function configure(): void
     {
@@ -473,7 +465,7 @@ final class SceneStackCommand extends BaseCommand
                                 'stacks' => (string) $rig['stacks'],
                                 'systems' => $rig['split']->value,
                                 'shape' => $shape->value,
-                                'orientation' => $orientation?->value ?? SweepAxes::STATED_ORIENTATION,
+                                'orientation' => $orientation->value ?? SweepAxes::STATED_ORIENTATION,
                                 'mirror-style' => $style->value,
                                 'align' => $mode->value,
                                 'low-end' => $lowEnd->value,
@@ -605,7 +597,7 @@ final class SceneStackCommand extends BaseCommand
      * @param ?float $maxWidthM the stage width, or **null for none at all** — how wide a generated scene comes out
      *                          does not matter unless somebody says it does, which is stated by the owner and is CVR-8
      *
-     * @return array{yaml: string, cabinets: int, fingerprint: string, bandMiss: ?string}|string
+     * @return array{yaml: string, cabinets: int, fingerprint: string, bandMiss: ?string, faults: list<Fault>}|string
      */
     private function build(
         array $devices,
@@ -874,12 +866,12 @@ final class SceneStackCommand extends BaseCommand
      * scene list, the skip list and therefore the deduplication all come out in the order a serial run produced.
      * Without that the output would be correct and unstable, which is worse than slow.
      *
-     * @param array<string, array{array{from: list<string>, stacks: int, inventory: string, suffix: string}, StackShape, MirrorStyle,
-     *     ?StackOrientation, LayoutMode}> $tasks
+     * @param array<string, array{array{from: list<string>, stacks: int, split: SystemSplit, inventory: string, suffix: string}, StackShape,
+     *     MirrorStyle, ?StackOrientation, LayoutMode, LowEndBias}> $tasks
      * @param array<string, DeviceSpec> $devices
      * @param list<float> $at
      *
-     * @return array<string, array{yaml: string, bandMiss: ?string, cabinets: int, fingerprint: string}|string>
+     * @return array<string, array{yaml: string, bandMiss: ?string, cabinets: int, fingerprint: string, faults: list<Fault>}|string>
      */
     private function sweep(
         array $tasks,

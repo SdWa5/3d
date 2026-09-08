@@ -103,13 +103,10 @@ def parse_plan_argument(argv):
 
     Blender swallows everything before `--`, so the script's own arguments live after it.
     """
-    if "--" in argv:
-        argv = argv[argv.index("--") + 1:]
-    else:
-        argv = []
+    argv = argv[argv.index("--") + 1:] if "--" in argv else []
 
     if len(argv) < 2 or argv[0] != "--plan":
         raise SystemExit("usage: blender --background --python <script> -- --plan <plan.json>")
 
-    with open(argv[1], "r", encoding="utf-8") as handle:
+    with open(argv[1], encoding="utf-8") as handle:
         return json.load(handle)

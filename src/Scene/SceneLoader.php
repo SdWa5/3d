@@ -52,7 +52,7 @@ final class SceneLoader
         }
         sort($files);
 
-        return array_values($files);
+        return $files;
     }
 
     /**

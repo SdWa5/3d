@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.107.0] - 2026-09-08
+
+The static checks turned into a gate, and the 55 things they found on the way there.
+
+### Added
+
+- **A `static` job in `.github/workflows/tests.yml`**, running PHPStan, the Symfony coding standards and Ruff. It
+  sits beside `phpunit` rather than ahead of it, because a style violation and a failing solve are both worth
+  knowing about on the same push. Ruff is pinned to `0.16.6`, since `pipx run ruff` takes whatever is newest and a
+  release that adds a rule would fail a push that changed no Python
+- `docs/pipeline.md` has a **Static checks** section with the three commands, the measured level counts and what
+  the first pass found
+
+### Fixed
+
+- **`Stack.php` documented twelve array shapes against a class that does not exist.** `DeviceSpec` was never
+  imported, so in namespace `App\Scene` it resolved to `App\Scene\DeviceSpec` and every `@param` and `@return`
+  built on it described nothing. `SceneStackCommand` did the same with `Fault`, which lives in `App\Scene`
+- **Three array shapes had gone stale against their own data**, each one a key the code was already reading.
+  `SweepAxes::rigsToTry()` lost `split` when SWP-2 added it, the sweep's task tuple never gained the `LowEndBias`
+  that `sweep()` reads as `$task[5]`, and the built-scene shape never gained the `faults` that `Feasibility::of()`
+  reads. `Stack.php`'s run shape was missing `settle`, which `Gravity::reseat()` requires
+- **`Stack::nearest()` ended in a fallback that could never run and would have thrown if it had.** `$references`
+  is a `non-empty-list`, so the first iteration always sets `$best` — and the fallback indexed `$references[0]`
+  on the array it was guarding against being empty
+- **`assertLessThan()` was called with four arguments** in `StackSolverTest`. PHP drops a surplus argument to a
+  userland function silently, so the warnings the author passed for a failing run were never in the message. They
+  are now part of it
+- **`ShapeTest` called `isCabinet()` and dropped the result**, which is the one thing that test exists to check,
+  and one array literal in `SceneStackCommandTest` named `--low-end` twice with the same value
+- **A dead guard in `BuildAllCommand`**: `$aimModes` cannot hold null, since the stated branch is guarded and the
+  other two are constants, so `--aim-lines` was always passed and the `if` around it was decoration
+- **A dead `along = 1 - axis` in the Blender flare solver**, an unused `import bpy` in `bay.py`, and a redundant
+  `"r"` open mode
+- `Arc::problems()` defaulted `$cellBox` to `[]` against an interface shape that has no empty case. An arc ignores
+  the box — its spacing comes from the cabinet's own plan outline — and the annotation now says so
+- **An unused `CONTACT_TOLERANCE_M` alias** in `SceneStackCommand`, whose own docblock argued against having two
+  copies of a tolerance. `CandidateCheck` reads `PlacementChecks::CONTACT_TOLERANCE_M` directly
+
+### Changed
+
+- `FillOrder` no longer coalesces `weightKg`, which is a non-nullable float, and four `array_values()` calls on
+  values that were already lists are gone. Twenty `?->` accesses on receivers that cannot be null are plain `->`
+- **`README.md` claimed nothing generated is committed, which was true of `build/` and false of 2707 scenes.** It
+  now says what is actually true: no binary artefact is committed, and `scenes/generated/` is committed on purpose
+  so any scene can be read on the web without a checkout and a solve
+- `TODO.md` gains **TOOL-19**, the regeneration diff — the last three commits touched 1208, 937 and 4167 files, so
+  a code change is unreviewable inside one — and **TOOL-18**, the 167 further errors between level 5 and level 8
+
 ## [0.106.0] - 2026-09-08
 
 Static analysis and a style gate, and the formatting pass they needed first.

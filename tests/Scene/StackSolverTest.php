@@ -1127,8 +1127,8 @@ final class StackSolverTest extends TestCase
         self::assertLessThan(
             2.0,
             $this->subHeight($result['tiers']),
-            'with nothing under the ceiling, the least miss wins rather than the nearest the target',
-            $result['warnings'],
+            'with nothing under the ceiling, the least miss wins rather than the nearest the target: '
+            .implode(' | ', $result['warnings']),
         );
     }
 

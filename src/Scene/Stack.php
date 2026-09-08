@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Scene;
 
 use App\Spec\ArrayReader;
+use App\Spec\DeviceSpec;
 use App\Spec\InvalidSpecException;
 
 /**
@@ -397,10 +398,10 @@ final class Stack
      * The centre of the row does not move, which keeps {@see SceneCompiler::frontCentre}'s focus resolution and the
      * rig's centre line where they were.
      *
-     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
-     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $below
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $below
      *
-     * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>
+     * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>
      */
     private static function spreadApart(array $runs, array $below): array
     {
@@ -432,7 +433,7 @@ final class Stack
             $runs[$position]['hi'] = $run['hi'] + $shift;
         }
 
-        return array_values($runs);
+        return $runs;
     }
 
     /**
@@ -457,9 +458,9 @@ final class Stack
      *
      * Null when there is nothing to chain — a row that landed in one run has no neighbour to clear.
      *
-     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
      *
-     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>, array<string, array{id: string, side: float}>|null} the runs in emission order, and what each is spaced against
+     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>, array<string, array{id: string, side: float}>|null} the runs in emission order, and what each is spaced against
      */
     private static function throwFirst(array $runs): array
     {
@@ -479,7 +480,7 @@ final class Stack
             return 0 !== $byDistance ? $byDistance : $a['lo'] <=> $b['lo'];
         });
 
-        $ordered = array_values($runs);
+        $ordered = $runs;
         $references = [[
             'id' => $ordered[0]['id'],
             'lo' => $ordered[0]['lo'],
@@ -521,7 +522,7 @@ final class Stack
             }
         }
 
-        return $best ?? ['id' => $references[0]['id'], 'side' => 1.0, 'distance' => INF];
+        return $best;
     }
 
     /**
@@ -536,8 +537,8 @@ final class Stack
      * * **A whole top tier that landed in one run** is spread across its own support, which is the older rule and
      *   unchanged: only a tier nothing stands on may be spread, and only as wide as what holds it up.
      *
-     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
-     * @param array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float} $run
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     * @param array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float} $run
      * @param array<string, array{id: string, side: float}>|null $throw what each fill clears, from {@see throwFirst}
      */
     private function alignmentFor(

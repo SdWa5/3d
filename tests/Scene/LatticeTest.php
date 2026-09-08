@@ -142,7 +142,7 @@ final class LatticeTest extends TestCase
     {
         $lattice = new Lattice([4, 1, 1], rollCycle: [0.0, 180.0]);
         $rolls = array_map(
-            static fn (PlacementCopy $c): float => $c->rotation?->rollDeg ?? 0.0,
+            static fn (PlacementCopy $c): float => $c->rotation->rollDeg ?? 0.0,
             $this->copies($lattice),
         );
 
@@ -157,7 +157,7 @@ final class LatticeTest extends TestCase
         self::assertSame([], $lattice->problems($this->device(), 0.0, 0.0, $this->cellBox()));
 
         $rolls = array_map(
-            static fn (PlacementCopy $c): float => $c->rotation?->rollDeg ?? 0.0,
+            static fn (PlacementCopy $c): float => $c->rotation->rollDeg ?? 0.0,
             $this->copies($lattice),
         );
         self::assertSame([180.0, 0.0], $rolls, 'the lower tier is the one turned over');
@@ -335,7 +335,7 @@ final class LatticeTest extends TestCase
         // The fixture is 0.96 tall, so 0.96 across on its side: bodies at a 0.98 pitch, every joint 20 mm.
         $edges = [];
         foreach ($copies as $copy) {
-            $roll = $copy->rotation?->rollDeg ?? 0.0;
+            $roll = $copy->rotation->rollDeg ?? 0.0;
             $edges[] = 270.0 === $roll
                 ? [$copy->offset[0] - 0.96, $copy->offset[0]]
                 : [$copy->offset[0], $copy->offset[0] + 0.96];
@@ -387,7 +387,7 @@ final class LatticeTest extends TestCase
     {
         $copies = $this->copies(new Lattice([6, 1, 1], [0.02, 0.0, 0.0], rollMirror: 90.0, cycleAxis: Axis::X));
 
-        $rolls = array_map(static fn (PlacementCopy $c): float => $c->rotation?->rollDeg ?? 0.0, $copies);
+        $rolls = array_map(static fn (PlacementCopy $c): float => $c->rotation->rollDeg ?? 0.0, $copies);
         self::assertSame([270.0, 270.0, 270.0, 90.0, 90.0, 90.0], $rolls);
     }
 
@@ -429,7 +429,7 @@ final class LatticeTest extends TestCase
     {
         $copies = $this->copies(new Lattice([5, 1, 1], [0.02, 0.0, 0.0], rollMirror: 90.0, cycleAxis: Axis::X));
 
-        $rolls = array_map(static fn (PlacementCopy $c): float => $c->rotation?->rollDeg ?? 0.0, $copies);
+        $rolls = array_map(static fn (PlacementCopy $c): float => $c->rotation->rollDeg ?? 0.0, $copies);
         self::assertSame([270.0, 270.0, 90.0, 90.0, 90.0], $rolls);
     }
 

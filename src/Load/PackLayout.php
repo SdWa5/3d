@@ -57,7 +57,7 @@ final class PackLayout
             return $this->openBed($plan);
         }
 
-        $arches = $plan->vehicle->vehicle?->widthBetweenArchesM ?? $bay->width;
+        $arches = $plan->vehicle->vehicle->widthBetweenArchesM ?? $bay->width;
         // The bay is drawn flush to one end of the vehicle by `blender/lib/bay.py`, so the layout has to agree with
         // the picture: same near edge, same centre line.
         $near = $plan->vehicle->dimensions->depth / 2.0 - $bay->depth;

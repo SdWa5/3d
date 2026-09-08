@@ -134,7 +134,7 @@ final class SceneCompiler
             // every element is yawed towards the target. `flown-array` is aimed 11.1° off-axis, and the two
             // disagreeing put 3.5 mm of the bottom element inside the one above it.
             if ($placement->group->decidesPitch()) {
-                $hangYaw = $hangAim?->yawDeg ?? $placement->yawDeg;
+                $hangYaw = $hangAim->yawDeg ?? $placement->yawDeg;
                 $copies = array_map(
                     static fn (PlacementCopy $copy): PlacementCopy => $copy->yawedBy($hangYaw),
                     $copies,
@@ -288,7 +288,7 @@ final class SceneCompiler
                     $position,
                     $target,
                     $device->dimensions->height,
-                    $copy->rotation?->yawDeg ?? 0.0,
+                    $copy->rotation->yawDeg ?? 0.0,
                 ) + $tilt,
                 $placement->rollDeg,
                 0.0,

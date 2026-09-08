@@ -568,7 +568,7 @@ final class ArcTest extends TestCase
         float $rollDeg,
     ): float {
         $silhouette = static function (PlacementCopy $seat) use ($device, $pitchDeg, $rollDeg): array {
-            $orientation = new Orientation($pitchDeg, $rollDeg, $seat->rotation?->yawDeg ?? 0.0);
+            $orientation = new Orientation($pitchDeg, $rollDeg, $seat->rotation->yawDeg ?? 0.0);
             $points = [];
             foreach ($device->contactCorners() as $corner) {
                 $rotated = $orientation->apply($corner);
@@ -620,7 +620,7 @@ final class ArcTest extends TestCase
         $halfBack = ($device->backWidth ?? $device->dimensions->width) / 2;
         $inset = $device->grilleInset ?? 0.0;
 
-        $orientation = new Orientation($pitchDeg, 0.0, $seat->rotation?->yawDeg ?? 0.0);
+        $orientation = new Orientation($pitchDeg, 0.0, $seat->rotation->yawDeg ?? 0.0);
         $corners = [];
         foreach ([
             'frame-l' => [-$halfFront, -$depth / 2],

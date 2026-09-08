@@ -678,7 +678,7 @@ final class StackSolver
     private static function liftAbove(array $remaining, int $source, Stack $stack, RowBudget $budget): ?array
     {
         [$sourceDevice, $sourceCount] = $remaining[$source];
-        if ($sourceCount < 2 || ($stack->entryFor($sourceDevice->id)?->mixWith ?? []) !== []) {
+        if ($sourceCount < 2 || ($stack->entryFor($sourceDevice->id)->mixWith ?? []) !== []) {
             return null;
         }
 
@@ -689,7 +689,7 @@ final class StackSolver
 
             // A tier that names its own row-mates has already said what it wants, and one that needs more than
             // a single row would have to say *which* of its rows gets the flanks. Neither is a guess to make.
-            if (($stack->entryFor($device->id)?->mixWith ?? []) !== []) {
+            if (($stack->entryFor($device->id)->mixWith ?? []) !== []) {
                 return null;
             }
             $fitsOneRow = self::perTier(
@@ -823,7 +823,7 @@ final class StackSolver
      */
     private static function rollFor(DeviceSpec $device, Stack $stack): float
     {
-        return $stack->entryFor($device->id)?->rollMirror ?? 0.0;
+        return $stack->entryFor($device->id)->rollMirror ?? 0.0;
     }
 
     /**
@@ -876,7 +876,7 @@ final class StackSolver
 
         $messages = [];
         foreach ($inventory as [$device, $count]) {
-            foreach ($stack->entryFor($device->id)?->mixWith ?? [] as $otherId) {
+            foreach ($stack->entryFor($device->id)->mixWith ?? [] as $otherId) {
                 if (!isset($heights[$otherId])) {
                     $messages[] = sprintf(
                         "stack.from '%s': mix_with names '%s', which is not in this stack",
@@ -913,7 +913,7 @@ final class StackSolver
     private static function statedMix(array $remaining, int $index, Stack $stack, RowBudget $budget, float $supportM = INF): ?array
     {
         [$device, $count] = $remaining[$index];
-        $wanted = $stack->entryFor($device->id)?->mixWith ?? [];
+        $wanted = $stack->entryFor($device->id)->mixWith ?? [];
         if ([] === $wanted) {
             return null;
         }

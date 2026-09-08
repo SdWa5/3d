@@ -24,8 +24,6 @@ Bars rather than a Wireframe modifier, which would need applying before the glTF
 over which edges exist. Twelve boxes per cage is simpler to reason about and exports as it stands.
 """
 
-import bpy
-
 from . import materials, tubes
 
 # 25 mm bars, the same gauge the fault cages in `build_scene.py` use: thick enough to read in a 960 x 540 preview,

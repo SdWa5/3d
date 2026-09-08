@@ -25,7 +25,6 @@ final class BaffleLayoutTest extends TestCase
     {
         $layout = $this->layout();
 
-        self::assertNotNull($layout);
         self::assertSame(Provenance::Estimated, $layout->provenance);
         self::assertSame(0.018, $layout->insetM);
         self::assertCount(3, $layout->features);

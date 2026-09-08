@@ -177,14 +177,16 @@ src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/
 tools/          check-glb.py, freecad-export.py
 scenes/         setups as YAML — one file per event layout
+scenes/generated/  the sweep's output, one folder per inventory — committed so it can be read on the web
 rosters/        what a system brings to one event — counts that override the specs for one run
 meshes/         override meshes — third-party CAD, gitignored
 build/          generated models, asset library, renders — gitignored
 docs/
 ```
 
-Nothing generated is committed. `build/` is reproducible from the specs with one command, which is why the repository
-stays text-only and diffable.
+No *binary* artefact is committed. `build/` and `meshes/` are reproducible or third-party, so the repository stays
+text-only and diffable. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
+them can be read on the web without a checkout and a solve — see [docs/scenes.md](docs/scenes.md).
 
 ## Current state
 
@@ -247,6 +249,9 @@ Org-level documentation lives in the parent repo's
 
 ```bash
 ddev exec composer test                          # PHPUnit
+ddev exec composer static                        # PHPStan level 5 + Symfony coding standards
+ddev exec composer cs-fix                        # apply the coding standards
+pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and tools/
 ddev exec bin/console specs:validate             # same check CI runs
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata

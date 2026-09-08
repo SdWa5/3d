@@ -498,7 +498,6 @@ def _join_rings(first, second, back_y):
     axis = _join_axis(first, second, front_y)
     if axis is None:
         return None
-    along = 1 - axis
 
     steps = _FLARE_STEPS if EXPONENTIAL in (first["flare"], second["flare"]) else 1
     # The rounder of the two at the far end decides the sampling: a cross-section that stays square all

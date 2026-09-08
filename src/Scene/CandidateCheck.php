@@ -34,7 +34,7 @@ final class CandidateCheck
      *
      * @param array<string, DeviceSpec> $devices
      *
-     * @return array{cabinets: int, fingerprint: string}|string
+     * @return array{cabinets: int, fingerprint: string, faults: list<Fault>}|string
      */
     public static function compileYaml(string $yaml, array $devices): array|string
     {

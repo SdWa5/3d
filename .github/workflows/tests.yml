@@ -27,6 +27,33 @@ jobs:
 
       - run: bin/console scene:build --dry-run
 
+  # **The three static checks, in one job and ahead of nothing.** They cost seconds where the suite costs
+  # minutes, so they run in parallel with it rather than gating it — a style violation and a failing solve are
+  # both worth knowing about on the same push.
+  #
+  # Ruff is pinned. `pipx run ruff` without a version picks up whatever is newest, and a new release that adds
+  # a rule would fail a push that changed no Python.
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: PHPStan
+        run: composer stan
+
+      - name: Symfony coding standards
+        run: composer cs
+
+      - name: Ruff
+        run: pipx run 'ruff==0.16.6' check .
+
   # **The same suite with nothing sampled, nightly and on demand.**
   #
   # `composer test` replays a seeded *sample* of the generated scenes rather than all 2688 of them, because one
