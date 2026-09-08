@@ -1,0 +1,20 @@
+# Secret scanning configuration for sdwa5-3d.
+#
+# Extends the upstream rule set rather than replacing it, so new rules arrive
+# with a gitleaks upgrade instead of having to be copied in here.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Build output and local development artefacts"
+# None of these is committed. They are listed because `gitleaks dir` does not
+# respect .gitignore, so a local run would otherwise report a developer's own
+# working directory: a ddev TLS key, a PHP-CS-Fixer cache and the PHPStan phar
+# all trip the high-entropy rules. Measured 2026-09-08: nine findings, all in
+# these paths, none of them tracked.
+paths = [
+  '''^\.ddev/''',
+  '''^\.php-cs-fixer\.cache$''',
+  '''^vendor/''',
+  '''^build/''',
+]

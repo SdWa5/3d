@@ -79,3 +79,41 @@ jobs:
       - run: composer test
         env:
           SDWA5_FULL_REPLAY: '1'
+
+  # Secret scanning, on the working tree and on the full history.
+  #
+  # The same job runs in all three SdWa5 repositories, because they are going
+  # public and a public repository publishes every past commit at once. This
+  # repository came back clean on 2026-09-08, tree and history both, but
+  # sdwa5-vps had two real secrets sitting in its history since c516d41, so the
+  # gate exists to stop the next one rather than to find a current one.
+  #
+  # The gitleaks CLI is used directly rather than gitleaks/gitleaks-action,
+  # because that action requires a licence key for repositories owned by a
+  # GitHub Organization, and moving these repositories into an `sdwa5`
+  # organization is the plan.
+  #
+  # Runtime is not a concern here despite the 2707 committed scene files:
+  # measured 1.5 s for 137 commits and 38 MB.
+  secrets:
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The history scan needs the history.
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks version
+
+      - name: Scan the working tree
+        run: /tmp/gitleaks dir . --redact --no-banner --config .gitleaks.toml
+
+      - name: Scan the full history
+        run: /tmp/gitleaks git . --redact --no-banner --config .gitleaks.toml

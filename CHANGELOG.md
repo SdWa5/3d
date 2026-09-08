@@ -4,6 +4,49 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.108.0] - 2026-09-08
+
+The Audio Routing sheet was read, which unblocked SIG-1, answered its schema question and turned up four
+contradictions worth keeping rather than resolving.
+
+### Added
+
+- **The Audio Routing sheet has been read, so `SIG-1` is no longer blocked on reading it.** Its prose block used to
+  open by telling the next person to go and look; it now records what the six sheets hold, in a table, with the
+  hardware they describe: two DSPs, an 8×8 and a Behringer DCX2496, and four amplifiers, a Tulun/Play/Prokustk
+  TIP10000q, a GISEN MM14K, a GISEN M60D and a Behringer EP4000.
+- **The schema decision `SIG-1` waited on is answered: the repository becomes master and the workbook becomes
+  generated output.** Stated by the owner. A two-way sync is the wrong tool anyway, and the reasons are recorded: a
+  spreadsheet has no merge, so a conflict is lost rather than resolved; the `SdWa5:` remote is
+  `scope = drive.readonly`; `Vspk_RMS_V` is a formula that a round trip would drop; and the Drive already shows the
+  drift, with four copies of `AmpLimiterCalc.csv` in one folder beside both `Drivers.csv` and `drivers.csv`.
+- Three new rows in the SIG group, for the parts the reading separated out. `SIG-2` reads the Drive from the repository
+  instead of transcribing it, and records both measured gotchas: the `SdWa5:` remote is scoped to
+  `team_drive 0AFDifygC0zQZUk9PVA`, and the workbook is not in that shared drive but in the account's My Drive, so it
+  needs `--drive-team-drive ""`. `SIG-3` is the signal-chain schema block, which has no home today. `SIG-4` is the
+  export back to Drive, deferred because it needs a new OAuth scope.
+- `docs/sources.md` gained a section on the workbook and **the four places it contradicts what the repository already
+  believes**, each with both claims and both sources. The Achenbach 18's driver is B&C 18TBW100 here and RCF L18P300
+  there; its passband is 35–1000 Hz here and 35–1500 Hz there; the Tecnare's drivers differ entirely and the sheet
+  splits the cabinet into LF and HF channels at ~6.5 kHz, which is not recorded here at all; and the sheet's live gain
+  figures disagree with `Amp_GainSelector.csv` sitting in the same Drive folder, which recommends 41 dB and 44 dB and
+  says a lower setting cannot reach the RMS limit. **Neither side is promoted.** It is a working sheet rather than a
+  datasheet, so settling these is a front-panel or tape-measure job.
+- A `secrets` job in `.github/workflows/tests.yml`, plus `.gitleaks.toml`. The same job runs in all three SdWa5
+  repositories, because they are going public and a public repository publishes every past commit at once. This one is
+  clean in tree and history, measured 2026-09-08, so the gate exists to stop the next secret rather than to find a
+  current one. Runtime is not a concern despite the 2707 committed scene files: 1.5 s for 137 commits and 38 MB.
+
+### Changed
+
+- `SPEC-8` is **partial** rather than open. The sheet answers what "gisen md60" is, namely **GISEN M60D**, and names
+  the amplifier complement. What is left is which rack holds the fourth amp, since the sheet names an EP4000 without
+  saying where, and EP4000 2U/16.6 kg against Proline 3000 3U/37 kg is 69 kg versus 79 per rack.
+- `SPEC-13`'s wattages are no longer merely missing but **sourced**. The sheet carries an RMS wattage, a nominal
+  impedance and a passband for all six speaker groups. Two figures match `Hardware/Hardware Overview.xlsx` exactly,
+  `Top 15 2-way` at 550 W and `Sub FH` at 1800 W, which is worth stating because the disagreements elsewhere are
+  specific rather than wholesale.
+
 ## [0.107.0] - 2026-09-08
 
 The static checks turned into a gate, and the 55 things they found on the way there.

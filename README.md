@@ -255,7 +255,14 @@ pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and
 ddev exec bin/console specs:validate             # same check CI runs
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
+gitleaks dir . --redact --config .gitleaks.toml   # no secret in the working tree
+gitleaks git . --redact --config .gitleaks.toml   # nor anywhere in the history
 ```
+
+The two `gitleaks` runs are the same ones [`.github/workflows/tests.yml`](.github/workflows/tests.yml) performs, and
+the same check runs in the other two SdWa5 repositories. They are going public, and a public repository publishes every
+past commit at once. This repository is clean in both tree and history, measured 2026-09-08, so the gate exists to stop
+the next secret rather than to find a current one.
 
 Tests do not need Blender: the spec, catalog and orchestration layers are unit-tested, and the Blender invocation is
 tested through a fake process runner. PHP owns the specs, Python owns the geometry —
