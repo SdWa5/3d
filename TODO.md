@@ -168,7 +168,7 @@ tier stretched after the fact by a scalar that cannot see what stands on it.
 
 #### GEO-14 — low and central, which is four rules and only one of them exists
 
-Where: `SceneStackCommand::byFillOrder()`, `StackSolver::fill()`'s `widestFirst()` branch, `StackSolver::centred()`,
+Where: `SceneStackCommand::byFillOrder()`, `StackSolver::fill()`'s `widestFirst()` branch, `StackMetrics::centred()`,
 `statedMix()` / `mixedBottomRow()` via `widestSub()`, `topRow()` / `stereoTopRow()`, and `SceneStackCommand::byType()`.
 
 Stated by the owner as one sentence, so it is recorded as one row. It is four separate pieces of work in the code, and
@@ -390,7 +390,7 @@ dropped to P3.
 `StackShape::cases()` in its own error, so a new case parses and documents itself. 0.81.0's `v` proved that half.
 
 **A WIDTH BOUND CANNOT MAKE A WALL FLUSH, AND THAT WAS TRIED AND REVERTED.** The cheap version of `tower` is one branch
-in `StackSolver::ceilingFor()`, bounding a row by `min($stack->maxWidthM, $supportM)`. It builds, it leaves the other
+in `StackMetrics::ceilingFor()`, bounding a row by `min($stack->maxWidthM, $supportM)`. It builds, it leaves the other
 shapes byte-identical, and it does not work, because **`ceilingFor()` is an upper bound and a narrow row is not a row
 that was capped — it is a row whose device ran out of cabinets.** Lowering a ceiling cannot add cabinets to a row, so it
 can only ever make a wall narrower. Measured on the five GMSS types at 5 m, the best `tower` still tapered from 3.280 m
@@ -488,7 +488,7 @@ Spreading sub *columns* means each sub stack stays solid and the stacks move apa
 every tier still sits on a whole stack. **This is what the ask actually wants, and half of it already exists**:
 `--stacks=N` splits the rig and `--clearance` sets the air between the stacks, default 0.5 m.
 
-**What is missing is that every stack carries its own tops row.** `StackSolver::topRow()` builds the tops from what is
+**What is missing is that every stack carries its own tops row.** `StackTops::topRow()` builds the tops from what is
 left in *that stack*, so widening the clearance moves the subs and their tops together. The tops cannot be held in place
 while the subs open underneath them, and a top cannot go wider than its own stack. So this half is not a change to
 `Alignment` at all, and **SYM-3 no longer waits on ALN-4.**
@@ -800,9 +800,9 @@ guarded had ever occurred. See [docs/pipeline.md](docs/pipeline.md#static-checks
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
 | TOOL-17 | **The suite went from 1 h 17 min to about 25, and the four measurements are worth keeping.** `BuildAllCommandTest`'s replay was 26 minutes and is 34 seconds: it replays a printed-seed sample (`tests/Support/ReplaySample.php`), while the before-and-after comparison still walks the whole set — a stale check against a sample would call the rest of the repository stale. `ShippedScenesTest` was 25 minutes and is 15: it compiled every scene **twice**, once per data-provider test, and now compiles once and asserts both. `SceneStackCommandTest` was 12 and is 7, because 61 invocations that are about something else now state `--low-end` rather than sweeping it. Two paths are gated behind `SDWA5_FULL_REPLAY=1`, both of which cost a full pass over the tree and neither of which is the only cover for what it checks: the regenerate **stage** end to end, and `scene:build` with no argument. **What is left is `ShippedScenesTest` at 15 minutes**, and it should stay whole rather than be sampled — it is the repository's promise that every scene stands up, and it caught two floating cabinets that existed in exactly 2 files of 2688 | P2 | 1h | a suite somebody runs before committing | — | partial |
-| TOOL-19 | **A regeneration commit buries every code change in it, and the scenes have to stay readable on the web.** The last three commits touched 1208, 937 and 4167 files, one of them at 514 463 insertions, because a cabinet rename rewrites the whole tree. Git's rename detection gives up above 2733 files and says so on every `git log --stat`. Gitignoring `scenes/generated/` is **not** the answer — stated by the owner, the point of committing them is that any scene can be read on GitHub without a checkout and a solve. So the fix has to keep the files and cut the churn, and which way is a call rather than work: separate every regeneration into its own commit as a rule, set `diff.renameLimit`, move the tree to its own repository behind a submodule pointer, or hold it on a branch of its own. **The cheap half is free**: a commit that is either code or regeneration, never both, costs nothing but discipline and is what makes a diff reviewable again | P2 | 3h | a code diff somebody can actually read, and `git log --stat` that works | decision | decision |
+| TOOL-19 | **A regeneration commit buries every code change in it, and the scenes have to stay readable on the web.** The last three commits touched 1208, 937 and 4167 files, one of them at 514 463 insertions, because a cabinet rename rewrites the whole tree. Git's rename detection gives up above 2733 files and says so on every `git log --stat`. Gitignoring `scenes/generated/` is **not** the answer — stated by the owner, the point of committing them is that any scene can be read on GitHub without a checkout and a solve. So the fix has to keep the files and cut the churn, and which way is a call rather than work: separate every regeneration into its own commit as a rule, set `diff.renameLimit`, move the tree to its own repository behind a submodule pointer, or hold it on a branch of its own. **The cheap half is free**: a commit that is either code or regeneration, never both, costs nothing but discipline and is what makes a diff reviewable again. **P3 at most**, stated by the owner | P3 | 3h | a code diff somebody can actually read, and `git log --stat` that works | decision | decision |
 | TOOL-18 | **PHPStan levels 6 to 8, which is 167 further errors and almost entirely annotations.** Level 5 is clean and enforced; the step up is missing generic array-shape and iterable annotations on internal helpers, measured at 231 errors at level 8 and 522 at max. Worth doing precisely because the level-5 pass proved the shapes go stale: three of them had lost a key the code was already reading. Do it a level at a time, because level 6 alone is the `iterable` and `array` annotations and is the bulk of the value | P3 | 5h | shapes that cannot drift from their data unnoticed, which is what caught `split`, `faults` and `LowEndBias` | — | open |
-| TOOL-16 | **The last two extractions out of `SceneStackCommand`.** It came down from 2357 lines to 1374 in 0.100.0 and is 1425 today, the low-end axis having added 51 — seven collaborators, all green — and the two that are left are the ones whose methods run inside the `Parallel` fork and already take up to fifteen arguments: `build`/`solveEach`/`solveGroup`/`stackFor` into a `StackCandidate`, and the option parsing into a `StackRequest`. Moving them as they stand is parameter plumbing; doing it properly means resolving the options into a value object first, so the collaborator is constructed once in the parent and the fork copies it rather than reaching back for `$this`. **`SceneStackCommandTest:1613` is the guard**: it asserts serial and parallel output are byte-identical | P3 | 4h | a command under 800 lines, and a solve that can be tested without a command | — | open |
+| TOOL-16 | **The last two extractions out of `SceneStackCommand`.** It came down from 2357 lines to 1374 in 0.100.0 and is 1442 today, the low-end axis having added 51 and the static pass 17 — seven collaborators, all green — and the two that are left are the ones whose methods run inside the `Parallel` fork and already take up to fifteen arguments: `build`/`solveEach`/`solveGroup`/`stackFor` into a `StackCandidate`, and the option parsing into a `StackRequest`. Moving them as they stand is parameter plumbing; doing it properly means resolving the options into a value object first, so the collaborator is constructed once in the parent and the fork copies it rather than reaching back for `$this`. **`SceneStackCommandTest:1613` is the guard**: it asserts serial and parallel output are byte-identical. **Raised to P2 on the level-5 evidence**: the six-element task tuple had lost the `LowEndBias` from its annotation, which is exactly the drift a value object cannot suffer | P2 | 4h | a command under 800 lines, and a solve that can be tested without a command | — | open |
 | TOOL-15 | **A scene the sweep collapses as a duplicate survives the replay**, which is what is left of TOOL-7 after 0.84.0 closed the rest of it. Dedup is a decision across the whole sweep — "the same rig as X" — and a replay is one file with nothing to compare against, so it rebuilds itself happily. **Measured: 6 of 489**, all six confirmed duplicates of a sibling that is also on disk, deleted by hand. Narrow and cosmetic next to what it was: nothing is lost, the rig exists under the other name, and the pipeline no longer aborts. The honest fix is the one TOOL-7 named, which is running the sweep as the stage instead of replaying files | P3 | 3h | a tree that matches a fresh `--force` sweep without `comm` and `rm` | — | measured |
 | TOOL-10 | **`build:all`'s regenerate stage is the one stage with no staleness check**, and its own comment boasts that every stage skips what is already current. It replays all 483 recorded commands unconditionally, when a generated scene can only change if a spec or the solver did — both ordinary mtime inputs, and exactly the shape of the three checks `Staleness` already serves. **Re-measured after 0.85.0 and demoted on the number: the stage is 34 s, not the 6m40s it was ranked on.** 1h 30m of work for 34 s is no longer the cheapest thing in the file, and it was only ever cheapest because the stage was slow | P3 | 1h 30m | 34 s off every build where nothing changed | — | measured |
 | TOOL-11 | **`scene:render` compiles the whole scene again**, rather than reading anything `scene:build` produced from the identical inventory a moment earlier. `build/plans/` holds `_library.json`, per-model plans and `_render-*.json`, but no compiled-scene plan a later stage reads back — so the natural place for the answer exists and is unused. Re-solving *from the file* is a stated design choice and this does not touch it: the specs demonstrably have not changed between two stages of one build | P1 | 2h 30m | one solve per scene per build instead of two, on every render pass | — | open |
@@ -861,31 +861,66 @@ rather than a range: it assumes the two cheap halves plus whichever structural o
 them says what drives it, at what level, through which crossover, on which cable. That is a whole half of a PA and it
 exists today only as a spreadsheet.
 
+**The sheet has now been read**, on 2026-09-08, so SIG-1 is no longer blocked on reading it and the schema question it
+waited on is answered below. What it holds turned out to be more than routing: it carries the wattage and impedance
+figures that `SPEC-13` says no spec has, and it names the amplifier that `SPEC-8` could not identify.
+
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SIG-1 | **Bring the Audio Routing sheet into the project.** Speakers, amplifiers and DSP, their settings, and the cabling between them, as specs the repository owns rather than a Google table nobody can diff. See the section | P2 | 12h | the half of the rig that is currently invisible, and the first answer to "does this rig even have enough amp channels" | decision on the schema | open |
+| SIG-2 | **Read the Drive from the repository instead of transcribing it by hand.** `docs/sources.md` cites Drive paths that a human opened and typed out, so nothing can tell whether a cited file changed. A read-only `rclone` remote `SdWa5:` already exists. **Two gotchas, both measured**: the remote is scoped to `team_drive 0AFDifygC0zQZUk9PVA`, and `Audio Routing.xlsx` is not in that shared drive but in the account's My Drive, so reaching it needs `--drive-team-drive ""`. See the section | P2 | 3h | every sourced figure becomes checkable against its source, rather than trusted | — | open |
+| SIG-1 | **Import the Audio Routing sheet, once, and make the repository the master.** Six sheets, read 2026-09-08. Speakers, amplifiers, DSP routing, limiter thresholds and delays, as specs the repository owns and can diff. **The schema decision is answered**: repo as master with the workbook generated, not a two-way sync. See the section | P2 | 12h | the half of the rig that is currently invisible, `SPEC-13`'s wattages for six groups, and the first answer to "does this rig even have enough amp channels" | SIG-3 | open |
+| SIG-3 | **There is no home in the schema for a signal chain at all.** A `DeviceSpec` describes a box. Nothing can say which amplifier channel drives it, at what gain, behind which crossover, with how much delay. The sheet supplies all four per speaker group, so the shape is known rather than guessed: an amplifier needs channels with a gain and a selectable-gain list, a DSP needs a matrix of inputs against outputs, and an output needs a limiter threshold in dBu and a delay in ms | P2 | 4h | the field SIG-1 has nowhere to put its data | decision on where an amp channel lives, on the amp or on the speaker | decision |
+| SIG-4 | **Write the workbook back to the Drive once the repository is master.** Deferred on purpose, because the `SdWa5:` remote is `scope = drive.readonly`, so an export needs a new OAuth scope and a re-auth. Until then SIG-1 writes the workbook into `build/` and a human uploads it, which needs no new permission | P4 | 2h | the humans keep the spreadsheet they actually work in, without it drifting from the specs | SIG-1 | open |
 
-#### SIG-1 — the routing that lives in a spreadsheet
+#### SIG-1 — the routing that lived in a spreadsheet
 
-**Read the sheet before designing anything.** What it actually holds decides the schema, and guessing at that is how a
-spec format ends up with the wrong shape. The obvious pieces are a device's inputs and outputs, an amplifier's channels
-and their power, a DSP's crossover and delay and gain per output, and a cable's ends and its length — but which of
-those the sheet records, and which it only implies, is not something to invent from here.
+**The sheet has been read, so this block records what it holds rather than telling the next person to go and look.**
+`Audio Routing.xlsx`, six sheets, read 2026-09-08 out of the rclone account's My Drive.
 
-**Three things it plainly touches that the repository already has opinions about:**
+| Sheet | What it holds |
+|-------|---------------|
+| `Drivers` | Six speaker groups with driver list and count, nominal impedance, RMS wattage, passband, and a per-group delay. `Vspk_RMS_V` is a formula, `=SQRT(ohm × watt)` |
+| `Amp_GainSelector` | Four amplifiers with a current gain in dB and the selectable-gain list the DIP switches offer |
+| `AmpLimiterCalc` | One row per DSP output: which speaker group, which amplifier, the limiter threshold in dBu, ratio, attack, release, delay, and a headroom check against the DSP's maximum output |
+| `AmpLimiterCalc Mode B` | The same table for a second routing, where the 8×8 feeds a partner DSP and a DCX2496 instead of driving the tops directly |
+| `DSP_RoutingMatrix` | A 9×9 input-to-output matrix for the 8×8, and a 6×3 one for the DCX2496 |
+| `DSP_ChannelLinkage` | Which input and output pairs are stereo-linked, for both devices |
 
-* **`SPEC-13`'s power figure.** No speaker carries a wattage or a sensitivity, and an amplifier assignment is the one
-  thing that would make those numbers load-bearing rather than decorative. The two items should land together or the
-  first one lands twice.
+So the hardware it describes is **two DSPs**, an 8×8 and a Behringer DCX2496, and **four amplifiers**, a
+Tulun/Play/Prokustk TIP10000q, a GISEN MM14K, a GISEN M60D and a Behringer EP4000.
+
+**The schema decision this row was blocked on is answered: the repository becomes master and the workbook becomes
+generated output.** Stated by the owner, who asked whether a two-way sync was possible and said that otherwise the
+Drive sheet is not needed as master. A two-way sync is the wrong tool regardless:
+
+* A spreadsheet has no merge. Two-way means last-writer-wins per cell, and a real conflict is not resolved but lost.
+* The `SdWa5:` remote is `scope = drive.readonly`, so any write needs a new OAuth scope and a re-auth. That is SIG-4.
+* `Vspk_RMS_V` is a formula. A round trip either drops it or has to rebuild it.
+* The Drive already shows the drift a two-way arrangement produces. Four copies of `AmpLimiterCalc.csv` sit in one
+  folder, alongside both `Drivers.csv` and `drivers.csv`.
+
+Repo-as-master is also better than a tie, because the limiter arithmetic stops being spreadsheet formulas and becomes
+testable PHP.
+
+**Three things it touches that the repository already has opinions about:**
+
+* **`SPEC-13`'s power figure is no longer missing, it is sourced.** The sheet carries an RMS wattage and a nominal
+  impedance for all six groups. SPEC-13 and SIG-1 should land together or the schema change happens twice.
+* **`SPEC-8` is half answered.** It asks what "gisen md60" is, because it matches no product. The sheet says **GISEN
+  M60D**. The EP4000-versus-Proline-3000 half stays open, because the sheet names an EP4000 without saying which rack
+  holds it.
 * **Provenance applies here exactly as it does to a dimension.** A crossover frequency is trivially easy to invent,
-  impossible to check by looking at a render, and it silently decides what every cabinet is asked to do. Same rule as
-  `audio.passband_hz`, same reason.
-* **`nuke`'s "8 turbo subs 3000rms" is a rating covering two cabinet types together**, which is already recorded
-  as unsplittable. A routing model has to be able to say that rather than force a number per box.
+  impossible to check by looking at a render, and it silently decides what every cabinet is asked to do. And this sheet
+  is a **working sheet rather than a datasheet**: it disagrees with `docs/sources.md` in four places, recorded there,
+  and it disagrees with a CSV sitting beside it in the same Drive folder about amplifier gain. So an import must carry
+  `provenance` per figure and must not quietly pick a side.
+* **`nuke`'s "8 turbo subs 3000rms" is a rating covering two cabinet types together**, already recorded as
+  unsplittable. A routing model has to be able to say that rather than force a number per box.
 
-**Cabling is geometry as well as topology**, and this is the part worth deciding early. A cable run has a length, and a
-length depends on where the cabinets stand — which this project already knows. Whether SIG-1 models that, or records
-stated lengths and leaves the geometry alone, is the schema decision the row is blocked on.
+**Cabling is geometry as well as topology**, and this is still open. A cable run has a length, and a length depends on
+where the cabinets stand, which this project already knows. The sheet does **not** hold cable lengths, so it settles
+nothing here: whether SIG-1 models runs from placement, or records stated lengths and leaves the geometry alone, is
+still a decision.
 
 ## ALN · alignment features
 
@@ -971,7 +1006,7 @@ should pin rather than an eye.
 | SPEC-1 | Finish GMSS — five specs exist from the builder's own figures; measuring them is what is left | P2 | phys | provenance for 14 cabinets, 994 kg | — | partial |
 | SPEC-5 | Measure the cabinets — [docs/measuring.md](docs/measuring.md). Every spec describes a design or a datasheet, not our build | P2 | phys | — | — | partial |
 | SPEC-6 | `audio.drivers` cannot record a count without a size — `size_in` is required, so "2× unknown" has to omit the whole `audio` block | P2 | 45m | `mid-bass` keeps what is known | — | open |
-| SPEC-8 | Two amplifier facts, both settled by reading the front panels: the fourth amp (EP4000 2U/16.6 kg vs Proline 3000 3U/37 kg — 69 kg vs 79 per rack), and "gisen md60", which matches no product | P2 | phys | rack weights | — | open |
+| SPEC-8 | **Half answered by the Audio Routing sheet on 2026-09-08.** "gisen md60" is **GISEN M60D**, and the amplifier complement is TIP10000q, GISEN MM14K, GISEN M60D and Behringer EP4000. What is left is the fourth amp's identity in the rack: the sheet names an EP4000 but not which rack holds it, and EP4000 2U/16.6 kg against Proline 3000 3U/37 kg is 69 kg versus 79 per rack. Still a front-panel reading | P2 | phys | rack weights | — | partial |
 | SPEC-11 | **Two 3 × 3 m tents** — new gear, no spec, no model. The 3 × 3 m footprint is what we call them by; make, model, eave and ridge height, packed size and weight are all unsourced, and a tent is a frame with a canopy rather than a box | P2 | phys | two items of gear that exist and are invisible to every scene and every pack | — | open |
 | SPEC-12 | **Five Euro pallets** — new gear, no spec, no model. Footprint is the EPAL standard, so it can be sourced rather than measured, but ours need weighing and their condition and height class checking. They are what a riser is built from, so CVR-1 wants them modelled | P2 | phys | five items of gear, and a real answer to what a top stands on | — | open |
 | SPEC-13 | **No speaker carries a power or sensitivity figure.** `DeviceSpec` has `weightKg`, `passband`, `coverage` and `drivers`, and `Driver` has size, type and count. Nothing anywhere says how much a cabinet takes or how loud it goes, so **GEO-14's "highest power" half cannot be built at all**. The schema change is small and the figures are the work, since every one needs provenance like every other spec number | P2 | 1h 30m + phys | GEO-14's second key, and the first honest answer to which sub is the main one | — | open |

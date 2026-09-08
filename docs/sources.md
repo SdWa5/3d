@@ -558,6 +558,32 @@ Every gap in both systems is listed in [requests.md](requests.md).
 full dimensions and weights. Those were **evaluated, not bought** — only SKRAM was built. They are
 deliberately absent from `specs/`; if one is ever acquired, the spreadsheet already has its numbers.
 
+### The Audio Routing sheet, and the four places it contradicts this file
+
+`Audio Routing.xlsx`, read 2026-09-08. It is **not in the SdWa5 shared drive** but in the rclone
+account's My Drive, so the `SdWa5:` remote cannot see it without `--drive-team-drive ""`, because that
+remote is scoped to `team_drive 0AFDifygC0zQZUk9PVA`. Beside it sit `Amp_GainSelector.csv`,
+`Drivers.csv`, `drivers.csv` and **four separate copies of `AmpLimiterCalc.csv`**.
+
+It is a **working sheet, not a datasheet.** Someone is calculating limiter settings in it, and the
+numbers move while they do. So where it disagrees with what is recorded above, **neither side is
+promoted**: both claims are written down with their source, and settling them is a front-panel or
+tape-measure job. Two figures agree exactly and are worth stating for that reason: `Top 15 2-way` at
+550 W and `Sub FH` at 1800 W match `Hardware/Hardware Overview.xlsx`.
+
+| Device | This file says | The sheet says | Status |
+|--------|----------------|----------------|--------|
+| `achenbach-18` driver | B&C 18TBW100, from `Hardware/Hardware Overview.xlsx` | RCF L18P300 | **Unresolved.** Two different 18″ drivers in the same cabinet. One of the two records is stale, and only opening the box settles it |
+| `achenbach-18` passband | 35–1000 Hz, from `Hardware/Hardware Overview.xlsx` | 35–1500 Hz | **Unresolved**, and it matters: the upper bound decides what the cabinet is asked to reproduce |
+| `tecnare-m2122` drivers | Celestion 12″, RCF ND650, B&C DE25 — the re-fitted complement | 2× 12NMB1000 LF, plus 2× D280Ti-B and 1× D4400Ti-Nd HF | **Unresolved.** The sheet also splits the cabinet into an LF and an HF channel at ~6.5 kHz, which this file does not record at all |
+| `tip10000q` and `mm14k` gain | not recorded here | The sheet's live `Amp_GainSelector` has all four amps at 32 or 34 dB. `Amp_GainSelector.csv`, in the same Drive folder, recommends **41 dB** for the TIP10000q and **44 dB** for the MM14K, and says in its own notes that a lower setting "cannot reach BR RMS limit" | **The sheet disagrees with the CSV beside it** about the one thing the CSV exists to decide. A gain setting is a DIP switch, so this is readable off the amplifier |
+
+**What the sheet adds rather than contradicts** is the electrical half that no spec here carries. RMS
+wattage, nominal impedance and a passband for six speaker groups, which is `SPEC-13`; and the
+amplifier complement, which half-answers `SPEC-8` by naming **GISEN M60D** for what was recorded as
+"gisen md60" and matched no product. Importing any of it is `SIG-1`, and each figure needs its own
+`provenance` like every other number in this file.
+
 ## What counts as a source
 
 | `reference` | Means |
