@@ -955,7 +955,6 @@ measured in 0.96.0. ALN-4's rule stands untouched and the two items are now inde
 | SCN-4 | Daylight renders: the insides of speakers come out a little too dark | P3 | 30m | — | — | open |
 | SCN-5 | Finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done | P3 | 2h | — | — | partial |
 | SCN-6 | Fly-through renders, combined with a new project from the audio routing table | P3 | 3h | — | — | open |
-| SCN-11 | **Done in 0.104.2.** `--order=ours,psl,innschleife` is recorded in every scene of `next-event` and `innschleife-psl-sdwa5-sepp`, and **799 of 799 multi-system scenes read `ours | psl | innschleife`** against 34 of 266 before. Two bugs had to be fixed to get there, both in `StackSceneWriter::byHeight()` and both found by verifying the regeneration rather than by reading the code: an order naming none of a rig's stacks skipped the height rule anyway, and a multi-stack rig's `ours-1`/`ours-2` labels matched no system name at all. **The gmss inventories are deliberately left on the height rule**, since no order was ever stated for gmss | P1 | — | done | — | done |
 
 #### SCN-10 — a front-face image, and the three places it has to fit
 
@@ -1107,4 +1106,5 @@ Two of today's decisions point straight at it and one points away:
 
 | ID | Item | State |
 |----|------|-------|
+| INFO-2 | **The gmss inventories are deliberately left on the height rule**, while `ours`, `psl` and `innschleife` are ordered by `--order`. No order was ever stated for gmss, so there is nothing to order them by, and inventing one would put cabinets somewhere nobody asked for. Recorded when the ordering work closed in 0.104.2, because its row was the only place this said so | known |
 | INFO-1 | **Our 4 m crank stands cannot clear a combined rig.** Every speaker in three stacks reaches 4.563 m as a pyramid and 5.628 m free, both above the 4 m the stands extend to, so a truss on `truss-tower-4m` sits below the tops it spans. `scenes/everything.yaml` uses GMSS's 5.2 m towers instead. Fine for our own 3.125 m rig, not for a combined one — worth knowing before hiring a stage. **Three-stack rigs are generated as of 0.77.0** — 12 of them, all `turned` or `mixed`, since a rolled sub wall is short enough for the band where the upright one is not | known |
