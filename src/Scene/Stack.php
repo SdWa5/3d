@@ -77,17 +77,17 @@ final class Stack
     /**
      * @param list<StackEntry> $from **low frequency first** — the order is the fill order
      * @param bool $mirror build this stack as the mirror image of how it solves, so one of a side-by-side pair
-     *     reflects the other instead of duplicating it — see {@see Tier::flipped}
+     *                     reflects the other instead of duplicating it — see {@see Tier::flipped}
      * @param float|null $slideSlackM how far sideways a badly-carried row may be moved, or null for "it may not
-     *     move". **This is a statement about neighbours, not about gravity.** A row does not have to be centred on what
-     *     carries it, and refusing to move it refuses rigs that stand up: GMSS's only arrangement inside the sub height
-     *     band puts a 2.400 m packed row on a 1.310 m support, where centred the outboard nuke lands on 45 mm of its
-     *     590 and slid 150 mm both ends are carried. What makes moving it unsafe is everything *else* in the scene:
-     *     stacks are spaced on their widest tier and their envelopes deliberately overlap in x, so an unbounded slide
-     *     reaches into the stack beside it — measured as 180 mm of interpenetration across five `all-3` scenes.
-     *     **A stack in a rig therefore gets half the clearance to its neighbour, less a working gap**, so two rows
-     *     sliding towards each other still leave air between them. A stack with nothing beside it is bounded only by
-     *     the stage. See {@see Gravity::resolve}
+     *                                move". **This is a statement about neighbours, not about gravity.** A row does not have to be centred on what
+     *                                carries it, and refusing to move it refuses rigs that stand up: GMSS's only arrangement inside the sub height
+     *                                band puts a 2.400 m packed row on a 1.310 m support, where centred the outboard nuke lands on 45 mm of its
+     *                                590 and slid 150 mm both ends are carried. What makes moving it unsafe is everything *else* in the scene:
+     *                                stacks are spaced on their widest tier and their envelopes deliberately overlap in x, so an unbounded slide
+     *                                reaches into the stack beside it — measured as 180 mm of interpenetration across five `all-3` scenes.
+     *                                **A stack in a rig therefore gets half the clearance to its neighbour, less a working gap**, so two rows
+     *                                sliding towards each other still leave air between them. A stack with nothing beside it is bounded only by
+     *                                the stage. See {@see Gravity::resolve}
      *
      *     **A scene states it as `slide_slack_m`, and it has to.** This was the last solve input `scene:stack` used
      *     that the schema could not express, so every solo rig was written by a solve that allowed sliding and rebuilt
@@ -126,16 +126,12 @@ final class Stack
             'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m', 'low_end',
         ];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "stack: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("stack: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         $entries = $reader->entryList('from');
-        if ($entries === []) {
+        if ([] === $entries) {
             throw new InvalidSpecException('stack.from: expected a list of device ids, low frequency first');
         }
 
@@ -157,17 +153,9 @@ final class Stack
             slideSlackM: $reader->optionalFloat('slide_slack_m'),
             shape: self::shapeFrom($reader->optionalString('shape')),
             lowEnd: LowEndBias::tryFrom($reader->optionalString('low_end') ?? LowEndBias::Low->value)
-                ?? throw new InvalidSpecException(sprintf(
-                    "stack.low_end: unknown value '%s' (allowed: %s)",
-                    (string)$reader->optionalString('low_end'),
-                    implode(', ', array_column(LowEndBias::cases(), 'value')),
-                )),
+                ?? throw new InvalidSpecException(sprintf("stack.low_end: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('low_end'), implode(', ', array_column(LowEndBias::cases(), 'value')))),
             mirrorStyle: MirrorStyle::tryFrom($reader->optionalString('mirror_style') ?? MirrorStyle::Alternate->value)
-                ?? throw new InvalidSpecException(sprintf(
-                    "stack.mirror_style: unknown value '%s' (allowed: %s)",
-                    (string)$reader->optionalString('mirror_style'),
-                    implode(', ', array_column(MirrorStyle::cases(), 'value')),
-                )),
+                ?? throw new InvalidSpecException(sprintf("stack.mirror_style: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('mirror_style'), implode(', ', array_column(MirrorStyle::cases(), 'value')))),
         );
     }
 
@@ -180,17 +168,13 @@ final class Stack
      */
     private static function shapeFrom(?string $stated): StackShape
     {
-        if ($stated === null) {
+        if (null === $stated) {
             return StackShape::Free;
         }
 
         $shape = StackShape::tryFrom($stated);
-        if ($shape === null) {
-            throw new InvalidSpecException(sprintf(
-                "stack.shape: unknown value '%s' (allowed: %s)",
-                $stated,
-                implode(', ', array_column(StackShape::cases(), 'value')),
-            ));
+        if (null === $shape) {
+            throw new InvalidSpecException(sprintf("stack.shape: unknown value '%s' (allowed: %s)", $stated, implode(', ', array_column(StackShape::cases(), 'value'))));
         }
 
         return $shape;
@@ -209,7 +193,7 @@ final class Stack
             $messages = [...$messages, ...$entry->problems()];
         }
 
-        if ($this->maxWidthM === null && $this->interfaceHeightM <= 0.0) {
+        if (null === $this->maxWidthM && $this->interfaceHeightM <= 0.0) {
             // With neither, nothing decides how many cabinets go in a row, and a stack of one-wide tiers
             // is not what anybody meant by leaving both out.
             $messages[] = 'stack needs either max_width_m or interface_height_m to decide how wide a tier is';
@@ -221,11 +205,11 @@ final class Stack
             'max_sub_height_m' => $this->maxSubHeightM,
             'target_sub_height_m' => $this->targetSubHeightM,
         ] as $key => $value) {
-            if ($value !== null && $value <= 0.0) {
+            if (null !== $value && $value <= 0.0) {
                 $messages[] = sprintf('stack.%s must be positive, got %s', $key, $value);
             }
         }
-        if ($this->maxSubHeightM !== null && $this->interfaceHeightM > $this->maxSubHeightM) {
+        if (null !== $this->maxSubHeightM && $this->interfaceHeightM > $this->maxSubHeightM) {
             // A floor above its own ceiling. Not a preference to resolve quietly in either direction: the two keys
             // say opposite things about the same number, and picking one would ship a rig whose author asked for
             // the other. Named with both numbers, because which one is the mistake is the author's to decide.
@@ -239,7 +223,7 @@ final class Stack
         if ($this->gapM < 0.0) {
             $messages[] = sprintf('stack.gap_m must not be negative, got %s', $this->gapM);
         }
-        if ($this->maxWidthM !== null && $this->minWidthM !== null && $this->minWidthM > $this->maxWidthM) {
+        if (null !== $this->maxWidthM && null !== $this->minWidthM && $this->minWidthM > $this->maxWidthM) {
             $messages[] = sprintf(
                 'stack.min_width_m (%s) is wider than stack.max_width_m (%s)',
                 $this->minWidthM,
@@ -264,7 +248,7 @@ final class Stack
     {
         foreach ($tier->segments as [$device, $count]) {
             $mode = $this->entryFor($device->id)?->align;
-            if ($mode !== null) {
+            if (null !== $mode) {
                 return new Alignment($mode);
             }
         }
@@ -300,6 +284,7 @@ final class Stack
      * hand-written rig does: the subs fire straight ahead and the tops are turned into the room.
      *
      * @param list<Tier> $tiers
+     *
      * @return list<Placement>
      */
     public function expand(Placement $placement, array $tiers): array
@@ -323,7 +308,7 @@ final class Stack
             // hand out the slack between the clusters, and moving them apart can only increase the clearance an
             // aimed cabinet needs. Each run keeps its own internal spacing, which is what `stereo` means — "natural
             // spacing kept within each column".
-            if ($isTop && $index > 0 && $this->alignFor($tier, $placement->align)?->mode === LayoutMode::Stereo) {
+            if ($isTop && $index > 0 && LayoutMode::Stereo === $this->alignFor($tier, $placement->align)?->mode) {
                 // **RESEATED AFTER THE SPREAD, BECAUSE MOVING A ROW CHANGES WHAT IT STANDS ON.** The spread walks the
                 // runs out across the *whole* support span, and that span routinely straddles supports at different
                 // heights — a stepped wall is the normal case here, not the exception. Without the reseat a run pushed
@@ -364,7 +349,7 @@ final class Stack
                     // A tier may name a focus of its own — the long throw in the middle of a top row wants the
                     // far one and the fills outboard of it are near-field. A stated focus replaces the
                     // placement's aim outright, `aim_at` included: they are two ways of saying the same thing.
-                    aimAt: $tier->isSub() || $own !== null ? null : $placement->aimAt,
+                    aimAt: $tier->isSub() || null !== $own ? null : $placement->aimAt,
                     aimFocus: $tier->isSub() ? null : ($own ?? $placement->aimFocus),
                     on: $run['on'],
                     fly: null,
@@ -414,11 +399,12 @@ final class Stack
      *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $below
+     *
      * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>
      */
     private static function spreadApart(array $runs, array $below): array
     {
-        if (count($runs) < 2 || $below === []) {
+        if (count($runs) < 2 || [] === $below) {
             return $runs;
         }
 
@@ -472,6 +458,7 @@ final class Stack
      * Null when there is nothing to chain — a row that landed in one run has no neighbour to clear.
      *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}> $runs
+     *
      * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, roll: float}>, array<string, array{id: string, side: float}>|null} the runs in emission order, and what each is spaced against
      */
     private static function throwFirst(array $runs): array
@@ -489,7 +476,7 @@ final class Stack
         usort($runs, static function (array $a, array $b) use ($centre): int {
             $byDistance = abs(($a['lo'] + $a['hi']) / 2 - $centre) <=> abs(($b['lo'] + $b['hi']) / 2 - $centre);
 
-            return $byDistance !== 0 ? $byDistance : $a['lo'] <=> $b['lo'];
+            return 0 !== $byDistance ? $byDistance : $a['lo'] <=> $b['lo'];
         });
 
         $ordered = array_values($runs);
@@ -518,6 +505,7 @@ final class Stack
      *
      * @param non-empty-list<array{id: string, lo: float, hi: float}> $references
      * @param array{lo: float, hi: float, ...} $run
+     *
      * @return array{id: string, side: float, distance: float}
      */
     private static function nearest(array $references, array $run): array
@@ -528,7 +516,7 @@ final class Stack
         foreach ($references as $reference) {
             $own = ($reference['lo'] + $reference['hi']) / 2;
             $distance = abs($centre - $own);
-            if ($best === null || $distance < $best['distance']) {
+            if (null === $best || $distance < $best['distance']) {
                 $best = ['id' => $reference['id'], 'side' => $centre < $own ? -1.0 : 1.0, 'distance' => $distance];
             }
         }
@@ -561,12 +549,12 @@ final class Stack
         bool $isTop,
         int $index,
     ): ?Alignment {
-        if (!$isTop || $index === 0) {
+        if (!$isTop || 0 === $index) {
             return null;
         }
 
         $nearest = $throw[$run['id']] ?? null;
-        if ($nearest !== null) {
+        if (null !== $nearest) {
             // `clear_of` rather than `outside`, and the difference is measured rather than cosmetic. `outside` reduces
             // the reference to the x span it covers, and an aimed cabinet's span runs far wider than its body — a 2-way
             // yawed 29.4° presents 0.8523 m on a 0.5 m cabinet. Down a chain of fills that compounds, and it drove a
@@ -581,7 +569,7 @@ final class Stack
             );
         }
 
-        if (count($runs) > 1 || $run['count'] < 2 || $run['on'] === null) {
+        if (count($runs) > 1 || $run['count'] < 2 || null === $run['on']) {
             return null;
         }
 
@@ -595,13 +583,13 @@ final class Stack
     {
         [$across, $widthM] = $envelope;
 
-        if ($align === null) {
+        if (null === $align) {
             return null;
         }
-        if ($widthM !== null) {
+        if (null !== $widthM) {
             return $align->orWidth($widthM);
         }
 
-        return $across === null ? $align : $align->orAcross($across);
+        return null === $across ? $align : $align->orAcross($across);
     }
 }

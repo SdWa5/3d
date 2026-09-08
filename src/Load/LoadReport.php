@@ -27,6 +27,7 @@ final class LoadReport
     /**
      * @param list<LoadPlan> $plans
      * @param list<array{spec: DeviceSpec, count: int}> $leftovers
+     *
      * @return list<string>
      */
     public function lines(array $plans, array $leftovers): array
@@ -48,14 +49,14 @@ final class LoadReport
                     ? sprintf('  OVER BY %.1f kg', $plan->overloadKg())
                     : sprintf('  (%.1f kg spare)', $plan->payloadKg - $plan->weightKg()),
             );
-            $lines[] = $plan->bayM3 === null
+            $lines[] = null === $plan->bayM3
                 ? '  space        bay not measured, so no space answer can be given'
                 : sprintf(
                     '  space   %8.3f m³ of %.3f m³ bay  (%.0f %% by bounding box%s)',
                     $plan->volumeM3(),
                     $plan->bayM3,
-                    100 * (float)$plan->bayFill(),
-                    $plan->exceedsTheBay() === true ? ', WHICH ALREADY EXCEEDS IT' : '',
+                    100 * (float) $plan->bayFill(),
+                    true === $plan->exceedsTheBay() ? ', WHICH ALREADY EXCEEDS IT' : '',
                 );
 
             foreach ($plan->items as ['spec' => $spec, 'count' => $count]) {
@@ -69,7 +70,7 @@ final class LoadReport
             $lines[] = '';
         }
 
-        if ($leftovers !== []) {
+        if ([] !== $leftovers) {
             $short = 0.0;
             $lines[] = 'NOT CARRIED — the fleet has no legal room for these:';
             foreach ($leftovers as ['spec' => $spec, 'count' => $count]) {
@@ -89,6 +90,7 @@ final class LoadReport
      *
      * @param list<LoadPlan> $plans
      * @param list<array{spec: DeviceSpec, count: int}> $leftovers
+     *
      * @return list<string>
      */
     private function provenanceLines(array $plans, array $leftovers): array

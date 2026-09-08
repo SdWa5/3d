@@ -314,7 +314,7 @@ final class StackTest extends TestCase
 
         $subs = array_values(array_filter(
             $placed,
-            static fn (PlacedDevice $e): bool => $e->device->id === 'flexy-folded-horn-hybrid',
+            static fn (PlacedDevice $e): bool => 'flexy-folded-horn-hybrid' === $e->device->id,
         ));
         self::assertCount(12, $subs);
 
@@ -368,7 +368,7 @@ final class StackTest extends TestCase
 
         $fills = array_values(array_filter(
             $placed,
-            static fn (PlacedDevice $e): bool => $e->device->id === 'eighteensound-2way-15',
+            static fn (PlacedDevice $e): bool => 'eighteensound-2way-15' === $e->device->id,
         ));
         self::assertCount(2, $fills);
 
@@ -447,7 +447,7 @@ final class StackTest extends TestCase
     }
 
     /**
-     * **`slide_slack_m` is read, and unstated it is `null` rather than a missing number.**
+     * **`slide_slack_m` is read, and unstated it is `null` rather than a missing number.**.
      *
      * The distinction is the whole point of the key. Null means "a row may not be moved sideways to get it carried",
      * which is the right answer for a stack with a neighbour to slide into, and `.inf` means "bounded only by the
@@ -472,7 +472,7 @@ final class StackTest extends TestCase
     }
 
     /**
-     * **Every solve input a `Stack` carries has a key the scene can state, and the writer writes it.**
+     * **Every solve input a `Stack` carries has a key the scene can state, and the writer writes it.**.
      *
      * This is the invariant rather than the field. A generated scene holds constraints and is re-solved on every
      * build, so an input the file cannot express is an input the rebuild silently substitutes a default for — and
@@ -487,10 +487,10 @@ final class StackTest extends TestCase
     public function testEveryStackInputCanBeStatedInASceneAndIsWrittenIntoOne(): void
     {
         $allowed = (new \ReflectionClass(Stack::class))->getMethod('fromReader');
-        $source = (string)file_get_contents((string)$allowed->getFileName());
+        $source = (string) file_get_contents((string) $allowed->getFileName());
 
         foreach ((new \ReflectionClass(Stack::class))->getConstructor()?->getParameters() ?? [] as $parameter) {
-            $key = strtolower((string)preg_replace('/(?<!^)[A-Z]/', '_$0', $parameter->getName()));
+            $key = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $parameter->getName()));
 
             self::assertStringContainsString(
                 "'".$key."'",
@@ -607,6 +607,7 @@ final class StackTest extends TestCase
      * A placement's outer edges in x.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return array{min: float, max: float}
      */
     private function edgesOf(array $placed, string $placementId): array
@@ -627,6 +628,7 @@ final class StackTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $placements
+     *
      * @return list<PlacedDevice>
      */
     private function compile(array $placements): array
@@ -645,6 +647,7 @@ final class StackTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $placements
+     *
      * @return list<string>
      */
     private function violations(array $placements): array

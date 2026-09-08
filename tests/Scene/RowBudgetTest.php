@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 final class RowBudgetTest extends TestCase
 {
     /**
-     * **Null means no bound at all, on either side and in the answer.**
+     * **Null means no bound at all, on either side and in the answer.**.
      *
      * Worth its own test because the convention is load-bearing and easy to get wrong in the other direction:
      * {@see \App\Scene\StackSolver::perTier} reads null as unbounded and `INF` as a trap, since `(int)floor(INF)` is
@@ -46,7 +46,7 @@ final class RowBudgetTest extends TestCase
 
         self::assertEqualsWithDelta(
             4 * 0.8 + 3 * 0.02,
-            (float)$budget->ceilingFor($this->device(), $this->stack(), 0.0),
+            (float) $budget->ceilingFor($this->device(), $this->stack(), 0.0),
             1e-9,
         );
     }
@@ -60,16 +60,16 @@ final class RowBudgetTest extends TestCase
         $stack = $this->stack();
 
         // Four seats are 3.26 m of cabinet, so a 2.0 m width is the binding half.
-        self::assertEqualsWithDelta(2.0, (float)(new RowBudget(2.0, 4))->ceilingFor($device, $stack, 0.0), 1e-9);
+        self::assertEqualsWithDelta(2.0, (float) (new RowBudget(2.0, 4))->ceilingFor($device, $stack, 0.0), 1e-9);
 
         // And the other way round, where the seats bind first.
         self::assertEqualsWithDelta(
             4 * 0.8 + 3 * 0.02,
-            (float)(new RowBudget(9.0, 4))->ceilingFor($device, $stack, 0.0),
+            (float) (new RowBudget(9.0, 4))->ceilingFor($device, $stack, 0.0),
             1e-9,
         );
 
-        self::assertEqualsWithDelta(1.5, (float)RowBudget::unbounded()->narrowedTo(1.5)->widthM, 1e-9);
+        self::assertEqualsWithDelta(1.5, (float) RowBudget::unbounded()->narrowedTo(1.5)->widthM, 1e-9);
         self::assertSame(4, (new RowBudget(9.0, 4))->narrowedTo(1.5)->seats, 'narrowing a width leaves the seats alone');
     }
 

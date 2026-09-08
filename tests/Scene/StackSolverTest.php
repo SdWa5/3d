@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
-use App\Scene\Stack;
 use App\Scene\Gravity;
+use App\Scene\Stack;
 use App\Scene\StackChecks;
 use App\Scene\StackEntry;
 use App\Scene\StackShape;
@@ -106,7 +106,7 @@ final class StackSolverTest extends TestCase
      * This is the arrangement the feature was built for. It was briefly impossible, because mixing cabinets of
      * different heights was banned after a mixed row left six Flexys floating — but the floating was caused by
      * resting the whole row above at the taller cabinet's height, not by the mixing. Gravity fixed it: each
-     * cabinet lands on whatever is under *it* ({@see \App\Scene\Stack::runsFor}), so the row above a mixed row
+     * cabinet lands on whatever is under *it* ({@see Stack::runsFor}), so the row above a mixed row
      * simply has an uneven top.
      *
      * Achenbach is pinned to four here rather than read off the spec: six of them are already 3.70 m wide —
@@ -163,14 +163,14 @@ final class StackSolverTest extends TestCase
 
     /**
      * A row is sized against the tier carrying it, not just against the stage — so the fill stops handing
-     * {@see \App\Scene\StackChecks} rows it is about to reject.
+     * {@see StackChecks} rows it is about to reject.
      *
      * The case that found it: six Achenbachs are 3.700 m and fit any stage this repository states, while the four
      * Flexys under them are 2.424 m. Sized on the stage alone, an Achenbach on each end of that row has nothing
      * beneath it at all, and the whole arrangement was refused — for rows the fill had generated itself. Sized on
      * the support it becomes rows the Flexys can carry.
      *
-     * The bound is {@see \App\Scene\Gravity::MIN_BEARING} rearranged, not a stricter rule of its own: a row may
+     * The bound is {@see Gravity::MIN_BEARING} rearranged, not a stricter rule of its own: a row may
      * reach two thirds of a cabinet past its support on each side, which is exactly the overhang the checker
      * permits. A test that pinned "never wider than below" would be pinning the wrong rule and would refuse rigs
      * this repository ships — `full-rig-arc`'s Achenbach row stands 27 mm proud of its sub wall on purpose.
@@ -649,7 +649,7 @@ final class StackSolverTest extends TestCase
             Tier::of($this->devices['achenbach-18'], 5),
         ];
 
-        $check = new \ReflectionMethod(\App\Scene\StackChecks::class, 'supportChecks');
+        $check = new \ReflectionMethod(StackChecks::class, 'supportChecks');
         $problems = $check->invoke(null, $tiers, new Stack(from: [], maxWidthM: null, interfaceHeightM: 0.0, gapM: 0.02))['problems'];
 
         self::assertStringContainsString('nothing under it at all', implode("\n", $problems));
@@ -1151,7 +1151,7 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * The invariant `pyramid` exists for: **no row holds more cabinets than the row below it.**
+     * The invariant `pyramid` exists for: **no row holds more cabinets than the row below it.**.
      *
      * A count rather than a width, because that is the rule — six Achenbachs at 3.700 m on six Flexys' 3.646 is a
      * 27 mm shoulder per side and flush, and capping the width refused it, split them into two rows of three and left
@@ -1246,6 +1246,7 @@ final class StackSolverTest extends TestCase
      * refusal, and takes the counts the scenario needs rather than the whole inventory.
      *
      * @param list<string> $ids
+     *
      * @return array{tiers: list<Tier>, problems: list<string>, warnings: list<string>}
      */
     private function solveTo(
@@ -1262,7 +1263,7 @@ final class StackSolverTest extends TestCase
             'skram' => $skramCount,
             'flexy-folded-horn-hybrid' => $flexyCount,
             'achenbach-18' => $achenbachCount,
-        ], static fn (?int $count): bool => $count !== null);
+        ], static fn (?int $count): bool => null !== $count);
 
         return StackSolver::solve(
             array_map(
@@ -1283,6 +1284,7 @@ final class StackSolverTest extends TestCase
 
     /**
      * @param list<string> $from
+     *
      * @return list<Tier>
      */
     private function solve(array $from, ?float $maxWidthM, float $interfaceHeightM): array
@@ -1309,6 +1311,7 @@ final class StackSolverTest extends TestCase
      * is exactly the geometry these particular scenarios exist to demonstrate.
      *
      * @param list<string> $ids
+     *
      * @return list<Tier>
      */
     private function solvePinned(array $ids, ?float $maxWidthM, float $interfaceHeightM): array
@@ -1334,7 +1337,6 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * @param list<string> $ids
      * @return list<array{DeviceSpec, int}>
      */
     /**
@@ -1393,11 +1395,10 @@ final class StackSolverTest extends TestCase
     }
 
     /**
-     * @param list<string> $ids
      * @return list<array{DeviceSpec, int}>
      */
     /**
-     * **A sub wing that falls short of its interface says so, rather than saying nothing.**
+     * **A sub wing that falls short of its interface says so, rather than saying nothing.**.
      *
      * The rule used to be "nothing to fire over anybody's head means nothing to say", which is right about the tops
      * and wrong about the header: a scene file prints `Subs reach 1.800 m against a 2.000 m interface` for every

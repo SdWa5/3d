@@ -71,7 +71,7 @@ final class PackSceneWriter
                     self::number($entry['at'][0]),
                     self::number($offset + $entry['at'][1]),
                 );
-                if ($entry['on'] !== null) {
+                if (null !== $entry['on']) {
                     $block .= sprintf("\n    on: %s", $entry['on']);
                 }
                 $placements[] = $block;
@@ -102,7 +102,7 @@ final class PackSceneWriter
                 // generator standing 1.2 m on a 1 m trailer is perfectly normal and the first wording called it
                 // something that would have to be laid down, which is simply false. A 4 m mast on the same trailer
                 // is still worth naming — so the note says what it can see and leaves the judgement to the reader.
-                $overflowNotes[] = $vehicle->vehicle?->loadBay === null
+                $overflowNotes[] = null === $vehicle->vehicle?->loadBay
                     ? sprintf(
                         '%s stands %.3f m proud on %s, an open bed with no roof to check it against',
                         $spec->id,
@@ -129,13 +129,13 @@ final class PackSceneWriter
         $lines[] = 'placements:';
 
         $notes = [];
-        if ($leftovers !== []) {
+        if ([] !== $leftovers) {
             $notes[] = 'NOT CARRIED AT ALL — the fleet has no legal room for these:';
             foreach ($leftovers as ['spec' => $spec, 'count' => $count]) {
                 $notes[] = sprintf('  %d × %s (%.1f kg)', $count, $spec->id, $spec->weightKg * $count);
             }
         }
-        if ($overflowNotes !== []) {
+        if ([] !== $overflowNotes) {
             $notes[] = '';
             $notes[] = 'WHAT THE LAYOUT RULE CANNOT DO, which is a statement about the rule rather than about the';
             $notes[] = 'vans — a tighter pack, or one that turned things over, would handle these:';
@@ -145,7 +145,7 @@ final class PackSceneWriter
         }
 
         $yaml = implode("\n", $lines)."\n".implode("\n\n", $placements)."\n";
-        if ($notes !== []) {
+        if ([] !== $notes) {
             $yaml .= "\nnotes: |\n".implode("\n", array_map(static fn (string $n): string => '  '.$n, $notes))."\n";
         }
 
@@ -156,6 +156,6 @@ final class PackSceneWriter
     {
         $formatted = rtrim(rtrim(sprintf('%.4F', $value), '0'), '.');
 
-        return $formatted === '' || $formatted === '-0' ? '0' : $formatted;
+        return '' === $formatted || '-0' === $formatted ? '0' : $formatted;
     }
 }

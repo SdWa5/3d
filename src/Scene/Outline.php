@@ -192,6 +192,7 @@ final class Outline
      * coincident plan points come out as the four corners of a rectangle.
      *
      * @param list<array{float, float}> $points
+     *
      * @return list<array{float, float}>
      */
     private static function hull(array $points): array
@@ -212,7 +213,7 @@ final class Outline
         $unique = [];
         $previous = null;
         foreach ($keyed as [$keyX, $keyY, $point]) {
-            if ($previous === null || $previous[0] !== $keyX || $previous[1] !== $keyY) {
+            if (null === $previous || $previous[0] !== $keyX || $previous[1] !== $keyY) {
                 $unique[] = $point;
             }
             $previous = [$keyX, $keyY];

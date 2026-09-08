@@ -49,6 +49,7 @@ final class Fault
      * Every placement id named by any of these faults, each once.
      *
      * @param list<Fault> $faults
+     *
      * @return list<string>
      */
     public static function placementsIn(array $faults): array

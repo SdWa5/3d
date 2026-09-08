@@ -42,7 +42,8 @@ final class StackSceneWriter
      *
      * @param list<StackBlock> $blocks
      * @param list<string> $order system labels, left to right. Empty — or naming none of these blocks, which
-     *     is what a system order does to a `pooled` rig — leaves the height rule below in charge
+     *                            is what a system order does to a `pooled` rig — leaves the height rule below in charge
+     *
      * @return list<StackBlock>
      */
     public static function byHeight(array $blocks, LayoutMode $mode, array $order = []): array
@@ -67,7 +68,7 @@ final class StackSceneWriter
         // them across the possible/impossible line. So the stated path is taken only when it has something to say.
         $named = false;
         foreach ($blocks as $block) {
-            if ($rankOf($block->label) !== null) {
+            if (null !== $rankOf($block->label)) {
                 $named = true;
 
                 break;
@@ -92,7 +93,7 @@ final class StackSceneWriter
             return array_values($blocks);
         }
 
-        if (count($blocks) < 3 && $mode !== LayoutMode::Stereo) {
+        if (count($blocks) < 3 && LayoutMode::Stereo !== $mode) {
             // Two stacks have no middle to be in, and no mono ordering can tell them apart.
             return $blocks;
         }
@@ -108,10 +109,10 @@ final class StackSceneWriter
         $left = [];
         $right = [];
         foreach ($blocks as $position => $block) {
-            $position % 2 === 0 ? $left[] = $block : $right[] = $block;
+            0 === $position % 2 ? $left[] = $block : $right[] = $block;
         }
 
-        return $mode === LayoutMode::Stereo
+        return LayoutMode::Stereo === $mode
             // Tallest at the ends: the tall half outward on the left, the rest inward, mirrored on the right.
             ? [...$left, ...array_reverse($right)]
             // Tallest central: shorter ones outboard on the left, tallest in the middle, the rest to the right.
@@ -122,9 +123,9 @@ final class StackSceneWriter
      * @param list<StackBlock> $blocks one solved stack each, left to right
      * @param array{float, float} $at where the whole arrangement is centred
      * @param array<string, int> $stated devices whose count came from a roster or `--quantity` rather than from
-     *     their spec, which must be written into the file whatever the share works out to. See {@see yaml}
+     *                                   their spec, which must be written into the file whatever the share works out to. See {@see yaml}
      * @param bool $perSystemFocus whether each block is its own sound system and therefore aims at its own focus
-     *     rather than at the rig's — true for the separated values of {@see SystemSplit}, false for `pooled`
+     *                             rather than at the rig's — true for the separated values of {@see SystemSplit}, false for `pooled`
      */
     public static function yaml(
         string $id,
@@ -177,7 +178,7 @@ final class StackSceneWriter
                 }
             }
 
-            if ($block->align !== null) {
+            if (null !== $block->align) {
                 $lines[] = '    align:';
                 $lines[] = sprintf('      mode: %s', $block->align->value);
             }
@@ -186,19 +187,19 @@ final class StackSceneWriter
             foreach (self::constraints($block->stack) as $key => $value) {
                 $lines[] = sprintf('      %s: %s', $key, self::number($value));
             }
-            if ($block->stack->mirrorStyle !== MirrorStyle::Alternate) {
+            if (MirrorStyle::Alternate !== $block->stack->mirrorStyle) {
                 // Same reason `shape` is written: the `stack:` block is re-solved on every build, so a style left out
                 // comes back as the default and the variant rebuilds as its sibling.
                 $lines[] = sprintf('      mirror_style: %s', $block->stack->mirrorStyle->value);
             }
-            if ($block->stack->lowEnd !== LowEndBias::Low) {
+            if (LowEndBias::Low !== $block->stack->lowEnd) {
                 // Written only when it is not the default, like every other key here — and written it must be,
                 // because the `stack:` block is re-solved on every build and a bias left out comes back as `low`.
                 // The two values are two rigs: `central` puts the SKRAMs one above the other on the centre line
                 // where `low` puts both of them on the floor.
                 $lines[] = sprintf('      low_end: %s', $block->stack->lowEnd->value);
             }
-            if ($block->stack->shape !== StackShape::Free) {
+            if (StackShape::Free !== $block->stack->shape) {
                 // Written only when it is not the default, like every other key here — but written it must be. The
                 // `stack:` block is re-solved on every build, and a shape left out of the file comes back as `free`:
                 // the pyramid variant would rebuild as its own sibling, which is exactly what made the two
@@ -240,23 +241,23 @@ final class StackSceneWriter
                 // `mix_with` belongs in the same list as the roll and the share: it is part of what the solve
                 // decided, and a mix left out comes back as separate tiers — which is a taller stack, quietly.
                 $mixWith = $block->stack->entryFor($deviceId)?->mixWith ?? [];
-                if ($roll === null && $share === null && $mixWith === [] && $block->stack->entryFor($deviceId)?->aim === null) {
+                if (null === $roll && null === $share && [] === $mixWith && null === $block->stack->entryFor($deviceId)?->aim) {
                     $lines[] = sprintf('        - %s', $deviceId);
                     continue;
                 }
 
                 $lines[] = sprintf('        - device: %s', $deviceId);
-                if ($share !== null) {
+                if (null !== $share) {
                     $lines[] = sprintf('          count: %d', $share);
                 }
-                if ($roll !== null) {
+                if (null !== $roll) {
                     $lines[] = sprintf('          roll_mirror: %s', self::number($roll));
                 }
-                if ($mixWith !== []) {
+                if ([] !== $mixWith) {
                     $lines[] = sprintf('          mix_with: [ %s ]', implode(', ', $mixWith));
                 }
                 $aim = $block->stack->entryFor($deviceId)?->aim;
-                if ($aim !== null) {
+                if (null !== $aim) {
                     $lines[] = sprintf('          aim: %s', $aim);
                 }
             }
@@ -275,6 +276,7 @@ final class StackSceneWriter
      * Achenbach row is 3.700 m against a 3.646 m sub wall.
      *
      * @param list<StackBlock> $blocks
+     *
      * @return list<float>
      */
     /**
@@ -319,6 +321,7 @@ final class StackSceneWriter
      * The explaining comment block — the whole reason this is not `Yaml::dump()`.
      *
      * @param list<StackBlock> $blocks
+     *
      * @return list<string>
      */
     private static function header(array $blocks, float $clearanceM, string $command = ''): array
@@ -336,7 +339,7 @@ final class StackSceneWriter
         // exactly what happened when the GMSS cabinets were re-measured and eleven scenes needed rebuilding. The
         // options are reconstructed from what the command actually used rather than copied off the command line,
         // so a default that changes is reflected here instead of being silently inherited.
-        if ($command !== '') {
+        if ('' !== $command) {
             $lines[] = '# Regenerate it with:';
             $lines[] = '#';
             foreach (self::wrap('#   '.$command, 116) as $line) {
@@ -377,7 +380,7 @@ final class StackSceneWriter
                 self::number(round($block->heightM(), 3)),
             );
 
-            if ($block->align !== null) {
+            if (null !== $block->align) {
                 $lines[] = sprintf(
                     '# `align: %s` spreads the top tier onto the edges of the row carrying it.',
                     $block->align->value,
@@ -412,7 +415,7 @@ final class StackSceneWriter
         // contradiction. Every constraint the command was given has to be written: the scene is re-solved on every
         // build, so a bound left out of the file is a bound the rig quietly stops answering to.
         $constraints = ['interface_height_m' => $stack->interfaceHeightM];
-        if ($stack->maxSubHeightM !== null) {
+        if (null !== $stack->maxSubHeightM) {
             $constraints['max_sub_height_m'] = $stack->maxSubHeightM;
         }
         // **Only when it is not the default**, unlike the two bounds above. A target is a preference and its default is
@@ -428,12 +431,12 @@ final class StackSceneWriter
         // sliding forbidden and answered a different question from the one its own header comment reported. It is
         // written whenever it is stated rather than only when it is not the default, because both values are
         // meaningful and null is not a missing number but the "may not move" answer.
-        if ($stack->slideSlackM !== null) {
+        if (null !== $stack->slideSlackM) {
             $constraints['slide_slack_m'] = $stack->slideSlackM;
         }
 
         foreach (['max_width_m' => $stack->maxWidthM, 'min_width_m' => $stack->minWidthM, 'max_height_m' => $stack->maxHeightM] as $key => $value) {
-            if ($value !== null) {
+            if (null !== $value) {
                 $constraints = [$key => $value] + $constraints;
             }
         }
@@ -449,7 +452,7 @@ final class StackSceneWriter
         $wrapped = explode("\n", wordwrap($text, $width, "\n"));
 
         return array_map(
-            static fn (int $index, string $line): string => $index === 0 ? $line : '#     '.ltrim($line, '# '),
+            static fn (int $index, string $line): string => 0 === $index ? $line : '#     '.ltrim($line, '# '),
             array_keys($wrapped),
             $wrapped,
         );
@@ -467,7 +470,7 @@ final class StackSceneWriter
 
         $formatted = rtrim(rtrim(sprintf('%.4F', $value), '0'), '.');
 
-        return $formatted === '' || $formatted === '-' ? '0.0' : (str_contains($formatted, '.') ? $formatted : $formatted.'.0');
+        return '' === $formatted || '-' === $formatted ? '0.0' : (str_contains($formatted, '.') ? $formatted : $formatted.'.0');
     }
 
     private static function quote(string $value): string

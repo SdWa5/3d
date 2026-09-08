@@ -40,6 +40,7 @@ final class StackDeal
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $from
+     *
      * @return array{stacks: array<string, array{ids: list<string>, index: int, of: int}>, tops: array<string, int>}|string
      */
     public static function groups(
@@ -64,7 +65,7 @@ final class StackDeal
         }
 
         $split = SplitMode::tryFrom($splitValue);
-        if ($split === null) {
+        if (null === $split) {
             return sprintf(
                 "--split: unknown value '%s' (allowed: %s)",
                 $splitValue,
@@ -80,7 +81,7 @@ final class StackDeal
         if ($systems->sharesTops()) {
             $subs = [];
             foreach ($from as $id) {
-                if ($devices[$id]->subtype === 'sub') {
+                if ('sub' === $devices[$id]->subtype) {
                     $subs[] = $id;
                     continue;
                 }
@@ -100,7 +101,7 @@ final class StackDeal
         } else {
             $groups[''] = $from;
         }
-        if ($groups === []) {
+        if ([] === $groups) {
             // Only reachable with `tops-shared`, and only on an inventory of nothing but tops. Worth its own refusal
             // rather than an empty-stack error further down: there is nothing wrong with the request except that
             // there are no subs in it, and nothing stands a top up but a sub.
@@ -115,7 +116,7 @@ final class StackDeal
         foreach ($groups as $label => $ids) {
             // By type, the stack's own list *is* its share, so `of` is 1 and nothing is divided further. That is
             // what makes a by-type stack low: it holds two or three types where a by-count stack holds all nine.
-            $perStack = $split === SplitMode::ByType && $stacks > 1
+            $perStack = SplitMode::ByType === $split && $stacks > 1
                 ? self::byType($devices, $ids, $stacks)
                 : null;
             if (is_string($perStack)) {
@@ -123,10 +124,10 @@ final class StackDeal
             }
 
             for ($stack = 0; $stack < $stacks; ++$stack) {
-                $key = $stacks === 1
-                    ? (string)$label
-                    : ($label === '' ? (string)($stack + 1) : $label.'-'.($stack + 1));
-                $dealt[$key] = $perStack === null
+                $key = 1 === $stacks
+                    ? (string) $label
+                    : ('' === $label ? (string) ($stack + 1) : $label.'-'.($stack + 1));
+                $dealt[$key] = null === $perStack
                     ? ['ids' => $ids, 'index' => $stack, 'of' => $stacks]
                     : ['ids' => $perStack[$stack], 'index' => $stack, 'of' => 1];
             }
@@ -155,6 +156,7 @@ final class StackDeal
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
+     *
      * @return list<list<string>>|string one list per stack, or why the split cannot be made
      */
     public static function byType(array $devices, array $ids, int $stacks): array|string
@@ -178,7 +180,7 @@ final class StackDeal
         $assigned = array_fill(0, $stacks, []);
         $load = array_fill(0, $stacks, 0.0);
         foreach ($bySize as $id) {
-            $target = (int)array_search(min($load), $load, true);
+            $target = (int) array_search(min($load), $load, true);
             $assigned[$target][] = $id;
             $load[$target] += $devices[$id]->quantity * $devices[$id]->dimensions->width;
         }
@@ -187,12 +189,12 @@ final class StackDeal
         foreach ($assigned as $stack => $own) {
             $subLoad[$stack] = 0.0;
             foreach ($own as $id) {
-                if ($devices[$id]->subtype === 'sub') {
+                if ('sub' === $devices[$id]->subtype) {
                     $subLoad[$stack] += $devices[$id]->quantity * $devices[$id]->dimensions->width;
                 }
             }
         }
-        $carries = (int)array_search(max($subLoad), $subLoad, true);
+        $carries = (int) array_search(max($subLoad), $subLoad, true);
         foreach ($assigned as $stack => $own) {
             if ($subLoad[$stack] > 0.0 || $stack === $carries) {
                 continue;
@@ -207,7 +209,7 @@ final class StackDeal
         }
 
         foreach ($ordered as $stack => $own) {
-            if ($own === []) {
+            if ([] === $own) {
                 return sprintf(
                     '--split=by-type: stack %d ends up empty — its only types were tops, which have nothing to '
                     .'stand on, and they went to the stack carrying the most sub. Use fewer stacks',
@@ -241,6 +243,7 @@ final class StackDeal
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
      * @param array<string, int> $dealt device id => a count decided elsewhere, which overrides the share
+     *
      * @return list<array{DeviceSpec, int}>
      */
     public static function inventoryFor(
@@ -273,12 +276,12 @@ final class StackDeal
                 // one, and neither works with one cabinet. Tops are exempt from the second: nothing stands on a
                 // top, so one Tecnare per stack is a perfectly good top row, and applying the rule to them made
                 // the middle stack hoard every one and left the outer stacks a row of subs with nothing above.
-                if ($share < 1 || (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub')) {
+                if ($share < 1 || (!$evenSplit && $share < 2 && 'sub' === $devices[$id]->subtype)) {
                     // A **sub** goes to the middle: weight belongs low and central, and a sub has to be part of a
                     // row that carries something. A **top** goes to the outermost stacks instead, because the tops
                     // too few to give every stack one are the small boxes — near-field fill, which belongs at the
                     // edges of the rig rather than stacked in its centre.
-                    return $devices[$id]->subtype === 'sub'
+                    return 'sub' === $devices[$id]->subtype
                         ? [$devices[$id], $index === $middle ? $quantity : 0]
                         : [$devices[$id], self::outerShare($quantity, $index, $of)];
                 }
@@ -305,7 +308,7 @@ final class StackDeal
             $quantity -= 2;
         }
 
-        return $quantity > 0 && $of % 2 === 1 && $index === intdiv($of, 2) ? $quantity : 0;
+        return $quantity > 0 && 1 === $of % 2 && $index === intdiv($of, 2) ? $quantity : 0;
     }
 
     /**
@@ -317,15 +320,15 @@ final class StackDeal
      *
      * `outerShare` leaves a single cabinet out when the rig has an **even** number of stacks, because there is no
      * middle stack to give it to. Placing everything means it has to go somewhere, and it goes to the stack just
-     * right of the centre line — the same side {@see \App\Scene\Tier::mirrored} and
-     * {@see \App\Scene\StackSolver::centred} put an odd cabinet, so a rig is asymmetric the same way throughout
+     * right of the centre line — the same side {@see Tier::mirrored} and
+     * {@see StackSolver::centred} put an odd cabinet, so a rig is asymmetric the same way throughout
      * rather than one way per rule.
      */
     public static function dealAll(int $quantity, int $index, int $of): int
     {
         $share = intdiv($quantity, $of);
         $rest = $quantity - $share * $of;
-        $odd = $rest % 2 === 1 && $of % 2 === 0 && $index === intdiv($of, 2) ? 1 : 0;
+        $odd = 1 === $rest % 2 && 0 === $of % 2 && $index === intdiv($of, 2) ? 1 : 0;
 
         return $share + self::outerShare($rest, $index, $of) + $odd;
     }
@@ -336,6 +339,7 @@ final class StackDeal
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
      * @param array<string, int> $dealt device ids whose count was dealt rather than split, which have no remainder
+     *
      * @return array<string, string> device id => why some are not in any stack
      */
     public static function splitRemainder(
@@ -371,7 +375,7 @@ final class StackDeal
             // A sub kept whole because it could not be split. Said out loud, because the header otherwise shows
             // both SKRAMs in one stack and gives no hint that the other arrangement was tried and refused — which
             // is the single thing about a split rig people ask about.
-            if (!$evenSplit && $share < 2 && $devices[$id]->subtype === 'sub') {
+            if (!$evenSplit && $share < 2 && 'sub' === $devices[$id]->subtype) {
                 $left[$id] = sprintf(
                     'KEPT TOGETHER, all %d in one stack — %d stacks would take one each, and one on its own cannot be '
                     .'flanked into a row that carries anything: the row above it ends up half off its support. '

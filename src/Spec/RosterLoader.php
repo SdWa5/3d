@@ -38,8 +38,8 @@ final class RosterLoader
         }
 
         $ids = [];
-        foreach ((array)scandir($this->rostersDir) as $entry) {
-            if (is_string($entry) && preg_match('/^(.+)\.ya?ml$/', $entry, $matches) === 1) {
+        foreach ((array) scandir($this->rostersDir) as $entry) {
+            if (is_string($entry) && 1 === preg_match('/^(.+)\.ya?ml$/', $entry, $matches)) {
                 $ids[] = $matches[1];
             }
         }
@@ -60,7 +60,7 @@ final class RosterLoader
         }
 
         $contents = @file_get_contents($file);
-        if ($contents === false) {
+        if (false === $contents) {
             throw new InvalidSpecException('cannot read file');
         }
 

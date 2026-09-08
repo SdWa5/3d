@@ -34,6 +34,7 @@ final class SpecValidator
 
     /**
      * @param list<DeviceSpec> $specs
+     *
      * @return list<Violation>
      */
     public function validate(array $specs): array
@@ -66,23 +67,24 @@ final class SpecValidator
      * into "this does not travel" — and the load plan would look complete while a 465 kg generator sat at home.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return list<Violation>
      */
     private function validateCarriedOn(array $specs): array
     {
         $transporters = [];
         foreach ($specs as $spec) {
-            if ($spec->category === Category::Vehicle) {
+            if (Category::Vehicle === $spec->category) {
                 $transporters[] = $spec->id;
             }
         }
 
         $violations = [];
         foreach ($specs as $spec) {
-            if ($spec->carriedOn === null) {
+            if (null === $spec->carriedOn) {
                 continue;
             }
-            if ($spec->category === Category::Vehicle) {
+            if (Category::Vehicle === $spec->category) {
                 $violations[] = new Violation(
                     $spec->sourcePath,
                     'a transporter is not cargo, so `carried_on` does not belong on one',
@@ -93,7 +95,7 @@ final class SpecValidator
                 $violations[] = new Violation($spec->sourcePath, sprintf(
                     "carried_on '%s' is not a transporter in this library. Available: %s",
                     $spec->carriedOn,
-                    $transporters === [] ? 'none' : implode(', ', $transporters),
+                    [] === $transporters ? 'none' : implode(', ', $transporters),
                 ));
             }
         }
@@ -111,7 +113,7 @@ final class SpecValidator
             $violations[] = new Violation($spec->sourcePath, $message);
         };
 
-        if (preg_match(self::ID_PATTERN, $spec->id) !== 1) {
+        if (1 !== preg_match(self::ID_PATTERN, $spec->id)) {
             $add("id '{$spec->id}' must be lowercase words separated by single dashes");
         }
         $expectedId = pathinfo($spec->sourcePath, PATHINFO_FILENAME);
@@ -123,12 +125,12 @@ final class SpecValidator
             $add("quantity must be at least 1, got {$spec->quantity}");
         }
 
-        if (preg_match(self::ID_PATTERN, $spec->owner) !== 1) {
+        if (1 !== preg_match(self::ID_PATTERN, $spec->owner)) {
             $add("owner '{$spec->owner}' must be lowercase words separated by single dashes");
         }
 
         $allowedSubtypes = $spec->category->allowedSubtypes();
-        if ($allowedSubtypes !== null && !in_array($spec->subtype, $allowedSubtypes, true)) {
+        if (null !== $allowedSubtypes && !in_array($spec->subtype, $allowedSubtypes, true)) {
             $allowed = implode(', ', $allowedSubtypes);
             $add("subtype '{$spec->subtype}' is not valid for category '{$spec->category->value}' (allowed: {$allowed})");
         }
@@ -153,13 +155,13 @@ final class SpecValidator
             $add("physical.weight_kg must be greater than 0, got {$spec->weightKg}");
         }
 
-        if (preg_match(self::COLOR_PATTERN, $spec->color) !== 1) {
+        if (1 !== preg_match(self::COLOR_PATTERN, $spec->color)) {
             $add("appearance.color '{$spec->color}' must be a #rrggbb hex colour");
         }
-        if ($spec->grilleColor !== null && preg_match(self::COLOR_PATTERN, $spec->grilleColor) !== 1) {
+        if (null !== $spec->grilleColor && 1 !== preg_match(self::COLOR_PATTERN, $spec->grilleColor)) {
             $add("appearance.grille.color '{$spec->grilleColor}' must be a #rrggbb hex colour");
         }
-        if ($spec->grilleInset !== null) {
+        if (null !== $spec->grilleInset) {
             if ($spec->grilleInset < 0) {
                 $add("appearance.grille.inset_m must not be negative, got {$spec->grilleInset}");
             } elseif ($spec->dimensions->depth > 0 && $spec->grilleInset >= $spec->dimensions->depth / 2) {
@@ -207,7 +209,7 @@ final class SpecValidator
     private function warnAboutMissingMesh(DeviceSpec $spec): array
     {
         $override = $spec->meshOverride;
-        if ($override === null || is_file($this->resolve($override->path))) {
+        if (null === $override || is_file($this->resolve($override->path))) {
             return [];
         }
 
@@ -227,7 +229,7 @@ final class SpecValidator
     private function validateMeshOverride(DeviceSpec $spec): array
     {
         $override = $spec->meshOverride;
-        if ($override === null) {
+        if (null === $override) {
             return [];
         }
 
@@ -239,10 +241,10 @@ final class SpecValidator
                 "mesh_override.path '%s' has no importable extension (allowed: %s)%s",
                 $override->path,
                 $allowed,
-                $override->extension() === 'fcstd' ? ' — Blender cannot read FreeCAD; export to .obj or .glb first' : '',
+                'fcstd' === $override->extension() ? ' — Blender cannot read FreeCAD; export to .obj or .glb first' : '',
             );
         }
-        if ($override->unitScale() === null) {
+        if (null === $override->unitScale()) {
             $messages[] = sprintf(
                 "mesh_override.units '%s' is unknown (allowed: %s)",
                 $override->units,
@@ -269,7 +271,7 @@ final class SpecValidator
     private function validateLayout(DeviceSpec $spec): array
     {
         $layout = $spec->layout;
-        if ($layout === null) {
+        if (null === $layout) {
             return [];
         }
 
@@ -296,10 +298,10 @@ final class SpecValidator
                 continue;
             }
 
-            if ($feature->isHorn() && $feature->throatIn === null) {
+            if ($feature->isHorn() && null === $feature->throatIn) {
                 $messages[] = "{$label}: a horn needs throat_in";
             }
-            if ($feature->isCone() && $feature->diameterIn === null) {
+            if ($feature->isCone() && null === $feature->diameterIn) {
                 $messages[] = "{$label}: a cone needs diameter_in";
             }
 
@@ -318,7 +320,7 @@ final class SpecValidator
             }
 
             $opening = $feature->openingM();
-            if ($opening === null) {
+            if (null === $opening) {
                 $messages[] = "{$label}: needs mouth_m, or diameter_in on a cone";
             } else {
                 foreach (['width' => $opening[0], 'height' => $opening[1]] as $axis => $value) {
@@ -328,7 +330,7 @@ final class SpecValidator
                 }
 
                 $throat = $feature->throatM();
-                if ($throat !== null && $throat >= min($opening[0], $opening[1])) {
+                if (null !== $throat && $throat >= min($opening[0], $opening[1])) {
                     $messages[] = sprintf(
                         '%s: throat (%s m) must be smaller than its mouth (%s x %s m)',
                         $label,
@@ -342,7 +344,7 @@ final class SpecValidator
             foreach ($this->validateFeaturePlacement($feature, $layout, $seen, $label, $dimensions->width, $frontHeight, $opening) as $message) {
                 $messages[] = $message;
             }
-            foreach ($this->validateFeatureJoin($feature, $layout, $seen, $label, $spec->meshOverride !== null, $opening) as $message) {
+            foreach ($this->validateFeatureJoin($feature, $layout, $seen, $label, null !== $spec->meshOverride, $opening) as $message) {
                 $messages[] = $message;
             }
 
@@ -355,8 +357,6 @@ final class SpecValidator
     /**
      * Where a feature sits: on the baffle at `at_m`, or nested in an earlier one via `inside`.
      *
-     * @param array<string, bool> $seen features already declared, so `inside` can only look backwards
-     * @param array{float, float}|null $opening
      * @return list<string>
      */
     /**
@@ -372,10 +372,10 @@ final class SpecValidator
         $messages = [];
 
         if (!$feature->isHorn()) {
-            if ($feature->sides !== null) {
+            if (null !== $feature->sides) {
                 $messages[] = "{$label}: sides only applies to a horn";
             }
-            if ($feature->throatProfile !== null) {
+            if (null !== $feature->throatProfile) {
                 $messages[] = "{$label}: throat_profile only applies to a horn";
             }
 
@@ -383,7 +383,7 @@ final class SpecValidator
         }
 
         foreach (['profile' => $feature->profile, 'throat_profile' => $feature->throatProfile] as $field => $value) {
-            if ($value !== null && !in_array($value, BaffleFeature::PROFILES, true)) {
+            if (null !== $value && !in_array($value, BaffleFeature::PROFILES, true)) {
                 $messages[] = sprintf(
                     "%s: unknown %s '%s' (allowed: %s)",
                     $label,
@@ -401,7 +401,7 @@ final class SpecValidator
                 implode(', ', BaffleFeature::FLARES),
             );
         }
-        if ($feature->sides !== null) {
+        if (null !== $feature->sides) {
             if (!$feature->isPyramid()) {
                 $messages[] = sprintf(
                     '%s: sides has no meaning when neither the mouth nor the throat is a %s',
@@ -427,13 +427,13 @@ final class SpecValidator
     ): array {
         $messages = [];
 
-        if ($feature->inside !== null) {
-            if ($feature->at !== null) {
+        if (null !== $feature->inside) {
+            if (null !== $feature->at) {
                 $messages[] = "{$label}: `inside` already places it — remove at_m";
             }
             if (!isset($seen[$feature->inside])) {
                 $messages[] = sprintf(
-                    "%s: `inside: %s` must name an earlier feature",
+                    '%s: `inside: %s` must name an earlier feature',
                     $label,
                     $feature->inside,
                 );
@@ -442,29 +442,29 @@ final class SpecValidator
             }
 
             $parent = $layout->feature($feature->inside);
-            if ($parent !== null && !$parent->isHorn()) {
+            if (null !== $parent && !$parent->isHorn()) {
                 $messages[] = "{$label}: `inside` only works within a horn, and '{$parent->id}' is a {$parent->kind}";
             }
             // A nested feature must fit its parent's throat region, or it would poke through the flare.
             $parentOpening = $parent?->openingM();
-            if ($parentOpening !== null && $opening !== null) {
+            if (null !== $parentOpening && null !== $opening) {
                 if ($opening[0] > $parentOpening[0] || $opening[1] > $parentOpening[1]) {
                     $messages[] = "{$label}: its mouth is larger than the horn it sits inside";
                 }
             }
-            if ($parent !== null && $feature->depthM > $parent->depthM) {
+            if (null !== $parent && $feature->depthM > $parent->depthM) {
                 $messages[] = "{$label}: it is deeper than the horn it sits inside";
             }
 
             return $messages;
         }
 
-        if ($feature->at === null) {
+        if (null === $feature->at) {
             $messages[] = "{$label}: needs either at_m or inside";
 
             return $messages;
         }
-        if ($opening === null) {
+        if (null === $opening) {
             return $messages;
         }
 
@@ -499,6 +499,7 @@ final class SpecValidator
      *
      * @param array<string, bool> $seen features already declared, so `join.with` can only look backwards
      * @param array{float, float}|null $opening
+     *
      * @return list<string>
      */
     private function validateFeatureJoin(
@@ -510,7 +511,7 @@ final class SpecValidator
         ?array $opening,
     ): array {
         $join = $feature->join;
-        if ($join === null) {
+        if (null === $join) {
             return [];
         }
 
@@ -532,14 +533,14 @@ final class SpecValidator
         }
 
         $partner = $layout->feature($join->with);
-        if ($partner === null) {
+        if (null === $partner) {
             return $messages;
         }
         if (!$partner->isHorn()) {
             $messages[] = "{$label}: join only works between horns, and '{$partner->id}' is a {$partner->kind}";
         }
         foreach ([$feature, $partner] as $side) {
-            if ($side->inside !== null) {
+            if (null !== $side->inside) {
                 $messages[] = sprintf(
                     "%s: join needs both horns on the baffle, and '%s' sits inside '%s'",
                     $label,
@@ -564,7 +565,7 @@ final class SpecValidator
         }
 
         $partnerOpening = $partner->openingM();
-        if ($feature->at === null || $partner->at === null || $opening === null || $partnerOpening === null) {
+        if (null === $feature->at || null === $partner->at || null === $opening || null === $partnerOpening) {
             return $messages;
         }
 
@@ -611,7 +612,7 @@ final class SpecValidator
 
         foreach ($extras as $key => [$requiredBy, $value, $limit, $limitName]) {
             if ($spec->shape === $requiredBy) {
-                if ($value === null) {
+                if (null === $value) {
                     $messages[] = "geometry.{$key} is required for shape '{$requiredBy->value}'";
                     continue;
                 }
@@ -620,7 +621,7 @@ final class SpecValidator
                 } elseif ($limit > 0 && $value > $limit) {
                     $messages[] = "geometry.{$key} ({$value}) must not exceed geometry.dimensions_m.{$limitName} ({$limit})";
                 }
-            } elseif ($value !== null) {
+            } elseif (null !== $value) {
                 $messages[] = "geometry.{$key} only applies to shape '{$requiredBy->value}', not '{$spec->shape->value}'";
             }
         }
@@ -652,9 +653,9 @@ final class SpecValidator
 
         $messages = [];
         foreach ($blocks as $key => [$requiredBy, $value]) {
-            if ($spec->shape === $requiredBy && $value === null) {
+            if ($spec->shape === $requiredBy && null === $value) {
                 $messages[] = "geometry.{$key} is required for shape '{$requiredBy->value}'";
-            } elseif ($spec->shape !== $requiredBy && $value !== null) {
+            } elseif ($spec->shape !== $requiredBy && null !== $value) {
                 $messages[] = "geometry.{$key} only applies to shape '{$requiredBy->value}', not '{$spec->shape->value}'";
             }
         }
@@ -674,7 +675,7 @@ final class SpecValidator
     private function validateMovingHead(DeviceSpec $spec): array
     {
         $head = $spec->movingHead;
-        if ($head === null) {
+        if (null === $head) {
             return [];
         }
 
@@ -729,7 +730,7 @@ final class SpecValidator
     private function validateScaffold(DeviceSpec $spec): array
     {
         $scaffold = $spec->scaffold;
-        if ($scaffold === null) {
+        if (null === $scaffold) {
             return [];
         }
 
@@ -796,9 +797,9 @@ final class SpecValidator
     private function validateVehicle(DeviceSpec $spec): array
     {
         $vehicle = $spec->vehicle;
-        $isVehicle = $spec->category === Category::Vehicle;
+        $isVehicle = Category::Vehicle === $spec->category;
 
-        if ($vehicle === null) {
+        if (null === $vehicle) {
             return $isVehicle
                 ? ["category '{$spec->category->value}' needs a `vehicle` block stating at least permitted_gross_kg"]
                 : [];
@@ -814,9 +815,9 @@ final class SpecValidator
         // papers before anybody has been inside it, and no registration document states a load bay. So a bayless
         // vehicle draws its outline alone — which is the honest picture of a van whose inside nobody has measured,
         // and is still a cage rather than a solid.
-        if ($spec->shape !== Shape::LoadBay) {
+        if (Shape::LoadBay !== $spec->shape) {
             $messages[] = sprintf(
-                "a vehicle is drawn as a cage, so geometry.shape should be `load-bay` rather than `%s` — a solid"
+                'a vehicle is drawn as a cage, so geometry.shape should be `load-bay` rather than `%s` — a solid'
                 .' van is the largest object in any picture that includes it and hides the rig it carries',
                 $spec->shape->value,
             );
@@ -833,7 +834,7 @@ final class SpecValidator
         }
 
         $bay = $vehicle->loadBay;
-        if ($bay === null) {
+        if (null === $bay) {
             return $messages;
         }
 
@@ -856,7 +857,7 @@ final class SpecValidator
             }
         }
 
-        if ($vehicle->widthBetweenArchesM !== null && $vehicle->widthBetweenArchesM > $bay->width) {
+        if (null !== $vehicle->widthBetweenArchesM && $vehicle->widthBetweenArchesM > $bay->width) {
             $messages[] = sprintf(
                 'vehicle.load_bay_m.width_between_arches (%s) is wider than the bay itself (%s) — the arches are'
                 .' what narrow it',
@@ -869,7 +870,7 @@ final class SpecValidator
             'door_aperture_width' => [$vehicle->doorApertureWidthM, $bay->width],
             'door_aperture_height' => [$vehicle->doorApertureHeightM, $bay->height],
         ] as $key => [$aperture, $limit]) {
-            if ($aperture !== null && $aperture > $limit) {
+            if (null !== $aperture && $aperture > $limit) {
                 $messages[] = sprintf(
                     'vehicle.load_bay_m.%s (%s) is bigger than the bay behind it (%s) — a doorway cannot open onto'
                     .' more than there is',
@@ -897,7 +898,7 @@ final class SpecValidator
     private function validateTruss(DeviceSpec $spec): array
     {
         $truss = $spec->truss;
-        if ($truss === null) {
+        if (null === $truss) {
             // Whether it is required at all is {@see validateShapeBlocks}' question, asked once for all three shapes.
             return [];
         }
@@ -952,14 +953,14 @@ final class SpecValidator
         $messages = [];
 
         if ($spec->isClone()) {
-            if ($spec->cloneOf === null) {
+            if (null === $spec->cloneOf) {
                 $messages[] = "build is 'self-built' but clone_of is missing — name the original's manufacturer and model";
             }
-        } elseif ($spec->cloneOf !== null) {
+        } elseif (null !== $spec->cloneOf) {
             $messages[] = "clone_of is set but build is '{$spec->build->value}' — only clones copy an original";
         }
 
-        if ($spec->cloneOf !== null) {
+        if (null !== $spec->cloneOf) {
             $allowedReferences = ['datasheet', 'plans', 'cad', 'none'];
             if (!in_array($spec->cloneOf->reference, $allowedReferences, true)) {
                 $allowed = implode(', ', $allowedReferences);
@@ -969,7 +970,7 @@ final class SpecValidator
 
         // A clone's datasheet numbers must come from the original it copies, so that original has
         // to be named. Factory gear is exempt: the datasheet is its own, and there is no clone.
-        if ($spec->isClone() && $spec->cloneOf === null) {
+        if ($spec->isClone() && null === $spec->cloneOf) {
             foreach (['dimensions' => $spec->provenance->dimensions, 'weight' => $spec->provenance->weight] as $field => $provenance) {
                 if (in_array($provenance, [Provenance::Datasheet, Provenance::Plans], true)) {
                     $messages[] = "provenance.{$field} is '{$provenance->value}' but no clone_of names where that came from";
@@ -987,13 +988,13 @@ final class SpecValidator
     {
         $messages = [];
 
-        if ($spec->flyable && $spec->riggingPoints === []) {
+        if ($spec->flyable && [] === $spec->riggingPoints) {
             $messages[] = 'rigging.flyable is true but no rigging.points are defined';
         }
-        if (!$spec->flyable && $spec->riggingPoints !== []) {
+        if (!$spec->flyable && [] !== $spec->riggingPoints) {
             $messages[] = 'rigging.points are defined but rigging.flyable is false';
         }
-        if ($spec->origin === Origin::RiggingPoint && $spec->riggingPoints === []) {
+        if (Origin::RiggingPoint === $spec->origin && [] === $spec->riggingPoints) {
             $messages[] = "geometry.origin is 'rigging-point' but no rigging.points are defined";
         }
 
@@ -1041,7 +1042,7 @@ final class SpecValidator
     {
         $messages = [];
 
-        if ($spec->coverage !== null) {
+        if (null !== $spec->coverage) {
             foreach (['horizontal' => $spec->coverage->horizontal, 'vertical' => $spec->coverage->vertical] as $axis => $value) {
                 if ($value <= 0 || $value > 360) {
                     $messages[] = "audio.coverage_deg.{$axis} must be between 0 and 360, got {$value}";
@@ -1050,7 +1051,7 @@ final class SpecValidator
         }
 
         $passband = $spec->passband;
-        if ($passband !== null) {
+        if (null !== $passband) {
             if ($passband->lowHz <= 0.0) {
                 $messages[] = "audio.passband_hz.low_hz must be greater than 0, got {$passband->lowHz}";
             }
@@ -1061,7 +1062,7 @@ final class SpecValidator
                     $passband->lowHz,
                 );
             }
-            if ($passband->drivenFromHz !== null && $passband->drivenFromHz < $passband->lowHz) {
+            if (null !== $passband->drivenFromHz && $passband->drivenFromHz < $passband->lowHz) {
                 // High-passing *below* what the cabinet reaches is not a choice, it is a typo — and it would
                 // silently reorder a stack, since the driven corner is what a `stack` sorts on.
                 $messages[] = sprintf(
@@ -1071,7 +1072,7 @@ final class SpecValidator
                     $passband->lowHz,
                 );
             }
-            if ($passband->drivenFromHz !== null && $passband->drivenFromHz >= $passband->highHz) {
+            if (null !== $passband->drivenFromHz && $passband->drivenFromHz >= $passband->highHz) {
                 $messages[] = sprintf(
                     'audio.passband_hz.driven_from_hz (%s) is at or above high_hz (%s), which leaves no band',
                     $passband->drivenFromHz,
@@ -1097,6 +1098,7 @@ final class SpecValidator
      * model instead of producing two.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return list<Violation>
      */
     private function validateUniqueIds(array $specs): array

@@ -34,16 +34,13 @@ final class Passband
 
     public static function fromReader(?ArrayReader $reader): ?self
     {
-        if ($reader === null) {
+        if (null === $reader) {
             return null;
         }
 
         $unknown = $reader->unknownKeys(['low_hz', 'high_hz', 'driven_from_hz', 'provenance']);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "audio.passband_hz: unknown key '%s' (allowed: low_hz, high_hz, driven_from_hz, provenance)",
-                $unknown[0],
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("audio.passband_hz: unknown key '%s' (allowed: low_hz, high_hz, driven_from_hz, provenance)", $unknown[0]));
         }
 
         return new self(

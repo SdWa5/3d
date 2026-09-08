@@ -10,7 +10,6 @@ use App\Spec\DeviceSpec;
 use App\Tests\Support\FakeProcessRunner;
 use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class ModelBuilderTest extends TestCase
 {
@@ -80,14 +79,14 @@ final class ModelBuilderTest extends TestCase
 
         try {
             $this->builder()->build($spec);
-        } catch (RuntimeException) {
+        } catch (\RuntimeException) {
             // Expected: the fake Blender writes no files. The plan is what this test is about.
         }
 
         $planFile = $this->project.'/build/plans/top-a.json';
         self::assertFileExists($planFile);
 
-        $plan = json_decode((string)file_get_contents($planFile), true, 512, JSON_THROW_ON_ERROR);
+        $plan = json_decode((string) file_get_contents($planFile), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('top-a', $plan['id']);
         self::assertSame($this->project.'/build/glb/top-a.glb', $plan['outputs']['glb']);
         self::assertSame(0.8, $plan['geometry']['dimensions_m']['width']);
@@ -96,7 +95,7 @@ final class ModelBuilderTest extends TestCase
     public function testBuildFailsLoudlyWhenBlenderWritesNothing(): void
     {
         // Blender can exit 0 after a script error, so a silent no-op must not look like success.
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/reported success but did not write/');
         $this->builder()->build($this->spec());
     }
@@ -107,14 +106,14 @@ final class ModelBuilderTest extends TestCase
 
         try {
             $this->builder()->buildLibrary([$spec]);
-        } catch (RuntimeException) {
+        } catch (\RuntimeException) {
             // Expected: no real Blender, so no library file appears.
         }
 
         $planFile = $this->project.'/build/plans/_library.json';
         self::assertFileExists($planFile);
 
-        $plan = json_decode((string)file_get_contents($planFile), true, 512, JSON_THROW_ON_ERROR);
+        $plan = json_decode((string) file_get_contents($planFile), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame($this->project.'/build/library/sdwa5-3d.blend', $plan['output']);
         self::assertCount(1, $plan['devices']);
         self::assertSame('top-a', $plan['devices'][0]['id']);

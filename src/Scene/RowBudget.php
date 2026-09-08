@@ -59,11 +59,11 @@ final class RowBudget
      */
     public static function narrower(?float $a, ?float $b): ?float
     {
-        if ($a === null) {
+        if (null === $a) {
             return $b;
         }
 
-        return $b === null ? $a : min($a, $b);
+        return null === $b ? $a : min($a, $b);
     }
 
     /**
@@ -87,12 +87,12 @@ final class RowBudget
      */
     public function ceilingFor(DeviceSpec $device, Stack $stack, float $roll): ?float
     {
-        if ($this->seats === PHP_INT_MAX) {
+        if (PHP_INT_MAX === $this->seats) {
             return $this->widthM;
         }
 
         $bySeats = Tier::of($device, $this->seats, $roll)->widthM($stack->gapM);
 
-        return $this->widthM === null ? $bySeats : min($this->widthM, $bySeats);
+        return null === $this->widthM ? $bySeats : min($this->widthM, $bySeats);
     }
 }

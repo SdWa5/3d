@@ -26,8 +26,7 @@ final class SceneCompiler
          * the recursion is one level deep by construction rather than by a counter.
          */
         private readonly bool $probing = false,
-    )
-    {
+    ) {
     }
 
     /**
@@ -73,17 +72,17 @@ final class SceneCompiler
             }
 
             $device = $this->devicesById[$placement->deviceId] ?? null;
-            if ($device === null) {
+            if (null === $device) {
                 $add("placement '{$placement->id}' references unknown device '{$placement->deviceId}'");
                 continue;
             }
 
             $base = $this->resolveBase($placement, $device, $byId, $add);
-            if ($base === null) {
+            if (null === $base) {
                 continue;
             }
 
-            if ($placement->aimFocus !== null && !isset($focusPoints[$placement->aimFocus])) {
+            if (null !== $placement->aimFocus && !isset($focusPoints[$placement->aimFocus])) {
                 // `aim: focuss` used to mean *not aimed*, silently, with the cabinet left firing straight
                 // ahead and nothing to see in the output.
                 $add(sprintf(
@@ -100,21 +99,21 @@ final class SceneCompiler
             // and its near-fills and wrong for two systems standing side by side. A placement that states its own
             // is stating "ten metres in front of **me**". See {@see withOwnFocus}, which does the same thing one
             // level down for the cabinets a `stack:` expands into.
-            $own = $placement->aimFocus === null ? null : ($placement->focusByName[$placement->aimFocus] ?? null);
+            $own = null === $placement->aimFocus ? null : ($placement->focusByName[$placement->aimFocus] ?? null);
             $target = $placement->aimAt ?? match (true) {
-                $own !== null => $own->point($this->frontCentre([$placement])),
-                $placement->aimFocus === null => null,
+                null !== $own => $own->point($this->frontCentre([$placement])),
+                null === $placement->aimFocus => null,
                 default => $focusPoints[$placement->aimFocus],
             };
             // An arc's radius depends on how far the cabinets are tilted, and the tilt depends on where
             // they stand — so the arc is solved at the tilt of its anchor, which stands on `at` facing
             // straight ahead. Across a three-wide arc the individual tilts differ by 0.03°.
-            $pitch = $target === null
+            $pitch = null === $target
                 ? $placement->pitchDeg
                 : Orientation::pitchTowards($base, $target, $device->dimensions->height, 0.0);
 
             $problems = $this->validate($placement, $device, $pitch);
-            if ($problems !== []) {
+            if ([] !== $problems) {
                 foreach ($problems as $problem) {
                     $add("placement '{$placement->id}': {$problem}");
                 }
@@ -125,7 +124,7 @@ final class SceneCompiler
             // that attitude, differing only by the splay accumulated down to it. Aimed element by element
             // instead, each one turns towards the target on its own and the splay cancels out exactly:
             // four boxes all pointing at the same spot, which is not a J array.
-            $hangAim = $target !== null && $placement->group->decidesPitch()
+            $hangAim = null !== $target && $placement->group->decidesPitch()
                 ? Orientation::aimedAt($base, $target, $device->dimensions->height, $placement->rollDeg)
                 : null;
 
@@ -144,9 +143,16 @@ final class SceneCompiler
             // Spreading the tier across its envelope happens here, after the copies exist and before
             // anything is placed: the solve needs the arrangement the group made, and everything downstream
             // needs the spread one. Only x offsets move, so the stacking below is unaffected.
-            if ($placement->align !== null) {
+            if (null !== $placement->align) {
                 $aligned = $this->aligned(
-                    $placement, $device, $copies, $base, $target, $hangAim, $pitch, $placedById,
+                    $placement,
+                    $device,
+                    $copies,
+                    $base,
+                    $target,
+                    $hangAim,
+                    $pitch,
+                    $placedById,
                     static function (string $message) use ($warn, $placement): void {
                         $warn("placement '{$placement->id}': {$message}");
                     },
@@ -161,7 +167,13 @@ final class SceneCompiler
             // **AND THEN THE ROW IS SPACED AGAINST ITS OWN TOE-IN**, which is the one relationship nothing above asks
             // about: a run's copies against each other. See {@see clearedWithin}.
             $copies = $this->clearedWithin(
-                $placement, $device, $copies, $base, $target, $hangAim, $pitch,
+                $placement,
+                $device,
+                $copies,
+                $base,
+                $target,
+                $hangAim,
+                $pitch,
                 static function (string $message) use ($warn, $placement): void {
                     $warn("placement '{$placement->id}': {$message}");
                 },
@@ -182,7 +194,7 @@ final class SceneCompiler
                 ];
 
                 $orientation = $this->orientationFor($placement, $device, $copy, $position, $target, $hangAim);
-                if ($orientation === null) {
+                if (null === $orientation) {
                     $add(
                         "placement '{$placement->id}': the group turns cabinet {$id} onto its end, "
                         .'where its roll and its yaw become the same turn',
@@ -197,7 +209,7 @@ final class SceneCompiler
                     $orientation,
                     // A hang's slot is not the floor, whether it is one cabinet or a whole array: lifting a
                     // flown cabinet back onto a slot would move it away from the hardware holding it up.
-                    $copy->seated && $placement->fly === null,
+                    $copy->seated && null === $placement->fly,
                     $placement->aimLines,
                     $placement->fly?->label($placement->id),
                 );
@@ -215,7 +227,7 @@ final class SceneCompiler
             // The check that makes `fly` police itself: a hang is the one thing that can legitimately be
             // told to sit above the floor and still end up through it, because its elements grow downwards
             // from the anchor rather than upwards from the ground.
-            if ($placement->fly !== null && $lowest !== null && $lowest < -1e-9) {
+            if (null !== $placement->fly && null !== $lowest && $lowest < -1e-9) {
                 $add(sprintf(
                     "placement '%s': the hang reaches %.3f m below the floor — raise fly.height_m by at least that",
                     $placement->id,
@@ -259,10 +271,10 @@ final class SceneCompiler
         // placement or its aim resolved to, rather than turning the cell.
         $tilt = $copy->pitchIncrementDeg;
 
-        if ($hangAim !== null) {
+        if (null !== $hangAim) {
             // Resolved once for the whole hang; only the splay differs between elements.
             $own = new Orientation($hangAim->pitchDeg + $tilt, $hangAim->rollDeg, $hangAim->yawDeg);
-        } elseif ($target === null) {
+        } elseif (null === $target) {
             $own = new Orientation($placement->pitchDeg + $tilt, $placement->rollDeg, $placement->yawDeg);
         } elseif (!$placement->group->decidesYaw()) {
             // Nothing has claimed the yaw, so the aim gets both of them. A lattice's cycled roll comes
@@ -283,7 +295,7 @@ final class SceneCompiler
             );
         }
 
-        if ($copy->rotation === null) {
+        if (null === $copy->rotation) {
             return $own;
         }
 
@@ -301,6 +313,7 @@ final class SceneCompiler
      * @param list<Placement> $placements
      * @param callable(string):void $add
      * @param callable(string):void $warn
+     *
      * @return list<Placement>
      */
     private function expandStacks(SceneSpec $scene, array $placements, callable $add, callable $warn): array
@@ -308,13 +321,13 @@ final class SceneCompiler
         $expanded = [];
 
         foreach ($placements as $placement) {
-            if ($placement->stack === null) {
+            if (null === $placement->stack) {
                 $expanded[] = $placement;
                 continue;
             }
 
             $problems = $placement->stack->problems();
-            if ($placement->at === null) {
+            if (null === $placement->at) {
                 // Every tier is centred on the stack's own x, and a mixed row's segments are offset from
                 // it — there is nothing to offset from without one, and the bottom tier has no `on` to
                 // inherit from either.
@@ -323,7 +336,7 @@ final class SceneCompiler
             $inventory = [];
             foreach ($placement->stack->from as $entry) {
                 $device = $this->devicesById[$entry->device] ?? null;
-                if ($device === null) {
+                if (null === $device) {
                     $problems[] = "stack.from: unknown device '{$entry->device}'";
                     continue;
                 }
@@ -338,7 +351,7 @@ final class SceneCompiler
                 $inventory[] = [$device, $entry->count ?? $device->quantity];
             }
 
-            if ($problems === []) {
+            if ([] === $problems) {
                 // The placement's own alignment decides the ORDER of the tops row as well as its spacing:
                 // stereo puts the long throws at the ends, everything else centres them. See StackSolver::topRow.
                 $solved = StackSolver::solve(
@@ -350,7 +363,7 @@ final class SceneCompiler
                         : self::seatingCheck($this->devicesById, $placement, $scene->focusByName),
                 );
                 $problems = $solved['problems'];
-                if ($problems === []) {
+                if ([] === $problems) {
                     // Buildable, but worth saying out loud: a stepped row, or a tier standing slightly
                     // proud of the one below it. Warnings, so the rig still builds.
                     foreach ($solved['warnings'] as $warning) {
@@ -388,11 +401,12 @@ final class SceneCompiler
      * beside a main cluster belongs to that cluster and aims where it aims.
      *
      * @param list<Placement> $expanded
+     *
      * @return list<Placement>
      */
     private function withOwnFocus(Placement $placement, array $expanded): array
     {
-        if ($placement->focusByName === []) {
+        if ([] === $placement->focusByName) {
             return $expanded;
         }
 
@@ -404,8 +418,8 @@ final class SceneCompiler
 
         $aimed = [];
         foreach ($expanded as $copy) {
-            $point = $copy->aimFocus === null ? null : ($points[$copy->aimFocus] ?? null);
-            $aimed[] = $point === null ? $copy : new Placement(
+            $point = null === $copy->aimFocus ? null : ($points[$copy->aimFocus] ?? null);
+            $aimed[] = null === $point ? $copy : new Placement(
                 id: $copy->id,
                 deviceId: $copy->deviceId,
                 at: $copy->at,
@@ -458,7 +472,7 @@ final class SceneCompiler
         array $tiers,
         array $focusByName = [],
     ): bool {
-        if ($placement->stack === null) {
+        if (null === $placement->stack) {
             return true;
         }
 
@@ -474,7 +488,7 @@ final class SceneCompiler
         );
 
         $result = (new self($devicesById, probing: true))->compile($probe);
-        if (Violation::errorsIn($result['violations']) !== []) {
+        if ([] !== Violation::errorsIn($result['violations'])) {
             return false;
         }
 
@@ -492,13 +506,11 @@ final class SceneCompiler
      * stages rather than three, and one shared entry point is what stops it.
      *
      * @param array<string, DeviceSpec> $devicesById
-     * @param list<Tier> $tiers
      * @param array<string, Focus> $focusByName
      */
     public static function seatingCheck(array $devicesById, Placement $placement, array $focusByName = []): callable
     {
-        return static fn (array $tiers): bool
-            => self::stackSurvives($devicesById, $placement, $tiers, $focusByName);
+        return static fn (array $tiers): bool => self::stackSurvives($devicesById, $placement, $tiers, $focusByName);
     }
 
     /**
@@ -514,6 +526,7 @@ final class SceneCompiler
      * @param array{float, float, float}|null $target
      * @param array<string, list<PlacedDevice>> $placedById
      * @param callable(string):void $warn
+     *
      * @return list<PlacementCopy>|string
      */
     private function aligned(
@@ -528,7 +541,7 @@ final class SceneCompiler
         callable $warn,
     ): array|string {
         $align = $placement->align;
-        if ($align === null || !$align->mode->isSolved()) {
+        if (null === $align || !$align->mode->isSolved()) {
             return $copies;
         }
 
@@ -577,7 +590,7 @@ final class SceneCompiler
         }
 
         $parameter = StepSolver::solve($spanAt, $width, $align->startParameter(), $minimum);
-        if ($parameter === null) {
+        if (null === $parameter) {
             return sprintf(
                 'align cannot be solved: the tier never reaches its %.4f m envelope, however far it is spread',
                 $width,
@@ -603,7 +616,7 @@ final class SceneCompiler
      * @param list<PlacementCopy> $copies
      * @param array{float, float, float} $base
      * @param array{float, float, float}|null $target
-     * @param array<string, list<PlacedDevice>> $placedById
+     *
      * @return list<PlacementCopy>|string
      */
     /**
@@ -635,6 +648,7 @@ final class SceneCompiler
      * @param array{float, float, float} $base
      * @param array{float, float, float}|null $target
      * @param callable(string):void $warn
+     *
      * @return list<PlacementCopy>
      */
     private function clearedWithin(
@@ -650,9 +664,9 @@ final class SceneCompiler
         // Unaimed cabinets are as wide as their widths, so there is nothing for a yaw to have taken.
         $levels = $placement->group->groups;
         if (
-            $target === null
+            null === $target
             || count($copies) < 2
-            || count($levels) !== 1
+            || 1 !== count($levels)
             || !$levels[0] instanceof Lattice
             || $levels[0]->count[0] < 2
         ) {
@@ -677,7 +691,7 @@ final class SceneCompiler
         // The floor is 1.0, so this only ever adds air: pulling an aimed row tighter than the spacing it was given is
         // the mistake {@see Alignment::minParameter} exists to prevent.
         $parameter = StepSolver::solve($clearanceAt, $gapM, 1.0, 1.0);
-        if ($parameter === null) {
+        if (null === $parameter) {
             $warn(sprintf(
                 'the %d aimed cabinets never clear each other by %.0f mm however far they are spread, so the row keeps '
                 .'its own spacing',
@@ -702,6 +716,7 @@ final class SceneCompiler
      * The copies with every x offset scaled, which is `block`'s mechanism reused — see {@see Alignment::apply}.
      *
      * @param list<PlacementCopy> $copies
+     *
      * @return list<PlacementCopy>
      */
     private static function scaledInX(array $copies, float $parameter): array
@@ -725,7 +740,7 @@ final class SceneCompiler
     ): array|string {
         // Two objectives, chosen by which key was written. `clear_of` measures the reference's shells and `outside`
         // measures the span it covers, and {@see Alignment::$clearOf} sets out why neither can stand in for the other.
-        if ($align->clearOf !== null) {
+        if (null !== $align->clearOf) {
             $keepOff = Envelope::cabinetsFor($align, $placedById);
             if (is_string($keepOff)) {
                 return $keepOff;
@@ -769,12 +784,12 @@ final class SceneCompiler
         }
 
         $parameter = StepSolver::solve($clearanceAt, $align->insetM, $align->startParameter());
-        if ($parameter === null) {
+        if (null === $parameter) {
             return sprintf(
                 'align.%s: the cabinets never reach %.4f m clear of %s, however far they are pushed out',
-                $align->clearOf !== null ? 'clear_of' : 'outside',
+                null !== $align->clearOf ? 'clear_of' : 'outside',
                 $align->insetM,
-                (string)($align->clearOf ?? $align->outside),
+                (string) ($align->clearOf ?? $align->outside),
             );
         }
 
@@ -799,7 +814,7 @@ final class SceneCompiler
     ): float {
         $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
 
-        return $placed === [] ? 0.0 : Envelope::extentOf($placed);
+        return [] === $placed ? 0.0 : Envelope::extentOf($placed);
     }
 
     /**
@@ -828,7 +843,7 @@ final class SceneCompiler
         array $obstacle,
     ): float {
         $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
-        if ($placed === []) {
+        if ([] === $placed) {
             return 0.0;
         }
 
@@ -878,7 +893,7 @@ final class SceneCompiler
     ): float {
         $placed = $this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
 
-        return $placed === [] ? 0.0 : Interpenetration::gapBetween($placed, $obstacle);
+        return [] === $placed ? 0.0 : Interpenetration::gapBetween($placed, $obstacle);
     }
 
     /**
@@ -891,6 +906,7 @@ final class SceneCompiler
      * @param list<PlacementCopy> $copies
      * @param array{float, float, float} $base
      * @param array{float, float, float}|null $target
+     *
      * @return list<PlacedDevice>
      */
     private function placedFor(
@@ -913,7 +929,7 @@ final class SceneCompiler
             ];
 
             $orientation = $this->orientationFor($placement, $device, $copy, $position, $target, $hangAim);
-            if ($orientation === null) {
+            if (null === $orientation) {
                 continue;
             }
 
@@ -922,7 +938,7 @@ final class SceneCompiler
                 $device,
                 $position,
                 $orientation,
-                $copy->seated && $placement->fly === null,
+                $copy->seated && null === $placement->fly,
             );
         }
 
@@ -941,14 +957,14 @@ final class SceneCompiler
     {
         $messages = [];
 
-        if ($placement->group->decidesYaw() && $placement->yawDeg !== 0.0) {
+        if ($placement->group->decidesYaw() && 0.0 !== $placement->yawDeg) {
             $messages[] = sprintf('the %s already sets yaw — remove yaw_deg', $placement->group->kind());
         }
-        if ($placement->fly !== null && $placement->on !== null) {
+        if (null !== $placement->fly && null !== $placement->on) {
             // Both decide the same number, and there is no reading of the pair that is not a contradiction.
             $messages[] = 'use either `fly` or `on`, not both — they both decide the height';
         }
-        if ($placement->fly?->point !== null && $placement->fly->pointOn($device) === null) {
+        if (null !== $placement->fly?->point && null === $placement->fly->pointOn($device)) {
             $names = array_map(
                 static fn (\App\Spec\RiggingPoint $point): string => $point->id,
                 $device->riggingPoints,
@@ -957,27 +973,27 @@ final class SceneCompiler
                 "fly.point '%s' is not a rigging point of %s (%s)",
                 $placement->fly->point,
                 $device->id,
-                $names === [] ? 'it has none' : 'has: '.implode(', ', $names),
+                [] === $names ? 'it has none' : 'has: '.implode(', ', $names),
             );
         }
-        if ($placement->fly?->point !== null && !$device->flyable) {
+        if (null !== $placement->fly?->point && !$device->flyable) {
             $messages[] = sprintf('fly.point names a point on %s, which is not flyable', $device->id);
         }
-        if ($placement->aimAt !== null && $placement->aimFocus !== null) {
+        if (null !== $placement->aimAt && null !== $placement->aimFocus) {
             $messages[] = 'use either `aim` or `aim_at`, not both';
         }
         if (
-            ($placement->aimAt !== null || $placement->aimFocus !== null)
-            && ($placement->yawDeg !== 0.0 || $placement->pitchDeg !== 0.0)
+            (null !== $placement->aimAt || null !== $placement->aimFocus)
+            && (0.0 !== $placement->yawDeg || 0.0 !== $placement->pitchDeg)
         ) {
             // A group's yaw does not live in `yaw_deg`, so this stays the same rule it always was.
             $messages[] = 'aiming already sets yaw and pitch — remove yaw_deg/pitch_deg';
         }
-        if ($placement->align !== null) {
+        if (null !== $placement->align) {
             $messages = [...$messages, ...$placement->align->problems($placement->group, $placement->copyCount())];
         }
 
-        if ($messages !== []) {
+        if ([] !== $messages) {
             return $messages;
         }
 
@@ -1018,6 +1034,7 @@ final class SceneCompiler
      * because the focus only feeds back into the tilt.
      *
      * @param list<Placement> $placements the scene's placements, with every `stack` already expanded
+     *
      * @return array{float, float}
      */
     private function frontCentre(array $placements): array
@@ -1029,25 +1046,25 @@ final class SceneCompiler
 
         foreach ($placements as $placement) {
             $device = $this->devicesById[$placement->deviceId] ?? null;
-            if ($device === null) {
+            if (null === $device) {
                 continue;
             }
 
             $base = $placement->at;
-            if ($base === null && $placement->on !== null) {
+            if (null === $base && null !== $placement->on) {
                 $base = $ground[$placement->on] ?? null;
             }
-            if ($base === null) {
+            if (null === $base) {
                 continue;
             }
 
-            $aimed = $placement->aimAt !== null || $placement->aimFocus !== null;
+            $aimed = null !== $placement->aimAt || null !== $placement->aimFocus;
             $pitch = $aimed ? 0.0 : $placement->pitchDeg;
             $yaw = $aimed ? 0.0 : $placement->yawDeg;
 
             // A placement the compiler is going to reject contributes nothing, and skipping it here is
             // what lets `copies()` assume the geometry resolves.
-            if ($this->validate($placement, $device, $pitch) !== []) {
+            if ([] !== $this->validate($placement, $device, $pitch)) {
                 continue;
             }
 
@@ -1057,7 +1074,7 @@ final class SceneCompiler
             // counted; and `min y` — the only thing the focus distance is measured from — does not depend
             // on an x spacing at all, because aimed placements are evaluated here at yaw 0. A stated
             // `width_m` is the one envelope with no such backstop, so it is contributed outright.
-            if ($placement->align?->widthM !== null) {
+            if (null !== $placement->align?->widthM) {
                 $minX = min($minX, $base[0] - $placement->align->widthM / 2);
                 $maxX = max($maxX, $base[0] + $placement->align->widthM / 2);
             }
@@ -1071,7 +1088,7 @@ final class SceneCompiler
                     $placement->id,
                     $device,
                     [$x, $y, 0.0],
-                    $copy->rotation === null ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
+                    null === $copy->rotation ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
                     $copy->seated,
                 ))->worldBox();
 
@@ -1085,7 +1102,7 @@ final class SceneCompiler
             }
         }
 
-        if ($minX === INF) {
+        if (INF === $minX) {
             return [0.0, 0.0];
         }
 
@@ -1097,12 +1114,13 @@ final class SceneCompiler
      *
      * @param array<string, PlacedDevice> $byId
      * @param callable(string):void $add
+     *
      * @return array{float, float, float}|null
      */
     private function resolveBase(Placement $placement, DeviceSpec $device, array $byId, callable $add): ?array
     {
-        if ($placement->fly !== null) {
-            if ($placement->at === null) {
+        if (null !== $placement->fly) {
+            if (null === $placement->at) {
                 $add("placement '{$placement->id}': `fly` needs `at` for the x and y it hangs over");
 
                 return null;
@@ -1111,8 +1129,8 @@ final class SceneCompiler
             return $placement->fly->slot($placement->at, $placement->fly->pointOn($device));
         }
 
-        if ($placement->on === null) {
-            if ($placement->at === null) {
+        if (null === $placement->on) {
+            if (null === $placement->at) {
                 $add("placement '{$placement->id}': needs either `at`, `on` or `fly`");
 
                 return null;
@@ -1122,7 +1140,7 @@ final class SceneCompiler
         }
 
         $support = $byId[$placement->on] ?? null;
-        if ($support === null) {
+        if (null === $support) {
             $add("placement '{$placement->id}': `on: {$placement->on}` must name an earlier placement");
 
             return null;

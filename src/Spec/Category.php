@@ -16,7 +16,7 @@ enum Category: string
     case Stand = 'stand';
 
     /**
-     * A transporter. **The only category that is a container rather than a thing to be placed.**
+     * A transporter. **The only category that is a container rather than a thing to be placed.**.
      *
      * It earns a case of its own rather than living under `other/vehicle`, which would have needed no schema change
      * at all. Two reasons, and the second is the real one. A van is not "gear that does not fit the taxonomy yet",
@@ -24,7 +24,7 @@ enum Category: string
      * well as an outside — so the validated block was owed whatever the category said, and `other` would only have
      * bought a category that lied about it. Stated by the owner: a transporter belongs in `specs/`.
      *
-     * @see \App\Spec\Vehicle
+     * @see Vehicle
      */
     case Vehicle = 'vehicle';
 

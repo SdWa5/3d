@@ -45,7 +45,7 @@ final class Stability
      */
     public static function tips(array $runs, array $below): bool
     {
-        if ($below === [] || $runs === []) {
+        if ([] === $below || [] === $runs) {
             return false;
         }
 

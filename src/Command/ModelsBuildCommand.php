@@ -8,12 +8,10 @@ use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
 use App\Spec\DeviceSpec;
 use App\Spec\Violation;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Throwable;
 
 /**
  * Generates the .glb and .blend for each spec.
@@ -43,7 +41,7 @@ final class ModelsBuildCommand extends BaseCommand
         $this->io = new SymfonyStyle($input, $output);
 
         ['specs' => $specs, 'errors' => $errors] = $this->loadSpecs();
-        if ($errors !== []) {
+        if ([] !== $errors) {
             $this->io->error('Some specs could not be read — fix them first (see `specs:validate`)');
 
             return self::FAILURE;
@@ -52,7 +50,7 @@ final class ModelsBuildCommand extends BaseCommand
         $violations = $this->validator()->validate($specs);
         $this->reportViolations($violations);
         $violations = Violation::errorsIn($violations);
-        if ($violations !== []) {
+        if ([] !== $violations) {
             $this->io->error('Specs are invalid — refusing to build. Run `bin/console specs:validate`');
 
             return self::FAILURE;
@@ -61,17 +59,17 @@ final class ModelsBuildCommand extends BaseCommand
         /** @var list<string> $onlyIds */
         $onlyIds = $input->getOption('id');
         $selected = $this->select($specs, $onlyIds);
-        if ($selected === null) {
+        if (null === $selected) {
             return self::FAILURE;
         }
-        if ($selected === []) {
+        if ([] === $selected) {
             $this->io->warning('Nothing to build');
 
             return self::SUCCESS;
         }
 
         $builder = new ModelBuilder($this->projectDir(), new BlenderRunner($this->runner));
-        $force = (bool)$input->getOption('force');
+        $force = (bool) $input->getOption('force');
         $sink = $this->blenderOutputSink($output);
 
         $built = 0;
@@ -86,11 +84,11 @@ final class ModelsBuildCommand extends BaseCommand
             $this->io->text("  <info>→</info> {$spec->id}");
             try {
                 $builder->build($spec, $sink);
-            } catch (RuntimeException $e) {
+            } catch (\RuntimeException $e) {
                 $this->io->error($e->getMessage());
 
                 return self::FAILURE;
-            } catch (Throwable $e) {
+            } catch (\Throwable $e) {
                 $this->io->error("Unexpected failure building {$spec->id}: ".$e->getMessage());
 
                 return self::FAILURE;
@@ -102,7 +100,7 @@ final class ModelsBuildCommand extends BaseCommand
         $this->io->success(sprintf(
             '%d model%s built, %d up to date → %s',
             $built,
-            $built === 1 ? '' : 's',
+            1 === $built ? '' : 's',
             $skipped,
             $this->relative($builder->buildDir()),
         ));
@@ -116,11 +114,12 @@ final class ModelsBuildCommand extends BaseCommand
      *
      * @param list<DeviceSpec> $specs
      * @param list<string> $onlyIds
+     *
      * @return list<DeviceSpec>|null null when an id was not found
      */
     private function select(array $specs, array $onlyIds): ?array
     {
-        if ($onlyIds === []) {
+        if ([] === $onlyIds) {
             return $specs;
         }
 
@@ -130,7 +129,7 @@ final class ModelsBuildCommand extends BaseCommand
         }
 
         $missing = array_values(array_diff($onlyIds, array_keys($known)));
-        if ($missing !== []) {
+        if ([] !== $missing) {
             $this->io->error('Unknown spec id(s): '.implode(', ', $missing));
 
             return null;

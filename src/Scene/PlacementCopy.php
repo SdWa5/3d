@@ -58,7 +58,7 @@ final class PlacementCopy
      */
     public function idSuffix(): string
     {
-        return $this->path === [] ? '' : '-'.implode('-', $this->path);
+        return [] === $this->path ? '' : '-'.implode('-', $this->path);
     }
 
     /**
@@ -76,7 +76,7 @@ final class PlacementCopy
      */
     public function yawedBy(float $yawDeg): self
     {
-        if ($yawDeg === 0.0) {
+        if (0.0 === $yawDeg) {
             return $this;
         }
 
@@ -165,15 +165,13 @@ final class PlacementCopy
      */
     private static function compose(?Orientation $outer, ?Orientation $inner): ?Orientation
     {
-        if ($outer === null) {
+        if (null === $outer) {
             return $inner;
         }
-        if ($inner === null) {
+        if (null === $inner) {
             return $outer;
         }
 
-        return $outer->after($inner) ?? throw new UnresolvableRotationException(
-            'a group turns a cabinet onto its end, where its roll and its yaw become the same turn',
-        );
+        return $outer->after($inner) ?? throw new UnresolvableRotationException('a group turns a cabinet onto its end, where its roll and its yaw become the same turn');
     }
 }

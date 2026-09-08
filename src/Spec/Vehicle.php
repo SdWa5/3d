@@ -24,25 +24,25 @@ namespace App\Spec;
  * document somebody can be shown. Their difference is neither, so storing it would put a number in the library that
  * points at no source, and would go quietly wrong the day one of the two halves is corrected. See {@see payloadKg}.
  *
- * @see \App\Spec\Category::Vehicle
+ * @see Category::Vehicle
  */
 final class Vehicle
 {
     /**
      * @param float $permittedGrossKg **Zulassungsbescheinigung field F.2**, the mass the vehicle may not exceed
-     *     loaded. F.1 is the technically permitted mass and is often the same number; F.2 is the one that is legally
-     *     binding in the country of registration, so F.2 is what a payload is worked out from.
+     *                                loaded. F.1 is the technically permitted mass and is often the same number; F.2 is the one that is legally
+     *                                binding in the country of registration, so F.2 is what a payload is worked out from.
      * @param Dimensions|null $loadBay the inside, or null when nobody has measured it yet. **Optional on purpose**:
-     *     a registration document states every mass and no bay at all, so a van can be fully specified from its
-     *     papers and still not be packable. A packer refuses such a vehicle by name, which is a better answer than a
-     *     validator refusing the spec and leaving the masses unrecorded.
+     *                                 a registration document states every mass and no bay at all, so a van can be fully specified from its
+     *                                 papers and still not be packable. A packer refuses such a vehicle by name, which is a better answer than a
+     *                                 validator refusing the spec and leaving the masses unrecorded.
      * @param float|null $widthBetweenArchesM the narrow part, at floor level between the wheel boxes. **This is the
-     *     dimension that actually decides whether something lies flat**, and it is 385 mm under the bay's own width
-     *     on our Movano — 1.380 against 1.765 — so a packer reading only `loadBay->width` would promise floor space
-     *     that does not exist.
+     *                                        dimension that actually decides whether something lies flat**, and it is 385 mm under the bay's own width
+     *                                        on our Movano — 1.380 against 1.765 — so a packer reading only `loadBay->width` would promise floor space
+     *                                        that does not exist.
      * @param float|null $doorApertureWidthM the rear opening, which is a third gate and usually the binding one for
-     *     a tall object: a cabinet that fits the bay and not the doorway does not go in.
-     * @param float|null $doorApertureHeightM as above, vertically.
+     *                                       a tall object: a cabinet that fits the bay and not the doorway does not go in
+     * @param float|null $doorApertureHeightM as above, vertically
      */
     public function __construct(
         public readonly float $permittedGrossKg,
@@ -59,7 +59,7 @@ final class Vehicle
 
         return new self(
             permittedGrossKg: $reader->requireFloat('permitted_gross_kg'),
-            loadBay: $bay !== null ? Dimensions::fromReader($bay) : null,
+            loadBay: null !== $bay ? Dimensions::fromReader($bay) : null,
             widthBetweenArchesM: $bay?->optionalFloat('width_between_arches'),
             doorApertureWidthM: $bay?->optionalFloat('door_aperture_width'),
             doorApertureHeightM: $bay?->optionalFloat('door_aperture_height'),
@@ -74,7 +74,7 @@ final class Vehicle
      * person comes straight off it, which is worth knowing when the answer is 1024 kg and two people are going.
      *
      * Can come out negative or zero, and that is a spec error rather than a vehicle nobody may load — see
-     * {@see \App\Spec\SpecValidator}, which refuses it there rather than letting a packer discover it.
+     * {@see SpecValidator}, which refuses it there rather than letting a packer discover it.
      */
     public function payloadKg(float $massInServiceKg): float
     {
@@ -97,7 +97,7 @@ final class Vehicle
      * The bay as the model builder needs it, or null when nobody has measured one.
      *
      * **A vehicle with no bay has no model worth drawing**, which is why `shape: load-bay` requires one and
-     * {@see \App\Spec\SpecValidator} refuses the pair otherwise. A wireframe of the outside alone would be a
+     * {@see SpecValidator} refuses the pair otherwise. A wireframe of the outside alone would be a
      * 6 m box telling a packer nothing it does not already have from `dimensions_m`.
      *
      * @return array{width: float, height: float, depth: float, width_between_arches: ?float,
@@ -105,7 +105,7 @@ final class Vehicle
      */
     public function loadBayPlan(): ?array
     {
-        if ($this->loadBay === null) {
+        if (null === $this->loadBay) {
             return null;
         }
 
@@ -125,14 +125,14 @@ final class Vehicle
     public function toArray(): array
     {
         $out = ['permitted_gross_kg' => $this->permittedGrossKg];
-        if ($this->loadBay !== null) {
+        if (null !== $this->loadBay) {
             $bay = $this->loadBay->toArray();
             foreach ([
                 'width_between_arches' => $this->widthBetweenArchesM,
                 'door_aperture_width' => $this->doorApertureWidthM,
                 'door_aperture_height' => $this->doorApertureHeightM,
             ] as $key => $value) {
-                if ($value !== null) {
+                if (null !== $value) {
                     $bay[$key] = $value;
                 }
             }

@@ -39,12 +39,8 @@ final class Repeat implements Group
     {
         $allowed = ['count', 'step'];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "repeat: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("repeat: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         return new self(
@@ -77,7 +73,7 @@ final class Repeat implements Group
         if ($this->count < 1) {
             return ["repeat.count must be at least 1, got {$this->count}"];
         }
-        if ($this->count > 1 && $this->step === null) {
+        if ($this->count > 1 && null === $this->step) {
             return ['repeat.count > 1 needs a repeat.step'];
         }
 

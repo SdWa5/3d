@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Catalog\CatalogRenderer;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,10 +31,10 @@ final class CatalogCommand extends BaseCommand
         $this->io = new SymfonyStyle($input, $output);
 
         ['specs' => $specs, 'errors' => $errors] = $this->loadSpecs();
-        if ($specs === []) {
+        if ([] === $specs) {
             $this->io->warning('No specs found in '.$this->relative($this->specsDir()));
 
-            return $errors === [] ? self::SUCCESS : self::FAILURE;
+            return [] === $errors ? self::SUCCESS : self::FAILURE;
         }
 
         $renderer = new CatalogRenderer();
@@ -56,7 +55,7 @@ final class CatalogCommand extends BaseCommand
                 $vehicle['id'],
                 $vehicle['owner'],
                 $vehicle['payload_kg'],
-                $vehicle['bay_m3'] === null ? ', bay not measured' : sprintf(', %.2f m³ bay', $vehicle['bay_m3']),
+                null === $vehicle['bay_m3'] ? ', bay not measured' : sprintf(', %.2f m³ bay', $vehicle['bay_m3']),
             );
         }
         foreach ($summary['by_owner'] as $owner => $totals) {
@@ -83,20 +82,20 @@ final class CatalogCommand extends BaseCommand
                 "%d of %d device%s not fully measured.\nDimensions open: %s\nWeights open: %s",
                 $summary['unmeasured'],
                 $summary['devices'],
-                $summary['devices'] === 1 ? '' : 's',
-                $summary['dimensions_unmeasured_ids'] === [] ? 'none' : implode(', ', $summary['dimensions_unmeasured_ids']),
-                $summary['weight_unmeasured_ids'] === [] ? 'none' : implode(', ', $summary['weight_unmeasured_ids']),
+                1 === $summary['devices'] ? '' : 's',
+                [] === $summary['dimensions_unmeasured_ids'] ? 'none' : implode(', ', $summary['dimensions_unmeasured_ids']),
+                [] === $summary['weight_unmeasured_ids'] ? 'none' : implode(', ', $summary['weight_unmeasured_ids']),
             ));
         }
 
         if ($input->getOption('write')) {
             $target = $this->projectDir().'/docs/catalog.md';
-            if (@file_put_contents($target, $renderer->renderMarkdown($specs)) === false) {
-                throw new RuntimeException("Cannot write {$target}");
+            if (false === @file_put_contents($target, $renderer->renderMarkdown($specs))) {
+                throw new \RuntimeException("Cannot write {$target}");
             }
             $this->io->success('Wrote '.$this->relative($target));
         }
 
-        return $errors === [] ? self::SUCCESS : self::FAILURE;
+        return [] === $errors ? self::SUCCESS : self::FAILURE;
     }
 }

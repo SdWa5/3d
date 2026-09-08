@@ -62,7 +62,7 @@ final class SceneSpec
      * `focus: { distance_m: 10 }` is the single unnamed one every scene written so far uses, and it keeps
      * the name `focus` so `aim: focus` still means it. `focus: { near: {...}, far: {...} }` is a map, and
      * the discrimination is simply whether every value is itself a mapping — the same shorthand-or-expanded
-     * test {@see \App\Spec\ArrayReader::isSection} already makes for `provenance`.
+     * test {@see ArrayReader::isSection} already makes for `provenance`.
      *
      * A focus is a decision about the room rather than about a cabinet, which is why they live here and are
      * referenced by name instead of being written into each placement: two clusters sharing one near-field
@@ -73,12 +73,12 @@ final class SceneSpec
     private static function readFoci(ArrayReader $reader): array
     {
         $section = $reader->optionalSection('focus');
-        if ($section === null) {
+        if (null === $section) {
             return ['focus' => new Focus()];
         }
 
         $names = $section->keys();
-        $named = $names !== [] && array_reduce(
+        $named = [] !== $names && array_reduce(
             $names,
             static fn (bool $carry, string $key): bool => $carry && $section->isSection($key),
             true,

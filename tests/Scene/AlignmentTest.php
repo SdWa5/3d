@@ -81,7 +81,7 @@ final class AlignmentTest extends TestCase
 
         $errors = array_filter(
             $result['violations'],
-            static fn ($v): bool => $v->severity !== \App\Spec\Violation::WARNING,
+            static fn ($v): bool => \App\Spec\Violation::WARNING !== $v->severity,
         );
         self::assertSame([], array_map(static fn ($v): string => $v->message, $errors), 'a warning, not an error');
         self::assertStringContainsString(
@@ -91,7 +91,7 @@ final class AlignmentTest extends TestCase
     }
 
     /**
-     * **An aimed row keeps the working gap it was given, between the cabinets and not just on paper.**
+     * **An aimed row keeps the working gap it was given, between the cabinets and not just on paper.**.
      *
      * The last relationship nothing used to space. `align` justifies a row into an envelope, `align.outside` holds it
      * clear of a neighbour and the tier chain spaces each run outside the one inboard of it — every one of them about a
@@ -113,10 +113,10 @@ final class AlignmentTest extends TestCase
 
         $errors = array_filter(
             $result['violations'],
-            static fn ($v): bool => $v->severity !== \App\Spec\Violation::WARNING,
+            static fn ($v): bool => \App\Spec\Violation::WARNING !== $v->severity,
         );
         self::assertSame([], array_map(static fn ($v): string => $v->message, $errors));
-        self::assertGreaterThanOrEqual(0.02 - 1e-6, \App\Scene\Interpenetration::narrowestGap($result['placed']));
+        self::assertGreaterThanOrEqual(0.02 - 1e-6, Interpenetration::narrowestGap($result['placed']));
         self::assertStringContainsString(
             'toe into each other',
             implode("\n", array_map(static fn ($v): string => $v->message, $result['violations'])),
@@ -436,6 +436,7 @@ final class AlignmentTest extends TestCase
 
     /**
      * @param list<PlacedDevice> $placed
+     *
      * @return list<float>
      */
     private function positions(array $placed): array
@@ -465,6 +466,7 @@ final class AlignmentTest extends TestCase
     /**
      * @param list<array<string, mixed>> $placements
      * @param array<string, mixed>|null $focus
+     *
      * @return list<PlacedDevice>
      */
     private function compile(array $placements, ?array $focus = null): array
@@ -483,7 +485,7 @@ final class AlignmentTest extends TestCase
     private function scene(array $placements, ?array $focus = null): SceneSpec
     {
         $data = ['id' => 'test', 'name' => 'Test scene', 'placements' => $placements];
-        if ($focus !== null) {
+        if (null !== $focus) {
             $data['focus'] = $focus;
         }
 

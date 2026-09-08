@@ -287,7 +287,7 @@ final class LineArrayTest extends TestCase
 
         self::assertNotSame([], $problems, 'expected a problem');
         self::assertTrue(
-            (bool)array_filter($problems, static fn (string $m): bool => str_contains($m, $expected)),
+            (bool) array_filter($problems, static fn (string $m): bool => str_contains($m, $expected)),
             sprintf("no problem contained %s\ngot: %s", var_export($expected, true), implode(' | ', $problems)),
         );
     }
@@ -366,6 +366,7 @@ final class LineArrayTest extends TestCase
 
     /**
      * @param array{float, float, float} $offset
+     *
      * @return array{float, float, float}
      */
     private function rounded(array $offset, int $places = 9): array

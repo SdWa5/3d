@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Spec;
 
 /**
- * The order cabinets are dealt into a stack: **subs before tops, and each group lowest-reaching first.**
+ * The order cabinets are dealt into a stack: **subs before tops, and each group lowest-reaching first.**.
  *
  * Split out of {@see \App\Command\SceneStackCommand} because it is a fact about loudspeakers rather than about a
  * command — `scene:stack` asks it, and so does anything else that has to turn an inventory into a fill order.
@@ -21,6 +21,7 @@ final class FillOrder
      * have to type out.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return list<string>
      */
     public static function everySpeaker(array $specs): array
@@ -28,10 +29,10 @@ final class FillOrder
         $subs = [];
         $tops = [];
         foreach ($specs as $spec) {
-            if ($spec->category->value !== 'speaker' || $spec->quantity < 1) {
+            if ('speaker' !== $spec->category->value || $spec->quantity < 1) {
                 continue;
             }
-            $spec->subtype === 'sub' ? $subs[] = $spec : $tops[] = $spec;
+            'sub' === $spec->subtype ? $subs[] = $spec : $tops[] = $spec;
         }
 
         usort($subs, self::byFillOrder());
@@ -59,7 +60,7 @@ final class FillOrder
      * * **our measured gear**: SKRAM 15 Hz, Flexy 38-200, Achenbach 38-1500 on the driven corner, against SKRAM
      *   90 kg, Flexy 85, Achenbach 50. The same order either way. The Achenbach reaches 35 Hz and would sort under
      *   the Flexy on capability, but it is high-passed at 38 on purpose so that it sits *above* the Flexys, which is
-     *   exactly what {@see \App\Spec\Passband::orderingLowHz} exists to express, and the high corner then separates
+     *   exactly what {@see Passband::orderingLowHz} exists to express, and the high corner then separates
      *   the two the same way the mass does
      * * **GMSS's own rig**: not one of its four cabinets states a passband, so all four fall through to wall bass
      *   220 kg, mid bass 120, nuke 58, IQ sub 40. That is exactly how the builder stacks them, wall basses on the
@@ -81,20 +82,20 @@ final class FillOrder
             // IQ subs went under the 220 kg wall basses and all four GMSS subs above six Achenbachs. Absence of a
             // measurement is not a measurement, so a pair where either side is silent is left for the mass to
             // decide rather than being ranked on a number one of them does not have.
-            if ($a->passband !== null && $b->passband !== null) {
+            if (null !== $a->passband && null !== $b->passband) {
                 $low = $a->passband->orderingLowHz() <=> $b->passband->orderingLowHz();
-                if ($low !== 0) {
+                if (0 !== $low) {
                     return $low;
                 }
 
                 $high = $a->passband->highHz <=> $b->passband->highHz;
-                if ($high !== 0) {
+                if (0 !== $high) {
                     return $high;
                 }
             }
 
             $mass = ($b->weightKg ?? 0.0) <=> ($a->weightKg ?? 0.0);
-            if ($mass !== 0) {
+            if (0 !== $mass) {
                 return $mass;
             }
 

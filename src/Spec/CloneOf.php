@@ -38,7 +38,7 @@ final class CloneOf
 
     public function isIdentified(): bool
     {
-        return $this->manufacturer !== self::UNKNOWN && $this->model !== self::UNKNOWN;
+        return self::UNKNOWN !== $this->manufacturer && self::UNKNOWN !== $this->model;
     }
 
     public function label(): string

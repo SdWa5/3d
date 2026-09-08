@@ -33,7 +33,6 @@ final class StackSolver
     /** Float slack when comparing a fit — a micrometre, far below anything a cabinet is measured to. */
     private const EPSILON_M = 1e-9;
 
-
     /**
      * How far a row may reach past the tier carrying it, as a multiple of one cabinet's width.
      *
@@ -49,18 +48,18 @@ final class StackSolver
      */
     private const OVERHANG_PER_SIDE = 2 / 3;
 
-
     /**
      * @param list<array{DeviceSpec, int}> $inventory device and how many of it, low frequency first
      * @param ?LayoutMode $align how the placement spreads its tiers, which decides the ORDER of the tops row —
-     *     see {@see topRow}. Null for a placement that states none, which is `center`.
+     *                           see {@see topRow}. Null for a placement that states none, which is `center`.
      * @param ?callable(list<Tier>): bool $survives **WHETHER AN ARRANGEMENT SURVIVES BEING PLACED FOR REAL**, asked of
-     *     every candidate the search is otherwise willing to accept. This is GEO-11's seam and it is deliberately a
-     *     callback: nothing here can see a finished placement, because interpenetration is decided by yaw, taper and
-     *     chamfer rather than by row widths, and teaching the solver that geometry would give the repository a second
-     *     opinion about where a cabinet's edge is. {@see \App\Scene\SceneCompiler} supplies it, since it is the one
-     *     stage that already knows. **Null means today's behaviour**, which is what every caller that cannot place a
-     *     cabinet — the solver's own tests among them — needs.
+     *                                              every candidate the search is otherwise willing to accept. This is GEO-11's seam and it is deliberately a
+     *                                              callback: nothing here can see a finished placement, because interpenetration is decided by yaw, taper and
+     *                                              chamfer rather than by row widths, and teaching the solver that geometry would give the repository a second
+     *                                              opinion about where a cabinet's edge is. {@see SceneCompiler} supplies it, since it is the one
+     *                                              stage that already knows. **Null means today's behaviour**, which is what every caller that cannot place a
+     *                                              cabinet — the solver's own tests among them — needs.
+     *
      * @return array{tiers: list<Tier>, problems: list<string>, warnings: list<string>}
      */
     public static function solve(
@@ -70,7 +69,7 @@ final class StackSolver
         ?callable $survives = null,
     ): array {
         $ordering = self::orderingProblems($inventory);
-        if ($ordering !== []) {
+        if ([] !== $ordering) {
             return ['tiers' => [], 'problems' => $ordering, 'warnings' => []];
         }
 
@@ -87,7 +86,7 @@ final class StackSolver
             // heights and labels, and a mirror image has exactly the ones its original had.
             $tiers = array_map(static fn (Tier $tier): Tier => $tier->flipped(), $tiers);
         }
-        if ($tiers === []) {
+        if ([] === $tiers) {
             return [
                 'tiers' => [],
                 'problems' => ['stack.from: none of the devices listed has anything to place'],
@@ -113,7 +112,7 @@ final class StackSolver
      */
     private static function survives(?callable $survives, array $tiers, array &$seen): bool
     {
-        if ($survives === null) {
+        if (null === $survives) {
             return true;
         }
 
@@ -147,6 +146,7 @@ final class StackSolver
      * refusing outright.
      *
      * @param list<array{DeviceSpec, int}> $inventory
+     *
      * @return list<string>
      */
     private static function orderingProblems(array $inventory): array
@@ -156,11 +156,11 @@ final class StackSolver
             if ($count < 1) {
                 continue;
             }
-            if ($device->subtype !== 'sub') {
+            if ('sub' !== $device->subtype) {
                 $seenTop ??= $device->id;
                 continue;
             }
-            if ($seenTop !== null) {
+            if (null !== $seenTop) {
                 return [sprintf(
                     "stack.from: subs come before tops, and '%s' is listed after '%s'",
                     $device->id,
@@ -193,6 +193,7 @@ final class StackSolver
      * unsupported one would have reached the height.
      *
      * @param list<array{DeviceSpec, int}> $inventory
+     *
      * @return list<Tier>
      */
     private static function fill(
@@ -219,8 +220,8 @@ final class StackSolver
         // A wall can only grow by two thirds of a cabinet per side per row, so a V asked for on a wide base has nowhere
         // to go — the base already fills the stage. Putting the type that makes the *narrowest* row on the floor is
         // what leaves it room, exactly as the pyramid puts the widest one there to have something to taper from.
-        if ($stack->shape !== StackShape::Free) {
-            $inventory = self::widestFirst($inventory, $stack, $stack->shape === StackShape::V);
+        if (StackShape::Free !== $stack->shape) {
+            $inventory = self::widestFirst($inventory, $stack, StackShape::V === $stack->shape);
         }
 
         $tallestCarried = [];
@@ -252,119 +253,119 @@ final class StackSolver
             //
             // No flanking search for a packed pass: {@see packedRows} ignores `$pairs` outright, so every pass but
             // the first would re-solve the identical arrangement at the cost of a checker run per candidate pack.
-            foreach ($stack->maxSubHeightM !== null ? [true, false] : [false] as $packed) {
+            foreach (null !== $stack->maxSubHeightM ? [true, false] : [false] as $packed) {
                 $flanking = $packed ? 0 : self::flankingPairs($inventory, $stack, $budget);
                 for ($pairs = $flanking; $pairs >= 0; --$pairs) {
                     // **THE SPREAD IS A CANDIDATE, OFFERED ONLY WHERE IT COULD WIN.** `central` is the only bias
                     // that can prefer a type dealt one to a row — it is strictly taller and strictly more central,
                     // and `low` would reject it every time — so offering it under `low` would double the search to
                     // produce arrangements nothing can choose. See {@see LowEndCost::lowestType}.
-                    $spreads = $packed || $stack->lowEnd !== LowEndBias::Central
+                    $spreads = $packed || LowEndBias::Central !== $stack->lowEnd
                         ? [null]
                         : [null, $lowest];
                     foreach (array_unique($spreads, SORT_REGULAR) as $spread) {
-                    $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align, $spread);
-                    // A spread that could not be built returns nothing rather than quietly falling back to the
-                    // ordinary arrangement, which would enter the same candidate twice.
-                    if ($tiers === []) {
-                        continue;
-                    }
-                    $widestAttempt = $widestAttempt === [] ? $tiers : $widestAttempt;
-
-                    if (StackChecks::supportChecks($tiers, $stack)['problems'] !== []) {
-                        continue;
-                    }
-
-                    $subs = self::subHeight($tiers);
-
-                    // UNDER A CEILING THE PREFERENCE INVERTS, and that is the whole reason the key exists. Without
-                    // one the answer is the widest row that still gets the tops up, so the search returns on its
-                    // first hit and every later, narrower arrangement is ignored. With one, a hit is not the answer
-                    // — a *better* hit may be further down the search — so the whole space is walked.
-                    //
-                    // **WHICH HIT IS BETTER IS `target_sub_height_m`, AND IT USED TO BE "THE SHORTEST".** That was a
-                    // tie-break standing in for a preference nobody had stated, and it parked the transition just over
-                    // 2.0 m wherever it could — legal, and never what anybody wanted, since the useful place for it is
-                    // the middle of the band. Now the arrangement nearest the target wins, which is bidirectional: an
-                    // arrangement 300 mm under the target loses to one 100 mm over it. Ties keep the first, the widest.
-                    //
-                    // **THE CEILING BINDS BEFORE THE TARGET DOES**, because a target is a preference between *legal*
-                    // arrangements and may never reach past the bound to pick an illegal one. Offered 1.5 m and 3.2 m
-                    // against a 3.0 m ceiling, plain distance takes the 3.2 m, which is not a rig at all.
-                    //
-                    // **Measured, and it is inert at the default target — deliberately kept anyway.** 2.5 m is the
-                    // midpoint of the 2–3 m band, so every legal arrangement is within 0.5 m of the aim and every
-                    // illegal one is further: distance alone already sorts them, and adding this changed not one scene
-                    // of the 148. It stops being redundant the moment somebody states a target off the midpoint —
-                    // `--target-sub-height=2.2` puts a 3.05 m arrangement nearer the aim than a 2.0 m one — which is
-                    // exactly when the option is used and exactly when nobody would be watching for this.
-                    if ($stack->maxSubHeightM !== null) {
-                        $legal = $subs <= $stack->maxSubHeightM + self::EPSILON_M;
-                        // **When nothing is legal the aim is the ceiling, not the target**, and the two are different
-                        // answers: against a 1.0 m ceiling this inventory can build 1.363 m or 2.126 m, and 2.126 is
-                        // nearer 2.5 while 1.363 is nearer being a rig. Measured — the naive version reported a
-                        // 1126 mm miss where the honest answer misses by 363. A preference cannot be allowed to pick
-                        // the worse of two failures just because there is no success to choose between.
-                        $miss = $legal
-                            ? abs($subs - $stack->targetSubHeightM)
-                            : $subs - $stack->maxSubHeightM;
-                        // **THE LOW END'S TWO MEASURES RIDE ON THE SAME SCALAR**, which is the whole of GEO-14's
-                        // second and third quarters: the shapes and the bearing rules decide what is allowed, and
-                        // within that freedom the arrangement that puts the low end where the caller asked wins.
-                        // Added rather than compared separately, because the height band is already a preference
-                        // and two preferences that cannot be traded are two gates. See {@see LowEndCost}.
-                        $miss += $stack->lowEnd->cost(
-                            LowEndCost::lowness($tiers, $stack, $lowest),
-                            LowEndCost::centrality($tiers, $stack, $lowest),
-                        );
-                        $better = $legal === $closestCarriedLegal
-                            ? $miss < $closestCarriedMiss
-                            : $legal;
-
-                        // **ASKED LAST, AND ONLY OF A CANDIDATE THAT WOULD WIN.** Whether an arrangement survives
-                        // being placed is the one question here that costs a whole compile, and it is the one no
-                        // check above can answer: `supportChecks` reads row widths and bearings, where two cabinets
-                        // end up inside each other because of yaw, taper and chamfer. Ordering it behind `$better`
-                        // is not an optimisation detail — asked of every candidate it ran a compile per arrangement
-                        // and the sweep stopped finishing at all. A loser's geometry changes nothing, so it is never
-                        // built. See GEO-11.
-                        if (self::reachesInterface($tiers, $stack) && $better && self::survives($survives, $tiers, $seated)) {
-                            $closestCarriedLegal = $legal;
-                            $closestCarriedMiss = $miss;
-                            $closestCarried = $tiers;
+                        $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align, $spread);
+                        // A spread that could not be built returns nothing rather than quietly falling back to the
+                        // ordinary arrangement, which would enter the same candidate twice.
+                        if ([] === $tiers) {
+                            continue;
                         }
-                    } elseif (self::reachesInterface($tiers, $stack) && self::survives($survives, $tiers, $seated)) {
-                        // **NO CEILING USED TO MEAN NO RANKING AT ALL, AND THAT MADE THE LOW-END AXIS INERT.** This
-                        // branch returned the first arrangement that stood up, so on a rig with no
-                        // `max_sub_height_m` nothing was ever compared against anything and both values of the axis
-                        // produced the same file. It ranks now, on the low end alone — there is no band to miss, so
-                        // there is nothing else to weigh — and it still returns the first candidate when the axis
-                        // has no opinion, which is what keeps an unaimed rig as cheap as it was.
-                        $lowEnd = $stack->lowEnd->cost(
-                            LowEndCost::lowness($tiers, $stack, $lowest),
-                            LowEndCost::centrality($tiers, $stack, $lowest),
-                        );
-                        if ($lowEnd < $closestCarriedMiss) {
-                            $closestCarriedMiss = $lowEnd;
-                            $closestCarried = $tiers;
-                        }
-                    }
+                        $widestAttempt = [] === $widestAttempt ? $tiers : $widestAttempt;
 
-                    // The fallback is held to the same bar. It is what gets returned when nothing reached the
-                    // interface, and returning an arrangement that overlaps would hand the caller a rig no render
-                    // could show — the failure this whole seam exists to stop.
-                    if ($subs > $tallestCarriedSubs && self::survives($survives, $tiers, $seated)) {
-                        $tallestCarriedSubs = $subs;
-                        $tallestCarried = $tiers;
-                    }
+                        if ([] !== StackChecks::supportChecks($tiers, $stack)['problems']) {
+                            continue;
+                        }
+
+                        $subs = self::subHeight($tiers);
+
+                        // UNDER A CEILING THE PREFERENCE INVERTS, and that is the whole reason the key exists. Without
+                        // one the answer is the widest row that still gets the tops up, so the search returns on its
+                        // first hit and every later, narrower arrangement is ignored. With one, a hit is not the answer
+                        // — a *better* hit may be further down the search — so the whole space is walked.
+                        //
+                        // **WHICH HIT IS BETTER IS `target_sub_height_m`, AND IT USED TO BE "THE SHORTEST".** That was a
+                        // tie-break standing in for a preference nobody had stated, and it parked the transition just over
+                        // 2.0 m wherever it could — legal, and never what anybody wanted, since the useful place for it is
+                        // the middle of the band. Now the arrangement nearest the target wins, which is bidirectional: an
+                        // arrangement 300 mm under the target loses to one 100 mm over it. Ties keep the first, the widest.
+                        //
+                        // **THE CEILING BINDS BEFORE THE TARGET DOES**, because a target is a preference between *legal*
+                        // arrangements and may never reach past the bound to pick an illegal one. Offered 1.5 m and 3.2 m
+                        // against a 3.0 m ceiling, plain distance takes the 3.2 m, which is not a rig at all.
+                        //
+                        // **Measured, and it is inert at the default target — deliberately kept anyway.** 2.5 m is the
+                        // midpoint of the 2–3 m band, so every legal arrangement is within 0.5 m of the aim and every
+                        // illegal one is further: distance alone already sorts them, and adding this changed not one scene
+                        // of the 148. It stops being redundant the moment somebody states a target off the midpoint —
+                        // `--target-sub-height=2.2` puts a 3.05 m arrangement nearer the aim than a 2.0 m one — which is
+                        // exactly when the option is used and exactly when nobody would be watching for this.
+                        if (null !== $stack->maxSubHeightM) {
+                            $legal = $subs <= $stack->maxSubHeightM + self::EPSILON_M;
+                            // **When nothing is legal the aim is the ceiling, not the target**, and the two are different
+                            // answers: against a 1.0 m ceiling this inventory can build 1.363 m or 2.126 m, and 2.126 is
+                            // nearer 2.5 while 1.363 is nearer being a rig. Measured — the naive version reported a
+                            // 1126 mm miss where the honest answer misses by 363. A preference cannot be allowed to pick
+                            // the worse of two failures just because there is no success to choose between.
+                            $miss = $legal
+                                ? abs($subs - $stack->targetSubHeightM)
+                                : $subs - $stack->maxSubHeightM;
+                            // **THE LOW END'S TWO MEASURES RIDE ON THE SAME SCALAR**, which is the whole of GEO-14's
+                            // second and third quarters: the shapes and the bearing rules decide what is allowed, and
+                            // within that freedom the arrangement that puts the low end where the caller asked wins.
+                            // Added rather than compared separately, because the height band is already a preference
+                            // and two preferences that cannot be traded are two gates. See {@see LowEndCost}.
+                            $miss += $stack->lowEnd->cost(
+                                LowEndCost::lowness($tiers, $stack, $lowest),
+                                LowEndCost::centrality($tiers, $stack, $lowest),
+                            );
+                            $better = $legal === $closestCarriedLegal
+                                ? $miss < $closestCarriedMiss
+                                : $legal;
+
+                            // **ASKED LAST, AND ONLY OF A CANDIDATE THAT WOULD WIN.** Whether an arrangement survives
+                            // being placed is the one question here that costs a whole compile, and it is the one no
+                            // check above can answer: `supportChecks` reads row widths and bearings, where two cabinets
+                            // end up inside each other because of yaw, taper and chamfer. Ordering it behind `$better`
+                            // is not an optimisation detail — asked of every candidate it ran a compile per arrangement
+                            // and the sweep stopped finishing at all. A loser's geometry changes nothing, so it is never
+                            // built. See GEO-11.
+                            if (self::reachesInterface($tiers, $stack) && $better && self::survives($survives, $tiers, $seated)) {
+                                $closestCarriedLegal = $legal;
+                                $closestCarriedMiss = $miss;
+                                $closestCarried = $tiers;
+                            }
+                        } elseif (self::reachesInterface($tiers, $stack) && self::survives($survives, $tiers, $seated)) {
+                            // **NO CEILING USED TO MEAN NO RANKING AT ALL, AND THAT MADE THE LOW-END AXIS INERT.** This
+                            // branch returned the first arrangement that stood up, so on a rig with no
+                            // `max_sub_height_m` nothing was ever compared against anything and both values of the axis
+                            // produced the same file. It ranks now, on the low end alone — there is no band to miss, so
+                            // there is nothing else to weigh — and it still returns the first candidate when the axis
+                            // has no opinion, which is what keeps an unaimed rig as cheap as it was.
+                            $lowEnd = $stack->lowEnd->cost(
+                                LowEndCost::lowness($tiers, $stack, $lowest),
+                                LowEndCost::centrality($tiers, $stack, $lowest),
+                            );
+                            if ($lowEnd < $closestCarriedMiss) {
+                                $closestCarriedMiss = $lowEnd;
+                                $closestCarried = $tiers;
+                            }
+                        }
+
+                        // The fallback is held to the same bar. It is what gets returned when nothing reached the
+                        // interface, and returning an arrangement that overlaps would hand the caller a rig no render
+                        // could show — the failure this whole seam exists to stop.
+                        if ($subs > $tallestCarriedSubs && self::survives($survives, $tiers, $seated)) {
+                            $tallestCarriedSubs = $subs;
+                            $tallestCarried = $tiers;
+                        }
                     }
                 }
             }
         }
-        if ($closestCarried !== []) {
+        if ([] !== $closestCarried) {
             return $closestCarried;
         }
-        if ($tallestCarried !== []) {
+        if ([] !== $tallestCarried) {
             // Stands up but sits lower than asked for, which is a warning. Under a ceiling this is the arrangement
             // that misses it — nothing cleared the interface, so there is no legal arrangement to rank, and
             // {@see StackChecks::boundsProblems} names the miss rather than this silently picking a side.
@@ -382,6 +383,7 @@ final class StackSolver
      * `$packed`, the subs packed into as few rows as the width allows regardless of how many types share one.
      *
      * @param list<array{DeviceSpec, int}> $inventory
+     *
      * @return list<Tier>
      */
     private static function fillWith(
@@ -407,7 +409,7 @@ final class StackSolver
             [$packed, $remaining] = self::packedRows($remaining, $stack, $budget);
             $tops = self::topRow($remaining, $stack, $align);
 
-            $rows = $tops === null ? $packed : [...$packed, $tops];
+            $rows = null === $tops ? $packed : [...$packed, $tops];
 
             return array_map(
                 static fn (Tier $tier, int $row): Tier => $tier->mirrored($stack->mirrorStyle, $row),
@@ -417,19 +419,19 @@ final class StackSolver
         }
 
         $tiers = [];
-        if ($spreadId !== null) {
+        if (null !== $spreadId) {
             // **BEFORE THE MIXED BOTTOM ROW, BECAUSE BOTH WANT THE SAME CABINETS.** A mixed bottom row would
             // consume the very type this is spreading and the spread would have nothing left to deal. Where it
             // cannot be built the candidate is simply the ordinary one, which is what `null` means here.
             $spread = self::spreadRows($remaining, $stack, $budget, $spreadId);
-            if ($spread === null) {
+            if (null === $spread) {
                 return [];
             }
             [$spreadTiers, $remaining] = $spread;
             $tiers = $spreadTiers;
         } elseif ($pairs > 0) {
             $bottom = self::mixedBottomRow($remaining, $stack, $budget, $pairs);
-            if ($bottom !== null) {
+            if (null !== $bottom) {
                 [$tiers[], $remaining] = $bottom;
             }
         }
@@ -446,7 +448,7 @@ final class StackSolver
         // not know, and `scene:build`'s over-use warning was the only thing downstream that noticed.
         foreach (array_keys($remaining) as $index) {
             [$device, $count] = $remaining[$index];
-            if ($count < 1 || $device->subtype !== 'sub') {
+            if ($count < 1 || 'sub' !== $device->subtype) {
                 continue;
             }
 
@@ -466,7 +468,7 @@ final class StackSolver
                 ),
                 self::supportOf($tiers, $stack),
             );
-            if ($stated !== null) {
+            if (null !== $stated) {
                 [$tiers[], $remaining] = $stated;
                 continue;
             }
@@ -502,14 +504,14 @@ final class StackSolver
             }
             // Balanced rather than greedy: the same number of rows, but no short one left at the top to
             // fail to carry whatever is above it.
-            $rows = (int)ceil($count / $perTier);
+            $rows = (int) ceil($count / $perTier);
             foreach (self::share($count, $rows) as $row) {
                 $tiers[] = Tier::of($device, $row, $roll);
             }
         }
 
         $tops = self::topRow($remaining, $stack, $align);
-        if ($tops !== null) {
+        if (null !== $tops) {
             $tiers[] = $tops;
         }
 
@@ -542,6 +544,7 @@ final class StackSolver
      * taller than the cabinet it stands beside — and null means the search simply does not get this candidate.
      *
      * @param array<int, array{DeviceSpec, int}> $remaining
+     *
      * @return array{list<Tier>, array<int, array{DeviceSpec, int}>}|null
      */
     private static function spreadRows(array $remaining, Stack $stack, RowBudget $budget, string $spreadId): ?array
@@ -552,13 +555,13 @@ final class StackSolver
                 $centre = $index;
             }
         }
-        if ($centre === null) {
+        if (null === $centre) {
             return null;
         }
 
         [$device, $available] = $remaining[$centre];
         $flank = self::flankingSub($remaining, $centre, $device);
-        if ($flank === null) {
+        if (null === $flank) {
             return null;
         }
 
@@ -588,7 +591,7 @@ final class StackSolver
         $target = $perRow * ($flankWidth + $stack->gapM) - $stack->gapM;
 
         $room = $target - RolledBox::widthOf($device, $roll) - 2 * $stack->gapM;
-        $pairs = (int)floor($room / (2 * ($flankWidth + $stack->gapM)));
+        $pairs = (int) floor($room / (2 * ($flankWidth + $stack->gapM)));
         // Every row gets the same number of pairs, so the stock has to cover all of them — an arrangement whose
         // last row is thinner than the rest is the stepped wall the bearing rules refuse anyway.
         $pairs = min($pairs, intdiv($flankAvailable, 2 * $available));
@@ -630,8 +633,9 @@ final class StackSolver
      * pair is not free, it comes out of the row below and can cost that row a whole tier.
      *
      * @param list<array{DeviceSpec, int}> $remaining
+     *
      * @return array{array<int, array{DeviceSpec, int}>, list<array{DeviceSpec, int}>} lifts by target index,
-     *     and what is left to fill rows with
+     *                                                                                 and what is left to fill rows with
      */
     private static function reserveLifts(array $remaining, Stack $stack, RowBudget $budget): array
     {
@@ -640,12 +644,12 @@ final class StackSolver
         foreach (array_keys($remaining) as $source) {
             [$device, $count] = $remaining[$source];
             // A device already being flanked has no rows of its own left to lend from.
-            if ($count < 1 || $device->subtype !== 'sub' || isset($lifts[$source])) {
+            if ($count < 1 || 'sub' !== $device->subtype || isset($lifts[$source])) {
                 continue;
             }
 
             $lift = self::liftAbove($remaining, $source, $stack, $budget);
-            if ($lift === null) {
+            if (null === $lift) {
                 continue;
             }
 
@@ -668,6 +672,7 @@ final class StackSolver
      * overhung. Knowing two of them go up instead, six come to 3.646 m and 2 pairs is enough.
      *
      * @param list<array{DeviceSpec, int}> $remaining
+     *
      * @return array{int, int}|null target index and pairs per side
      */
     private static function liftAbove(array $remaining, int $source, Stack $stack, RowBudget $budget): ?array
@@ -678,7 +683,7 @@ final class StackSolver
         }
 
         foreach ($remaining as $index => [$device, $count]) {
-            if ($index <= $source || $count < 1 || $device->subtype !== 'sub') {
+            if ($index <= $source || $count < 1 || 'sub' !== $device->subtype) {
                 continue;
             }
 
@@ -709,7 +714,7 @@ final class StackSolver
             // still to be placed, because that is the worst case among the candidates for standing there.
             $shortest = INF;
             foreach ($remaining as $later => [$laterDevice, $laterCount]) {
-                if ($later > $index && $laterCount > 0 && $laterDevice->subtype === 'sub') {
+                if ($later > $index && $laterCount > 0 && 'sub' === $laterDevice->subtype) {
                     $shortest = min($shortest, RolledBox::heightOf($laterDevice, self::rollFor($laterDevice, $stack)));
                 }
             }
@@ -760,7 +765,7 @@ final class StackSolver
             ]);
             $width = $candidate->widthM($stack->gapM);
 
-            if ($stack->maxWidthM !== null && $width > $stack->maxWidthM + self::EPSILON_M) {
+            if (null !== $stack->maxWidthM && $width > $stack->maxWidthM + self::EPSILON_M) {
                 break;
             }
 
@@ -790,7 +795,7 @@ final class StackSolver
                 // ruled out. The
                 // support's width is already computed on the line above for the bearing test, so the same number
                 // answers both questions.
-                if ($stack->shape === StackShape::Pyramid
+                if (StackShape::Pyramid === $stack->shape
                     && ($width - $support) / 2 > StackChecks::PYRAMID_SHOULDER * $candidate->outerWidthM()
                 ) {
                     break;
@@ -847,7 +852,7 @@ final class StackSolver
             $stack->gapM,
             $roll,
         );
-        $shares = self::share($count, (int)ceil($count / $perTier));
+        $shares = self::share($count, (int) ceil($count / $perTier));
 
         return Tier::of($device, $shares[count($shares) - 1], $roll)->widthM($stack->gapM);
     }
@@ -859,6 +864,7 @@ final class StackSolver
      * just not the row that was asked for, and nothing in a render says so.
      *
      * @param list<array{DeviceSpec, int}> $inventory
+     *
      * @return list<string>
      */
     private static function mixProblems(array $inventory, Stack $stack): array
@@ -879,7 +885,6 @@ final class StackSolver
                     );
                     continue;
                 }
-
             }
         }
 
@@ -902,13 +907,14 @@ final class StackSolver
      * on one side and a width on the other.
      *
      * @param list<array{DeviceSpec, int}> $remaining
+     *
      * @return array{Tier, list<array{DeviceSpec, int}>}|null
      */
     private static function statedMix(array $remaining, int $index, Stack $stack, RowBudget $budget, float $supportM = INF): ?array
     {
         [$device, $count] = $remaining[$index];
         $wanted = $stack->entryFor($device->id)?->mixWith ?? [];
-        if ($wanted === []) {
+        if ([] === $wanted) {
             return null;
         }
 
@@ -921,7 +927,7 @@ final class StackSolver
                 $segments[$other] = [$otherDevice, $otherCount];
             }
         }
-        if ($segments === []) {
+        if ([] === $segments) {
             return null;
         }
 
@@ -964,7 +970,7 @@ final class StackSolver
 
         // Nothing fitted, so this is not a mixed row at all — hand the device back and let the ordinary path deal
         // it. Emitting a "mix" of one segment would be a row with a misleading label and no flanks.
-        if ($used === []) {
+        if ([] === $used) {
             return null;
         }
 
@@ -1014,18 +1020,18 @@ final class StackSolver
     {
         $tops = [];
         foreach ($remaining as [$device, $count]) {
-            if ($count > 0 && $device->subtype !== 'sub') {
+            if ($count > 0 && 'sub' !== $device->subtype) {
                 $tops[] = [$device, $count];
             }
         }
-        if ($tops === []) {
+        if ([] === $tops) {
             return null;
         }
 
         usort($tops, static fn (array $a, array $b): int => RolledBox::widthOf($b[0], self::rollFor($b[0], $stack))
             <=> RolledBox::widthOf($a[0], self::rollFor($a[0], $stack)));
 
-        if ($align === LayoutMode::Stereo) {
+        if (LayoutMode::Stereo === $align) {
             return self::stereoTopRow($tops, $stack);
         }
 
@@ -1086,7 +1092,7 @@ final class StackSolver
                 $left[] = [$device, $half, $roll];
                 $right[] = [$device, $half, $roll];
             }
-            if ($count % 2 === 1) {
+            if (1 === $count % 2) {
                 $centre[] = [$device, 1, $roll];
             }
         }
@@ -1104,13 +1110,13 @@ final class StackSolver
     private static function flankingPairs(array $inventory, Stack $stack, RowBudget $budget): int
     {
         $centre = self::widestSub($inventory, $stack);
-        if ($centre === null) {
+        if (null === $centre) {
             return 0;
         }
         [$device, $available] = $inventory[$centre];
 
         $flank = self::flankingSub($inventory, $centre, $device);
-        if ($flank === null) {
+        if (null === $flank) {
             return 0;
         }
 
@@ -1125,7 +1131,7 @@ final class StackSolver
             ]);
             $width = $candidate->widthM($stack->gapM);
 
-            if ($stack->maxWidthM !== null && $width > $stack->maxWidthM + self::EPSILON_M) {
+            if (null !== $stack->maxWidthM && $width > $stack->maxWidthM + self::EPSILON_M) {
                 break;
             }
             ++$pairs;
@@ -1178,7 +1184,7 @@ final class StackSolver
                 $stack->gapM,
                 self::rollFor($flankDevice, $stack),
             );
-            $rows = (int)ceil($leftOver / $perTier);
+            $rows = (int) ceil($leftOver / $perTier);
 
             return Tier::of($flankDevice, self::share($leftOver, $rows)[0], self::rollFor($flankDevice, $stack))
                 ->widthM($stack->gapM);
@@ -1239,6 +1245,7 @@ final class StackSolver
      * the same reason {@see fill} hands back its widest attempt rather than nothing.
      *
      * @param list<array{DeviceSpec, int}> $remaining
+     *
      * @return array{list<Tier>, list<array{DeviceSpec, int}>} the sub rows bottom-up, and the tops left to place
      */
     private static function packedRows(array $remaining, Stack $stack, RowBudget $budget): array
@@ -1246,13 +1253,13 @@ final class StackSolver
         $queue = [];
         foreach (array_keys($remaining) as $index) {
             [$device, $count] = $remaining[$index];
-            if ($count < 1 || $device->subtype !== 'sub') {
+            if ($count < 1 || 'sub' !== $device->subtype) {
                 continue;
             }
             $queue[] = [$device, $count, self::rollFor($device, $stack)];
             $remaining[$index] = [$device, 0];
         }
-        if ($queue === []) {
+        if ([] === $queue) {
             return [[], $remaining];
         }
 
@@ -1270,7 +1277,7 @@ final class StackSolver
         $total += max(0, $cabinets - $rows) * $stack->gapM;
 
         $candidates = [$greedy];
-        for ($divisor = (float)$rows; $divisor > 1.0 - self::EPSILON_M; $divisor -= 0.25) {
+        for ($divisor = (float) $rows; $divisor > 1.0 - self::EPSILON_M; $divisor -= 0.25) {
             $candidates[] = self::packTo($queue, $stack, $budget, $total / $divisor);
         }
 
@@ -1290,7 +1297,7 @@ final class StackSolver
         $bestRows = PHP_INT_MAX;
 
         foreach ($candidates as $pack) {
-            $stands = StackChecks::supportChecks($pack, $stack)['problems'] === [];
+            $stands = [] === StackChecks::supportChecks($pack, $stack)['problems'];
             $height = self::subHeight($pack);
             $count = count($pack);
 
@@ -1319,6 +1326,7 @@ final class StackSolver
      * the same pack each time for the comparison between them to mean anything.
      *
      * @param list<array{DeviceSpec, int, float}> $queue device, stock and roll, deepest first
+     *
      * @return list<Tier>
      */
     private static function packTo(array $queue, Stack $stack, RowBudget $budget, float $budgetM): array
@@ -1352,7 +1360,7 @@ final class StackSolver
                 // beside two 1.400 m wall basses leaves a 900 mm crater at one end, and the IQ sub that lands in it
                 // on the next row up sits at the same height as the wall bass next to it — 59 mm inside it, as the
                 // overlap sweep found. Same rule as {@see liftAbove}'s, asked of a row rather than of a flank.
-                if ($row !== [] && self::swallows(
+                if ([] !== $row && self::swallows(
                     RolledBox::heightOf($device, $roll),
                     self::tallestIn($row),
                     self::shortestAfter($queue, $cursor, $stack),
@@ -1391,7 +1399,7 @@ final class StackSolver
                 // Nothing of this device fits the row as it stands. An empty row has to take one anyway — see
                 // {@see packedRows} — and a row with something in it is simply finished, so the next one starts here.
                 if ($take < 1) {
-                    if ($row !== []) {
+                    if ([] !== $row) {
                         break;
                     }
                     $take = 1;
@@ -1456,7 +1464,7 @@ final class StackSolver
     private static function pyramidCeiling(array $tiers, Stack $stack, DeviceSpec $device, float $roll): ?float
     {
         $last = end($tiers);
-        if ($stack->shape !== StackShape::Pyramid || $last === false) {
+        if (StackShape::Pyramid !== $stack->shape || false === $last) {
             return null;
         }
 
@@ -1476,6 +1484,7 @@ final class StackSolver
      * row buys nothing, and moving them would break the subs-before-tops rule {@see orderingProblems} enforces.
      *
      * @param list<array{DeviceSpec, int}> $inventory
+     *
      * @return list<array{DeviceSpec, int}>
      */
     private static function widestFirst(array $inventory, Stack $stack, bool $reversed = false): array
@@ -1483,7 +1492,7 @@ final class StackSolver
         $subs = [];
         $tops = [];
         foreach ($inventory as $entry) {
-            $entry[0]->subtype === 'sub' ? $subs[] = $entry : $tops[] = $entry;
+            'sub' === $entry[0]->subtype ? $subs[] = $entry : $tops[] = $entry;
         }
 
         // `$reversed` is the V: narrowest row-maker on the floor, so the wall has somewhere to grow. Same measure and
@@ -1590,7 +1599,7 @@ final class StackSolver
         $right = [];
 
         foreach ($row as $position => [$device, $take, $roll]) {
-            if ($position === 0) {
+            if (0 === $position) {
                 continue;
             }
             $half = intdiv($take, 2);
@@ -1645,12 +1654,13 @@ final class StackSolver
      * row is paid for out of the tiers above it, so how much to spend is a question about the whole stack.
      *
      * @param list<array{DeviceSpec, int}> $remaining
+     *
      * @return array{Tier, list<array{DeviceSpec, int}>}|null
      */
     private static function mixedBottomRow(array $remaining, Stack $stack, RowBudget $budget, int $pairs): ?array
     {
         $centre = self::widestSub($remaining, $stack);
-        if ($centre === null) {
+        if (null === $centre) {
             return null;
         }
 
@@ -1664,14 +1674,14 @@ final class StackSolver
 
         $ownRow = Tier::of($device, min($available, $fits), self::rollFor($device, $stack))->widthM($stack->gapM);
         $rowAbove = self::rowAbove($remaining, $centre, $stack, $budget);
-        if ($rowAbove === null || $ownRow + self::EPSILON_M >= $rowAbove) {
+        if (null === $rowAbove || $ownRow + self::EPSILON_M >= $rowAbove) {
             // Nothing stands on it, or what does is no wider — there is no inversion to remove, so leave
             // the order the author wrote alone.
             return null;
         }
 
         $flank = self::flankingSub($remaining, $centre, $device);
-        if ($flank === null) {
+        if (null === $flank) {
             return null;
         }
 
@@ -1731,7 +1741,7 @@ final class StackSolver
                 $stack->gapM,
                 self::rollFor($device, $stack),
             );
-            $rows = (int)ceil($count / $perTier);
+            $rows = (int) ceil($count / $perTier);
 
             return Tier::of($device, self::share($count, $rows)[0], self::rollFor($device, $stack))
                 ->widthM($stack->gapM);
@@ -1750,10 +1760,10 @@ final class StackSolver
     {
         $best = null;
         foreach ($remaining as $index => [$device, $count]) {
-            if ($count < 1 || $device->subtype !== 'sub') {
+            if ($count < 1 || 'sub' !== $device->subtype) {
                 continue;
             }
-            if ($best === null) {
+            if (null === $best) {
                 $best = $index;
                 continue;
             }
@@ -1783,10 +1793,10 @@ final class StackSolver
     {
         $best = null;
         foreach ($remaining as $index => [$device, $count]) {
-            if ($index === $centre || $count < 2 || $device->subtype !== 'sub') {
+            if ($index === $centre || $count < 2 || 'sub' !== $device->subtype) {
                 continue;
             }
-            if ($best === null || $count > $remaining[$best][1]) {
+            if (null === $best || $count > $remaining[$best][1]) {
                 $best = $index;
             }
         }
@@ -1804,7 +1814,7 @@ final class StackSolver
     {
         $shares = [];
         for ($row = 0; $row < $rows; ++$row) {
-            $shares[] = (int)ceil(($count - array_sum($shares)) / ($rows - $row));
+            $shares[] = (int) ceil(($count - array_sum($shares)) / ($rows - $row));
         }
 
         return $shares;
@@ -1856,7 +1866,7 @@ final class StackSolver
 
         // Widen only while the balanced split would still strand a row of one.
         for ($size = $perTier; $size <= min($count, $byStage); ++$size) {
-            if (!in_array(1, self::share($count, (int)ceil($count / $size)), true)) {
+            if (!in_array(1, self::share($count, (int) ceil($count / $size)), true)) {
                 return $size;
             }
         }
@@ -1887,7 +1897,7 @@ final class StackSolver
 
         $allowed = $supportM + 2 * self::OVERHANG_PER_SIDE * RolledBox::widthOf($device, $roll);
 
-        return $stack->maxWidthM === null ? $allowed : min($allowed, $stack->maxWidthM);
+        return null === $stack->maxWidthM ? $allowed : min($allowed, $stack->maxWidthM);
     }
 
     /**
@@ -1903,7 +1913,7 @@ final class StackSolver
     {
         $last = end($tiers);
 
-        return $last === false ? INF : $last->widthM($stack->gapM);
+        return false === $last ? INF : $last->widthM($stack->gapM);
     }
 
     /**
@@ -1936,6 +1946,7 @@ final class StackSolver
      * constraint on this project, and the arrangements this buys are the point.
      *
      * @param list<array{DeviceSpec, int}> $inventory
+     *
      * @return list<RowBudget>
      */
     private static function budgetLadder(array $inventory, Stack $stack): array
@@ -1956,7 +1967,7 @@ final class StackSolver
         $ladder = [RowBudget::unbounded()];
         $last = null;
         foreach ($widths as $width) {
-            if ($last === null || abs($last - $width) > self::EPSILON_M) {
+            if (null === $last || abs($last - $width) > self::EPSILON_M) {
                 $ladder[] = new RowBudget($width);
                 $last = $width;
             }
@@ -1971,13 +1982,13 @@ final class StackSolver
 
     private static function perTier(DeviceSpec $device, ?float $maxWidthM, float $gapM, float $rollDeg = 0.0): int
     {
-        if ($maxWidthM === null) {
+        if (null === $maxWidthM) {
             return PHP_INT_MAX;
         }
 
         // The **rolled** width. Four Flexys on their sides fill a 3.70 m stage where six standing up do, and
         // fitting them by their nominal 591 mm put 3.895 m of cabinet on a 3.70 m stage.
-        $fit = (int)floor(($maxWidthM + $gapM) / (RolledBox::widthOf($device, $rollDeg) + $gapM) + self::EPSILON_M);
+        $fit = (int) floor(($maxWidthM + $gapM) / (RolledBox::widthOf($device, $rollDeg) + $gapM) + self::EPSILON_M);
 
         return max(1, $fit);
     }

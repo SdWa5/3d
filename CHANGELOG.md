@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.106.0] - 2026-09-08
+
+Static analysis and a style gate, and the formatting pass they needed first.
+
+### Added
+
+- **PHP-CS-Fixer with the Symfony ruleset**, `@Symfony` plus `@PHP83Migration` plus `declare_strict_types`, in
+  `.php-cs-fixer.dist.php`. `composer cs` checks and `composer cs-fix` applies. `@Symfony:risky` is **off** on
+  purpose: its two loudest rules wanted 132 changes across the tree to write `\count()` and `\PHP_INT_MAX`, which
+  buys an opcode-level lookup in a project whose TODO states runtime is not a constraint. `phpdoc_to_comment` is
+  off because it turns an inline `@var` hint into a plain comment and PHPStan then stops reading it
+- **PHPStan in `phpstan.neon`**, at **level 5** over `src` and `tests`, reachable as `composer stan`. The level is
+  a measured choice rather than a default: 1 error at level 0, 18 at 2, 51 at 4, **64 at 5**, 231 at 8 and 522 at
+  max. Everything at level 5 is fixed rather than baselined, so the file carries no ignores and a new error fails
+- **Ruff for the Python side** in `pyproject.toml`, covering the 2703 lines under `blender/` and `tools/` that no
+  tool has ever read. `bpy` is only importable inside Blender, so lint rules are what is checkable from outside
+- `composer static` runs PHPStan and the style check together
+
+### Changed
+
+- **127 of 171 PHP files reformatted to the Symfony standard**, in this commit alone so that the fixes that
+  follow stay readable. The pass is mechanical and changes no behaviour. What it touched, by rule: 105 files
+  `yoda_style`, 57 `phpdoc_separation`, 37 `cast_spaces`, 21 `fully_qualified_strict_types`, 20 `no_unused_imports`,
+  19 `method_argument_space`, 17 `single_line_throw`, 16 `global_namespace_import`, 16 `phpdoc_summary`
+- **The formatting pass alone removed 9 PHPStan errors**, 64 down to 55, mostly through `no_unused_imports` and
+  `fully_qualified_strict_types` resolving names PHPStan could not
+- `.php-cs-fixer.cache` is gitignored beside the PHPUnit one
+
 ## [0.105.0] - 2026-09-05
 
 Every Innschleife cabinet identified. Four estimates became datasheet figures, and none of it came from asking.

@@ -56,6 +56,7 @@ final class SceneLayout
 
     /**
      * @param list<string> $stated comma-separated axis names, as `--folders` gives them
+     *
      * @return self|string the layout, or the reason it cannot be read
      */
     public static function of(array $stated): self|string
@@ -64,7 +65,7 @@ final class SceneLayout
         foreach ($stated as $group) {
             foreach (explode(',', $group) as $axis) {
                 $axis = trim($axis);
-                if ($axis === '') {
+                if ('' === $axis) {
                     continue;
                 }
                 if (!in_array($axis, self::AXES, true)) {
@@ -78,7 +79,7 @@ final class SceneLayout
             }
         }
 
-        if ($wanted === []) {
+        if ([] === $wanted) {
             return new self(self::DEFAULT);
         }
 
@@ -103,7 +104,7 @@ final class SceneLayout
 
     public function isDefault(): bool
     {
-        return $this->folders === self::DEFAULT;
+        return self::DEFAULT === $this->folders;
     }
 
     /** What `--folders` has to record for a replay to rebuild this layout. */
@@ -127,7 +128,7 @@ final class SceneLayout
         $parts = [];
         foreach ($this->folders as $axis) {
             $value = $values[$axis] ?? '';
-            if ($value !== '') {
+            if ('' !== $value) {
                 $parts[] = $value;
             }
         }
@@ -144,7 +145,7 @@ final class SceneLayout
     {
         $name = $baseId;
         foreach (self::AXES as $axis) {
-            if (in_array($axis, $this->folders, true) || !isset($values[$axis]) || $values[$axis] === '') {
+            if (in_array($axis, $this->folders, true) || !isset($values[$axis]) || '' === $values[$axis]) {
                 continue;
             }
             $name .= '-'.$values[$axis];

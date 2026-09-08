@@ -23,6 +23,6 @@ enum Provenance: string
      */
     public function isMeasured(): bool
     {
-        return $this === self::Measured;
+        return self::Measured === $this;
     }
 }

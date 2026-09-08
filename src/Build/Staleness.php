@@ -83,7 +83,7 @@ final class Staleness
             return false;
         }
 
-        return @file_put_contents($manifest, $json."\n") !== false;
+        return false !== @file_put_contents($manifest, $json."\n");
     }
 
     /**
@@ -102,7 +102,7 @@ final class Staleness
         }
 
         try {
-            $entries = json_decode((string)file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+            $entries = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
             return [];
         }
@@ -135,6 +135,7 @@ final class Staleness
      * in nor `128` against `128.0` reads as a change worth re-rendering for.
      *
      * @param array<string, mixed> $settings
+     *
      * @return array<string, mixed>
      */
     private static function normalised(array $settings): array
@@ -146,6 +147,7 @@ final class Staleness
 
         return $decoded;
     }
+
     /**
      * @param list<string> $outputs
      * @param list<string> $inputs
@@ -157,10 +159,10 @@ final class Staleness
             if (!is_file($output)) {
                 return true;
             }
-            $time = (int)filemtime($output);
-            $oldestOutput = $oldestOutput === null ? $time : min($oldestOutput, $time);
+            $time = (int) filemtime($output);
+            $oldestOutput = null === $oldestOutput ? $time : min($oldestOutput, $time);
         }
-        if ($oldestOutput === null) {
+        if (null === $oldestOutput) {
             // Nothing claimed to be built, so there is nothing to be up to date.
             return true;
         }
@@ -168,7 +170,7 @@ final class Staleness
         foreach ($inputs as $input) {
             // A missing input cannot have changed. It is also not this check's business to complain about —
             // the stage that needs it will fail with a better message than "stale" would be.
-            if (is_file($input) && (int)filemtime($input) > $oldestOutput) {
+            if (is_file($input) && (int) filemtime($input) > $oldestOutput) {
                 return true;
             }
         }

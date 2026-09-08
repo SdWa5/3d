@@ -96,6 +96,7 @@ final class RenderPlan
     /**
      * @param list<PlacedDevice> $placed
      * @param array{int, int} $resolution
+     *
      * @return array<string, mixed>
      */
     public static function forScene(
@@ -167,13 +168,14 @@ final class RenderPlan
      * @param list<PlacedDevice> $placed
      * @param array{float, float, float} $min
      * @param array{float, float, float} $max
+     *
      * @return list<array{text: string, at: array{float, float, float}, size: float}>
      */
     private static function labels(array $placed, array $min, array $max, float $radius): array
     {
         $vehicles = [];
         foreach ($placed as $entry) {
-            if ($entry->device->category === Category::Vehicle) {
+            if (Category::Vehicle === $entry->device->category) {
                 $vehicles[$entry->placementId] = $entry;
             }
         }
@@ -181,7 +183,7 @@ final class RenderPlan
         // Group the cargo: which vehicle it is standing in, then which device it is.
         $groups = [];
         foreach ($placed as $entry) {
-            if ($entry->device->category === Category::Vehicle) {
+            if (Category::Vehicle === $entry->device->category) {
                 continue;
             }
             $inside = self::vehicleAround($entry, $vehicles);
@@ -230,7 +232,7 @@ final class RenderPlan
             ];
         }
 
-        return [...$labels, ...self::legend($min, $max, $radius, $size, $vehicles !== [])];
+        return [...$labels, ...self::legend($min, $max, $radius, $size, [] !== $vehicles)];
     }
 
     /**
@@ -270,6 +272,7 @@ final class RenderPlan
      *
      * @param array{float, float, float} $min
      * @param array{float, float, float} $max
+     *
      * @return list<array{text: string, at: array{float, float, float}, size: float}>
      */
     private static function legend(array $min, array $max, float $radius, float $size, bool $hasVehicles): array
@@ -297,7 +300,7 @@ final class RenderPlan
                     $min[1] + $radius * 0.1,
                     $top - $index * $lineHeight,
                 ],
-                'size' => $index === 0 ? $size * 1.25 : $size,
+                'size' => 0 === $index ? $size * 1.25 : $size,
             ];
         }
 
@@ -311,11 +314,12 @@ final class RenderPlan
      * into something visible: the rays either converge on that spot or they do not.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return list<array{placement_id: string, device: string, start: array{float, float, float}, end: array{float, float, float}, hits_floor: bool}>
      */
     private static function aimLines(array $placed, string $mode): array
     {
-        if ($mode === self::AIM_NONE) {
+        if (self::AIM_NONE === $mode) {
             return [];
         }
 
@@ -325,7 +329,7 @@ final class RenderPlan
             // one thing a placement cannot overrule is `none`, which stays the way to get a clean render
             // of a scene that normally draws them.
             $wanted = $entry->aimLines
-                ?? ($mode === self::AIM_ALL || in_array($entry->device->subtype, self::AIMED_SUBTYPES, true));
+                ?? (self::AIM_ALL === $mode || in_array($entry->device->subtype, self::AIMED_SUBTYPES, true));
 
             if (!$wanted) {
                 continue;
@@ -366,11 +370,12 @@ final class RenderPlan
      * Every rotation is accounted for exactly, since PlacedDevice already rotates the eight corners.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return array{min: array{float, float, float}, max: array{float, float, float}}
      */
     public static function bounds(array $placed): array
     {
-        if ($placed === []) {
+        if ([] === $placed) {
             return ['min' => [-1.0, -1.0, 0.0], 'max' => [1.0, 1.0, 1.0]];
         }
 
@@ -415,6 +420,7 @@ final class RenderPlan
      * @param array{float, float, float} $max
      * @param array{float, float, float} $centre
      * @param array{int, int} $resolution
+     *
      * @return array<string, mixed>
      */
     private static function camera(
@@ -424,8 +430,7 @@ final class RenderPlan
         array $centre,
         float $radius,
         array $resolution,
-    ): array
-    {
+    ): array {
         $lens = $preset->lensMm();
         $aspect = $resolution[1] / max(1, $resolution[0]);
 
@@ -454,7 +459,7 @@ final class RenderPlan
 
         $target = $centre;
         $eyeHeight = $preset->eyeHeightM();
-        if ($eyeHeight !== null) {
+        if (null !== $eyeHeight) {
             // Standing on the ground rather than floating: keep the aim slightly low so the rig
             // towers over the viewer the way it does in person.
             $position[2] = $eyeHeight;
@@ -480,6 +485,7 @@ final class RenderPlan
      * @param array{float, float, float} $max
      * @param array{float, float, float} $centre
      * @param array{float, float, float} $unit direction from the centre towards the camera
+     *
      * @return array{right: float, up: float, forward: float}
      */
     private static function projectedExtent(array $min, array $max, array $centre, array $unit): array
@@ -511,6 +517,7 @@ final class RenderPlan
     /**
      * @param array{float, float, float} $a
      * @param array{float, float, float} $b
+     *
      * @return array{float, float, float}
      */
     private static function cross(array $a, array $b): array
@@ -524,6 +531,7 @@ final class RenderPlan
 
     /**
      * @param array{float, float, float} $v
+     *
      * @return array{float, float, float}
      */
     private static function normalise(array $v): array
@@ -548,13 +556,14 @@ final class RenderPlan
      * light one cabinet nicely.
      *
      * @param array{float, float, float} $centre
+     *
      * @return array<string, mixed>
      */
     private static function lighting(LightingPreset $preset, array $centre, float $radius): array
     {
         $lights = [];
         foreach ($preset->lights() as $index => $light) {
-            $isSun = $light['kind'] === 'SUN';
+            $isSun = 'SUN' === $light['kind'];
 
             $lights[] = [
                 'name' => sprintf('%s-%d', $preset->value, $index + 1),

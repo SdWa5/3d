@@ -23,9 +23,9 @@ final class Tier
 {
     /**
      * @param list<array{DeviceSpec, int}|array{DeviceSpec, int, float}> $segments left to right; more than one
-     *     makes a mixed row. The third element is the segment's roll in degrees, absent meaning upright — and
-     *     absent rather than required because PHP's list destructuring ignores what it is not given, so every
-     *     `[$device, $count]` reader in the solver kept working when the roll arrived.
+     *                                                                             makes a mixed row. The third element is the segment's roll in degrees, absent meaning upright — and
+     *                                                                             absent rather than required because PHP's list destructuring ignores what it is not given, so every
+     *                                                                             `[$device, $count]` reader in the solver kept working when the roll arrived.
      */
     public function __construct(public readonly array $segments)
     {
@@ -100,7 +100,7 @@ final class Tier
             $shortest = min($shortest, $own);
         }
 
-        return $shortest === INF ? 0.0 : $tallest - $shortest;
+        return INF === $shortest ? 0.0 : $tallest - $shortest;
     }
 
     /** The width of the cabinet at the end of the row — what an overhang is measured against. */
@@ -112,7 +112,7 @@ final class Tier
     public function isSub(): bool
     {
         foreach ($this->segments as [$device, $count]) {
-            if ($device->subtype !== 'sub') {
+            if ('sub' !== $device->subtype) {
                 return false;
             }
         }
@@ -133,7 +133,7 @@ final class Tier
                 '%d× %s%s',
                 $segment[1],
                 $segment[0]->id,
-                self::rollOf($segment) === 0.0 ? '' : sprintf(' rolled %d°', (int)self::rollOf($segment)),
+                0.0 === self::rollOf($segment) ? '' : sprintf(' rolled %d°', (int) self::rollOf($segment)),
             ),
             $this->segments,
         ));
@@ -161,7 +161,7 @@ final class Tier
     public function mirrored(MirrorStyle $style = MirrorStyle::Alternate, int $row = 0): self
     {
         $count = $this->count();
-        $odd = $count % 2 === 1;
+        $odd = 1 === $count % 2;
 
         // Which half the extra cabinet joins. Even counts split exactly, so the flip has nothing to act on; odd ones
         // alternate with the row index, which is what makes the *stack* balanced when no single row can be.
@@ -170,12 +170,12 @@ final class Tier
         // to the same side on every row, so the spares stand in one straight column and the seam between the two
         // mirrored halves runs straight up the wall instead of zig-zagging. The stack ends up lopsided by one cabinet,
         // which is precisely what `alternate` spends the zig-zag to avoid.
-        $flips = $style !== MirrorStyle::Column && $row % 2 === 1;
+        $flips = MirrorStyle::Column !== $style && 1 === $row % 2;
         $midpoint = $odd && $flips ? intdiv($count, 2) + 1 : intdiv($count, 2);
 
         // `centred` keeps the middle cabinet unrolled, so both halves are the same size and the row is a palindrome.
-        $centre = $odd && $style === MirrorStyle::Centred ? intdiv($count, 2) : null;
-        if ($centre !== null) {
+        $centre = $odd && MirrorStyle::Centred === $style ? intdiv($count, 2) : null;
+        if (null !== $centre) {
             $midpoint = $centre;
         }
 
@@ -185,7 +185,7 @@ final class Tier
             [$device, $take] = $segment;
             $roll = self::rollOf($segment);
 
-            if (fmod(abs($roll), 180.0) !== 90.0) {
+            if (90.0 !== fmod(abs($roll), 180.0)) {
                 $segments[] = $segment;
                 $index += $take;
                 continue;
@@ -199,7 +199,7 @@ final class Tier
             $rest = $take - $left;
             // The middle cabinet, when this style asks for one and it falls inside this segment: emitted upright
             // between the two mirrored halves rather than joining either.
-            if ($centre !== null && $rest > 0 && $index + $left === $centre) {
+            if (null !== $centre && $rest > 0 && $index + $left === $centre) {
                 $segments[] = [$device, 1, 0.0];
                 --$rest;
             }
@@ -233,7 +233,7 @@ final class Tier
                 return [
                     $segment[0],
                     $segment[1],
-                    fmod(abs($roll), 180.0) === 90.0 ? fmod(360.0 - $roll, 360.0) : $roll,
+                    90.0 === fmod(abs($roll), 180.0) ? fmod(360.0 - $roll, 360.0) : $roll,
                 ];
             },
             array_reverse($this->segments),

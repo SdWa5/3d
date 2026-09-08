@@ -138,7 +138,7 @@ final class ArcTest extends TestCase
         $device = $this->tecnare();
 
         foreach ([ArcMode::Convex, ArcMode::Concave] as $mode) {
-            $arc = new Arc($mode, 3, splayDeg: $mode === ArcMode::Convex ? null : self::FLUSH_DEG);
+            $arc = new Arc($mode, 3, splayDeg: ArcMode::Convex === $mode ? null : self::FLUSH_DEG);
             $seats = $arc->seats($device, 4.4);
 
             $gaps = [];
@@ -325,7 +325,7 @@ final class ArcTest extends TestCase
             $error = abs($spacing - $radius * deg2rad($tiny));
 
             self::assertLessThan(0.005 * $tiny, $error, "splay {$tiny} should be within 0.005·splay");
-            if ($previous !== null) {
+            if (null !== $previous) {
                 self::assertEqualsWithDelta(0.1, $error / $previous, 0.01, "splay {$tiny} error shrank tenfold");
             }
             $previous = $error;
@@ -497,7 +497,7 @@ final class ArcTest extends TestCase
 
         self::assertNotSame([], $problems, 'expected a problem');
         self::assertTrue(
-            (bool)array_filter($problems, static fn (string $m): bool => str_contains($m, $expected)),
+            (bool) array_filter($problems, static fn (string $m): bool => str_contains($m, $expected)),
             sprintf("no problem contained %s\ngot: %s", var_export($expected, true), implode(' | ', $problems)),
         );
     }
@@ -647,13 +647,13 @@ final class ArcTest extends TestCase
         return SpecFactory::spec([
             'id' => 'arc-top',
             'geometry' => [
-                'shape' => $backWidth === null ? 'box' : 'trapezoid',
+                'shape' => null === $backWidth ? 'box' : 'trapezoid',
                 'dimensions_m' => ['width' => 0.5, 'height' => 0.96, 'depth' => 0.52],
                 'back_width_m' => $backWidth,
             ],
             'appearance' => [
                 'color' => '#111111',
-                'grille' => $grilleInset === null ? null : ['inset_m' => $grilleInset, 'color' => '#0a0a0a'],
+                'grille' => null === $grilleInset ? null : ['inset_m' => $grilleInset, 'color' => '#0a0a0a'],
             ],
             'audio' => ['coverage_deg' => ['horizontal' => 60, 'vertical' => 40]],
         ]);

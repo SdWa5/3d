@@ -29,7 +29,7 @@ enum Feasibility: string
 
     /**
      * At least one cabinet stands on nothing or inside another one. Emitted anyway, with the offenders caged in
-     * red by {@see \App\Scene\Fault} so the failure is a picture rather than a sentence that scrolls away.
+     * red by {@see Fault} so the failure is a picture rather than a sentence that scrolls away.
      */
     case Impossible = 'impossible';
 
@@ -40,7 +40,7 @@ enum Feasibility: string
      */
     public static function of(array $faults): self
     {
-        return $faults === [] ? self::Possible : self::Impossible;
+        return [] === $faults ? self::Possible : self::Impossible;
     }
 
     /**

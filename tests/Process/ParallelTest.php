@@ -6,7 +6,6 @@ namespace App\Tests\Process;
 
 use App\Process\Parallel;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 /**
  * The fork helper behind the `scene:stack` sweep and the `build:all` replay.
@@ -173,7 +172,7 @@ final class ParallelTest extends TestCase
             self::markTestSkipped('this platform cannot fork');
         }
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
 
         Parallel::map(array_fill(0, 4, 1), static function (): int {
             posix_kill(posix_getpid(), SIGKILL);

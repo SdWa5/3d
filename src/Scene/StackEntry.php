@@ -78,12 +78,8 @@ final class StackEntry
 
         $allowed = ['device', 'count', 'align', 'mix_with', 'roll_mirror', 'aim'];
         $unknown = $entry->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "stack.from: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("stack.from: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         return new self(
@@ -105,7 +101,7 @@ final class StackEntry
     {
         $messages = [];
 
-        if ($this->count !== null && $this->count < 1) {
+        if (null !== $this->count && $this->count < 1) {
             $messages[] = sprintf("stack.from '%s': count must be at least 1, got %d", $this->device, $this->count);
         }
         foreach ($this->mixWith as $other) {
@@ -113,7 +109,7 @@ final class StackEntry
                 $messages[] = sprintf("stack.from '%s': mix_with names itself", $this->device);
             }
         }
-        if ($this->rollMirror !== null && fmod(abs($this->rollMirror), 180.0) !== 90.0) {
+        if (null !== $this->rollMirror && 90.0 !== fmod(abs($this->rollMirror), 180.0)) {
             // Same line {@see Lattice} draws: only a quarter turn puts the body off to one side, which is
             // what a mirror is made of.
             $messages[] = sprintf(

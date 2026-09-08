@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Scene;
 
-use App\Spec\DeviceSpec;
-
 /**
  * What a setup actually costs you: how many cabinets, how heavy, how much of it is borrowed, and how
  * much of it rests on numbers nobody has measured.
@@ -18,6 +16,7 @@ final class SceneReport
 {
     /**
      * @param list<PlacedDevice> $placed
+     *
      * @return array{
      *     cabinets: int,
      *     total_weight_kg: float,
@@ -47,18 +46,18 @@ final class SceneReport
             $top = max($top, $entry->topZ());
 
             $byDevice[$device->id] ??= ['count' => 0, 'weight_kg' => 0.0];
-            $byDevice[$device->id]['count']++;
+            ++$byDevice[$device->id]['count'];
             $byDevice[$device->id]['weight_kg'] += $device->weightKg;
 
             $byOwner[$device->owner] ??= ['count' => 0, 'weight_kg' => 0.0];
-            $byOwner[$device->owner]['count']++;
+            ++$byOwner[$device->owner]['count'];
             $byOwner[$device->owner]['weight_kg'] += $device->weightKg;
 
             // What a truss actually has to carry. Grouped by the hang rather than by the placement, so two
             // placements sharing one bar add up — which is the number somebody checks against a capacity.
-            if ($entry->flyPoint !== null) {
+            if (null !== $entry->flyPoint) {
                 $byFlyPoint[$entry->flyPoint] ??= ['count' => 0, 'weight_kg' => 0.0];
-                $byFlyPoint[$entry->flyPoint]['count']++;
+                ++$byFlyPoint[$entry->flyPoint]['count'];
                 $byFlyPoint[$entry->flyPoint]['weight_kg'] += $device->weightKg;
             }
 
@@ -85,7 +84,7 @@ final class SceneReport
             'by_owner' => $byOwner,
             'by_fly_point' => $byFlyPoint,
             'tallest_stack_m' => $top,
-            'footprint_m' => $placed === [] ? [0.0, 0.0] : [$maxX - $minX, $maxY - $minY],
+            'footprint_m' => [] === $placed ? [0.0, 0.0] : [$maxX - $minX, $maxY - $minY],
             'unmeasured_devices' => $unmeasured,
             'over_inventory' => $this->overInventory($byDevice, $placed),
         ];
@@ -97,6 +96,7 @@ final class SceneReport
      *
      * @param array<string, array{count: int, weight_kg: float}> $byDevice
      * @param list<PlacedDevice> $placed
+     *
      * @return array<string, array{used: int, owned: int}>
      */
     private function overInventory(array $byDevice, array $placed): array
@@ -119,6 +119,7 @@ final class SceneReport
 
     /**
      * @param list<PlacedDevice> $placed
+     *
      * @return list<string>
      */
     public function lines(array $placed): array

@@ -15,6 +15,7 @@ final class SpecFactory
 {
     /**
      * @param array<string, mixed> $overrides merged over the valid base, one level deep
+     *
      * @return array<string, mixed>
      */
     public static function specArray(array $overrides = []): array

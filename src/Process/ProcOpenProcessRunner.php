@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Process;
 
-use RuntimeException;
-
 final class ProcOpenProcessRunner implements ProcessRunner
 {
     public function run(
@@ -23,7 +21,7 @@ final class ProcOpenProcessRunner implements ProcessRunner
         }
         $proc = proc_open($cmd, $descriptors, $pipes);
         if (!is_resource($proc)) {
-            throw new RuntimeException("Failed to start: {$cmd}");
+            throw new \RuntimeException("Failed to start: {$cmd}");
         }
         if (!$inheritStdin) {
             fclose($pipes[0]);
@@ -36,13 +34,13 @@ final class ProcOpenProcessRunner implements ProcessRunner
             $status = proc_get_status($proc);
             $out = stream_get_contents($pipes[1]);
             $err = stream_get_contents($pipes[2]);
-            if ($out !== false && $out !== '') {
+            if (false !== $out && '' !== $out) {
                 $stdout .= $out;
-                if ($onStdout !== null) {
+                if (null !== $onStdout) {
                     $onStdout($out);
                 }
             }
-            if ($err !== false && $err !== '' && $onStderr !== null) {
+            if (false !== $err && '' !== $err && null !== $onStderr) {
                 $onStderr($err);
             }
             if (!$status['running']) {
@@ -55,10 +53,10 @@ final class ProcOpenProcessRunner implements ProcessRunner
             if ($chunk) {
                 if (!$isErr) {
                     $stdout .= $chunk;
-                    if ($onStdout !== null) {
+                    if (null !== $onStdout) {
                         $onStdout($chunk);
                     }
-                } elseif ($onStderr !== null) {
+                } elseif (null !== $onStderr) {
                     $onStderr($chunk);
                 }
             }

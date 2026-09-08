@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Build;
 
 use App\Spec\DeviceSpec;
-use JsonException;
-use RuntimeException;
 
 /**
  * Turns specs into model files. One Blender process per model: slower than batching them all
@@ -59,7 +57,7 @@ final class ModelBuilder
     public function isStale(DeviceSpec $spec): bool
     {
         $inputs = [$spec->sourcePath, ...$this->modelInputScripts()];
-        if ($spec->meshOverride !== null) {
+        if (null !== $spec->meshOverride) {
             $inputs[] = $this->resolve($spec->meshOverride->path);
         }
 
@@ -72,7 +70,8 @@ final class ModelBuilder
      * script error, so a silent no-op would otherwise look like success.
      *
      * @param callable(string):void|null $onOutput
-     * @throws RuntimeException when the build fails or produces nothing
+     *
+     * @throws \RuntimeException when the build fails or produces nothing
      */
     public function build(DeviceSpec $spec, ?callable $onOutput = null): void
     {
@@ -91,17 +90,10 @@ final class ModelBuilder
 
         foreach ([$glb, $blend] as $expected) {
             if (!is_file($expected)) {
-                throw new RuntimeException(sprintf(
-                    'Blender reported success but did not write %s — see the build log above',
-                    $expected,
-                ));
+                throw new \RuntimeException(sprintf('Blender reported success but did not write %s — see the build log above', $expected));
             }
-            if ((int)filemtime($expected) < $startedAt) {
-                throw new RuntimeException(sprintf(
-                    "Blender reported success but left %s untouched — the script failed part way.\n"
-                    .'Re-run with -v to see the traceback.',
-                    $expected,
-                ));
+            if ((int) filemtime($expected) < $startedAt) {
+                throw new \RuntimeException(sprintf("Blender reported success but left %s untouched — the script failed part way.\n".'Re-run with -v to see the traceback.', $expected));
             }
         }
     }
@@ -112,7 +104,8 @@ final class ModelBuilder
      *
      * @param list<DeviceSpec> $specs
      * @param callable(string):void|null $onOutput
-     * @throws RuntimeException when the library cannot be written
+     *
+     * @throws \RuntimeException when the library cannot be written
      */
     public function buildLibrary(array $specs, ?callable $onOutput = null): void
     {
@@ -143,7 +136,7 @@ final class ModelBuilder
         $this->blender->run($this->resolve(self::LIBRARY_SCRIPT), $planFile, $onOutput);
 
         if (!is_file($library)) {
-            throw new RuntimeException("Blender did not write the asset library at {$library}");
+            throw new \RuntimeException("Blender did not write the asset library at {$library}");
         }
     }
 
@@ -158,7 +151,7 @@ final class ModelBuilder
         // A declared-but-absent override falls back to the generated block: the meshes are
         // third-party CAD this repository does not commit, so not having them is normal.
         $overridePath = null;
-        if ($spec->meshOverride !== null) {
+        if (null !== $spec->meshOverride) {
             $candidate = $this->resolve($spec->meshOverride->path);
             $overridePath = is_file($candidate) ? $candidate : null;
         }
@@ -175,11 +168,11 @@ final class ModelBuilder
         $this->ensureDir(dirname($file));
         try {
             $json = json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        } catch (JsonException $e) {
-            throw new RuntimeException("Cannot encode build plan for {$file}: ".$e->getMessage(), 0, $e);
+        } catch (\JsonException $e) {
+            throw new \RuntimeException("Cannot encode build plan for {$file}: ".$e->getMessage(), 0, $e);
         }
-        if (@file_put_contents($file, $json."\n") === false) {
-            throw new RuntimeException("Cannot write build plan to {$file}");
+        if (false === @file_put_contents($file, $json."\n")) {
+            throw new \RuntimeException("Cannot write build plan to {$file}");
         }
     }
 
@@ -203,7 +196,7 @@ final class ModelBuilder
     private function ensureDir(string $dir): void
     {
         if (!is_dir($dir) && !@mkdir($dir, 0o775, true) && !is_dir($dir)) {
-            throw new RuntimeException("Cannot create directory {$dir}");
+            throw new \RuntimeException("Cannot create directory {$dir}");
         }
     }
 

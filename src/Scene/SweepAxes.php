@@ -31,7 +31,7 @@ use App\Spec\FillOrder;
 final class SweepAxes
 {
     /**
-     * The inventory a bare `scene:stack` builds from: **our own gear and Sepp's, pooled as one rig.**
+     * The inventory a bare `scene:stack` builds from: **our own gear and Sepp's, pooled as one rig.**.
      *
      * Stated by the owner, and it is a statement about how this repository is used rather than a default nobody
      * thought about. The two systems travel together, they are what stands on a stage when we play, and every other
@@ -72,13 +72,14 @@ final class SweepAxes
      * tier onto the edges of what carries it.
      *
      * @param list<string> $raw
+     *
      * @return list<LayoutMode>|string
      */
     public static function modes(array $raw): array|string
     {
         $stated = self::of($raw, LayoutMode::class, '--align');
 
-        return is_string($stated) || $stated !== [] ? $stated : LayoutMode::cases();
+        return is_string($stated) || [] !== $stated ? $stated : LayoutMode::cases();
     }
 
     /**
@@ -90,13 +91,14 @@ final class SweepAxes
      * which matters more is the sort of thing to decide by looking at three renders rather than by reading a docblock.
      *
      * @param list<string> $raw
+     *
      * @return list<StackShape>|string
      */
     public static function shapes(array $raw): array|string
     {
         $stated = self::of($raw, StackShape::class, '--shape');
 
-        return is_string($stated) || $stated !== [] ? $stated : StackShape::cases();
+        return is_string($stated) || [] !== $stated ? $stated : StackShape::cases();
     }
 
     /**
@@ -112,6 +114,7 @@ final class SweepAxes
      * scenes record their regeneration with it.
      *
      * @param list<string> $raw
+     *
      * @return list<SystemSplit>|string `[]` when none was named
      */
     public static function systemSplits(array $raw): array|string
@@ -138,6 +141,7 @@ final class SweepAxes
      * decides.
      *
      * @param list<string> $raw
+     *
      * @return list<MirrorStyle>|string `[]` when none was named
      */
     public static function mirrorStyles(array $raw): array|string
@@ -160,6 +164,7 @@ final class SweepAxes
      *
      * @param list<string> $raw
      * @param list<string> $rolled the device ids `--roll-mirror` named
+     *
      * @return list<StackOrientation|null>|string
      */
     public static function orientations(array $raw, array $rolled): array|string
@@ -169,7 +174,7 @@ final class SweepAxes
             return $stated;
         }
 
-        return $stated !== [] ? $stated : ($rolled === [] ? StackOrientation::cases() : [null]);
+        return [] !== $stated ? $stated : ([] === $rolled ? StackOrientation::cases() : [null]);
     }
 
     /**
@@ -209,6 +214,7 @@ final class SweepAxes
      * @param list<string> $rolled the device ids `--roll-mirror` named, which is what a null orientation defers to
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $from
+     *
      * @return list<array{StackOrientation|null, MirrorStyle}>
      */
     public static function pairs(
@@ -221,11 +227,11 @@ final class SweepAxes
         $pairs = [];
         foreach ($orientations as $orientation) {
             $rolls = $orientation?->rolls($devices, $from) ?? array_values(array_intersect($from, $rolled));
-            if ($rolls === [] && $orientation !== null && $orientation !== StackOrientation::Upright) {
+            if ([] === $rolls && null !== $orientation && StackOrientation::Upright !== $orientation) {
                 continue;
             }
 
-            $styles = $stated !== [] ? $stated : ($rolls === [] ? [MirrorStyle::Alternate] : MirrorStyle::cases());
+            $styles = [] !== $stated ? $stated : ([] === $rolls ? [MirrorStyle::Alternate] : MirrorStyle::cases());
             foreach ($styles as $style) {
                 $pairs[] = [$orientation, $style];
             }
@@ -252,10 +258,10 @@ final class SweepAxes
     {
         $width = 0;
         foreach ($axis::cases() as $case) {
-            $width = max($width, strlen((string)$case->value));
+            $width = max($width, strlen((string) $case->value));
         }
         // The orientation axis carries one value that is not a case of it, so the column has to clear that too.
-        if ($axis === StackOrientation::class) {
+        if (StackOrientation::class === $axis) {
             $width = max($width, strlen(self::STATED_ORIENTATION));
         }
 
@@ -291,6 +297,7 @@ final class SweepAxes
      * whose gear to build from and nothing about the rig — see {@see SweepAxes::inventory}.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return list<array{from: list<string>, stacks: int, inventory: string, suffix: string}>
      */
     public static function rigsToTry(
@@ -312,7 +319,7 @@ final class SweepAxes
         // the stack-count axis, `--systems` narrows the separation axis, and whatever is left keeps walking.
         // **A replay narrows every axis to one value and therefore still writes exactly one file**, which is the
         // property {@see \App\Command\BuildAllCommand} rests on.
-        $named = $stated !== [];
+        $named = [] !== $stated;
 
         // **`--owner` binds whether or not other axes are narrowed**, which is what stops it being silently
         // ignored the moment somebody writes `--owner=gmss --stacks=2`. `--from` names the cabinets outright and
@@ -331,7 +338,7 @@ final class SweepAxes
         } else {
             $byOwner = [];
             foreach ($specs as $spec) {
-                if ($spec->category->value === 'speaker' && $spec->quantity > 0) {
+                if ('speaker' === $spec->category->value && $spec->quantity > 0) {
                     $byOwner[$spec->owner][] = $spec;
                 }
             }
@@ -342,14 +349,14 @@ final class SweepAxes
                 $owned = [...$owned, ...$byOwner[$owner]];
             }
             $label = self::labelFor($inventory);
-            $groups[$label] = \App\Spec\FillOrder::everySpeaker($owned);
+            $groups[$label] = FillOrder::everySpeaker($owned);
             $ownersOf[$label] = $inventory;
         }
 
         // **The stack-count axis, narrowed rather than collapsed.** NOT clamped: an explicit `--stacks=0` is a
         // mistake worth refusing, and {@see StackDeal::groups} is where that refusal lives. Clamping it here
         // silently solved a one-stack rig instead.
-        $counts = $statedStacks === null ? [1, 2, 3] : [(int)$statedStacks];
+        $counts = null === $statedStacks ? [1, 2, 3] : [(int) $statedStacks];
 
         // **THE INVENTORY IS A DIRECTORY NOW AND THAT IS WHY THERE IS NO WIDTH HERE ANY MORE.** It used to be a
         // dash-padded field in the file name, padded to the widest label the *specs* could produce rather than the
@@ -369,7 +376,7 @@ final class SweepAxes
                 // is a request that cannot be met, and the caller is owed the sentence saying so —
                 // {@see \App\Scene\StackDeal::groups} writes it. Skipping it here instead reported "none of these
                 // rigs stands up", which is a different answer to a different question.
-                if ($statedStacks === null && count($from) < $stacks) {
+                if (null === $statedStacks && count($from) < $stacks) {
                     continue;
                 }
                 // **SWP-2's axis, and it is offered only where it can mean something.** A rig drawn from one owner
@@ -396,7 +403,7 @@ final class SweepAxes
                 $offered = $named
                     ? SystemSplit::cases()
                     : SystemSplit::forOwnerCount($grouping->countIn($ownersOf[$label] ?? []));
-                $wanted = $splits === [] ? ($perOwner ? [SystemSplit::SystemsApart] : $offered) : array_values(array_filter(
+                $wanted = [] === $splits ? ($perOwner ? [SystemSplit::SystemsApart] : $offered) : array_values(array_filter(
                     $offered,
                     static fn (SystemSplit $split): bool => in_array($split, $splits, true),
                 ));
@@ -405,7 +412,7 @@ final class SweepAxes
                         'from' => $from,
                         'stacks' => $stacks,
                         'split' => $split,
-                        'inventory' => (string)$label,
+                        'inventory' => (string) $label,
                         'suffix' => sprintf(
                             '-%d-%s',
                             $stacks,
@@ -428,13 +435,14 @@ final class SweepAxes
      * nothing but a van is not an inventory to sweep.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return list<string>
      */
     public static function speakerOwners(array $specs): array
     {
         $owners = [];
         foreach ($specs as $spec) {
-            if ($spec->category->value === 'speaker' && $spec->quantity > 0) {
+            if ('speaker' === $spec->category->value && $spec->quantity > 0) {
                 $owners[$spec->owner] = true;
             }
         }
@@ -451,18 +459,17 @@ final class SweepAxes
      * the lowest cabinets onto the centre line and one that keeps them on the floor. Neither is a default in the
      * sense of being right — they are two answers to a question this repository could not previously ask.
      *
-     * @param list<string> $stated
      * @return list<LowEndBias>|string
      */
     public static function lowEndBiases(array $raw): array|string
     {
         $stated = self::of($raw, LowEndBias::class, '--low-end');
 
-        return is_string($stated) || $stated !== [] ? $stated : LowEndBias::cases();
+        return is_string($stated) || [] !== $stated ? $stated : LowEndBias::cases();
     }
 
     /**
-     * The inventory the sweep builds from — **one subset of owners, not a powerset of them.**
+     * The inventory the sweep builds from — **one subset of owners, not a powerset of them.**.
      *
      * **THIS USED TO RETURN EVERY NON-EMPTY COMBINATION AND THAT IS WHY IT NO LONGER DOES.** With three owners the
      * powerset is seven inventories and reads as generosity; the fourth and fifth owner make it 31, the sweep goes
@@ -486,20 +493,21 @@ final class SweepAxes
      *
      * @param list<string> $owners every owner with speakers, already sorted
      * @param list<string> $stated what `--owner` named, validated by the caller
+     *
      * @return list<string> one subset, in the specs' own sorted order
      */
     public static function inventory(array $owners, array $stated): array
     {
         // Intersected in the specs' own order rather than in the order they were typed, so `--owner=sepp
         // --owner=gmss` and the reverse name the same rig and write the same files.
-        $wanted = $stated !== [] ? $stated : self::DEFAULT_OWNERS;
+        $wanted = [] !== $stated ? $stated : self::DEFAULT_OWNERS;
         $subset = array_values(array_intersect($owners, $wanted));
 
-        return $subset === [] ? $owners : $subset;
+        return [] === $subset ? $owners : $subset;
     }
 
     /**
-     * What an inventory is called: **the owners in it, joined, and nothing cleverer than that.**
+     * What an inventory is called: **the owners in it, joined, and nothing cleverer than that.**.
      *
      * `sdwa5-sepp` is our gear and Sepp's, `gmss-sdwa5-sepp` is all three of the systems we had figures for before
      * PSL and Innschleife arrived. It names a directory under `scenes/generated/` rather than a field in a file
@@ -528,6 +536,7 @@ final class SweepAxes
      *
      * @param list<string> $raw
      * @param class-string $enum
+     *
      * @return list<mixed>|string
      */
     private static function of(array $raw, string $enum, string $option): array|string
@@ -536,7 +545,7 @@ final class SweepAxes
         foreach ($raw as $value) {
             /** @var \BackedEnum|null $case */
             $case = $enum::tryFrom($value);
-            if ($case === null) {
+            if (null === $case) {
                 return sprintf(
                     "%s: unknown value '%s' (allowed: %s)",
                     $option,

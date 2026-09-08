@@ -536,7 +536,7 @@ final class SceneCompilerTest extends TestCase
 
         self::assertNotSame([], $messages);
         self::assertTrue(
-            (bool)array_filter($messages, static fn (string $m): bool => str_contains($m, $expected)),
+            (bool) array_filter($messages, static fn (string $m): bool => str_contains($m, $expected)),
             sprintf("no violation contained %s\ngot: %s", var_export($expected, true), implode(' | ', $messages)),
         );
     }
@@ -544,6 +544,7 @@ final class SceneCompilerTest extends TestCase
     /**
      * @param list<array<string, mixed>> $placements
      * @param array<string, mixed>|null $focus
+     *
      * @return list<\App\Scene\PlacedDevice>
      */
     private function compile(array $placements, ?array $focus = null): array
@@ -562,7 +563,7 @@ final class SceneCompilerTest extends TestCase
     private function scene(array $placements, ?array $focus = null): SceneSpec
     {
         $data = ['id' => 'test', 'name' => 'Test scene', 'placements' => $placements];
-        if ($focus !== null) {
+        if (null !== $focus) {
             $data['focus'] = $focus;
         }
 

@@ -35,6 +35,7 @@ interface Group
      * inside it, so the stack hands it down. Groups whose spacing is stated outright ignore it.
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     *
      * @return list<PlacementCopy>
      */
     public function copies(DeviceSpec $device, float $pitchDeg, float $rollDeg, array $cellBox): array;
@@ -45,6 +46,7 @@ interface Group
      * `placement '<id>': ` prefix.
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     *
      * @return list<string>
      */
     public function problems(DeviceSpec $device, float $pitchDeg, float $rollDeg, array $cellBox): array;

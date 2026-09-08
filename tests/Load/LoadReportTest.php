@@ -22,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 final class LoadReportTest extends TestCase
 {
     /**
-     * **A bay already exceeded by bounding boxes alone is said out loud, in capitals.**
+     * **A bay already exceeded by bounding boxes alone is said out loud, in capitals.**.
      *
      * It is the one space answer that is safe to give. A bounding-box sum is a lower bound on the room needed, so
      * over the bay is real evidence the load will not go in, where under it is never a permission. A reader

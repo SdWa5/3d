@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Process;
 
-use RuntimeException;
-
 final class BinaryChecker
 {
     public function __construct(private readonly ProcessRunner $runner)
@@ -19,19 +17,19 @@ final class BinaryChecker
      */
     public function __invoke(string $bin, ?string $versionArg = null): string
     {
-        if ($versionArg !== null) {
+        if (null !== $versionArg) {
             $cmd = escapeshellcmd($bin).' '.$versionArg;
             [$exit] = $this->runner->run($cmd.' 2>&1');
-            if ($exit !== 0) {
-                throw new RuntimeException("Missing dependency: $bin. Please install it and ensure it's in PATH.");
+            if (0 !== $exit) {
+                throw new \RuntimeException("Missing dependency: $bin. Please install it and ensure it's in PATH.");
             }
 
             return $bin;
         }
 
         [$exit, $out] = $this->runner->run('which '.escapeshellarg($bin).' 2>/dev/null');
-        if ($exit !== 0 || trim($out) === '') {
-            throw new RuntimeException("Required binary not found: {$bin}");
+        if (0 !== $exit || '' === trim($out)) {
+            throw new \RuntimeException("Required binary not found: {$bin}");
         }
 
         return trim($out);

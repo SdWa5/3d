@@ -105,7 +105,7 @@ final class DeviceSpec
             quantity: $reader->optionalInt('quantity', 1) ?? 1,
             owner: $reader->optionalString('owner', self::DEFAULT_OWNER) ?? self::DEFAULT_OWNER,
             build: $build,
-            cloneOf: $cloneOfSection !== null ? CloneOf::fromReader($cloneOfSection) : null,
+            cloneOf: null !== $cloneOfSection ? CloneOf::fromReader($cloneOfSection) : null,
             provenance: ProvenanceSet::fromReader($reader, 'provenance'),
             deviations: $reader->optionalString('deviations'),
             shape: $geometry->optionalEnum('shape', Shape::class, Shape::Box),
@@ -133,7 +133,7 @@ final class DeviceSpec
                 static fn (ArrayReader $point): RiggingPoint => RiggingPoint::fromReader($point),
                 $rigging?->sectionList('points') ?? [],
             ),
-            coverage: $coverage !== null ? Coverage::fromReader($coverage) : null,
+            coverage: null !== $coverage ? Coverage::fromReader($coverage) : null,
             passband: Passband::fromReader($audio?->optionalSection('passband_hz')),
             drivers: array_map(
                 static fn (ArrayReader $driver): Driver => Driver::fromReader($driver),
@@ -218,7 +218,7 @@ final class DeviceSpec
      */
     public function isClone(): bool
     {
-        return $this->build === BuildKind::SelfBuilt;
+        return BuildKind::SelfBuilt === $this->build;
     }
 
     /**
@@ -310,6 +310,7 @@ final class DeviceSpec
 
     /**
      * @param list<array{float, float, float}> $planes half-width, y and top height of each cross-section
+     *
      * @return list<array{float, float, float}>
      */
     private static function cornersOf(array $planes): array
@@ -363,7 +364,7 @@ final class DeviceSpec
             'baffle_layout' => $this->layout?->toArray(),
             // Only the basename: a local absolute path has no business travelling inside a .glb.
             // The tolerance travels so tools/check-glb.py can apply the same one the builder did.
-            'mesh_override' => $this->meshOverride === null ? null : [
+            'mesh_override' => null === $this->meshOverride ? null : [
                 'file' => basename($this->meshOverride->path),
                 'units' => $this->meshOverride->units,
                 'tolerance_m' => $this->meshOverride->toleranceM,

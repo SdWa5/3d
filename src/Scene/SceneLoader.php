@@ -95,7 +95,7 @@ final class SceneLoader
         $key = $this->keyOf($file);
         $slash = strrpos($key, '/');
 
-        return $slash === false ? '' : substr($key, 0, $slash);
+        return false === $slash ? '' : substr($key, 0, $slash);
     }
 
     /**
@@ -118,7 +118,7 @@ final class SceneLoader
     public function load(string $file): SceneSpec
     {
         $contents = @file_get_contents($file);
-        if ($contents === false) {
+        if (false === $contents) {
             throw new InvalidSpecException('cannot read file');
         }
 
@@ -150,7 +150,7 @@ final class SceneLoader
      * one rather than resolving it by sort order.
      *
      * @return array{scene: SceneSpec|null, known: list<string>, ambiguous: list<string>} `ambiguous` holds the
-     *     matching paths when a bare id names more than one scene, and is empty otherwise
+     *                                                                                    matching paths when a bare id names more than one scene, and is empty otherwise
      */
     public function find(string $nameOrPath): array
     {
@@ -162,7 +162,7 @@ final class SceneLoader
         // where the basename it ends with names ten other rigs as well.
         $trimmed = preg_replace('/\.ya?ml$/', '', trim($nameOrPath, '/')) ?? $nameOrPath;
         foreach ($this->files() as $file) {
-            if ($file === $nameOrPath || ($wanted !== false && realpath($file) === $wanted)) {
+            if ($file === $nameOrPath || (false !== $wanted && realpath($file) === $wanted)) {
                 return ['scene' => $this->load($file), 'known' => $known, 'ambiguous' => []];
             }
             if ($this->keyOf($file) === $trimmed) {
@@ -176,7 +176,7 @@ final class SceneLoader
             }
         }
 
-        if (count($matches) === 1) {
+        if (1 === count($matches)) {
             return ['scene' => $this->load($matches[0]), 'known' => $known, 'ambiguous' => []];
         }
 

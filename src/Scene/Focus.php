@@ -30,7 +30,7 @@ final class Focus
 
     public static function fromReader(?ArrayReader $reader): self
     {
-        if ($reader === null) {
+        if (null === $reader) {
             return new self();
         }
 
@@ -48,6 +48,7 @@ final class Focus
      * does not quietly pull the focus closer. Cabinets face −Y, so "in front" is decreasing y.
      *
      * @param array{float, float} $frontCentre the x centre of the rig and the y of its front face
+     *
      * @return array{float, float, float}
      */
     public function point(array $frontCentre): array

@@ -53,6 +53,7 @@ final class Interpenetration
      * tolerance. Positive or zero means nothing touches. The pair is named so a message can say *which* cabinets.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return array{separation: float, pair: string}
      */
     public static function worst(array $placed): array
@@ -78,6 +79,7 @@ final class Interpenetration
      * now formatted from this, so the sentence and the marking cannot drift apart.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return list<Fault>
      */
     public static function faults(array $placed, float $tolerance): array
@@ -98,6 +100,7 @@ final class Interpenetration
      * Every intersecting pair as `[placementId, placementId, separation]`, most buried first.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return list<array{string, string, float}>
      */
     private static function overlapping(array $placed, float $tolerance): array
@@ -179,9 +182,6 @@ final class Interpenetration
 
     /**
      * The widest gap along any separating axis — negative when the two hulls overlap.
-     *
-     * @param list<array{float, float, float}> $a
-     * @param list<array{float, float, float}> $b
      */
     /**
      * The narrowest air gap between any two x-adjacent cabinets, positive when there is room.
@@ -213,8 +213,7 @@ final class Interpenetration
         $sorted = $placed;
         usort(
             $sorted,
-            static fn (PlacedDevice $a, PlacedDevice $b): int
-                => $a->worldBox()['min'][0] <=> $b->worldBox()['min'][0],
+            static fn (PlacedDevice $a, PlacedDevice $b): int => $a->worldBox()['min'][0] <=> $b->worldBox()['min'][0],
         );
 
         $narrowest = INF;
@@ -251,7 +250,7 @@ final class Interpenetration
      */
     public static function gapBetween(array $mine, array $theirs): float
     {
-        if ($mine === [] || $theirs === []) {
+        if ([] === $mine || [] === $theirs) {
             return INF;
         }
 
@@ -328,6 +327,7 @@ final class Interpenetration
      *
      * @param list<array{float, float, float}> $a
      * @param list<array{float, float, float}> $b
+     *
      * @return list<array{float, float, float}>
      */
     private static function axes(array $a, array $b): array
@@ -361,6 +361,7 @@ final class Interpenetration
     /**
      * @param list<array{float, float, float}> $hull
      * @param array{float, float, float} $axis
+     *
      * @return array{float, float}
      */
     private static function project(array $hull, array $axis): array
@@ -379,6 +380,7 @@ final class Interpenetration
     /**
      * @param array{float, float, float} $a
      * @param array{float, float, float} $b
+     *
      * @return array{float, float, float}
      */
     private static function minus(array $a, array $b): array
@@ -389,6 +391,7 @@ final class Interpenetration
     /**
      * @param array{float, float, float} $a
      * @param array{float, float, float} $b
+     *
      * @return array{float, float, float}
      */
     private static function cross(array $a, array $b): array

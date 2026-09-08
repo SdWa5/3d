@@ -210,7 +210,7 @@ final class LatticeTest extends TestCase
         // The lower tier is the row turned over. Rolling it mirrors it, so its cabinets swap places
         // left for right — and because the row is centred, the *wall* is identical: every position one
         // of them stood at is still occupied.
-        $lower = array_values(array_filter($cycled, static fn (PlacementCopy $c): bool => $c->path[0] === 1));
+        $lower = array_values(array_filter($cycled, static fn (PlacementCopy $c): bool => 1 === $c->path[0]));
         self::assertCount(7, $lower);
 
         $upright = array_map(static fn (PlacementCopy $c): float => round($c->offset[0], 9), $plain);
@@ -282,7 +282,7 @@ final class LatticeTest extends TestCase
 
         self::assertNotSame([], $problems, 'expected a problem');
         self::assertTrue(
-            (bool)array_filter($problems, static fn (string $m): bool => str_contains($m, $expected)),
+            (bool) array_filter($problems, static fn (string $m): bool => str_contains($m, $expected)),
             sprintf("no problem contained %s\ngot: %s", var_export($expected, true), implode(' | ', $problems)),
         );
     }
@@ -336,7 +336,7 @@ final class LatticeTest extends TestCase
         $edges = [];
         foreach ($copies as $copy) {
             $roll = $copy->rotation?->rollDeg ?? 0.0;
-            $edges[] = $roll === 270.0
+            $edges[] = 270.0 === $roll
                 ? [$copy->offset[0] - 0.96, $copy->offset[0]]
                 : [$copy->offset[0], $copy->offset[0] + 0.96];
         }
@@ -366,7 +366,7 @@ final class LatticeTest extends TestCase
      * And a cycle mixing a quarter turn with a half turn does **not** derive it.
      *
      * Those bodies are two different widths — 0.5 upright and 0.96 on its side — so there is no uniform pitch to
-     * lay them at, and per-joint spacing is the thing {@see \App\Scene\Lattice::spanOf} refuses outright.
+     * lay them at, and per-joint spacing is the thing {@see Lattice::spanOf} refuses outright.
      */
     public function testACycleMixingQuarterAndHalfTurnsKeepsUniformOriginSpacing(): void
     {
@@ -488,7 +488,7 @@ final class LatticeTest extends TestCase
         return SpecFactory::spec([
             'id' => 'lattice-cabinet',
             'geometry' => [
-                'shape' => $backWidth === null ? 'box' : 'trapezoid',
+                'shape' => null === $backWidth ? 'box' : 'trapezoid',
                 'dimensions_m' => ['width' => $width, 'height' => $height, 'depth' => $depth],
                 'back_width_m' => $backWidth,
             ],

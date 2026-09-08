@@ -34,7 +34,7 @@ final class OrientationTest extends TestCase
                     "upright at pitch {$pitch}, yaw {$yaw}",
                 );
                 self::assertSame(
-                    [$pitch === 0.0 ? 0.0 : -$pitch, 180.0, $yaw],
+                    [0.0 === $pitch ? 0.0 : -$pitch, 180.0, $yaw],
                     (new Orientation($pitch, 180.0, $yaw))->eulerXYZ(),
                     "turned over at pitch {$pitch}, yaw {$yaw}",
                 );
@@ -280,6 +280,7 @@ final class OrientationTest extends TestCase
     /**
      * @param array{array{float, float, float}, array{float, float, float}, array{float, float, float}} $left
      * @param array{array{float, float, float}, array{float, float, float}, array{float, float, float}} $right
+     *
      * @return array{array{float, float, float}, array{float, float, float}, array{float, float, float}}
      */
     private static function multiply(array $left, array $right): array
@@ -317,6 +318,7 @@ final class OrientationTest extends TestCase
 
     /**
      * @param array{float, float, float} $angles
+     *
      * @return array{float, float, float}
      */
     private static function rounded(array $angles): array

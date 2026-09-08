@@ -101,7 +101,7 @@ final class DeviceSpecTest extends TestCase
         self::assertSame(2, $brought->quantity);
         self::assertSame(4, $spec->quantity, 'the original is untouched');
         foreach ((new \ReflectionClass(DeviceSpec::class))->getProperties() as $property) {
-            if ($property->getName() === 'quantity') {
+            if ('quantity' === $property->getName()) {
                 continue;
             }
             self::assertSame(

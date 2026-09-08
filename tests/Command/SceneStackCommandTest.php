@@ -142,7 +142,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **Naming a value on an axis switches the other values of that axis off. It does not switch the sweep off.**
+     * **Naming a value on an axis switches the other values of that axis off. It does not switch the sweep off.**.
      *
      * That is SWP-3's first ask and it used to be true of five axes and false of three: `--from`, `--stacks` and
      * `--per-owner` were read as "the caller has one specific rig in mind" and collapsed the whole cross product to
@@ -308,7 +308,7 @@ final class SceneStackCommandTest extends TestCase
         // Collapsed to one entry per run: grouped means each system appears as a single run.
         $runs = [];
         foreach ($labels as $label) {
-            if ($runs === [] || end($runs) !== $label) {
+            if ([] === $runs || end($runs) !== $label) {
                 $runs[] = $label;
             }
         }
@@ -470,7 +470,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * `--per-owner` groups by {@see \App\Spec\DeviceSpec::$owner} and adds no new concept: for this
+     * `--per-owner` groups by {@see DeviceSpec::$owner} and adds no new concept: for this
      * collective, who owns a cabinet *is* the split between the rigs. Each group becomes its own stack, and
      * the stacks stand side by side rather than merging into one pile.
      *
@@ -478,7 +478,7 @@ final class SceneStackCommandTest extends TestCase
      * asserted three when there were three owners, and would have asserted five the day PSL and Innschleife were
      * specced — five systems side by side, four of them borrowed, from a command line that says nothing about whose
      * gear. `--per-owner` narrows the separation and not the inventory, so silence falls back to
-     * {@see \App\Scene\SweepAxes::DEFAULT_OWNERS} here exactly as it does for a bare sweep. Naming an owner still
+     * {@see SweepAxes::DEFAULT_OWNERS} here exactly as it does for a bare sweep. Naming an owner still
      * works: `--per-owner --owner=gmss --owner=sdwa5` is two stacks of those two.
      */
     public function testPerOwnerWritesOneStackPerOwnerSideBySide(): void
@@ -640,7 +640,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **An unbuildable rig and an unusable request are both "nothing written" and must not share an exit code.**
+     * **An unbuildable rig and an unusable request are both "nothing written" and must not share an exit code.**.
      *
      * {@see SceneStackCommand::NOTHING_TO_WRITE} means the solver could not stand any of these rigs up, which is a
      * fact about the gear and is what makes `build:all`'s regenerate stage idempotent — it reads that code as "this
@@ -711,7 +711,7 @@ final class SceneStackCommandTest extends TestCase
 
             // 12 Flexy + 6 Achenbach + 3 Tecnare + 2 2-ways, less whatever this file states it could not carry. A
             // generator that quietly dropped cabinets would pass every other check in this file.
-            preg_match_all('/^#\s+\*\s+([a-z0-9-]+): LEFT OUT/m', (string)file_get_contents($file), $omitted);
+            preg_match_all('/^#\s+\*\s+([a-z0-9-]+): LEFT OUT/m', (string) file_get_contents($file), $omitted);
             $missing = array_sum(array_map(
                 static fn (string $id): int => $devices[$id]->quantity,
                 array_unique($omitted[1]),
@@ -737,9 +737,6 @@ final class SceneStackCommandTest extends TestCase
         self::assertStringContainsString("Unknown device 'nope'", $tester->getDisplay());
     }
 
-    /**
-     * @param array<string, mixed> $options
-     */
     /**
      * `--split=by-type` gives each stack whole device types, and that is what makes it low.
      *
@@ -825,7 +822,7 @@ final class SceneStackCommandTest extends TestCase
      *
      * Measured by taking the slack away rather than by reading the solver: with `slideSlackM` forced to null the best
      * arrangement this invocation can find reaches 3.340 m against the 3.000 m ceiling, 680 mm further from the aim.
-     * That is the whole value of the line in {@see \App\Command\SceneStackCommand} that hands a solo stack `INF`, and
+     * That is the whole value of the line in {@see SceneStackCommand} that hands a solo stack `INF`, and
      * it is what this test guards. It cost the rig outright while the ceiling was a gate; now it costs 680 mm.
      *
      * Pinned on the sub height rather than on the offset, because the height is what the rig is for and the offset is
@@ -986,7 +983,7 @@ final class SceneStackCommandTest extends TestCase
         self::assertNotSame([], $files);
 
         foreach ($files as $file) {
-            $yaml = (string)file_get_contents($file);
+            $yaml = (string) file_get_contents($file);
             $name = basename($file);
 
             preg_match('/^\s*max_sub_height_m:\s*(\S+)/m', $yaml, $ceiling);
@@ -999,21 +996,21 @@ final class SceneStackCommandTest extends TestCase
             $blocks = preg_split('/(?=^# Subs reach )/m', $yaml, -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $walls = 0;
             foreach ($blocks as $block) {
-                if (preg_match('/^# Subs reach ([\d.]+) m against a ([\d.]+) m interface/', $block, $wall) !== 1) {
+                if (1 !== preg_match('/^# Subs reach ([\d.]+) m against a ([\d.]+) m interface/', $block, $wall)) {
                     continue;
                 }
                 ++$walls;
                 // Only the block's own commentary, which ends where the next stack's does or where the YAML starts.
                 $said = preg_split('/^(# main-|id: )/m', $block)[0] ?? '';
 
-                if ((float)$wall[1] + 1e-9 < (float)$wall[2]) {
+                if ((float) $wall[1] + 1e-9 < (float) $wall[2]) {
                     self::assertStringContainsString(
                         'm interface asked for',
                         $said,
                         $name.' has a stack short of its interface and says nothing about it',
                     );
                 }
-                if ($ceiling !== [] && (float)$wall[1] > (float)$ceiling[1] + 1e-9) {
+                if ([] !== $ceiling && (float) $wall[1] > (float) $ceiling[1] + 1e-9) {
                     self::assertStringContainsString(
                         'm ceiling asked for',
                         $said,
@@ -1101,8 +1098,8 @@ final class SceneStackCommandTest extends TestCase
         // `centred` as `centred---`. Collapsing runs of dashes first is what keeps this test about the pairing of two
         // axes rather than about how wide their columns happen to be — matching `-turned-centred-` literally pinned
         // the padding by accident and broke here the moment it arrived.
-        $ids = array_map(static fn (string $id): string => (string)preg_replace('/-{2,}/', '-', $id), $matches[1]);
-        $collapsed = (string)preg_replace('/-{2,}/', '-', $display);
+        $ids = array_map(static fn (string $id): string => (string) preg_replace('/-{2,}/', '-', $id), $matches[1]);
+        $collapsed = (string) preg_replace('/-{2,}/', '-', $display);
 
         $vacuous = array_values(array_filter(
             $ids,
@@ -1218,7 +1215,7 @@ final class SceneStackCommandTest extends TestCase
             foreach ($written as $file) {
                 self::assertStringNotContainsString('sepp', basename($file), 'the folder already says whose gear it is');
                 // The recorded line has to carry the folder, or a replay lands in scenes/generated/ itself.
-                self::assertStringContainsString('--into=sepp', (string)file_get_contents($file));
+                self::assertStringContainsString('--into=sepp', (string) file_get_contents($file));
             }
         } finally {
             foreach (glob($generated.'/zz-test-*.yaml') ?: [] as $file) {
@@ -1299,7 +1296,7 @@ final class SceneStackCommandTest extends TestCase
         // Whitespace collapsed, because the console wraps the block mid-sentence.
         self::assertStringContainsString(
             'name one or the other',
-            (string)preg_replace('/\s+/', ' ', $tester->getDisplay()),
+            (string) preg_replace('/\s+/', ' ', $tester->getDisplay()),
         );
     }
 
@@ -1309,7 +1306,7 @@ final class SceneStackCommandTest extends TestCase
         $tester = $this->invoke(['--owner' => ['nobody'], '--low-end' => ['low'], '--dry-run' => true]);
 
         self::assertSame(1, $tester->getStatusCode());
-        $wrapped = (string)preg_replace('/\s+/', ' ', $tester->getDisplay());
+        $wrapped = (string) preg_replace('/\s+/', ' ', $tester->getDisplay());
         self::assertStringContainsString("--owner: unknown value 'nobody'", $wrapped);
         self::assertStringContainsString('allowed: gmss, innschleife, psl, sdwa5, sepp', $wrapped);
     }
@@ -1325,7 +1322,7 @@ final class SceneStackCommandTest extends TestCase
         self::assertStringContainsString("--orientation: unknown value 'sideways'", $tester->getDisplay());
 
         // Whitespace collapsed, because the console wraps the block and puts the last value on the next line.
-        $wrapped = (string)preg_replace('/\s+/', ' ', $tester->getDisplay());
+        $wrapped = (string) preg_replace('/\s+/', ' ', $tester->getDisplay());
         self::assertStringContainsString('allowed: upright, turned, mixed', $wrapped);
     }
 
@@ -1348,7 +1345,7 @@ final class SceneStackCommandTest extends TestCase
         $turned = 0;
         $upright = 0;
         foreach (self::generatedScenes() as $file) {
-            $yaml = (string)file_get_contents($file);
+            $yaml = (string) file_get_contents($file);
             $name = basename($file);
 
             if (str_contains($yaml, '--orientation=turned')) {
@@ -1440,7 +1437,7 @@ final class SceneStackCommandTest extends TestCase
 
         $written = self::throwaway();
         self::assertCount(1, $written);
-        $contents = (string)file_get_contents($written[0]);
+        $contents = (string) file_get_contents($written[0]);
 
         // A solo stack slides without bound, so the file has to say so. Written as `.inf` because `sprintf('%.4F')`
         // gives `INF`, which YAML reads as a word.
@@ -1479,10 +1476,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $options
-     */
-    /**
-     * **The sweep offers rigs where the two sound systems stand apart, which it never did before.**
+     * **The sweep offers rigs where the two sound systems stand apart, which it never did before.**.
      *
      * SWP-2's seventh axis, all three values of it. Every generated scene pooled the gear until 0.91.0 — verified
      * rather than assumed, since not one written file carried `--per-owner` in its recorded command — because naming
@@ -1526,7 +1520,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **A separated rig records that it is separated, and this was a real defect rather than a hypothetical.**
+     * **A separated rig records that it is separated, and this was a real defect rather than a hypothetical.**.
      *
      * SWP-2's axis lives on the rig rather than on the input, so `commandLine()` reading `--per-owner` off the
      * input recorded nothing at all for a swept `systems-apart` rig. The replay then rebuilt it **pooled**, under
@@ -1611,15 +1605,15 @@ final class SceneStackCommandTest extends TestCase
         $borrowed = [];
         $stack = null;
         foreach (explode("\n", $display) as $line) {
-            if (preg_match('/^  - id: main-(\S+)$/', $line, $named) === 1) {
+            if (1 === preg_match('/^  - id: main-(\S+)$/', $line, $named)) {
                 $stack = $named[1];
                 continue;
             }
-            if ($stack === null || preg_match('/^\s+- (?:device: )?(\S+)$/', $line, $device) !== 1) {
+            if (null === $stack || 1 !== preg_match('/^\s+- (?:device: )?(\S+)$/', $line, $device)) {
                 continue;
             }
             $owner = $owners[$device[1]] ?? null;
-            if ($owner !== null && $owner !== $stack) {
+            if (null !== $owner && $owner !== $stack) {
                 $borrowed[] = sprintf('%s on the %s stack', $device[1], $stack);
             }
         }
@@ -1657,7 +1651,7 @@ final class SceneStackCommandTest extends TestCase
 
     /**
      * A misspelled value on the seventh axis is refused and every allowed one is named, which is the rule
-     * {@see \App\Scene\SweepAxes} holds for all six parsed axes.
+     * {@see SweepAxes} holds for all six parsed axes.
      */
     public function testAnUnknownSystemsValueNamesTheThreeThereAre(): void
     {
@@ -1695,7 +1689,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **A rig that does not stand up is written rather than refused, and it says so in its own header.**
+     * **A rig that does not stand up is written rather than refused, and it says so in its own header.**.
      *
      * The whole of CVR-5. "A `turbo-top` would stand at 0.660 m with nothing under it across x" took a debug
      * dump, two probes and a corrected coordinate mapping to understand; the same rig as a picture, with that
@@ -1727,7 +1721,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **The sweep across processes says exactly what the sweep in one process says.**
+     * **The sweep across processes says exactly what the sweep in one process says.**.
      *
      * This is the property the whole of {@see \App\Process\Parallel} exists to preserve, and it is the one a fork
      * breaks first: candidates come back in completion order, a duplicate id wins a race, a worker that silently
@@ -1752,7 +1746,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **A roster builds the rig it states, not the rig the specs describe.**
+     * **A roster builds the rig it states, not the rig the specs describe.**.
      *
      * The big-top variant is the sharp one: `tms4` is brought and `tms2` is left at
      * home at zero, so the cabinet that every other Innschleife rig is built with must not appear anywhere in the
@@ -1771,7 +1765,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **The recorded line carries the counts and never the roster that stated them.**
+     * **The recorded line carries the counts and never the roster that stated them.**.
      *
      * A roster is a file that can be edited, and a replay has to rebuild *this* scene — the same argument the
      * `--from` list is written out on. Recording `--roster=` instead would make every replay depend on what the
@@ -1863,7 +1857,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **A scene built from a roster states its counts, and the file is worthless without them.**
+     * **A scene built from a roster states its counts, and the file is worthless without them.**.
      *
      * A `stack:` block is re-solved on every build, so a count left out comes back as whatever the spec says
      * today. That is not a cosmetic difference: twelve ESX laid out under five EF 6, rebuilt from a spec that
@@ -1928,7 +1922,7 @@ final class SceneStackCommandTest extends TestCase
     }
 
     /**
-     * **A separated rig gives every system its own focus points; a pooled one does not.**
+     * **A separated rig gives every system its own focus points; a pooled one does not.**.
      *
      * The scene's focus is measured from the *rig's* front centre, so three systems side by side would all aim at
      * a point in front of the middle one — covering one patch of floor between them instead of each covering the

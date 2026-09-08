@@ -54,7 +54,7 @@ enum CameraPreset: string
      */
     public function eyeHeightM(): ?float
     {
-        return $this === self::Crowd ? 1.65 : null;
+        return self::Crowd === $this ? 1.65 : null;
     }
 
     /**

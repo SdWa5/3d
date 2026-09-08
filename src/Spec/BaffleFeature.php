@@ -75,20 +75,20 @@ final class BaffleFeature
     public static function fromReader(ArrayReader $reader, int $index): self
     {
         $at = $reader->has('at_m') ? $reader->numberList('at_m') : null;
-        if ($at !== null && count($at) !== 2) {
+        if (null !== $at && 2 !== count($at)) {
             throw new InvalidSpecException('at_m: expected [x, z] on the baffle');
         }
 
         $mouth = $reader->has('mouth_m') ? $reader->numberList('mouth_m') : null;
-        if ($mouth !== null && count($mouth) !== 2) {
+        if (null !== $mouth && 2 !== count($mouth)) {
             throw new InvalidSpecException('mouth_m: expected [width, height]');
         }
 
         return new self(
             id: $reader->optionalString('id') ?? 'feature-'.$index,
             kind: $reader->requireString('kind'),
-            at: $at === null ? null : [$at[0], $at[1]],
-            mouth: $mouth === null ? null : [$mouth[0], $mouth[1]],
+            at: null === $at ? null : [$at[0], $at[1]],
+            mouth: null === $mouth ? null : [$mouth[0], $mouth[1]],
             depthM: $reader->requireFloat('depth_m'),
             throatIn: $reader->optionalFloat('throat_in'),
             diameterIn: $reader->optionalFloat('diameter_in'),
@@ -112,7 +112,7 @@ final class BaffleFeature
 
     public function isPyramid(): bool
     {
-        return $this->profile === self::PYRAMID || $this->throatProfileOrMouth() === self::PYRAMID;
+        return self::PYRAMID === $this->profile || self::PYRAMID === $this->throatProfileOrMouth();
     }
 
     /**
@@ -125,12 +125,12 @@ final class BaffleFeature
 
     public function isHorn(): bool
     {
-        return $this->kind === self::HORN;
+        return self::HORN === $this->kind;
     }
 
     public function isCone(): bool
     {
-        return $this->kind === self::CONE;
+        return self::CONE === $this->kind;
     }
 
     /**
@@ -139,7 +139,7 @@ final class BaffleFeature
      */
     public function throatM(): ?float
     {
-        return $this->throatIn === null ? null : $this->throatIn * self::INCH_M;
+        return null === $this->throatIn ? null : $this->throatIn * self::INCH_M;
     }
 
     /**
@@ -149,7 +149,7 @@ final class BaffleFeature
     {
         $inches = $this->diameterIn ?? $this->driverIn;
 
-        return $inches === null ? null : $inches * self::INCH_M;
+        return null === $inches ? null : $inches * self::INCH_M;
     }
 
     /**
@@ -159,10 +159,10 @@ final class BaffleFeature
      */
     public function openingM(): ?array
     {
-        if ($this->mouth !== null) {
+        if (null !== $this->mouth) {
             return $this->mouth;
         }
-        if ($this->isCone() && $this->diameterIn !== null) {
+        if ($this->isCone() && null !== $this->diameterIn) {
             $diameter = $this->diameterIn * self::INCH_M;
 
             return [$diameter, $diameter];

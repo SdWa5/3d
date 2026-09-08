@@ -76,7 +76,7 @@ final class LoadPlan
      */
     public function exceedsTheBay(): ?bool
     {
-        if ($this->bayM3 === null) {
+        if (null === $this->bayM3) {
             return null;
         }
 
@@ -91,7 +91,7 @@ final class LoadPlan
      */
     public function bayFill(): ?float
     {
-        if ($this->bayM3 === null || $this->bayM3 <= 0.0) {
+        if (null === $this->bayM3 || $this->bayM3 <= 0.0) {
             return null;
         }
 

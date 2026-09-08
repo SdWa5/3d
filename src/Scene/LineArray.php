@@ -73,12 +73,8 @@ final class LineArray implements Group
     {
         $allowed = ['count', 'splay_deg', 'gap_m'];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "line_array: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("line_array: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         $count = $reader->requireInt('count');
@@ -142,7 +138,7 @@ final class LineArray implements Group
         if ($this->count < 1) {
             $messages[] = "line_array.count must be at least 1, got {$this->count}";
         }
-        if ($this->gapM !== null && $this->gapM < 0.0) {
+        if (null !== $this->gapM && $this->gapM < 0.0) {
             $messages[] = "line_array.gap_m must not be negative, got {$this->gapM}";
         }
         if ($this->count > 1 && count($this->splayDeg) !== $this->count - 1) {
@@ -154,7 +150,7 @@ final class LineArray implements Group
             );
         }
 
-        if ($messages !== []) {
+        if ([] !== $messages) {
             return $messages;
         }
 
@@ -209,6 +205,7 @@ final class LineArray implements Group
      *
      * @param array{float, float} $above origin of the element above, in the elevation plane
      * @param list<array{float, float, float}> $hinges depth, bottom height, top height
+     *
      * @return array{float, float}
      */
     private static function joint(array $above, float $tiltDeg, float $nextTiltDeg, array $hinges): array
@@ -221,7 +218,7 @@ final class LineArray implements Group
                 $above[0] + $foot[0] - $head[0],
                 $above[1] + $foot[1] - $head[1],
             ];
-            if ($best === null || $candidate[1] < $best[1]) {
+            if (null === $best || $candidate[1] < $best[1]) {
                 $best = $candidate;
             }
         }
@@ -235,6 +232,7 @@ final class LineArray implements Group
      * negative depth — the same sense {@see Orientation} gives pitch.
      *
      * @param array{float, float} $point depth and height
+     *
      * @return array{float, float}
      */
     private static function turn(array $point, float $tiltDeg): array
@@ -260,7 +258,7 @@ final class LineArray implements Group
         /** @var array<string, array{float, float, float}> $columns */
         $columns = [];
         foreach ($outline->points as [$y, $z]) {
-            $key = (string)round($y / 1e-12);
+            $key = (string) round($y / 1e-12);
             if (!isset($columns[$key])) {
                 $columns[$key] = [$y, $z, $z];
                 continue;

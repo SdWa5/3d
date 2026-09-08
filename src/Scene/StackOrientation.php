@@ -55,24 +55,25 @@ enum StackOrientation: string
      *
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $ids
+     *
      * @return list<string>
      */
     public function rolls(array $devices, array $ids): array
     {
-        if ($this === self::Upright) {
+        if (self::Upright === $this) {
             return [];
         }
 
         return array_values(array_filter($ids, function (string $id) use ($devices): bool {
             $device = $devices[$id] ?? null;
-            if ($device === null || $device->subtype !== 'sub') {
+            if (null === $device || 'sub' !== $device->subtype) {
                 return false;
             }
 
             // Nominal width against nominal height, not {@see RolledBox}: the question is whether the cabinet as
             // measured is taller than it is wide, and a rolled box is the answer to that rather than part of the
             // question. Strict, so a cube — which rolls to exactly itself — counts as nothing gained.
-            return $this !== self::Mixed || $device->dimensions->height > $device->dimensions->width;
+            return self::Mixed !== $this || $device->dimensions->height > $device->dimensions->width;
         }));
     }
 
@@ -84,6 +85,6 @@ enum StackOrientation: string
      */
     public function rollsAnything(array $devices, array $ids): bool
     {
-        return $this->rolls($devices, $ids) !== [];
+        return [] !== $this->rolls($devices, $ids);
     }
 }

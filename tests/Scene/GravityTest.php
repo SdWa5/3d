@@ -219,7 +219,7 @@ final class GravityTest extends TestCase
     }
 
     /**
-     * **A run moved sideways after it was seated gets the height of what it is now over, not what it left.**
+     * **A run moved sideways after it was seated gets the height of what it is now over, not what it left.**.
      *
      * The bug this closes was a whole family rather than one case: {@see Gravity::resolve} re-asks the question after
      * each of its own repairs, because they hand back *seats* and go through the fill again, but a caller holding
@@ -268,7 +268,7 @@ final class GravityTest extends TestCase
     }
 
     /**
-     * **A run over nothing reports a bearing of 1.0, and anything scoring an arrangement has to know that.**
+     * **A run over nothing reports a bearing of 1.0, and anything scoring an arrangement has to know that.**.
      *
      * Pinned because it is a trap rather than a bug. `landsOn` answers "fully carried" for a run with no support at
      * all, which is correct where it is used — the bottom tier stands on the floor and the floor carries anything —
@@ -392,7 +392,7 @@ final class GravityTest extends TestCase
     {
         $worst = INF;
         foreach ($runs as $run) {
-            $worst = min($worst, $run['on'] === null ? 0.0 : $run['bearing']);
+            $worst = min($worst, null === $run['on'] ? 0.0 : $run['bearing']);
         }
 
         return $worst;

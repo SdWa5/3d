@@ -65,10 +65,10 @@ final class FakeProcessRunner implements ProcessRunner
         unset($rule);
         [$exit, $stdout, $stderr] = $response;
 
-        if ($stdout !== '' && $onStdout !== null) {
+        if ('' !== $stdout && null !== $onStdout) {
             $onStdout($stdout);
         }
-        if ($stderr !== '' && $onStderr !== null) {
+        if ('' !== $stderr && null !== $onStderr) {
             $onStderr($stderr);
         }
 

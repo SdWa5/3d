@@ -8,7 +8,6 @@ use App\Load\LoadPlanner;
 use App\Load\PackSceneWriter;
 use App\Spec\Category;
 use App\Spec\DeviceSpec;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -55,10 +54,10 @@ final class ScenePackCommand extends BaseCommand
         $without = $input->getOption('exclude-owner');
 
         $selected = array_values(array_filter($specs, static function (DeviceSpec $spec) use ($only, $without): bool {
-            if ($spec->category === Category::Vehicle) {
+            if (Category::Vehicle === $spec->category) {
                 return true;
             }
-            if ($only !== [] && !in_array($spec->owner, $only, true)) {
+            if ([] !== $only && !in_array($spec->owner, $only, true)) {
                 return false;
             }
 
@@ -66,13 +65,13 @@ final class ScenePackCommand extends BaseCommand
         }));
 
         ['plans' => $plans, 'leftovers' => $leftovers] = (new LoadPlanner())->plan($selected);
-        if ($plans === []) {
+        if ([] === $plans) {
             $this->io->error('No transporter to pack — the library has no vehicle that states a payload');
 
             return self::FAILURE;
         }
 
-        $id = (string)$input->getOption('id');
+        $id = (string) $input->getOption('id');
         $yaml = (new PackSceneWriter())->yaml($id, $plans, $leftovers);
 
         if (!$input->getOption('write')) {
@@ -84,12 +83,12 @@ final class ScenePackCommand extends BaseCommand
 
         $directory = $this->scenesDir().'/'.self::DIRECTORY;
         if (!is_dir($directory) && !@mkdir($directory, 0o775, true) && !is_dir($directory)) {
-            throw new RuntimeException('Cannot create '.$this->relative($directory));
+            throw new \RuntimeException('Cannot create '.$this->relative($directory));
         }
 
         $path = $directory.'/'.$id.'.yaml';
-        if (@file_put_contents($path, $yaml) === false) {
-            throw new RuntimeException('Cannot write '.$this->relative($path));
+        if (false === @file_put_contents($path, $yaml)) {
+            throw new \RuntimeException('Cannot write '.$this->relative($path));
         }
 
         $this->io->success('Wrote '.$this->relative($path));

@@ -1,0 +1,12 @@
+# Level 5 rather than max, chosen from the measured counts: 64 errors at 5, 231 at 8, 522 at max.
+# The step from 5 to 8 is almost entirely missing generic array-shape annotations on internal helpers,
+# which is worth doing but is its own pass — filed as TOOL-16 in TODO.md. Everything at level 5 is fixed
+# rather than baselined, so this file has no ignores and a new error fails CI.
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+    # The suite drives Symfony Console through CommandTester and the solver through plain arrays, so
+    # nothing here needs a container or a bootstrap beyond the autoloader.
+    treatPhpDocTypesAsCertain: false

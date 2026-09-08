@@ -122,7 +122,7 @@ final class StackBlock
      */
     public function topFaceWidthM(): float
     {
-        $top = $this->tiers === [] ? null : $this->tiers[count($this->tiers) - 1];
+        $top = [] === $this->tiers ? null : $this->tiers[count($this->tiers) - 1];
 
         return $top?->widthM($this->stack->gapM) ?? 0.0;
     }
@@ -173,10 +173,10 @@ final class StackBlock
     {
         return sprintf(
             '%s, %d cabinets in %d %s',
-            $this->label === '' ? 'the rig' : $this->label,
+            '' === $this->label ? 'the rig' : $this->label,
             $this->cabinets(),
             count($this->tiers),
-            count($this->tiers) === 1 ? 'row' : 'rows',
+            1 === count($this->tiers) ? 'row' : 'rows',
         );
     }
 }

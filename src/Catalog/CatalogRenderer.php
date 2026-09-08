@@ -20,6 +20,7 @@ final class CatalogRenderer
 
     /**
      * @param list<DeviceSpec> $specs
+     *
      * @return list<list<string>>
      */
     public function rows(array $specs): array
@@ -30,7 +31,7 @@ final class CatalogRenderer
                 $spec->id,
                 $spec->name,
                 $spec->category->value.'/'.$spec->subtype,
-                (string)$spec->quantity,
+                (string) $spec->quantity,
                 $spec->owner,
                 $this->formatDimensions($spec),
                 $this->formatNumber($spec->weightKg),
@@ -58,6 +59,7 @@ final class CatalogRenderer
      * hold up against a 1024 kg payload to decide what goes in one load.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return array{
      *     devices: int,
      *     fleet: list<array{id: string, owner: string, payload_kg: float, bay_m3: float|null}>,
@@ -93,7 +95,7 @@ final class CatalogRenderer
             // would hold up against a 1024 kg payload. It is still counted in `by_category`, because "we own two
             // vans" is true and useful; what it may not join is a weight or a volume that means "what has to be
             // carried".
-            if ($spec->category === Category::Vehicle) {
+            if (Category::Vehicle === $spec->category) {
                 $fleet[] = [
                     'id' => $spec->id,
                     'owner' => $spec->owner,
@@ -164,7 +166,7 @@ final class CatalogRenderer
             '',
         ];
 
-        if ($specs === []) {
+        if ([] === $specs) {
             $lines[] = 'No specs yet.';
 
             return implode("\n", $lines)."\n";
@@ -203,7 +205,7 @@ final class CatalogRenderer
                 $vehicle['id'],
                 $vehicle['owner'],
                 $this->formatNumber($vehicle['payload_kg']),
-                $vehicle['bay_m3'] === null
+                null === $vehicle['bay_m3']
                     ? ', load bay not measured'
                     : sprintf(', %s m³ bay', $this->formatNumber($vehicle['bay_m3'], 2)),
             );
@@ -212,7 +214,7 @@ final class CatalogRenderer
             '- Dimensions measured: %d of %d%s',
             $summary['devices'] - count($summary['dimensions_unmeasured_ids']),
             $summary['devices'],
-            $summary['dimensions_unmeasured_ids'] === []
+            [] === $summary['dimensions_unmeasured_ids']
                 ? ''
                 : ' — open: '.implode(', ', $summary['dimensions_unmeasured_ids']),
         );
@@ -220,7 +222,7 @@ final class CatalogRenderer
             '- Weights measured: %d of %d%s',
             $summary['devices'] - count($summary['weight_unmeasured_ids']),
             $summary['devices'],
-            $summary['weight_unmeasured_ids'] === []
+            [] === $summary['weight_unmeasured_ids']
                 ? ''
                 : ' — open: '.implode(', ', $summary['weight_unmeasured_ids']),
         );
@@ -231,6 +233,7 @@ final class CatalogRenderer
 
     /**
      * @param list<DeviceSpec> $specs
+     *
      * @return list<DeviceSpec> specs with anything still not measured on the actual cabinet
      */
     public function unmeasured(array $specs): array

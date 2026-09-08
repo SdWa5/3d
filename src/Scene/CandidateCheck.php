@@ -33,6 +33,7 @@ final class CandidateCheck
      * out identical — three files implying a choice that does not exist.
      *
      * @param array<string, DeviceSpec> $devices
+     *
      * @return array{cabinets: int, fingerprint: string}|string
      */
     public static function compileYaml(string $yaml, array $devices): array|string
@@ -47,7 +48,7 @@ final class CandidateCheck
 
         $result = (new SceneCompiler($devices))->compile($scene);
         $errors = Violation::errorsIn($result['violations']);
-        if ($errors !== []) {
+        if ([] !== $errors) {
             return $errors[0]->message;
         }
 
@@ -91,6 +92,7 @@ final class CandidateCheck
      *
      * @param array<string, array{yaml: string, cabinets: int, fingerprint: string}> $candidates
      * @param array<string, string> $skipped
+     *
      * @return array<string, array{yaml: string, cabinets: int, fingerprint: string}>
      */
     public static function deduplicate(array $candidates, array &$skipped): array
@@ -101,7 +103,7 @@ final class CandidateCheck
         foreach ($candidates as $name => $candidate) {
             $fingerprint = $candidate['fingerprint'];
             $existing = array_search($fingerprint, $seen, true);
-            if ($existing !== false) {
+            if (false !== $existing) {
                 $skipped[$name] = sprintf('the same rig as %s', $existing);
                 continue;
             }

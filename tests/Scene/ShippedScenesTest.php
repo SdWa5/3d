@@ -38,7 +38,7 @@ final class ShippedScenesTest extends TestCase
      * Not float noise — a millimetre is enormous next to that. It is the one approximation the compiler
      * makes on purpose: an arc's contact is solved at the tilt of its **anchor**, while each seat is then
      * aimed from where it actually stands, and across a three-wide arc those tilts differ by about 0.03°
-     * ({@see \App\Scene\SceneCompiler}). Flush faces at 0.03° to each other bite by a few tenths of a
+     * ({@see SceneCompiler}). Flush faces at 0.03° to each other bite by a few tenths of a
      * millimetre. Against a 10 mm chamfer easing exactly the corners in contact, the built meshes have
      * clearance there.
      *
@@ -60,7 +60,6 @@ final class ShippedScenesTest extends TestCase
      * topology can be written down once instead of running a hull algorithm in a test.
      */
 
-
     /**
      * Every scene this test holds to standing up, which is every scene **except the ones that say they do not**.
      *
@@ -71,7 +70,7 @@ final class ShippedScenesTest extends TestCase
      * away. Holding it to the same promise as the rest would make this test's whole meaning "every scene stands up
      * except the ones I remembered to add to an array", which is not a promise at all.
      *
-     * {@see \App\Scene\Feasibility::isImpossibleId} is the single place that decides, so the writer and the test
+     * {@see Feasibility::isImpossibleId} is the single place that decides, so the writer and the test
      * cannot drift into disagreeing about which files are which.
      *
      * @return iterable<string, array{string}>
@@ -108,7 +107,7 @@ final class ShippedScenesTest extends TestCase
         $project = dirname(__DIR__, 2);
         $loader = new SceneLoader($project.'/scenes');
         $specs = [];
-        foreach ((new \App\Spec\SpecLoader($project.'/specs'))->loadAll()['specs'] as $spec) {
+        foreach ((new SpecLoader($project.'/specs'))->loadAll()['specs'] as $spec) {
             $specs[$spec->id] = $spec;
         }
 
@@ -120,7 +119,7 @@ final class ShippedScenesTest extends TestCase
             }
 
             ++$checked;
-            $placed = (new \App\Scene\SceneCompiler($specs))->compile($loader->load($file))['placed'];
+            $placed = (new SceneCompiler($specs))->compile($loader->load($file))['placed'];
             $faults = [
                 ...PlacementChecks::floatingFaults($placed),
                 ...Interpenetration::faults($placed, PlacementChecks::CONTACT_TOLERANCE_M),
@@ -243,7 +242,7 @@ final class ShippedScenesTest extends TestCase
     {
         foreach ($placed as $entry) {
             $box = $entry->worldBox();
-            if ($box['min'][2] < self::CONTACT_TOLERANCE_M || $entry->flyPoint !== null) {
+            if ($box['min'][2] < self::CONTACT_TOLERANCE_M || null !== $entry->flyPoint) {
                 continue;
             }
 
@@ -337,7 +336,6 @@ final class ShippedScenesTest extends TestCase
         return $covered / $extent;
     }
 
-
     /**
      * @param list<PlacedDevice> $placed
      */
@@ -399,6 +397,7 @@ final class ShippedScenesTest extends TestCase
      * A placement's outer edges, and the facing edges of its outermost cabinets.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return array{min: float, max: float, innerLeft: float, innerRight: float}
      */
     private function edgesOf(array $placed, string $placementId): array

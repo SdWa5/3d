@@ -48,11 +48,12 @@ final class SystemGrouping
      * narrowing option here does.
      *
      * @param list<string> $stated
+     *
      * @return self|string the grouping, or the reason it cannot be read
      */
     public static function of(array $stated): self|string
     {
-        if ($stated === []) {
+        if ([] === $stated) {
             return new self(self::DEFAULT);
         }
 
@@ -60,13 +61,13 @@ final class SystemGrouping
         $seen = [];
         foreach ($stated as $group) {
             $parts = explode(':', $group);
-            if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
-                return sprintf("--group=%s expects NAME:owner+owner", $group);
+            if (2 !== count($parts) || '' === $parts[0] || '' === $parts[1]) {
+                return sprintf('--group=%s expects NAME:owner+owner', $group);
             }
             $owners = explode('+', $parts[1]);
             foreach ($owners as $owner) {
-                if ($owner === '') {
-                    return sprintf("--group=%s expects NAME:owner+owner", $group);
+                if ('' === $owner) {
+                    return sprintf('--group=%s expects NAME:owner+owner', $group);
                 }
                 if (isset($seen[$owner])) {
                     // Two systems claiming one owner is not a grouping, and picking by argument order would make

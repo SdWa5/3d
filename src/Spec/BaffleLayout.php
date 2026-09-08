@@ -25,7 +25,7 @@ final class BaffleLayout
 
     public static function fromReader(?ArrayReader $reader): ?self
     {
-        if ($reader === null) {
+        if (null === $reader) {
             return null;
         }
 

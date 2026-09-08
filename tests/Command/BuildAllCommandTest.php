@@ -13,11 +13,11 @@ use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use App\Process\Parallel;
 use App\Tests\Support\ReplaySample;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Tester\CommandTester;
-use PHPUnit\Framework\TestCase;
 
 /**
  * The order of the pipeline and the shape of a variant sweep, checked with `--dry-run` — which is the only
@@ -152,8 +152,8 @@ final class BuildAllCommandTest extends TestCase
             new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
         );
         foreach ($iterator as $file) {
-            if ($file instanceof \SplFileInfo && strtolower($file->getExtension()) === 'yaml') {
-                $found[substr($file->getPathname(), strlen($directory) + 1)] = (string)file_get_contents($file->getPathname());
+            if ($file instanceof \SplFileInfo && 'yaml' === strtolower($file->getExtension())) {
+                $found[substr($file->getPathname(), strlen($directory) + 1)] = (string) file_get_contents($file->getPathname());
             }
         }
         ksort($found);
@@ -162,7 +162,7 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
-     * **A generated scene is stale when the run did not write it, never when it merely looks old.**
+     * **A generated scene is stale when the run did not write it, never when it merely looks old.**.
      *
      * The rule this pins is the one that makes deleting scene files safe at all. Two earlier attempts decided it by
      * timestamp and both destroyed the scene set, because `filemtime()` is whole seconds where `microtime(true)` is
@@ -213,7 +213,7 @@ final class BuildAllCommandTest extends TestCase
 
         foreach ($files as $relative) {
             $file = $directory.'/'.$relative;
-            $yaml = (string)file_get_contents($file);
+            $yaml = (string) file_get_contents($file);
             self::assertMatchesRegularExpression(
                 '/^#\s{3}bin\/console scene:stack .+$/m',
                 $yaml,
@@ -279,7 +279,7 @@ final class BuildAllCommandTest extends TestCase
         // through the same command and compares the same before-and-after set. What only this one covers is the
         // *stage* — that it reports the paths it wrote, which is the set the stale deletion is a difference
         // against. Run it on a release, or whenever `BuildAllCommand` itself is touched.
-        if (getenv('SDWA5_FULL_REPLAY') === false) {
+        if (false === getenv('SDWA5_FULL_REPLAY')) {
             self::markTestSkipped('SDWA5_FULL_REPLAY=1 runs the whole regenerate stage — ca. 25 Minuten');
         }
 
@@ -294,7 +294,7 @@ final class BuildAllCommandTest extends TestCase
 
         // `io` is set in execute(), which this deliberately does not call.
         $io = new \Symfony\Component\Console\Style\SymfonyStyle(
-            new \Symfony\Component\Console\Input\ArrayInput([]),
+            new ArrayInput([]),
             new \Symfony\Component\Console\Output\NullOutput(),
         );
         (new \ReflectionProperty(\App\Command\BaseCommand::class, 'io'))->setValue($command, $io);
@@ -386,7 +386,7 @@ final class BuildAllCommandTest extends TestCase
         $application->add(new \App\Command\SceneStackCommand());
 
         $io = new \Symfony\Component\Console\Style\SymfonyStyle(
-            new \Symfony\Component\Console\Input\ArrayInput([]),
+            new ArrayInput([]),
             new \Symfony\Component\Console\Output\NullOutput(),
         );
         (new \ReflectionProperty(\App\Command\BaseCommand::class, 'io'))->setValue($command, $io);
@@ -444,7 +444,7 @@ final class BuildAllCommandTest extends TestCase
                 ReplaySample::of($before),
                 static function (string $yaml) use ($application): ?int {
                     $command = self::recordedCommandIn($yaml);
-                    if ($command === null) {
+                    if (null === $command) {
                         return null;
                     }
 
@@ -482,14 +482,14 @@ final class BuildAllCommandTest extends TestCase
     {
         $command = null;
         foreach (explode("\n", $yaml) as $line) {
-            if ($command === null) {
-                if (preg_match('/^#\s{3}bin\/console scene:stack (.+)$/', $line, $matches) === 1) {
+            if (null === $command) {
+                if (1 === preg_match('/^#\s{3}bin\/console scene:stack (.+)$/', $line, $matches)) {
                     $command = trim($matches[1]);
                 }
                 continue;
             }
             // Continuation lines are indented further than the first, which is how the writer wraps a long line.
-            if (preg_match('/^#\s{5,}(\S.*)$/', $line, $matches) !== 1) {
+            if (1 !== preg_match('/^#\s{5,}(\S.*)$/', $line, $matches)) {
                 break;
             }
             $command .= ' '.trim($matches[1]);
@@ -499,7 +499,7 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
-     * **One picture per scene with nothing asked for, and that is a reversal of 0.70.0's default.**
+     * **One picture per scene with nothing asked for, and that is a reversal of 0.70.0's default.**.
      *
      * The sweep of four lighting presets in both aim modes is eight renders of each of 483 generated scenes, which
      * is 3864 pictures out of the slowest tool in the pipeline. Stated by the owner, who asked for the lighting

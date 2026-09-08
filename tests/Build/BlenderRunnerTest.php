@@ -7,7 +7,6 @@ namespace App\Tests\Build;
 use App\Build\BlenderRunner;
 use App\Tests\Support\FakeProcessRunner;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class BlenderRunnerTest extends TestCase
 {
@@ -44,7 +43,7 @@ final class BlenderRunnerTest extends TestCase
         $fake = new FakeProcessRunner();
         $fake->on('which ', 1, '');
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/Required binary not found: blender/');
         (new BlenderRunner($fake))->run('/p/script.py', '/p/plan.json');
     }
@@ -58,7 +57,7 @@ final class BlenderRunnerTest extends TestCase
         try {
             (new BlenderRunner($fake))->run('/p/blender/build_model.py', '/p/plan.json');
             self::fail('expected a RuntimeException');
-        } catch (RuntimeException $e) {
+        } catch (\RuntimeException $e) {
             self::assertStringContainsString('Blender failed (exit 1) running build_model.py', $e->getMessage());
             self::assertStringContainsString('ValueError: nope', $e->getMessage());
         }

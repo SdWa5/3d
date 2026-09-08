@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Process;
 
-use RuntimeException;
-
 /**
  * Runs a list of independent jobs across several forked processes and gives the answers back in order.
  *
@@ -40,9 +38,11 @@ final class Parallel
     /**
      * @template TIn
      * @template TOut
+     *
      * @param array<array-key, TIn> $jobs
      * @param callable(TIn, array-key): TOut $run
      * @param int $workers processes to use; 1 runs serially in this process, 0 asks the machine how many cores it has
+     *
      * @return array<array-key, TOut> the same keys in the same order
      */
     public static function map(array $jobs, callable $run, int $workers = 0): array
@@ -63,24 +63,24 @@ final class Parallel
         // run would be read as this one's answer.
         $directory = sys_get_temp_dir().'/parallel-'.getmypid().'-'.(++self::$runs);
         if (!is_dir($directory) && !mkdir($directory, 0o777, true) && !is_dir($directory)) {
-            throw new RuntimeException('cannot create a working directory for the run at '.$directory);
+            throw new \RuntimeException('cannot create a working directory for the run at '.$directory);
         }
         file_put_contents($directory.'/cursor', '0');
 
         $children = [];
         for ($worker = 0; $worker < $count; ++$worker) {
             $pid = pcntl_fork();
-            if ($pid === -1) {
+            if (-1 === $pid) {
                 // Whatever forked already still does the whole list, because the cursor decides who takes what.
                 break;
             }
-            if ($pid === 0) {
+            if (0 === $pid) {
                 self::work($directory, $worker, $jobs, $keys, $run);
             }
             $children[$worker] = $pid;
         }
 
-        if ($children === []) {
+        if ([] === $children) {
             self::clean($directory, []);
 
             return self::map($jobs, $run, 1);
@@ -93,14 +93,11 @@ final class Parallel
         $done = [];
         foreach (array_keys($children) as $worker) {
             $file = $directory.'/'.$worker;
-            $raw = is_file($file) ? (string)file_get_contents($file) : '';
-            if ($raw === '') {
+            $raw = is_file($file) ? (string) file_get_contents($file) : '';
+            if ('' === $raw) {
                 self::clean($directory, array_keys($children));
 
-                throw new RuntimeException(sprintf(
-                    'worker %d produced nothing, so the run is incomplete rather than short',
-                    $worker,
-                ));
+                throw new \RuntimeException(sprintf('worker %d produced nothing, so the run is incomplete rather than short', $worker));
             }
             /** @var array<int, TOut> $part */
             $part = unserialize($raw);
@@ -111,7 +108,7 @@ final class Parallel
         $results = [];
         foreach ($keys as $index => $key) {
             if (!array_key_exists($index, $done)) {
-                throw new RuntimeException(sprintf('the run lost job %s to a worker', (string)$key));
+                throw new \RuntimeException(sprintf('the run lost job %s to a worker', (string) $key));
             }
             $results[$key] = $done[$index];
         }
@@ -142,7 +139,7 @@ final class Parallel
         // on a shared description locks out nobody.
         $cursor = fopen($directory.'/cursor', 'r+');
         $mine = [];
-        if ($cursor !== false) {
+        if (false !== $cursor) {
             while (($index = self::next($cursor, count($keys))) !== null) {
                 $mine[$index] = $run($jobs[$keys[$index]], $keys[$index]);
             }
@@ -165,11 +162,11 @@ final class Parallel
         }
 
         rewind($cursor);
-        $next = (int)stream_get_contents($cursor);
+        $next = (int) stream_get_contents($cursor);
         if ($next < $total) {
             ftruncate($cursor, 0);
             rewind($cursor);
-            fwrite($cursor, (string)($next + 1));
+            fwrite($cursor, (string) ($next + 1));
             fflush($cursor);
         }
         flock($cursor, LOCK_UN);
@@ -194,7 +191,7 @@ final class Parallel
      */
     private static function workers(int $stated, int $jobs): int
     {
-        if ($stated === 1 || $jobs < 2 || !self::isSupported()) {
+        if (1 === $stated || $jobs < 2 || !self::isSupported()) {
             return 1;
         }
         if ($stated > 1) {
@@ -212,6 +209,6 @@ final class Parallel
     {
         $nproc = shell_exec('nproc 2>/dev/null');
 
-        return max(1, (int)($nproc !== null ? trim($nproc) : 1));
+        return max(1, (int) (null !== $nproc ? trim($nproc) : 1));
     }
 }

@@ -81,8 +81,8 @@ final class Placement
     /**
      * This placement's own `focus:` block, read exactly the way the scene's own is.
      *
-     * Absent is the common case and returns nothing, which leaves {@see \App\Scene\SceneSpec::$focusByName} in
-     * charge. The two forms {@see \App\Scene\SceneSpec::readFoci} accepts are both accepted here — one unnamed
+     * Absent is the common case and returns nothing, which leaves {@see SceneSpec::$focusByName} in
+     * charge. The two forms {@see SceneSpec::readFoci} accepts are both accepted here — one unnamed
      * focus, or a map of named ones — because a placement that states a focus is stating the same kind of thing
      * the scene does, one level down.
      *
@@ -91,12 +91,12 @@ final class Placement
     private static function focusIn(ArrayReader $reader): array
     {
         $section = $reader->optionalSection('focus');
-        if ($section === null) {
+        if (null === $section) {
             return [];
         }
 
         $names = $section->keys();
-        $named = $names !== [] && array_reduce(
+        $named = [] !== $names && array_reduce(
             $names,
             static fn (bool $carry, string $key): bool => $carry && $section->isSection($key),
             true,
@@ -127,30 +127,24 @@ final class Placement
         // perfectly plausibly with nothing to see. It is the same argument `arc` and `lattice` already
         // make for their own keys — a block whose every field changes the geometry cannot afford a typo.
         $unknown = $reader->unknownKeys([...self::KEYS, ...GroupReader::keys()]);
-        if ($unknown !== []) {
-            throw new \App\Spec\InvalidSpecException(sprintf(
-                "placement '%s': unknown key '%s'",
-                $reader->optionalString('id') ?? 'placement-'.$index,
-                $unknown[0],
-            ));
+        if ([] !== $unknown) {
+            throw new \App\Spec\InvalidSpecException(sprintf("placement '%s': unknown key '%s'", $reader->optionalString('id') ?? 'placement-'.$index, $unknown[0]));
         }
 
         $stack = $reader->optionalSection('stack');
-        if ($stack !== null) {
+        if (null !== $stack) {
             // A stack names its cabinets in `stack.from` and writes its own rows, so `device` and a group
             // are not merely redundant here — either would have to lose an argument with the solver.
             foreach ([...GroupReader::keys(), 'device'] as $key) {
                 if ($reader->has($key)) {
-                    throw new \App\Spec\InvalidSpecException(
-                        "stack: `{$key}` is decided by the stack — remove it, or write the tiers out by hand",
-                    );
+                    throw new \App\Spec\InvalidSpecException("stack: `{$key}` is decided by the stack — remove it, or write the tiers out by hand");
                 }
             }
         }
 
         return new self(
             id: $reader->optionalString('id') ?? 'placement-'.$index,
-            deviceId: $stack === null ? $reader->requireString('device') : null,
+            deviceId: null === $stack ? $reader->requireString('device') : null,
             at: $reader->has('at') ? self::readGround($reader) : null,
             yawDeg: $reader->optionalFloat('yaw_deg', 0.0) ?? 0.0,
             pitchDeg: $reader->optionalFloat('pitch_deg', 0.0) ?? 0.0,
@@ -163,7 +157,7 @@ final class Placement
             group: GroupReader::read($reader),
             aimLines: $reader->has('aim_lines') ? $reader->requireBool('aim_lines') : null,
             align: ($align = $reader->optionalSection('align')) === null ? null : Alignment::fromReader($align),
-            stack: $stack === null ? null : Stack::fromReader($stack),
+            stack: null === $stack ? null : Stack::fromReader($stack),
         );
     }
 
@@ -184,10 +178,10 @@ final class Placement
     private static function readAim(ArrayReader $reader): array
     {
         $raw = $reader->numberList('aim_at');
-        if (count($raw) === 2) {
+        if (2 === count($raw)) {
             return [$raw[0], $raw[1], 0.0];
         }
-        if (count($raw) === 3) {
+        if (3 === count($raw)) {
             return [$raw[0], $raw[1], $raw[2]];
         }
 

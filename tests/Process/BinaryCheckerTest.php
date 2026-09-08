@@ -7,7 +7,6 @@ namespace App\Tests\Process;
 use App\Process\BinaryChecker;
 use App\Tests\Support\FakeProcessRunner;
 use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 final class BinaryCheckerTest extends TestCase
 {
@@ -27,7 +26,7 @@ final class BinaryCheckerTest extends TestCase
         $fake->on('which ', 1, '');
         $checker = new BinaryChecker($fake);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/Required binary not found: lsblk/');
         $checker('lsblk');
     }
@@ -38,7 +37,7 @@ final class BinaryCheckerTest extends TestCase
         $fake->on('which ', 0, '');
         $checker = new BinaryChecker($fake);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/Required binary not found: lsblk/');
         $checker('lsblk');
     }
@@ -49,7 +48,7 @@ final class BinaryCheckerTest extends TestCase
         $fake->on('missing-bin', 127, '');
         $checker = new BinaryChecker($fake);
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/Missing dependency: missing-bin/');
         $checker('missing-bin', '--version');
     }

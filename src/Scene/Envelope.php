@@ -24,29 +24,28 @@ final class Envelope
      * The width to fill, or the message saying why it cannot be worked out.
      *
      * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
-     * @return float|string
      */
     public static function widthFor(Alignment $align, array $placedById): float|string
     {
         $reference = $align->reference();
 
-        if ($reference === null) {
+        if (null === $reference) {
             /** @var float $width */
             $width = $align->widthM;
         } else {
             $cabinets = $placedById[$reference] ?? null;
-            if ($cabinets === null) {
+            if (null === $cabinets) {
                 // Same rule and the same wording as `on`, and it falls out of the same mechanism: a
                 // placement is only in the map once it has been placed, so a forward reference and a
                 // self-reference both land here, as does one naming a placement that failed to compile.
                 return sprintf(
                     "align.%s: '%s' must name an earlier placement",
-                    $align->across !== null ? 'across' : ($align->inside !== null ? 'inside' : 'outside'),
+                    null !== $align->across ? 'across' : (null !== $align->inside ? 'inside' : 'outside'),
                     $reference,
                 );
             }
 
-            $width = $align->across !== null ? self::extentOf($cabinets) : self::freeSpanOf($cabinets);
+            $width = null !== $align->across ? self::extentOf($cabinets) : self::freeSpanOf($cabinets);
 
             if ($width <= 0.0) {
                 return sprintf(
@@ -85,6 +84,7 @@ final class Envelope
      * touch its neighbour, and that is {@see Alignment::$clearOf}.
      *
      * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
+     *
      * @return array{float, float}|string
      */
     public static function obstacleFor(Alignment $align, array $placedById): array|string
@@ -93,7 +93,7 @@ final class Envelope
         $reference = $align->outside;
         $cabinets = $placedById[$reference] ?? null;
 
-        if ($cabinets === null) {
+        if (null === $cabinets) {
             return sprintf("align.outside: '%s' must name an earlier placement", $reference);
         }
 
@@ -105,7 +105,7 @@ final class Envelope
             $max = max($max, $box['max'][0]);
         }
 
-        return $min === INF ? [0.0, 0.0] : [$min, $max];
+        return INF === $min ? [0.0, 0.0] : [$min, $max];
     }
 
     /**
@@ -116,6 +116,7 @@ final class Envelope
      * {@see Alignment::$clearOf} for why a fill wants the second and a hand-written envelope wants the first.
      *
      * @param array<string, list<PlacedDevice>> $placedById every cabinet of each placement resolved so far
+     *
      * @return list<PlacedDevice>|string
      */
     public static function cabinetsFor(Alignment $align, array $placedById): array|string
@@ -124,7 +125,7 @@ final class Envelope
         $reference = $align->clearOf;
         $cabinets = $placedById[$reference] ?? null;
 
-        if ($cabinets === null) {
+        if (null === $cabinets) {
             return sprintf("align.clear_of: '%s' must name an earlier placement", $reference);
         }
 

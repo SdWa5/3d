@@ -31,7 +31,7 @@ final class SpecsValidateCommand extends BaseCommand
         $violations = $this->validator()->validate($specs);
         $failures = Violation::errorsIn($violations);
 
-        if ($violations !== []) {
+        if ([] !== $violations) {
             $this->io->newLine();
             $this->reportViolations($violations);
         }
@@ -42,15 +42,15 @@ final class SpecsValidateCommand extends BaseCommand
             $this->io->error(sprintf(
                 '%d problem%s in %d spec%s',
                 $problems,
-                $problems === 1 ? '' : 's',
+                1 === $problems ? '' : 's',
                 count($specs) + count($errors),
-                count($specs) + count($errors) === 1 ? '' : 's',
+                1 === count($specs) + count($errors) ? '' : 's',
             ));
 
             return self::FAILURE;
         }
 
-        if ($specs === []) {
+        if ([] === $specs) {
             $this->io->warning('No specs found in '.$this->relative($this->specsDir()));
 
             return self::SUCCESS;
@@ -60,8 +60,8 @@ final class SpecsValidateCommand extends BaseCommand
         $this->io->success(sprintf(
             '%d spec%s valid%s',
             count($specs),
-            count($specs) === 1 ? '' : 's',
-            $warnings === [] ? '' : sprintf(' (%d warning%s)', count($warnings), count($warnings) === 1 ? '' : 's'),
+            1 === count($specs) ? '' : 's',
+            [] === $warnings ? '' : sprintf(' (%d warning%s)', count($warnings), 1 === count($warnings) ? '' : 's'),
         ));
 
         return self::SUCCESS;

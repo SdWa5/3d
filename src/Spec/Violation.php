@@ -28,11 +28,12 @@ final class Violation
 
     public function isError(): bool
     {
-        return $this->severity === self::ERROR;
+        return self::ERROR === $this->severity;
     }
 
     /**
      * @param list<self> $violations
+     *
      * @return list<self>
      */
     public static function errorsIn(array $violations): array
@@ -42,6 +43,7 @@ final class Violation
 
     /**
      * @param list<self> $violations
+     *
      * @return list<self>
      */
     public static function warningsIn(array $violations): array

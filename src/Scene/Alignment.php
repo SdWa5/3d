@@ -111,12 +111,8 @@ final class Alignment
     {
         $allowed = ['mode', 'width_m', 'across', 'inside', 'outside', 'clear_of', 'inset_m', 'side'];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "align: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("align: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         return new self(
@@ -131,9 +127,7 @@ final class Alignment
                 'left' => -1.0,
                 'right' => 1.0,
                 null => 0.0,
-                default => throw new InvalidSpecException(
-                    sprintf("align.side: expected 'left' or 'right', got '%s'", (string)$reader->optionalString('side')),
-                ),
+                default => throw new InvalidSpecException(sprintf("align.side: expected 'left' or 'right', got '%s'", (string) $reader->optionalString('side'))),
             },
         );
     }
@@ -160,7 +154,7 @@ final class Alignment
      */
     public function isClearance(): bool
     {
-        return $this->outside !== null || $this->clearOf !== null;
+        return null !== $this->outside || null !== $this->clearOf;
     }
 
     /**
@@ -210,8 +204,8 @@ final class Alignment
 
     private function hasEnvelope(): bool
     {
-        return $this->widthM !== null || $this->across !== null || $this->inside !== null
-            || $this->outside !== null || $this->clearOf !== null;
+        return null !== $this->widthM || null !== $this->across || null !== $this->inside
+            || null !== $this->outside || null !== $this->clearOf;
     }
 
     /**
@@ -225,32 +219,32 @@ final class Alignment
     {
         $messages = [];
         $sources = [$this->widthM, $this->across, $this->inside, $this->outside, $this->clearOf];
-        $stated = count(array_filter($sources, static fn (mixed $v): bool => $v !== null));
+        $stated = count(array_filter($sources, static fn (mixed $v): bool => null !== $v));
 
         if ($stated > 1) {
             $messages[] = 'use one of align.width_m, align.across, align.inside, align.outside or align.clear_of, '
                 .'not two — they all state what the tier is solved against';
         }
-        if ($this->mode->isSolved() && $stated === 0) {
+        if ($this->mode->isSolved() && 0 === $stated) {
             $messages[] = sprintf(
                 "align.mode '%s' needs something to solve against — state width_m, across, inside, outside or "
                 .'clear_of',
                 $this->mode->value,
             );
         }
-        if (!$this->mode->isSolved() && ($stated > 0 || $this->insetM !== 0.0)) {
+        if (!$this->mode->isSolved() && ($stated > 0 || 0.0 !== $this->insetM)) {
             // Silently ignoring them would make `center` look like it had been given a width and obeyed it.
             $messages[] = "align.mode 'center' is the natural spacing and has nothing to solve "
                 .'— remove width_m/across/inside/outside/clear_of/inset_m, or ask for block';
         }
-        if ($this->widthM !== null && $this->widthM <= 0.0) {
+        if (null !== $this->widthM && $this->widthM <= 0.0) {
             $messages[] = sprintf('align.width_m must be positive, got %s', $this->widthM);
         }
         if ($this->insetM < 0.0) {
             $messages[] = sprintf('align.inset_m must not be negative, got %s', $this->insetM);
         }
 
-        if (!$this->mode->isSolved() || $messages !== []) {
+        if (!$this->mode->isSolved() || [] !== $messages) {
             return $messages;
         }
 
@@ -261,6 +255,7 @@ final class Alignment
      * The copies moved to the parameter `$t`, whatever that parameter means for this mode.
      *
      * @param list<PlacementCopy> $copies
+     *
      * @return list<PlacementCopy>
      */
     public function apply(array $copies, float $t): array
@@ -271,7 +266,7 @@ final class Alignment
 
         return array_map(
             fn (PlacementCopy $copy): PlacementCopy => $copy->movedInX(
-                $this->mode === LayoutMode::Block
+                LayoutMode::Block === $this->mode
                     ? $copy->offset[0] * $t
                     : $copy->offset[0] + $this->columnOf($copy->offset[0]) * $t,
             ),
@@ -288,11 +283,11 @@ final class Alignment
      */
     public function startParameter(): float
     {
-        return $this->mode === LayoutMode::Block ? 1.0 : 0.0;
+        return LayoutMode::Block === $this->mode ? 1.0 : 0.0;
     }
 
     /**
-     * The tightest parameter this mode may be solved to — **the arrangement's own spacing, in both modes.**
+     * The tightest parameter this mode may be solved to — **the arrangement's own spacing, in both modes.**.
      *
      * This used to be 0 for both, on the reasoning that 0 is "every cabinet on `at`" and so the tightest anything
      * could be. That is true of `block`, whose parameter multiplies each copy's offset, and it is exactly the bug:
@@ -330,13 +325,13 @@ final class Alignment
     {
         $levels = $group->groups;
 
-        if (count($levels) !== 1 || !$levels[0] instanceof Lattice) {
+        if (1 !== count($levels) || !$levels[0] instanceof Lattice) {
             // An arc's spacing is its radius and a hang's is its splay — neither is a step to solve. A
             // `repeat` runs from `at` rather than about it, so neither the column split nor the symmetry
             // the focus resolution leans on would hold.
             return [sprintf(
                 'align needs a single row or lattice and nothing nested in it, got %s',
-                $levels === [] ? 'one cabinet' : $group->kind().(count($levels) > 1 ? ' inside another group' : ''),
+                [] === $levels ? 'one cabinet' : $group->kind().(count($levels) > 1 ? ' inside another group' : ''),
             )];
         }
 
@@ -348,14 +343,14 @@ final class Alignment
             // only air to keep beyond something else, and a lone fill beside a long throw is exactly that.
             $messages[] = 'align needs more than one cabinet across x to space';
         }
-        if ($lattice->count[0] < 2 && $this->isClearance() && $this->side === 0.0) {
+        if ($lattice->count[0] < 2 && $this->isClearance() && 0.0 === $this->side) {
             $messages[] = sprintf(
                 "align.%s on a single cabinet needs align.side: 'left' or 'right' — a cabinet on the centre line "
                 .'has no sign to say which way out is',
-                $this->clearOf !== null ? 'clear_of' : 'outside',
+                null !== $this->clearOf ? 'clear_of' : 'outside',
             );
         }
-        if ($lattice->stepM[0] !== 0.0) {
+        if (0.0 !== $lattice->stepM[0]) {
             // Only `step_m`. `gap_m` stays legal: it is the natural spacing the solve starts from, it is
             // what `stereo` keeps within a column, and under `block` it simply cancels — a pure scale onto
             // a stated width does not depend on where it started.

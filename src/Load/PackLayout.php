@@ -49,7 +49,7 @@ final class PackLayout
     public function forPlan(LoadPlan $plan): array
     {
         $bay = $plan->vehicle->vehicle?->loadBay;
-        if ($bay === null) {
+        if (null === $bay) {
             // **An open bed: no width, no depth, no roof to stack under.** The trailer is this case. Everything goes
             // in one row along the vehicle's own footprint, which is a diagram of "it is on the trailer" and makes
             // no claim about how. See {@see LoadPlan::exceedsTheBay} for why a bayless vehicle gets no space answer
@@ -90,7 +90,7 @@ final class PackLayout
             if ($cursorY + $depth > $near + $bay->depth + 1e-9) {
                 // Floor exhausted. Everything from here on either finds a column or overflows.
                 $stacked = self::stackOn($columns, $unit, $bay->height);
-                if ($stacked === null) {
+                if (null === $stacked) {
                     $overflow[] = $unit;
                     continue;
                 }
@@ -130,6 +130,7 @@ final class PackLayout
      * offered a column.
      *
      * @param list<array{at: array{float, float}, width: float, depth: float, height: float, top: string}> $columns
+     *
      * @return array{column: int, at: array{float, float}, on: string}|null
      */
     private static function stackOn(array $columns, DeviceSpec $unit, float $roof): ?array
@@ -145,12 +146,12 @@ final class PackLayout
             if ($column['height'] + $unit->dimensions->height > $roof + 1e-9) {
                 continue;
             }
-            if ($best === null || $column['height'] < $columns[$best]['height']) {
+            if (null === $best || $column['height'] < $columns[$best]['height']) {
                 $best = $i;
             }
         }
 
-        return $best === null
+        return null === $best
             ? null
             : ['column' => $best, 'at' => $columns[$best]['at'], 'on' => $columns[$best]['top']];
     }

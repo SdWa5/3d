@@ -64,14 +64,8 @@ final class Arc implements Group
     {
         $allowed = ['mode', 'count', 'splay_deg', 'radius_m', 'gap_m'];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(
-                sprintf(
-                    "arc: unknown key '%s' (allowed: %s)",
-                    $unknown[0],
-                    implode(', ', $allowed),
-                )
-            );
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("arc: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         return new self(
@@ -108,12 +102,12 @@ final class Arc implements Group
         if ($this->count < 2) {
             return 0.0;
         }
-        if ($this->radiusM !== null) {
+        if (null !== $this->radiusM) {
             return $this->centreRadiusFromFront($device, $this->radiusM);
         }
 
         $splay = $this->splayDegFor($device, $pitchDeg, $rollDeg);
-        if ($splay === 0.0) {
+        if (0.0 === $splay) {
             return INF;
         }
 
@@ -206,10 +200,10 @@ final class Arc implements Group
         if ($this->count < 2) {
             return 0.0;
         }
-        if ($this->splayDeg !== null) {
+        if (null !== $this->splayDeg) {
             return $this->splayDeg;
         }
-        if ($this->radiusM !== null) {
+        if (null !== $this->radiusM) {
             return $this->splayForRadius(
                 $this->outline($device, $pitchDeg, $rollDeg),
                 $this->centreRadiusFromFront($device, $this->radiusM),
@@ -279,7 +273,7 @@ final class Arc implements Group
      */
     public function flushSplayDeg(DeviceSpec $device, float $pitchDeg, float $rollDeg = 0.0): ?float
     {
-        if ($this->mode !== ArcMode::Convex) {
+        if (ArcMode::Convex !== $this->mode) {
             return null;
         }
 
@@ -289,7 +283,7 @@ final class Arc implements Group
 
         // Both flanks run along the radial line at every radius — a plain box, or any cabinet on its
         // side. They are already in full contact standing side by side, which is the straight row.
-        if ($right === [] && $left === []) {
+        if ([] === $right && [] === $left) {
             return 0.0;
         }
 
@@ -348,8 +342,8 @@ final class Arc implements Group
     public function isStraight(DeviceSpec $device, float $pitchDeg, float $rollDeg = 0.0): bool
     {
         return $this->count > 1
-            && $this->radiusM === null
-            && $this->splayDegFor($device, $pitchDeg, $rollDeg) === 0.0;
+            && null === $this->radiusM
+            && 0.0 === $this->splayDegFor($device, $pitchDeg, $rollDeg);
     }
 
     /**
@@ -368,23 +362,23 @@ final class Arc implements Group
         if ($this->count < 1) {
             $messages[] = "arc.count must be at least 1, got {$this->count}";
         }
-        if ($this->splayDeg !== null && $this->radiusM !== null) {
+        if (null !== $this->splayDeg && null !== $this->radiusM) {
             $messages[] = 'use either `arc.splay_deg` or `arc.radius_m`, not both';
         }
-        if ($this->splayDeg !== null && ($this->splayDeg < 0.0 || $this->splayDeg >= self::MAX_SPLAY_DEG)) {
+        if (null !== $this->splayDeg && ($this->splayDeg < 0.0 || $this->splayDeg >= self::MAX_SPLAY_DEG)) {
             $messages[] = sprintf(
                 'arc.splay_deg must be at least 0 and less than %s, got %s',
                 self::MAX_SPLAY_DEG,
                 $this->splayDeg,
             );
         }
-        if ($this->radiusM !== null && $this->radiusM <= 0.0) {
+        if (null !== $this->radiusM && $this->radiusM <= 0.0) {
             $messages[] = "arc.radius_m must be greater than 0, got {$this->radiusM}";
         }
-        if ($this->gapM !== null && $this->gapM < 0.0) {
+        if (null !== $this->gapM && $this->gapM < 0.0) {
             $messages[] = "arc.gap_m must not be negative, got {$this->gapM}";
         }
-        if (fmod(abs($rollDeg), 90.0) !== 0.0) {
+        if (0.0 !== fmod(abs($rollDeg), 90.0)) {
             // A quarter turn keeps the plan outline's flanks square to each other, which is what makes the
             // contact solve *tight* rather than merely safe. Off a quarter turn the outline is lopsided,
             // the solve is only conservative, and an arc that quietly leaves 14 mm of air down every seam
@@ -398,23 +392,23 @@ final class Arc implements Group
 
         // Anything below needs a usable angle, and a broken one would only produce noise on top of the
         // real message. A single cabinet never resolves an angle at all.
-        if ($messages !== [] || $this->count < 2) {
+        if ([] !== $messages || $this->count < 2) {
             return $messages;
         }
 
-        if ($this->splayDeg === null && $this->radiusM === null) {
+        if (null === $this->splayDeg && null === $this->radiusM) {
             $problem = $this->missingSizeProblem($device, $pitchDeg, $rollDeg);
-            if ($problem !== null) {
+            if (null !== $problem) {
                 return [$problem];
             }
         }
 
-        if ($this->radiusM !== null && $this->armsFrom(
+        if (null !== $this->radiusM && null === $this->armsFrom(
             $device,
             $pitchDeg,
             $rollDeg,
             $this->centreRadiusM($device, $pitchDeg, $rollDeg),
-        ) === null) {
+        )) {
             $messages[] = sprintf(
                 'arc.radius_m (%.2f) leaves the centre of curvature inside the cabinet — a %s arc of %s needs more than %.2f m',
                 $this->radiusM,
@@ -444,22 +438,22 @@ final class Arc implements Group
      */
     private function missingSizeProblem(DeviceSpec $device, float $pitchDeg, float $rollDeg): ?string
     {
-        if ($this->flushSplayDeg($device, $pitchDeg, $rollDeg) !== null) {
+        if (null !== $this->flushSplayDeg($device, $pitchDeg, $rollDeg)) {
             return null;
         }
 
-        $hint = $device->coverage === null ? '' : sprintf(
+        $hint = null === $device->coverage ? '' : sprintf(
             ' (try %.2f°, the cabinet\'s own horizontal coverage)',
             $device->coverage->horizontal,
         );
 
-        if ($this->mode === ArcMode::Concave) {
+        if (ArcMode::Concave === $this->mode) {
             return 'a concave arc has no tightest angle — its front edges touch at any angle, '
                 .'so it needs an explicit arc.splay_deg or arc.radius_m'.$hint;
         }
 
         return sprintf(
-            "%s rolled %s puts its two flanks on different centres, so there is no angle that closes "
+            '%s rolled %s puts its two flanks on different centres, so there is no angle that closes '
             .'both seams — a convex arc of it needs an explicit arc.splay_deg or arc.radius_m%s',
             $device->id,
             $rollDeg,

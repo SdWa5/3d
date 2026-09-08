@@ -15,8 +15,6 @@ use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
 use App\Spec\InvalidSpecException;
 use App\Spec\Violation;
-use JsonException;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -104,32 +102,32 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         $settings = $this->settings($input);
-        if ($settings === null) {
+        if (null === $settings) {
             return self::FAILURE;
         }
 
         ['specs' => $specs, 'errors' => $errors] = $this->loadSpecs();
-        if ($errors !== []) {
+        if ([] !== $errors) {
             $this->io->error('Some specs could not be read — fix them first (see `specs:validate`)');
 
             return self::FAILURE;
         }
 
         $scenes = $this->selectScenes($input->getArgument('scene'));
-        if ($scenes === null) {
+        if (null === $scenes) {
             return self::FAILURE;
         }
-        if ($scenes === []) {
+        if ([] === $scenes) {
             $this->io->warning('No scenes found in '.$this->relative($this->scenesDir()));
 
             return self::SUCCESS;
         }
-        if (count($scenes) > 1 && $input->getOption('out') !== null) {
+        if (count($scenes) > 1 && null !== $input->getOption('out')) {
             $this->io->error('--out only makes sense when rendering a single scene — use --out-dir instead');
 
             return self::FAILURE;
         }
-        if ($input->getOption('out') !== null && $input->getOption('out-dir') !== null) {
+        if (null !== $input->getOption('out') && null !== $input->getOption('out-dir')) {
             $this->io->error('use either --out or --out-dir, not both');
 
             return self::FAILURE;
@@ -148,11 +146,11 @@ final class SceneRenderCommand extends BaseCommand
             $this->reportViolations($violations);
             // Errors only, as in `scene:build`: a warning is something to know about a buildable rig, not a
             // reason to refuse to render it.
-            if (Violation::errorsIn($violations) !== []) {
+            if ([] !== Violation::errorsIn($violations)) {
                 $exit = self::FAILURE;
                 continue;
             }
-            if ($placed === []) {
+            if ([] === $placed) {
                 $this->io->warning("Scene '{$scene->id}' has no placements");
                 continue;
             }
@@ -171,11 +169,11 @@ final class SceneRenderCommand extends BaseCommand
             // The `generated/` subdirectory is composed onto whatever directory was chosen, `--out-dir` included,
             // so `build:all`'s camera folders keep their generated renders separate too.
             $directory = $this->derivedDir(
-                (string)($input->getOption('out-dir') ?? $builder->buildDir().'/renders'),
+                (string) ($input->getOption('out-dir') ?? $builder->buildDir().'/renders'),
                 $scene,
             );
             $target = $input->getOption('out')
-                ?? sprintf('%s/%s-%s.png', rtrim((string)$directory, '/'), $scene->id, $settings['camera']->value);
+                ?? sprintf('%s/%s-%s.png', rtrim((string) $directory, '/'), $scene->id, $settings['camera']->value);
 
             // One manifest for the whole render tree, at its root — never one per variant folder, so that
             // `build:all`'s eight subfolders share a single record keyed `studio/full-rig-side.png` and so that
@@ -199,7 +197,7 @@ final class SceneRenderCommand extends BaseCommand
                 'ground' => !$settings['noGround'],
                 'aim_lines' => $aimLines ?? RenderPlan::AIM_NONE,
                 // Part of the settings stamp, so turning labels on redraws a picture that is otherwise current.
-                'labels' => (bool)$input->getOption('labels'),
+                'labels' => (bool) $input->getOption('labels'),
             ];
 
             // Only redraw what has changed. A render is the most expensive thing in the pipeline — and `build:all`
@@ -227,7 +225,7 @@ final class SceneRenderCommand extends BaseCommand
                 $settings['resolution'],
                 !$settings['noGround'],
                 $aimLines,
-                (bool)$input->getOption('labels'),
+                (bool) $input->getOption('labels'),
             ) + [
                 'scene_id' => $scene->id,
                 'scene_blend' => $sceneBlend,
@@ -242,14 +240,14 @@ final class SceneRenderCommand extends BaseCommand
                 $settings['samples'],
                 $settings['resolution'][0],
                 $settings['resolution'][1],
-                $aimLines === RenderPlan::AIM_NONE
+                RenderPlan::AIM_NONE === $aimLines
                     ? ''
                     : sprintf(', aim lines: %s (%d)', $aimLines, count($plan['aim_lines'])),
-            ).($plan['labels'] === [] ? '' : sprintf(', %d labels', count($plan['labels']))));
+            ).([] === $plan['labels'] ? '' : sprintf(', %d labels', count($plan['labels']))));
 
             try {
                 $this->renderPlan($plan, $target, $output);
-            } catch (RuntimeException $e) {
+            } catch (\RuntimeException $e) {
                 $this->io->error($e->getMessage());
                 $exit = self::FAILURE;
                 continue;
@@ -278,8 +276,8 @@ final class SceneRenderCommand extends BaseCommand
      */
     private function settings(InputInterface $input): ?array
     {
-        $camera = CameraPreset::tryFrom((string)$input->getOption('camera'));
-        if ($camera === null) {
+        $camera = CameraPreset::tryFrom((string) $input->getOption('camera'));
+        if (null === $camera) {
             $this->io->error(sprintf(
                 "Unknown camera preset '%s'. Available: %s",
                 $input->getOption('camera'),
@@ -289,8 +287,8 @@ final class SceneRenderCommand extends BaseCommand
             return null;
         }
 
-        $lighting = LightingPreset::tryFrom((string)$input->getOption('lighting'));
-        if ($lighting === null) {
+        $lighting = LightingPreset::tryFrom((string) $input->getOption('lighting'));
+        if (null === $lighting) {
             $this->io->error(sprintf(
                 "Unknown lighting preset '%s'. Available: %s",
                 $input->getOption('lighting'),
@@ -301,15 +299,15 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         $level = $this->qualityLevel($input);
-        if ($level === null) {
+        if (null === $level) {
             return null;
         }
 
         // A stated `--samples` or `--resolution` wins over the level, so the levels are a shorthand rather than a
         // constraint. That matters for the one thing a level cannot say — a 4K frame at 16 samples to check
         // framing, or a 960×540 one at 384 to look at a chamfer.
-        $samples = $input->getOption('samples') !== null
-            ? (int)$input->getOption('samples')
+        $samples = null !== $input->getOption('samples')
+            ? (int) $input->getOption('samples')
             : $level['samples'];
         if ($samples < 1) {
             $this->io->error('--samples must be at least 1');
@@ -318,9 +316,9 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         $resolution = $level['resolution'];
-        if ($input->getOption('resolution') !== null) {
-            $resolution = $this->resolution((string)$input->getOption('resolution'));
-            if ($resolution === null) {
+        if (null !== $input->getOption('resolution')) {
+            $resolution = $this->resolution((string) $input->getOption('resolution'));
+            if (null === $resolution) {
                 return null;
             }
         }
@@ -335,7 +333,7 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         $allowed = [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS, RenderPlan::AIM_ALL];
-        if ($aimLines !== null && !in_array($aimLines, $allowed, true)) {
+        if (null !== $aimLines && !in_array($aimLines, $allowed, true)) {
             $this->io->error(sprintf(
                 "Unknown --aim-lines value '%s'. Available: %s",
                 $aimLines,
@@ -350,7 +348,7 @@ final class SceneRenderCommand extends BaseCommand
             'lighting' => $lighting,
             'samples' => $samples,
             'resolution' => $resolution,
-            'noGround' => (bool)$input->getOption('no-ground'),
+            'noGround' => (bool) $input->getOption('no-ground'),
             'aimLines' => $aimLines,
         ];
     }
@@ -366,8 +364,8 @@ final class SceneRenderCommand extends BaseCommand
      */
     private function qualityLevel(InputInterface $input): ?array
     {
-        $quick = (bool)$input->getOption('quick-preview');
-        $high = (bool)$input->getOption('high-quality');
+        $quick = (bool) $input->getOption('quick-preview');
+        $high = (bool) $input->getOption('high-quality');
 
         if ($quick && $high) {
             $this->io->error('--quick-preview and --high-quality ask for opposite things — pick one');
@@ -387,14 +385,14 @@ final class SceneRenderCommand extends BaseCommand
      */
     private function resolution(string $raw): ?array
     {
-        if (preg_match('/^(\d+)\s*[x×]\s*(\d+)$/i', trim($raw), $matches) !== 1) {
+        if (1 !== preg_match('/^(\d+)\s*[x×]\s*(\d+)$/i', trim($raw), $matches)) {
             $this->io->error("--resolution must look like 1600x900, got '{$raw}'");
 
             return null;
         }
 
-        $width = (int)$matches[1];
-        $height = (int)$matches[2];
+        $width = (int) $matches[1];
+        $height = (int) $matches[2];
         if ($width < 16 || $height < 16) {
             $this->io->error('--resolution must be at least 16x16');
 
@@ -412,7 +410,7 @@ final class SceneRenderCommand extends BaseCommand
         $loader = new SceneLoader($this->scenesDir());
 
         try {
-            if ($nameOrPath === null) {
+            if (null === $nameOrPath) {
                 return array_map([$loader, 'load'], $loader->files());
             }
 
@@ -420,7 +418,7 @@ final class SceneRenderCommand extends BaseCommand
             // **AN ID THAT NAMES TEN SCENES IS NOT A SCENE**, and picking the first was how this behaved until the
             // inventory became a folder. Every generated rig of every inventory carries the same basename now, so
             // the answer is the paths and a request to name one.
-            if ($ambiguous !== []) {
+            if ([] !== $ambiguous) {
                 $this->io->error(sprintf(
                     "'%s' names %d scenes — say which:\n  %s",
                     $nameOrPath,
@@ -430,11 +428,11 @@ final class SceneRenderCommand extends BaseCommand
 
                 return null;
             }
-            if ($scene === null) {
+            if (null === $scene) {
                 $this->io->error(sprintf(
                     "Unknown scene '%s'%s",
                     $nameOrPath,
-                    $known === [] ? '' : '. Available: '.implode(', ', $known),
+                    [] === $known ? '' : '. Available: '.implode(', ', $known),
                 ));
 
                 return null;
@@ -475,21 +473,21 @@ final class SceneRenderCommand extends BaseCommand
             // overwrite each other's plan, and a plan that does not match the picture beside it is worse
             // than no plan at all.
             $plan['lighting']['preset'],
-            $plan['aim_lines'] === [] ? '' : '-aim',
+            [] === $plan['aim_lines'] ? '' : '-aim',
         );
 
         $dir = dirname($planFile);
         if (!is_dir($dir) && !@mkdir($dir, 0o775, true) && !is_dir($dir)) {
-            throw new RuntimeException("Cannot create directory {$dir}");
+            throw new \RuntimeException("Cannot create directory {$dir}");
         }
 
         try {
             $json = json_encode($plan, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        } catch (JsonException $e) {
-            throw new RuntimeException('Cannot encode the render plan: '.$e->getMessage(), 0, $e);
+        } catch (\JsonException $e) {
+            throw new \RuntimeException('Cannot encode the render plan: '.$e->getMessage(), 0, $e);
         }
-        if (@file_put_contents($planFile, $json."\n") === false) {
-            throw new RuntimeException("Cannot write the render plan to {$planFile}");
+        if (false === @file_put_contents($planFile, $json."\n")) {
+            throw new \RuntimeException("Cannot write the render plan to {$planFile}");
         }
 
         (new BlenderRunner($this->runner))->run(
@@ -499,7 +497,7 @@ final class SceneRenderCommand extends BaseCommand
         );
 
         if (!is_file($target)) {
-            throw new RuntimeException("Blender did not write the render at {$target}");
+            throw new \RuntimeException("Blender did not write the render at {$target}");
         }
     }
 }

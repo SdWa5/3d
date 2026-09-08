@@ -29,17 +29,19 @@ final class ReplaySample
 
     /**
      * @template T
+     *
      * @param array<string, T> $items keyed by whatever the caller reports a failure by
+     *
      * @return array<string, T>
      */
     public static function of(array $items, int $keep = self::KEEP): array
     {
-        if (getenv('SDWA5_FULL_REPLAY') !== false || count($items) <= $keep) {
+        if (false !== getenv('SDWA5_FULL_REPLAY') || count($items) <= $keep) {
             return $items;
         }
 
         $stated = getenv('SDWA5_REPLAY_SEED');
-        $seed = $stated === false ? random_int(0, 2 ** 31 - 1) : (int)$stated;
+        $seed = false === $stated ? random_int(0, 2 ** 31 - 1) : (int) $stated;
 
         $keys = array_keys($items);
         mt_srand($seed);

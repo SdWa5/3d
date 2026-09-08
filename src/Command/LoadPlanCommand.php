@@ -47,7 +47,7 @@ final class LoadPlanCommand extends BaseCommand
         $this->io = new SymfonyStyle($input, $output);
 
         ['specs' => $specs] = $this->loadSpecs();
-        if ($specs === []) {
+        if ([] === $specs) {
             $this->io->warning('No specs found in '.$this->relative($this->specsDir()));
 
             return self::FAILURE;
@@ -67,20 +67,20 @@ final class LoadPlanCommand extends BaseCommand
         $excluded = $input->getOption('exclude');
 
         $unknown = $this->unknownNames($specs, $only, $without, $vehicles, $excluded);
-        if ($unknown !== null) {
+        if (null !== $unknown) {
             $this->io->error($unknown);
 
             return self::FAILURE;
         }
 
         $selected = array_values(array_filter($specs, static function (DeviceSpec $spec) use ($only, $without, $vehicles, $excluded): bool {
-            if ($spec->category === Category::Vehicle) {
-                return $vehicles === [] || in_array($spec->id, $vehicles, true);
+            if (Category::Vehicle === $spec->category) {
+                return [] === $vehicles || in_array($spec->id, $vehicles, true);
             }
             if (in_array($spec->id, $excluded, true)) {
                 return false;
             }
-            if ($only !== [] && !in_array($spec->owner, $only, true)) {
+            if ([] !== $only && !in_array($spec->owner, $only, true)) {
                 return false;
             }
 
@@ -89,7 +89,7 @@ final class LoadPlanCommand extends BaseCommand
 
         ['plans' => $plans, 'leftovers' => $leftovers] = (new LoadPlanner())->plan($selected);
 
-        if ($plans === []) {
+        if ([] === $plans) {
             $this->io->error('No transporter to load — every vehicle spec was filtered out or none states a payload');
 
             return self::FAILURE;
@@ -100,11 +100,11 @@ final class LoadPlanCommand extends BaseCommand
         }
 
         $overloaded = array_filter($plans, static fn ($plan): bool => $plan->isOverloaded());
-        if ($leftovers !== [] || $overloaded !== []) {
+        if ([] !== $leftovers || [] !== $overloaded) {
             $this->io->error(sprintf(
                 'The fleet cannot legally carry this load: %d device%s left behind',
                 count($leftovers),
-                count($leftovers) === 1 ? '' : 's',
+                1 === count($leftovers) ? '' : 's',
             ));
 
             return self::OVERLOADED;
@@ -131,7 +131,7 @@ final class LoadPlanCommand extends BaseCommand
         $vehicleIds = [];
         $cargoIds = [];
         foreach ($specs as $spec) {
-            if ($spec->category === Category::Vehicle) {
+            if (Category::Vehicle === $spec->category) {
                 $vehicleIds[] = $spec->id;
                 continue;
             }

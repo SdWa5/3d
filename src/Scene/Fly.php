@@ -40,12 +40,8 @@ final class Fly
     {
         $allowed = ['height_m', 'point', 'id'];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "fly: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("fly: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         return new self(
@@ -64,11 +60,12 @@ final class Fly
      * 5.04 m.
      *
      * @param array{float, float} $ground
+     *
      * @return array{float, float, float}
      */
     public function slot(array $ground, ?RiggingPoint $point): array
     {
-        if ($point === null) {
+        if (null === $point) {
             return [$ground[0], $ground[1], $this->heightM];
         }
 

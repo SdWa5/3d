@@ -71,7 +71,7 @@ final class BuildAllCommand extends BaseCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io = new SymfonyStyle($input, $output);
-        $dryRun = (bool)$input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         // Every stage skips what is already current, so a rebuild after touching one scene costs one scene
         // and its renders rather than the whole library. `--force` overrides all of them at once — it used to
@@ -92,7 +92,7 @@ final class BuildAllCommand extends BaseCommand
         // **This stage writes to `scenes/generated/`, which is tracked** — the only stage that touches anything
         // outside `build/`. That is the deliberate trade: a generated scene is build output that happens to be worth
         // reviewing in a diff, so it has to be regenerated like build output and reviewed like source.
-        if (!$dryRun && $this->regenerate($input, $output, !$input->getOption('keep-stale')) !== self::SUCCESS) {
+        if (!$dryRun && self::SUCCESS !== $this->regenerate($input, $output, !$input->getOption('keep-stale'))) {
             return self::FAILURE;
         }
 
@@ -100,10 +100,10 @@ final class BuildAllCommand extends BaseCommand
         // `--dry-run` runs no stage at all, so an unvalidated value would list a plausible pass and only be
         // caught when the real sweep reached the render an hour later.
         $aimLines = $input->getOption('aim-lines');
-        if ($aimLines !== null && !in_array($aimLines, self::AIM_MODES, true)) {
+        if (null !== $aimLines && !in_array($aimLines, self::AIM_MODES, true)) {
             $this->io->error(sprintf(
                 "Unknown --aim-lines value '%s'. Available: %s",
-                (string)$aimLines,
+                (string) $aimLines,
                 implode(', ', self::AIM_MODES),
             ));
 
@@ -120,7 +120,7 @@ final class BuildAllCommand extends BaseCommand
 
         foreach ($stages as [$name, $arguments]) {
             $exit = $this->delegate($name, $arguments, $output);
-            if ($exit !== self::SUCCESS) {
+            if (self::SUCCESS !== $exit) {
                 $this->io->error("Stopped at `{$name}` — nothing after it would have been built on anything good");
 
                 return $exit;
@@ -128,9 +128,9 @@ final class BuildAllCommand extends BaseCommand
         }
 
         foreach ($renders as $label => $arguments) {
-            $this->io->section((string)$label);
+            $this->io->section((string) $label);
             $exit = $this->delegate('scene:render', $arguments, $output);
-            if ($exit !== self::SUCCESS) {
+            if (self::SUCCESS !== $exit) {
                 $this->io->error("Stopped at `scene:render` ({$label})");
 
                 return $exit;
@@ -140,9 +140,9 @@ final class BuildAllCommand extends BaseCommand
         $this->io->success(sprintf(
             '%d stage%s and %d render pass%s done',
             count($stages),
-            count($stages) === 1 ? '' : 's',
+            1 === count($stages) ? '' : 's',
             count($renders),
-            count($renders) === 1 ? '' : 'es',
+            1 === count($renders) ? '' : 'es',
         ));
 
         return self::SUCCESS;
@@ -164,7 +164,7 @@ final class BuildAllCommand extends BaseCommand
             '--camera' => $input->getOption('camera'),
             '--samples' => $input->getOption('samples'),
             '--resolution' => $input->getOption('resolution'),
-        ], static fn (mixed $value): bool => $value !== null);
+        ], static fn (mixed $value): bool => null !== $value);
 
         foreach (['quick-preview', 'high-quality'] as $level) {
             if ($input->getOption($level)) {
@@ -183,10 +183,10 @@ final class BuildAllCommand extends BaseCommand
         // slowest thing in this repository by a wide margin. Stated by the owner, who asked for the lighting sweep
         // to go if it was what held the pipeline up. It is. `--every-variant` asks for the eight back, and naming
         // a `--lighting` or an `--aim-lines` still picks one out.
-        $everyVariant = (bool)$input->getOption('every-variant');
+        $everyVariant = (bool) $input->getOption('every-variant');
 
         $lightings = match (true) {
-            $input->getOption('lighting') !== null => [$input->getOption('lighting')],
+            null !== $input->getOption('lighting') => [$input->getOption('lighting')],
             $everyVariant => array_map(static fn (LightingPreset $p): string => $p->value, LightingPreset::cases()),
             // Null rather than a named preset, so the plain case keeps writing where `scene:render` always wrote
             // and defers the choice of preset to it.
@@ -194,25 +194,25 @@ final class BuildAllCommand extends BaseCommand
         };
 
         $aimModes = match (true) {
-            $input->getOption('aim-lines') !== null => [$input->getOption('aim-lines')],
+            null !== $input->getOption('aim-lines') => [$input->getOption('aim-lines')],
             $everyVariant => [RenderPlan::AIM_NONE, RenderPlan::AIM_TOPS],
             default => [RenderPlan::AIM_NONE],
         };
 
-        $plain = count($lightings) === 1 && count($aimModes) === 1;
+        $plain = 1 === count($lightings) && 1 === count($aimModes);
 
         $variants = [];
         foreach ($lightings as $lighting) {
             foreach ($aimModes as $aim) {
                 $arguments = $shared;
-                if ($lighting !== null) {
+                if (null !== $lighting) {
                     $arguments['--lighting'] = $lighting;
                 }
-                if ($aim !== null) {
+                if (null !== $aim) {
                     $arguments['--aim-lines'] = $aim;
                 }
 
-                $folder = trim(($lighting ?? 'default').($aim === RenderPlan::AIM_NONE ? '' : '-aim'), '-');
+                $folder = trim(($lighting ?? 'default').(RenderPlan::AIM_NONE === $aim ? '' : '-aim'), '-');
                 if (!$plain) {
                     $arguments['--out-dir'] = $this->projectDir().'/build/renders/'.$folder;
                 }
@@ -247,7 +247,7 @@ final class BuildAllCommand extends BaseCommand
             '%d stages then %d render pass%s. Nothing was run.',
             count($stages),
             count($renders),
-            count($renders) === 1 ? '' : 'es',
+            1 === count($renders) ? '' : 'es',
         ));
     }
 
@@ -258,7 +258,7 @@ final class BuildAllCommand extends BaseCommand
     {
         $parts = [];
         foreach ($arguments as $flag => $value) {
-            $parts[] = $value === true ? $flag : $flag.'='.$this->relative((string)$value);
+            $parts[] = true === $value ? $flag : $flag.'='.$this->relative((string) $value);
         }
 
         return implode(' ', $parts);
@@ -290,12 +290,12 @@ final class BuildAllCommand extends BaseCommand
     private function regenerate(InputInterface $input, OutputInterface $output, bool $deleteStale = true): int
     {
         [$exit, $written] = $this->replayRecorded($input, $output);
-        if ($exit !== self::SUCCESS) {
+        if (self::SUCCESS !== $exit) {
             return $exit;
         }
 
         $directory = $this->scenesDir().'/'.SceneLoader::GENERATED;
-        if ($deleteStale && $this->deleteStaleScenes($directory, $written) !== self::SUCCESS) {
+        if ($deleteStale && self::SUCCESS !== $this->deleteStaleScenes($directory, $written)) {
             return self::FAILURE;
         }
 
@@ -323,12 +323,12 @@ final class BuildAllCommand extends BaseCommand
     {
         $directory ??= $this->scenesDir().'/'.SceneLoader::GENERATED;
         $files = self::generatedScenes($directory);
-        if ($files === []) {
+        if ([] === $files) {
             return [self::SUCCESS, []];
         }
 
         $application = $this->getApplication();
-        if ($application === null) {
+        if (null === $application) {
             $this->io->error('build:all has to run through the application, so it can find the other commands');
 
             return [self::FAILURE, []];
@@ -351,8 +351,8 @@ final class BuildAllCommand extends BaseCommand
             // Keyed by path, because `glob()` returns a list and the loop below names the failing file from the key.
             array_combine($files, $files),
             function (string $file) use ($application, $output): array {
-                $command = self::recordedCommand((string)file_get_contents($file));
-                if ($command === null) {
+                $command = self::recordedCommand((string) file_get_contents($file));
+                if (null === $command) {
                     return ['exit' => self::SUCCESS, 'output' => '', 'written' => [], 'note' => sprintf(
                         '  <comment>skipped</comment> %s — no `Regenerate it with:` line, so it is not regenerable',
                         $this->relative($file),
@@ -380,32 +380,32 @@ final class BuildAllCommand extends BaseCommand
                     // file, which meant `build:all` could not be run twice:
                     // `stacked-all--------1-pyramid-mixed---alternate-stereo` stopped being offered and took the other
                     // 449 replays down with it. See {@see SceneStackCommand::NOTHING_TO_WRITE}.
-                    'note' => $exit === SceneStackCommand::NOTHING_TO_WRITE ? sprintf(
+                    'note' => SceneStackCommand::NOTHING_TO_WRITE === $exit ? sprintf(
                         '  <comment>stale</comment>   %s — the sweep no longer offers this rig, so it is deleted rather than rebuilt',
                         $this->relative($file),
                     ) : null,
                 ];
             },
-            (int)$input->getOption('jobs'),
+            (int) $input->getOption('jobs'),
         );
 
         $written = [];
         foreach ($replays as $file => $replay) {
-            if ($replay['output'] !== '') {
+            if ('' !== $replay['output']) {
                 $output->write($replay['output']);
             }
-            if ($replay['note'] !== null) {
+            if (null !== $replay['note']) {
                 $this->io->text($replay['note']);
             }
             // **Reported in file order rather than at the moment it happened**, which is the one behaviour the fork
             // changes. A serial replay stopped at the first broken rig and never learned whether the rest were fine;
             // this runs them all and then names the first failure the old order would have named.
-            if ($replay['exit'] !== self::SUCCESS && $replay['exit'] !== SceneStackCommand::NOTHING_TO_WRITE) {
-                $this->io->error('Regenerating '.$this->relative((string)$file).' failed');
+            if (self::SUCCESS !== $replay['exit'] && SceneStackCommand::NOTHING_TO_WRITE !== $replay['exit']) {
+                $this->io->error('Regenerating '.$this->relative((string) $file).' failed');
 
                 return [self::FAILURE, $written];
             }
-            if ($replay['exit'] === self::SUCCESS) {
+            if (self::SUCCESS === $replay['exit']) {
                 $written = [...$written, ...$replay['written']];
             }
         }
@@ -464,13 +464,13 @@ final class BuildAllCommand extends BaseCommand
      */
     private function deleteStaleScenes(string $directory, array $written): int
     {
-        if ($written === []) {
+        if ([] === $written) {
             return self::SUCCESS;
         }
 
         $removed = [];
         foreach (self::generatedScenes($directory) as $file) {
-            if (!self::isStaleScene($file, $written, (string)file_get_contents($file))) {
+            if (!self::isStaleScene($file, $written, (string) file_get_contents($file))) {
                 continue;
             }
             if (!@unlink($file)) {
@@ -481,11 +481,11 @@ final class BuildAllCommand extends BaseCommand
             $removed[] = $this->relative($file);
         }
 
-        if ($removed !== []) {
+        if ([] !== $removed) {
             $this->io->section(sprintf(
                 'deleted %d stale generated scene%s',
                 count($removed),
-                count($removed) === 1 ? '' : 's',
+                1 === count($removed) ? '' : 's',
             ));
             foreach (array_slice($removed, 0, 12) as $file) {
                 $this->io->text('  <comment>removed</comment> '.$file);
@@ -507,7 +507,7 @@ final class BuildAllCommand extends BaseCommand
      * stale, and {@see prune} would then have deleted every derived artifact on the grounds that its scene no longer
      * existed. All four read the same set, so all four ask the same question in the same place.
      *
-     * The same walk {@see \App\Scene\SceneLoader::files} does, for the same reason.
+     * The same walk {@see SceneLoader::files} does, for the same reason.
      *
      * @return list<string>
      */
@@ -524,6 +524,7 @@ final class BuildAllCommand extends BaseCommand
      * the prune as "nothing derived exists" rather than as "look deeper".
      *
      * @param list<string> $extensions lowercase, without the dot
+     *
      * @return list<string>
      */
     private static function filesUnder(string $directory, array $extensions): array
@@ -557,7 +558,7 @@ final class BuildAllCommand extends BaseCommand
      */
     private static function isStaleScene(string $file, array $written, string $yaml): bool
     {
-        return !in_array($file, $written, true) && self::recordedCommand($yaml) !== null;
+        return !in_array($file, $written, true) && null !== self::recordedCommand($yaml);
     }
 
     /**
@@ -586,7 +587,7 @@ final class BuildAllCommand extends BaseCommand
         foreach (self::generatedScenes($this->scenesDir().'/'.SceneLoader::GENERATED) as $scene) {
             $keys[$loader->keyOf($scene)] = true;
         }
-        if ($keys === []) {
+        if ([] === $keys) {
             // No generated scenes at all is far more likely to be a bad run than an instruction to empty the tree.
             return self::SUCCESS;
         }
@@ -603,15 +604,15 @@ final class BuildAllCommand extends BaseCommand
             $build.'/renders' => self::filesUnder($build.'/renders/'.SceneLoader::GENERATED, ['png']),
         ];
         foreach (glob($build.'/renders/*', GLOB_ONLYDIR) ?: [] as $variant) {
-            if (basename($variant) !== SceneLoader::GENERATED) {
+            if (SceneLoader::GENERATED !== basename($variant)) {
                 $roots[$variant] = self::filesUnder($variant.'/'.SceneLoader::GENERATED, ['png']);
             }
         }
 
         foreach ($roots as $root => $derived) {
             foreach ($derived as $file) {
-                $key = self::sceneKeyOf($file, (string)$root);
-                if (!is_file($file) || $key === null || isset($keys[$key])) {
+                $key = self::sceneKeyOf($file, (string) $root);
+                if (!is_file($file) || null === $key || isset($keys[$key])) {
                     continue;
                 }
                 if (@unlink($file)) {
@@ -620,11 +621,11 @@ final class BuildAllCommand extends BaseCommand
             }
         }
 
-        if ($removed !== []) {
+        if ([] !== $removed) {
             $this->io->section(sprintf(
                 'pruned %d stale derived file%s',
                 count($removed),
-                count($removed) === 1 ? '' : 's',
+                1 === count($removed) ? '' : 's',
             ));
             foreach (array_slice($removed, 0, 12) as $file) {
                 $this->io->text('  <comment>removed</comment> '.$file);
@@ -685,13 +686,13 @@ final class BuildAllCommand extends BaseCommand
         $arguments = null;
 
         foreach ($lines as $line) {
-            if ($arguments === null) {
-                if (preg_match('/^#\s{3}bin\/console scene:stack (.+)$/', $line, $matches) === 1) {
+            if (null === $arguments) {
+                if (1 === preg_match('/^#\s{3}bin\/console scene:stack (.+)$/', $line, $matches)) {
                     $arguments = trim($matches[1]);
                 }
                 continue;
             }
-            if (preg_match('/^#\s{5,}(\S.*)$/', $line, $matches) === 1) {
+            if (1 === preg_match('/^#\s{5,}(\S.*)$/', $line, $matches)) {
                 $arguments .= ' '.trim($matches[1]);
                 continue;
             }
@@ -704,7 +705,7 @@ final class BuildAllCommand extends BaseCommand
     private function delegate(string $name, array $arguments, OutputInterface $output): int
     {
         $application = $this->getApplication();
-        if ($application === null) {
+        if (null === $application) {
             $this->io->error('build:all has to run through the application, so it can find the other commands');
 
             return self::FAILURE;

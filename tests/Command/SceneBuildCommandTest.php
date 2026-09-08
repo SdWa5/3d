@@ -47,7 +47,7 @@ final class SceneBuildCommandTest extends TestCase
      */
     public function testBuildingEveryScenePicksUpTheShippedOne(): void
     {
-        if (getenv('SDWA5_FULL_REPLAY') === false) {
+        if (false === getenv('SDWA5_FULL_REPLAY')) {
             self::markTestSkipped('SDWA5_FULL_REPLAY=1 compiles every scene through the command — ca. 15 Minuten');
         }
 

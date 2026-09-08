@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Spec;
 
-use App\Spec\ArrayReader;
 use App\Spec\Category;
 use App\Spec\DeviceSpec;
-use App\Spec\SpecLoader;
 use App\Spec\Shape;
+use App\Spec\SpecLoader;
 use App\Spec\SpecValidator;
 use App\Spec\Vehicle;
 use App\Spec\Violation;
@@ -243,6 +242,7 @@ final class VehicleTest extends TestCase
 
     /**
      * @param array<string, mixed> $overrides
+     *
      * @return list<string>
      */
     private function validate(array $overrides): array
@@ -271,6 +271,7 @@ final class VehicleTest extends TestCase
 
     /**
      * @param array<string, mixed> $overrides
+     *
      * @return list<string>
      */
     private function validateSpeaker(array $overrides): array
@@ -283,6 +284,7 @@ final class VehicleTest extends TestCase
      * like it passed or failed.
      *
      * @param array<string, mixed> $data
+     *
      * @return list<string>
      */
     private function messagesFor(array $data): array

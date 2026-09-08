@@ -36,6 +36,6 @@ enum LayoutMode: string
      */
     public function isSolved(): bool
     {
-        return $this !== self::Center;
+        return self::Center !== $this;
     }
 }

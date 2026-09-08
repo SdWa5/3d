@@ -142,7 +142,7 @@ final class LowEndCost
      */
     private static function weightOf(DeviceSpec $device, ?string $onlyId = null): float
     {
-        if ($device->subtype !== 'sub') {
+        if ('sub' !== $device->subtype) {
             return 0.0;
         }
 
@@ -151,12 +151,12 @@ final class LowEndCost
         // a few centimetres however the SKRAMs are placed, so the measure could not see the arrangement it exists
         // to choose. "The low end central" is a statement about the lowest-reaching cabinets, not about the
         // average of the whole wall. {@see lowestType} names which one.
-        if ($onlyId !== null) {
+        if (null !== $onlyId) {
             return $device->id === $onlyId ? 1.0 : 0.0;
         }
 
         $low = $device->passband?->orderingLowHz();
-        if ($low !== null && $low > 0.0 && $low < self::LOW_END_HZ) {
+        if (null !== $low && $low > 0.0 && $low < self::LOW_END_HZ) {
             // 20 Hz scores 1.0 and 120 Hz scores 0. Linear, because nothing here needs more resolution than
             // "reaches lower than the other one" and a decibel-shaped curve would be a claim about hearing.
             return max(0.0, min(1.0, (self::LOW_END_HZ - $low) / (self::LOW_END_HZ - 20.0)));

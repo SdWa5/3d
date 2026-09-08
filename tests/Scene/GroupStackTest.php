@@ -10,7 +10,6 @@ use App\Scene\GroupReader;
 use App\Scene\GroupStack;
 use App\Scene\Lattice;
 use App\Scene\LineArray;
-use App\Scene\Orientation;
 use App\Scene\PlacementCopy;
 use App\Spec\ArrayReader;
 use App\Spec\DeviceSpec;
@@ -53,7 +52,7 @@ final class GroupStackTest extends TestCase
         $step = 0.5 + 0.02;
 
         // The left-hand pair, whose seat is yawed by −splay.
-        $left = array_values(array_filter($copies, static fn (PlacementCopy $c): bool => $c->path[0] === 1));
+        $left = array_values(array_filter($copies, static fn (PlacementCopy $c): bool => 1 === $c->path[0]));
         $along = [
             $left[1]->offset[0] - $left[0]->offset[0],
             $left[1]->offset[1] - $left[0]->offset[1],

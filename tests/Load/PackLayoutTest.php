@@ -80,7 +80,7 @@ final class PackLayoutTest extends TestCase
         ['placed' => $placed] = (new PackLayout())->forPlan($plan);
 
         foreach ($placed as $entry) {
-            if ($entry['on'] !== null) {
+            if (null !== $entry['on']) {
                 continue;
             }
             $half = $entry['device']->dimensions->width / 2.0;
@@ -122,7 +122,7 @@ final class PackLayoutTest extends TestCase
 
         ['placed' => $placed] = (new PackLayout())->forPlan($plan);
         $ids = array_column($placed, 'id');
-        $stacked = array_values(array_filter($placed, static fn (array $e): bool => $e['on'] !== null));
+        $stacked = array_values(array_filter($placed, static fn (array $e): bool => null !== $e['on']));
 
         self::assertNotSame([], $stacked, 'a shallow bay should force stacking');
         foreach ($stacked as $entry) {
@@ -176,7 +176,7 @@ final class PackLayoutTest extends TestCase
         $block = ['permitted_gross_kg' => 3500.0, 'load_bay_m' => [
             'width' => $bay[0], 'height' => $bay[1], 'depth' => $bay[2],
         ]];
-        if ($arches !== null) {
+        if (null !== $arches) {
             $block['load_bay_m']['width_between_arches'] = $arches;
         }
 

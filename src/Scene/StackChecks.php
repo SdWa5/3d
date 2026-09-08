@@ -48,7 +48,7 @@ final class StackChecks
 
     /**
      * The first stack whose sub/top transition falls outside the band the scene asked for, or null when every stack
-     * is inside it. **A sentence about the rig, never a reason to refuse it.**
+     * is inside it. **A sentence about the rig, never a reason to refuse it.**.
      *
      * **STATED BY THE OWNER: THE INTERFACE HEIGHT IS AN OPTIMISATION PROBLEM, NOT A HARD CONSTRAINT.** Tops standing
      * below or above head height is not a reason to refuse a rig or to call a scene invalid. This used to return a
@@ -80,9 +80,9 @@ final class StackChecks
             $height = $block->subHeightM();
             $floor = $block->stack->interfaceHeightM;
             $ceiling = $block->stack->maxSubHeightM;
-            $whose = $block->label === '' ? 'stack\'s' : $block->label.' stack\'s';
+            $whose = '' === $block->label ? 'stack\'s' : $block->label.' stack\'s';
 
-            if ($ceiling !== null && $height > $ceiling + 1e-9) {
+            if (null !== $ceiling && $height > $ceiling + 1e-9) {
                 return sprintf(
                     'the %s subs reach %.3f m against the %.3f m ceiling asked for — %.0f mm too high, and the rig is '
                     .'written with that miss on it',
@@ -144,7 +144,7 @@ final class StackChecks
         $ceiling = $block->stack->maxSubHeightM;
 
         $outside = 0.0;
-        if ($ceiling !== null && $height > $ceiling) {
+        if (null !== $ceiling && $height > $ceiling) {
             $outside = $height - $ceiling;
         } elseif ($floor > 0.0 && $height < $floor) {
             $outside = $floor - $height;
@@ -176,6 +176,7 @@ final class StackChecks
      * Every bound the finished stack misses, each naming the number it reached and the number it needed.
      *
      * @param list<Tier> $tiers
+     *
      * @return array{problems: list<string>, warnings: list<string>}
      */
     public static function boundsProblems(array $tiers, Stack $stack): array
@@ -249,7 +250,7 @@ final class StackChecks
         //
         // Reported whether or not there are tops, unlike the interface: `max_sub_height_m` bounds the sub wall
         // itself, and a sub wing with no tops on it still has to fit under the truss.
-        if ($stack->maxSubHeightM !== null && $subHeight > $stack->maxSubHeightM + self::EPSILON_M) {
+        if (null !== $stack->maxSubHeightM && $subHeight > $stack->maxSubHeightM + self::EPSILON_M) {
             $warnings[] = sprintf(
                 // **"the nearest the target" rather than "the shortest"**, because that is what the solver now
                 // returns. Under a ceiling it keeps the arrangement closest to `target_sub_height_m` among those that
@@ -264,21 +265,21 @@ final class StackChecks
                 $stack->targetSubHeightM,
             );
         }
-        if ($stack->maxHeightM !== null && $totalHeight > $stack->maxHeightM + self::EPSILON_M) {
+        if (null !== $stack->maxHeightM && $totalHeight > $stack->maxHeightM + self::EPSILON_M) {
             $messages[] = sprintf(
                 'stack.max_height_m (%.3f): the stack comes out %.3f m tall',
                 $stack->maxHeightM,
                 $totalHeight,
             );
         }
-        if ($stack->minWidthM !== null && $widest + self::EPSILON_M < $stack->minWidthM) {
+        if (null !== $stack->minWidthM && $widest + self::EPSILON_M < $stack->minWidthM) {
             $messages[] = sprintf(
                 'stack.min_width_m (%.3f): the widest tier is only %.3f m',
                 $stack->minWidthM,
                 $widest,
             );
         }
-        if ($stack->maxWidthM !== null && $widest > $stack->maxWidthM + self::EPSILON_M) {
+        if (null !== $stack->maxWidthM && $widest > $stack->maxWidthM + self::EPSILON_M) {
             // Reachable only when one cabinet is wider than the whole bound, since `perTier` floors to at
             // least one — which is exactly the case worth naming rather than rounding away.
             $messages[] = sprintf(
@@ -304,6 +305,7 @@ final class StackChecks
      * shipped-scene check only catches cabinets *inside* each other, never one standing on air.
      *
      * @param list<Tier> $tiers
+     *
      * @return array{problems: list<string>, warnings: list<string>}
      */
     public static function supportChecks(array $tiers, Stack $stack): array
@@ -317,7 +319,7 @@ final class StackChecks
             // gravity fixed: each cabinet now lands on whatever is under it, so a stepped row simply has an
             // uneven top and everything above it is carried. See {@see Stack::runsFor}.
 
-            if ($index === 0) {
+            if (0 === $index) {
                 continue;
             }
 
@@ -390,7 +392,7 @@ final class StackChecks
     {
         $width = $tier->widthM($stack->gapM);
 
-        if ($stack->shape === StackShape::V) {
+        if (StackShape::V === $stack->shape) {
             return $tier->isSub() && $width + self::OVERHANG_TOLERANCE_M < $below
                 ? [sprintf(
                     'the %s row is %.3f m on a %.3f m row, so the wall narrows as it rises — `shape: v` asks for the '
@@ -402,7 +404,7 @@ final class StackChecks
                 : [];
         }
 
-        if ($stack->shape !== StackShape::Pyramid) {
+        if (StackShape::Pyramid !== $stack->shape) {
             return [];
         }
 
@@ -445,6 +447,7 @@ final class StackChecks
      * there is nothing else it could be.
      *
      * @param list<Tier> $tiers
+     *
      * @return list<string>
      */
     private static function pillarProblems(array $tiers, Stack $stack): array
@@ -495,6 +498,7 @@ final class StackChecks
      * the point: the solver has to reject exactly the arrangement the expansion would build.
      *
      * @param list<Tier> $tiers
+     *
      * @return list<string>
      */
     private static function bearingProblems(array $tiers, Stack $stack): array
@@ -508,7 +512,7 @@ final class StackChecks
                 // means *inside* the tier below — and this is the one place that can say so. The rule is here
                 // rather than left to the tier-width check because that check refusing the shapes which cause
                 // it is a coincidence of two rules agreeing, not the invariant being held.
-                if ($index > 0 && $run['on'] === null) {
+                if ($index > 0 && null === $run['on']) {
                     $problems[] = sprintf(
                         'a %s in the %s row has nothing under it at all, so it would fall to the floor — '
                         .'inside the row below it',

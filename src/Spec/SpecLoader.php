@@ -48,12 +48,12 @@ final class SpecLoader
      * Loads a single spec file.
      *
      * @throws InvalidSpecException when the file is unreadable, is not a YAML mapping, or a
-     *                             required field is missing or of the wrong type
+     *                              required field is missing or of the wrong type
      */
     public function load(string $file): DeviceSpec
     {
         $contents = @file_get_contents($file);
-        if ($contents === false) {
+        if (false === $contents) {
             throw new InvalidSpecException('cannot read file');
         }
 

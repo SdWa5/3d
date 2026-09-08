@@ -205,7 +205,7 @@ final class StalenessTest extends TestCase
 
         Staleness::recordSettings($this->manifest(), $output, ['lighting' => 'studio']);
 
-        $entries = json_decode((string)file_get_contents($this->manifest()), true);
+        $entries = json_decode((string) file_get_contents($this->manifest()), true);
 
         self::assertSame(['studio/full-rig-side.png'], array_keys($entries));
     }

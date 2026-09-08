@@ -17,7 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
  * The runnable `scene:stack` line written into every generated scene's header.
  *
  * **The one thing in the pipeline that has to reproduce a single file rather than the sweep it came from.**
- * {@see \App\Command\BuildAllCommand} regenerates the whole set by replaying these lines, so a value this omits is
+ * {@see BuildAllCommand} regenerates the whole set by replaying these lines, so a value this omits is
  * a value the replay invents — and the file it then writes is a different rig under the same name. Every axis is
  * therefore written out explicitly, even the ones the sweep chose rather than the caller.
  *
@@ -66,7 +66,7 @@ final class RecordedCommand
         // other value options because it has no default to compare against any more: the option is either given, in
         // which case the replay has to be given it too or it would rebuild a different rig, or it is absent, in which
         // case writing one out would invent the bound this command just stopped inventing.
-        if ($maxWidthM !== null) {
+        if (null !== $maxWidthM) {
             $parts[] = sprintf('--max-width=%s', rtrim(rtrim(sprintf('%.2f', $maxWidthM), '0'), '.'));
         }
 
@@ -75,7 +75,7 @@ final class RecordedCommand
             'clearance',
         ] as $option) {
             $value = $input->getOption($option);
-            if ($value !== null && (string)$value !== (string)($defaults[$option] ?? null)) {
+            if (null !== $value && (string) $value !== (string) ($defaults[$option] ?? null)) {
                 $parts[] = sprintf('--%s=%s', $option, $value);
             }
         }
@@ -83,7 +83,7 @@ final class RecordedCommand
         // resolved list out instead would freeze today's inventory into the file: measure a new sub, or correct one whose
         // height turns out to be under its width, and the replay would rebuild the rig the mode no longer asks for. The
         // stated form is only recorded where it is what the caller actually said.
-        if ($orientation !== null) {
+        if (null !== $orientation) {
             $parts[] = '--orientation='.$orientation->value;
         } else {
             /** @var list<string> $turned */
@@ -173,7 +173,7 @@ final class RecordedCommand
         // new sub does not change what a replay rebuilds. A named rig therefore has no inventory to derive, and
         // without this the whole set would replay into `scenes/generated/` itself, one flat pile with every
         // inventory's identically-named siblings overwriting each other.
-        if ($into !== '') {
+        if ('' !== $into) {
             $parts[] = '--into='.$into;
         }
 

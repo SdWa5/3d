@@ -72,6 +72,6 @@ enum LowEndBias: string
         // satisfy. Eleven solver tests said so out loud when it did.
         //
         // `central` is the half that is new: it prices distance from the centre line and pays for it in height.
-        return $this === self::Central ? self::LEAD * $centrality + $lowness : 0.0;
+        return self::Central === $this ? self::LEAD * $centrality + $lowness : 0.0;
     }
 }

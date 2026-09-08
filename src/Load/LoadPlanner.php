@@ -41,6 +41,7 @@ final class LoadPlanner
 {
     /**
      * @param list<DeviceSpec> $specs every spec in the library, vehicles included — they are told apart here
+     *
      * @return array{plans: list<LoadPlan>, leftovers: list<array{spec: DeviceSpec, count: int}>}
      */
     public function plan(array $specs): array
@@ -48,11 +49,11 @@ final class LoadPlanner
         $vehicles = [];
         $cargo = [];
         foreach ($specs as $spec) {
-            if ($spec->category === Category::Vehicle && $spec->vehicle !== null) {
+            if (Category::Vehicle === $spec->category && null !== $spec->vehicle) {
                 $vehicles[] = $spec;
                 continue;
             }
-            if ($spec->category === Category::Vehicle) {
+            if (Category::Vehicle === $spec->category) {
                 // A vehicle with no block cannot state a payload, so it is not a bin. `SpecValidator` refuses this
                 // outright, and skipping it here keeps the planner honest if it is ever run on an unvalidated tree.
                 continue;
@@ -60,7 +61,7 @@ final class LoadPlanner
             $cargo[] = $spec;
         }
 
-        if ($vehicles === []) {
+        if ([] === $vehicles) {
             return ['plans' => [], 'leftovers' => $this->wholeDevices($cargo)];
         }
 
@@ -68,7 +69,7 @@ final class LoadPlanner
         usort($vehicles, static function (DeviceSpec $a, DeviceSpec $b): int {
             $payload = ($b->vehicle?->payloadKg($b->weightKg) ?? 0.0) <=> ($a->vehicle?->payloadKg($a->weightKg) ?? 0.0);
 
-            return $payload !== 0 ? $payload : strcmp($a->id, $b->id);
+            return 0 !== $payload ? $payload : strcmp($a->id, $b->id);
         });
 
         // Heaviest *unit* first, not heaviest device: three 20 kg tops are not a heavier thing than one 90 kg SKRAM,
@@ -76,7 +77,7 @@ final class LoadPlanner
         usort($cargo, static function (DeviceSpec $a, DeviceSpec $b): int {
             $weight = $b->weightKg <=> $a->weightKg;
 
-            return $weight !== 0 ? $weight : strcmp($a->id, $b->id);
+            return 0 !== $weight ? $weight : strcmp($a->id, $b->id);
         });
 
         $bins = [];
@@ -97,7 +98,7 @@ final class LoadPlanner
         $pinned = [];
         $free = [];
         foreach ($cargo as $spec) {
-            if ($spec->carriedOn !== null) {
+            if (null !== $spec->carriedOn) {
                 $pinned[] = $spec;
                 continue;
             }
@@ -110,7 +111,7 @@ final class LoadPlanner
             $remaining = $spec->quantity;
             $unitVolume = $spec->dimensions->volumeM3();
 
-            if ($spec->carriedOn !== null) {
+            if (null !== $spec->carriedOn) {
                 $target = null;
                 foreach ($vehicles as $index => $vehicle) {
                     if ($vehicle->id === $spec->carriedOn) {
@@ -120,11 +121,11 @@ final class LoadPlanner
                 }
                 // A pin naming a vehicle that is not in this run — `--vehicle` narrowed it away, or the spec is
                 // wrong, which `SpecValidator` refuses — leaves the device behind rather than quietly unpinning it.
-                $room = $target === null
+                $room = null === $target
                     ? -INF
                     : ($vehicles[$target]->vehicle?->payloadKg($vehicles[$target]->weightKg) ?? 0.0)
                         - $bins[$target]['weight'];
-                if ($target !== null && $room + 1e-9 >= $spec->weightKg * $remaining) {
+                if (null !== $target && $room + 1e-9 >= $spec->weightKg * $remaining) {
                     $bins[$target]['items'][] = ['spec' => $spec, 'count' => $remaining];
                     $bins[$target]['weight'] += $spec->weightKg * $remaining;
                     $bins[$target]['volume'] += $unitVolume * $remaining;
@@ -136,7 +137,7 @@ final class LoadPlanner
 
             // Whole first: the bin least strained by taking every one of them.
             $whole = $this->bestBinFor($bins, $vehicles, $spec->weightKg * $remaining, $unitVolume * $remaining);
-            if ($whole !== null) {
+            if (null !== $whole) {
                 $bins[$whole]['items'][] = ['spec' => $spec, 'count' => $remaining];
                 $bins[$whole]['weight'] += $spec->weightKg * $remaining;
                 $bins[$whole]['volume'] += $unitVolume * $remaining;
@@ -146,7 +147,7 @@ final class LoadPlanner
             // Split only because nothing could take the lot, and then one unit at a time so each is scored afresh.
             while ($remaining > 0) {
                 $bin = $this->bestBinFor($bins, $vehicles, $spec->weightKg, $unitVolume);
-                if ($bin === null) {
+                if (null === $bin) {
                     break;
                 }
                 $bins[$bin]['items'][] = ['spec' => $spec, 'count' => 1];
@@ -212,7 +213,7 @@ final class LoadPlanner
 
             $weightFill = $payload > 0.0 ? ($bin['weight'] + $weight) / $payload : INF;
             $bay = $vehicle->vehicle?->loadBayVolumeM3();
-            $volumeFill = $bay !== null && $bay > 0.0 ? ($bin['volume'] + $volume) / $bay : 0.0;
+            $volumeFill = null !== $bay && $bay > 0.0 ? ($bin['volume'] + $volume) / $bay : 0.0;
             $score = max($weightFill, $volumeFill);
 
             if ($score < $bestScore) {
@@ -228,6 +229,7 @@ final class LoadPlanner
      * Units of the same device dealt separately are reported as one line with a count.
      *
      * @param list<array{spec: DeviceSpec, count: int}> $items
+     *
      * @return list<array{spec: DeviceSpec, count: int}>
      */
     private static function merged(array $items): array
@@ -246,6 +248,7 @@ final class LoadPlanner
 
     /**
      * @param list<DeviceSpec> $specs
+     *
      * @return list<array{spec: DeviceSpec, count: int}>
      */
     private function wholeDevices(array $specs): array

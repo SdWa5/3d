@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Command;
 
 use App\Command\CatalogCommand;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
-use PHPUnit\Framework\TestCase;
 
 final class CatalogCommandTest extends TestCase
 {

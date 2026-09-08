@@ -438,6 +438,7 @@ final class SpecValidatorTest extends TestCase
 
     /**
      * @param list<array<string, mixed>> $features
+     *
      * @return array<string, mixed>
      */
     private static function layout(array $features): array
@@ -449,6 +450,7 @@ final class SpecValidatorTest extends TestCase
      * A valid moving-head block against the factory's 0.8 x 0.6 x 0.45 box, for cases that break one thing.
      *
      * @param array<string, mixed> $overrides
+     *
      * @return array<string, mixed>
      */
     private static function movingHead(array $overrides = []): array
@@ -466,6 +468,7 @@ final class SpecValidatorTest extends TestCase
      * A valid scaffold block against the same box.
      *
      * @param array<string, mixed> $overrides
+     *
      * @return array<string, mixed>
      */
     private static function scaffold(array $overrides = []): array
@@ -486,6 +489,7 @@ final class SpecValidatorTest extends TestCase
      * genuinely valid against the factory's 0.8 x 0.6 x 0.45 box.
      *
      * @param array<string, mixed> $overrides
+     *
      * @return array<string, mixed>
      */
     private static function truss(array $overrides = []): array
@@ -509,7 +513,7 @@ final class SpecValidatorTest extends TestCase
 
         self::assertNotSame([], $messages, 'expected at least one violation');
         self::assertTrue(
-            (bool)array_filter($messages, static fn (string $m): bool => str_contains($m, $expectedMessage)),
+            (bool) array_filter($messages, static fn (string $m): bool => str_contains($m, $expectedMessage)),
             sprintf("no violation contained %s\ngot: %s", var_export($expectedMessage, true), implode(' | ', $messages)),
         );
     }

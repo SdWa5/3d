@@ -43,7 +43,7 @@ final class Lattice implements Group
      * @param array{float, float, float} $stepM stated spacing per axis; 0 means "derive it"
      * @param list<float> $rollCycle roll applied to successive cells along $cycleAxis, repeating
      * @param float|null $rollMirror the quarter turn given to the cells past the middle, the ones before it
-     *     getting its mirror image — see {@see mirroredOffsets}
+     *                               getting its mirror image — see {@see mirroredOffsets}
      */
     public function __construct(
         public readonly array $count,
@@ -112,14 +112,14 @@ final class Lattice implements Group
         ];
 
         $mirrored = null;
-        if ($axis !== null) {
-            if ($this->rollMirror !== null) {
+        if (null !== $axis) {
+            if (null !== $this->rollMirror) {
                 $mirrored = $this->mirroredOffsets($cellBox, $axis);
             } elseif ($this->cycleDerivesItsSpacing($axis)) {
                 $rolls = [];
                 for ($cell = 0; $cell < $this->count[$axis->index()]; ++$cell) {
                     $rolls[] = self::normalisedRoll($this->rollAt(
-                        [$axis === Axis::X ? $cell : 0, $axis === Axis::Y ? $cell : 0, $axis === Axis::Z ? $cell : 0],
+                        [Axis::X === $axis ? $cell : 0, Axis::Y === $axis ? $cell : 0, Axis::Z === $axis ? $cell : 0],
                         $axis,
                     ));
                 }
@@ -139,7 +139,7 @@ final class Lattice implements Group
                         ($iy - ($this->count[1] - 1) / 2) * $step[1],
                         $iz * $step[2],
                     ];
-                    if ($mirrored !== null) {
+                    if (null !== $mirrored) {
                         $offset[$axis->index()] = $mirrored['offsets'][$cell[$axis->index()]];
                         $roll = $mirrored['rolls'][$cell[$axis->index()]];
                     }
@@ -147,7 +147,7 @@ final class Lattice implements Group
                     $copies[] = new PlacementCopy(
                         array_map(static fn (int $a): int => $cell[$a] + 1, $numbered),
                         $offset,
-                        $roll === 0.0 ? null : new Orientation(0.0, $roll, 0.0),
+                        0.0 === $roll ? null : new Orientation(0.0, $roll, 0.0),
                         $cell === $anchor,
                     );
                 }
@@ -180,7 +180,7 @@ final class Lattice implements Group
         }
 
         foreach ($this->rollCycle as $roll) {
-            if (fmod(abs($roll), self::CYCLE_STEP_DEG) !== 0.0) {
+            if (0.0 !== fmod(abs($roll), self::CYCLE_STEP_DEG)) {
                 // The cell arrives as an axis-aligned box, and only a quarter turn can be applied to one
                 // exactly. Anything else would need the cell's real hull and would silently over-space.
                 $messages[] = sprintf(
@@ -191,9 +191,9 @@ final class Lattice implements Group
             }
         }
 
-        if ($this->rollMirror !== null) {
-            if (fmod(abs($this->rollMirror), self::CYCLE_STEP_DEG) !== 0.0
-                || fmod(abs($this->rollMirror), 180.0) === 0.0) {
+        if (null !== $this->rollMirror) {
+            if (0.0 !== fmod(abs($this->rollMirror), self::CYCLE_STEP_DEG)
+                || 0.0 === fmod(abs($this->rollMirror), 180.0)) {
                 // Only a quarter turn moves the body off to one side, which is what the mirror is made of;
                 // 0 and 180 leave it centred and would mirror nothing.
                 $messages[] = sprintf(
@@ -202,13 +202,13 @@ final class Lattice implements Group
                     $this->rollMirror,
                 );
             }
-            if ($this->rollCycle !== []) {
+            if ([] !== $this->rollCycle) {
                 $messages[] = sprintf(
                     '%s cannot have both roll_cycle and roll_mirror — they both decide the same cells\' roll',
                     $this->kind(),
                 );
             }
-            if ($this->cycleAxis === null && count($this->openAxes()) > 1) {
+            if (null === $this->cycleAxis && count($this->openAxes()) > 1) {
                 $messages[] = sprintf(
                     '%s.roll_mirror needs a cycle_axis when more than one axis has cells (%s)',
                     $this->kind(),
@@ -216,7 +216,7 @@ final class Lattice implements Group
                 );
             }
             foreach ($this->openAxes() as $open) {
-                if ($this->stepM[$open] !== 0.0) {
+                if (0.0 !== $this->stepM[$open]) {
                     // The mirror derives its spacing from the bodies. A stated step would be applied to the
                     // origins, which is exactly the thing that opens the seam by a whole cabinet.
                     $messages[] = sprintf(
@@ -228,7 +228,7 @@ final class Lattice implements Group
             }
         }
 
-        if ($this->rollCycle !== [] && $this->cycleAxis === null && count($this->openAxes()) > 1) {
+        if ([] !== $this->rollCycle && null === $this->cycleAxis && count($this->openAxes()) > 1) {
             // Same line `mode` draws on an arc: a cycle running down x instead of z on a seven-by-two wall
             // turns every column over instead of every tier, which is a fourteen-cabinet mistake that
             // renders perfectly plausibly.
@@ -271,6 +271,7 @@ final class Lattice implements Group
      * meaningless for a count above one — it would stack every cell in the same place.
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     *
      * @return array{float, float, float}
      */
     private function stepsFrom(array $cellBox): array
@@ -279,7 +280,7 @@ final class Lattice implements Group
 
         $steps = [0.0, 0.0, 0.0];
         foreach ([0, 1, 2] as $axis) {
-            $steps[$axis] = $this->stepM[$axis] !== 0.0
+            $steps[$axis] = 0.0 !== $this->stepM[$axis]
                 ? $this->stepM[$axis]
                 : $span[$axis] + $this->gapM[$axis];
         }
@@ -304,6 +305,7 @@ final class Lattice implements Group
      * turned by one exactly.
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     *
      * @return array{float, float, float}
      */
     private function spanOf(array $cellBox): array
@@ -315,7 +317,7 @@ final class Lattice implements Group
         ];
 
         foreach ($this->rollCycle as $roll) {
-            if (fmod(abs($roll), 180.0) !== 0.0) {
+            if (0.0 !== fmod(abs($roll), 180.0)) {
                 $span = [max($span[0], $span[2]), $span[1], max($span[2], $span[0])];
             }
         }
@@ -331,7 +333,7 @@ final class Lattice implements Group
      */
     private function rollAt(array $cell, ?Axis $axis): float
     {
-        if ($this->rollCycle === [] || $axis === null) {
+        if ([] === $this->rollCycle || null === $axis) {
             return 0.0;
         }
 
@@ -349,7 +351,7 @@ final class Lattice implements Group
      * at a uniform pitch instead and put each origin wherever its own body requires, and the seam falls out
      * with nothing stated.
      *
-     * That is what {@see \App\Scene\Lattice::$rollCycle} cannot do, and why `full-rig-quarter-turned.yaml`
+     * That is what {@see Lattice::$rollCycle} cannot do, and why `full-rig-quarter-turned.yaml`
      * has to state `step_m: 0.02` by hand and warn that a derived gap "drives adjacent cabinets 591 mm into
      * each other". Here the spacing is derivable, so it is derived.
      *
@@ -363,12 +365,13 @@ final class Lattice implements Group
      * refusing, and the row is then lopsided by one cabinet.
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     *
      * @return array{offsets: list<float>, rolls: list<float>}
      */
     private function mirroredOffsets(array $cellBox, Axis $axis): array
     {
         $count = $this->count[$axis->index()];
-        $right = self::normalisedRoll((float)$this->rollMirror);
+        $right = self::normalisedRoll((float) $this->rollMirror);
         $left = self::normalisedRoll(360.0 - $right);
 
         $rolls = [];
@@ -389,6 +392,7 @@ final class Lattice implements Group
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
      * @param list<float> $rolls one per cell along $axis
+     *
      * @return array{offsets: list<float>, rolls: list<float>}
      */
     private function turnedOffsets(array $cellBox, Axis $axis, array $rolls): array
@@ -423,12 +427,12 @@ final class Lattice implements Group
      */
     private function cycleDerivesItsSpacing(Axis $axis): bool
     {
-        if ($this->rollCycle === [] || $this->stepM[$axis->index()] !== 0.0) {
+        if ([] === $this->rollCycle || 0.0 !== $this->stepM[$axis->index()]) {
             return false;
         }
 
         foreach ($this->rollCycle as $roll) {
-            if (fmod(abs($roll), 180.0) !== self::CYCLE_STEP_DEG) {
+            if (self::CYCLE_STEP_DEG !== fmod(abs($roll), 180.0)) {
                 return false;
             }
         }
@@ -444,15 +448,16 @@ final class Lattice implements Group
      * `[0, h]` one way and `[−h, 0]` the other, which is the measured fact this whole layout rests on.
      *
      * @param array{min: array{float, float, float}, max: array{float, float, float}} $cellBox
+     *
      * @return array{float, float}
      */
     private static function rolledSpan(array $cellBox, float $roll): array
     {
-        if (fmod(abs($roll), 180.0) === 0.0) {
+        if (0.0 === fmod(abs($roll), 180.0)) {
             return [$cellBox['min'][0], $cellBox['max'][0]];
         }
 
-        return self::normalisedRoll($roll) === 90.0
+        return 90.0 === self::normalisedRoll($roll)
             ? [$cellBox['min'][2], $cellBox['max'][2]]
             : [-$cellBox['max'][2], -$cellBox['min'][2]];
     }
@@ -469,12 +474,12 @@ final class Lattice implements Group
      */
     private function resolvedCycleAxis(): ?Axis
     {
-        if ($this->cycleAxis !== null) {
+        if (null !== $this->cycleAxis) {
             return $this->cycleAxis;
         }
         $open = $this->openAxes();
 
-        return count($open) === 1 ? Axis::from(['x', 'y', 'z'][$open[0]]) : null;
+        return 1 === count($open) ? Axis::from(['x', 'y', 'z'][$open[0]]) : null;
     }
 
     /**
@@ -491,13 +496,8 @@ final class Lattice implements Group
     private static function rejectUnknown(ArrayReader $reader, array $allowed, string $kind): void
     {
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "%s: unknown key '%s' (allowed: %s)",
-                $kind,
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("%s: unknown key '%s' (allowed: %s)", $kind, $unknown[0], implode(', ', $allowed)));
         }
     }
 
@@ -511,7 +511,7 @@ final class Lattice implements Group
     private static function readCount(ArrayReader $reader): array
     {
         $raw = $reader->numberList('count');
-        if ($raw === [] || count($raw) > 3) {
+        if ([] === $raw || count($raw) > 3) {
             throw new InvalidSpecException('lattice.count: expected 1 to 3 numbers, as [x], [x, y] or [x, y, z]');
         }
 
@@ -520,7 +520,7 @@ final class Lattice implements Group
             if ($value !== floor($value)) {
                 throw new InvalidSpecException("lattice.count: expected whole numbers, got {$value}");
             }
-            $count[$axis] = (int)$value;
+            $count[$axis] = (int) $value;
         }
 
         /** @var array{int, int, int} $count */

@@ -6,7 +6,6 @@ namespace App\Build;
 
 use App\Process\BinaryChecker;
 use App\Process\ProcessRunner;
-use RuntimeException;
 
 /**
  * Invokes Blender in background mode on one of the bpy scripts.
@@ -29,11 +28,11 @@ final class BlenderRunner
      * Resolves the Blender binary once and remembers it, so a multi-model build does not run
      * `which` for every single spec.
      *
-     * @throws RuntimeException when Blender is not installed
+     * @throws \RuntimeException when Blender is not installed
      */
     public function binary(): string
     {
-        if ($this->resolvedBinary === null) {
+        if (null === $this->resolvedBinary) {
             $this->resolvedBinary = (new BinaryChecker($this->runner))($this->binary);
         }
 
@@ -62,7 +61,8 @@ final class BlenderRunner
      * callers additionally check that the expected output files appeared.
      *
      * @param callable(string):void|null $onOutput raw output chunks, for verbose mode
-     * @throws RuntimeException when Blender exits non-zero
+     *
+     * @throws \RuntimeException when Blender exits non-zero
      */
     public function run(string $script, string $planFile, ?callable $onOutput = null): string
     {
@@ -70,19 +70,14 @@ final class BlenderRunner
         $collected = '';
         $collect = static function (string $chunk) use (&$collected, $onOutput): void {
             $collected .= $chunk;
-            if ($onOutput !== null) {
+            if (null !== $onOutput) {
                 $onOutput($chunk);
             }
         };
 
         [$exit] = $this->runner->run($cmd, $collect, $collect);
-        if ($exit !== 0) {
-            throw new RuntimeException(sprintf(
-                "Blender failed (exit %d) running %s:\n%s",
-                $exit,
-                basename($script),
-                self::tail($collected),
-            ));
+        if (0 !== $exit) {
+            throw new \RuntimeException(sprintf("Blender failed (exit %d) running %s:\n%s", $exit, basename($script), self::tail($collected)));
         }
 
         return $collected;

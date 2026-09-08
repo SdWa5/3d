@@ -72,7 +72,7 @@ enum SystemSplit: string
      */
     public function isPerOwner(): bool
     {
-        return $this !== self::Pooled;
+        return self::Pooled !== $this;
     }
 
     /**
@@ -80,7 +80,7 @@ enum SystemSplit: string
      */
     public function sharesTops(): bool
     {
-        return $this === self::TopsShared;
+        return self::TopsShared === $this;
     }
 
     /**

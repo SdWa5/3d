@@ -26,7 +26,7 @@ final class BaffleJoin
 
     public static function fromReader(?ArrayReader $reader): ?self
     {
-        if ($reader === null) {
+        if (null === $reader) {
             return null;
         }
 
@@ -34,12 +34,8 @@ final class BaffleJoin
         // here is a join that quietly builds something else. Same reason the scene readers are strict.
         $allowed = ['with', 'depth_m'];
         $unknown = $reader->unknownKeys($allowed);
-        if ($unknown !== []) {
-            throw new InvalidSpecException(sprintf(
-                "join: unknown key '%s' (allowed: %s)",
-                $unknown[0],
-                implode(', ', $allowed),
-            ));
+        if ([] !== $unknown) {
+            throw new InvalidSpecException(sprintf("join: unknown key '%s' (allowed: %s)", $unknown[0], implode(', ', $allowed)));
         }
 
         return new self(

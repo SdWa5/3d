@@ -74,13 +74,13 @@ abstract class BaseCommand extends Command
      * the moment the inventory became a folder. Eleven rigs wrote one `.blend`: the first inventory in sort order
      * won, and every other scene of that name was found to have an artifact newer than its own source and skipped
      * as up to date. Mirroring the whole relative directory is what makes a derived path as unique as its scene.
-     * {@see \App\Scene\SceneLoader::keyOf} carries the full argument.
+     * {@see SceneLoader::keyOf} carries the full argument.
      */
     protected function derivedDir(string $directory, SceneSpec $scene): string
     {
         $relative = (new SceneLoader($this->scenesDir()))->relativeDirOf($scene->sourcePath);
 
-        return rtrim($directory, '/').($relative === '' ? '' : '/'.$relative);
+        return rtrim($directory, '/').('' === $relative ? '' : '/'.$relative);
     }
 
     /**
@@ -88,7 +88,7 @@ abstract class BaseCommand extends Command
      *
      * The one answer to "is this the same scene?" — used by the prune to compare the set that exists against the
      * set a run wrote, and by anything else that needs a name that cannot collide. `$scene->id` is the label and
-     * is not that. See {@see \App\Scene\SceneLoader::keyOf}.
+     * is not that. See {@see SceneLoader::keyOf}.
      */
     protected function sceneKey(SceneSpec $scene): string
     {
@@ -146,13 +146,14 @@ abstract class BaseCommand extends Command
      * warnings.
      *
      * @param list<DeviceSpec> $specs
+     *
      * @return array{errors: list<Violation>, warnings: list<Violation>}
      */
     protected function checkSpecs(array $specs): array
     {
         $violations = $this->validator()->validate($specs);
         $warnings = Violation::warningsIn($violations);
-        if ($warnings !== []) {
+        if ([] !== $warnings) {
             $this->reportViolations($warnings);
         }
 

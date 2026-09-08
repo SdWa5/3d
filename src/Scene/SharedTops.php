@@ -53,11 +53,12 @@ final class SharedTops
      * @param list<StackBlock> $walls the sub stacks as pass one solved them
      * @param array<string, int> $pool device id => how many of it the rig holds
      * @param array<string, DeviceSpec> $devices
+     *
      * @return array<string, array<string, int>> wall label => device id => cabinets dealt to it
      */
     public static function deal(array $walls, array $pool, array $devices): array
     {
-        if ($walls === [] || $pool === []) {
+        if ([] === $walls || [] === $pool) {
             return [];
         }
 
@@ -112,6 +113,6 @@ final class SharedTops
             }
         }
 
-        return (string)$best;
+        return (string) $best;
     }
 }

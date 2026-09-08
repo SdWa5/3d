@@ -43,6 +43,7 @@ final class Orientation
      * Rotates a point: roll about Y, then pitch about X, then yaw about Z.
      *
      * @param array{float, float, float} $point
+     *
      * @return array{float, float, float}
      */
     public function apply(array $point): array
@@ -101,10 +102,10 @@ final class Orientation
     public function eulerXYZ(): array
     {
         $roll = fmod($this->rollDeg, 360.0);
-        if ($roll === 0.0) {
+        if (0.0 === $roll) {
             return [$this->pitchDeg, $this->rollDeg, $this->yawDeg];
         }
-        if (abs($roll) === 180.0) {
+        if (180.0 === abs($roll)) {
             return [self::tidy(-$this->pitchDeg), $this->rollDeg, $this->yawDeg];
         }
 
@@ -185,7 +186,7 @@ final class Orientation
         $dy = $target[1] - $from[1];
 
         // A cabinet faces −Y at yaw 0, so this is the turn that swings that onto the target.
-        $yaw = ($dx === 0.0 && $dy === 0.0) ? 0.0 : rad2deg(atan2($dx, -$dy));
+        $yaw = (0.0 === $dx && 0.0 === $dy) ? 0.0 : rad2deg(atan2($dx, -$dy));
 
         return new self(self::pitchTowards($from, $target, $cabinetHeight, $yaw), $rollDeg, $yaw);
     }
@@ -215,7 +216,7 @@ final class Orientation
         $dz = $target[2] - ($from[2] + $cabinetHeight / 2);
 
         $horizontal = sqrt($dx ** 2 + $dy ** 2);
-        if ($horizontal === 0.0 && $dz === 0.0) {
+        if (0.0 === $horizontal && 0.0 === $dz) {
             return 0.0;
         }
 
@@ -253,6 +254,7 @@ final class Orientation
      * rolled 180° reading as `roll 180` in the plan rather than as an equivalent triple nobody wrote.
      *
      * @param array{array{float, float, float}, array{float, float, float}, array{float, float, float}} $m
+     *
      * @return array{float, float, float}
      */
     private function eulerFrom(array $m): array
@@ -278,7 +280,7 @@ final class Orientation
                 rad2deg(atan2($branch * $m[1][0], $branch * $m[0][0])),
             ];
             $distance = abs(fmod($candidate[1] - $this->rollDeg + 540.0, 360.0) - 180.0);
-            if ($best === null || $distance < $best[0]) {
+            if (null === $best || $distance < $best[0]) {
                 $best = [$distance, $candidate];
             }
         }
@@ -294,6 +296,6 @@ final class Orientation
      */
     private static function tidy(float $value): float
     {
-        return $value === 0.0 ? 0.0 : $value;
+        return 0.0 === $value ? 0.0 : $value;
     }
 }

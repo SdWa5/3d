@@ -16,9 +16,7 @@ use App\Scene\SceneLoader;
 use App\Scene\SceneReport;
 use App\Spec\DeviceSpec;
 use App\Spec\InvalidSpecException;
-use JsonException;
 use App\Spec\Violation;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -48,7 +46,7 @@ final class SceneBuildCommand extends BaseCommand
         $this->io = new SymfonyStyle($input, $output);
 
         ['specs' => $specs, 'errors' => $errors] = $this->loadSpecs();
-        if ($errors !== []) {
+        if ([] !== $errors) {
             $this->io->error('Some specs could not be read — fix them first (see `specs:validate`)');
 
             return self::FAILURE;
@@ -57,17 +55,17 @@ final class SceneBuildCommand extends BaseCommand
         $violations = $this->validator()->validate($specs);
         $this->reportViolations($violations);
         $violations = Violation::errorsIn($violations);
-        if ($violations !== []) {
+        if ([] !== $violations) {
             $this->io->error('Specs are invalid — refusing to build a scene from them');
 
             return self::FAILURE;
         }
 
         $scenes = $this->selectScenes($input->getArgument('scene'));
-        if ($scenes === null) {
+        if (null === $scenes) {
             return self::FAILURE;
         }
-        if ($scenes === []) {
+        if ([] === $scenes) {
             $this->io->warning('No scenes found in '.$this->relative($this->scenesDir()));
 
             return self::SUCCESS;
@@ -79,8 +77,8 @@ final class SceneBuildCommand extends BaseCommand
         }
 
         $builder = new ModelBuilder($this->projectDir(), new BlenderRunner($this->runner));
-        $dryRun = (bool)$input->getOption('dry-run');
-        $force = (bool)$input->getOption('force');
+        $dryRun = (bool) $input->getOption('dry-run');
+        $force = (bool) $input->getOption('force');
         $exit = self::SUCCESS;
 
         foreach ($scenes as $scene) {
@@ -92,11 +90,11 @@ final class SceneBuildCommand extends BaseCommand
             // *warnings* — a stack whose mixed row is stepped, a tier standing slightly proud of the one
             // below it — and those are things to know about a rig that is otherwise perfectly buildable.
             // Treating them as fatal swallowed the whole build report, which is where the numbers are.
-            if (Violation::errorsIn($sceneViolations) !== []) {
+            if ([] !== Violation::errorsIn($sceneViolations)) {
                 $exit = self::FAILURE;
                 continue;
             }
-            if ($placed === []) {
+            if ([] === $placed) {
                 $this->io->warning('Scene has no placements');
                 continue;
             }
@@ -117,7 +115,7 @@ final class SceneBuildCommand extends BaseCommand
 
             try {
                 $target = $this->assemble($scene, $placed, $builder, $output);
-            } catch (RuntimeException $e) {
+            } catch (\RuntimeException $e) {
                 $this->io->error($e->getMessage());
                 $exit = self::FAILURE;
                 continue;
@@ -164,7 +162,7 @@ final class SceneBuildCommand extends BaseCommand
         $loader = new SceneLoader($this->scenesDir());
 
         try {
-            if ($nameOrPath === null) {
+            if (null === $nameOrPath) {
                 return array_map([$loader, 'load'], $loader->files());
             }
 
@@ -172,7 +170,7 @@ final class SceneBuildCommand extends BaseCommand
             // **AN ID THAT NAMES TEN SCENES IS NOT A SCENE**, and picking the first was how this behaved until the
             // inventory became a folder. Every generated rig of every inventory carries the same basename now, so
             // the answer is the paths and a request to name one.
-            if ($ambiguous !== []) {
+            if ([] !== $ambiguous) {
                 $this->io->error(sprintf(
                     "'%s' names %d scenes — say which:\n  %s",
                     $nameOrPath,
@@ -182,11 +180,11 @@ final class SceneBuildCommand extends BaseCommand
 
                 return null;
             }
-            if ($scene === null) {
+            if (null === $scene) {
                 $this->io->error(sprintf(
                     "Unknown scene '%s'%s",
                     $nameOrPath,
-                    $known === [] ? '' : '. Available: '.implode(', ', $known),
+                    [] === $known ? '' : '. Available: '.implode(', ', $known),
                 ));
 
                 return null;
@@ -210,7 +208,7 @@ final class SceneBuildCommand extends BaseCommand
 
         $summary = $report->summarise($placed);
 
-        if ($summary['over_inventory'] !== []) {
+        if ([] !== $summary['over_inventory']) {
             $parts = [];
             foreach ($summary['over_inventory'] as $id => $counts) {
                 $parts[] = sprintf('%s: uses %d, we own %d', $id, $counts['used'], $counts['owned']);
@@ -220,10 +218,10 @@ final class SceneBuildCommand extends BaseCommand
         }
 
         $borrowed = array_diff(array_keys($summary['by_owner']), [DeviceSpec::DEFAULT_OWNER]);
-        if ($borrowed !== []) {
+        if ([] !== $borrowed) {
             $this->io->note('Depends on borrowed gear from: '.implode(', ', $borrowed));
         }
-        if ($summary['unmeasured_devices'] !== []) {
+        if ([] !== $summary['unmeasured_devices']) {
             $this->io->note(
                 'Positions rely on un-measured cabinets: '.implode(', ', $summary['unmeasured_devices']),
             );
@@ -249,7 +247,7 @@ final class SceneBuildCommand extends BaseCommand
                 $stale[] = $id;
             }
         }
-        if ($stale === []) {
+        if ([] === $stale) {
             return true;
         }
 
@@ -302,7 +300,7 @@ final class SceneBuildCommand extends BaseCommand
 
         $dir = dirname($planFile);
         if (!is_dir($dir) && !@mkdir($dir, 0o775, true) && !is_dir($dir)) {
-            throw new RuntimeException("Cannot create directory {$dir}");
+            throw new \RuntimeException("Cannot create directory {$dir}");
         }
 
         try {
@@ -317,11 +315,11 @@ final class SceneBuildCommand extends BaseCommand
                 ],
                 JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
             );
-        } catch (JsonException $e) {
-            throw new RuntimeException('Cannot encode the scene plan: '.$e->getMessage(), 0, $e);
+        } catch (\JsonException $e) {
+            throw new \RuntimeException('Cannot encode the scene plan: '.$e->getMessage(), 0, $e);
         }
-        if (@file_put_contents($planFile, $json."\n") === false) {
-            throw new RuntimeException("Cannot write the scene plan to {$planFile}");
+        if (false === @file_put_contents($planFile, $json."\n")) {
+            throw new \RuntimeException("Cannot write the scene plan to {$planFile}");
         }
 
         (new BlenderRunner($this->runner))->run(
@@ -331,7 +329,7 @@ final class SceneBuildCommand extends BaseCommand
         );
 
         if (!is_file($target)) {
-            throw new RuntimeException("Blender did not write the scene at {$target}");
+            throw new \RuntimeException("Blender did not write the scene at {$target}");
         }
 
         return $target;

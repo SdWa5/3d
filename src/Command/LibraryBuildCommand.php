@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
-use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -31,12 +30,12 @@ final class LibraryBuildCommand extends BaseCommand
         $this->io = new SymfonyStyle($input, $output);
 
         ['specs' => $specs, 'errors' => $errors] = $this->loadSpecs();
-        if ($errors !== []) {
+        if ([] !== $errors) {
             $this->io->error('Some specs could not be read — fix them first (see `specs:validate`)');
 
             return self::FAILURE;
         }
-        if ($specs === []) {
+        if ([] === $specs) {
             $this->io->warning('No specs found — nothing to put in the library');
 
             return self::SUCCESS;
@@ -51,7 +50,7 @@ final class LibraryBuildCommand extends BaseCommand
                 $stale[] = $spec->id;
             }
         }
-        if ($stale !== []) {
+        if ([] !== $stale) {
             $this->io->error(sprintf(
                 "These models are missing or out of date: %s\nRun `bin/console models:build` first.",
                 implode(', ', $stale),
@@ -62,7 +61,7 @@ final class LibraryBuildCommand extends BaseCommand
 
         try {
             $builder->buildLibrary($specs, $this->blenderOutputSink($output));
-        } catch (RuntimeException $e) {
+        } catch (\RuntimeException $e) {
             $this->io->error($e->getMessage());
 
             return self::FAILURE;
@@ -71,7 +70,7 @@ final class LibraryBuildCommand extends BaseCommand
         $this->io->success(sprintf(
             '%d device%s in %s',
             count($specs),
-            count($specs) === 1 ? '' : 's',
+            1 === count($specs) ? '' : 's',
             $this->relative($builder->libraryPath()),
         ));
         $this->io->text('Register the folder as an asset library in Blender: Preferences → File Paths → Asset Libraries.');

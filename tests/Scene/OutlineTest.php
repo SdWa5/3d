@@ -184,7 +184,7 @@ final class OutlineTest extends TestCase
                 'front_height_m' => $frontHeight,
             ],
             'appearance' => [
-                'grille' => $grilleInset === null ? null : ['inset_m' => $grilleInset, 'color' => '#0a0a0a'],
+                'grille' => null === $grilleInset ? null : ['inset_m' => $grilleInset, 'color' => '#0a0a0a'],
             ],
         ]);
     }

@@ -19,6 +19,7 @@ final class BuildPlan
 {
     /**
      * @param string|null $meshOverridePath absolute path to the override mesh, resolved by the caller
+     *
      * @return array<string, mixed>
      */
     public static function forSpec(
@@ -61,7 +62,7 @@ final class BuildPlan
                 ],
                 // A guessed *shape* gets the visible marker. An estimated weight does not distort
                 // the model, so it is reported by `catalog` instead of tagged in the viewport.
-                'mark_estimated' => $spec->provenance->dimensions === Provenance::Estimated,
+                'mark_estimated' => Provenance::Estimated === $spec->provenance->dimensions,
             ],
             'physical' => [
                 'weight_kg' => $spec->weightKg,
@@ -80,7 +81,7 @@ final class BuildPlan
                 // length, and the default focus distance is the one number in the library that already
                 // means "out where aiming matters" — so a cone reaches exactly as far as a scene's
                 // default aim, and "does the pattern cover the dancefloor" reads directly against it.
-                'coverage_throw_m' => $spec->coverage === null ? null : Focus::DEFAULT_DISTANCE_M,
+                'coverage_throw_m' => null === $spec->coverage ? null : Focus::DEFAULT_DISTANCE_M,
                 'coverage_spread_m' => $spec->coverage?->spreadAt(Focus::DEFAULT_DISTANCE_M),
                 'drivers' => array_map(static fn (Driver $driver): array => $driver->toArray(), $spec->drivers),
             ],
@@ -88,7 +89,7 @@ final class BuildPlan
             'baffle_layout' => $spec->layout?->toArray(),
             // Absolute so the bpy side never has to know where the project root is. Null when the
             // spec names a mesh this checkout does not have — the builder then generates the block.
-            'mesh_override' => ($spec->meshOverride === null || $meshOverridePath === null) ? null : [
+            'mesh_override' => (null === $spec->meshOverride || null === $meshOverridePath) ? null : [
                 ...$spec->meshOverride->toArray(),
                 'path' => $meshOverridePath,
             ],

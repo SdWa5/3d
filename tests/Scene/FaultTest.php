@@ -6,11 +6,11 @@ namespace App\Tests\Scene;
 
 use App\Scene\Fault;
 use App\Scene\Interpenetration;
+use App\Scene\Orientation;
 use App\Scene\PlacedDevice;
 use App\Scene\PlacementChecks;
-use App\Scene\Orientation;
-use App\Tests\Support\SpecFactory;
 use App\Spec\DeviceSpec;
+use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
 
 /**

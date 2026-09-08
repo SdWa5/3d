@@ -83,7 +83,7 @@ final class SceneKeyTest extends TestCase
      * An impossible rig is recognised whether the axis is a name field or a folder.
      *
      * Without the second form, running the sweep with `--folders=feasibility` would silently turn
-     * {@see \App\Tests\Scene\ShippedScenesTest} into an assertion that hundreds of deliberately unbuildable rigs
+     * {@see ShippedScenesTest} into an assertion that hundreds of deliberately unbuildable rigs
      * stand up — the exclusion is a property of the name, so a name that no longer carries it excludes nothing.
      */
     public function testAnImpossibleRigIsRecognisedAsAFieldOrAsAFolder(): void

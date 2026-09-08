@@ -28,6 +28,6 @@ enum ArcMode: string
      */
     public function sign(): float
     {
-        return $this === self::Convex ? 1.0 : -1.0;
+        return self::Convex === $this ? 1.0 : -1.0;
     }
 }

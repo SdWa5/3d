@@ -93,9 +93,9 @@ final class GroupStack implements Group
             foreach ($group->problems($device, $pitchDeg, $rollDeg, $box) as $problem) {
                 // Only the cell is written as a sibling key; everything above it lives in `in`, so a
                 // message about level 1 has to say which entry of `in` it means.
-                $messages[] = $depth === 0 ? $problem : sprintf('in[%d]: %s', $depth - 1, $problem);
+                $messages[] = 0 === $depth ? $problem : sprintf('in[%d]: %s', $depth - 1, $problem);
             }
-            if ($messages !== []) {
+            if ([] !== $messages) {
                 // Laying out a group whose numbers do not add up would only produce noise on top of the
                 // real message, and the levels above it are measured from what this one produced.
                 return $messages;
@@ -131,7 +131,7 @@ final class GroupStack implements Group
 
     public function kind(): string
     {
-        return $this->groups === [] ? 'placement' : $this->groups[0]->kind();
+        return [] === $this->groups ? 'placement' : $this->groups[0]->kind();
     }
 
     /**
@@ -146,6 +146,7 @@ final class GroupStack implements Group
      * cabinets are spaced within it.
      *
      * @param list<PlacementCopy> $copies
+     *
      * @return array{min: array{float, float, float}, max: array{float, float, float}}
      */
     private static function boxOf(DeviceSpec $device, array $copies, float $pitchDeg, float $rollDeg): array
@@ -159,7 +160,7 @@ final class GroupStack implements Group
                 '',
                 $device,
                 $copy->offset,
-                $copy->rotation === null ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
+                null === $copy->rotation ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
                 // A flown cell is measured where it hangs. Left seated, a line array nested in a lattice
                 // would be sized as if every element stood on the floor, and the lattice would space its
                 // cells on a height the hang does not have.
@@ -219,7 +220,7 @@ final class GroupStack implements Group
                 '',
                 $device,
                 $copy->offset,
-                $copy->rotation === null ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
+                null === $copy->rotation ? $attitude : ($copy->rotation->after($attitude) ?? $attitude),
             ))->worldBox()['min'][2]);
         }
 

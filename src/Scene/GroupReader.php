@@ -55,12 +55,9 @@ final class GroupReader
             $wrappers[] = self::readNested($entry, $index);
         }
 
-        if ($cell === null) {
-            if ($wrappers !== []) {
-                throw new InvalidSpecException(
-                    '`in` says what this group is nested inside, and there is no group here — '
-                    .'move the outermost one out of `in`',
-                );
+        if (null === $cell) {
+            if ([] !== $wrappers) {
+                throw new InvalidSpecException('`in` says what this group is nested inside, and there is no group here — move the outermost one out of `in`');
             }
 
             return new GroupStack();
@@ -77,14 +74,10 @@ final class GroupReader
         $present = array_values(array_filter(self::GROUPS, static fn (string $key): bool => $reader->has($key)));
 
         if (count($present) > 1) {
-            throw new InvalidSpecException(sprintf(
-                'use one group per placement, not both `%s` and `%s` — nest one inside the other with `in`',
-                $present[0],
-                $present[1],
-            ));
+            throw new InvalidSpecException(sprintf('use one group per placement, not both `%s` and `%s` — nest one inside the other with `in`', $present[0], $present[1]));
         }
 
-        return $present === [] ? null : self::build($present[0], $reader->requireSection($present[0]));
+        return [] === $present ? null : self::build($present[0], $reader->requireSection($present[0]));
     }
 
     /**
@@ -97,13 +90,8 @@ final class GroupReader
     {
         $present = array_values(array_filter(self::GROUPS, static fn (string $key): bool => $entry->has($key)));
 
-        if (count($present) !== 1) {
-            throw new InvalidSpecException(sprintf(
-                'in[%d]: expected exactly one group — one of %s%s',
-                $index,
-                implode(', ', self::GROUPS),
-                $present === [] ? '' : ', got '.count($present),
-            ));
+        if (1 !== count($present)) {
+            throw new InvalidSpecException(sprintf('in[%d]: expected exactly one group — one of %s%s', $index, implode(', ', self::GROUPS), [] === $present ? '' : ', got '.count($present)));
         }
 
         return self::build($present[0], $entry->requireSection($present[0]));

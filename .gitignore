@@ -1,5 +1,6 @@
 # Tooling caches and dependencies
 /.claude/
+/.php-cs-fixer.cache
 /.phpunit.result.cache
 /vendor/
 

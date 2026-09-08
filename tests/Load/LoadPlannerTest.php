@@ -63,7 +63,7 @@ final class LoadPlannerTest extends TestCase
     }
 
     /**
-     * **The two-dimensional score, on the case that separates it from scoring weight alone.**
+     * **The two-dimensional score, on the case that separates it from scoring weight alone.**.
      *
      * Two vans: a roomy one with 1000 kg and 20 m³, and a small one with 600 kg and 4 m³. Two loads: 500 kg in one
      * cubic metre, and 400 kg in fifteen. Both loads fit either van by weight, so weight alone has to guess.
@@ -97,12 +97,12 @@ final class LoadPlannerTest extends TestCase
             );
         }
 
-        $roomy = array_values(array_filter($plans, static fn (LoadPlan $p): bool => $p->vehicle->id === 'roomy-van'));
+        $roomy = array_values(array_filter($plans, static fn (LoadPlan $p): bool => 'roomy-van' === $p->vehicle->id));
         self::assertSame(2, $roomy[0]->units(), 'both loads belong in the van that can hold them');
     }
 
     /**
-     * **A pinned device rides on the bin it names, even when that bin is the worst choice by every other rule.**
+     * **A pinned device rides on the bin it names, even when that bin is the worst choice by every other rule.**.
      *
      * This is the one case where scoring bins by strain gets the answer exactly backwards. Sepp's 465 kg generator
      * against a 550 kg trailer is the most strained bin of the three, so left to the score it went to a *van* and
@@ -163,7 +163,7 @@ final class LoadPlannerTest extends TestCase
 
         $holding = array_values(array_filter(
             $plans,
-            static fn (LoadPlan $plan): bool => $plan->items !== [],
+            static fn (LoadPlan $plan): bool => [] !== $plan->items,
         ));
 
         self::assertCount(1, $holding, 'four tops that fit in one van were dealt across two');
@@ -200,7 +200,7 @@ final class LoadPlannerTest extends TestCase
     }
 
     /**
-     * **The real fleet does not carry the real load, and this test has now said both things in one day.**
+     * **The real fleet does not carry the real load, and this test has now said both things in one day.**.
      *
      * Three sources, three answers, and only one of them had been near the vehicle:
      *
@@ -254,7 +254,7 @@ final class LoadPlannerTest extends TestCase
     private static function van(string $id, float $permittedGross, float $inService, ?array $bay): DeviceSpec
     {
         $block = ['permitted_gross_kg' => $permittedGross];
-        if ($bay !== null) {
+        if (null !== $bay) {
             $block['load_bay_m'] = ['width' => $bay[0], 'height' => $bay[1], 'depth' => $bay[2]];
         }
 

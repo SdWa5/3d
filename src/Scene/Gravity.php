@@ -67,8 +67,9 @@ final class Gravity
      * @param list<Tier> $tiers
      * @param string $prefix the placement id the run ids hang off
      * @param float|null $slideSlackM how far sideways a badly-carried row may be moved, or null for "it may not
-     *     move". See {@see Stack::$slideSlackM} — it is a statement about what else is in the scene, not about gravity.
+     *                                move". See {@see Stack::$slideSlackM} — it is a statement about what else is in the scene, not about gravity.
      * @param float|null $stageM the width the stack itself may occupy, which a slid row also stays inside
+     *
      * @return list<list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
      *     top: float, on: string|null, bearing: float, settle: float, roll: float
@@ -115,7 +116,7 @@ final class Gravity
                 // read `on` for exactly this reason; the row's own score did not, and the two halves of one rule sat
                 // one line apart.
                 $own = self::carriedBearing($candidate);
-                if ($above === null) {
+                if (null === $above) {
                     return $own;
                 }
 
@@ -139,8 +140,8 @@ final class Gravity
                         $above,
                     ),
                 ] as $repair) {
-                    $rescued = $repair === null ? null : self::runs($repair, $below, $gapM);
-                    if ($rescued !== null && $score($rescued) > $score($runs)) {
+                    $rescued = null === $repair ? null : self::runs($repair, $below, $gapM);
+                    if (null !== $rescued && $score($rescued) > $score($runs)) {
                         $runs = $rescued;
                     }
                 }
@@ -172,6 +173,7 @@ final class Gravity
      * height wrong.
      *
      * @param list<array{id: string, device: DeviceSpec, lo: float, hi: float, top: float, roll: float, ...}> $runs
+     *
      * @return list<array{id: string, lo: float, hi: float, top: float}>
      */
     public static function topFacesOf(array $runs): array
@@ -184,7 +186,7 @@ final class Gravity
                 // lookahead — holds runs whose id is still empty. {@see runs} merges neighbours that share a device and
                 // a support, comparing supports by id, so a row of empty ids reads as one support and two runs at
                 // different heights would merge into a single wrongly-carried one.
-                'id' => $run['id'] === '' ? '#'.$slot : $run['id'],
+                'id' => '' === $run['id'] ? '#'.$slot : $run['id'],
                 'lo' => $run['lo'],
                 'hi' => $run['hi'],
                 // The **rolled** height: a Flexy on its side raises what stands on it by 591 mm, not 763.
@@ -213,6 +215,7 @@ final class Gravity
      *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below from {@see topFacesOf}
+     *
      * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>
      */
     public static function reseat(array $runs, array $below): array
@@ -266,7 +269,7 @@ final class Gravity
     private static function carriedBearing(array $runs): float
     {
         foreach ($runs as $run) {
-            if ($run['on'] === null) {
+            if (null === $run['on']) {
                 return 0.0;
             }
         }
@@ -298,6 +301,7 @@ final class Gravity
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
      * @param float|null $slackM how far the row may move sideways, or null for not at all
      * @param float|null $stageM the width the stack may occupy, or null for unbounded
+     *
      * @return list<array{DeviceSpec, int, float, float}>|null
      */
     private static function slidSeats(
@@ -308,7 +312,7 @@ final class Gravity
         ?float $stageM,
         ?Tier $above = null,
     ): ?array {
-        if ($slackM === null || $slackM <= 0.0 || $below === [] || $seats === []) {
+        if (null === $slackM || $slackM <= 0.0 || [] === $below || [] === $seats) {
             return null;
         }
 
@@ -323,7 +327,7 @@ final class Gravity
         // The row arrives centred on the stack's own origin, so the room the stage leaves it each way is what is left
         // once the row itself is taken out of the stage width. The neighbours' allowance bounds it as well, and the
         // tighter of the two wins.
-        $slack = $stageM === null ? $slackM : min($slackM, max(0.0, ($stageM - ($rowHi - $rowLo)) / 2));
+        $slack = null === $stageM ? $slackM : min($slackM, max(0.0, ($stageM - ($rowHi - $rowLo)) / 2));
         $ends = [$below[0]['lo'] - $rowLo, $below[count($below) - 1]['hi'] - $rowHi];
         $from = max(min($ends), -$slack);
         $to = min(max($ends), $slack);
@@ -355,7 +359,7 @@ final class Gravity
             // ends up carried and never overestimates it.
             $runs = self::runs($slid, $below, $gapM);
             $bearing = self::worstBearing($runs);
-            if ($above !== null) {
+            if (null !== $above) {
                 // {@see carriedBearing} rather than {@see worstBearing}, because a run left over air reports a bearing
                 // of 1.0 and this is exactly the case that has to score badly.
                 $bearing = min($bearing, self::carriedBearing(
@@ -389,6 +393,7 @@ final class Gravity
      *
      * @param list<array{DeviceSpec, int, float, float}> $seats
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     *
      * @return list<array{DeviceSpec, int, float, float}>|null
      */
     private static function outboardSeats(array $seats, array $below, float $gapM): ?array
@@ -401,7 +406,7 @@ final class Gravity
 
         $middle = array_slice($seats, 1, $last - 1);
         $groups = [[[$seats[0]], $below[0]['lo'], $below[0]['hi']]];
-        if ($middle !== []) {
+        if ([] !== $middle) {
             $groups[] = [$middle, $below[1]['lo'], $below[$outer - 1]['hi']];
         }
         $groups[] = [[$seats[$last]], $below[$outer]['lo'], $below[$outer]['hi']];
@@ -461,6 +466,7 @@ final class Gravity
      *
      * @param list<array{DeviceSpec, int, float, float}> $seats
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     *
      * @return list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
      *     top: float, on: string|null, bearing: float, settle: float, roll: float
@@ -479,10 +485,10 @@ final class Gravity
                 ['on' => $on, 'top' => $top, 'bearing' => $bearing, 'settle' => $settle]
                     = self::landsOn($below, $x, $x + $width);
 
-                $last = $runs === [] ? null : $runs[count($runs) - 1];
+                $last = [] === $runs ? null : $runs[count($runs) - 1];
                 // Device, support **and roll**: the two halves of a mirrored tier are turned opposite ways, so
                 // they are two placements however level the ground under them is.
-                if ($last !== null && $last['device'] === $device && $last['on'] === $on && $last['roll'] === $roll) {
+                if (null !== $last && $last['device'] === $device && $last['on'] === $on && $last['roll'] === $roll) {
                     $runs[count($runs) - 1]['count'] = $last['count'] + 1;
                     $runs[count($runs) - 1]['hi'] = $x + $width;
                     // The worst-carried cabinet speaks for the run: they share a support, so the ones at its
@@ -563,6 +569,7 @@ final class Gravity
      * The stretches of `$lo`..`$hi` no support covers, left to right.
      *
      * @param list<array{float, float}> $taken
+     *
      * @return list<array{float, float}>
      */
     private static function gapsIn(array $taken, float $lo, float $hi): array
@@ -596,6 +603,7 @@ final class Gravity
      * acceptable. The floor carries everything, so a cabinet on the ground bears 1.
      *
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     *
      * @return array{on: string|null, top: float, bearing: float, settle: float}
      */
     private static function landsOn(array $below, float $lo, float $hi): array
@@ -609,12 +617,12 @@ final class Gravity
                 continue;
             }
 
-            if ($on === null || $candidate['top'] > $top) {
+            if (null === $on || $candidate['top'] > $top) {
                 $on = $candidate['id'];
                 $top = $candidate['top'];
             }
         }
-        if ($on === null) {
+        if (null === $on) {
             return ['on' => null, 'top' => 0.0, 'bearing' => 1.0, 'settle' => 0.0];
         }
 

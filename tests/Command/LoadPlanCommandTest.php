@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Command;
 
 use App\Command\LoadPlanCommand;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use PHPUnit\Framework\TestCase;
 
 /**
  * `load:plan` against the real fleet and the real library.
@@ -20,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 final class LoadPlanCommandTest extends TestCase
 {
     /**
-     * **The real fleet is 214.5 kg short of one trip, and the exit code says so without calling it a crash.**
+     * **The real fleet is 214.5 kg short of one trip, and the exit code says so without calling it a crash.**.
      *
      * The figure behind it has moved twice in a day — estimated 1200 kg, documented 1365, weighed 1000 — so what
      * this pins is the shape of the answer rather than the number: gear is left behind, it is named, and the
@@ -36,7 +36,7 @@ final class LoadPlanCommandTest extends TestCase
     }
 
     /**
-     * **The exit code says whether the load may legally travel, and it is not the same code as a broken command.**
+     * **The exit code says whether the load may legally travel, and it is not the same code as a broken command.**.
      *
      * A payload overrun is a fine, a liability question after an accident and a refused insurance claim, so it can
      * never be a warning somebody scrolls past — but it is also not a crash, and a script wants to tell "the fleet

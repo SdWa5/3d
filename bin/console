@@ -19,8 +19,8 @@ use App\Command\LoadPlanCommand;
 use App\Command\ModelsBuildCommand;
 use App\Command\SceneBuildCommand;
 use App\Command\ScenePackCommand;
-use App\Command\SceneStackCommand;
 use App\Command\SceneRenderCommand;
+use App\Command\SceneStackCommand;
 use App\Command\SpecsValidateCommand;
 use Symfony\Component\Console\Application;
 
@@ -35,15 +35,15 @@ if (is_array($manifest) && is_string($manifest['version'] ?? null)) {
 
 $app = new Application('sdwa5-3d', $version);
 $app->addCommands([
-        new SpecsValidateCommand(),
-        new ModelsBuildCommand(),
-        new LibraryBuildCommand(),
-        new SceneStackCommand(),
-        new SceneBuildCommand(),
-        new ScenePackCommand(),
-        new SceneRenderCommand(),
-        new CatalogCommand(),
-        new LoadPlanCommand(),
-        new BuildAllCommand(),
+    new SpecsValidateCommand(),
+    new ModelsBuildCommand(),
+    new LibraryBuildCommand(),
+    new SceneStackCommand(),
+    new SceneBuildCommand(),
+    new ScenePackCommand(),
+    new SceneRenderCommand(),
+    new CatalogCommand(),
+    new LoadPlanCommand(),
+    new BuildAllCommand(),
 ]);
 $app->run();

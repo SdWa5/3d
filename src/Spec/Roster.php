@@ -56,7 +56,7 @@ final class Roster
             $counts[$id] = $count;
         }
 
-        if ($counts === []) {
+        if ([] === $counts) {
             throw new InvalidSpecException('brings is empty — a roster that changes no count is not a roster');
         }
 

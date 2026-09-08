@@ -22,7 +22,7 @@ final class ArrayReader
 
     public function has(string $key): bool
     {
-        return array_key_exists($key, $this->data) && $this->data[$key] !== null;
+        return array_key_exists($key, $this->data) && null !== $this->data[$key];
     }
 
     /**
@@ -34,6 +34,7 @@ final class ArrayReader
      * every cabinet, with nothing to see in the output.
      *
      * @param list<string> $known
+     *
      * @return list<string>
      */
     public function unknownKeys(array $known): array
@@ -44,7 +45,7 @@ final class ArrayReader
     public function requireString(string $key): string
     {
         $value = $this->data[$key] ?? null;
-        if (!is_string($value) || trim($value) === '') {
+        if (!is_string($value) || '' === trim($value)) {
             throw new InvalidSpecException("{$this->keyPath($key)}: expected a non-empty string");
         }
 
@@ -67,7 +68,7 @@ final class ArrayReader
             throw new InvalidSpecException("{$this->keyPath($key)}: expected a number");
         }
 
-        return (float)$value;
+        return (float) $value;
     }
 
     public function optionalFloat(string $key, ?float $default = null): ?float
@@ -134,7 +135,7 @@ final class ArrayReader
      */
     public function keys(): array
     {
-        return array_map(static fn (int|string $key): string => (string)$key, array_keys($this->data));
+        return array_map(static fn (int|string $key): string => (string) $key, array_keys($this->data));
     }
 
     /**
@@ -227,9 +228,7 @@ final class ArrayReader
                 continue;
             }
 
-            throw new InvalidSpecException(
-                "{$this->keyPath($key)}[{$index}]: expected a name or a mapping",
-            );
+            throw new InvalidSpecException("{$this->keyPath($key)}[{$index}]: expected a name or a mapping");
         }
 
         return $entries;
@@ -279,7 +278,7 @@ final class ArrayReader
             if (!is_int($entry) && !is_float($entry)) {
                 throw new InvalidSpecException("{$this->keyPath($key)}[{$index}]: expected a number");
             }
-            $numbers[] = (float)$entry;
+            $numbers[] = (float) $entry;
         }
 
         return $numbers;
@@ -293,7 +292,7 @@ final class ArrayReader
     public function requireVector3(string $key): array
     {
         $value = $this->data[$key] ?? null;
-        if (!is_array($value) || !array_is_list($value) || count($value) !== 3) {
+        if (!is_array($value) || !array_is_list($value) || 3 !== count($value)) {
             throw new InvalidSpecException("{$this->keyPath($key)}: expected [x, y, z]");
         }
         $vector = [];
@@ -301,7 +300,7 @@ final class ArrayReader
             if (!is_int($component) && !is_float($component)) {
                 throw new InvalidSpecException("{$this->keyPath($key)}[{$index}]: expected a number");
             }
-            $vector[] = (float)$component;
+            $vector[] = (float) $component;
         }
 
         /** @var array{float, float, float} $vector */
@@ -313,14 +312,16 @@ final class ArrayReader
      * common spec mistake is a plausible-but-wrong word like `centre` or `measured-ish`.
      *
      * @template T of \BackedEnum
+     *
      * @param class-string<T> $enum
+     *
      * @return T
      */
     public function requireEnum(string $key, string $enum): object
     {
         $raw = $this->requireString($key);
         $case = $enum::tryFrom($raw);
-        if ($case === null) {
+        if (null === $case) {
             $allowed = implode(', ', array_column($enum::cases(), 'value'));
             throw new InvalidSpecException("{$this->keyPath($key)}: unknown value '{$raw}' (allowed: {$allowed})");
         }
@@ -330,8 +331,10 @@ final class ArrayReader
 
     /**
      * @template T of \BackedEnum
+     *
      * @param class-string<T> $enum
      * @param T $default
+     *
      * @return T
      */
     public function optionalEnum(string $key, string $enum, object $default): object
@@ -345,6 +348,6 @@ final class ArrayReader
 
     private function keyPath(string $key): string
     {
-        return $this->path === '' ? $key : "{$this->path}.{$key}";
+        return '' === $this->path ? $key : "{$this->path}.{$key}";
     }
 }

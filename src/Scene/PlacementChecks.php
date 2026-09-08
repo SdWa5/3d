@@ -49,7 +49,7 @@ final class PlacementChecks
     {
         $faults = self::floatingFaults($placed);
 
-        return $faults === [] ? null : $faults[0]->message;
+        return [] === $faults ? null : $faults[0]->message;
     }
 
     /**
@@ -64,6 +64,7 @@ final class PlacementChecks
      * cabinets marked would be the more misleading of the two.
      *
      * @param list<PlacedDevice> $placed
+     *
      * @return list<Fault>
      */
     public static function floatingFaults(array $placed): array
@@ -71,7 +72,7 @@ final class PlacementChecks
         $faults = [];
         foreach ($placed as $entry) {
             $box = $entry->worldBox();
-            if ($box['min'][2] < self::CONTACT_TOLERANCE_M || $entry->flyPoint !== null) {
+            if ($box['min'][2] < self::CONTACT_TOLERANCE_M || null !== $entry->flyPoint) {
                 continue;
             }
 
@@ -91,7 +92,7 @@ final class PlacementChecks
                         'a %s stands at %.3f m with nothing under it across %s',
                         $entry->device->id,
                         $box['min'][2],
-                        $axis === 0 ? 'x' : 'y',
+                        0 === $axis ? 'x' : 'y',
                     ),
                 );
                 // One fault per cabinet: a top floating across x and y is one thing wrong, not two, and marking

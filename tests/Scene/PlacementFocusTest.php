@@ -21,7 +21,7 @@ use Symfony\Component\Yaml\Yaml;
 final class PlacementFocusTest extends TestCase
 {
     /**
-     * **Two tops standing well off the rig's centre line, aimed two ways.**
+     * **Two tops standing well off the rig's centre line, aimed two ways.**.
      *
      * With the scene's focus they both swing back toward the middle of the rig — 23° and 26° here, because the
      * point they are aiming at is in front of somebody else's wall. With a focus of their own they face the room
@@ -52,7 +52,7 @@ final class PlacementFocusTest extends TestCase
 
         $yaws = [];
         foreach ((new SceneCompiler($devices))->compile($scene)['placed'] as $placed) {
-            if ($placed->device->id === 'tecnare-m2122') {
+            if ('tecnare-m2122' === $placed->device->id) {
                 $yaws[] = $placed->yawDeg();
             }
         }
@@ -68,27 +68,27 @@ final class PlacementFocusTest extends TestCase
     {
         $focus = $ownFocus ? "\n    focus:\n      far: { distance_m: 10.0, height_m: 1.8 }" : '';
         $yaml = <<<YAML
-        id: focus-test
-        name: "Two walls"
+            id: focus-test
+            name: "Two walls"
 
-        focus:
-          far: { distance_m: 10.0, height_m: 1.8 }
+            focus:
+              far: { distance_m: 10.0, height_m: 1.8 }
 
-        placements:
-          - id: left
-            at: [-4.0, 0.0]
-            device: flexy-folded-horn-hybrid
-            row: { count: 6, gap_m: 0.02 }
-          - id: right-a
-            at: [4.0, 0.0]
-            device: tecnare-m2122
-            aim: far{$focus}
-          - id: right-b
-            at: [4.6, 0.0]
-            device: tecnare-m2122
-            aim: far{$focus}
-        YAML;
+            placements:
+              - id: left
+                at: [-4.0, 0.0]
+                device: flexy-folded-horn-hybrid
+                row: { count: 6, gap_m: 0.02 }
+              - id: right-a
+                at: [4.0, 0.0]
+                device: tecnare-m2122
+                aim: far{$focus}
+              - id: right-b
+                at: [4.6, 0.0]
+                device: tecnare-m2122
+                aim: far{$focus}
+            YAML;
 
-        return SceneSpec::fromArray((array)Yaml::parse($yaml), '/scenes/focus-test.yaml');
+        return SceneSpec::fromArray((array) Yaml::parse($yaml), '/scenes/focus-test.yaml');
     }
 }
