@@ -898,8 +898,10 @@ Drive sheet is not needed as master. A two-way sync is the wrong tool regardless
 * A spreadsheet has no merge. Two-way means last-writer-wins per cell, and a real conflict is not resolved but lost.
 * The `SdWa5:` remote is `scope = drive.readonly`, so any write needs a new OAuth scope and a re-auth. That is SIG-4.
 * `Vspk_RMS_V` is a formula. A round trip either drops it or has to rebuild it.
-* The Drive already shows the drift a two-way arrangement produces. Four copies of `AmpLimiterCalc.csv` sit in one
-  folder, alongside both `Drivers.csv` and `drivers.csv`.
+* The Drive already shows the drift a two-way arrangement produces. **Four files all named
+  `AmpLimiterCalc.csv` sit in one folder with three distinct sizes**, re-measured 2026-09-08 at 7700, 7718 and 7432
+  bytes with the last appearing twice. So somebody is versioning by duplicating a filename, which is a worse kind of
+  drift than redundant copies would be, and reconciling them is a reading job rather than a delete.
 
 Repo-as-master is also better than a tie, because the limiter arithmetic stops being spreadsheet formulas and becomes
 testable PHP.

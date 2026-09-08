@@ -563,7 +563,10 @@ deliberately absent from `specs/`; if one is ever acquired, the spreadsheet alre
 `Audio Routing.xlsx`, read 2026-09-08. It is **not in the SdWa5 shared drive** but in the rclone
 account's My Drive, so the `SdWa5:` remote cannot see it without `--drive-team-drive ""`, because that
 remote is scoped to `team_drive 0AFDifygC0zQZUk9PVA`. Beside it sit `Amp_GainSelector.csv`,
-`Drivers.csv`, `drivers.csv` and **four separate copies of `AmpLimiterCalc.csv`**.
+`drivers.csv` and **four files all named `AmpLimiterCalc.csv`**. Those four are not redundant copies: re-measured
+2026-09-08 they carry three distinct sizes, 7700, 7718 and 7432 bytes with the last appearing twice at the same
+timestamp, so three of them are hand-kept versions. Which one the figures above came from is therefore not
+determined, and an import has to pick a version deliberately rather than take whatever the name resolves to.
 
 It is a **working sheet, not a datasheet.** Someone is calculating limiter settings in it, and the
 numbers move while they do. So where it disagrees with what is recorded above, **neither side is
