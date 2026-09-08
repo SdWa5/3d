@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.110.0] - 2026-09-08
+
+A measurement in 0.108.0 was overstated, and correcting it makes the same argument stronger.
+
+### Fixed
+
+- **"Four separate copies of `AmpLimiterCalc.csv`" was wrong**, in the `SIG-1` block of `TODO.md` and in
+  `docs/sources.md`. Re-measured 2026-09-08: the four files share a name but carry **three distinct sizes**, 7700,
+  7718 and 7432 bytes with the last appearing twice at the same timestamp. So three are hand-kept versions and only
+  one pair is a true duplicate.
+- That strengthens rather than weakens the case for the repository being master, because versioning by duplicating a
+  filename is a worse kind of drift than redundant copies. It also changes what an import has to do: **which of the
+  three versions the figures in `docs/sources.md` came from is not determined**, so an import picks a version
+  deliberately rather than taking whatever the name resolves to.
+- Dropped the claim that both `Drivers.csv` and `drivers.csv` sit in that folder. Both were listed earlier in the day
+  and only `drivers.csv` is present now, at 554 bytes, so the pair is not something to assert.
+
 ## [0.109.0] - 2026-09-08
 
 `StackSolver` split into five layered classes, the command's test suite split by axis, and a nightly job that
