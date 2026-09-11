@@ -43,6 +43,28 @@ final class SpecValidatorTest extends TestCase
      */
     public static function rejectionCases(): iterable
     {
+        yield 'front image on a spec with a layout' => [
+            ['front_image' => 'meshes/x.png', 'audio' => ['layout' => self::layout([
+                ['id' => 'lf', 'kind' => 'port', 'at_m' => [0.0, 0.0], 'size_m' => [0.2, 0.1], 'depth_m' => 0.2],
+            ])]],
+            'front_image is only for a cabinet with no interior',
+        ];
+        yield 'front image on a spec with a mesh override' => [
+            ['front_image' => 'meshes/x.png', 'mesh_override' => 'meshes/shell.glb'],
+            'front_image needs the generated block',
+        ];
+        yield 'front image with an unreadable extension' => [
+            ['front_image' => 'meshes/x.tiff'],
+            'has no importable extension',
+        ];
+        yield 'front image turned off a right angle' => [
+            ['front_image' => ['path' => 'meshes/x.png', 'rotate_deg' => 7]],
+            'front_image.rotate_deg is 7',
+        ];
+        yield 'front image at a zero scale' => [
+            ['front_image' => ['path' => 'meshes/x.png', 'px_per_cm' => 0.0]],
+            'front_image.px_per_cm is 0',
+        ];
         yield 'negative width' => [
             ['geometry' => ['dimensions_m' => ['width' => -1.0, 'height' => 0.6, 'depth' => 0.45]]],
             'geometry.dimensions_m.width must be greater than 0',
@@ -529,6 +551,87 @@ final class SpecValidatorTest extends TestCase
         self::assertSame([], Violation::errorsIn($violations));
         self::assertCount(1, Violation::warningsIn($violations));
         self::assertStringContainsString('is not in this checkout', $violations[0]->message);
+    }
+
+    public function testAMissingFrontImageIsAWarningNotAnError(): void
+    {
+        // Same reasoning as an absent override mesh. A front photograph is binary and as often as not
+        // somebody else's, so it is not committed, and a checkout without it must stay valid.
+        $violations = $this->validator->validate([SpecFactory::spec(['front_image' => 'meshes/nope.png'])]);
+
+        self::assertCount(1, $violations);
+        self::assertFalse($violations[0]->isError());
+        self::assertSame([], Violation::errorsIn($violations));
+        self::assertStringContainsString('the front stays plain', $violations[0]->message);
+    }
+
+    public function testAFrontImageOnAPlainCabinetIsAccepted(): void
+    {
+        // The whole point of the feature: a cabinet with no interior is the one that gets a photograph,
+        // and naming one must not itself be a fault. Errors only, because the file is deliberately not
+        // in the checkout and that warning is correct.
+        $violations = $this->validator->validate([SpecFactory::spec(['front_image' => 'meshes/tms4-front.png'])]);
+
+        self::assertSame([], Violation::errorsIn($violations), 'a plain cabinet may name a front image');
+    }
+
+    public function testAFrontImageSizeIsCheckedAgainstTheCabinet(): void
+    {
+        // PSL's fronts are drawn at 1 px = 1 cm, which is what makes this checkable at all. The
+        // factory cabinet is 0.8 x 0.6 m, so 80 x 60 px agrees and 80 x 100 px does not. An aspect
+        // check alone would pass a photograph of a cabinet twice the size, which is the mix-up worth
+        // catching in a fleet where borrowed subs share a shape and differ in how big they are.
+        $dir = sys_get_temp_dir().'/front-image-'.bin2hex(random_bytes(4));
+        mkdir($dir.'/meshes', 0o777, true);
+        self::writePng($dir.'/meshes/right.png', 80, 60);
+        self::writePng($dir.'/meshes/wrong.png', 80, 100);
+
+        $validator = new SpecValidator($dir);
+
+        $good = $validator->validate([SpecFactory::spec(['front_image' => 'meshes/right.png'])]);
+        self::assertSame([], Violation::errorsIn($good));
+
+        $bad = $validator->validate([SpecFactory::spec(['front_image' => 'meshes/wrong.png'])]);
+        $messages = array_map(static fn (Violation $v): string => $v->message, Violation::errorsIn($bad));
+        self::assertNotSame([], $messages);
+        self::assertStringContainsString('a photograph of the wrong cabinet looks exactly like this', implode(' | ', $messages));
+
+        array_map('unlink', glob($dir.'/meshes/*.png') ?: []);
+        rmdir($dir.'/meshes');
+        rmdir($dir);
+    }
+
+    public function testAQuarterTurnSwapsTheImageAxesBeforeTheSizeCheck(): void
+    {
+        // This is the part an eye cannot pin. A photograph taken of the cabinet lying down is 60 x 80
+        // px for an upright 0.8 x 0.6 m cabinet, and it only agrees once the rotation is applied. A
+        // check that ignored rotate_deg would reject exactly the file the rotation exists for.
+        $dir = sys_get_temp_dir().'/front-image-'.bin2hex(random_bytes(4));
+        mkdir($dir.'/meshes', 0o777, true);
+        self::writePng($dir.'/meshes/lying.png', 60, 80);
+
+        $validator = new SpecValidator($dir);
+
+        $turned = $validator->validate([SpecFactory::spec(
+            ['front_image' => ['path' => 'meshes/lying.png', 'rotate_deg' => 90]],
+        )]);
+        self::assertSame([], Violation::errorsIn($turned), 'a quarter turn should make the axes agree');
+
+        $upright = $validator->validate([SpecFactory::spec(
+            ['front_image' => ['path' => 'meshes/lying.png', 'rotate_deg' => 0]],
+        )]);
+        self::assertNotSame([], Violation::errorsIn($upright), 'without the turn the axes disagree');
+
+        unlink($dir.'/meshes/lying.png');
+        rmdir($dir.'/meshes');
+        rmdir($dir);
+    }
+
+    private static function writePng(string $path, int $width, int $height): void
+    {
+        $image = imagecreatetruecolor($width, $height);
+        imagepng($image, $path);
+        imagedestroy($image);
     }
 
     public function testFactoryGearMayCiteItsOwnDatasheetWithoutNamingAClone(): void

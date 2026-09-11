@@ -47,6 +47,9 @@ final class SpecValidator
             foreach ($this->warnAboutMissingMesh($spec) as $violation) {
                 $violations[] = $violation;
             }
+            foreach ($this->warnAboutMissingFrontImage($spec) as $violation) {
+                $violations[] = $violation;
+            }
         }
         foreach ($this->validateUniqueIds($specs) as $violation) {
             $violations[] = $violation;
@@ -189,6 +192,9 @@ final class SpecValidator
         foreach ($this->validateMeshOverride($spec) as $message) {
             $add($message);
         }
+        foreach ($this->validateFrontImage($spec) as $message) {
+            $add($message);
+        }
         foreach ($this->validateLayout($spec) as $message) {
             $add($message);
         }
@@ -206,6 +212,96 @@ final class SpecValidator
      *
      * @return list<Violation>
      */
+    /**
+     * A declared-but-absent photograph is a warning, exactly as an absent override mesh is: the files
+     * are binary and often somebody else's, so this repository does not commit them and not having
+     * them in a checkout is the normal case rather than a fault.
+     *
+     * @return list<Violation>
+     */
+    private function warnAboutMissingFrontImage(DeviceSpec $spec): array
+    {
+        $image = $spec->frontImage;
+        if (null === $image || is_file($this->resolve($image->path))) {
+            return [];
+        }
+
+        return [new Violation(
+            $spec->sourcePath,
+            sprintf(
+                "front_image.path '%s' is not in this checkout — the front stays plain (see meshes/README.md)",
+                $image->path,
+            ),
+            Violation::WARNING,
+        )];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function validateFrontImage(DeviceSpec $spec): array
+    {
+        $image = $spec->frontImage;
+        if (null === $image) {
+            return [];
+        }
+
+        $messages = [];
+
+        // The condition the owner set, and the geometry agrees with it. A layout has already cut real
+        // openings into the baffle, so a photograph over them fights geometry that is there; an
+        // override has no front plane this builder knows about, because the CAD decides where its
+        // front is. Rejected rather than skipped, because a spec that asks for an image and silently
+        // does not get one is the worse failure.
+        if (null !== $spec->layout) {
+            $messages[] = "front_image is only for a cabinet with no interior, and this spec has an audio.layout — the baffle's real openings would fight the photograph";
+        }
+        if (null !== $spec->meshOverride) {
+            $messages[] = 'front_image needs the generated block, whose front plane is known, and this spec has a mesh_override — the imported shell decides where its own front is';
+        }
+
+        if (!$image->isImportable()) {
+            $messages[] = sprintf(
+                "front_image.path '%s' has no importable extension (allowed: %s)",
+                $image->path,
+                implode(', ', FrontImage::IMPORTABLE),
+            );
+        }
+
+        if (!$image->hasValidRotation()) {
+            $messages[] = sprintf(
+                'front_image.rotate_deg is %d, which is not one of %s — a photograph off a right angle was not taken square to the cabinet, and the fix is a better crop',
+                $image->rotateDeg,
+                implode(', ', FrontImage::ROTATIONS),
+            );
+        }
+
+        if ($image->pxPerCm <= 0.0) {
+            $messages[] = sprintf('front_image.px_per_cm is %s, which has to be greater than zero', (string) $image->pxPerCm);
+        }
+
+        // The size check only runs when the file is here. Its absence is the warning above, and
+        // reporting both would say the same thing twice.
+        $absolute = $this->resolve($image->path);
+        if ([] === $messages && is_file($absolute) && $image->pxPerCm > 0.0) {
+            $implied = $image->impliedSizeM($absolute);
+            if (null === $implied) {
+                $messages[] = sprintf("front_image.path '%s' cannot be read as an image", $image->path);
+            } elseif (!$image->matchesFront($absolute, $spec->dimensions->width, $spec->dimensions->height)) {
+                $messages[] = sprintf(
+                    'front_image implies a %.3f × %.3f m front at %s px/cm, but the cabinet is %.3f × %.3f m — a photograph of the wrong cabinet looks exactly like this',
+                    $implied[0],
+                    $implied[1],
+                    (string) $image->pxPerCm,
+                    $spec->dimensions->width,
+                    $spec->dimensions->height,
+                );
+            }
+        }
+
+        return $messages;
+    }
+
     private function warnAboutMissingMesh(DeviceSpec $spec): array
     {
         $override = $spec->meshOverride;

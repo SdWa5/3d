@@ -254,6 +254,7 @@ ddev exec composer static                        # PHPStan level 5 + Symfony cod
 ddev exec composer cs-fix                        # apply the coding standards
 pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and tools/
 ddev exec bin/console specs:validate             # same check CI runs
+ddev exec bin/console models:build --front-images  # cabinets wearing their front photograph
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
 gitleaks dir . --redact --config .gitleaks.toml   # no secret in the working tree

@@ -17,10 +17,29 @@ final class ModelBuilder
 
     public const LIBRARY_SCRIPT = 'blender/build_library.py';
 
+    /**
+     * @param bool $frontImages whether a spec's `front_image` is applied at all. **Off by default**,
+     *                          and deliberately a constructor argument rather than only a command
+     *                          option, so the plain library stays what a caller gets without asking.
+     *                          A run that flips it is caught by {@see Staleness::settingsChanged}
+     *                          rather than by mtimes, because nothing on disk moves when a switch does
+     */
     public function __construct(
         private readonly string $projectDir,
         private readonly BlenderRunner $blender,
+        private readonly bool $frontImages = false,
     ) {
+    }
+
+    /**
+     * The settings stamp for this builder, recorded per output tree so a model built without
+     * photographs is not mistaken for one built with them.
+     *
+     * @return array<string, mixed>
+     */
+    public function builtWith(): array
+    {
+        return ['front_images' => $this->frontImages];
     }
 
     public function glbPath(DeviceSpec $spec): string
@@ -59,6 +78,12 @@ final class ModelBuilder
         $inputs = [$spec->sourcePath, ...$this->modelInputScripts()];
         if (null !== $spec->meshOverride) {
             $inputs[] = $this->resolve($spec->meshOverride->path);
+        }
+        // Counted whether or not front images are switched on for this run. A photograph that changed
+        // while the feature was off still has to rebuild the model the moment it is switched back on,
+        // and the setting itself is watched separately through Staleness::settingsChanged.
+        if (null !== $spec->frontImage) {
+            $inputs[] = $this->resolve($spec->frontImage->path);
         }
 
         // One rule for the whole pipeline; see {@see Staleness} for why it is mtimes rather than hashes.
@@ -155,7 +180,13 @@ final class ModelBuilder
             $candidate = $this->resolve($spec->meshOverride->path);
             $overridePath = is_file($candidate) ? $candidate : null;
         }
-        $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend, $overridePath));
+        // Same fallback for a front photograph, and additionally off unless this run asked for it.
+        $frontImagePath = null;
+        if ($this->frontImages && null !== $spec->frontImage) {
+            $candidate = $this->resolve($spec->frontImage->path);
+            $frontImagePath = is_file($candidate) ? $candidate : null;
+        }
+        $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend, $overridePath, $frontImagePath));
 
         return $planFile;
     }

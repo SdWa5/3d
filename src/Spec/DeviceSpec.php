@@ -59,6 +59,11 @@ final class DeviceSpec
         public readonly array $drivers,
         public readonly ?BaffleLayout $layout,
         public readonly ?MeshOverride $meshOverride,
+        /**
+         * A photograph of the front, for a cabinet with no interior. Optional, and rejected outright
+         * on a spec that has a `layout` or a `mesh_override` — see {@see FrontImage}.
+         */
+        public readonly ?FrontImage $frontImage,
         /** What this transporter can carry. Present exactly when the category is `vehicle`. */
         public readonly ?Vehicle $vehicle,
         /**
@@ -141,6 +146,7 @@ final class DeviceSpec
             ),
             layout: BaffleLayout::fromReader($audio?->optionalSection('layout')),
             meshOverride: MeshOverride::fromReader($reader, 'mesh_override'),
+            frontImage: FrontImage::fromReader($reader, 'front_image'),
             vehicle: ($vehicleSection = $reader->optionalSection('vehicle')) !== null
                 ? Vehicle::fromReader($vehicleSection)
                 : null,
@@ -204,6 +210,7 @@ final class DeviceSpec
             drivers: $this->drivers,
             layout: $this->layout,
             meshOverride: $this->meshOverride,
+            frontImage: $this->frontImage,
             vehicle: $this->vehicle,
             carriedOn: $this->carriedOn,
             notes: $this->notes,
@@ -368,6 +375,12 @@ final class DeviceSpec
                 'file' => basename($this->meshOverride->path),
                 'units' => $this->meshOverride->units,
                 'tolerance_m' => $this->meshOverride->toleranceM,
+            ],
+            // Basename only, for the same reason. The rotation travels because it is the one thing
+            // about the file a reader of the catalog cannot work out from the picture.
+            'front_image' => null === $this->frontImage ? null : [
+                'file' => basename($this->frontImage->path),
+                'rotate_deg' => $this->frontImage->rotateDeg,
             ],
         ];
     }
