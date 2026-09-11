@@ -449,6 +449,55 @@ Worked example: the Flexy's CAD mesh imports correctly with `units: mm` and
 `rotate_deg: [90, 0, 90]`, and its depth and height match the spec exactly — but it is 18 mm
 narrower, so the builder rejects it. That is the mechanism doing its job.
 
+## Front images
+
+A photograph of the cabinet's front, mapped onto the generated block's front face. The point is
+**recognition rather than accuracy**: five Innschleife cabinets currently differ only in their
+bounding box, and every borrowed cabinet is one nobody here has seen, so a render of them is correct
+and unrecognisable at the same time.
+
+```yaml
+front_image: meshes/innschleife/tms4-front.png   # shorthand: already upright, 1 px = 1 cm
+
+front_image:                                     # or spelled out
+  path: meshes/psl/PSL_Subs_px.png
+  rotate_deg: 90                                 # 0 (default) | 90 | 180 | 270
+  px_per_cm: 1.0                                 # the scale the drawing was made at
+  tolerance: 0.10                                # how far the implied size may miss the cabinet
+```
+
+**Off by default, and switched on per run.** `models:build --front-images` applies them; without it
+every cabinet is built plain. Flipping the switch rebuilds, because nothing on disk moves when a
+setting does and `Staleness::settingsChanged` watches it separately from the mtimes.
+
+**Only a cabinet with no interior may have one**, and the validator refuses the other two cases
+rather than skipping them quietly:
+
+| The spec has | Why it is refused |
+|---|---|
+| an `audio.layout` | the baffle has real openings cut into it, and a photograph over them fights geometry that is already there |
+| a `mesh_override` | the imported shell decides where its own front is, so there is no front plane this builder knows to put the image on |
+
+**The size is checked against the cabinet.** PSL's fronts are drawn at 1 px = 1 cm, which is what
+makes that possible: a 50 × 114 px image at 1 px/cm implies a 0.50 × 1.14 m front, and the validator
+compares both axes against `geometry.dimensions_m` within the tolerance. Both axes rather than the
+aspect ratio, because an aspect check passes a photograph of a cabinet twice the size — exactly the
+mix-up worth catching in a fleet where several borrowed subs share a shape and differ only in how
+big they are. A quarter turn swaps the axes before the comparison, so the rotation and the check
+agree.
+
+**`rotate_deg` is about the file, not the cabinet.** A rolled cabinet's front is still its front and
+the texture turns with the mesh, so nothing has to be said for that. What does need saying is which
+way up the photograph was taken, because a photograph of a cabinet lying down has to be turned to
+match a model built upright. Only right angles are accepted: a photograph off a right angle was not
+taken square to the cabinet, and the fix for that is a better crop rather than a number here that
+quietly hides it.
+
+Front images are **not committed**, for the same two reasons override meshes are not: they are binary,
+and they are as often as not somebody else's photograph. `/meshes/` is gitignored, a spec naming a
+file this checkout lacks is a warning rather than an error, and the front simply stays plain. Record
+the origin and licence in [sources.md](sources.md).
+
 ## What the validator checks
 
 `specs:validate` runs without Blender, so CI runs it too. It rejects:
@@ -489,3 +538,8 @@ narrower, so the builder rejects it. That is the mechanism doing its job.
   or that line up on neither axis and so have no shared mouth to open
 * a `mesh_override` whose path does not exist, whose extension Blender cannot import
   (`.FCStd` being the common mistake), whose `units` are unknown, or whose tolerance is negative
+* a `front_image` on a spec that has an `audio.layout` or a `mesh_override`; one whose extension is not
+  `.png`, `.jpg` or `.jpeg`; a `rotate_deg` that is not 0, 90, 180 or 270; a `px_per_cm` of zero or
+  less; a file that cannot be read as an image; and an image whose implied size misses the cabinet's
+  front by more than its tolerance. A path that does not exist is a **warning**, not an error, exactly
+  as for a mesh override

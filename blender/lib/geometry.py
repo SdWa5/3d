@@ -74,6 +74,70 @@ def _mesh_object(name, verts, faces, material):
     return obj
 
 
+def apply_front_image(plan, body, material):
+    """Map the front photograph onto every forward-facing polygon of the shell.
+
+    **Selected by normal rather than by index, on purpose.** The front is `faces[2]` when the block
+    is built, but `cut_handles` runs a boolean and `add_chamfer` runs a bevel, and both reindex the
+    mesh and may split the front into several polygons. Picking by direction survives all of that and
+    also does the right thing on a chamfered edge, which is no longer flat and therefore correctly
+    keeps the cabinet material.
+
+    UVs come from the cabinet's own extents, so the image is stretched to the front and nothing
+    depends on the photograph's pixel size. `SpecValidator` has already checked that the pixel size
+    agrees with the cabinet, which is what makes the stretch faithful rather than merely tidy.
+
+    Returns the number of polygons that took the image, so the caller can say nothing happened.
+    """
+    dims = plan["geometry"]["dimensions_m"]
+    width = dims["width"]
+    front_height = plan["geometry"].get("front_height_m") or dims["height"]
+    rotate = int((plan.get("front_image") or {}).get("rotate_deg", 0)) % 360
+
+    mesh = body.data
+
+    slot = len(mesh.materials)
+    mesh.materials.append(material)
+
+    uv_layer = mesh.uv_layers.active or mesh.uv_layers.new(name="UVMap")
+
+    applied = 0
+    for polygon in mesh.polygons:
+        # Forward is -Y. The tolerance is tight because a chamfer's own faces sit a few degrees off
+        # and must keep the cabinet material rather than a slice of the photograph.
+        if polygon.normal.y > -0.999:
+            continue
+
+        polygon.material_index = slot
+        applied += 1
+
+        for loop_index in polygon.loop_indices:
+            vertex = mesh.vertices[mesh.loops[loop_index].vertex_index].co
+            u = (vertex.x + width / 2.0) / width
+            v = vertex.z / front_height if front_height > 0 else 0.0
+            uv_layer.data[loop_index].uv = _turn_uv(u, v, rotate)
+
+    return applied
+
+
+def _turn_uv(u, v, degrees):
+    """Turn one UV coordinate about the centre of the image.
+
+    The photograph's own orientation is a property of the file, not of the cabinet: a cabinet
+    photographed lying down has to be turned to match a model built upright. Only right angles,
+    because anything else means the photograph was not taken square to the cabinet and the fix for
+    that is a better crop.
+    """
+    if degrees == 90:
+        return (v, 1.0 - u)
+    if degrees == 180:
+        return (1.0 - u, 1.0 - v)
+    if degrees == 270:
+        return (1.0 - v, u)
+
+    return (u, v)
+
+
 def _body_geometry(plan, front_y):
     """The eight corners and six faces of the cabinet body.
 

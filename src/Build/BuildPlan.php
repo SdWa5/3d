@@ -19,6 +19,9 @@ final class BuildPlan
 {
     /**
      * @param string|null $meshOverridePath absolute path to the override mesh, resolved by the caller
+     * @param string|null $frontImagePath absolute path to the front photograph, resolved by the
+     *                                    caller and null whenever the feature is off for this run,
+     *                                    so the bpy side needs no switch of its own
      *
      * @return array<string, mixed>
      */
@@ -27,13 +30,15 @@ final class BuildPlan
         string $glbPath,
         string $blendPath,
         ?string $meshOverridePath = null,
+        ?string $frontImagePath = null,
     ): array {
         return [
             // Bumped when the plan's shape changes in a way the bpy side must react to. 2 added
             // `geometry.truss`, which the bpy side branches on to build tubes instead of a shell; 3 added
             // `moving_head` and `scaffold`, which do the same for two more open-frame shapes; 4 added
-            // `load_bay`, which draws a transporter as a cage rather than a solid.
-            'plan_version' => 4,
+            // `load_bay`, which draws a transporter as a cage rather than a solid; 5 added
+            // `front_image`, which puts a photograph on a plain cabinet's front face.
+            'plan_version' => 5,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,
@@ -92,6 +97,13 @@ final class BuildPlan
             'mesh_override' => (null === $spec->meshOverride || null === $meshOverridePath) ? null : [
                 ...$spec->meshOverride->toArray(),
                 'path' => $meshOverridePath,
+            ],
+            // Absolute, for the same reason. Null covers three cases the bpy side does not have to
+            // tell apart: the spec names none, the file is not in this checkout, or the feature is
+            // off for this run. In all three the front stays plain.
+            'front_image' => (null === $spec->frontImage || null === $frontImagePath) ? null : [
+                ...$spec->frontImage->toArray(),
+                'path' => $frontImagePath,
             ],
             'metadata' => $spec->toMetadataArray(),
             'outputs' => [

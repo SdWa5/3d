@@ -948,44 +948,12 @@ measured in 0.96.0. ALN-4's rule stands untouched and the two items are now inde
 | SCN-1 | `full-rig-truss-three-quarter.png`: add the two SKRAMs; Gerüste replace the truss stands (remove those), turned 90° with fronts aligned to the system front; fly the Tecnare tops wide apart on the truss; 18Sound 2-ways near field beside them | P2 | 1h 15m | — | CVR-1 (flying) | open |
 | SCN-2 | `everything-three-quarter.png`: remove unused truss stands, turn Gerüste 90°, align their fronts with the system front | P2 | 30m | — | — | open |
 | SCN-8 | `end-fire-lattice-three-quarter.png`: vertical gaps between the subs; add the two SKRAMs, Achenbach, Tecnare and 2-way tops | P2 | 45m | — | — | open |
-| SCN-10 | **A photograph of the cabinet's front on the model's front face**, so a render is recognisable rather than merely correct. Stated by the owner. The material exists already: PSL's `PSL_Subs_px.png` and `PSL_Top_px.png` are front faces at **1 px = 1 cm**, and every setup drawing in Drive embeds one per cabinet type. See the section below for where it goes in the schema and why the file cannot be committed | P3 | 5h | five Innschleife cabinets that currently differ only in their bounding box, and every borrowed cabinet nobody here has seen | — | open |
 | SCN-9 | **Several scenes in one image, as an overview.** An option on `scene:render` that lays out more than one scene in a single picture, so a set can be compared at a glance instead of by opening 450 files one at a time. **The sweep is what makes this worth having**: an axis is only legible side by side, and today the only way to see what `pyramid` does against `free` is to flick between two windows | P3 | 4h | 450 generated scenes that nobody can currently take in | — | open |
 | SCN-3 | `detail-check-turned-three-quarter.png`: add missing stuff | P3 | 20m | — | — | open |
 | SCN-7 | End-fire setup: add the other sub and the tops | P3 | 30m | — | — | open |
 | SCN-4 | Daylight renders: the insides of speakers come out a little too dark | P3 | 30m | — | — | open |
 | SCN-5 | Finish the scene work — [docs/scenes.md](docs/scenes.md); `scene:build` itself is done | P3 | 2h | — | — | partial |
 | SCN-6 | Fly-through renders, combined with a new project from the audio routing table | P3 | 3h | — | — | open |
-
-#### SCN-10 — a front-face image, and the three places it has to fit
-
-Where: `appearance` in `src/Spec/DeviceSpec.php:126-128`, the build plan in `src/Build/ModelBuilder.php`, and
-`blender/build_model.py`.
-
-**Why it is worth having is the two new systems.** `kicker-15` and `achenbach-18` are the same box to
-the millimetre and differ only in `owner`; `wsx-18`, `-95x57` and `-43x87` are three grey rectangles
-in a render. Nobody who has not stood next to that rig can tell any of them apart, and the front is exactly where a
-cabinet's identity lives — a horn mouth, a grille, a purple badge.
-
-**The schema.** `appearance.front_image`, beside `appearance.color` and `appearance.grille`. A path, plus a statement
-of what the pixels mean rather than just the file: these images are **scaled photographs**, so a wrongly cropped one
-would stretch silently across a baffle and look plausible. `cm_per_px: 1` says the image is the cabinet's own front
-at the scale Drive's drawings use, and a mismatch against `dimensions_m` is then a validation error rather than a
-render nobody questions.
-
-**Where the file lives: outside git, next to the meshes.** `mesh_override` already solved this exact problem —
-project-root-relative path, resolved in `ModelBuilder::meshPath()`, nothing binary committed, and
-`meshes/README.md` carries the `rclone` line to fetch each one. A front-face photograph is somebody else's
-photograph as often as not, so the licensing paragraph in `docs/sources.md` applies to it unchanged.
-
-**The render.** UV-map the front face and hand the image through the build plan the way a mesh override is handed
-through. **It must not fight `audio.layout`**: a cabinet with modelled horn mouths has real geometry on its front,
-so for those the image is a material and not a substitute, and for a cabinet with no layout at all — which is every
-Innschleife and every GMSS box — it is the only thing the front will ever show.
-
-**One thing to decide before building it.** A rolled cabinet's front is still its front, but a photograph applied to
-a `turned` cabinet has to rotate with it or it reads as a texture bug. `orientationFor()` knows which cabinets are
-rolled; the image's own orientation is a property of the file. Those two have to agree, and that is the part a test
-should pin rather than an eye.
 
 #### SCN-5 — what is left of the scene work
 

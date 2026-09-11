@@ -19,6 +19,7 @@ FAULT = "sdwa5-fault"
 VEHICLE_OUTLINE = "sdwa5-vehicle-outline"
 BAY = "sdwa5-bay"
 BAY_FLOOR = "sdwa5-bay-floor"
+FRONT_IMAGE = "sdwa5-front-image"
 
 
 def hex_to_linear_rgba(value, alpha=1.0):
@@ -118,6 +119,67 @@ def build_set(appearance):
             COVERAGE, hex_to_linear_rgba("#33aaff"), roughness=0.5, emission_strength=1.0
         ),
     }
+
+
+def front_image(path):
+    """A photograph of the cabinet's front, as an image texture on its own material.
+
+    Given its own material rather than being mixed into the cabinet one, because only the front face
+    carries it. Everything else on the block keeps `CABINET`, so a cabinet with no photograph and a
+    cabinet with one differ in exactly one face.
+
+    The image is packed into the .blend, and that carries more weight than it looks. Without it the
+    .blend references a path outside the repository, so opening it anywhere else shows a pink
+    cabinet — breakage that only turns up on somebody else's machine. It is also what makes the asset
+    library correct: `build_library.py` appends each finished .blend with `bpy.data.libraries.load`,
+    and a packed image travels with its material while a path reference would not.
+
+    The fixed material name is safe for the same two reasons. `models:build` runs one Blender process
+    per model, so two cabinets never share a process, and Blender renumbers duplicate names on append.
+
+    Returns None when the file cannot be loaded, so the caller falls back to the plain front rather
+    than exporting a model with a broken texture.
+    """
+    try:
+        image = bpy.data.images.load(path, check_existing=True)
+    except RuntimeError:
+        return None
+
+    image.pack()
+
+    material = bpy.data.materials.get(FRONT_IMAGE)
+    if material is None:
+        material = bpy.data.materials.new(FRONT_IMAGE)
+    material.use_nodes = True
+    tree = material.node_tree
+
+    bsdf = tree.nodes.get("Principled BSDF")
+    if bsdf is None:
+        bsdf = tree.nodes.new("ShaderNodeBsdfPrincipled")
+        output = tree.nodes.get("Material Output")
+        if output is not None:
+            tree.links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+
+    texture = tree.nodes.get("sdwa5-front-texture")
+    if texture is None:
+        texture = tree.nodes.new("ShaderNodeTexImage")
+        texture.name = "sdwa5-front-texture"
+    texture.image = image
+    # The photograph is the whole front and must not tile. Without this a UV rounding error at the
+    # edge repeats the opposite side of the image across the seam.
+    texture.extension = "EXTEND"
+
+    tree.links.new(texture.outputs["Color"], bsdf.inputs["Base Color"])
+
+    # A photograph already carries its own shading, so a glossy highlight on top of it reads as a
+    # wet cabinet. Almost fully rough, and never metallic.
+    bsdf.inputs["Roughness"].default_value = 0.9
+    bsdf.inputs["Metallic"].default_value = 0.0
+
+    material.diffuse_color = (0.5, 0.5, 0.5, 1.0)
+    material.roughness = 0.9
+
+    return material
 
 
 def fault_material():

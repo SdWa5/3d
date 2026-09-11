@@ -4,6 +4,61 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.111.0] - 2026-09-11
+
+`SCN-10`. A cabinet with no interior can wear a photograph of its own front, which is the difference between a
+render that is correct and one that is recognisable.
+
+### Added
+
+- **`front_image` in a spec puts a photograph on the generated block's front face.** Five Innschleife cabinets
+  currently differ only in their bounding box and every borrowed cabinet is one nobody here has seen, so the
+  front is where their identity lives. Accepts a bare path or the spelled-out form with `rotate_deg`,
+  `px_per_cm` and `tolerance`, exactly as `mesh_override` does.
+- **Off by default and switched on per run**, which the owner asked for. `models:build --front-images` applies
+  them and without it every cabinet is built plain. The switch is also a `ModelBuilder` constructor argument
+  defaulting to `false`, so the plain library is what a caller gets without asking, and `scene:build`,
+  `scene:render` and `library:build` all keep it off.
+- Flipping the switch rebuilds, because nothing on disk moves when a setting does. That reuses
+  `Staleness::settingsChanged` and a `built-with.json` per output tree, the same mechanism `scene:render`
+  already uses for its lighting and resolution. Verified both ways: with the switch the `.glb` carries one PNG,
+  one texture and a second material, and without it zero of each, and the second build reported "1 model built"
+  rather than "up to date".
+- **Only a cabinet with no interior may have one**, which the owner asked for and the geometry agrees with. A
+  spec with an `audio.layout` has real openings cut into its baffle, and one with a `mesh_override` has no
+  front plane this builder knows. Both are **refused by the validator** rather than skipped, because a spec
+  that asks for an image and silently does not get one is the worse failure.
+- **The image's size is checked against the cabinet.** PSL's front drawings are 1 px = 1 cm, so a 50 × 114 px
+  image implies a 0.50 × 1.14 m front, and both axes are compared against `geometry.dimensions_m`. Both axes
+  rather than the aspect ratio, because an aspect check passes a photograph of a cabinet twice the size, which
+  is the mix-up worth catching in a fleet where borrowed subs share a shape and differ in how big they are.
+- `rotate_deg` is limited to the four right angles and describes **the file, not the cabinet**. A rolled
+  cabinet's front is still its front and the texture turns with the mesh; what needs saying is which way up the
+  photograph was taken. A quarter turn swaps the axes before the size check, so the rotation and the check
+  agree, and that is pinned by a test rather than by an eye.
+- 11 tests. Five rejection cases, a missing-file warning, an accepted plain cabinet, the size check both ways,
+  the quarter-turn case, and three on the build plan.
+
+### Changed
+
+- `plan_version` is 5. The bpy side branches on `front_image` to load and pack an image and map it onto the
+  front.
+- **The polygons are picked by facing rather than by index.** The front is `faces[2]` when the block is built,
+  but `cut_handles` runs a boolean and `add_chamfer` runs a bevel, and both reindex the mesh and split the
+  front. Measured on `tms4`: 162 polygons afterwards, of which 3 are flat front, and the chamfer's own faces
+  correctly keep the cabinet material. The UV range came out 0.009 to 0.991 against a z range of 0.010 to 1.130
+  on a 1.140 m cabinet, so the 12 mm chamfer is the whole difference.
+- The image is **packed into the `.blend`**. Without that the file references a path outside the repository and
+  opening it elsewhere shows a pink cabinet, which is breakage that only appears on somebody else's machine.
+
+### Removed
+
+- `TODO.md` `SCN-10` and its prose block. **The schema landed in a different place than that block proposed**,
+  and deliberately: it suggested `appearance.front_image` beside `appearance.color`, and it is a top-level
+  `front_image` beside `mesh_override` instead, because it behaves like an external file with a fallback rather
+  than like a colour. The scale field is `px_per_cm` rather than `cm_per_px`, which is the direction the source
+  drawings are actually described in.
+
 ## [0.110.1] - 2026-09-09
 
 A resolved row was still sitting in the list, and deleting it would have lost the one decision it carried.

@@ -84,6 +84,19 @@ def build(plan):
 
         extras += geometry.build_grille(plan, material_set, front_y, front_height)
 
+        # A photograph of the front, for a cabinet with no interior. Deliberately after the handle
+        # recesses and the chamfer, because both reindex the mesh: the polygons are picked by facing
+        # rather than by index, so the order is what makes that picking see the finished shell.
+        #
+        # Only reached through the generated-block branch at all. An override has no front plane this
+        # builder knows about, and a spec with a baffle layout is refused by the validator, so neither
+        # can arrive here carrying an image.
+        front_image = plan.get("front_image")
+        if front_image:
+            image_material = materials.front_image(front_image["path"])
+            if image_material is not None:
+                geometry.apply_front_image(plan, body, image_material)
+
         # A generated shell is solid, so its openings have to be cut into it — and they are cut at the
         # body's own front plane, not at the layout's inset, which only describes a CAD baffle.
         baffle_y = front_y

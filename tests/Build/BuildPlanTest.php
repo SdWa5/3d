@@ -10,11 +10,50 @@ use PHPUnit\Framework\TestCase;
 
 final class BuildPlanTest extends TestCase
 {
+    public function testAFrontImageReachesThePlanOnlyWithAResolvedPath(): void
+    {
+        // Three cases the bpy side must not have to tell apart, all of them "the front stays plain":
+        // the spec names no image, the file is not in this checkout, and the feature is off for this
+        // run. The caller collapses all three into a null path, so the plan carries one null.
+        $spec = SpecFactory::spec(['front_image' => 'meshes/tms4-front.png']);
+
+        $off = BuildPlan::forSpec($spec, '/build/glb/top-a.glb', '/build/blend/top-a.blend');
+        self::assertNull($off['front_image'], 'no resolved path means no image in the plan');
+
+        $on = BuildPlan::forSpec(
+            $spec,
+            '/build/glb/top-a.glb',
+            '/build/blend/top-a.blend',
+            null,
+            '/project/meshes/tms4-front.png',
+        );
+        self::assertSame('/project/meshes/tms4-front.png', $on['front_image']['path'], 'absolute, so bpy needs no project root');
+        self::assertSame(0, $on['front_image']['rotate_deg']);
+    }
+
+    public function testASpecWithNoFrontImageCarriesNone(): void
+    {
+        $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
+
+        self::assertNull($plan['front_image']);
+    }
+
+    public function testTheImageRotationTravelsToTheBuilder(): void
+    {
+        // The one thing about the file the bpy side cannot work out for itself. A photograph taken of
+        // the cabinet lying down is turned in UV space, and only the plan knows by how much.
+        $spec = SpecFactory::spec(['front_image' => ['path' => 'meshes/lying.png', 'rotate_deg' => 90]]);
+
+        $plan = BuildPlan::forSpec($spec, '/g.glb', '/b.blend', null, '/project/meshes/lying.png');
+
+        self::assertSame(90, $plan['front_image']['rotate_deg']);
+    }
+
     public function testCarriesGeometryAppearanceAndOutputs(): void
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(4, $plan['plan_version']);
+        self::assertSame(5, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
