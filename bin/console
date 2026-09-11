@@ -3,11 +3,34 @@
 
 declare(strict_types=1);
 
-// **JIT on, because this repository is a geometry solver wearing a console application.** The image ships opcache
-// with a 64 MB JIT buffer and `opcache.jit` empty, which means off. `opcache.jit` is settable at runtime and the
-// buffer is the part that is not, so one line here turns it on wherever the CLI runs, with no image or ddev config
-// to keep in step. Measured on the default `scene:stack` sweep across 28 cores: **2m31s against 2m00s**, output
-// byte-identical. Silenced because a build without opcache should run slowly rather than not at all.
+// **JIT on, because this repository is a geometry solver wearing a console application.**
+//
+// **THIS LINE ALONE CANNOT TURN IT ON, AND ON 2026-09-11 IT WAS MEASURABLY NOT ON.** The comment that used to
+// stand here claimed the image ships a 64 MB JIT buffer with only `opcache.jit` left empty. Measured in the
+// project container: `opcache.jit_buffer_size => 0` and `opcache_get_status()['jit']['enabled'] === false`.
+// `opcache.jit_buffer_size` is `PHP_INI_SYSTEM`, it defaults to 0 and `ini_set()` cannot raise it, so with no
+// buffer this call selects a mode for a compiler with nowhere to emit code.
+//
+// **Whether the buffer was ever there is not knowable from here, and that is the point.** The image may well
+// have shipped one when 0.85.0 measured a fifth off the sweep, and lost it in a later image bump — a silent
+// regression nothing would report, because the `ini_set()` keeps succeeding either way. Pinning the buffer
+// explicitly is what stops that happening again, which is why it is now stated in two places instead of
+// assumed in none.
+//
+// The buffer is now set at startup, where it has to be: `.ddev/php/opcache-jit.ini` locally and `ini-values`
+// on setup-php in `.github/workflows/tests.yml`. **Both of those must stay in step with each other**, because
+// a local timing that does not match CI's is worse than no local timing at all.
+//
+// This call is kept rather than deleted, because it is still the thing that turns the JIT on in an environment
+// that has a buffer but no mode — a bare `php` on a host, say. Silenced because a build without opcache should
+// run slowly rather than not at all.
+//
+// **This is where the JIT actually pays, and it is measured: 1.57x.** A bare `scene:stack` sweep in one process
+// is 18.1 s with it and 28.5 s without, three repeats each. An evenly spread 40-scene compile loop is
+// 0.1449 s/scene against 0.2327 s/scene. The PHPUnit suite, by contrast, is 22:06.248 against 22:06.927 — the
+// same number twice — so the benefit belongs to the commands rather than to the tests, and TOOL-22 holds the
+// open question of why. The old comment's "2m31s against 2m00s" is not carried forward, because there is no
+// way to tell now whether that run had a buffer at all.
 @ini_set('opcache.jit', 'tracing');
 
 require dirname(__DIR__).'/vendor/autoload.php';
