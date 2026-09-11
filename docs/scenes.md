@@ -1460,6 +1460,11 @@ already exists. Only the order changes; which segment is which does not. And the
 several runs — a stepped tier below splits three M2122s into two — so each fill is solved against whichever is
 nearest on its side, which clears the rest by construction.
 
+A chained run **moves as a body**, and that is what the stated side is for. A run of several cabinets is a segment
+of one row rather than two columns around a centre line, so splitting it would send its inner half through the run
+it was told to clear. See [`side`](#outside--the-room-past-a-placements-outer-faces) for the psl tops row that was
+torn in half that way.
+
 `--stacks=N` deals the inventory out **evenly, and mirrors if it can**. Two strategies are tried — split every
 device evenly, which makes the stacks identical, or keep a device whole in the middle stack when there are too
 few of it to go round — and the one that stands up **more cabinets** wins, with the even split breaking a tie.
@@ -1514,7 +1519,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2688 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates, 1259 possible and 115 impossible, 543 pooled, 433 with the systems apart and 398 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2706 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates. That folder holds **480** files, 434 possible and 46 impossible, 77 pooled, 197 with the systems apart and 206 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1537,7 +1542,7 @@ stays exactly as it was, because 433 written scenes record their own regeneratio
 **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
 `tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **868 `systems-apart`, 937 `tops-shared` and 883 `pooled`**, for **2688** — within 8 % of each
+values come to **854 `systems-apart`, 930 `tops-shared` and 922 `pooled`**, for **2706** — within 9 % of each
 other, which is the measurement this paragraph exists to lose if the axis ever became mostly one rig.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
@@ -1818,10 +1823,23 @@ shoulder for its bearing sits 517 mm clear, and dragging it back to 20 mm would 
 Where the natural spacing does bite — which is every contiguous tops row once toe-in is applied — the solve pushes
 out until the air is really there.
 
-**A single cabinet needs `side: left` or `side: right`.** Every other case reads its side from the sign of the
-copy's own offset, which *is* the column split. A lone cabinet sits at offset 0, so there is no sign to read and
-nothing can say which way outboard is. A stack knows — its fill is the segment beside the long throw — and states
-it.
+**`side: left` or `side: right` says the group is on one side of its reference, and then the whole group moves.**
+Without it each copy reads its side from the sign of its own offset, which *is* the column split, and that is what
+a pair straddling its reference wants — `full-rig-arc`, `full-rig-arc-turned`, `full-rig-truss` and
+`both-systems-side-by-side` all write `outside: tops` on a `count: 2` row with no side, meaning one fill each way.
+With a side stated, every copy takes it and the group translates, keeping its own internal spacing.
+
+A lone cabinet needs it in either case, because a single copy sits at offset 0 and has no sign to read. A stack
+knows the answer for both: its fill is the segment beside the long throw, and which side of it is a fact about the
+tier.
+
+**Reading the column split on a run of two was a real bug and not a corner case**, because a stack states a side
+for every chained run of a tops row. A tops row wider than what carries it lands in several runs, and a run of two
+was then dealt ±2.7735 m about its own centre instead of being translated 55 mm outboard. Measured on
+`stacked-1-systems-apart-free----mixed---centred---center-low-----impossible`, whose psl tops row is five EF6s
+landing as three and two: one of the pair ended at +3.6435 m, about a whole row width past its place, and 0.2020 m
+inside a cabinet of the stack standing next to it. It is also what made that rig impossible — with the group moved
+rather than split, the row is regular, every top is carried and the scene has no faults at all.
 
 ## Line arrays — a hang rather than a fan
 

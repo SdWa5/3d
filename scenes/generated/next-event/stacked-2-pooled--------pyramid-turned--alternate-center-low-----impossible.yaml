@@ -3,9 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * a concert-audio-ef6 stands at 2.351 m with nothing under it across x
-#   * main-1/5c and main-1/5a-2 are 0.4177 m inside each other
-#   * main-1/4c and main-1/5a-2 are 0.2838 m inside each other
+#   * main-1/4b and main-1/5a-2 are 0.0672 m inside each other
 #   * main-2/4d and main-2/5f are 0.0348 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler

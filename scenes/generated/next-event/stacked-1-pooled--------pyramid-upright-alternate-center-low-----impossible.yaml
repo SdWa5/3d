@@ -4,12 +4,8 @@
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
 #   * a tecnare-m2122 stands at 2.280 m with nothing under it across x
-#   * a tecnare-m2122 stands at 2.280 m with nothing under it across x
 #   * a tecnare-m2122 stands at 2.094 m with nothing under it across x
 #   * a eighteensound-2way-15 stands at 2.094 m with nothing under it across x
-#   * main/3d-1 and main/3b-2 are 0.4986 m inside each other
-#   * main/2f-1 and main/3b-2 are 0.1000 m inside each other
-#   * main/2f-2 and main/3b-2 are 0.0788 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

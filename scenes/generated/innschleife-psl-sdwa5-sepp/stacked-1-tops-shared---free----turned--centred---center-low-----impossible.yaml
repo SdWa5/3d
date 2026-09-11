@@ -3,7 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * a thebox-dsp-112 stands at 2.373 m with nothing under it across x
+#   * a thebox-dsp-112 stands at 2.392 m with nothing under it across x
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -21,15 +21,15 @@
 #
 # main-ours — ours, 28 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°     4.98 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
 #   5  1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6    4.108 m wide
 #
-# Subs reach 2.736 m against a 2.0 m interface. The stack is 3.876 m of cabinet.
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid
-#     rolled 90° row is 3.723 m on a 3.414 m row, so it overhangs 154 mm each side
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.532 m of cabinet.
+#   * the 3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90° row is 3.700 m on a 3.112 m row, so it
+#     overhangs 294 mm each side
 #   * the 1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 3×
 #     concert-audio-ef6 row is 4.108 m on a 3.700 m row, so it overhangs 204 mm each side
 #
@@ -113,7 +113,7 @@ placements:
 
   # psl, 17 cabinets in 4 rows
   - id: main-psl
-    at: [-0.678, 0.0]
+    at: [-0.242, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -153,7 +153,7 @@ placements:
 
   # innschleife, 22 cabinets in 5 rows
   - id: main-innschleife
-    at: [4.666, 0.0]
+    at: [5.102, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

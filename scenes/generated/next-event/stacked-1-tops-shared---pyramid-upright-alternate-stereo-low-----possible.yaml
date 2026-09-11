@@ -26,15 +26,14 @@
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-psl — psl, 18 cabinets in 2 rows:
+# main-psl — psl, 18 cabinets in 3 rows:
 #
-#   1  12× concert-audio-esx                                                      7.3 m wide
-#   2  2× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 2× concert-audio-ef6    3.452 m wide
+#   1  6× concert-audio-esx                                                      3.64 m wide
+#   2  6× concert-audio-esx                                                      3.64 m wide
+#   3  2× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 2× concert-audio-ef6    3.452 m wide
 #
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.32 m of cabinet.
+# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.5 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
-#     1.180 m is the most they reach while every tier is still carried
 #
 # main-innschleife — innschleife, 16 cabinets in 4 rows:
 #
@@ -60,7 +59,7 @@ focus:
 placements:
   # ours, 22 cabinets in 4 rows
   - id: main-ours
-    at: [-6.382, 0.0]
+    at: [-4.552, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -87,7 +86,7 @@ placements:
           count: 1
           aim: near
 
-  # psl, 18 cabinets in 2 rows
+  # psl, 18 cabinets in 3 rows
   - id: main-psl
     at: [0.813, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -120,7 +119,7 @@ placements:
 
   # innschleife, 16 cabinets in 4 rows
   - id: main-innschleife
-    at: [6.893, 0.0]
+    at: [5.063, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

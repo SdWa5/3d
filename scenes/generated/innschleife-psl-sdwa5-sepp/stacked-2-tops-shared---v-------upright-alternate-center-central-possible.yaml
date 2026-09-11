@@ -52,41 +52,39 @@
 # Subs reach 2.38 m against a 2.0 m interface. The stack is 3.146 m of cabinet.
 #   * the 3× concert-audio-esx row is 1.810 m on a 1.728 m row, so it overhangs 41 mm each side
 #
-# main-innschleife-1 — innschleife-1, 11 cabinets in 5 rows:
+# main-innschleife-1 — innschleife-1, 12 cabinets in 5 rows:
 #
 #   1  2× sbh-18                                                                 1.12 m wide
 #   2  2× wsx-18                                                                 1.16 m wide
 #   3  2× sub-60x60                                                              1.22 m wide
 #   4  2× kicker-15                                                              1.92 m wide
-#   5  2× concert-audio-ef6 + 1× tecnare-m2122                                 1.716 m wide
+#   5  2× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms2                      2.166 m wide
 #
 # Subs reach 3.47 m against a 2.0 m interface. The stack is 4.43 m of cabinet.
-#   * tms2: LEFT OUT, it cannot be carried in this stack — a concert-audio-ef6 in the 2× concert-audio-ef6 + 1×
-#     tecnare-m2122 + 1× tms2 row would land on only 20% of its own width — it is touching what carries it rather than
-#     sitting on it. Line the segments up with what carries them
 #   * the subs reach 3.470 m against the 3.000 m ceiling asked for, so they stand 470 mm too high — 3.470 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 2× wsx-18 row is 1.160 m on a 1.120 m row, so it overhangs 20 mm each side
 #   * the 2× sub-60x60 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
 #   * the 2× kicker-15 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
+#   * the 2× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms2 row is 2.166 m on a 1.920 m row, so it overhangs 123 mm
+#     each side
 #
-# main-innschleife-2 — innschleife-2, 11 cabinets in 5 rows:
+# main-innschleife-2 — innschleife-2, 12 cabinets in 5 rows:
 #
 #   1  2× sbh-18                                                                 1.12 m wide
 #   2  2× wsx-18                                                                 1.16 m wide
 #   3  2× sub-60x60                                                              1.22 m wide
 #   4  2× kicker-15                                                              1.92 m wide
-#   5  1× tecnare-m2122 + 2× concert-audio-ef6                                 1.716 m wide
+#   5  1× tms2 + 1× tecnare-m2122 + 2× concert-audio-ef6                      2.166 m wide
 #
 # Subs reach 3.47 m against a 2.0 m interface. The stack is 4.43 m of cabinet.
-#   * tms2: LEFT OUT, it cannot be carried in this stack — a concert-audio-ef6 in the 1× tms2 + 1× tecnare-m2122 +
-#     2× concert-audio-ef6 row would land on only 20% of its own width — it is touching what carries it rather than
-#     sitting on it. Line the segments up with what carries them
 #   * the subs reach 3.470 m against the 3.000 m ceiling asked for, so they stand 470 mm too high — 3.470 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 2× wsx-18 row is 1.160 m on a 1.120 m row, so it overhangs 20 mm each side
 #   * the 2× sub-60x60 row is 1.220 m on a 1.160 m row, so it overhangs 30 mm each side
 #   * the 2× kicker-15 row is 1.920 m on a 1.220 m row, so it overhangs 350 mm each side
+#   * the 1× tms2 + 1× tecnare-m2122 + 2× concert-audio-ef6 row is 2.166 m on a 1.920 m row, so it overhangs 123 mm
+#     each side
 #
 id: stacked-2-tops-shared---v-------upright-alternate-center-central-possible
 name: "Solved rig — 6 stacks side by side, tiers centred"
@@ -102,7 +100,7 @@ focus:
 placements:
   # ours-1, 14 cabinets in 4 rows
   - id: main-ours-1
-    at: [-6.494, 0.0]
+    at: [-6.74, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -136,7 +134,7 @@ placements:
 
   # ours-2, 13 cabinets in 4 rows
   - id: main-ours-2
-    at: [-3.57, 0.0]
+    at: [-3.816, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -168,7 +166,7 @@ placements:
 
   # psl-1, 8 cabinets in 3 rows
   - id: main-psl-1
-    at: [-0.953, 0.0]
+    at: [-1.199, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -201,7 +199,7 @@ placements:
 
   # psl-2, 8 cabinets in 3 rows
   - id: main-psl-2
-    at: [1.357, 0.0]
+    at: [1.111, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -230,9 +228,9 @@ placements:
           count: 1
           aim: near
 
-  # innschleife-1, 11 cabinets in 5 rows
+  # innschleife-1, 12 cabinets in 5 rows
   - id: main-innschleife-1
-    at: [3.722, 0.0]
+    at: [3.599, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -262,10 +260,13 @@ placements:
         - device: tecnare-m2122
           count: 1
           aim: near
+        - device: tms2
+          count: 1
+          aim: near
 
-  # innschleife-2, 11 cabinets in 5 rows
+  # innschleife-2, 12 cabinets in 5 rows
   - id: main-innschleife-2
-    at: [6.142, 0.0]
+    at: [6.265, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -292,6 +293,9 @@ placements:
         - device: concert-audio-ef6
           count: 2
         - device: tecnare-m2122
+          count: 1
+          aim: near
+        - device: tms2
           count: 1
           aim: near
 

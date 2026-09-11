@@ -3,13 +3,8 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * a tecnare-m2122 stands at 0.914 m with nothing under it across x
-#   * a tecnare-m2122 stands at 0.914 m with nothing under it across x
 #   * a thebox-achat-112m stands at 0.600 m with nothing under it across x
-#   * main-ours/2j-1 and main-ours/2h-2 are 0.4895 m inside each other
-#   * main-ours/2h-1 and main-ours/2f are 0.3570 m inside each other
 #   * main-ours/2o and main-psl/2a are 0.1823 m inside each other
-#   * main-ours/2h-1 and main-ours/2e are 0.0876 m inside each other
 #   * main-ours/2o and main-psl/1a are 0.0180 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler

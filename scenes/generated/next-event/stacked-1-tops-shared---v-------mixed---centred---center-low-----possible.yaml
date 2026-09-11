@@ -16,14 +16,17 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 28 cabinets in 2 rows:
+# main-ours — ours, 28 cabinets in 3 rows:
 #
-#   1  6× flexy-folded-horn-hybrid rolled 270° + 3× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 + 6× flexy-folded-horn-hybrid rolled 90°   14.964 m wide
-#   2  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 5× concert-audio-ef6   4.5456 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 3× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    7.134 m wide
+#   2  5× flexy-folded-horn-hybrid rolled 270° + 5× flexy-folded-horn-hybrid rolled 90°     7.81 m wide
+#   3  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 5× concert-audio-ef6   4.5456 m wide
 #
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.75 m of cabinet.
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
+# Subs reach 1.201 m against a 2.0 m interface. The stack is 2.341 m of cabinet.
+#   * the subs reach 1.201 m against the 2.000 m interface asked for, so the tops sit 799 mm lower than ideal —
+#     1.201 m is the most they reach while every tier is still carried
+#   * the 5× flexy-folded-horn-hybrid rolled 270° + 5× flexy-folded-horn-hybrid rolled 90° row is 7.810 m on a
+#     7.134 m row, so it overhangs 338 mm each side
 #
 # main-psl — psl, 14 cabinets in 7 rows:
 #
@@ -69,7 +72,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 28 cabinets in 2 rows
+  # ours, 28 cabinets in 3 rows
   - id: main-ours
     at: [-3.202, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -107,7 +110,7 @@ placements:
 
   # psl, 14 cabinets in 7 rows
   - id: main-psl
-    at: [5.97, 0.0]
+    at: [2.393, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -135,7 +138,7 @@ placements:
 
   # innschleife, 14 cabinets in 7 rows
   - id: main-innschleife
-    at: [8.87, 0.0]
+    at: [5.293, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

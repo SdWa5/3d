@@ -27,19 +27,15 @@
 #   * the subs reach 1.820 m against the 2.000 m interface asked for, so the tops sit 180 mm lower than ideal —
 #     1.820 m is the most they reach while every tier is still carried
 #
-# main-psl — psl, 16 cabinets in 7 rows:
+# main-psl — psl, 16 cabinets in 5 rows:
 #
-#   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   3  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   4  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   5  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   6  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   7  1× tecnare-m2122 + 1× tms4 + 2× concert-audio-ef6                      2.236 m wide
+#   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   2  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   3  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   4  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
+#   5  1× tecnare-m2122 + 1× tms4 + 2× concert-audio-ef6                      2.236 m wide
 #
-# Subs reach 3.54 m against a 2.0 m interface. The stack is 4.68 m of cabinet.
-#   * the subs reach 3.540 m against the 3.000 m ceiling asked for, so they stand 540 mm too high — 3.540 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.5 m of cabinet.
 #
 # main-innschleife — innschleife, 15 cabinets in 5 rows:
 #
@@ -65,7 +61,7 @@ focus:
 placements:
   # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [-3.812, 0.0]
+    at: [-4.412, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -100,7 +96,7 @@ placements:
           count: 1
           aim: near
 
-  # psl, 16 cabinets in 7 rows
+  # psl, 16 cabinets in 5 rows
   - id: main-psl
     at: [0.684, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -134,7 +130,7 @@ placements:
 
   # innschleife, 15 cabinets in 5 rows
   - id: main-innschleife
-    at: [4.194, 0.0]
+    at: [4.794, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

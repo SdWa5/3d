@@ -4,6 +4,46 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.112.0] - 2026-09-11
+
+A tops row that lands in more than one run had its outer run dealt out to both ends of the rig instead of
+moved to one side. One psl top ended a whole row width out of place and inside the stack standing next to it.
+
+### Fixed
+
+- **A stated `align.side` now moves the whole run instead of splitting it down the middle.** A clearance
+  solve with a side is a group sitting entirely on one side of its reference, so it translates. Reading each
+  copy's own offset as its column, which is right for a pair straddling its reference, sent the inner half of
+  the run straight through the run it had been told to clear, and the further the solve pushed the further
+  through it went.
+- **This was not a corner case, because `Stack::throwFirst` states a side for every chained run of a tops
+  row.** A tops row wider than what carries it lands in several runs, so any run of two or more cabinets met
+  it. Measured on `stacked-1-systems-apart-free----mixed---centred---center-low-----impossible`, whose psl
+  tops row is five EF6s landing as three and two: the pair was dealt ±2.7735 m about its own centre rather
+  than translated 55 mm, so one of them stood at +3.6435 m instead of +0.6192 m and 0.2020 m inside a cabinet
+  of the innschleife stack. With the run moved rather than split, that row comes out at a regular 0.6346,
+  0.6346, 0.6267 and 0.6250 m pitch, every top is carried, and the scene has no faults at all.
+- The four hand-written scenes that write `outside: tops` state no side, their two fills genuinely straddle
+  the tops, and they are unchanged. A lone cabinet still needs a side and still gets one.
+
+### Changed
+
+- **121 generated rigs stop being impossible**, from 358 down to 237 across the 2706 committed scenes. The
+  solver asks `SceneCompiler::stackSurvives` whether a candidate arrangement stands up, and that check
+  compiles the candidate, so a fill run flung apart made good arrangements look like interpenetrating ones
+  and the search fell back on worse rigs. The psl stack in
+  `stacked-1-tops-shared---free----mixed---alternate-center-low-----possible` is the shape of it: six tiers of
+  two ESXs reaching 3.540 m against the 3.000 m ceiling asked for, where the arrangement that now wins is
+  four tiers of three reaching 2.360 m and inside the band.
+- 137 generated scene files are renamed, 129 from `-impossible` to `-possible` and 8 the other way, and 87
+  more change content under the same name.
+
+### Added
+
+- `AlignmentTest` covers both readings of `side`, the translation with one stated and the column split
+  without. `StackTest` pins the psl tops row as its four pitches, because the pitches are what "one row"
+  means.
+
 ## [0.111.0] - 2026-09-11
 
 `SCN-10`. A cabinet with no interior can wear a photograph of its own front, which is the difference between a

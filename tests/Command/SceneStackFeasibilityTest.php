@@ -353,8 +353,15 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
      * GEO-11 is the same defect in the seating check, and {@see SceneStackCommand::probePlacement} states the rule
      * this test enforces — anything the solve reads has to be expressible on both sides.
      *
-     * Asserted on the sub-wall height rather than on the row list because that is the one number both sides print in
-     * the same words, and it is what separates the two answers by a factor of three.
+     * Asserted on the sub-wall height rather than on the row list because that is the one number both sides state,
+     * and it is what separated the two answers by a factor of three.
+     *
+     * **Read off `# Subs reach`, which the writer always emits, rather than off a warning.** It used to compare the
+     * header's `the subs reach … m against` against the rebuild's violation of the same words, and that is a
+     * sound comparison only while this rig misses its band. In 0.112.0 it stopped missing it — the sub wall now
+     * lands at 2.451 m inside the 2 m interface and the 3 m ceiling — so the warning went away and with it the
+     * whole assertion, which the test caught and said out loud. The header line is unconditional, so the check
+     * cannot go quiet again.
      */
     public function testAWrittenSceneRebuildsToTheSubWallItsOwnHeaderReports(): void
     {
@@ -378,7 +385,7 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
 
         self::assertSame(
             1,
-            preg_match('/the subs reach ([\d.]+) m against/', $contents, $header),
+            preg_match('/# Subs reach ([\d.]+) m against/', $contents, $header),
             'the header states no sub-wall height, so this test is checking nothing',
         );
 
@@ -396,14 +403,20 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
             Violation::errorsIn($result['violations']),
         ));
 
-        $rebuilt = array_values(array_filter(
-            array_map(static fn ($v): string => $v->message, $result['violations']),
-            static fn (string $message): bool => str_contains($message, 'the subs reach '),
-        ));
-        self::assertCount(1, $rebuilt, 'the rebuild reports no sub-wall height to compare against');
-        self::assertStringContainsString(
-            'the subs reach '.$header[1].' m against',
-            $rebuilt[0],
+        // The top of the rebuilt sub wall, which is the quantity the header's own figure is printed from. Measured
+        // on the placed shells rather than on a row list, so a rebuild that re-solved the wall into different rows
+        // still has to arrive at the same height.
+        $wall = -INF;
+        foreach ($result['placed'] as $entry) {
+            if ('sub' === $entry->device->subtype) {
+                $wall = max($wall, $entry->worldBox()['max'][2]);
+            }
+        }
+
+        self::assertEqualsWithDelta(
+            (float) $header[1],
+            $wall,
+            5e-4,
             'the rebuilt rig is not the one the file describes',
         );
     }
