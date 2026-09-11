@@ -10,9 +10,24 @@ on:
   # nightly `phpunit` was the same sampled run a push already does, so removing the trigger loses only the
   # unattended repetition. `full` is `workflow_dispatch` only until it is made to fit, which is TOOL-20.
 
+# **A superseded push should stop costing money the moment it is superseded.** On 8 September five pushes landed
+# within a few hours and each one started its own 135-minute `phpunit` job, because nothing cancelled the one
+# before it.
+#
+# **`cancel-in-progress` is off on `main` on purpose.** A merge commit's green run is the thing a release is
+# judged by, and cancelling it because the next merge landed is how a branch ends up with no completed run at
+# all. Everywhere else the newest push is the only one anybody is waiting on.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   phpunit:
     runs-on: ubuntu-latest
+    # GitHub's default is 360 minutes, and that default is exactly what produced TOOL-20's three cancellations at
+    # the six-hour ceiling for roughly 1644 minutes that bought nothing. A job that hits its own timeout reports a
+    # failure somebody can read; one cancelled at the ceiling reports that it was cancelled.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
 
@@ -20,15 +35,79 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
+          # **THE JIT THIS REPOSITORY ASKS FOR IN TWO PLACES WAS MEASURABLY OFF ON 2026-09-11.**
+          # `opcache.jit_buffer_size` is `PHP_INI_SYSTEM` and defaults to 0, so the `<ini>` entry in
+          # `phpunit.xml` and the `ini_set()` in `bin/console` were both setting a mode for a compiler with
+          # nowhere to emit code. Measured in the project container: `opcache.jit_buffer_size => 0` and
+          # `opcache_get_status()['jit']['enabled'] === false`. setup-php sets no buffer either, so the runner
+          # was in the same state. Stating it here is what makes it true rather than assumed.
+          #
+          # **IT IS WORTH 1.57x ON THE COMMANDS AND EXACTLY NOTHING ON THIS SUITE, BOTH MEASURED.** A bare
+          # `scene:stack` sweep in one process is 18.1 s against 28.5 s, three repeats each. The full suite is
+          # 22:06.248 with the JIT against 22:06.927 without it, which is the same number twice. Why the suite
+          # does not benefit is not established: it is not the buffer (1.52% of 64 MB used at the end of a run)
+          # and not `phpunit.xml` setting the mode a second time at runtime (measured at no cost on a quiet
+          # machine). It is kept here anyway, because `full` un-skips a whole-tree compile that *is* command
+          # shaped, because it costs nothing, and because the guard below is what makes either statement
+          # checkable in future. `opcache.enable_cli` is in the list because setup-php leaves it off and a JIT
+          # buffer without opcache on the CLI buys nothing.
+          ini-values: opcache.enable_cli=1, opcache.jit_buffer_size=64M, opcache.jit=tracing
 
+      # **THE GUARD, BECAUSE THIS EXACT REGRESSION ALREADY HAPPENED ONCE AND NOTHING REPORTED IT.**
+      #
+      # `opcache.jit_buffer_size` can only be set at startup, so every way of asking for the JIT at runtime
+      # succeeds whether or not there is a buffer to emit into. That is how this repository spent releases
+      # believing the solver was compiled while it was interpreted: two config files said `opcache.jit=tracing`,
+      # both calls returned cleanly, and the suite went green at 1.61x the cost it needed to.
+      #
+      # A silent 1.61x is worth a hard failure. If `ini-values` above ever stops being applied — a setup-php
+      # change, a runner image change, a typo in the list — this turns it into a red build on the next push
+      # instead of a slow job nobody looks at.
+      - name: Confirm the JIT is actually on
+        run: |
+          php -r '
+            if (!function_exists("opcache_get_status")) {
+              fwrite(STDERR, "opcache is not loaded at all\n");
+              exit(1);
+            }
+            $status = opcache_get_status(false);
+            if (true !== ($status["jit"]["enabled"] ?? false)) {
+              fwrite(STDERR, sprintf(
+                "opcache JIT is OFF (mode=%s, buffer=%s) — the suite would run interpreted at about 1.6x the cost\n",
+                ini_get("opcache.jit") ?: "(none)",
+                ini_get("opcache.jit_buffer_size")
+              ));
+              exit(1);
+            }
+            printf("JIT on: mode=%s buffer=%s\n", ini_get("opcache.jit"), ini_get("opcache.jit_buffer_size"));
+          '
+
+      # **No `actions/cache` here, and that is a decision rather than an omission.** `composer install` was
+      # measured at 1.8 seconds inside a 135-minute job. A cache round trip costs about that on a warm cache and
+      # more on a cold one, and it adds a key that has to track `composer.lock` plus a silent staleness failure.
+      # There is no `vendor/` build step, no `node_modules` and no compiled artifact. This job's minutes are CPU
+      # in the solver, so caching is the wrong lever for it.
       - run: composer install --prefer-dist --no-progress --no-interaction
 
       - run: composer test
 
-      # Specs and scenes are both checkable without Blender, so CI does it.
+      # Specs are checkable without Blender, so CI does it. This duplicates
+      # `SpecsValidateCommandTest::testTheRepositorysOwnSpecsAreValid()` and is kept anyway, because it is inside
+      # the "under 0.2 min combined" bucket and it is the only thing that runs the command's real exit-code path
+      # through the console application.
+      #
+      # **`bin/console scene:build --dry-run` used to run here and was 26.12 minutes of the 135.** It compiled
+      # every scene in the repository, which is work `composer test` had just finished doing to a stricter
+      # standard in `ShippedScenesTest`. The reasoning was already written down in `SceneBuildCommandTest`,
+      # which skips the identical whole-tree compile for exactly that reason; it had simply never been applied
+      # to the workflow.
+      #
+      # What went with it is the command's own no-argument path, which is now covered by the `full` job and by
+      # `SDWA5_FULL_REPLAY=1` rather than on every push. That is a real reduction and it is a small one: the
+      # branch is `array_map([$loader, 'load'], $loader->files())`, both halves of which are covered directly,
+      # and every scene it would have compiled is covered here anyway. `SceneBuildCommandTest` carries the
+      # longer version of this note, including why it was not replaced with a cheap throwaway-tree test.
       - run: bin/console specs:validate
-
-      - run: bin/console scene:build --dry-run
 
   # **The three static checks, in one job and ahead of nothing.** They cost seconds where the suite costs
   # minutes, so they run in parallel with it rather than gating it — a style violation and a failing solve are
@@ -38,6 +117,7 @@ jobs:
   # a rule would fail a push that changed no Python.
   static:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
 
@@ -45,6 +125,8 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
+          # PHPStan is the reason this job wants the JIT too; see the note in `phpunit`.
+          ini-values: opcache.enable_cli=1, opcache.jit_buffer_size=64M, opcache.jit=tracing
 
       - run: composer install --prefer-dist --no-progress --no-interaction
 
@@ -71,9 +153,13 @@ jobs:
   # local number says why: 23 m 20 s here against 2 h 15 m 20 s for the sampled `phpunit` on a runner, so the
   # runner is roughly 5.8× slower and the un-sampled replay of 1374 scenes has nowhere near the headroom. Until
   # it is sharded over a matrix or sampled harder — TOOL-20 — this is a button somebody presses, not a schedule.
+  # The JIT below takes a bite out of that and does not close the gap on its own.
   full:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
+    # Under the 360-minute ceiling on purpose, so an overrun fails with a log instead of being cancelled without
+    # one. That is the whole difference between TOOL-20 having three data points and having none.
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v5
 
@@ -81,6 +167,20 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
+          ini-values: opcache.enable_cli=1, opcache.jit_buffer_size=64M, opcache.jit=tracing
+
+      # The same guard as in `phpunit`, and it matters more here: this job is the one with a 330-minute budget,
+      # so an interpreted run is the difference between finishing and being killed.
+      - name: Confirm the JIT is actually on
+        run: |
+          php -r '
+            $status = function_exists("opcache_get_status") ? opcache_get_status(false) : null;
+            if (true !== ($status["jit"]["enabled"] ?? false)) {
+              fwrite(STDERR, "opcache JIT is OFF — this job needs it to fit in its timeout\n");
+              exit(1);
+            }
+            printf("JIT on: mode=%s buffer=%s\n", ini_get("opcache.jit"), ini_get("opcache.jit_buffer_size"));
+          '
 
       - run: composer install --prefer-dist --no-progress --no-interaction
 
@@ -105,6 +205,7 @@ jobs:
   # measured 1.5 s for 137 commits and 38 MB.
   secrets:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       GITLEAKS_VERSION: 8.30.1
     steps:

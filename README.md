@@ -255,11 +255,21 @@ ddev exec composer cs-fix                        # apply the coding standards
 pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and tools/
 ddev exec bin/console specs:validate             # same check CI runs
 ddev exec bin/console models:build --front-images  # cabinets wearing their front photograph
-ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed
+ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed — not a CI step, see below
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
 gitleaks dir . --redact --config .gitleaks.toml   # no secret in the working tree
 gitleaks git . --redact --config .gitleaks.toml   # nor anywhere in the history
 ```
+
+`scene:build --dry-run` with no argument is the one line above that CI does **not** run. It compiles all 2706
+scenes, which was 26 minutes of a 135-minute job and is work `composer test` already does to a stricter standard in
+`ShippedScenesTest`. It is still worth running by hand before a release, and `SDWA5_FULL_REPLAY=1 ddev exec composer
+test` runs it as part of the suite.
+
+The suite runs with opcache's tracing JIT on, configured in [`.ddev/php/opcache-jit.ini`](.ddev/php/opcache-jit.ini)
+and in `ini-values` on setup-php in the workflow. **Those two have to stay in step**, because `opcache.jit_buffer_size`
+can only be set at startup and a local timing that does not match CI's is worse than no local timing. Measured on an
+evenly spread 40-scene sample: 0.2327 s/scene interpreted against 0.1449 s/scene traced.
 
 The two `gitleaks` runs are the same ones [`.github/workflows/tests.yml`](.github/workflows/tests.yml) performs, and
 the same check runs in the other two SdWa5 repositories. They are going public, and a public repository publishes every

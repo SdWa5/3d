@@ -6,7 +6,24 @@
          failOnWarning="true"
          failOnRisky="true">
     <!-- The same JIT the CLI turns on in bin/console. The suite spends most of its time in the solver, and the
-         tests do not go through bin/console, so it has to be said twice. -->
+         tests do not go through bin/console, so it has to be said twice.
+
+         **ON ITS OWN THIS ENTRY DOES NOTHING, AND ON 2026-09-11 IT WAS DOING NOTHING.** `opcache.jit` is
+         settable at runtime but `opcache.jit_buffer_size` is `PHP_INI_SYSTEM` and defaults to 0, so with no
+         buffer this selects a mode for a compiler with nowhere to emit code. Measured in the project
+         container: buffer 0, `opcache_get_status()['jit']['enabled'] === false`. Whether a buffer was there
+         in an earlier image is not knowable from here.
+
+         **And with the buffer set, this suite is not one second faster for it**: 22:06.248 against 22:06.927.
+         The JIT is worth 1.57x on the solver commands and nothing measurable here, which is TOOL-22. This entry
+         stays because it costs nothing and because `SDWA5_FULL_REPLAY=1` turns this suite into something much
+         more command shaped. The buffer is now set at startup in
+         `.ddev/php/opcache-jit.ini` and in `ini-values` on setup-php in `.github/workflows/tests.yml`, and
+         that is what actually turned the JIT on. Worth 1.61x on the compile hot path, measured at
+         0.2327 s/scene interpreted against 0.1449 s/scene traced over an evenly spread 40-scene sample.
+
+         Kept rather than deleted for the same reason as the call in `bin/console`: it is still what turns the
+         JIT on where a buffer exists but no mode is set. -->
     <php>
         <ini name="opcache.jit" value="tracing"/>
     </php>

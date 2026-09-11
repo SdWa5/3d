@@ -4,6 +4,80 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.113.0] - 2026-09-11
+
+Every push cost 135 minutes of runner time and 26 of them were spent compiling scenes the suite had already
+compiled. That step is gone. The JIT two config files have asked for since this repository had a solver turned
+out not to be on at all, which is now fixed and guarded — worth 1.57x on the solver commands and, measured
+back to back, not one second on the test suite.
+
+### Changed
+
+- **The `bin/console scene:build --dry-run` step is gone from CI, which is 26.12 minutes of every push.**
+  Measured on run 33846381809, where `composer test` was 108.98 min and that one step was 26.12 min out of a
+  135-minute job. It compiled all 2706 scenes, which is work `ShippedScenesTest` does on every run to a stricter
+  standard — it checks that the scenes *stand up*, where the command only checks that they *compile*. The
+  reasoning was already written down in `SceneBuildCommandTest`, which skips the identical whole-tree compile
+  for exactly that reason and has done for releases. It had simply never been applied to the workflow.
+  What goes with it is the command's own no-argument path, now covered by the `full` job and by
+  `SDWA5_FULL_REPLAY=1` rather than on every push.
+- **Every job in the workflow states a `timeout-minutes`, and the workflow states a `concurrency` group.**
+  GitHub's default timeout is 360 minutes, and that default is what let `full` burn roughly 1644 minutes across
+  three nightly runs in September before anybody saw a log, because a job cancelled at the ceiling reports only
+  that it was cancelled. The concurrency group cancels a superseded push, which on 8 September would have saved
+  four of five overlapping 135-minute jobs. It is deliberately **not** applied on `main`, because a merge
+  commit's green run is what a release is judged by.
+- `bin/console specs:validate` stays in CI despite duplicating `SpecsValidateCommandTest`. It is inside the
+  "under 0.2 min combined" bucket and it is the only thing that runs the command's real exit-code path through
+  the console application.
+
+### Fixed
+
+- **`ShippedScenesTest` rebuilt both of its loaders on every one of 2485 data-provider cases.** `compile()`
+  opened a fresh `SpecLoader` and re-parsed all 38 spec YAMLs per case, then opened a fresh `SceneLoader` and
+  called `find()` — which walks and sorts all 2727 scene files — to locate a path the provider had just handed
+  it. Measured per call: `loadAll()` 6.3 ms, `find()` 3.7 ms, `load()` on a path you already have 0.5 ms. The
+  spec library and the file list are now built once per class, and the path form is loaded rather than searched
+  for. Measured across the suite: **1347.6 s to 1322.9 s, so 24.6 s**, against 25.0 s predicted from the
+  per-call numbers. The bare-id form still goes through `find()`, because that is the case that needs its
+  ambiguity check.
+- **The opcache JIT was not on, in CI or locally.** `phpunit.xml` and `bin/console` both set
+  `opcache.jit=tracing` at runtime on the stated premise that the image ships a 64 MB JIT buffer. Measured in
+  the project container: `opcache.jit_buffer_size => 0` and `opcache_get_status()['jit']['enabled'] === false`.
+  `opcache.jit_buffer_size` is `PHP_INI_SYSTEM`, so it can only be set at startup and `ini_set()` cannot raise
+  it — which means both of those calls were selecting a mode for a compiler with nowhere to emit code, and both
+  kept succeeding while doing nothing. It is now set at startup in `.ddev/php/opcache-jit.ini` and in
+  `ini-values` on setup-php, and **those two have to stay in step**.
+- The comments in `bin/console` and `phpunit.xml` that asserted the buffer was already there are corrected.
+  Whether it was ever there is not knowable now: the image may have shipped one when 0.85.0 measured a fifth
+  off the sweep and lost it in a later bump, which is a silent regression nothing would report.
+
+### Added
+
+- **A CI step that fails the build when the JIT is off**, before `composer test` in both `phpunit` and `full`.
+  This is the guard the finding above argues for: every runtime way of asking for the JIT succeeds whether or
+  not there is a buffer, so the failure is silent by construction and cost this repository an unknown number of
+  releases. Verified three ways — JIT on exits 0 and prints the mode and buffer, a zero buffer exits 1 with
+  `opcache JIT is OFF (mode=(none), buffer=0)`, and opcache missing entirely exits 1 with its own message.
+- `.ddev/php/opcache-jit.ini`, so a local timing measures what CI measures.
+
+### Measured, and worth stating plainly
+
+- **The JIT is worth 1.57x on the solver commands and nothing at all on the test suite. Both are measured.**
+  A bare `scene:stack` sweep in one process is 18.1 s with it and 28.5 s without, three repeats each with a
+  spread under 0.2 s. An evenly spread 40-scene compile loop is 0.1449 s/scene against 0.2327 s/scene. The full
+  suite is **22:06.248 with the JIT against 22:06.927 without it**, same code, same machine, back to back — the
+  same number twice, and identical at 3266 tests and 163592 assertions either way.
+- **Why the suite does not benefit is not established**, and two plausible explanations were tested and ruled
+  out. It is not buffer exhaustion: `opcache_get_status()` at the end of a PHPUnit run reports 1.52% of the
+  64 MB used, with `enabled=true on=true` and 677 cached scripts. It is not `phpunit.xml` setting the mode a
+  second time at runtime: on a quiet machine that costs 0.1450 s/scene against 0.1451 s/scene without it. An
+  earlier measurement that appeared to show the opposite was taken while a second suite run was loading the
+  machine to a load average of 26, and is withdrawn. Filed as TOOL-22.
+- The JIT is kept on all three jobs regardless, because the commands are where the minutes are, because
+  `SDWA5_FULL_REPLAY=1` turns the suite into something command shaped, and because it costs nothing.
+- The suite is green throughout: 3266 tests, 163592 assertions, 2 skipped.
+
 ## [0.112.0] - 2026-09-11
 
 A tops row that lands in more than one run had its outer run dealt out to both ends of the rig instead of

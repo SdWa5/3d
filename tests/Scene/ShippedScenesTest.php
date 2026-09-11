@@ -33,6 +33,69 @@ use PHPUnit\Framework\TestCase;
 final class ShippedScenesTest extends TestCase
 {
     /**
+     * The spec library and the scene loader, built once for the whole class instead of once per case.
+     *
+     * **THIS WAS 2661 FULL RE-READS OF `specs/` AND `scenes/`, AND IT BOUGHT NOTHING.** `compile()` runs once
+     * per data-provider case, and it used to open a fresh {@see SpecLoader} and re-parse all 38 spec YAMLs
+     * every single time, then open a fresh {@see SceneLoader} and call `find()` — which walks and sorts all
+     * 2727 scene files — in order to locate a path the provider had just handed it. Measured per call:
+     * `loadAll()` 6.3 ms, `find()` 3.7 ms, `load()` on a path you already have 0.5 ms. Across the class that
+     * is about 25 s locally.
+     *
+     * **Static is safe here and only here.** Nothing in this class writes, so neither input can change under
+     * it mid-run, and no test anywhere in the suite writes into `specs/`. It must **not** be hoisted into a
+     * shared helper for {@see \App\Tests\Command\SceneStackTestCase},
+     * {@see \App\Tests\Command\BuildAllCommandTest} or {@see SceneKeyTest}, all of
+     * which write into `scenes/generated/` during a test and need a listing that reflects what they wrote.
+     *
+     * Lazy accessors rather than `setUpBeforeClass()`, because {@see sceneCases} is a data provider and PHPUnit
+     * runs providers during discovery, before any class fixture has been set up.
+     *
+     * @var array<string, DeviceSpec>|null
+     */
+    private static ?array $devices = null;
+
+    private static ?SceneLoader $loader = null;
+
+    /** @var list<string>|null */
+    private static ?array $files = null;
+
+    /**
+     * @return array<string, DeviceSpec>
+     */
+    private static function devices(): array
+    {
+        if (null === self::$devices) {
+            $devices = [];
+            foreach ((new SpecLoader(self::project().'/specs'))->loadAll()['specs'] as $spec) {
+                /** @var DeviceSpec $spec */
+                $devices[$spec->id] = $spec;
+            }
+            self::$devices = $devices;
+        }
+
+        return self::$devices;
+    }
+
+    private static function loader(): SceneLoader
+    {
+        return self::$loader ??= new SceneLoader(self::project().'/scenes');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function files(): array
+    {
+        return self::$files ??= self::loader()->files();
+    }
+
+    private static function project(): string
+    {
+        return dirname(__DIR__, 2);
+    }
+
+    /**
      * How far two nominal cabinets may reach into each other before it counts.
      *
      * Not float noise — a millimetre is enormous next to that. It is the one approximation the compiler
@@ -77,9 +140,8 @@ final class ShippedScenesTest extends TestCase
      */
     public static function sceneCases(): iterable
     {
-        $project = dirname(__DIR__, 2);
-        $loader = new SceneLoader($project.'/scenes');
-        foreach ($loader->files() as $file) {
+        $project = self::project();
+        foreach (self::files() as $file) {
             if (Feasibility::isImpossibleId(basename($file, '.yaml'))) {
                 continue;
             }
@@ -104,15 +166,11 @@ final class ShippedScenesTest extends TestCase
      */
     public function testEveryImpossibleSceneReallyFailsACheck(): void
     {
-        $project = dirname(__DIR__, 2);
-        $loader = new SceneLoader($project.'/scenes');
-        $specs = [];
-        foreach ((new SpecLoader($project.'/specs'))->loadAll()['specs'] as $spec) {
-            $specs[$spec->id] = $spec;
-        }
+        $loader = self::loader();
+        $specs = self::devices();
 
         $checked = 0;
-        foreach ($loader->files() as $file) {
+        foreach (self::files() as $file) {
             $id = basename($file, '.yaml');
             if (!Feasibility::isImpossibleId($id)) {
                 continue;
@@ -427,19 +485,22 @@ final class ShippedScenesTest extends TestCase
 
     private function compile(string $sceneId): array
     {
-        $project = dirname(__DIR__, 2);
-
-        $devices = [];
-        foreach ((new SpecLoader($project.'/specs'))->loadAll()['specs'] as $spec) {
-            /** @var DeviceSpec $spec */
-            $devices[$spec->id] = $spec;
-        }
+        $devices = self::devices();
 
         // A case from {@see sceneCases} is a project-relative path and is resolved here rather than left to the
         // process's working directory; the hand-written cases below are still bare ids, which are unique.
-        $wanted = str_contains($sceneId, '/') ? $project.'/'.$sceneId : $sceneId;
-        $scene = (new SceneLoader($project.'/scenes'))->find($wanted)['scene'];
-        self::assertNotNull($scene, "no scene '{$sceneId}'");
+        //
+        // **The path form is loaded rather than searched for, which is the whole of the 3.2 ms per case.**
+        // {@see SceneLoader::find} exists to resolve a bare id, and to do that it has to walk and sort all 2727
+        // files and then report an ambiguity if the id names more than one. A path out of {@see sceneCases}
+        // came from `files()` in the first place, so it exists by construction and there is nothing to resolve.
+        // The bare-id branch still goes through `find()`, because that is exactly the case that needs it.
+        if (str_contains($sceneId, '/')) {
+            $scene = self::loader()->load(self::project().'/'.$sceneId);
+        } else {
+            $scene = self::loader()->find($sceneId)['scene'];
+            self::assertNotNull($scene, "no scene '{$sceneId}'");
+        }
 
         $result = (new SceneCompiler($devices))->compile($scene);
 
