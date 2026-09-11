@@ -266,10 +266,23 @@ scenes, which was 26 minutes of a 135-minute job and is work `composer test` alr
 `ShippedScenesTest`. It is still worth running by hand before a release, and `SDWA5_FULL_REPLAY=1 ddev exec composer
 test` runs it as part of the suite.
 
+`composer test` is **9 min 04 s** on twenty-eight cores. Most of it used to be one test: `ShippedScenesTest` checks
+every shipped scene for a cabinet hanging in the air or sitting inside another, and it walked all 2489 of them down
+one core for 10 minutes. It now runs one case per inventory and solves the scenes inside each across cores, through
+the same `Parallel` the sweep uses. **The library is still checked whole and is never sampled** — that is the
+promise the class exists for, and a test asserts that the chunks hold every scene on disk, because a case is now an
+inventory rather than a scene and a dropped one would no longer even shorten the list of test names.
+
 The suite runs with opcache's tracing JIT on, configured in [`.ddev/php/opcache-jit.ini`](.ddev/php/opcache-jit.ini)
 and in `ini-values` on setup-php in the workflow. **Those two have to stay in step**, because `opcache.jit_buffer_size`
-can only be set at startup and a local timing that does not match CI's is worse than no local timing. Measured on an
-evenly spread 40-scene sample: 0.2327 s/scene interpreted against 0.1449 s/scene traced.
+can only be set at startup and a local timing that does not match CI's is worse than no local timing. It is worth
+about 1.5x on the commands and about 1.5x on the suite: 0.2085 s/scene interpreted against 0.1320 s/scene traced over
+an evenly spread 40-scene sample, and 0.3304 s/case against 0.2154 s/case for the 434 cases of `generated/next-event`
+inside PHPUnit.
+
+**To time an interpreted run, use `-d opcache.jit_buffer_size=0`.** `-d opcache.jit=off` does not work, because
+`phpunit.xml` sets the mode again at runtime and switches the JIT back on before a single test executes. That is what
+made 0.113.0 report the suite as gaining nothing.
 
 The two `gitleaks` runs are the same ones [`.github/workflows/tests.yml`](.github/workflows/tests.yml) performs, and
 the same check runs in the other two SdWa5 repositories. They are going public, and a public repository publishes every

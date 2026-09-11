@@ -42,15 +42,24 @@ jobs:
           # `opcache_get_status()['jit']['enabled'] === false`. setup-php sets no buffer either, so the runner
           # was in the same state. Stating it here is what makes it true rather than assumed.
           #
-          # **IT IS WORTH 1.57x ON THE COMMANDS AND EXACTLY NOTHING ON THIS SUITE, BOTH MEASURED.** A bare
-          # `scene:stack` sweep in one process is 18.1 s against 28.5 s, three repeats each. The full suite is
-          # 22:06.248 with the JIT against 22:06.927 without it, which is the same number twice. Why the suite
-          # does not benefit is not established: it is not the buffer (1.52% of 64 MB used at the end of a run)
-          # and not `phpunit.xml` setting the mode a second time at runtime (measured at no cost on a quiet
-          # machine). It is kept here anyway, because `full` un-skips a whole-tree compile that *is* command
-          # shaped, because it costs nothing, and because the guard below is what makes either statement
-          # checkable in future. `opcache.enable_cli` is in the list because setup-php leaves it off and a JIT
-          # buffer without opcache on the CLI buys nothing.
+          # **IT IS WORTH ABOUT 1.5x ON THE COMMANDS AND ABOUT 1.5x ON THIS SUITE, BOTH MEASURED.** A bare
+          # `scene:stack` sweep in one process is 18.1 s against 28.5 s, three repeats each. Inside PHPUnit, the
+          # 434 cases of `generated/next-event` are 0.2154 s each against 0.3304 s, which is 1.53x.
+          #
+          # **0.113.0 stated the opposite here and it was an artefact of how the JIT was turned off.** That
+          # release recorded 22:06.248 against 22:06.927 and concluded the suite could not benefit. The `<php>`
+          # block in `phpunit.xml` sets `opcache.jit=tracing` at runtime, so a run started with
+          # `php -d opcache.jit=off` has the JIT switched back on before a single test executes. Measured three
+          # ways on the same 107 cases: 4.93 s as configured, 5.36 s with `-d opcache.jit=off`, and 6.92 s with
+          # `-d opcache.jit_buffer_size=0`, which is the one form `ini_set` cannot undo because the buffer is
+          # `PHP_INI_SYSTEM`. Only the third is a genuinely interpreted run.
+          #
+          # **This is what the 90-minute timeout below rests on.** `composer test` was 108.98 min on run
+          # 33846381809 with the JIT off. At the measured ratio that is roughly 71 min, and the guard step is
+          # what keeps a silent regression from turning the budget back into an overrun.
+          #
+          # `opcache.enable_cli` is in the list because setup-php leaves it off and a JIT buffer without opcache
+          # on the CLI buys nothing.
           ini-values: opcache.enable_cli=1, opcache.jit_buffer_size=64M, opcache.jit=tracing
 
       # **THE GUARD, BECAUSE THIS EXACT REGRESSION ALREADY HAPPENED ONCE AND NOTHING REPORTED IT.**
@@ -60,9 +69,10 @@ jobs:
       # believing the solver was compiled while it was interpreted: two config files said `opcache.jit=tracing`,
       # both calls returned cleanly, and the suite went green at 1.61x the cost it needed to.
       #
-      # A silent 1.61x is worth a hard failure. If `ini-values` above ever stops being applied — a setup-php
+      # A silent 1.5x is worth a hard failure. If `ini-values` above ever stops being applied — a setup-php
       # change, a runner image change, a typo in the list — this turns it into a red build on the next push
-      # instead of a slow job nobody looks at.
+      # instead of a slow job nobody looks at. It is also the only thing standing between the 90-minute budget
+      # and a 108-minute interpreted run.
       - name: Confirm the JIT is actually on
         run: |
           php -r '
@@ -153,7 +163,7 @@ jobs:
   # local number says why: 23 m 20 s here against 2 h 15 m 20 s for the sampled `phpunit` on a runner, so the
   # runner is roughly 5.8× slower and the un-sampled replay of 1374 scenes has nowhere near the headroom. Until
   # it is sharded over a matrix or sampled harder — TOOL-20 — this is a button somebody presses, not a schedule.
-  # The JIT below takes a bite out of that and does not close the gap on its own.
+  # The JIT below takes about a third off and does not close the gap on its own.
   full:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest

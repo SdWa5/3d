@@ -14,13 +14,20 @@
          container: buffer 0, `opcache_get_status()['jit']['enabled'] === false`. Whether a buffer was there
          in an earlier image is not knowable from here.
 
-         **And with the buffer set, this suite is not one second faster for it**: 22:06.248 against 22:06.927.
-         The JIT is worth 1.57x on the solver commands and nothing measurable here, which is TOOL-22. This entry
-         stays because it costs nothing and because `SDWA5_FULL_REPLAY=1` turns this suite into something much
-         more command shaped. The buffer is now set at startup in
-         `.ddev/php/opcache-jit.ini` and in `ini-values` on setup-php in `.github/workflows/tests.yml`, and
-         that is what actually turned the JIT on. Worth 1.61x on the compile hot path, measured at
-         0.2327 s/scene interpreted against 0.1449 s/scene traced over an evenly spread 40-scene sample.
+         **AND THIS ENTRY IS WHY 0.113.0 CONCLUDED THE JIT WAS WORTH NOTHING ON THIS SUITE.** It measured
+         22:06.248 against 22:06.927 and read that as the same number twice. The line below is an `ini_set` that
+         runs before any test does, so a run started with `php -d opcache.jit=off` has the JIT switched **back
+         on** by this file and both halves of that comparison were traced. Measured three ways on the same 107
+         cases: 4.93 s as configured, 5.36 s with `-d opcache.jit=off`, and 6.92 s with
+         `-d opcache.jit_buffer_size=0` — the one form `ini_set` cannot undo, because the buffer is
+         `PHP_INI_SYSTEM`. Only the third is a genuinely interpreted run.
+
+         **On the real figure the suite gains about as much as the commands do**: the 434 cases of
+         `generated/next-event` are 0.2154 s each traced against 0.3304 s interpreted, which is 1.53x. The buffer
+         is set at startup in `.ddev/php/opcache-jit.ini` and in `ini-values` on setup-php in
+         `.github/workflows/tests.yml`, and that is what actually turned the JIT on.
+
+         **To time an interpreted run, use `-d opcache.jit_buffer_size=0` and nothing else.**
 
          Kept rather than deleted for the same reason as the call in `bin/console`: it is still what turns the
          JIT on where a buffer exists but no mode is set. -->

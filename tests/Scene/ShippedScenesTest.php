@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Scene;
 
+use App\Process\Parallel;
 use App\Scene\Feasibility;
 use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
@@ -12,6 +13,7 @@ use App\Scene\SceneCompiler;
 use App\Scene\SceneLoader;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
+use App\Spec\Violation;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -59,6 +61,9 @@ final class ShippedScenesTest extends TestCase
 
     /** @var list<string>|null */
     private static ?array $files = null;
+
+    /** @var array<string, list<string>>|null */
+    private static ?array $chunks = null;
 
     /**
      * @return array<string, DeviceSpec>
@@ -136,24 +141,98 @@ final class ShippedScenesTest extends TestCase
      * {@see Feasibility::isImpossibleId} is the single place that decides, so the writer and the test
      * cannot drift into disagreeing about which files are which.
      *
+     * **ONE CASE PER INVENTORY RATHER THAN PER SCENE, BECAUSE THE SCENES INSIDE ONE ARE RUN ACROSS CORES.**
+     * This provider yielded 2489 cases and PHPUnit ran them one after another on a single core for 689 s, which was
+     * 43 % of the whole suite. The work is embarrassingly parallel — nothing here writes, so no scene can see what
+     * another is doing — and this repository already forks two pipeline stages through {@see Parallel}. Measured
+     * over all 2489 scenes: 422.6 s in one process, 109.7 s on four cores and 40.7 s on twenty-eight.
+     *
+     * **Chunked rather than collapsed into one case.** A single case would hand PHPUnit one name for the entire
+     * library and one dot of progress for eleven minutes. The inventory directory is the chunk because it is a
+     * unit that already means something — `scenes/generated/next-event` is a rig somebody owns — and because it
+     * stays stable as the sweep grows: a new inventory adds a case rather than renumbering every existing one.
+     * Work is stolen inside a chunk, so the uneven sizes (7 scenes to 482) cost nothing.
+     *
+     * **The path, not the id, and that is not a cosmetic choice.** The inventory moved out of the generated file
+     * name and into a folder, so ten inventories now hold a
+     * `stacked-1-pooled--------free----turned--alternate-center-possible.yaml` each. Keyed on the id this provider
+     * fed PHPUnit ten identical keys — which it refuses outright — and before it refused, every one of those cases
+     * would have compiled whichever of the ten `SceneLoader::find()` happened to reach first. A path is unique by
+     * construction, and it is still what every fault message below names.
+     *
+     * **The case carries the directory and nothing else**, and the scenes are looked up from it. Handing PHPUnit
+     * the list itself works and reads terribly: a failed case prints its own arguments, so one broken scene in
+     * `next-event` would head its report with 434 truncated paths before saying what went wrong.
+     *
      * @return iterable<string, array{string}>
      */
     public static function sceneCases(): iterable
     {
+        foreach (array_keys(self::chunks()) as $where) {
+            yield $where => [$where];
+        }
+    }
+
+    /**
+     * The scenes this test holds to standing up, grouped by the directory they live in.
+     *
+     * @return array<string, list<string>>
+     */
+    private static function chunks(): array
+    {
+        if (null !== self::$chunks) {
+            return self::$chunks;
+        }
+
         $project = self::project();
+        $chunks = [];
         foreach (self::files() as $file) {
             if (Feasibility::isImpossibleId(basename($file, '.yaml'))) {
                 continue;
             }
-            // **THE PATH, NOT THE ID, AND THAT IS NOT A COSMETIC CHOICE.** The inventory moved out of the generated
-            // file name and into a folder, so ten inventories now hold a
-            // `stacked-1-pooled--------free----turned--alternate-center-possible.yaml` each. Keyed on the id this
-            // provider fed PHPUnit ten identical keys — which it refuses outright — and before it refused, every
-            // one of those cases would have compiled whichever of the ten `SceneLoader::find()` happened to reach
-            // first. A path is unique by construction.
             $relative = substr($file, strlen($project) + 1);
-            yield $relative => [$relative];
+            $chunks[dirname($relative)][] = $relative;
         }
+        ksort($chunks);
+
+        return self::$chunks = $chunks;
+    }
+
+    /**
+     * The chunks are the whole library, which is the one promise chunking could quietly break.
+     *
+     * **This repository has already shipped the failure this guards against.** Before 0.99.0 the provider was keyed
+     * on the scene id, ten inventories held the same id, and PHPUnit kept one case per key — so the class checked
+     * **nine scenes while reporting that it checked every one**, and it took a duplicate-key error rather than a
+     * measurement to surface it. A case was one scene then, so a missing scene was at least a missing name in the
+     * report. A case is now a whole inventory, so a scene dropped by {@see chunks} would not even shorten the list
+     * of test names: it would shorten one array nobody prints.
+     *
+     * Hence the count is asserted against the files on disk rather than against a number written down here. A
+     * literal would have to be edited by whoever adds an inventory, which is the same person who would have to
+     * notice the problem.
+     */
+    public function testTheChunksHoldEveryScenePresentExceptTheImpossibleOnes(): void
+    {
+        $project = self::project();
+        $expected = [];
+        foreach (self::files() as $file) {
+            if (!Feasibility::isImpossibleId(basename($file, '.yaml'))) {
+                $expected[] = substr($file, strlen($project) + 1);
+            }
+        }
+
+        $chunked = array_merge(...array_values(self::chunks()));
+        sort($chunked);
+        sort($expected);
+
+        self::assertNotSame([], $expected, 'there are no scenes on disk at all');
+        self::assertSame(
+            count($expected),
+            count($chunked),
+            sprintf('%d scenes on disk, %d in the chunks', count($expected), count($chunked)),
+        );
+        self::assertSame($expected, $chunked);
     }
 
     /**
@@ -166,31 +245,54 @@ final class ShippedScenesTest extends TestCase
      */
     public function testEveryImpossibleSceneReallyFailsACheck(): void
     {
-        $loader = self::loader();
-        $specs = self::devices();
-
-        $checked = 0;
+        $project = self::project();
+        $impossible = [];
         foreach (self::files() as $file) {
-            $id = basename($file, '.yaml');
-            if (!Feasibility::isImpossibleId($id)) {
-                continue;
+            if (Feasibility::isImpossibleId(basename($file, '.yaml'))) {
+                // **KEYED BY PATH, NEVER BY ID.** Ten inventories hold an impossible rig of the same name, so an
+                // id-keyed map would quietly check one of them and drop the other nine.
+                $relative = substr($file, strlen($project) + 1);
+                $impossible[$relative] = $relative;
             }
-
-            ++$checked;
-            $placed = (new SceneCompiler($specs))->compile($loader->load($file))['placed'];
-            $faults = [
-                ...PlacementChecks::floatingFaults($placed),
-                ...Interpenetration::faults($placed, PlacementChecks::CONTACT_TOLERANCE_M),
-            ];
-
-            self::assertNotSame(
-                [],
-                $faults,
-                $id.' is named impossible and passes every check — either the solver improved or the name is wrong',
-            );
         }
 
-        self::assertGreaterThan(0, $checked, 'the sweep writes impossible rigs, so some should be on disk');
+        self::assertNotSame([], $impossible, 'the sweep writes impossible rigs, so some should be on disk');
+
+        $standing = array_filter(Parallel::map(
+            $impossible,
+            static fn (string $relative): ?string => self::impossibleSceneThatStands($relative),
+        ));
+
+        self::assertSame(
+            [],
+            array_values($standing),
+            'named impossible and passing every check — either the solver improved or the names are wrong',
+        );
+    }
+
+    /**
+     * The scene's own path when a rig named impossible turns out to stand up, and null when it properly fails.
+     *
+     * **Nothing is asserted in here, because this runs in a forked child.** An assertion that fails in a child dies
+     * with it and comes back as "a worker produced nothing" rather than as the message it was written to give, so
+     * the answer is carried home as data and judged by the parent. Same rule as
+     * {@see \App\Tests\Command\BuildAllCommandTest::testReplayingEveryRecordedCommandRewritesExactlyTheSameSceneSet}.
+     *
+     * The check set is deliberately **not** the one {@see faultsIn} applies. This asks the two questions the
+     * *writer* refuses a candidate on, out of `src/`, because that is the promise being held to: a rig the sweep
+     * called impossible has to fail the sweep's own test.
+     */
+    private static function impossibleSceneThatStands(string $relative): ?string
+    {
+        $placed = (new SceneCompiler(self::devices()))
+            ->compile(self::loader()->load(self::project().'/'.$relative))['placed'];
+
+        $faults = [
+            ...PlacementChecks::floatingFaults($placed),
+            ...Interpenetration::faults($placed, PlacementChecks::CONTACT_TOLERANCE_M),
+        ];
+
+        return [] === $faults ? $relative : null;
     }
 
     /**
@@ -278,26 +380,75 @@ final class ShippedScenesTest extends TestCase
      *
      * A cabinet counts as supported when something's top face is at its bottom face and the two overlap in
      * plan. Flown cabinets are exempt: hanging in the air is the entire point of them.
+     *
+     * One case is one inventory, and its scenes are checked across cores; see {@see sceneCases}.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('sceneCases')]
-    public function testEveryCabinetStandsOnSomethingAndInsideNothing(string $sceneId): void
+    public function testEveryCabinetStandsOnSomethingAndInsideNothing(string $where): void
     {
-        // **ONE COMPILE, TWO CHECKS, AND THAT IS WORTH A LINE.** These were two tests over the same data provider,
-        // so every scene in the repository was compiled twice — 25 minutes at 2688 scenes, for two questions that
-        // read the same geometry. Merged, it is half that and nothing is checked less. What a merge usually costs
-        // is a failure that does not name its own cause; it does not here, because each assertion carries its own
-        // message and the scene's path.
-        $placed = $this->compile($sceneId);
+        $scenes = self::chunks()[$where] ?? [];
 
-        $this->assertEveryCabinetIsCarried($placed, $sceneId);
-        $this->assertNoTwoCabinetsAreInsideEachOther($placed, $sceneId);
+        self::assertNotSame([], $scenes, "no scenes under {$where}, so this case checks nothing");
+
+        // **EVERY FAULT IN THE INVENTORY, NOT THE FIRST ONE.** A forked run costs the same whether one scene is
+        // broken or forty, so there is no reason to stop at the first — and a list of forty names is what tells
+        // somebody whether they broke a rig or broke the solver.
+        $faults = array_merge(...array_values(Parallel::map(
+            $scenes,
+            static fn (string $relative): array => self::faultsIn($relative),
+        )));
+
+        self::assertSame(
+            [],
+            $faults,
+            sprintf('%d of the %d scenes under %s do not stand up', count($faults), count($scenes), $where),
+        );
+    }
+
+    /**
+     * Everything wrong with one scene, as messages — nothing asserted, because this runs in a forked child.
+     *
+     * **ONE COMPILE, THREE CHECKS, AND THAT IS WORTH A LINE.** The carrying check and the overlap check were once
+     * two tests over the same data provider, so every scene in the repository was compiled twice — 25 minutes at
+     * 2688 scenes, for two questions that read the same geometry. Merged, it is half that and nothing is checked
+     * less. What a merge usually costs is a failure that does not name its own cause; it does not here, because
+     * every message below carries the scene's own path.
+     *
+     * **And it returns strings rather than asserting**, which is what lets {@see Parallel} run it across cores: an
+     * assertion that fails inside a child dies with the child and surfaces as "a worker produced nothing" instead
+     * of as the message it was written to give.
+     *
+     * @return list<string>
+     */
+    private static function faultsIn(string $relative): array
+    {
+        $result = (new SceneCompiler(self::devices()))->compile(self::loader()->load(self::project().'/'.$relative));
+
+        // Errors only: a shipped scene may carry warnings — `full-rig-all-speakers` reports a stepped mixed row and
+        // an 18 mm overhang — and those describe a rig that builds rather than one that does not.
+        $faults = [];
+        foreach (Violation::errorsIn($result['violations']) as $violation) {
+            $faults[] = sprintf("scene '%s' does not compile cleanly: %s", $relative, $violation->message);
+        }
+
+        $placed = $result['placed'];
+        if ([] === $placed) {
+            $faults[] = "'{$relative}' placed nothing";
+
+            return $faults;
+        }
+
+        return [...$faults, ...self::carryingFaults($placed, $relative), ...self::overlapFaults($placed, $relative)];
     }
 
     /**
      * @param list<PlacedDevice> $placed
+     *
+     * @return list<string>
      */
-    private function assertEveryCabinetIsCarried(array $placed, string $where): void
+    private static function carryingFaults(array $placed, string $where): array
     {
+        $faults = [];
         foreach ($placed as $entry) {
             $box = $entry->worldBox();
             if ($box['min'][2] < self::CONTACT_TOLERANCE_M || null !== $entry->flyPoint) {
@@ -320,21 +471,21 @@ final class ShippedScenesTest extends TestCase
             // under a 20 mm overhang and reported a properly built rig as resting 89° out of level. A narrower
             // check that is right beats a broader one that is not.
             foreach (['x' => 0, 'y' => 1] as $name => $axis) {
-                $bearing = $this->bearingOf($entry, $placed, $axis);
+                if (self::bearingOf($entry, $placed, $axis) > 0.0) {
+                    continue;
+                }
 
-                self::assertGreaterThan(
-                    0.0,
-                    $bearing,
-                    sprintf(
-                        '%s in %s sits at %.3f m with nothing under its %s extent',
-                        $entry->placementId,
-                        $where,
-                        $box['min'][2],
-                        $name,
-                    ),
+                $faults[] = sprintf(
+                    '%s in %s sits at %.3f m with nothing under its %s extent',
+                    $entry->placementId,
+                    $where,
+                    $box['min'][2],
+                    $name,
                 );
             }
         }
+
+        return $faults;
     }
 
     /**
@@ -345,7 +496,7 @@ final class ShippedScenesTest extends TestCase
      *
      * @param list<PlacedDevice> $placed
      */
-    private function bearingOf(PlacedDevice $entry, array $placed, int $axis): float
+    private static function bearingOf(PlacedDevice $entry, array $placed, int $axis): float
     {
         $box = $entry->worldBox();
         $extent = $box['max'][$axis] - $box['min'][$axis];
@@ -396,20 +547,20 @@ final class ShippedScenesTest extends TestCase
 
     /**
      * @param list<PlacedDevice> $placed
+     *
+     * @return list<string>
      */
-    private function assertNoTwoCabinetsAreInsideEachOther(array $placed, string $where): void
+    private static function overlapFaults(array $placed, string $where): array
     {
-        self::assertNotSame([], $placed, "'{$where}' placed nothing");
-
         // The separating-axis geometry lives in `src/` now, because `scene:stack` refuses a candidate on this same
         // test before writing it — see {@see \App\Scene\Interpenetration}. Two copies would have drifted.
         ['separation' => $worst, 'pair' => $offenders] = Interpenetration::worst($placed);
 
-        self::assertGreaterThan(
-            -self::TOLERANCE_M,
-            $worst,
-            sprintf('%s are %.4f m inside each other in %s', $offenders, -$worst, $where),
-        );
+        if ($worst > -self::TOLERANCE_M) {
+            return [];
+        }
+
+        return [sprintf('%s are %.4f m inside each other in %s', $offenders, -$worst, $where)];
     }
 
     /**
@@ -485,30 +636,20 @@ final class ShippedScenesTest extends TestCase
 
     private function compile(string $sceneId): array
     {
-        $devices = self::devices();
+        // **This resolves a bare id, and only a bare id.** {@see SceneLoader::find} walks and sorts all 2727 files
+        // and reports an ambiguity when an id names more than one, which is exactly what the four hand-written
+        // cases below need and exactly what the library sweep must not pay. {@see faultsIn} takes the path form
+        // straight out of {@see files}, where it exists by construction and there is nothing to resolve.
+        $scene = self::loader()->find($sceneId)['scene'];
+        self::assertNotNull($scene, "no scene '{$sceneId}'");
 
-        // A case from {@see sceneCases} is a project-relative path and is resolved here rather than left to the
-        // process's working directory; the hand-written cases below are still bare ids, which are unique.
-        //
-        // **The path form is loaded rather than searched for, which is the whole of the 3.2 ms per case.**
-        // {@see SceneLoader::find} exists to resolve a bare id, and to do that it has to walk and sort all 2727
-        // files and then report an ambiguity if the id names more than one. A path out of {@see sceneCases}
-        // came from `files()` in the first place, so it exists by construction and there is nothing to resolve.
-        // The bare-id branch still goes through `find()`, because that is exactly the case that needs it.
-        if (str_contains($sceneId, '/')) {
-            $scene = self::loader()->load(self::project().'/'.$sceneId);
-        } else {
-            $scene = self::loader()->find($sceneId)['scene'];
-            self::assertNotNull($scene, "no scene '{$sceneId}'");
-        }
-
-        $result = (new SceneCompiler($devices))->compile($scene);
+        $result = (new SceneCompiler(self::devices()))->compile($scene);
 
         // Errors only: a shipped scene may carry warnings — `full-rig-all-speakers` reports a stepped mixed
         // row and an 18 mm overhang — and those describe a rig that builds rather than one that does not.
         self::assertSame(
             [],
-            array_map(static fn ($v): string => $v->message, \App\Spec\Violation::errorsIn($result['violations'])),
+            array_map(static fn ($v): string => $v->message, Violation::errorsIn($result['violations'])),
             "scene '{$sceneId}' does not compile cleanly",
         );
 
