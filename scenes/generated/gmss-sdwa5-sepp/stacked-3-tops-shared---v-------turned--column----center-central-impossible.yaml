@@ -5,9 +5,7 @@
 #
 #   * a turbo-top stands at 0.600 m with nothing under it across x
 #   * a turbo-top stands at 0.600 m with nothing under it across x
-#   * a turbo-top stands at 0.600 m with nothing under it across x
-#   * main-ours-2/2c-1 and main-ours-2/2a-2 are 0.4573 m inside each other
-#   * main-ours-2/1c and main-ours-2/2a-2 are 0.0100 m inside each other
+#   * main-ours-2/2b and main-ours-2/2a-2 are 0.0057 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

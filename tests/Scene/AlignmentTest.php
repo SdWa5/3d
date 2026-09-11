@@ -295,6 +295,61 @@ final class AlignmentTest extends TestCase
     }
 
     /**
+     * **A STATED `side` MOVES THE WHOLE RUN, IT DOES NOT SPLIT IT DOWN THE MIDDLE.**.
+     *
+     * A clearance solve with a side is a group that sits entirely on one side of its reference, so it translates.
+     * Splitting it by the sign of each copy's own offset — which is right for a straddling pair and is what the four
+     * hand-written `outside: tops` scenes want — sends the inner half of the run straight through the thing it was
+     * told to stay clear of, and the further the solve pushes, the further through it goes.
+     *
+     * Not hypothetical. {@see \App\Scene\Stack::throwFirst} states a side for every chained run of a tops row, so
+     * a fill run of two or more cabinets met this every time it occurred. On
+     * `stacked-1-systems-apart-free----mixed---centred---center-low-----impossible` the psl tops row landed as three
+     * cabinets and then two, and the pair was dealt ±2.7735 m about its own centre instead of being translated
+     * 0.0553 m: one of them ended 3.0243 m past its place in the row — about a whole row width — and 0.2020 m inside a
+     * cabinet of the stack next door.
+     */
+    public function testAStatedSideTranslatesTheWholeRunInsteadOfSplittingIt(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top', 'at' => [0.0, 0.0], 'row' => ['count' => 1]],
+            ['id' => 'fills', 'device' => 'sub', 'at' => [0.2, 0.0],
+                'align' => ['mode' => 'stereo', 'clear_of' => 'tops', 'inset_m' => 0.02, 'side' => 'right'],
+                'row' => ['count' => 2, 'gap_m' => 0.02]],
+        ]);
+
+        $tops = array_slice($placed, 0, 1);
+        $fills = array_slice($placed, 1);
+
+        // Two 0.6 m subs at their own 20 mm gap start at 0.2 ± 0.31 and overlap the 0.5 m top on the centre line.
+        // Translated right until the inner one's left face is at 0.25 + 0.02, so 0.57 and 1.19 — the pair still
+        // 1.22 m across, which is the two bodies plus the one gap they were given.
+        self::assertEqualsWithDelta([0.57, 1.19], $this->positions($fills), 1e-6);
+        self::assertEqualsWithDelta(1.22, $this->extent($fills), 1e-6);
+        self::assertEqualsWithDelta(0.02, Interpenetration::gapBetween($fills, $tops), 1e-6);
+    }
+
+    /**
+     * And without a side it still splits, because a pair that straddles its reference is the other real case.
+     *
+     * `full-rig-arc`, `full-rig-arc-turned`, `full-rig-truss` and `both-systems-side-by-side` all write
+     * `outside: tops` on a `count: 2` row with no side, meaning one fill each way. Reading the column split off the
+     * sign of each copy's own offset is what gives them that without anybody counting.
+     */
+    public function testWithoutAStatedSideAStraddlingPairIsStillSplit(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'tops', 'device' => 'top', 'at' => [0.0, 0.0], 'row' => ['count' => 1]],
+            ['id' => 'fills', 'device' => 'sub', 'at' => [0.0, 0.0],
+                'align' => ['mode' => 'stereo', 'clear_of' => 'tops', 'inset_m' => 0.02],
+                'row' => ['count' => 2, 'gap_m' => 0.02]],
+        ]);
+
+        // One each side of a 0.5 m top: inner faces at ±0.27, centres at ±0.57.
+        self::assertEqualsWithDelta([-0.57, 0.57], $this->positions(array_slice($placed, 1)), 1e-6);
+    }
+
+    /**
      * `inset_m` is a **minimum**, so cabinets already further out are left exactly where they are.
      *
      * Not merely permissive — it is the reading that keeps other decisions intact. A fill that gravity re-seated

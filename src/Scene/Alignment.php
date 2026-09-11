@@ -94,14 +94,18 @@ final class Alignment
          * `clear_of`, the clearance to keep from it. */
         public readonly float $insetM = 0.0,
         /**
-         * Which way a cabinet **on the centre line** is pushed: `-1` left, `+1` right, `0` to work it out from
-         * where the cabinet already sits.
+         * Which way the whole group is pushed under `outside` or `clear_of`: `-1` left, `+1` right, `0` to work it
+         * out from where each cabinet already sits.
          *
-         * Only ever needed for a lone cabinet, and only under `outside`. Every other case derives its side from
-         * the sign of the copy's own offset — that *is* the column split, which is why a row of four gives two
-         * columns of two without anybody counting. A single copy sits at offset 0, so there is no sign to read
-         * and the arrangement cannot say which way "outboard" is. A stack knows: its fill is the segment beside
-         * the long throw, and which side of it is a fact about the tier.
+         * **A stated side says the group is on one side of its reference, and that is a statement about the group
+         * rather than about one cabinet in it.** So it governs every copy and the group translates. Without one,
+         * each copy derives its side from the sign of its own offset — that *is* the column split, which is why a
+         * row of four gives two columns of two without anybody counting, and which is what the four hand-written
+         * `outside: tops` scenes want, their two fills straddling the tops.
+         *
+         * A lone cabinet needs it in either case, since a single copy sits at offset 0 and has no sign to read.
+         * A stack knows the answer for both: its fill is the segment beside the long throw, and which side of it
+         * is a fact about the tier. See {@see columnOf} for what a split did to a fill run of two.
          */
         public readonly float $side = 0.0,
     ) {
@@ -365,9 +369,27 @@ final class Alignment
      *
      * For `stereo` this *is* the column split, and it falls out of the natural offsets rather than being
      * counted: a row of four has two copies each side, a row of five has two each side and one on zero.
+     *
+     * **A STATED SIDE OVERRIDES THE SPLIT FOR EVERY COPY, NOT ONLY FOR THE ONE ON THE CENTRE LINE.** A clearance
+     * solve moves a group that is *entirely* on one side of its reference, so it is a translation rather than a
+     * split, and splitting it sends half the group straight through the thing it was told to stay clear of. That
+     * is not a corner case: {@see Stack::throwFirst} chains every run of a tops row against its inner neighbour
+     * and states the side each time, so a fill run of two or more cabinets hit it every time one occurred.
+     * Measured on `stacked-1-systems-apart-free----mixed---centred---center-low-----impossible`, whose psl tops
+     * row lands as three cabinets and then two: the pair was dealt ±2.7735 m about its own centre instead of
+     * being moved 0.05 m to the right, which put one of them 3.0243 m past its place in the row and 0.2020 m
+     * inside a cabinet of the neighbouring stack.
+     *
+     * Only under `outside` and `clear_of`, which is the only place a side is ever stated, and the four
+     * hand-written scenes that use `outside: tops` state none — their two fills genuinely straddle the tops and
+     * genuinely want the split.
      */
     private function columnOf(float $x): float
     {
+        if ($this->isClearance() && 0.0 !== $this->side) {
+            return $this->side;
+        }
+
         if (abs($x) >= self::CENTRE_EPSILON_M) {
             return $x < 0.0 ? -1.0 : 1.0;
         }

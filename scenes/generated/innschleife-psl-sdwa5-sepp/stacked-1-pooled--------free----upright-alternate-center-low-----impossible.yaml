@@ -3,19 +3,13 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * a concert-audio-ef6 stands at 1.980 m with nothing under it across x
-#   * a concert-audio-ef6 stands at 1.980 m with nothing under it across x
-#   * a tecnare-m2122 stands at 1.800 m with nothing under it across x
+#   * a tms2 stands at 1.780 m with nothing under it across x
 #   * a eighteensound-2way-15 stands at 1.780 m with nothing under it across x
-#   * a hk-linear5-112x stands at 1.750 m with nothing under it across x
 #   * a thebox-achat-112m stands at 1.700 m with nothing under it across x
-#   * main/3k-2 and main/3m are 0.5975 m inside each other
-#   * main/3i and main/3k-1 are 0.5061 m inside each other
-#   * main/3j and main/3h-2 are 0.4999 m inside each other
-#   * main/3g and main/3e are 0.4256 m inside each other
-#   * main/3h-1 and main/3f are 0.4051 m inside each other
-#   * main/2f and main/3h-2 are 0.0180 m inside each other
-#   * main/3h-1 and main/3e are 0.0158 m inside each other
+#   * main/3d and main/3b are 0.3577 m inside each other
+#   * main/3e and main/3c are 0.3174 m inside each other
+#   * main/3d and main/3a are 0.0231 m inside each other
+#   * main/2b and main/3b are 0.0019 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

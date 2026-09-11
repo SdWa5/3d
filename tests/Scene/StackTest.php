@@ -385,6 +385,67 @@ final class StackTest extends TestCase
     }
 
     /**
+     * **A TOPS ROW THAT LANDS IN TWO RUNS STAYS ONE ROW**, and the outer run is not dealt to both ends of it.
+     *
+     * The psl stack is the shape that exposed this: six tiers of two mirrored ESXs and a row of five EF6s over
+     * them. The tops row is 3.020 m on a 2.380 m support, so gravity splits it into a run of three carried by the
+     * left ESX and a run of two, and {@see Stack::throwFirst} then solves the pair `clear_of` the three with the
+     * side it is on. That solve used to read each copy's own offset as its column, so the pair was dealt
+     * ±2.7735 m about its own centre rather than translated 0.0553 m to the right. One EF6 ended at +3.6435 m,
+     * about a whole row width past its place, and 0.2020 m inside a cabinet of the stack standing next to it.
+     *
+     * Pinned as the four pitches rather than as five positions, because the pitches are what "one row" means: each
+     * is the 0.588 m cabinet plus the 20 mm gap, widened a couple of per cent by the aim spread that
+     * {@see SceneCompiler::clearedWithin} solves for, and not one of them is anywhere near a row width.
+     *
+     * **One stack on its own, so the numbers are a few millimetres tighter than the generated scene's.** A rig's
+     * aim centre is worked out across every placement in it, so the three-stack scene aims this row from a centre
+     * this fixture does not have and comes out at 0.6346 m in the middle. The shape is the assertion either way.
+     */
+    public function testATopsRowThatLandsInTwoRunsStaysOneRow(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [-0.042, 0.0], 'aim' => 'far', 'focus' => [
+                'far' => ['distance_m' => 10.0, 'height_m' => 1.8],
+                'near' => ['distance_m' => 2.0, 'height_m' => 1.8],
+            ], 'stack' => [
+                'interface_height_m' => 2.0, 'max_sub_height_m' => 3.0, 'gap_m' => 0.02,
+                'slide_slack_m' => \INF, 'mirror_style' => 'centred',
+                'from' => [
+                    ['device' => 'concert-audio-esx', 'count' => 12, 'roll_mirror' => 90.0],
+                    ['device' => 'concert-audio-ef6', 'count' => 5],
+                ],
+            ]],
+        ]);
+
+        $tops = array_map(
+            static fn (PlacedDevice $e): float => $e->position[0],
+            array_values(array_filter(
+                $placed,
+                static fn (PlacedDevice $e): bool => 'concert-audio-ef6' === $e->device->id,
+            )),
+        );
+        sort($tops);
+        self::assertCount(5, $tops);
+
+        $pitches = [];
+        for ($i = 1; $i < count($tops); ++$i) {
+            $pitches[] = $tops[$i] - $tops[$i - 1];
+        }
+
+        // Four pitches, none of them a row width. The seam between the two runs is the solved 20 mm clearance
+        // rather than the aim spread, so it is a hair tighter than the two inside the first run.
+        self::assertEqualsWithDelta([0.6252, 0.6252, 0.6210, 0.6163], $pitches, 1e-4);
+
+        // The row is 3.0 m of cabinet and the stack stands 2.38 m wide, so a split run showed up as a pitch of
+        // roughly a row width. Stated as a bound as well as as numbers, because that is the property rather than
+        // the arithmetic: nothing in this row may sit a row away from its neighbour.
+        foreach ($pitches as $pitch) {
+            self::assertLessThan(0.70, $pitch, 'a tops row cabinet sits further than one pitch from its neighbour');
+        }
+    }
+
+    /**
      * **Gravity.** Each cabinet above a stepped row lands on whatever is under *it*, not on the height of the
      * tallest cabinet in the row below.
      *

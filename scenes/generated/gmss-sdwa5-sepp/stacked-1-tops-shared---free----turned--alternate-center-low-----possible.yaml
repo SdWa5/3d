@@ -23,20 +23,17 @@
 #   * the 1× iq-sub rolled 270° + 2× nuke rolled 270° + 2× iq-sub rolled 90° row is 3.630 m on a 3.340 m row, so
 #     it overhangs 145 mm each side
 #
-# main-ours — ours, 26 cabinets in 6 rows:
+# main-ours — ours, 26 cabinets in 5 rows:
 #
-#   1  1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    2.631 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.949 m wide
-#   5  2× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°               3.08 m wide
-#   6  1× turbo-top + 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× turbo-top   2.9656 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
+#   4  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
+#   5  1× turbo-top + 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× turbo-top   2.9656 m wide
 #
-# Subs reach 2.992 m against a 2.0 m interface. The stack is 3.952 m of cabinet.
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
-#     2.631 m row, so it overhangs 240 mm each side
-#   * the 2× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90° row is 3.080 m on a 2.949 m row, so it
-#     overhangs 65 mm each side
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
+#   * the 3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.895 m on a
+#     3.414 m row, so it overhangs 241 mm each side
 #
 id: stacked-1-tops-shared---free----turned--alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -52,7 +49,7 @@ focus:
 placements:
   # gmss, 13 cabinets in 4 rows
   - id: main-gmss
-    at: [-2.108, 0.0]
+    at: [-2.4995, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -81,7 +78,7 @@ placements:
           count: 1
           aim: near
 
-  # ours, 26 cabinets in 6 rows
+  # ours, 26 cabinets in 5 rows
   - id: main-ours
     at: [1.763, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

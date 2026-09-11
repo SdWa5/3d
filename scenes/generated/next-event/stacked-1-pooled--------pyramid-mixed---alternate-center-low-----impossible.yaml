@@ -3,8 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * a tecnare-m2122 stands at 0.600 m with nothing under it across x
-#   * main/2d-1 and main/2b-2 are 0.4953 m inside each other
+#   * a tecnare-m2122 stands at 2.351 m with nothing under it across x
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -22,12 +21,13 @@
 #
 # What it deals out today:
 #
-#   1  2× sbh-18 rolled 270° + 2× kicker-15 + 2× wsx-18 rolled 270° + 6× concert-audio-esx rolled 270° + 6× flexy-folded-horn-hybrid rolled 270° + 3× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 + 6× flexy-folded-horn-hybrid rolled 90° + 6× concert-audio-esx rolled 90° + 2× wsx-18 rolled 90° + 2× kicker-15 + 2× sbh-18 rolled 90°   42.604 m wide
-#   2  1× eighteensound-2way-15 + 2× tecnare-m2122 + 1× tms4 + 5× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15   6.5912 m wide
+#   1  5× concert-audio-esx rolled 270° + 5× concert-audio-esx rolled 90°    11.98 m wide
+#   2  1× concert-audio-esx rolled 270° + 6× flexy-folded-horn-hybrid rolled 270° + 6× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90°   11.776 m wide
+#   3  2× sbh-18 rolled 270° + 1× kicker-15 + 2× wsx-18 rolled 270° + 2× wsx-18 rolled 90° + 1× kicker-15 + 2× sbh-18 rolled 90°    11.28 m wide
+#   4  1× kicker-15 + 3× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 + 1× kicker-15    7.508 m wide
+#   5  1× eighteensound-2way-15 + 2× tecnare-m2122 + 1× tms4 + 5× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15   6.5912 m wide
 #
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.75 m of cabinet.
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
+# Subs reach 2.361 m against a 2.0 m interface. The stack is 3.501 m of cabinet.
 #
 id: stacked-1-pooled--------pyramid-mixed---alternate-center-low-----impossible
 name: "Solved rig — one stack, tiers centred"

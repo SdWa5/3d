@@ -14,8 +14,8 @@
 #   1  1× wall-bass rolled 270° + 1× mid-bass rolled 90° + 1× wall-bass rolled 90°     3.34 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°    4.197 m wide
 #   3  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
-#   4  1× nuke rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°    4.599 m wide
-#   5  2× iq-sub rolled 270° + 3× iq-sub rolled 90°                           3.43 m wide
+#   4  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°    5.289 m wide
+#   5  2× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.74 m wide
 #   6  2× turbo-top + 3× tecnare-m2122 + 1× turbo-top                          2.95 m wide
 #
 # Subs reach 3.522 m against a 2.0 m interface. The stack is 4.482 m of cabinet.
@@ -25,6 +25,11 @@
 #     flexy-folded-horn-hybrid rolled 90° row is 4.197 m on a 3.340 m row, so it overhangs 429 mm each side
 #   * the 3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° row is 4.678 m on a
 #     4.197 m row, so it overhangs 240 mm each side
+#   * the 1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 2×
+#     flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90° row is 5.289 m on a 4.678 m row,
+#     so it overhangs 306 mm each side
+#   * the 2× turbo-top + 3× tecnare-m2122 + 1× turbo-top row is 2.950 m on a 2.740 m row, so it overhangs 105 mm
+#     each side
 #
 id: stacked-1-pooled--------free----turned--column----center-low-----possible
 name: "Solved rig — one stack, tiers centred"
