@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.115.0] - 2026-09-12
+
+### Added
+
+- **A licence.** MIT in `LICENSE` for `src/`, `tests/`, `bin/`, `blender/`, `.github/`, `.ddev/` and
+  the build configuration. CC BY-SA 4.0 in `LICENSE-docs` for `docs/`, `README.md`, `CHANGELOG.md`,
+  `TODO.md`, `specs/`, `rosters/` and `scenes/`. Until now the root repository's `README.md` said "No
+  license specified — all rights reserved", which published unchanged would have meant a reader may
+  read the specs and reuse none of them.
+- **The `mesh_override` meshes are carved out and stated as such.** They are third-party CAD, they are
+  deliberately not committed, and `docs/sources.md` records where each came from and under what terms.
+  That carve-out matters more here than the licence does: the dimensional figures in `specs/` are
+  facts and carry no copyright, while somebody else's CAD does.
+
+### Measured, and worth stating plainly
+
+- **The manufacturer specifications are not a publishing risk, checked rather than assumed.**
+  Dimensions, weights and performance figures are facts. What a datasheet protects is its prose, its
+  drawings and its photographs, and this repository tracks **zero PDFs, zero images, zero CAD and zero
+  meshes**. The longest quoted string anywhere in `specs/` is one line of figures. The real licence
+  questions attach to the *open* designs rather than to the commercial ones, because those are the
+  ones whose CAD was written by somebody else.
+- This repository needs no history rewrite. `the Obmann-Stellvertreterin`, `the Obmann-Stellvertreter` and
+  the former Obmann-Stellvertreterin appear in none of its 152 commits.
+
 ## [0.114.0] - 2026-09-12
 
 `composer test` is 9 min 04 s, down from about 18 minutes, because the one test that holds every shipped scene to

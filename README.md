@@ -292,3 +292,18 @@ the next secret rather than to find a current one.
 Tests do not need Blender: the spec, catalog and orchestration layers are unit-tested, and the Blender invocation is
 tested through a fake process runner. PHP owns the specs, Python owns the geometry —
 see [docs/pipeline.md](docs/pipeline.md#why-php-and-python).
+
+## Licence
+
+Two licences, because this repository is part tooling and part writing.
+
+- **MIT** ([LICENSE](LICENSE)) for the code and configuration: `src/`, `tests/`, `bin/`, `blender/`, `.github/`, `.ddev/` and the build configuration
+  (`composer.json`, `phpstan.neon`, `phpunit.xml`, `pyproject.toml`, `.php-cs-fixer.dist.php`).
+- **CC BY-SA 4.0** ([LICENSE-docs](LICENSE-docs)) for the prose and data: `docs/`, `README.md`, `CHANGELOG.md`, `TODO.md`, `specs/`, `rosters/` and `scenes/`.
+
+Attribute as "Musikverein Schmeiß die Wand an 5 (SdWa5)" with a link to the repository. Share-alike applies to the prose, so a
+derivative of the documentation stays under the same licence. The code carries no such condition.
+
+**Not ours to license**: any mesh referenced by a spec's `mesh_override`. Those files are third-party
+CAD, they are deliberately not committed, and `docs/sources.md` records where each one came from and
+under what terms.
