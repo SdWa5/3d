@@ -4,6 +4,90 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.114.0] - 2026-09-12
+
+`composer test` is 9 min 04 s, down from about 18 minutes, because the one test that holds every shipped scene to
+standing up now runs across cores instead of down one. And the JIT that 0.113.0 measured at exactly nothing on this
+suite is worth 1.53x on it. That measurement was an artefact of how the JIT was switched off, and the four files
+that repeated it are corrected.
+
+### Changed
+
+- **`ShippedScenesTest` solves its library across cores, and a case is now an inventory rather than a scene.**
+  The class was **600.3 s** of a suite that was about 18 minutes, and every one of its 2489 scenes was compiled on
+  one core while twenty-seven sat idle. Nothing in the class writes, so no scene can see what another is doing, and
+  the repository already forks two pipeline stages through `Parallel`. It is now **74.8 s**, the coverage guard below
+  included. Measured over the whole 2489 on the bare work alone: **422.57 s in one process, 219.42 s on two cores,
+  109.69 s on four, 67.04 s on eight and 40.71 s on twenty-eight**, the four-core figure repeated at 110.02 s. Two and
+  four are the numbers that matter, because that is what a private and a public GitHub runner have.
+- **Chunked by inventory directory rather than collapsed into one case.** One case for the whole library would hand
+  PHPUnit a single name and a single dot of progress for ten minutes. The directory is the chunk because it already
+  means something and because it stays stable as the sweep grows: a new inventory adds a case instead of renumbering
+  every existing one. Thirteen chunks hold the same 2489 scenes the old provider yielded, from 7 scenes to 435, and
+  work is stolen inside a chunk so the unevenness costs nothing.
+- **The case carries the directory name and nothing else.** Handing PHPUnit the scene list works and reads terribly,
+  because a failed case prints its own arguments — one broken scene in `next-event` would head its report with 434
+  truncated paths before saying what went wrong.
+- **Faults are collected and asserted once per inventory instead of asserted per cabinet per axis**, which took the
+  class from **137 879 assertions to 62** and is a real part of the win rather than only bookkeeping: PHPUnit charges
+  for every assertion it counts. A failure is no longer the first bad scene but all of them, with each message
+  carrying the scene's own path and the cabinet's placement id, which is what separates "I broke a rig" from "I broke
+  the solver". Verified by copying an impossible scene into an inventory under a `-possible` name: the chunk fails and
+  names the file and the cabinet.
+- **`testEveryImpossibleSceneReallyFailsACheck` goes the same way**, which paratest could not have done — it was one
+  test over 237 scenes, 180.9 s of a junit-logged run, and no test-level splitter can divide a single test. Its own
+  check set is unchanged and deliberately different from the one above: it asks the two questions `scene:stack`
+  refuses a candidate on, because that is the promise being held to.
+- Nothing is asserted inside a forked child anywhere in the class. An assertion that fails in a child dies with it and
+  surfaces as "a worker produced nothing" rather than as the message it was written to give, so every answer is
+  carried home as data and judged in the parent.
+- `compile()` resolves a bare id and only a bare id now. The path branch it also carried was dead the moment the
+  library sweep stopped going through it.
+
+### Added
+
+- **A test that the chunks hold every scene on disk.** This repository has already shipped exactly the failure it
+  guards against: before 0.99.0 the provider was keyed on the scene id, ten inventories held the same id, and the
+  class checked **nine scenes while reporting that it checked every one**. A case was one scene then, so a dropped
+  scene was at least a missing name in the report. A case is an inventory now, so a scene dropped by the chunking
+  would shorten one array nobody prints. The count is asserted against the files on disk rather than against a
+  literal, because a literal would have to be edited by the same person who would have to notice the problem.
+
+### Fixed
+
+- **0.113.0's "the JIT is worth 1.57x on the commands and exactly nothing on this suite" was an artefact of how the
+  JIT was turned off.** That release recorded 22:06.248 against 22:06.927 and read it as the same number twice.
+  `phpunit.xml` sets `opcache.jit=tracing` in its `<php>` block, which is an `ini_set` that runs before any test does,
+  so a run started with `php -d opcache.jit=off` has the JIT switched **back on** and both halves of that comparison
+  were traced. Measured three ways on the same 107 cases: **4.93 s as configured, 5.36 s with `-d opcache.jit=off`,
+  and 6.92 s with `-d opcache.jit_buffer_size=0`** — the one form `ini_set` cannot undo, because the buffer is
+  `PHP_INI_SYSTEM`. Only the third is a genuinely interpreted run. On that figure the suite gains what the commands
+  gain: the 434 cases of `generated/next-event` are **0.2154 s each traced against 0.3304 s interpreted, which is
+  1.53x**, and the bare equivalent of the same work is 0.2000 s against 0.3308 s.
+- The claim is corrected in all four places that carried it: `phpunit.xml`, `.ddev/php/opcache-jit.ini`,
+  `.github/workflows/tests.yml` and `README.md`. Each of them now also names `-d opcache.jit_buffer_size=0` as the
+  only way to time an interpreted run, which is the part that was missing rather than wrong.
+- **The `phpunit` job's `timeout-minutes: 90` depends on the JIT, and now says so.** `composer test` was 108.98 min
+  on run 33846381809 with the JIT off. At the measured ratio that is roughly 71 min, so the guard step that fails the
+  build when the JIT is off is what stands between the budget and an overrun.
+
+### Measured, and worth stating plainly
+
+- **`--log-junit` costs about 0.05 s per test and far more on an assertion-heavy one, so a logged run is not a
+  timing.** The same 434 cases are 91.82 s and 91.95 s without it against 113.44 s and 113.98 s with it. A junit run
+  of the old suite came to 26:45 where the plain one was about 18 minutes, and it put `ShippedScenesTest` at 870.0 s
+  where the plain class measures 600.3 s.
+- **PHPUnit itself is not where the time went.** Its overhead is 0.0154 s per case, measured as the difference
+  between a bare loop and the same scenes run through the suite, and the compile is 92 % to 96 % of every case.
+- **The suite total before this change is composed rather than measured.** The suite after is 544.6 s; taking the
+  class out at 74.8 s and putting the old one back at 600.3 s gives about **1070 s**, which is 17 min 50 s. The
+  composition is sound because nothing else in the suite changed, but no single run of the old suite was timed plain
+  on this machine tonight.
+- **What this does to CI is an extrapolation and cannot currently be checked.** No run has started in any of the three
+  repositories since the account's Actions minutes ran out; every one fails in 3 to 5 seconds. A runner has two cores
+  where this machine has twenty-eight, so the class should fall to roughly half rather than to an eighth there, and
+  four cores after the repositories go public.
+
 ## [0.113.0] - 2026-09-11
 
 Every push cost 135 minutes of runner time and 26 of them were spent compiling scenes the suite had already
