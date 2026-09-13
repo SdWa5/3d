@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.116.0] - 2026-09-13
+
+### Security
+
+- **0.115.0 claimed this repository needed no history rewrite, and an audit on 2026-09-13 measured the
+  opposite.** Two things were here the whole time. `tests/Spec/SpecValidatorTest.php` used a board
+  member's full name as the fixture for "an owner key may not contain spaces", in **153 of this
+  repository's 154 commits**. And the 0.115.0 changelog entry asserting the three names appear nowhere
+  named all three of them while doing so, in the tree and in that release's own commit message. The
+  fixture is now `Wall Bass`, which is a cabinet in this library and exercises the same rule.
+- **The history was rewritten over file contents and commit messages together.** The earlier passes in
+  the sibling repositories used `git-filter-repo --replace-text`, which reaches blobs only; messages
+  need `--replace-message`, and that is why every redaction had survived in the commit that performed
+  it.
+- **`sepp` is deliberately untouched**, decided 2026-09-13. It is a nickname rather than a name, it is
+  an owner key throughout `specs/`, `rosters/`, `scenes/generated/` and `src/Scene/SweepAxes.php`, and
+  what actually created an exposure was the root repository's mailbox table pairing it with a board
+  role. That pairing is what came out instead, in `sdwa5` 0.9.0.
+
 ## [0.115.0] - 2026-09-12
 
 ### Added
@@ -26,8 +45,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   meshes**. The longest quoted string anywhere in `specs/` is one line of figures. The real licence
   questions attach to the *open* designs rather than to the commercial ones, because those are the
   ones whose CAD was written by somebody else.
-- This repository needs no history rewrite. `the Obmann-Stellvertreterin`, `the Obmann-Stellvertreter` and
-  the former Obmann-Stellvertreterin appear in none of its 152 commits.
+- This repository needs no history rewrite, because none of the three board members named in the root
+  repository's redaction appears in any of its 152 commits. **That claim was wrong and 0.116.0
+  corrects it.**
 
 ## [0.114.0] - 2026-09-12
 
