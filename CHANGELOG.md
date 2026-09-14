@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.116.1] - 2026-09-14
+
+### Changed
+
+- **`TOOL-20` records the first push that ever executed on GitHub, which is now its newest data
+  point.** Run `34759228276`, 2026-09-13, commit `7577ee1a`: `phpunit` was cancelled at its own
+  `timeout-minutes: 90` after 90 m 16 s, while `static` finished in 44 s and `secrets` in 14 s. The
+  commit already carried 0.114.0's parallel `ShippedScenesTest` and the JIT, so neither is the
+  missing lever, and the runner was a private one at two cores where a public repository gets four.
+  The row had stood on the three six-hour cancellations of 5 to 7 September and on local timings
+  alone. No code changed.
+
 ## [0.116.0] - 2026-09-13
 
 ### Security
