@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.117.2] - 2026-09-15
+
+### Security
+
+- **The history was rewritten a fourth time, so that the PSL decision is real rather than cosmetic.**
+  0.117.0 and 0.117.1 took the two statements out of the working tree, and a working tree is not the
+  repository. Both stood in 28 of this repository's 162 commits and one of them in two commit
+  messages, which would all have become public with the repository. `git-filter-repo` ran over file
+  contents and commit messages together, with 13 replacements.
+- **The content is provably untouched.** The commit count is 162 before and after and the tree at
+  `HEAD` is `d440b3e8` before and after, so only commit objects changed. Re-measured afterwards over
+  every blob and every message: seven probe phrases, zero matches each.
+- **Republished rather than force-pushed**, by renaming the repository, creating it empty, pushing,
+  confirming the tip and then deleting the old one. A force-push leaves the pre-rewrite commits
+  reachable by SHA in GitHub's cache; recreating leaves no cache. Verified afterwards by fetching a
+  pre-rewrite SHA, which answers `not our ref`, against a control fetch of `main` that succeeds.
+
 ## [0.117.1] - 2026-09-14
 
 ### Fixed
