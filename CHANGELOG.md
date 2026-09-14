@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.117.1] - 2026-09-14
+
+### Fixed
+
+- **0.117.0 took the two PSL statements out of two files and left them standing in two others.** It
+  cleaned `rosters/psl-next-event.yaml` and `docs/requests.md`, which are the files it named, and did
+  not re-run the search afterwards. What was left: this file's 0.109.0 entry asserted outright what PSL
+  own, in stronger words than the roster ever used; `docs/sources.md` carried the same verdict about
+  their published page that `docs/requests.md` had just lost, in the very file the third-party
+  clearance was written about; and the 0.117.0 entry itself reproduced both statements while
+  describing their removal. All four are corrected here.
+- **That last one is the failure the association's `going-public.md` already records twice**, namely
+  that a note documenting a redaction tends to quote the thing it redacted. The check that catches it
+  is to re-run the original search over the whole tree after editing, rather than to re-read the files
+  that were edited. Editing is not the end of a redaction, and the diff is not the evidence.
+
 ## [0.117.0] - 2026-09-14
 
 ### Security
@@ -33,15 +49,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **What PSL own is no longer inferred from what they bring.** `rosters/psl-next-event.yaml` and
-  `docs/requests.md` turned a statement about one event into a floor on a rental company's stock.
-  The counts stay, because they are what the roster is
-  for, and the inference is gone. GMSS and Innschleife cleared their figures for publication and PSL
+  `docs/requests.md` turned a statement about one event into a floor on a rental company's stock. The
+  counts stay, because they are what the roster is for, and the inference is gone. GMSS and Innschleife cleared their figures for publication and PSL
   were never asked, so their inventory is theirs to state. `docs/requests.md` keeps the open question
   of asking them outright.
 - **A note about a third party's published data reads as a sourcing decision rather than a verdict.**
-  The `hk-linear5-112x` coverage row characterised PSL's page rather than citing it. It now says the listing
-  carries two figures, which they are, and that the data table is the one taken because it is a
-  measurement under an EN 60268-5 note. Every technical fact in the row is unchanged.
+  The `hk-linear5-112x` coverage row characterised PSL's published page rather than citing it. It now
+  says the listing carries two figures, which they are, and that the data table is the one taken
+  because it is a measurement under an EN 60268-5 note. Every technical fact in the row is unchanged,
+  in `docs/sources.md` as well as in `docs/requests.md`.
 
 ## [0.116.1] - 2026-09-14
 
@@ -899,10 +915,10 @@ difference between what a system owns and what turns up a thing the sweep can ex
 - **The mapping is second-hand and is going back to Innschleife**, and one piece of evidence pulls against it: the
   "blauen Kicker" photograph averages near black. If a name comes back wrong the fix is another rename of the same
   shape. [docs/requests.md](docs/requests.md) carries the open question
-- **PSL stated what they are bringing to the next event**, which is the first figure about that inventory that did not come
-  from a published package. The specs keep their sourced 6 and 4 — "brought to one gig" and "owned" are different
-  facts — and `docs/requests.md` carries the open question of how many they own, which it has since the
-  specs were written
+- **PSL stated what they are bringing to the next event**, which is the first figure about that inventory that
+  did not come from a published package. The specs keep their sourced 6 and 4 — "brought to one gig" and "owned"
+  are different facts — and `docs/requests.md` carries the open question of how many they own. **Reworded on
+  2026-09-14**, because this entry asserted what they own and 0.117.0 decided that is theirs to state
 - **A spoken count outranks a drawing, and this one was misremembered.** The statement said "alle 4 kleinen Tops",
   the ids and quantity were changed on exactly that principle, and reading the mapping back produced "small tops
   nur 2x". The principle holds; the lesson is to read a count back before writing it down
