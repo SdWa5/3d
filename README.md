@@ -243,8 +243,8 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Scenes](docs/scenes.md) — writing a PA setup as a file, stacking and repetition
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 
-Org-level documentation lives in the parent repo's
-[`docs/`](https://github.com/bestcodename/sdwa5/tree/main/docs).
+Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository, which is
+still private.
 
 ## Development
 

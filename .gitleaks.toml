@@ -6,14 +6,25 @@
 useDefault = true
 
 [allowlist]
-description = "Build output and local development artefacts"
-# None of these is committed. They are listed because `gitleaks dir` does not
-# respect .gitignore, so a local run would otherwise report a developer's own
-# working directory: a ddev TLS key, a PHP-CS-Fixer cache and the PHPStan phar
-# all trip the high-entropy rules. Measured 2026-09-08: nine findings, all in
-# these paths, none of them tracked.
+description = "Build output and local development artefacts, none of it in git"
+# These are listed because `gitleaks dir` does not respect .gitignore, so a local
+# run would otherwise report a developer's own working directory. A ddev TLS key,
+# a PHP-CS-Fixer cache and the PHPStan phar all trip the high-entropy rules.
+# Measured 2026-09-08: nine findings, all in these paths, none of them tracked.
+#
+# **THE DDEV PATTERN IS THIS NARROW ON PURPOSE, AND IT USED TO BE `^\.ddev/`.**
+# That was wrong, because four files under `.ddev/` are tracked, namely
+# `config.yaml`, `php/opcache-jit.ini`, `web-build/Dockerfile` and
+# `commands/host/mesh-convert`. The allowlist was therefore exempting committed
+# content from every scan, in the working tree and in the history alike, while
+# its own comment claimed nothing here was committed. Found on 2026-09-14 while
+# reading this repository for publication. The four files were read by hand and
+# are clean, and they are scanned from now on. What actually needs the exemption
+# is the one key ddev generates per project, measured the same day as
+# `.ddev/traefik/certs/sdwa5-3d.key` under rule `private-key`, untracked and
+# covered by ddev's own `.ddev/.gitignore`.
 paths = [
-  '''^\.ddev/''',
+  '''^\.ddev/traefik/''',
   '''^\.php-cs-fixer\.cache$''',
   '''^vendor/''',
   '''^build/''',

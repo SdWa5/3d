@@ -10,6 +10,14 @@ on:
   # nightly `phpunit` was the same sampled run a push already does, so removing the trigger loses only the
   # unattended repetition. `full` is `workflow_dispatch` only until it is made to fit, which is TOOL-20.
 
+# **THE TOKEN GETS READ ACCESS AND NOTHING ELSE, WHICH IS WORTH STATING BEFORE THIS REPOSITORY IS PUBLIC.**
+# Without this block the workflow inherits whatever the organization default happens to be, and a default is not
+# a statement. No job here writes to the repository, none calls the API, and nothing in this file reads
+# `secrets`, so read access to the contents is the whole requirement. `sdwa5-vps` has declared the same thing
+# since its workflow was written.
+permissions:
+  contents: read
+
 # **A superseded push should stop costing money the moment it is superseded.** On 8 September five pushes landed
 # within a few hours and each one started its own 135-minute `phpunit` job, because nothing cancelled the one
 # before it.
