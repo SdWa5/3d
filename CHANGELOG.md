@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.117.0] - 2026-09-14
+
+### Security
+
+- **`.gitleaks.toml` was exempting tracked files, and its own comment said the opposite.** The
+  allowlist matched `^\.ddev/` while four files under `.ddev/` are committed, namely `config.yaml`,
+  `php/opcache-jit.ini`, `web-build/Dockerfile` and `commands/host/mesh-convert`. Every scan since the
+  file was written, in the working tree and over the history alike, skipped them, and the comment above
+  the list claimed that none of these paths is committed. The pattern is now `^\.ddev/traefik/`, which
+  is the one path that actually needs it: the TLS key ddev generates per project, measured as
+  `.ddev/traefik/certs/sdwa5-3d.key` under rule `private-key`, untracked and covered by ddev's own
+  `.ddev/.gitignore`. The four files were read by hand and are clean, and they are in scope from now
+  on. Re-measured after the change: no findings in the tree, no findings over 148 commits.
+- **The workflow declares `permissions: contents: read` instead of inheriting a default.** No job
+  writes to the repository, none calls the API and no step reads `secrets`, so read access is the whole
+  requirement. A default is not a statement, and this repository is meant to become public.
+
+### Fixed
+
+- **Three links pointed at a personal GitHub account that was deleted on 2026-09-12.** `README.md` and
+  `docs/inventory.md` twice referenced `github.com/bestcodename/…`, so all three answered 404, and they
+  republished the account name that both history rewrites were run to decouple from these repositories.
+  They now name the `SdWa5` organization and say that the target repository is still private, which is
+  why the link does not open for everyone. Nothing in this repository checks links in CI, which is how
+  three dead ones survived.
+
+### Changed
+
+- **What PSL own is no longer inferred from what they bring.** `rosters/psl-next-event.yaml` and
+  `docs/requests.md` turned a statement about one event into a floor on a rental company's stock.
+  The counts stay, because they are what the roster is
+  for, and the inference is gone. GMSS and Innschleife cleared their figures for publication and PSL
+  were never asked, so their inventory is theirs to state. `docs/requests.md` keeps the open question
+  of asking them outright.
+- **A note about a third party's published data reads as a sourcing decision rather than a verdict.**
+  The `hk-linear5-112x` coverage row characterised PSL's page rather than citing it. It now says the listing
+  carries two figures, which they are, and that the data table is the one taken because it is a
+  measurement under an EN 60268-5 note. Every technical fact in the row is unchanged.
+
 ## [0.116.1] - 2026-09-14
 
 ### Changed

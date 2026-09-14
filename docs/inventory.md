@@ -50,8 +50,8 @@ who to ask. Two things about this table are worth knowing before planning anythi
 
 ## Drive access
 
-`rclone` is the org's Drive convention — the VPS backup uses the same tool (see
-[`sdwa5-vps/docs/backup.md`](https://github.com/bestcodename/sdwa5-vps/blob/main/docs/backup.md)).
+`rclone` is the org's Drive convention, and the VPS backup uses the same tool. That is written up in
+`docs/backup.md` of the association's [`vps`](https://github.com/SdWa5/vps) repository, which is still private.
 
 A read-only remote named `SdWa5` is configured on Stefan's workstation:
 
@@ -86,6 +86,5 @@ for the next time the gear list grows.
 
 * **Dolibarr** (`https://erp.sdwa5.org`) has product/stock modules but is used for accounting; no gear inventory is
   recorded there.
-* The merch catalogue in
-  [`sdwa5-vps/docs/shopware/merch.md`](https://github.com/bestcodename/sdwa5-vps/blob/main/docs/shopware/merch.md)
-  is shop products, not equipment — its "Mini Speaker" is a €5 novelty item.
+* The merch catalogue in `docs/shopware/merch.md` of the association's [`vps`](https://github.com/SdWa5/vps)
+  repository is shop products rather than equipment. Its "Mini Speaker" is a €5 novelty item.

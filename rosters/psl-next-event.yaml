@@ -15,10 +15,14 @@
 #
 # TWELVE AND FIVE ARE MORE THAN THE SPECS SAY EXIST, AND THAT IS NOT AN ERROR IN EITHER PLACE. The specs say six
 # and four, sourced from the package PSL publish and confirmed by our own Kraut drawing placing exactly six and
-# four. What a rental company publishes as a package is not an inventory, and docs/requests.md has carried "how
-# many do they own" as an open question since the specs were written, and this file does not answer it.
-# The specs keep their sourced figures and the open question stays in
-# docs/requests.md, because "brought to one gig" and "owned" are different facts and this file is for the first.
+# four. What a rental company publishes as a package is not an inventory, so the two numbers answer different
+# questions. The specs keep their sourced figures and this file records what is coming to one event, because
+# "brought to one gig" and "owned" are different facts and this file is for the first.
+#
+# **WHAT PSL OWN IS NOT WRITTEN DOWN HERE, AND THAT IS DELIBERATE.** A count brought to one event would bound
+# their stock from below, and their stock is theirs to state rather than ours to infer. Decided on 2026-09-14,
+# while this repository was being read for publication. The crews whose figures are in this library cleared
+# them, PSL are a rental company who were never asked, and docs/requests.md carries the open question instead.
 #
 # EIGHT ZEROS, BECAUSE THE STATEMENT IS EXHAUSTIVE. "The following" means the following and nothing else, so every
 # other PSL cabinet is named at zero rather than left out — left out means "whatever the spec says", which would
