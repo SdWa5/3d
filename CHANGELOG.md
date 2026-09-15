@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.117.4] - 2026-09-15
+
+### Security
+
+- **The authorship trailers are out of every commit message.** 122 of this repository's 166 commits
+  carried one and 122 carried a session link. They came out through a `git-filter-repo` message
+  callback rather than a text replacement, because a replacement only empties the text and leaves the
+  blank line behind, and the callback is scoped to Claude and Anthropic so an attribution line naming
+  a human would survive. There was none.
+- **The content is provably untouched.** 166 commits before and after, and the tree at `HEAD` is
+  `c586aec3` before and after, so only commit objects changed.
+- **Republished rather than force-pushed**, which leaves no pre-rewrite objects in GitHub's cache.
+  Verified: every probe term returns zero over every blob and every commit message, a pre-rewrite SHA
+  answers `not our ref`, and a control fetch of `main` succeeds. This repository was audited on
+  2026-09-14 and came back clean again on 2026-09-15, this time with the scanner genuinely run without
+  its allowlist, which the earlier pass had not managed.
+
 ## [0.117.3] - 2026-09-15
 
 ### Fixed
