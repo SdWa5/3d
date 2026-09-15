@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.117.3] - 2026-09-15
+
+### Fixed
+
+- **Two places quoted a commit hash that the rewrite of the night before had already invalidated.**
+  `CHANGELOG.md` and `TODO.md` both named the commit `TOOL-20`'s newest data point was measured on.
+  They now describe it instead, because every rewrite of this history invalidates a hash and it has
+  had five. Run numbers, dates and versions survive and are kept.
+
 ## [0.117.2] - 2026-09-15
 
 ### Security
@@ -81,7 +90,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **`TOOL-20` records the first push that ever executed on GitHub, which is now its newest data
-  point.** Run `34759228276`, 2026-09-13, commit `7577ee1a`: `phpunit` was cancelled at its own
+  point.** Run `34759228276`, 2026-09-13: `phpunit` was cancelled at its own
   `timeout-minutes: 90` after 90 m 16 s, while `static` finished in 44 s and `secrets` in 14 s. The
   commit already carried 0.114.0's parallel `ShippedScenesTest` and the JIT, so neither is the
   missing lever, and the runner was a private one at two cores where a public repository gets four.
