@@ -1,0 +1,35 @@
+# WHAT WE TOOK TO THE MARK IN SALZBURG ON 2026-09-19: twelve Flexy, two SKRAM and two of the three Tecnare.
+#
+# Stated by the owner from the van on the day of the get-in, while the rig was going up. This file is the
+# count half of that event; the signal chain it was patched into is `docs/signal-chain.md`, and the two are
+# deliberately separate because a roster overrides counts and nothing else. See src/Spec/Roster.php.
+#
+# THE TECNARE IS THE ONLY REAL OVERRIDE HERE. The spec says three exist and two went to Salzburg, which is
+# the ordinary case a roster is for. The Flexy at twelve and the SKRAM at two match their specs exactly and
+# are still written out, because an event file that lists only the surprises reads as if the rest was never
+# considered. Restating them costs two lines and makes the rig on that stage readable from this file alone.
+#
+# THE AMPLIFIERS AND THE DSPS ARE NOT IN HERE, and that is the schema rather than an omission. They have no
+# specs of their own — `specs/racks/sdwa5/rack-amp-12u.yaml` carries them as a rack's weight, which is all a
+# scene has ever needed from them. What went to Salzburg was four MM14K, one Tulun TIP10000q, the 8x8 and the
+# DCX2496, and `docs/signal-chain.md` is where that is written down until SIG-3 gives an amplifier a home.
+#
+# NOTHING ELSE OF OURS IS NAMED, so every other device keeps the quantity its spec states. That is the
+# documented behaviour of a roster and it is the right answer here: the racks, the scaffold and the truss all
+# travelled as usual, and nobody counted them onto a list.
+id: sdwa5-mark-salzburg-2026-09-19
+name: "SdWa5, MARK Salzburg 2026-09-19 — twelve Flexy and two SKRAM under two Tecnare"
+
+brings:
+  flexy-folded-horn-hybrid: 12   # the full set, as the spec states
+  skram: 2                       # the full set, as the spec states
+  tecnare-m2122: 2               # of three; the third stayed at home
+
+notes: |
+  Eleven of the twelve amplifier channels in the rig were used and one MM14K channel stayed free. The subs ran
+  two Flexy per channel at 4 ohm across three MM14K, the two SKRAM took one channel each at 8 ohm on the
+  fourth, and the two Tecnare took all four channels of the TIP10000q bi-amped. The full patch, the limiter
+  thresholds and the gain settings are in `docs/signal-chain.md`.
+
+  One DSP output was reserved for the video mapping rig, carrying an unprocessed full-range copy of the mix.
+  That is why the 8x8 ran out of outputs and the DCX2496 had to carry the tops — see the same document.

@@ -242,6 +242,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Inventory](docs/inventory.md) — the gear list, and Drive access via rclone
 - [Scenes](docs/scenes.md) — writing a PA setup as a file, stacking and repetition
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
+- [Signal chain](docs/signal-chain.md) — limiter thresholds, amplifier gain and DSP routing, per event
 
 Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository, which is
 still private.
