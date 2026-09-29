@@ -124,6 +124,11 @@ The video mapping output carries an unprocessed full-range copy of the mix at 0 
 with no limiter, no delay and no filter. The mapping machine does its own analysis and was to be given the same
 signal the PA gets before the PA's own processing.
 
+**The 8x8 was measured on the bench ten days later, and its `DSP max dBu` does not hold as written.** On the
+scale its thresholds use it clips at about +12.5 rather than 18, which moves either every 8x8 headroom figure or
+every sub threshold. `1:1 off` on OUT5 to OUT7 holds only while their gain stays at 0 dB. Both are under *On the
+bench* below.
+
 ### The connections
 
 **Line level.** Thirteen long XLR runs and six short ones. The six short ones are the amplifier chain: the MM14K
@@ -308,6 +313,55 @@ dB. If the DIP switches turn out to be per channel rather than per amplifier, HF
 which gives away 18 dB of the 8x8's output range and runs the largest group in the rig that much nearer the
 noise floor for no gain anywhere.
 
+**All of this rests on the sheet's 18 dBu for the 8x8, and the bench did not confirm it.** On the scale its
+thresholds use, the 8x8 clips at about +12.5 for a sub signal. If that scale is dBu, the subs' ceiling in the
+sweep is 12.5 rather than 18. 32 dB then leaves 0.70 dB rather than 6.20 and 35 dB leaves 3.70 dB, so the lowest
+step that clears 6 dB is 38 dB with 6.70 dB. If the 8x8 does reach 18 dBu, 32 dB stands and the threshold
+entered on the device has to change instead. The next section has both cases.
+
+### On the bench, 2026-09-29
+
+**The 8x8 was measured ten days after the event**, with its outputs looped back into a Behringer UMC1820 and
+every amplifier off. trackdsp, the software that drives the 8x8 over USB, records the runs and their raw figures
+in [`docs/measurements.md`](https://github.com/GitiGlitzer/dsp_linux_8x8/blob/main/docs/measurements.md). Four
+of its findings bear on this rig.
+
+**The 8x8 clips at about +12.5 on the scale its thresholds use, not at 18.** That holds for a 100 Hz signal. For
+a 1 kHz signal the same ceiling reads about +14.8, because a threshold holds a 100 Hz signal about 2.2 dB higher
+than a 1 kHz one. The lower figure is the one measured where the subs play. Whether the threshold scale is dBu
+at the connector was not measured, since no voltmeter was at hand, and the two answers change the table in
+different places.
+
+| If | Then |
+|----|------|
+| **The threshold scale is dBu at 100 Hz** | The 8x8 reaches about 12.5 dBu. Every threshold limits where the table says, but the subs' 11.80 leaves 0.70 dB rather than 6.20 before the 8x8 itself clips, and the lowest MM14K step with 6 dB left is 38 dB. The 18.00 of headroom shrinks to about 12.5 on OUT5 to OUT7, and on OUT1 and OUT2 to about 12.5 at low frequencies and 14.8 at 1 kHz |
+| **The 8x8 reaches 18 dBu** | The threshold scale sits 5.5 dB below dBu at 100 Hz, so a threshold of 11.80 holds the subs at about 17.3 dBu. That asks the MM14K at 32 dB for 5.5 dB more than the Flexy's 120 V, which it may not even deliver. The headroom column stands, and every sub threshold has to be entered 5.5 dB below its dBu figure |
+
+**A voltmeter on a 100 Hz sine decides it.** Set Limit at a known threshold on one output, play a sine well
+above it and read the AC volts at the output connector. The reading in dBu against the threshold says which row
+holds, or how far between them the 8x8 sits. A second reading at 1 kHz covers the bus limiter, which sees the
+whole range.
+
+**`1:1 off` is off only at 0 dB of output gain.** Ratio 1:1.0 is the 8x8's factory setting, and at it every
+output gain other than 0 dB acts more strongly than set. −6 dB becomes −8.2 dB, and the output mirrors the
+signal at 24 kHz minus each frequency, 9.6 dB below it. Above 4 kHz that image lands in the audible range. OUT5
+to OUT7 run at 0.0 dB, so the rig as set is clean. Trimming the tops on OUT5 and OUT6 on site would not be,
+unless their compressor is first set to Limit or 1:1.1 with the threshold at +20 dB. That setting never
+compresses and keeps the gain exact.
+
+**The bus limiter mirrors the whole mix while it works.** Every compressor on the 8x8 does this while it lowers
+the gain, whatever its ratio and its times, and the bench measured it at the ratio and the times of OUT1 and
+OUT2. The image of each frequency lies at 24 kHz minus that frequency, about 15 dB below the signal at 3 dB of
+gain reduction and about 10 dB below it at 6 dB. Every speaker output is fed from the loop-ins and inherits it.
+The subs' low-pass takes it out again, while the Tecnare HF way reproduces it for everything in the mix above
+4 kHz. A limiter that only catches the odd peak costs nothing. A bus compressor is meant to work, and while it
+works it colours the top end.
+
+**The output gain acts before the limiter.** Lowering an output's gain while its limiter worked left the limited
+level where it was, so a threshold stays the real output limit whatever the gain. For `SIG-6` that settles what
+a `DSP_Output_Gain_Set_dB` equal to the threshold would do on the 8x8. It would drive the programme that much
+harder into the limiter without moving the limit. What the sheet meant by the column is still open.
+
 ### Open, and checked on site
 
 | Item | State |
@@ -315,11 +369,13 @@ noise floor for no gain anywhere.
 | **Amplifier gain as actually set** | The figures above are what the DIP switches were to be *set to*. What they read before that was not recorded. Every threshold moves one for one with the gain, so a rig set differently has a different table |
 | **DCX2496 throughput latency** | The Tecnare now pass through an extra converter pair that the subs do not. Their 4.7 ms alignment delay has to come down by the DCX's own latency, and that figure is not in any source this repository has. **Not applied, and the table above still says 4.7** |
 | **Sub SKRAM passband** | The `Drivers` sheet leaves both band columns as a dash. [`specs/speakers/sdwa5/skram.yaml`](../specs/speakers/sdwa5/skram.yaml) says 15–120 Hz and marks it `estimated`. The crossover against the Flexy, which run to 200 Hz, is undecided |
-| **`DSP_Output_Gain_Set_dB`** | In the sheet this column is a formula setting it equal to the threshold. An output level is not a dBu threshold, so one of the two is mislabelled. **Carried over unchanged rather than guessed at** |
+| **`DSP_Output_Gain_Set_dB`** | In the sheet this column is a formula setting it equal to the threshold. An output level is not a dBu threshold, so one of the two is mislabelled. **Carried over unchanged rather than guessed at**. On the 8x8 such a gain would only drive the programme harder into the limiter, since the gain acts before it |
+| **The 8x8's threshold scale against dBu** | It clips at about +12.5 on that scale for a 100 Hz signal, where the table assumes 18 dBu. Either the scale is dBu and the subs have 0.70 dB of headroom rather than 6.20, or the 8x8 reaches 18 dBu and every sub threshold holds 5.5 dB above its figure. **A voltmeter on a 100 Hz sine decides it**, see *On the bench* above |
 | **Amplifier output voltage** | Whether an MM14K delivers more than 120 V into 4 Ω is in no source this repository has, and the limiter only does anything if it does. The same question is open for the TIP10000q at 4 Ω |
 | **The TIP10000q's socket pairing** | The tops are patched on the assumption that its NL4 sockets pair channels 1 with 2 and 3 with 4, which is what makes one cable per Tecnare work. Stated from how four-channel amplifiers are normally built, **not read off this one's back panel** |
 | **The Tecnare's own pinout** | One NL4 per cabinet with LF on 1+/1− and HF on 2+/2− is what the owner stated on the night. The cabinets are self-built and no spec here records a connector, so there is nothing to check it against |
 | **Mains draw** | 230 V, 85 % amplifier efficiency and the quarter-of-sine-maximum figure are rules of thumb. Nothing was measured, and no manufacturer publishes a draw for these amplifiers. The phase split is sound as a comparison and the absolute amps are not evidence |
+| **OUT8 on the output panel** | The output panel of the 8x8's rack has a broken connection on OUT8, found on the bench on 2026-09-29. OUT8 was spare at this event, so nothing above depended on it. It needs repairing before a rig uses all eight outputs |
 
 ## Where the master data still lives
 

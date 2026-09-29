@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.119.0] - 2026-09-29
+
+### Added
+
+- **What the 8x8 did on the bench, set against the MARK Salzburg rig.** `docs/signal-chain.md` gains a
+  section on the loopback runs of 2026-09-29. It covers the ceiling on the scale the thresholds use,
+  ratio 1:1.0, the image a working limiter leaves on the mix, and where the output gain sits against
+  the limiter. The runs themselves are in trackdsp's `docs/measurements.md`.
+- **`SIG-7`, pinning the 8x8's threshold scale to dBu.** The 8x8 clips at about +12.5 on that scale
+  for a 100 Hz signal, where the limiter table assumes 18 dBu. A voltmeter on a 100 Hz sine decides
+  whether the headroom column or the sub thresholds are wrong.
+- **Two open rows for the rig.** One is the threshold scale against dBu, and the other is a broken
+  OUT8 connection on the output panel of the 8x8's rack.
+
+### Changed
+
+- **`SIG-6` knows what the gain in question does on the 8x8.** The output gain acts before the
+  limiter, so a gain equal to the threshold drives the programme harder into the limiter without
+  moving the limit. What the sheet meant by the column is still open.
+
+### Fixed
+
+- **The gain sweep no longer takes the 8x8's 18 dBu on trust.** 32 dB is the lowest MM14K step with
+  6 dB left only if the 8x8 reaches 18 dBu. If its threshold scale is dBu it reaches about 12.5, 32 dB
+  leaves 0.70 dB and the step is 38 dB. The sweep section now says so.
+- **`1:1 off` holds only at 0 dB of output gain.** At ratio 1:1.0 the 8x8 applies any other gain more
+  strongly than set and mirrors the signal at 24 kHz. `docs/signal-chain.md` names Limit or 1:1.1 with
+  the threshold at +20 dB as the setting that is really off.
+
 ## [0.118.0] - 2026-09-19
 
 ### Added
