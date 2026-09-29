@@ -4,6 +4,53 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.118.0] - 2026-09-19
+
+### Added
+
+- **The limiter arithmetic is PHP with tests instead of formulas in a spreadsheet.**
+  `src/Signal/LimiterSetting.php` computes a DSP output's limiter threshold from one cabinet's
+  impedance, its RMS rating and the amplifier's gain, and reports the headroom left to the DSP's own
+  ceiling. Every expected value in `tests/Signal/LimiterSettingTest.php` is one the `AmpLimiterCalc`
+  sheet in Drive already produced, so the suite is a port check as much as a unit test.
+- **`lowestUsableGain()` picks a DIP switch setting from the bottom rather than the top.** Gain moves
+  a limiter threshold down one for one, so every step up throws away that much of the DSP's usable
+  output range. The method returns the lowest step that still clears a stated margin, and returns
+  nothing rather than a least-bad step when none does.
+- **`docs/signal-chain.md`, and the MARK Salzburg rig of 2026-09-19 as its first entry.** Twelve
+  Flexy, two SKRAM, two Tecnare, four MM14K, one TIP10000q and both DSPs, with the patch, the
+  thresholds, the gain sweep behind the two settings chosen, the cable list, the phase split, and the
+  eight things left open on site.
+- **The cable list and the mains split for that rig.** Nineteen XLR runs, sixteen Speakon runs, and
+  three phases balanced on the amplifiers rather than on how the racks are packed. The balanced split
+  holds 13.8 A on its heaviest phase where the rack-shaped split would draw 18.4 A on a 16 A breaker,
+  both at the same assumed load fraction.
+- **`rosters/sdwa5-mark-salzburg-2026-09-19.yaml`.** Two of the three Tecnare travelled, which is the
+  only count that differs from a spec. The Flexy and the SKRAM are restated at their spec figures
+  anyway, so the rig on that stage is readable from the one file.
+
+### Changed
+
+- **How a rig gets written down is settled: master data, one patch per event, table derived.** The
+  alternatives were a single reusable table edited per event, which holds exactly one rig and loses
+  the last one, and a template copied per event, which the Drive has already demonstrated — four
+  files named `AmpLimiterCalc.csv` in one folder with three distinct sizes and no way to say which
+  one a rig is set to. `SIG-1`'s remaining effort drops from 12h to 9h, because the arithmetic half
+  of it is now done.
+- **`SIG-3` no longer infers its schema from a spreadsheet alone**, since one real patch is written
+  down in prose beside it.
+
+### Fixed
+
+- **The DCX's outputs are patched out of channel order, so each top takes one cable instead of two.**
+  A four-channel amplifier pairs its NL4 sockets 1 with 2 and 3 with 4, so ordering the tops LF L,
+  HF L, LF R, HF R puts one whole Tecnare on each socket. The obvious ordering splits each cabinet
+  across both sockets and needs either two cables per top or a hand-made one.
+- **Two figures the Drive recommends were wrong for this rig, and the sweep says why.**
+  `Amp_GainSelector.csv` asks for 41 dB on the TIP10000q and 44 dB on the MM14K. At 44 dB the subs'
+  threshold lands at −0.20 dBu, which gives away 18 dB of the 8x8's output range. The settings
+  recorded are 32 dB and 26 dB, each the lowest step on the same switch that still clears 6 dB.
+
 ## [0.117.4] - 2026-09-15
 
 ### Security
