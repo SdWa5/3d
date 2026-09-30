@@ -38,6 +38,28 @@ final class SceneBuildCommandTest extends TestCase
         self::assertStringContainsString('full-rig-all-tops', $tester->getDisplay());
     }
 
+    /** A folder builds every scene in it, which is how one event's inventory is built on its own. */
+    public function testAFolderBuildsEverySceneInIt(): void
+    {
+        $tester = new CommandTester(new SceneBuildCommand());
+        $exit = $tester->execute(['scene' => 'scenes/generated/sepp', '--dry-run' => true]);
+        $display = $tester->getDisplay();
+
+        self::assertSame(Command::SUCCESS, $exit, $display);
+        $count = count(glob(dirname(__DIR__, 2).'/scenes/generated/sepp/*.yaml') ?: []);
+        self::assertGreaterThan(1, $count);
+        self::assertSame($count, substr_count($display, 'scenes/generated/sepp/'), $display);
+    }
+
+    public function testAFolderWithNoSceneIsRefused(): void
+    {
+        $tester = new CommandTester(new SceneBuildCommand());
+        $exit = $tester->execute(['scene' => 'src', '--dry-run' => true]);
+
+        self::assertSame(Command::FAILURE, $exit);
+        self::assertStringContainsString("'src' is a folder with no scene in it", $tester->getDisplay());
+    }
+
     /**
      * **Gated, because its cost is a compile of every scene in the repository and that work is already done.**
      * `scene:build` with no argument compiles all 2688 of them — 13 minutes — and

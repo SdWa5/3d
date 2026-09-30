@@ -11,9 +11,6 @@ use App\Render\CameraPreset;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
 use App\Scene\SceneCompiler;
-use App\Scene\SceneLoader;
-use App\Scene\SceneSpec;
-use App\Spec\InvalidSpecException;
 use App\Spec\Violation;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,7 +38,7 @@ final class SceneRenderCommand extends BaseCommand
         $this
             ->setName('scene:render')
             ->setDescription('Render a scene to build/renders/<id>-<camera>.png')
-            ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id or path; omit to render every scene')
+            ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id, path or folder; omit to render every scene')
             ->addOption('camera', 'c', InputOption::VALUE_REQUIRED, "Camera preset ({$cameras})", CameraPreset::ThreeQuarter->value)
             ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, "Lighting preset ({$lightings})", LightingPreset::Studio->value)
             // No defaults on these two: the level flags below supply them, and a default here could not be told
@@ -400,50 +397,6 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         return [$width, $height];
-    }
-
-    /**
-     * @return list<SceneSpec>|null
-     */
-    private function selectScenes(?string $nameOrPath): ?array
-    {
-        $loader = new SceneLoader($this->scenesDir());
-
-        try {
-            if (null === $nameOrPath) {
-                return array_map([$loader, 'load'], $loader->files());
-            }
-
-            ['scene' => $scene, 'known' => $known, 'ambiguous' => $ambiguous] = $loader->find($nameOrPath);
-            // **AN ID THAT NAMES TEN SCENES IS NOT A SCENE**, and picking the first was how this behaved until the
-            // inventory became a folder. Every generated rig of every inventory carries the same basename now, so
-            // the answer is the paths and a request to name one.
-            if ([] !== $ambiguous) {
-                $this->io->error(sprintf(
-                    "'%s' names %d scenes — say which:\n  %s",
-                    $nameOrPath,
-                    count($ambiguous),
-                    implode("\n  ", array_map(fn (string $p): string => $this->relative($p), $ambiguous)),
-                ));
-
-                return null;
-            }
-            if (null === $scene) {
-                $this->io->error(sprintf(
-                    "Unknown scene '%s'%s",
-                    $nameOrPath,
-                    [] === $known ? '' : '. Available: '.implode(', ', $known),
-                ));
-
-                return null;
-            }
-
-            return [$scene];
-        } catch (InvalidSpecException $e) {
-            $this->io->error('Cannot read scene: '.$e->getMessage());
-
-            return null;
-        }
     }
 
     private function listPresets(): void
