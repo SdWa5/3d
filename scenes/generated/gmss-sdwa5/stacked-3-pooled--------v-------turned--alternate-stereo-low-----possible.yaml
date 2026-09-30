@@ -11,12 +11,30 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 8 cabinets in 4 rows:
+# main-2 — 2, 14 cabinets in 5 rows:
+#
+#   1  1× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°     2.15 m wide
+#   2  2× skram rolled 270° + 1× nuke rolled 90°                             2.638 m wide
+#   3  1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.603 m wide
+#   4  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 657 mm gaps    3.603 m wide
+#   5  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
+#
+# Subs reach 2.451 m against a 2.0 m interface. The stack is 3.411 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 2× flexy-folded-horn-hybrid rolled 270° + 2×
+#     flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.754 m row, so the wall narrows as it rises — `shape: v`
+#     asks for the opposite and this is not one of its arrangements
+#   * the 2× skram rolled 270° + 1× nuke rolled 90° row is 2.638 m on a 2.150 m row, so it overhangs 244 mm each
+#     side
+#   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° row is
+#     3.603 m on a 2.638 m row, so it overhangs 482 mm each side
+#
+# main-3 — 3, 8 cabinets in 4 rows:
 #
 #   1  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
+#   4  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
 #
 # Subs reach 1.712 m against a 2.0 m interface. The stack is 2.672 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -25,25 +43,12 @@
 #   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 1.546 m on a
 #     1.360 m row, so it overhangs 93 mm each side
 #
-# main-2 — 2, 14 cabinets in 2 rows:
-#
-#   1  1× iq-sub rolled 270° + 1× nuke rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°    10.78 m wide
-#   2  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
-#
-# Subs reach 0.66 m against a 2.0 m interface. The stack is 1.62 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 2× flexy-folded-horn-hybrid rolled 270° + 2×
-#     flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.754 m row, so the wall narrows as it rises — `shape: v`
-#     asks for the opposite and this is not one of its arrangements
-#   * the subs reach 0.660 m against the 2.000 m interface asked for, so the tops sit 1340 mm lower than ideal —
-#     0.660 m is the most they reach while every tier is still carried
-#
-# main-3 — 3, 8 cabinets in 4 rows:
+# main-1 — 1, 8 cabinets in 4 rows:
 #
 #   1  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
+#   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
 # Subs reach 1.712 m against a 2.0 m interface. The stack is 2.672 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -64,34 +69,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 8 cabinets in 4 rows
-  - id: main-1
-    at: [-6.965, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      shape: v
-      mirror: true             # the mirror image of stack 1
-      from:
-        - device: flexy-folded-horn-hybrid
-          count: 4
-          roll_mirror: 90.0
-        - device: iq-sub
-          count: 2
-          roll_mirror: 90.0
-        - device: tecnare-m2122
-          count: 1
-        - device: turbo-top
-          count: 1
-          aim: near
-
-  # 2, 14 cabinets in 2 rows
+  # 2, 14 cabinets in 5 rows
   - id: main-2
-    at: [-0.302, 0.0]
+    at: [-2.348, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -121,7 +101,7 @@ placements:
 
   # 3, 8 cabinets in 4 rows
   - id: main-3
-    at: [6.361, 0.0]
+    at: [0.7265, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -130,6 +110,31 @@ placements:
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: v
+      from:
+        - device: flexy-folded-horn-hybrid
+          count: 4
+          roll_mirror: 90.0
+        - device: iq-sub
+          count: 2
+          roll_mirror: 90.0
+        - device: tecnare-m2122
+          count: 1
+        - device: turbo-top
+          count: 1
+          aim: near
+
+  # 1, 8 cabinets in 4 rows
+  - id: main-1
+    at: [2.7725, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      shape: v
+      mirror: true             # the mirror image of stack 1
       from:
         - device: flexy-folded-horn-hybrid
           count: 4

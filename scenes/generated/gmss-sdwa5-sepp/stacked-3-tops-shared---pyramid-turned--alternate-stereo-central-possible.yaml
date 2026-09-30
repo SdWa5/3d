@@ -68,17 +68,20 @@
 #   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
 #     1.782 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 9 cabinets in 4 rows:
+# main-ours-2 — ours-2, 9 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
-#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
-#   4  1× eighteensound-2way-15                                                0.4656 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps    1.666 m wide
+#   3  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   4  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
+#   5  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 1.82 m against a 2.0 m interface. The stack is 2.656 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.228 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.820 m against the 2.000 m interface asked for, so the tops sit 180 mm lower than ideal —
-#     1.820 m is the most they reach while every tier is still carried
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps row is
+#     1.666 m on a 1.546 m row, so it overhangs 60 mm each side
+#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.666 m row, so it overhangs 91 mm each
+#     side
 #
 id: stacked-3-tops-shared---pyramid-turned--alternate-stereo-central-possible
 name: "Solved rig — 6 stacks side by side, tiers split left and right"
@@ -94,7 +97,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 4 rows
   - id: main-gmss-2
-    at: [-5.698, 0.0]
+    at: [-5.382, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -126,7 +129,7 @@ placements:
 
   # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [-2.955, 0.0]
+    at: [-2.639, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -156,7 +159,7 @@ placements:
 
   # gmss-1, 4 cabinets in 2 rows
   - id: main-gmss-1
-    at: [-1.002, 0.0]
+    at: [-0.686, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -186,7 +189,7 @@ placements:
 
   # gmss-3, 4 cabinets in 2 rows
   - id: main-gmss-3
-    at: [0.858, 0.0]
+    at: [1.174, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -215,7 +218,7 @@ placements:
 
   # ours-3, 7 cabinets in 4 rows
   - id: main-ours-3
-    at: [2.811, 0.0]
+    at: [3.127, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -242,7 +245,7 @@ placements:
         - device: eighteensound-2way-15
           count: 1
 
-  # ours-2, 9 cabinets in 4 rows
+  # ours-2, 9 cabinets in 5 rows
   - id: main-ours-2
     at: [5.324, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

@@ -34,16 +34,22 @@
 #
 # Subs reach 2.36 m against a 2.0 m interface. The stack is 3.32 m of cabinet.
 #
-# main-innschleife — innschleife, 18 cabinets in 4 rows:
+# main-innschleife — innschleife, 18 cabinets in 5 rows:
 #
-#   1  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
-#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
-#   3  4× kicker-15                                                              3.86 m wide
-#   4  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6   3.3296 m wide
+#   1  1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90°              2.99 m wide
+#   2  1× wsx-18 rolled 270° + 1× wsx-18 + 1× sbh-18 rolled 90°              2.91 m wide
+#   3  1× wsx-18 rolled 270° + 1× wsx-18 + 1× kicker-15 at 214 mm gaps       3.048 m wide
+#   4  3× kicker-15 at 194 mm gaps                                              3.238 m wide
+#   5  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6   3.3296 m wide
 #
-# Subs reach 1.69 m against a 2.0 m interface. The stack is 2.83 m of cabinet.
-#   * the subs reach 1.690 m against the 2.000 m interface asked for, so the tops sit 310 mm lower than ideal —
-#     1.690 m is the most they reach while every tier is still carried
+# Subs reach 3.97 m against a 2.0 m interface. The stack is 5.11 m of cabinet.
+#   * the subs reach 3.970 m against the 3.000 m ceiling asked for, so they stand 970 mm too high — 3.970 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× wsx-18 rolled 270° + 1× wsx-18 + 1× kicker-15 at 214 mm gaps row is 3.048 m on a 2.910 m row, so it
+#     overhangs 69 mm each side
+#   * the 3× kicker-15 at 194 mm gaps row is 3.238 m on a 3.048 m row, so it overhangs 95 mm each side
+#   * the 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6 row is 3.330 m on a 3.238 m
+#     row, so it overhangs 46 mm each side
 #
 id: stacked-1-tops-shared---pyramid-mixed---centred---center-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -59,7 +65,7 @@ focus:
 placements:
   # ours, 22 cabinets in 5 rows
   - id: main-ours
-    at: [-8.327, 0.0]
+    at: [-7.5618, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -88,7 +94,7 @@ placements:
 
   # psl, 16 cabinets in 3 rows
   - id: main-psl
-    at: [-0.393, 0.0]
+    at: [0.3722, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -117,7 +123,7 @@ placements:
           count: 1
           aim: near
 
-  # innschleife, 18 cabinets in 4 rows
+  # innschleife, 18 cabinets in 5 rows
   - id: main-innschleife
     at: [7.632, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

@@ -11,25 +11,26 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 14 cabinets in 2 rows:
+# main-gmss — gmss, 12 cabinets in 4 rows:
 #
-#   1  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
-#   2  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
+#   1  2× nuke + 1× mid-bass                                                    2.42 m wide
+#   2  1× iq-sub + 2× wall-bass + 1× iq-sub                                    2.44 m wide
+#   3  4× iq-sub at 107 mm gaps                                                 2.441 m wide
+#   4  1× turbo-top                                                              0.45 m wide
 #
-# Subs reach 1.828 m against a 2.0 m interface. The stack is 1.828 m of cabinet.
+# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.55 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.828 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the 1× iq-sub + 2× wall-bass + 1× iq-sub row is 2.440 m on a 2.420 m row, so it overhangs 10 mm each side
 #
-# main-gmss — gmss, 17 cabinets in 2 rows:
+# main-ours — ours, 19 cabinets in 4 rows:
 #
-#   1  3× iq-sub + 1× nuke + 2× wall-bass + 1× nuke + 3× iq-sub + 1× mid-bass     7.08 m wide
-#   2  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
+#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
+#   2  4× flexy-folded-horn-hybrid at 440 mm gaps                               3.684 m wide
+#   3  4× flexy-folded-horn-hybrid at 440 mm gaps                               3.684 m wide
+#   4  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122     2.48 m wide
 #
-# Subs reach 1.4 m against a 2.0 m interface. The stack is 2.36 m of cabinet.
+# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
-#     1.400 m is the most they reach while every tier is still carried
 #
 id: stacked-1-tops-shared---v-------upright-alternate-stereo-central-possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -43,33 +44,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 14 cabinets in 2 rows
-  - id: main-ours
-    at: [-4.092, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      low_end: central
-      shape: v
-      from:
-        - skram
-        - flexy-folded-horn-hybrid
-
-  # gmss, 17 cabinets in 2 rows
+  # gmss, 12 cabinets in 4 rows
   - id: main-gmss
-    at: [2.086, 0.0]
+    at: [-2.394, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -92,7 +69,34 @@ placements:
         - mid-bass
         - nuke
         - iq-sub
+        - device: turbo-top
+          count: 1
+
+  # ours, 19 cabinets in 4 rows
+  - id: main-ours
+    at: [1.1685, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      low_end: central
+      shape: v
+      from:
+        - skram
+        - flexy-folded-horn-hybrid
         - tecnare-m2122
         - device: turbo-top
+          count: 2
           aim: near
 

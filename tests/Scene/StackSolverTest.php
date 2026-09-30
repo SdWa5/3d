@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Scene;
 
 use App\Scene\Gravity;
+use App\Scene\MirrorStyle;
 use App\Scene\Stack;
 use App\Scene\StackChecks;
 use App\Scene\StackEntry;
@@ -1242,6 +1243,107 @@ final class StackSolverTest extends TestCase
     }
 
     /**
+     * A pyramid whose packed rows cannot taper gets a row **gapped out** to the width the row above needs.
+     *
+     * Measured on the pooled rig with the SKRAMs and Flexys rolled: packed, the three-cabinet row under the tops is
+     * narrower than the 2.511 m tops row by more than a tenth of a 2-way per side. Gapped out at 148 mm it is 2.420 m,
+     * and every row above it is still carried.
+     */
+    public function testAPyramidGapsARowOutToCarryTheRowAbove(): void
+    {
+        $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: 3.0);
+
+        self::assertSame([], $result['problems']);
+        $gapped = array_values(array_filter($result['tiers'], static fn (Tier $tier): bool => null !== $tier->gapM));
+        self::assertCount(1, $gapped);
+        self::assertEqualsWithDelta(0.148, $gapped[0]->gapM, 1e-9);
+
+        foreach (array_slice($result['tiers'], 1, null, true) as $index => $tier) {
+            $below = $result['tiers'][$index - 1]->widthM(0.02);
+            self::assertLessThanOrEqual(
+                StackChecks::PYRAMID_SHOULDER * $tier->outerWidthM() + 1e-9,
+                ($tier->widthM(0.02) - $below) / 2,
+                sprintf('%s steps out past its support', $tier->label()),
+            );
+        }
+    }
+
+    /**
+     * A V gets its upper rows gapped out to the full width of the row under them, so the wall never narrows.
+     *
+     * Six Achenbachs are 3.700 m and six Flexys 3.646 m, so a Flexy row on them narrows by 54 mm. Gapped at 31 mm it
+     * is 3.701 m, and a second Flexy row on that one takes the same gap rather than a centimetre less each time.
+     */
+    public function testAVGapsItsUpperRowsOutToTheRowBelow(): void
+    {
+        $result = $this->solveTo(
+            ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
+            maxWidthM: null,
+            maxSubHeightM: null,
+            shape: StackShape::V,
+        );
+
+        self::assertSame([], $result['problems']);
+        self::assertSame(
+            ['6× achenbach-18', '6× flexy-folded-horn-hybrid at 31 mm gaps', '6× flexy-folded-horn-hybrid at 31 mm gaps'],
+            array_map(static fn (Tier $tier): string => $tier->label(), array_slice($result['tiers'], 0, 3)),
+        );
+        foreach ([1, 2] as $index) {
+            self::assertGreaterThanOrEqual(
+                $result['tiers'][$index - 1]->widthM(0.02),
+                $result['tiers'][$index]->widthM(0.02),
+            );
+        }
+    }
+
+    /**
+     * A gap the row above cannot bridge is refused by the rules that already carry every other row, not by a cap.
+     *
+     * Two rolled SKRAMs under the five tops would need 580 mm between them, and the Tecnare in the middle of the
+     * tops row would stand over it. No gap limit says so. The cabinet has nothing under it, which is enough.
+     */
+    public function testAGapTheRowAboveCannotBridgeIsRefused(): void
+    {
+        $skram = $this->devices['skram'];
+        $tops = new Tier([
+            [$this->devices['eighteensound-2way-15'], 1],
+            [$this->devices['tecnare-m2122'], 3],
+            [$this->devices['eighteensound-2way-15'], 1],
+        ]);
+        $tiers = [(new Tier([[$skram, 1, 270.0], [$skram, 1, 90.0]]))->withGap(0.58), $tops];
+
+        $problems = StackChecks::supportChecks($tiers, $this->stackOf(StackShape::Pyramid))['problems'];
+
+        self::assertNotSame([], $problems);
+        self::assertStringContainsString('tecnare-m2122 in the', implode("\n", $problems));
+        self::assertStringContainsString('has nothing under it at all', implode("\n", $problems));
+
+        // And the solver does not offer it: the rig stays refused rather than coming back with that gap.
+        $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: null);
+        self::assertNotSame([], $result['problems']);
+        foreach ($result['tiers'] as $tier) {
+            self::assertNull($tier->gapM, $tier->label());
+        }
+    }
+
+    /** A rig whose packed rows already have their shape keeps them, and `free` has no width rule to gap out for. */
+    public function testARigThatPacksIsNotGappedOut(): void
+    {
+        foreach ([StackShape::Free, StackShape::Pyramid] as $shape) {
+            $result = $this->solveTo(
+                ['skram', 'flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
+                maxWidthM: 3.80,
+                maxSubHeightM: 3.0,
+                shape: $shape,
+            );
+            self::assertSame([], $result['problems']);
+            foreach ($result['tiers'] as $tier) {
+                self::assertNull($tier->gapM, sprintf('%s: %s', $shape->value, $tier->label()));
+            }
+        }
+    }
+
+    /**
      * Like {@see StackSolver::solve()} but hands back the whole result, so a test can read the warnings or assert on a
      * refusal, and takes the counts the scenario needs rather than the whole inventory.
      *
@@ -1427,6 +1529,50 @@ final class StackSolverTest extends TestCase
             'the tops sit',
             $warnings,
             'a stack with no tops cannot have tops sitting low',
+        );
+    }
+
+    /**
+     * The pooled sdwa5 and sepp rig of `scenes/generated/sdwa5-sepp`, SKRAMs and Flexys rolled, the odd cabinet
+     * centred.
+     *
+     * @return array{tiers: list<Tier>, problems: list<string>, warnings: list<string>}
+     */
+    private function solvePooled(StackShape $shape, ?float $maxSubHeightM): array
+    {
+        $counts = [
+            'skram' => 2,
+            'flexy-folded-horn-hybrid' => 12,
+            'achenbach-18' => 6,
+            'tecnare-m2122' => 3,
+            'eighteensound-2way-15' => 2,
+        ];
+
+        return StackSolver::solve(
+            array_map(fn (string $id): array => [$this->devices[$id], $counts[$id]], array_keys($counts)),
+            $this->stackOf($shape, $maxSubHeightM, array_keys($counts)),
+        );
+    }
+
+    /**
+     * @param list<string> $ids
+     */
+    private function stackOf(StackShape $shape, ?float $maxSubHeightM = null, array $ids = []): Stack
+    {
+        return new Stack(
+            from: array_map(
+                static fn (string $id): StackEntry => new StackEntry(
+                    $id,
+                    rollMirror: in_array($id, ['skram', 'flexy-folded-horn-hybrid'], true) ? 90.0 : null,
+                ),
+                $ids,
+            ),
+            interfaceHeightM: 2.0,
+            gapM: 0.02,
+            maxSubHeightM: $maxSubHeightM,
+            shape: $shape,
+            mirrorStyle: MirrorStyle::Centred,
+            slideSlackM: INF,
         );
     }
 

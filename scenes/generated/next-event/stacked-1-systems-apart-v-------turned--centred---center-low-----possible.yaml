@@ -16,14 +16,16 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 25 cabinets in 2 rows:
+# main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  6× flexy-folded-horn-hybrid rolled 270° + 3× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 rolled 90° + 6× flexy-folded-horn-hybrid rolled 90°   14.964 m wide
-#   2  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   1  2× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram + 3× achenbach-18 rolled 90°    4.644 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90°    5.298 m wide
+#   3  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° at 144 mm gaps    5.298 m wide
+#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.57 m of cabinet.
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
+# Subs reach 2.105 m against a 2.0 m interface. The stack is 3.065 m of cabinet.
+#   * the 3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90° row
+#     is 5.298 m on a 4.644 m row, so it overhangs 327 mm each side
 #
 # main-psl — psl, 17 cabinets in 7 rows:
 #
@@ -40,23 +42,20 @@
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 5× concert-audio-ef6 row is 3.020 m on a 2.380 m row, so it overhangs 320 mm each side
 #
-# main-innschleife — innschleife, 14 cabinets in 7 rows:
+# main-innschleife — innschleife, 14 cabinets in 6 rows:
 #
-#   1  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
-#   2  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
-#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
-#   4  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
+#   1  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90°                     2.34 m wide
+#   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 140 mm gaps            2.34 m wide
+#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 140 mm gaps            2.34 m wide
+#   4  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
 #   5  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   6  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   7  2× tms4                                                                   1.02 m wide
+#   6  2× tms4                                                                   1.02 m wide
 #
-# Subs reach 4.14 m against a 2.0 m interface. The stack is 5.28 m of cabinet.
-#   * the subs reach 4.140 m against the 3.000 m ceiling asked for, so they stand 1140 mm too high — 4.140 m is the
+# Subs reach 3.19 m against a 2.0 m interface. The stack is 4.33 m of cabinet.
+#   * the subs reach 3.190 m against the 3.000 m ceiling asked for, so they stand 190 mm too high — 3.190 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° row is 2.220 m on a 1.160 m row, so it overhangs 530 mm
-#     each side
-#   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
-#     each side
+#   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.340 m row, so it overhangs 40 mm each
+#     side
 #
 id: stacked-1-systems-apart-v-------turned--centred---center-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -70,7 +69,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 25 cabinets in 2 rows
+  # ours, 25 cabinets in 4 rows
   - id: main-ours
     at: [-3.522, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -101,7 +100,7 @@ placements:
 
   # psl, 17 cabinets in 7 rows
   - id: main-psl
-    at: [5.97, 0.0]
+    at: [1.137, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -124,9 +123,9 @@ placements:
         - device: concert-audio-ef6
           count: 5
 
-  # innschleife, 14 cabinets in 7 rows
+  # innschleife, 14 cabinets in 6 rows
   - id: main-innschleife
-    at: [9.19, 0.0]
+    at: [4.357, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

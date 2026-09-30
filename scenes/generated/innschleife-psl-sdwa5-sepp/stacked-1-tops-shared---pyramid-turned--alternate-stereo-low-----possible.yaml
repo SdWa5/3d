@@ -14,17 +14,19 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 26 cabinets in 4 rows:
+# main-ours — ours, 26 cabinets in 6 rows:
 #
-#   1  4× flexy-folded-horn-hybrid rolled 270° + 4× flexy-folded-horn-hybrid rolled 90°    6.244 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°    5.592 m wide
-#   3  1× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90°    3.088 m wide
-#   4  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1× thebox-achat-112m    2.904 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  3× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90°               3.08 m wide
+#   5  1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90° at 180 mm gaps    2.788 m wide
+#   6  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1× thebox-achat-112m    2.904 m wide
 #
-# Subs reach 1.801 m against a 2.0 m interface. The stack is 2.941 m of cabinet.
+# Subs reach 2.983 m against a 2.0 m interface. The stack is 4.123 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
-#     1.801 m is the most they reach while every tier is still carried
+#   * the 1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1×
+#     thebox-achat-112m row is 2.904 m on a 2.788 m row, so it overhangs 58 mm each side
 #
 # main-psl — psl, 18 cabinets in 4 rows:
 #
@@ -64,7 +66,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 26 cabinets in 4 rows
+  # ours, 26 cabinets in 6 rows
   - id: main-ours
     at: [-10.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -108,7 +110,7 @@ placements:
 
   # psl, 18 cabinets in 4 rows
   - id: main-psl
-    at: [-4.27, 0.0]
+    at: [-5.836, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -154,7 +156,7 @@ placements:
 
   # innschleife, 23 cabinets in 2 rows
   - id: main-innschleife
-    at: [5.73, 0.0]
+    at: [4.164, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

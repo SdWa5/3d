@@ -16,14 +16,14 @@
 #
 # main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  3× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 3× flexy-folded-horn-hybrid rolled 90°    5.289 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90°    5.135 m wide
-#   3  2× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× achenbach-18 rolled 90°    4.328 m wide
+#   1  4× flexy-folded-horn-hybrid rolled 270° + 4× flexy-folded-horn-hybrid rolled 90°    6.244 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 1× achenbach-18 + 2× achenbach-18 rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°    6.212 m wide
+#   3  1× skram rolled 270° + 1× skram + 1× achenbach-18 rolled 90° at 148 mm gaps     2.42 m wide
 #   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 1.973 m against a 2.0 m interface. The stack is 2.933 m of cabinet.
-#   * the subs reach 1.973 m against the 2.000 m interface asked for, so the tops sit 27 mm lower than ideal — 1.973
-#     m is the most they reach while every tier is still carried
+# Subs reach 2.105 m against a 2.0 m interface. The stack is 3.065 m of cabinet.
+#   * the 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 row is 2.511 m on a 2.420 m row,
+#     so it overhangs 46 mm each side
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -88,7 +88,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-0.0875, 0.0]
+    at: [0.39, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -127,7 +127,7 @@ placements:
 
   # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
-    at: [6.4325, 0.0]
+    at: [6.91, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

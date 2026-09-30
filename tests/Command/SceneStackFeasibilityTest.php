@@ -61,7 +61,8 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
      */
     public function testARigThatDoesNotStandUpIsWrittenWithTheReasonInItsHeader(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        // Our own gear pulled onto the centre line: GEO-13 made every gmss rig stand up, so gmss has none left to show.
+        $display = $this->invoke(['--owner' => ['sdwa5'], '--low-end' => ['central'], '--dry-run' => true])->getDisplay();
 
         self::assertMatchesRegularExpression('/^id: \S+-impossible$/m', $display, 'no impossible rig was written');
         self::assertStringContainsString('THIS RIG DOES NOT STAND UP', $display);

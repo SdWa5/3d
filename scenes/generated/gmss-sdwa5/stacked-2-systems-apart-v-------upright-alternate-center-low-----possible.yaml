@@ -54,20 +54,17 @@
 #   * the 1× mid-bass row is 1.200 m on a 0.660 m row, so it overhangs 270 mm each side
 #   * the 3× iq-sub row is 1.630 m on a 1.200 m row, so it overhangs 215 mm each side
 #
-# main-ours-2 — ours-2, 9 cabinets in 5 rows:
+# main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
-#   1  1× skram                                                                  0.61 m wide
-#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   4  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   5  2× tecnare-m2122                                                          1.02 m wide
+#   1  1× skram + 1× flexy-folded-horn-hybrid                                  1.221 m wide
+#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
+#   3  2× flexy-folded-horn-hybrid at 631 mm gaps                               1.813 m wide
+#   4  2× tecnare-m2122                                                          1.02 m wide
 #
-# Subs reach 3.203 m against a 2.0 m interface. The stack is 4.163 m of cabinet.
+# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 3.203 m against the 3.000 m ceiling asked for, so they stand 203 mm too high — 3.203 m is the
-#     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× flexy-folded-horn-hybrid row is 1.202 m on a 0.610 m row, so it overhangs 296 mm each side
+#   * the 3× flexy-folded-horn-hybrid row is 1.813 m on a 1.221 m row, so it overhangs 296 mm each side
 #
 id: stacked-2-systems-apart-v-------upright-alternate-center-low-----possible
 name: "Solved rig — 4 stacks side by side, tiers centred"
@@ -83,7 +80,7 @@ focus:
 placements:
   # gmss-1, 6 cabinets in 3 rows
   - id: main-gmss-1
-    at: [-3.069, 0.0]
+    at: [-3.3745, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -110,7 +107,7 @@ placements:
 
   # ours-1, 8 cabinets in 5 rows
   - id: main-ours-1
-    at: [-1.153, 0.0]
+    at: [-1.4585, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -135,7 +132,7 @@ placements:
 
   # gmss-2, 8 cabinets in 5 rows
   - id: main-gmss-2
-    at: [0.763, 0.0]
+    at: [0.4575, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -160,7 +157,7 @@ placements:
         - device: turbo-top
           count: 2
 
-  # ours-2, 9 cabinets in 5 rows
+  # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
     at: [2.679, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

@@ -22,17 +22,18 @@
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
-# main-2 — 2, 13 cabinets in 3 rows:
+# main-2 — 2, 13 cabinets in 4 rows:
 #
-#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   2  1× achenbach-18 + 1× skram + 2× achenbach-18                            2.47 m wide
-#   3  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
+#   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
+#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
+#   3  1× skram + 1× achenbach-18 at 203 mm gaps                               1.413 m wide
+#   4  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
 #
-# Subs reach 1.677 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
+# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.677 m against the 2.000 m interface asked for, so the tops sit 323 mm lower than ideal —
-#     1.677 m is the most they reach while every tier is still carried
+#   * the 1× eighteensound-2way-15 + 2× tecnare-m2122 row is 1.506 m on a 1.413 m row, so it overhangs 46 mm each
+#     side
 #
 id: stacked-2-pooled--------pyramid-upright-alternate-center-central-possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -48,7 +49,7 @@ focus:
 placements:
   # 1, 12 cabinets in 4 rows
   - id: main-1
-    at: [-2.375, 0.0]
+    at: [-1.773, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -70,7 +71,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 13 cabinets in 3 rows
+  # 2, 13 cabinets in 4 rows
   - id: main-2
     at: [1.169, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

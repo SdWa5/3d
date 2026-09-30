@@ -35,17 +35,19 @@
 # Subs reach 2.36 m against a 2.0 m interface. The stack is 3.32 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-innschleife — innschleife, 16 cabinets in 4 rows:
+# main-innschleife — innschleife, 16 cabinets in 5 rows:
 #
-#   1  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
-#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
-#   3  4× kicker-15                                                              3.86 m wide
-#   4  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15   2.1136 m wide
+#   1  1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90°              2.99 m wide
+#   2  1× wsx-18 rolled 270° + 1× wsx-18 + 1× sbh-18 rolled 90°              2.91 m wide
+#   3  1× wsx-18 rolled 270° + 1× wsx-18 + 1× kicker-15 at 40 mm gaps          2.7 m wide
+#   4  3× kicker-15                                                              2.89 m wide
+#   5  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15   2.1136 m wide
 #
-# Subs reach 1.69 m against a 2.0 m interface. The stack is 2.83 m of cabinet.
+# Subs reach 3.97 m against a 2.0 m interface. The stack is 5.11 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.690 m against the 2.000 m interface asked for, so the tops sit 310 mm lower than ideal —
-#     1.690 m is the most they reach while every tier is still carried
+#   * the subs reach 3.970 m against the 3.000 m ceiling asked for, so they stand 970 mm too high — 3.970 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 3× kicker-15 row is 2.890 m on a 2.700 m row, so it overhangs 95 mm each side
 #
 id: stacked-1-tops-shared---pyramid-mixed---centred---stereo-central-possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
@@ -61,7 +63,7 @@ focus:
 placements:
   # ours, 23 cabinets in 4 rows
   - id: main-ours
-    at: [-7.127, 0.0]
+    at: [-6.192, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -97,7 +99,7 @@ placements:
 
   # psl, 17 cabinets in 3 rows
   - id: main-psl
-    at: [-0.078, 0.0]
+    at: [0.857, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -129,7 +131,7 @@ placements:
           count: 1
           aim: near
 
-  # innschleife, 16 cabinets in 4 rows
+  # innschleife, 16 cabinets in 5 rows
   - id: main-innschleife
     at: [6.747, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

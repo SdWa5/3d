@@ -11,14 +11,17 @@
 #
 # What it deals out today:
 #
-#   1  3× achenbach-18 + 3× iq-sub + 2× nuke + 3× iq-sub + 3× achenbach-18 + 1× mid-bass     9.44 m wide
-#   2  2× turbo-top + 2× eighteensound-2way-15 + 1× turbo-top                2.3612 m wide
+#   1  1× nuke + 2× wall-bass + 1× nuke                                        2.56 m wide
+#   2  4× iq-sub at 147 mm gaps                                                 2.561 m wide
+#   3  1× achenbach-18 + 2× iq-sub + 1× achenbach-18 at 101 mm gaps           2.563 m wide
+#   4  4× achenbach-18 at 55 mm gaps                                            2.565 m wide
+#   5  2× turbo-top + 2× eighteensound-2way-15 + 1× turbo-top                2.3612 m wide
 #
-# Subs reach 0.77 m against a 2.0 m interface. The stack is 1.606 m of cabinet.
-#   * wall-bass: LEFT OUT, it cannot be carried in this stack — the 4× achenbach-18 row is 2.460 m on a 4.520 m
-#     row, so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its arrangements
-#   * the subs reach 0.770 m against the 2.000 m interface asked for, so the tops sit 1230 mm lower than ideal —
-#     0.770 m is the most they reach while every tier is still carried
+# Subs reach 3.34 m against a 2.0 m interface. The stack is 4.176 m of cabinet.
+#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 4× achenbach-18 row is 2.460 m on a 4.520 m row,
+#     so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its arrangements
+#   * the subs reach 3.340 m against the 3.000 m ceiling asked for, so they stand 340 mm too high — 3.340 m is the
+#     nearest the 2.500 m target that every tier is still carried at
 #
 id: stacked-1-pooled--------v-------upright-alternate-center-low-----possible
 name: "Solved rig — one stack, tiers centred"
@@ -42,7 +45,7 @@ placements:
       slide_slack_m: .inf
       shape: v
       from:
-        - mid-bass
+        - wall-bass
         - nuke
         - achenbach-18
         - iq-sub

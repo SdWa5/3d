@@ -492,8 +492,22 @@ final class SceneCompiler
             return false;
         }
 
-        return Interpenetration::worst($result['placed'])['separation']
-            >= -PlacementChecks::CONTACT_TOLERANCE_M;
+        if (Interpenetration::worst($result['placed'])['separation'] < -PlacementChecks::CONTACT_TOLERANCE_M) {
+            return false;
+        }
+
+        // **A gapped row is also asked whether everything stands on something once placed.** The bearing rules judge
+        // it on nominal widths, and the placement then aims and spaces the tops row, which can walk an end cabinet off
+        // a row whose cabinets stand apart. Measured on `innschleife-psl-sdwa5-sepp`: the psl tops row shifted 0.2 m
+        // and left a thebox-dsp-112 entirely over air. Only for gapped arrangements, so every packed rig is judged
+        // exactly as it was before GEO-13.
+        foreach ($tiers as $tier) {
+            if (null !== $tier->gapM) {
+                return [] === PlacementChecks::floatingFaults($result['placed']);
+            }
+        }
+
+        return true;
     }
 
     /**

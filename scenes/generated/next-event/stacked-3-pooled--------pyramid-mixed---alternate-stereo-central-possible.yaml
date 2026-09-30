@@ -16,17 +16,16 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 20 cabinets in 7 rows:
+# main-2 — 2, 20 cabinets in 6 rows:
 #
-#   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90°    3.529 m wide
-#   3  1× sbh-18 rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× sbh-18 rolled 90°    3.203 m wide
-#   4  2× wsx-18 rolled 270° + 1× kicker-15                                    3.19 m wide
-#   5  1× skram rolled 270° + 1× skram rolled 90° + 1× kicker-15            2.818 m wide
-#   6  2× achenbach-18                                                           1.22 m wide
-#   7  1× concert-audio-ef6 + 1× tecnare-m2122                                 1.108 m wide
+#   1  2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     4.78 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° at 456 mm gaps     4.42 m wide
+#   3  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°     4.66 m wide
+#   4  1× kicker-15 + 1× skram rolled 270° + 1× skram rolled 90° + 1× kicker-15    3.788 m wide
+#   5  2× achenbach-18                                                           1.22 m wide
+#   6  1× concert-audio-ef6 + 1× tecnare-m2122                                 1.108 m wide
 #
-# Subs reach 3.552 m against a 2.0 m interface. The stack is 4.512 m of cabinet.
+# Subs reach 2.961 m against a 2.0 m interface. The stack is 3.921 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
@@ -36,8 +35,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 2 of 5 over 3 stacks — 1 each and the remaining 2 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 3.552 m against the 3.000 m ceiling asked for, so they stand 552 mm too high — 3.552 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90° row is
+#     4.660 m on a 4.420 m row, so it overhangs 120 mm each side
 #
 # main-3 — 3, 18 cabinets in 2 rows:
 #
@@ -87,7 +86,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 20 cabinets in 7 rows
+  # 2, 20 cabinets in 6 rows
   - id: main-2
     at: [-13.264, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -126,7 +125,7 @@ placements:
 
   # 3, 18 cabinets in 2 rows
   - id: main-3
-    at: [-4.743, 0.0]
+    at: [-4.143, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -167,7 +166,7 @@ placements:
 
   # 1, 18 cabinets in 2 rows
   - id: main-1
-    at: [8.219, 0.0]
+    at: [8.819, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

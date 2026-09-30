@@ -252,93 +252,98 @@ final class StackSolver
                         if ([] === $tiers) {
                             continue;
                         }
-                        $widestAttempt = [] === $widestAttempt ? $tiers : $widestAttempt;
+                        // **A ROW GAPPED OUT TO THE SHAPE IS A SECOND CANDIDATE, NEVER A REPLACEMENT.** It exists only
+                        // where the packed arrangement breaks the width rule of its shape, so a rig that packs keeps
+                        // its packed rows. See {@see gappedToShape}.
+                        foreach (array_filter([$tiers, self::gappedToShape($tiers, $stack)]) as $tiers) {
+                            $widestAttempt = [] === $widestAttempt ? $tiers : $widestAttempt;
 
-                        if ([] !== StackChecks::supportChecks($tiers, $stack)['problems']) {
-                            continue;
-                        }
-
-                        $subs = StackMetrics::subHeight($tiers);
-
-                        // UNDER A CEILING THE PREFERENCE INVERTS, and that is the whole reason the key exists. Without
-                        // one the answer is the widest row that still gets the tops up, so the search returns on its
-                        // first hit and every later, narrower arrangement is ignored. With one, a hit is not the answer
-                        // — a *better* hit may be further down the search — so the whole space is walked.
-                        //
-                        // **WHICH HIT IS BETTER IS `target_sub_height_m`, AND IT USED TO BE "THE SHORTEST".** That was a
-                        // tie-break standing in for a preference nobody had stated, and it parked the transition just over
-                        // 2.0 m wherever it could — legal, and never what anybody wanted, since the useful place for it is
-                        // the middle of the band. Now the arrangement nearest the target wins, which is bidirectional: an
-                        // arrangement 300 mm under the target loses to one 100 mm over it. Ties keep the first, the widest.
-                        //
-                        // **THE CEILING BINDS BEFORE THE TARGET DOES**, because a target is a preference between *legal*
-                        // arrangements and may never reach past the bound to pick an illegal one. Offered 1.5 m and 3.2 m
-                        // against a 3.0 m ceiling, plain distance takes the 3.2 m, which is not a rig at all.
-                        //
-                        // **Measured, and it is inert at the default target — deliberately kept anyway.** 2.5 m is the
-                        // midpoint of the 2–3 m band, so every legal arrangement is within 0.5 m of the aim and every
-                        // illegal one is further: distance alone already sorts them, and adding this changed not one scene
-                        // of the 148. It stops being redundant the moment somebody states a target off the midpoint —
-                        // `--target-sub-height=2.2` puts a 3.05 m arrangement nearer the aim than a 2.0 m one — which is
-                        // exactly when the option is used and exactly when nobody would be watching for this.
-                        if (null !== $stack->maxSubHeightM) {
-                            $legal = $subs <= $stack->maxSubHeightM + StackMetrics::EPSILON_M;
-                            // **When nothing is legal the aim is the ceiling, not the target**, and the two are different
-                            // answers: against a 1.0 m ceiling this inventory can build 1.363 m or 2.126 m, and 2.126 is
-                            // nearer 2.5 while 1.363 is nearer being a rig. Measured — the naive version reported a
-                            // 1126 mm miss where the honest answer misses by 363. A preference cannot be allowed to pick
-                            // the worse of two failures just because there is no success to choose between.
-                            $miss = $legal
-                                ? abs($subs - $stack->targetSubHeightM)
-                                : $subs - $stack->maxSubHeightM;
-                            // **THE LOW END'S TWO MEASURES RIDE ON THE SAME SCALAR**, which is the whole of GEO-14's
-                            // second and third quarters: the shapes and the bearing rules decide what is allowed, and
-                            // within that freedom the arrangement that puts the low end where the caller asked wins.
-                            // Added rather than compared separately, because the height band is already a preference
-                            // and two preferences that cannot be traded are two gates. See {@see LowEndCost}.
-                            $miss += $stack->lowEnd->cost(
-                                LowEndCost::lowness($tiers, $stack, $lowest),
-                                LowEndCost::centrality($tiers, $stack, $lowest),
-                            );
-                            $better = $legal === $closestCarriedLegal
-                                ? $miss < $closestCarriedMiss
-                                : $legal;
-
-                            // **ASKED LAST, AND ONLY OF A CANDIDATE THAT WOULD WIN.** Whether an arrangement survives
-                            // being placed is the one question here that costs a whole compile, and it is the one no
-                            // check above can answer: `supportChecks` reads row widths and bearings, where two cabinets
-                            // end up inside each other because of yaw, taper and chamfer. Ordering it behind `$better`
-                            // is not an optimisation detail — asked of every candidate it ran a compile per arrangement
-                            // and the sweep stopped finishing at all. A loser's geometry changes nothing, so it is never
-                            // built. See GEO-11.
-                            if (StackTops::reachesInterface($tiers, $stack) && $better && self::survives($survives, $tiers, $seated)) {
-                                $closestCarriedLegal = $legal;
-                                $closestCarriedMiss = $miss;
-                                $closestCarried = $tiers;
+                            if ([] !== StackChecks::supportChecks($tiers, $stack)['problems']) {
+                                continue;
                             }
-                        } elseif (StackTops::reachesInterface($tiers, $stack) && self::survives($survives, $tiers, $seated)) {
-                            // **NO CEILING USED TO MEAN NO RANKING AT ALL, AND THAT MADE THE LOW-END AXIS INERT.** This
-                            // branch returned the first arrangement that stood up, so on a rig with no
-                            // `max_sub_height_m` nothing was ever compared against anything and both values of the axis
-                            // produced the same file. It ranks now, on the low end alone — there is no band to miss, so
-                            // there is nothing else to weigh — and it still returns the first candidate when the axis
-                            // has no opinion, which is what keeps an unaimed rig as cheap as it was.
-                            $lowEnd = $stack->lowEnd->cost(
-                                LowEndCost::lowness($tiers, $stack, $lowest),
-                                LowEndCost::centrality($tiers, $stack, $lowest),
-                            );
-                            if ($lowEnd < $closestCarriedMiss) {
-                                $closestCarriedMiss = $lowEnd;
-                                $closestCarried = $tiers;
-                            }
-                        }
 
-                        // The fallback is held to the same bar. It is what gets returned when nothing reached the
-                        // interface, and returning an arrangement that overlaps would hand the caller a rig no render
-                        // could show — the failure this whole seam exists to stop.
-                        if ($subs > $tallestCarriedSubs && self::survives($survives, $tiers, $seated)) {
-                            $tallestCarriedSubs = $subs;
-                            $tallestCarried = $tiers;
+                            $subs = StackMetrics::subHeight($tiers);
+
+                            // UNDER A CEILING THE PREFERENCE INVERTS, and that is the whole reason the key exists. Without
+                            // one the answer is the widest row that still gets the tops up, so the search returns on its
+                            // first hit and every later, narrower arrangement is ignored. With one, a hit is not the answer
+                            // — a *better* hit may be further down the search — so the whole space is walked.
+                            //
+                            // **WHICH HIT IS BETTER IS `target_sub_height_m`, AND IT USED TO BE "THE SHORTEST".** That was a
+                            // tie-break standing in for a preference nobody had stated, and it parked the transition just over
+                            // 2.0 m wherever it could — legal, and never what anybody wanted, since the useful place for it is
+                            // the middle of the band. Now the arrangement nearest the target wins, which is bidirectional: an
+                            // arrangement 300 mm under the target loses to one 100 mm over it. Ties keep the first, the widest.
+                            //
+                            // **THE CEILING BINDS BEFORE THE TARGET DOES**, because a target is a preference between *legal*
+                            // arrangements and may never reach past the bound to pick an illegal one. Offered 1.5 m and 3.2 m
+                            // against a 3.0 m ceiling, plain distance takes the 3.2 m, which is not a rig at all.
+                            //
+                            // **Measured, and it is inert at the default target — deliberately kept anyway.** 2.5 m is the
+                            // midpoint of the 2–3 m band, so every legal arrangement is within 0.5 m of the aim and every
+                            // illegal one is further: distance alone already sorts them, and adding this changed not one scene
+                            // of the 148. It stops being redundant the moment somebody states a target off the midpoint —
+                            // `--target-sub-height=2.2` puts a 3.05 m arrangement nearer the aim than a 2.0 m one — which is
+                            // exactly when the option is used and exactly when nobody would be watching for this.
+                            if (null !== $stack->maxSubHeightM) {
+                                $legal = $subs <= $stack->maxSubHeightM + StackMetrics::EPSILON_M;
+                                // **When nothing is legal the aim is the ceiling, not the target**, and the two are different
+                                // answers: against a 1.0 m ceiling this inventory can build 1.363 m or 2.126 m, and 2.126 is
+                                // nearer 2.5 while 1.363 is nearer being a rig. Measured — the naive version reported a
+                                // 1126 mm miss where the honest answer misses by 363. A preference cannot be allowed to pick
+                                // the worse of two failures just because there is no success to choose between.
+                                $miss = $legal
+                                    ? abs($subs - $stack->targetSubHeightM)
+                                    : $subs - $stack->maxSubHeightM;
+                                // **THE LOW END'S TWO MEASURES RIDE ON THE SAME SCALAR**, which is the whole of GEO-14's
+                                // second and third quarters: the shapes and the bearing rules decide what is allowed, and
+                                // within that freedom the arrangement that puts the low end where the caller asked wins.
+                                // Added rather than compared separately, because the height band is already a preference
+                                // and two preferences that cannot be traded are two gates. See {@see LowEndCost}.
+                                $miss += $stack->lowEnd->cost(
+                                    LowEndCost::lowness($tiers, $stack, $lowest),
+                                    LowEndCost::centrality($tiers, $stack, $lowest),
+                                );
+                                $better = $legal === $closestCarriedLegal
+                                    ? $miss < $closestCarriedMiss
+                                    : $legal;
+
+                                // **ASKED LAST, AND ONLY OF A CANDIDATE THAT WOULD WIN.** Whether an arrangement survives
+                                // being placed is the one question here that costs a whole compile, and it is the one no
+                                // check above can answer: `supportChecks` reads row widths and bearings, where two cabinets
+                                // end up inside each other because of yaw, taper and chamfer. Ordering it behind `$better`
+                                // is not an optimisation detail — asked of every candidate it ran a compile per arrangement
+                                // and the sweep stopped finishing at all. A loser's geometry changes nothing, so it is never
+                                // built. See GEO-11.
+                                if (StackTops::reachesInterface($tiers, $stack) && $better && self::survives($survives, $tiers, $seated)) {
+                                    $closestCarriedLegal = $legal;
+                                    $closestCarriedMiss = $miss;
+                                    $closestCarried = $tiers;
+                                }
+                            } elseif (StackTops::reachesInterface($tiers, $stack) && self::survives($survives, $tiers, $seated)) {
+                                // **NO CEILING USED TO MEAN NO RANKING AT ALL, AND THAT MADE THE LOW-END AXIS INERT.** This
+                                // branch returned the first arrangement that stood up, so on a rig with no
+                                // `max_sub_height_m` nothing was ever compared against anything and both values of the axis
+                                // produced the same file. It ranks now, on the low end alone — there is no band to miss, so
+                                // there is nothing else to weigh — and it still returns the first candidate when the axis
+                                // has no opinion, which is what keeps an unaimed rig as cheap as it was.
+                                $lowEnd = $stack->lowEnd->cost(
+                                    LowEndCost::lowness($tiers, $stack, $lowest),
+                                    LowEndCost::centrality($tiers, $stack, $lowest),
+                                );
+                                if ($lowEnd < $closestCarriedMiss) {
+                                    $closestCarriedMiss = $lowEnd;
+                                    $closestCarried = $tiers;
+                                }
+                            }
+
+                            // The fallback is held to the same bar. It is what gets returned when nothing reached the
+                            // interface, and returning an arrangement that overlaps would hand the caller a rig no render
+                            // could show — the failure this whole seam exists to stop.
+                            if ($subs > $tallestCarriedSubs && self::survives($survives, $tiers, $seated)) {
+                                $tallestCarriedSubs = $subs;
+                                $tallestCarried = $tiers;
+                            }
                         }
                     }
                 }
@@ -358,6 +363,93 @@ final class StackSolver
         // error names the most favourable case there was: "even at its widest it overhangs 610 mm" tells you
         // the rig is impossible, where the narrowest attempt's 956 mm would just look like a bad guess.
         return $widestAttempt;
+    }
+
+    /**
+     * This arrangement with the rows its shape refuses **gapped out** to the width the shape asks for, or null when
+     * it needs none or cannot be mended that way.
+     *
+     * A row's width used to be its cabinet count, since every pair of neighbours stood one stack gap apart. So a
+     * pyramid whose base is narrower than the row above it, and a V whose upper row is narrower than the one below,
+     * were refused even where standing the cabinets further apart would reach the width. This offers that
+     * arrangement. One even gap across the whole row, and only where the packed row breaks the rule, so a rig
+     * that packs keeps its packed rows.
+     *
+     * * **Pyramid**, top down. A row may step out past its support by a tenth of its outboard cabinet, so the row
+     *   under it is widened to that, and widening it may in turn ask the same of the row under that.
+     * * **V**, bottom up. A sub row may not be narrower than its support, so it is widened to its full width.
+     *
+     * **The gap has no cap of its own**, which the owner settled on 2026-10-01. What limits it is whether the row
+     * above is still carried, and {@see StackChecks::supportChecks} asks that of this candidate as of any other:
+     * each cabinet on a third of its width, and each cabinet of a gapped row weighed on its own by
+     * {@see Stability::tips}. Rounded up to a whole millimetre, so the label names the gap exactly.
+     *
+     * @param list<Tier> $tiers
+     *
+     * @return list<Tier>|null
+     */
+    private static function gappedToShape(array $tiers, Stack $stack): ?array
+    {
+        $gapped = $tiers;
+        $changed = false;
+
+        if (StackShape::Pyramid === $stack->shape) {
+            for ($index = count($gapped) - 1; $index > 0; --$index) {
+                $above = $gapped[$index];
+                $need = $above->widthM($stack->gapM) - 2 * StackChecks::PYRAMID_SHOULDER * $above->outerWidthM();
+                $row = self::gappedTo($gapped[$index - 1], $need, $stack);
+                if (false === $row) {
+                    return null;
+                }
+                if (null !== $row) {
+                    $gapped[$index - 1] = $row;
+                    $changed = true;
+                }
+            }
+        } elseif (StackShape::V === $stack->shape) {
+            for ($index = 1; $index < count($gapped); ++$index) {
+                if (!$gapped[$index]->isSub()) {
+                    continue;
+                }
+                // The support's full width, not less its tolerance, or every gapped row would come out that much
+                // narrower than the one under it and a tall wall would narrow by a centimetre a row.
+                $need = $gapped[$index - 1]->widthM($stack->gapM);
+                $row = self::gappedTo($gapped[$index], $need, $stack);
+                if (false === $row) {
+                    return null;
+                }
+                if (null !== $row) {
+                    $gapped[$index] = $row;
+                    $changed = true;
+                }
+            }
+        }
+
+        return $changed ? $gapped : null;
+    }
+
+    /**
+     * `$tier` gapped out to at least `$needM`, null when it is that wide already, false when it cannot get there:
+     * a single cabinet has no gap to widen, and the stage bounds how wide a row may stand.
+     */
+    private static function gappedTo(Tier $tier, float $needM, Stack $stack): Tier|false|null
+    {
+        if ($tier->widthM($stack->gapM) >= $needM) {
+            return null;
+        }
+        if ($tier->count() < 2) {
+            return false;
+        }
+
+        $gapM = max(
+            $stack->gapM,
+            ceil(($needM - $tier->cabinetWidthM()) / ($tier->count() - 1) * 1000 - 1e-6) / 1000,
+        );
+        $row = $tier->withGap($gapM);
+
+        return null !== $stack->maxWidthM && $row->widthM($stack->gapM) > $stack->maxWidthM + StackMetrics::EPSILON_M
+            ? false
+            : $row;
     }
 
     /**

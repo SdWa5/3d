@@ -14,25 +14,17 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 25 cabinets in 8 rows:
+# main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   2  1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90°     1.84 m wide
-#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90°     1.84 m wide
-#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   6  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   7  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   8  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
+#   1  2× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram + 3× achenbach-18 rolled 90°    4.644 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90°    5.298 m wide
+#   3  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° at 144 mm gaps    5.298 m wide
+#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
 #
-# Subs reach 4.862 m against a 2.0 m interface. The stack is 5.822 m of cabinet.
+# Subs reach 2.105 m against a 2.0 m interface. The stack is 3.065 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 4.862 m against the 3.000 m ceiling asked for, so they stand 1862 mm too high — 4.862 m is the
-#     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid
-#     rolled 90° row is 2.157 m on a 1.840 m row, so it overhangs 159 mm each side
-#   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1×
-#     tecnare-m2122 row is 2.511 m on a 2.157 m row, so it overhangs 177 mm each side
+#   * the 3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90° row
+#     is 5.298 m on a 4.644 m row, so it overhangs 327 mm each side
 #
 # main-psl — psl, 22 cabinets in 2 rows:
 #
@@ -44,28 +36,17 @@
 #   * the subs reach 0.590 m against the 2.000 m interface asked for, so the tops sit 1410 mm lower than ideal —
 #     0.590 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 9 rows:
+# main-innschleife — innschleife, 20 cabinets in 4 rows:
 #
-#   1  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
-#   2  1× kicker-15 rolled 270° + 1× kicker-15 rolled 90°                     1.16 m wide
-#   3  1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90°                     1.22 m wide
-#   4  1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90°                     1.22 m wide
-#   5  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
-#   6  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
-#   7  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   8  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   9  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
+#   1  2× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° + 2× sub-60x60 rolled 90°     4.82 m wide
+#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90° at 140 mm gaps            4.82 m wide
+#   3  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
+#   4  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
 #
-# Subs reach 5.34 m against a 2.0 m interface. The stack is 6.48 m of cabinet.
+# Subs reach 2.07 m against a 2.0 m interface. The stack is 3.21 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 5.340 m against the 3.000 m ceiling asked for, so they stand 2340 mm too high — 5.340 m is the
-#     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90° row is 1.220 m on a 1.160 m row, so it overhangs 30
-#     mm each side
-#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° row is 2.220 m on a 1.220 m row, so it overhangs 500 mm
-#     each side
-#   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
-#     each side
+#   * the 2× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 4.860 m on a 4.820 m row, so it overhangs 20 mm each
+#     side
 #
 id: stacked-1-systems-apart-v-------turned--centred---stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
@@ -79,9 +60,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 25 cabinets in 8 rows
+  # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [-8.26, 0.0]
+    at: [-9.48, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -112,7 +93,7 @@ placements:
 
   # psl, 22 cabinets in 2 rows
   - id: main-psl
-    at: [-0.2564, 0.0]
+    at: [-0.083, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -151,9 +132,9 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 9 rows
+  # innschleife, 20 cabinets in 4 rows
   - id: main-innschleife
-    at: [7.7016, 0.0]
+    at: [9.095, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

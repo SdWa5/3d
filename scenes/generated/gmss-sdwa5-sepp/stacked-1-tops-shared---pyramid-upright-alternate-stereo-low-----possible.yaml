@@ -14,13 +14,15 @@
 #
 # main-ours — ours, 23 cabinets in 4 rows:
 #
-#   1  7× flexy-folded-horn-hybrid                                              4.257 m wide
-#   2  1× achenbach-18 + 5× flexy-folded-horn-hybrid + 1× achenbach-18        4.275 m wide
-#   3  2× achenbach-18 + 2× skram + 2× achenbach-18                            3.72 m wide
+#   1  10× flexy-folded-horn-hybrid                                              6.09 m wide
+#   2  1× flexy-folded-horn-hybrid + 6× achenbach-18 + 1× flexy-folded-horn-hybrid    4.922 m wide
+#   3  2× skram at 96 mm gaps                                                   1.316 m wide
 #   4  1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top                1.4056 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.276 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the 1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top row is 1.406 m on a 1.316 m row, so it overhangs
+#     45 mm each side
 #
 # main-gmss — gmss, 16 cabinets in 3 rows:
 #
@@ -76,7 +78,7 @@ placements:
 
   # gmss, 16 cabinets in 3 rows
   - id: main-gmss
-    at: [2.0855, 0.0]
+    at: [2.993, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

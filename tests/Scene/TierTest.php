@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Scene;
 
 use App\Scene\MirrorStyle;
+use App\Scene\RolledBox;
 use App\Scene\Tier;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use PHPUnit\Framework\TestCase;
 
 /**
- * One solved row, and the two ways of reflecting it.
+ * One solved row, the two ways of reflecting it, and a row the solver gapped out.
  *
  * `mirrored()` splits a row at its **own** middle, so the row comes out symmetric about itself. `flipped()`
  * reflects the whole row end to end, which is what one stack of a side-by-side pair needs. Getting those two
@@ -194,5 +195,45 @@ final class TierTest extends TestCase
         $tier = Tier::of($flexy, 5, 90.0)->mirrored(MirrorStyle::Column, 1);
         self::assertEqualsWithDelta(0.591, $tier->heightM(), 1e-9);
         self::assertEqualsWithDelta(0.0, $tier->heightStepM(), 1e-9);
+    }
+
+    /** A gapped row uses its own gap for its width and ignores the stack's. */
+    public function testAGappedRowIsWiderByItsOwnGapAndIgnoresTheStacks(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $packed = Tier::of($flexy, 3);
+        $gapped = $packed->withGap(0.25);
+
+        self::assertEqualsWithDelta($packed->cabinetWidthM() + 2 * 0.02, $packed->widthM(0.02), 1e-9);
+        self::assertEqualsWithDelta($packed->cabinetWidthM() + 2 * 0.25, $gapped->widthM(0.02), 1e-9);
+        self::assertSame(0.25, $gapped->gapFor(0.02));
+        self::assertSame(0.02, $packed->gapFor(0.02));
+    }
+
+    /** The seats of a gapped row sit at the gapped pitch, across a segment boundary too, and stay centred. */
+    public function testAGappedRowSeatsItsSegmentsAtTheSpreadPitch(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $skram = $this->devices['skram'];
+        $tier = (new Tier([[$flexy, 1], [$skram, 2], [$flexy, 1]]))->withGap(0.1);
+
+        $seats = $tier->seats(0.02);
+        $flexyWidth = RolledBox::widthOf($flexy, 0.0);
+        $skramWidth = RolledBox::widthOf($skram, 0.0);
+
+        self::assertEqualsWithDelta(-$seats[2][2], $seats[0][2], 1e-9);
+        self::assertEqualsWithDelta(0.0, $seats[1][2], 1e-9);
+        self::assertEqualsWithDelta($flexyWidth / 2 + 0.1 + $skramWidth + 0.1 / 2, $seats[1][2] - $seats[0][2], 1e-9);
+    }
+
+    /** Mirror, flip and label all keep the gap, so nothing downstream falls back to the packed row. */
+    public function testMirrorFlipAndLabelKeepTheGap(): void
+    {
+        $tier = (new Tier([[$this->devices['flexy-folded-horn-hybrid'], 2, 90.0]]))->withGap(0.125);
+
+        self::assertSame(0.125, $tier->mirrored()->gapM);
+        self::assertSame(0.125, $tier->flipped()->gapM);
+        self::assertSame('2× flexy-folded-horn-hybrid rolled 90° at 125 mm gaps', $tier->label());
+        self::assertSame('2× flexy-folded-horn-hybrid rolled 90°', (new Tier($tier->segments))->label());
     }
 }

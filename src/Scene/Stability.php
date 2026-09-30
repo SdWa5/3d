@@ -17,6 +17,11 @@ namespace App\Scene;
  * cabinets reaching past the support and held by the neighbours they lean on. `weight_kg` is required on every
  * spec, so this is derived from what the repository already knows rather than from a constant somebody picked.
  *
+ * **A gapped row is not.** When {@see StackSolver} gaps a row out to reach a width, its cabinets stand apart with air
+ * between them and nothing holds one up but what is under it. So each one is weighed on its own, against the span
+ * of the supports it actually touches, and a centre over the gap between two supports it rests on still stands
+ * because it bridges them.
+ *
  * What a row-level test cannot see is a cabinet **lifted onto a shoulder** above its neighbours, standing on a
  * corner. Nothing here catches that and nothing here should: it is {@see Gravity} reporting a settle angle, which
  * separates the two on their own numbers — 1.7° for a 19 mm step against 19.5° for a 163 mm shoulder — where no
@@ -42,10 +47,21 @@ final class Stability
      *
      * @param list<array{device: \App\Spec\DeviceSpec, count: int, lo: float, hi: float, ...}> $runs one tier
      * @param list<array{lo: float, hi: float, ...}> $below the tier under it
+     * @param bool $apart whether the tier was gapped out, so every run is a body of its own
      */
-    public static function tips(array $runs, array $below): bool
+    public static function tips(array $runs, array $below, bool $apart = false): bool
     {
         if ([] === $below || [] === $runs) {
+            return false;
+        }
+
+        if ($apart) {
+            foreach ($runs as $run) {
+                if (self::bodyTips($run, $below)) {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -68,6 +84,32 @@ final class Stability
         }
 
         $centre = $moment / $mass;
+
+        return $centre < $low || $centre > $high;
+    }
+
+    /**
+     * Whether one free-standing run's centre falls outside the supports it touches. A run touching nothing is left
+     * to {@see StackChecks}, which refuses it as having nothing under it.
+     *
+     * @param array{lo: float, hi: float, ...} $run
+     * @param list<array{lo: float, hi: float, ...}> $below
+     */
+    private static function bodyTips(array $run, array $below): bool
+    {
+        $low = INF;
+        $high = -INF;
+        foreach ($below as $support) {
+            if (min($run['hi'], $support['hi']) - max($run['lo'], $support['lo']) > 0.0) {
+                $low = min($low, max($run['lo'], $support['lo']));
+                $high = max($high, min($run['hi'], $support['hi']));
+            }
+        }
+        if (INF === $low) {
+            return false;
+        }
+
+        $centre = ($run['lo'] + $run['hi']) / 2;
 
         return $centre < $low || $centre > $high;
     }

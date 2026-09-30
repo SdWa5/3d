@@ -87,7 +87,10 @@ final class Gravity
         $resolved = [];
 
         foreach ($tiers as $index => $tier) {
-            $runs = self::runs($tier->seats($gapM), $below, $gapM);
+            // A row the solver gapped out keeps its own gap through every repair; the rest use the stack's.
+            $ownGapM = $tier->gapFor($gapM);
+            $apart = null !== $tier->gapM;
+            $runs = self::runs($tier->seats($gapM), $below, $ownGapM, $apart);
 
             // Only when the ordinary row would leave a cabinet hanging. Rearranging a tier that is already
             // carried would be a change for its own sake, and every rig that stands up today keeps its layout.
@@ -107,7 +110,8 @@ final class Gravity
             // gate below is deliberately still the row's own bearing, so repairs fire exactly where they always did;
             // only which repair *wins* now accounts for the row above.
             $above = $tiers[$index + 1] ?? null;
-            $score = static function (array $candidate) use ($above, $gapM): float {
+            $aboveGapM = $above?->gapFor($gapM) ?? $gapM;
+            $score = static function (array $candidate) use ($above, $gapM, $aboveGapM): float {
                 // **`carriedBearing`, NOT `worstBearing`, AND FOR THE CANDIDATE'S OWN ROW TOO.** A run standing on
                 // nothing reports a bearing of 1.0 — see {@see reseat} — so scoring a repair on the bearing alone
                 // makes "walked clean off its support" look like the best arrangement available and take the slot.
@@ -124,23 +128,25 @@ final class Gravity
                 // Conservative on purpose: that tier may be repaired in its own turn, so this underestimates how well
                 // it ends up carried and never overestimates it.
                 return min($own, self::carriedBearing(
-                    self::runs($above->seats($gapM), self::topFacesOf($candidate), $gapM),
+                    self::runs($above->seats($gapM), self::topFacesOf($candidate), $aboveGapM, null !== $above->gapM),
                 ));
             };
 
             if (self::worstBearing($runs) < self::MIN_BEARING) {
                 foreach ([
-                    self::outboardSeats($tier->seats($gapM), $below, $gapM),
+                    self::outboardSeats($tier->seats($gapM), $below, $ownGapM),
                     self::slidSeats(
                         $tier->seats($gapM),
                         $below,
-                        $gapM,
+                        $ownGapM,
                         $slideSlackM,
                         $stageM,
                         $above,
+                        $gapM,
+                        $apart,
                     ),
                 ] as $repair) {
-                    $rescued = null === $repair ? null : self::runs($repair, $below, $gapM);
+                    $rescued = null === $repair ? null : self::runs($repair, $below, $ownGapM, $apart);
                     if (null !== $rescued && $score($rescued) > $score($runs)) {
                         $runs = $rescued;
                     }
@@ -301,6 +307,9 @@ final class Gravity
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
      * @param float|null $slackM how far the row may move sideways, or null for not at all
      * @param float|null $stageM the width the stack may occupy, or null for unbounded
+     * @param float $gapM this row's own gap
+     * @param float $stackGapM the stack's gap, which the row above uses unless it was gapped out itself
+     * @param bool $apart whether this row was gapped out, so every cabinet stands as its own run
      *
      * @return list<array{DeviceSpec, int, float, float}>|null
      */
@@ -311,7 +320,10 @@ final class Gravity
         ?float $slackM,
         ?float $stageM,
         ?Tier $above = null,
+        ?float $stackGapM = null,
+        bool $apart = false,
     ): ?array {
+        $stackGapM ??= $gapM;
         if (null === $slackM || $slackM <= 0.0 || [] === $below || [] === $seats) {
             return null;
         }
@@ -357,13 +369,18 @@ final class Gravity
             //
             // Conservative on purpose: the tier above may itself be repaired later, so this underestimates how well it
             // ends up carried and never overestimates it.
-            $runs = self::runs($slid, $below, $gapM);
+            $runs = self::runs($slid, $below, $gapM, $apart);
             $bearing = self::worstBearing($runs);
             if (null !== $above) {
                 // {@see carriedBearing} rather than {@see worstBearing}, because a run left over air reports a bearing
                 // of 1.0 and this is exactly the case that has to score badly.
                 $bearing = min($bearing, self::carriedBearing(
-                    self::runs($above->seats($gapM), self::topFacesOf($runs), $gapM),
+                    self::runs(
+                        $above->seats($stackGapM),
+                        self::topFacesOf($runs),
+                        $above->gapFor($stackGapM),
+                        null !== $above->gapM,
+                    ),
                 ));
             }
 
@@ -464,15 +481,19 @@ final class Gravity
      * ground is still a single row and only a stepped one splits. `on:` then does the rest: it reads the
      * support's own top face, so every height still comes out of the specs and none is written down.
      *
+     * A **gapped** row merges nothing. Its cabinets stand apart with air between them, so a run spanning two of
+     * them would hand the row above a top face over that air, and each cabinet has to be carried on its own.
+     *
      * @param list<array{DeviceSpec, int, float, float}> $seats
      * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     * @param bool $apart whether the row was gapped out, so no two cabinets merge into one run
      *
      * @return list<array{
      *     id: string, device: DeviceSpec, count: int, lo: float, hi: float,
      *     top: float, on: string|null, bearing: float, settle: float, roll: float
      * }>
      */
-    private static function runs(array $seats, array $below, float $gapM): array
+    private static function runs(array $seats, array $below, float $gapM, bool $apart = false): array
     {
         $runs = [];
 
@@ -488,7 +509,7 @@ final class Gravity
                 $last = [] === $runs ? null : $runs[count($runs) - 1];
                 // Device, support **and roll**: the two halves of a mirrored tier are turned opposite ways, so
                 // they are two placements however level the ground under them is.
-                if (null !== $last && $last['device'] === $device && $last['on'] === $on && $last['roll'] === $roll) {
+                if (!$apart && null !== $last && $last['device'] === $device && $last['on'] === $on && $last['roll'] === $roll) {
                     $runs[count($runs) - 1]['count'] = $last['count'] + 1;
                     $runs[count($runs) - 1]['hi'] = $x + $width;
                     // The worst-carried cabinet speaks for the run: they share a support, so the ones at its

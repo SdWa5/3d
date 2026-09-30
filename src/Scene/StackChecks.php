@@ -541,11 +541,15 @@ final class StackChecks
 
             // And the row as one body: its combined mass has to sit over what carries it. This is the question a
             // per-cabinet rule cannot ask, and the one that matters for a row whose end cabinets reach past the
-            // support and lean on the neighbours they are strapped to.
-            if ($index > 0 && Stability::tips($runs, $resolved[$index - 1])) {
-                $problems[] = sprintf(
+            // support and lean on the neighbours they are strapped to. A gapped row is weighed cabinet by cabinet.
+            if ($index > 0 && Stability::tips($runs, $resolved[$index - 1], null !== $tiers[$index]->gapM)) {
+                $problems[] = null === $tiers[$index]->gapM ? sprintf(
                     'the %s row would tip: its combined centre of mass falls outside what carries it. Narrow the '
                     .'tier, widen what carries it, or take the odd cabinets out of the stack',
+                    $tiers[$index]->label(),
+                ) : sprintf(
+                    'a cabinet in the %s row would tip: it stands apart from its neighbours and its centre falls '
+                    .'outside what carries it',
                     $tiers[$index]->label(),
                 );
             }

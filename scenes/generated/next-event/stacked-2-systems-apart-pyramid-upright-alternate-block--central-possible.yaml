@@ -28,18 +28,19 @@
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
-# main-ours-2 — ours-2, 13 cabinets in 3 rows:
+# main-ours-2 — ours-2, 13 cabinets in 4 rows:
 #
-#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   2  1× achenbach-18 + 1× skram + 2× achenbach-18                            2.47 m wide
-#   3  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
+#   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
+#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
+#   3  1× skram + 1× achenbach-18 at 203 mm gaps                               1.413 m wide
+#   4  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
 #
-# Subs reach 1.677 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
+# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.677 m against the 2.000 m interface asked for, so the tops sit 323 mm lower than ideal —
-#     1.677 m is the most they reach while every tier is still carried
+#   * the 1× eighteensound-2way-15 + 2× tecnare-m2122 row is 1.506 m on a 1.413 m row, so it overhangs 46 mm each
+#     side
 #
 # main-psl-1 — psl-1, 8 cabinets in 3 rows:
 #
@@ -95,7 +96,7 @@ focus:
 placements:
   # ours-1, 12 cabinets in 4 rows
   - id: main-ours-1
-    at: [-8.285, 0.0]
+    at: [-7.683, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -126,7 +127,7 @@ placements:
           count: 1
           aim: near
 
-  # ours-2, 13 cabinets in 3 rows
+  # ours-2, 13 cabinets in 4 rows
   - id: main-ours-2
     at: [-4.741, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -160,7 +161,7 @@ placements:
 
   # psl-1, 8 cabinets in 3 rows
   - id: main-psl-1
-    at: [-1.513, 0.0]
+    at: [-2.115, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -186,7 +187,7 @@ placements:
 
   # psl-2, 9 cabinets in 3 rows
   - id: main-psl-2
-    at: [0.797, 0.0]
+    at: [0.195, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -211,7 +212,7 @@ placements:
 
   # innschleife-1, 7 cabinets in 3 rows
   - id: main-innschleife-1
-    at: [3.752, 0.0]
+    at: [3.15, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -241,7 +242,7 @@ placements:
 
   # innschleife-2, 7 cabinets in 3 rows
   - id: main-innschleife-2
-    at: [7.352, 0.0]
+    at: [6.75, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

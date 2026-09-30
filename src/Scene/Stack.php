@@ -358,7 +358,7 @@ final class Stack
                     // evenly. Only the seam *between* the two halves collapses to the gap, and that is already
                     // in `lo`..`hi` because the halves are separate runs.
                     group: new GroupStack([
-                        new Lattice([$run['count'], 1, 1], [$this->gapM, 0.0, 0.0], cycleAxis: Axis::X),
+                        new Lattice([$run['count'], 1, 1], [$tier->gapFor($this->gapM), 0.0, 0.0], cycleAxis: Axis::X),
                     ]),
                     aimLines: $placement->aimLines,
                     // Only the **top** tier is spread, and only as wide as what holds it up. Both halves of
@@ -565,7 +565,7 @@ final class Stack
             return new Alignment(
                 mode: LayoutMode::Stereo,
                 clearOf: $nearest['id'],
-                insetM: $this->gapM,
+                insetM: $tier->gapFor($this->gapM),
                 side: $nearest['side'],
             );
         }

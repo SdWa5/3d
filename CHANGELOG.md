@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.120.0] - 2026-10-01
+
+### Added
+
+- **The solver gaps a row out to its shape (GEO-13).** Where a packed arrangement breaks the width rule of
+  `pyramid` or `v`, the fill also offers it with the offending row gapped out, one even gap across the row.
+  A pyramid widens the row under a too-wide row, and a V widens a sub row to the full width of the one below.
+  The candidate is ranked like any other, and a row that packs to its shape is never gapped.
+- **`Tier` carries its own gap.** `withGap()`, `gapFor()` and `cabinetWidthM()` are new, and `widthM()`,
+  `seats()`, `mirrored()`, `flipped()` and `label()` honour the gap. A gapped row is labelled
+  `… at 148 mm gaps`, which also keeps the seating memo from sharing a verdict between two gaps.
+- `StabilityTest`, and GEO-13 cases in `TierTest` and `StackSolverTest`.
+
+### Changed
+
+- **A gapped row is placed at its own gap.** `Gravity::resolve()` and its repairs, the lattice in
+  `Stack::expand()`, the alignment inset and the `LowEndCost` pitch all read the row's gap.
+- **Each cabinet of a gapped row is its own run and its own body.** `Gravity::runs()` merges no two of them,
+  so the row above never gets a top face over the air between them. `Stability::tips()` weighs each one
+  against the supports it touches, and a centre over the gap between two supports it rests on still stands.
+- **`SceneCompiler::stackSurvives()` refuses a gapped arrangement with a floating cabinet.** A gapped top row
+  can pass the bearing rules and still stand over air once placed, so the seating predicate also asks
+  `PlacementChecks::floatingFaults()` whenever a row is gapped.
+- `SceneStackFeasibilityTest` shows its impossible rig on `sdwa5` pulled onto the centre line, because every
+  `gmss` rig stands up now.
+- **Every generated scene is replayed from its recorded command.** 968 changed, 112 were renamed and 20 are
+  new. The 20 new ones are "central" variants in `sdwa5-sepp` that used to dedupe into their "low" sibling,
+  so that folder holds 166. 89 rigs stand up now that did not, and 23 flipped the other way. All 23 were
+  already refused on main, whose last replay of those folders was 0.104.0. Gaps run from 26 mm to 1200 mm.
+  The tree holds 2726 scenes, 171 of them impossible against 237 before.
+
 ## [0.119.0] - 2026-09-29
 
 ### Added

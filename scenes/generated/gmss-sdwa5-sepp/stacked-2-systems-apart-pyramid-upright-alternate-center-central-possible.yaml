@@ -29,20 +29,21 @@
 #   * the subs reach 0.670 m against the 2.000 m interface asked for, so the tops sit 1330 mm lower than ideal —
 #     0.670 m is the most they reach while every tier is still carried
 #
-# main-ours-1 — ours-1, 11 cabinets in 4 rows:
+# main-ours-2 — ours-2, 14 cabinets in 4 rows:
 #
-#   1  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   3  3× achenbach-18                                                           1.84 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
+#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
+#   2  3× achenbach-18                                                           1.84 m wide
+#   3  2× skram at 193 mm gaps                                                  1.413 m wide
+#   4  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
 #
-# Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
+# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.237 m of cabinet.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 3× achenbach-18 row is 1.840 m on a 1.813 m row, so it overhangs 13 mm each side
+#   * the 1× eighteensound-2way-15 + 2× tecnare-m2122 row is 1.506 m on a 1.413 m row, so it overhangs 46 mm each
+#     side
 #
 # main-gmss-2 — gmss-2, 10 cabinets in 5 rows:
 #
@@ -64,20 +65,20 @@
 #   * the subs reach 3.340 m against the 3.000 m ceiling asked for, so they stand 340 mm too high — 3.340 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #
-# main-ours-2 — ours-2, 14 cabinets in 3 rows:
+# main-ours-1 — ours-1, 11 cabinets in 4 rows:
 #
-#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   2  1× achenbach-18 + 2× skram + 2× achenbach-18                             3.1 m wide
-#   3  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
+#   1  3× flexy-folded-horn-hybrid                                              1.813 m wide
+#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
+#   3  3× achenbach-18                                                           1.84 m wide
+#   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
-# Subs reach 1.677 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
+# Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.677 m against the 2.000 m interface asked for, so the tops sit 323 mm lower than ideal —
-#     1.677 m is the most they reach while every tier is still carried
+#   * the 3× achenbach-18 row is 1.840 m on a 1.813 m row, so it overhangs 13 mm each side
 #
 id: stacked-2-systems-apart-pyramid-upright-alternate-center-central-possible
 name: "Solved rig — 4 stacks side by side, tiers centred"
@@ -115,9 +116,9 @@ placements:
         - device: turbo-top
           count: 1
 
-  # ours-1, 11 cabinets in 4 rows
-  - id: main-ours-1
-    at: [-2.375, 0.0]
+  # ours-2, 14 cabinets in 4 rows
+  - id: main-ours-2
+    at: [-1.472, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -132,21 +133,21 @@ placements:
       gap_m: 0.02
       low_end: central
       shape: pyramid
-      mirror: true             # the mirror image of stack ours-1
       from:
+        - skram
         - device: flexy-folded-horn-hybrid
           count: 6
         - device: achenbach-18
           count: 3
         - device: tecnare-m2122
-          count: 1
+          count: 2
         - device: eighteensound-2way-15
           count: 1
           aim: near
 
   # gmss-2, 10 cabinets in 5 rows
   - id: main-gmss-2
-    at: [-0.14, 0.0]
+    at: [1.666, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -170,9 +171,9 @@ placements:
         - device: turbo-top
           count: 2
 
-  # ours-2, 14 cabinets in 3 rows
-  - id: main-ours-2
-    at: [2.998, 0.0]
+  # ours-1, 11 cabinets in 4 rows
+  - id: main-ours-1
+    at: [3.901, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -187,14 +188,14 @@ placements:
       gap_m: 0.02
       low_end: central
       shape: pyramid
+      mirror: true             # the mirror image of stack ours-1
       from:
-        - skram
         - device: flexy-folded-horn-hybrid
           count: 6
         - device: achenbach-18
           count: 3
         - device: tecnare-m2122
-          count: 2
+          count: 1
         - device: eighteensound-2way-15
           count: 1
           aim: near

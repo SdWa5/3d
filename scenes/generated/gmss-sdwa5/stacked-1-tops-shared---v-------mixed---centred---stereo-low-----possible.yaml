@@ -25,17 +25,16 @@
 #   * the 2× iq-sub rolled 270° + 1× iq-sub + 2× iq-sub rolled 90° row is 3.290 m on a 2.770 m row, so it
 #     overhangs 260 mm each side
 #
-# main-ours — ours, 17 cabinets in 4 rows:
+# main-ours — ours, 17 cabinets in 5 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
-#   4  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° at 121 mm gaps    3.415 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° at 649 mm gaps    3.415 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° at 649 mm gaps    3.415 m wide
+#   5  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
 #
-# Subs reach 2.136 m against a 2.0 m interface. The stack is 3.096 m of cabinet.
+# Subs reach 2.727 m against a 2.0 m interface. The stack is 3.687 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid
-#     rolled 90° row is 3.723 m on a 3.414 m row, so it overhangs 154 mm each side
 #
 id: stacked-1-tops-shared---v-------mixed---centred---stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -51,7 +50,7 @@ focus:
 placements:
   # gmss, 14 cabinets in 4 rows
   - id: main-gmss
-    at: [-2.4135, 0.0]
+    at: [-2.2595, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -83,7 +82,7 @@ placements:
           count: 2
           aim: near
 
-  # ours, 17 cabinets in 4 rows
+  # ours, 17 cabinets in 5 rows
   - id: main-ours
     at: [1.593, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
