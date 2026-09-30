@@ -92,7 +92,7 @@ final class LowEndCost
                 // is — which scored an arrangement with the pair shoved up a row and off to one side as *more*
                 // central than the same pair straddling the centre line on the floor. Expanded, each cabinet
                 // carries its own distance and a pair either side of the middle costs what it actually is.
-                $pitch = RolledBox::widthOf($device, $roll) + $stack->gapM;
+                $pitch = RolledBox::widthOf($device, $roll) + $tier->gapFor($stack->gapM);
                 for ($i = 0; $i < $count; ++$i) {
                     $x = $centreX + ($i - ($count - 1) / 2) * $pitch;
                     $mass += $own;

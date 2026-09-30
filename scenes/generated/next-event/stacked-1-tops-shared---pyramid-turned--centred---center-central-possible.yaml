@@ -25,16 +25,15 @@
 #
 # Subs reach 2.428 m against a 2.0 m interface. The stack is 3.568 m of cabinet.
 #
-# main-psl — psl, 18 cabinets in 4 rows:
+# main-psl — psl, 18 cabinets in 3 rows:
 #
-#   1  2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     4.78 m wide
-#   2  2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     4.78 m wide
-#   3  2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     4.78 m wide
-#   4  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6   3.3296 m wide
+#   1  4× concert-audio-esx rolled 270° + 1× concert-audio-esx + 4× concert-audio-esx rolled 90°    10.19 m wide
+#   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90° at 144 mm gaps    3.238 m wide
+#   3  1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6   3.3296 m wide
 #
-# Subs reach 1.77 m against a 2.0 m interface. The stack is 2.91 m of cabinet.
-#   * the subs reach 1.770 m against the 2.000 m interface asked for, so the tops sit 230 mm lower than ideal —
-#     1.770 m is the most they reach while every tier is still carried
+# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.5 m of cabinet.
+#   * the 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6 row is 3.330 m on a 3.238 m
+#     row, so it overhangs 46 mm each side
 #
 # main-innschleife — innschleife, 14 cabinets in 4 rows:
 #
@@ -59,7 +58,7 @@ focus:
 placements:
   # ours, 24 cabinets in 4 rows
   - id: main-ours
-    at: [-5.622, 0.0]
+    at: [-8.327, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -92,7 +91,7 @@ placements:
           count: 1
           aim: near
 
-  # psl, 18 cabinets in 4 rows
+  # psl, 18 cabinets in 3 rows
   - id: main-psl
     at: [-0.078, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -129,7 +128,7 @@ placements:
 
   # innschleife, 14 cabinets in 4 rows
   - id: main-innschleife
-    at: [5.242, 0.0]
+    at: [7.947, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

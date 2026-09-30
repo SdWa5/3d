@@ -11,18 +11,22 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 14 cabinets in 4 rows:
+# main-gmss — gmss, 14 cabinets in 6 rows:
 #
-#   1  1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°      4.2 m wide
-#   2  2× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.74 m wide
-#   3  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90°                2.78 m wide
-#   4  3× turbo-top                                                              1.39 m wide
+#   1  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 932 mm gaps           2.272 m wide
+#   2  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1066 mm gaps          2.406 m wide
+#   3  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1200 mm gaps           2.54 m wide
+#   4  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
+#   5  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90°                2.78 m wide
+#   6  3× turbo-top                                                              1.39 m wide
 #
-# Subs reach 1.78 m against a 2.0 m interface. The stack is 2.49 m of cabinet.
-#   * the subs reach 1.780 m against the 2.000 m interface asked for, so the tops sit 220 mm lower than ideal —
-#     1.780 m is the most they reach while every tier is still carried
-#   * the 1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° row is 2.780 m on a 2.740 m row, so it overhangs
-#     20 mm each side
+# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.55 m of cabinet.
+#   * the 1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1066 mm gaps row is 2.406 m on a 2.272 m row, so it
+#     overhangs 67 mm each side
+#   * the 1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1200 mm gaps row is 2.540 m on a 2.406 m row, so it
+#     overhangs 67 mm each side
+#   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° row is 2.820 m on a 2.540 m row, so it overhangs 140
+#     mm each side
 #
 # main-ours — ours, 17 cabinets in 4 rows:
 #
@@ -45,7 +49,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 14 cabinets in 4 rows
+  # gmss, 14 cabinets in 6 rows
   - id: main-gmss
     at: [-2.423, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -77,7 +81,7 @@ placements:
 
   # ours, 17 cabinets in 4 rows
   - id: main-ours
-    at: [2.048, 0.0]
+    at: [1.358, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

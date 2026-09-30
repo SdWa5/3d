@@ -3,7 +3,9 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-1/1g-2 and main-1/2f are 0.1361 m inside each other
+#   * a thebox-dsp-112 stands at 13.758 m with nothing under it across x
+#   * main-1/1d-2 and main-1/2f are 0.1105 m inside each other
+#   * main-3/1b-1 and main-3/2a are 0.0651 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -19,66 +21,98 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 29 cabinets in 2 rows:
+# main-2 — 2, 37 cabinets in 17 rows:
 #
-#   1  1× sub-60x60 + 1× achenbach-18 + 1× thebox-tp118-800 + 2× flexy-folded-horn-hybrid + 1× concert-audio-esf + 1× skram + 1× wsx-18 + 1× concert-audio-esx + 1× thebox-tp218-1600 + 2× sbh-18 + 1× thebox-tp218-1600 + 1× concert-audio-esx + 1× wsx-18 + 1× skram + 1× concert-audio-esf + 2× flexy-folded-horn-hybrid + 1× thebox-tp118-800 + 1× achenbach-18 + 1× sub-60x60     13.2 m wide
-#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1× hk-linear5-112x + 1× thebox-dsp-112 + 1× concert-audio-ef6     3.37 m wide
+#   1  2× thebox-tp218-1600                                                      1.12 m wide
+#   2  2× thebox-tp118-800                                                       1.12 m wide
+#   3  2× concert-audio-esf                                                     1.196 m wide
+#   4  2× concert-audio-esx                                                       1.2 m wide
+#   5  2× achenbach-18                                                           1.22 m wide
+#   6  2× skram                                                                  1.24 m wide
+#   7  2× sbh-18 at 140 mm gaps                                                  1.24 m wide
+#   8  2× sbh-18 at 140 mm gaps                                                  1.24 m wide
+#   9  2× wsx-18 at 100 mm gaps                                                  1.24 m wide
+#   10  2× wsx-18 at 100 mm gaps                                                  1.24 m wide
+#   11  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
+#   12  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
+#   13  2× sub-60x60 at 40 mm gaps                                                1.24 m wide
+#   14  2× sub-60x60 at 40 mm gaps                                                1.24 m wide
+#   15  2× kicker-15                                                              1.92 m wide
+#   16  2× kicker-15                                                              1.92 m wide
+#   17  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× hk-linear5-112x + 1× thebox-dsp-112    2.322 m wide
 #
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.16 m of cabinet.
+# Subs reach 13.758 m against a 2.0 m interface. The stack is 14.718 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * kicker-15: LEFT OUT, it cannot be carried in this stack — the 2× concert-audio-esx + 1× concert-audio-esf
-#     row is 1.808 m on a 2.908 m row, so the wall narrows as it rises — `shape: v` asks for the opposite and this is not
-#     one of its arrangements
-#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
-#     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
-#     1.200 m is the most they reach while every tier is still carried
+#   * wsx-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * sbh-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
+#     work, which is what the -turned rig does
+#   * sub-60x60: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
+#     work, which is what the -turned rig does
+#   * concert-audio-ef6: LEFT OUT, 1 of 4 — 3 stacks take 1 each, and an odd cabinet would make one stack a
+#     different rig from the others
+#   * thebox-pa302: LEFT OUT, it cannot be carried in this stack — the 3× kicker-15 row is 2.890 m on a 4.041 m
+#     row, so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its arrangements
+#   * the subs reach 13.758 m against the 3.000 m ceiling asked for, so they stand 10758 mm too high — 13.758 m is
+#     the nearest the 2.500 m target that every tier is still carried at
+#   * the 2× concert-audio-esf row is 1.196 m on a 1.120 m row, so it overhangs 38 mm each side
+#   * the 2× achenbach-18 row is 1.220 m on a 1.200 m row, so it overhangs 10 mm each side
+#   * the 2× skram row is 1.240 m on a 1.220 m row, so it overhangs 10 mm each side
+#   * the 2× kicker-15 row is 1.920 m on a 1.240 m row, so it overhangs 340 mm each side
+#   * the 1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× hk-linear5-112x + 1× thebox-dsp-112
+#     row is 2.322 m on a 1.920 m row, so it overhangs 201 mm each side
 #
-# main-3 — 3, 17 cabinets in 2 rows:
+# main-3 — 3, 14 cabinets in 2 rows:
 #
-#   1  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 2× concert-audio-esx + 1× wsx-18 + 2× flexy-folded-horn-hybrid + 1× sub-60x60 + 1× achenbach-18 + 1× kicker-15    7.064 m wide
+#   1  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 2× concert-audio-esx + 2× flexy-folded-horn-hybrid + 1× achenbach-18    4.884 m wide
 #   2  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m   2.9436 m wide
 #
 # Subs reach 1.18 m against a 2.0 m interface. The stack is 2.32 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * sbh-18: LEFT OUT, it cannot be carried in this stack — the 1× flexy-folded-horn-hybrid row is 0.591 m on a
-#     2.433 m row, so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its
-#     arrangements
-#   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
-#     the stacks are not identical. --no-asymmetry leaves them out instead
+#   * wsx-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * sbh-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
+#     work, which is what the -turned rig does
+#   * sub-60x60: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
+#     work, which is what the -turned rig does
+#   * concert-audio-ef6: LEFT OUT, 1 of 4 — 3 stacks take 1 each, and an odd cabinet would make one stack a
+#     different rig from the others
 #   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
 #     1.180 m is the most they reach while every tier is still carried
 #
-# main-1 — 1, 17 cabinets in 2 rows:
+# main-1 — 1, 14 cabinets in 2 rows:
 #
-#   1  1× kicker-15 + 1× achenbach-18 + 1× sub-60x60 + 2× flexy-folded-horn-hybrid + 1× wsx-18 + 2× concert-audio-esx + 2× flexy-folded-horn-hybrid + 1× achenbach-18    7.064 m wide
+#   1  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 2× concert-audio-esx + 2× flexy-folded-horn-hybrid + 1× achenbach-18    4.884 m wide
 #   2  1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   2.9436 m wide
 #
 # Subs reach 1.18 m against a 2.0 m interface. The stack is 2.32 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
-#     are not identical. --no-asymmetry leaves them out instead
-#   * sbh-18: LEFT OUT, it cannot be carried in this stack — the 1× flexy-folded-horn-hybrid row is 0.591 m on a
-#     2.433 m row, so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its
-#     arrangements
-#   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
-#     the stacks are not identical. --no-asymmetry leaves them out instead
+#   * wsx-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * sbh-18: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be flanked
+#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
+#     which is what the -turned rig does
+#   * kicker-15: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
+#     work, which is what the -turned rig does
+#   * sub-60x60: KEPT TOGETHER, all 4 in one stack — 3 stacks would take one each, and one on its own cannot be
+#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
+#     work, which is what the -turned rig does
+#   * concert-audio-ef6: LEFT OUT, 1 of 4 — 3 stacks take 1 each, and an odd cabinet would make one stack a
+#     different rig from the others
 #   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
 #     1.180 m is the most they reach while every tier is still carried
 #
@@ -94,9 +128,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 29 cabinets in 2 rows
+  # 2, 37 cabinets in 17 rows
   - id: main-2
-    at: [-7.866, 0.0]
+    at: [-5.686, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -106,29 +140,25 @@ placements:
       gap_m: 0.02
       shape: v
       from:
-        - device: wsx-18
-          count: 2
-        - device: sbh-18
-          count: 2
+        - wsx-18
+        - sbh-18
         - skram
         - thebox-tp218-1600
         - device: flexy-folded-horn-hybrid
           count: 4
         - device: concert-audio-esx
           count: 2
+        - kicker-15
         - device: achenbach-18
           count: 2
-        - device: sub-60x60
-          count: 2
+        - sub-60x60
         - thebox-tp118-800
         - concert-audio-esf
         - device: tecnare-m2122
           count: 1
           aim: near
         - device: concert-audio-ef6
-          count: 2
-        - device: thebox-pa302
-          aim: near
+          count: 1
         - device: thebox-achat-115m
           aim: near
         - device: hk-linear5-112x
@@ -136,9 +166,9 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # 3, 17 cabinets in 2 rows
+  # 3, 14 cabinets in 2 rows
   - id: main-3
-    at: [2.766, 0.0]
+    at: [-1.583, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -148,18 +178,12 @@ placements:
       gap_m: 0.02
       shape: v
       from:
-        - device: wsx-18
-          count: 1
         - device: flexy-folded-horn-hybrid
           count: 4
         - device: concert-audio-esx
           count: 2
-        - device: kicker-15
-          count: 1
         - device: achenbach-18
           count: 2
-        - device: sub-60x60
-          count: 1
         - device: tms4
           count: 1
           aim: near
@@ -178,9 +202,9 @@ placements:
           count: 1
           aim: near
 
-  # 1, 17 cabinets in 2 rows
+  # 1, 14 cabinets in 2 rows
   - id: main-1
-    at: [10.33, 0.0]
+    at: [3.801, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -191,18 +215,12 @@ placements:
       shape: v
       mirror: true             # the mirror image of stack 1
       from:
-        - device: wsx-18
-          count: 1
         - device: flexy-folded-horn-hybrid
           count: 4
         - device: concert-audio-esx
           count: 2
-        - device: kicker-15
-          count: 1
         - device: achenbach-18
           count: 2
-        - device: sub-60x60
-          count: 1
         - device: tms4
           count: 1
           aim: near

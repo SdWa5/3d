@@ -232,7 +232,7 @@ and `OVERHANG_PER_SIDE` with it. **Adding a method there that calls out of the c
 **What stayed is the search**: `solve`, `fill`, `fillWith`, `packedRows`, `packTo`, `spreadRows`, `budgetLadder`,
 `rowSizeFor`, `ceilingFor`, `survives`, `fingerprint` and `orderingProblems`. That is deliberate rather than
 leftover. `fill`, `fillWith`, `packedRows` and `packTo` are 564 of those lines and they are where GEO-11, GEO-13
-and GEO-14 all land, so the extraction took the stable part out of the way of the volatile part rather than
+and GEO-14 all land (GEO-13 as `gappedToShape`, a second candidate beside each fill), so the extraction took the stable part out of the way of the volatile part rather than
 pretending to simplify the volatile part.
 
 **A move refactor here is provable, which is why it was safe to do at all.** The 2707 scenes under

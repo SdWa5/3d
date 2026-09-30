@@ -26,9 +26,14 @@ final class Tier
      *                                                                             makes a mixed row. The third element is the segment's roll in degrees, absent meaning upright — and
      *                                                                             absent rather than required because PHP's list destructuring ignores what it is not given, so every
      *                                                                             `[$device, $count]` reader in the solver kept working when the roll arrived.
+     * @param float|null $gapM the air between every neighbouring pair in this row, null meaning the stack's own
+     *                         gap. Set only when {@see StackSolver} gaps a row out to reach a width its cabinets
+     *                         cannot reach packed — one even pitch across the whole row, never a gap per pair
      */
-    public function __construct(public readonly array $segments)
-    {
+    public function __construct(
+        public readonly array $segments,
+        public readonly ?float $gapM = null,
+    ) {
     }
 
     public static function of(DeviceSpec $device, int $count, float $rollDeg = 0.0): self
@@ -46,6 +51,30 @@ final class Tier
         return $segment[2] ?? 0.0;
     }
 
+    /** The air this row leaves between neighbours: its own when it was gapped out, else the stack's `$stackGapM`. */
+    public function gapFor(float $stackGapM): float
+    {
+        return $this->gapM ?? $stackGapM;
+    }
+
+    /** This row gapped out to `$gapM` between every neighbouring pair. */
+    public function withGap(float $gapM): self
+    {
+        return new self($this->segments, $gapM);
+    }
+
+    /** How wide the cabinets alone are, without any air between them. */
+    public function cabinetWidthM(): float
+    {
+        $width = 0.0;
+        foreach ($this->segments as $segment) {
+            [$device, $count] = $segment;
+            $width += $count * RolledBox::widthOf($device, self::rollOf($segment));
+        }
+
+        return $width;
+    }
+
     /** How many cabinets stand in this row, whatever they are. */
     public function count(): int
     {
@@ -59,16 +88,12 @@ final class Tier
      * Nominal widths, deliberately: a tier is decided before anything is aimed, and an unaimed cabinet's
      * box is its box. Once a tier is spread by {@see Alignment} the real edges are solved against the
      * rotated boxes, which is a different question asked later.
+     *
+     * A gapped row uses its own gap and ignores `$gapM`, which is the stack's.
      */
     public function widthM(float $gapM): float
     {
-        $width = 0.0;
-        foreach ($this->segments as $segment) {
-            [$device, $count] = $segment;
-            $width += $count * RolledBox::widthOf($device, self::rollOf($segment));
-        }
-
-        return $width + max(0, $this->count() - 1) * $gapM;
+        return $this->cabinetWidthM() + max(0, $this->count() - 1) * $this->gapFor($gapM);
     }
 
     /**
@@ -125,10 +150,13 @@ final class Tier
         return count($this->segments) > 1;
     }
 
-    /** The device ids in this row, left to right, for a message or a scene comment. */
+    /**
+     * The device ids in this row, left to right, for a message or a scene comment. A gapped row names its gap,
+     * which also keeps {@see StackSolver}'s fingerprint from sharing one verdict between two gaps of one row.
+     */
     public function label(): string
     {
-        return implode(' + ', array_map(
+        $label = implode(' + ', array_map(
             static fn (array $segment): string => sprintf(
                 '%d× %s%s',
                 $segment[1],
@@ -137,6 +165,8 @@ final class Tier
             ),
             $this->segments,
         ));
+
+        return null === $this->gapM ? $label : sprintf('%s at %d mm gaps', $label, (int) round($this->gapM * 1000));
     }
 
     /**
@@ -209,7 +239,7 @@ final class Tier
             $index += $take;
         }
 
-        return new self($segments);
+        return new self($segments, $this->gapM);
     }
 
     /**
@@ -237,7 +267,7 @@ final class Tier
                 ];
             },
             array_reverse($this->segments),
-        )));
+        )), $this->gapM);
     }
 
     /**
@@ -251,6 +281,7 @@ final class Tier
     public function seats(float $gapM): array
     {
         $x = -$this->widthM($gapM) / 2;
+        $gapM = $this->gapFor($gapM);
 
         $seats = [];
         foreach ($this->segments as $segment) {

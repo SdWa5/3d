@@ -20,16 +20,16 @@
 #
 # Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
 #
-# main-ours — ours, 18 cabinets in 4 rows:
+# main-ours — ours, 18 cabinets in 5 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
-#   2  3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
-#   4  1× turbo-top + 3× tecnare-m2122                                          2.01 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× skram rolled 270° + 1× skram rolled 90° at 92 mm gaps               1.92 m wide
+#   5  1× turbo-top + 3× tecnare-m2122                                          2.01 m wide
 #
-# Subs reach 1.792 m against a 2.0 m interface. The stack is 2.752 m of cabinet.
-#   * the subs reach 1.792 m against the 2.000 m interface asked for, so the tops sit 208 mm lower than ideal —
-#     1.792 m is the most they reach while every tier is still carried
+# Subs reach 2.383 m against a 2.0 m interface. The stack is 3.343 m of cabinet.
+#   * the 1× turbo-top + 3× tecnare-m2122 row is 2.010 m on a 1.920 m row, so it overhangs 45 mm each side
 #
 id: stacked-1-tops-shared---pyramid-turned--alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -45,7 +45,7 @@ focus:
 placements:
   # gmss, 13 cabinets in 4 rows
   - id: main-gmss
-    at: [-2.4995, 0.0]
+    at: [-2.108, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -72,7 +72,7 @@ placements:
         - device: turbo-top
           count: 2
 
-  # ours, 18 cabinets in 4 rows
+  # ours, 18 cabinets in 5 rows
   - id: main-ours
     at: [2.008, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

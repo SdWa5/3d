@@ -68,16 +68,15 @@
 #   * the subs reach 1.526 m against the 2.000 m interface asked for, so the tops sit 474 mm lower than ideal —
 #     1.526 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 7 cabinets in 3 rows:
+# main-ours-2 — ours-2, 7 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
-#   2  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
-#   3  1× tecnare-m2122                                                           0.5 m wide
+#   1  2× skram                                                                  1.24 m wide
+#   2  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
+#   3  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
+#   4  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 1.828 m against a 2.0 m interface. The stack is 2.788 m of cabinet.
+# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.828 m against the 2.000 m interface asked for, so the tops sit 172 mm lower than ideal —
-#     1.828 m is the most they reach while every tier is still carried
 #
 id: stacked-3-systems-apart-v-------upright-alternate-stereo-central-possible
 name: "Solved rig — 6 stacks side by side, tiers split left and right"
@@ -93,7 +92,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 5 rows
   - id: main-gmss-2
-    at: [-4.75, 0.0]
+    at: [-4.454, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -121,7 +120,7 @@ placements:
 
   # ours-1, 5 cabinets in 3 rows
   - id: main-ours-1
-    at: [-2.979, 0.0]
+    at: [-2.683, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -147,7 +146,7 @@ placements:
 
   # gmss-1, 3 cabinets in 2 rows
   - id: main-gmss-1
-    at: [-1.338, 0.0]
+    at: [-1.042, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -173,7 +172,7 @@ placements:
 
   # gmss-3, 3 cabinets in 2 rows
   - id: main-gmss-3
-    at: [0.242, 0.0]
+    at: [0.538, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -198,7 +197,7 @@ placements:
 
   # ours-3, 5 cabinets in 3 rows
   - id: main-ours-3
-    at: [1.883, 0.0]
+    at: [2.179, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -221,7 +220,7 @@ placements:
         - device: tecnare-m2122
           count: 1
 
-  # ours-2, 7 cabinets in 3 rows
+  # ours-2, 7 cabinets in 4 rows
   - id: main-ours-2
     at: [3.9, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

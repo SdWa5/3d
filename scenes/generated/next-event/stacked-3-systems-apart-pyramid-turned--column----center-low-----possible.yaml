@@ -27,15 +27,19 @@
 #   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
 #     1.782 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 9 cabinets in 3 rows:
+# main-ours-2 — ours-2, 9 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    2.786 m wide
-#   3  1× tecnare-m2122                                                           0.5 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps    1.666 m wide
+#   3  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   4  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
+#   5  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 1.21 m against a 2.0 m interface. The stack is 2.17 m of cabinet.
-#   * the subs reach 1.210 m against the 2.000 m interface asked for, so the tops sit 790 mm lower than ideal —
-#     1.210 m is the most they reach while every tier is still carried
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps row is
+#     1.666 m on a 1.546 m row, so it overhangs 60 mm each side
+#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.666 m row, so it overhangs 91 mm each
+#     side
 #
 # main-ours-3 — ours-3, 8 cabinets in 4 rows:
 #
@@ -142,7 +146,7 @@ focus:
 placements:
   # ours-1, 8 cabinets in 4 rows
   - id: main-ours-1
-    at: [-10.762, 0.0]
+    at: [-9.979, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -171,7 +175,7 @@ placements:
           count: 1
           aim: near
 
-  # ours-2, 9 cabinets in 3 rows
+  # ours-2, 9 cabinets in 5 rows
   - id: main-ours-2
     at: [-7.782, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -202,7 +206,7 @@ placements:
 
   # ours-3, 8 cabinets in 4 rows
   - id: main-ours-3
-    at: [-4.802, 0.0]
+    at: [-5.585, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -232,7 +236,7 @@ placements:
 
   # psl-1, 6 cabinets in 3 rows
   - id: main-psl-1
-    at: [-2.339, 0.0]
+    at: [-3.122, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -257,7 +261,7 @@ placements:
 
   # psl-2, 5 cabinets in 3 rows
   - id: main-psl-2
-    at: [0.541, 0.0]
+    at: [-0.242, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -281,7 +285,7 @@ placements:
 
   # psl-3, 6 cabinets in 3 rows
   - id: main-psl-3
-    at: [3.421, 0.0]
+    at: [2.638, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -305,7 +309,7 @@ placements:
 
   # innschleife-1, 4 cabinets in 4 rows
   - id: main-innschleife-1
-    at: [5.711, 0.0]
+    at: [4.928, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -336,7 +340,7 @@ placements:
 
   # innschleife-2, 6 cabinets in 3 rows
   - id: main-innschleife-2
-    at: [8.021, 0.0]
+    at: [7.238, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -364,7 +368,7 @@ placements:
 
   # innschleife-3, 4 cabinets in 4 rows
   - id: main-innschleife-3
-    at: [10.331, 0.0]
+    at: [9.548, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

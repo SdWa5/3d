@@ -11,14 +11,13 @@
 #
 # What it deals out today:
 #
-#   1  1× flexy-folded-horn-hybrid + 2× skram + 1× flexy-folded-horn-hybrid    2.462 m wide
-#   2  5× flexy-folded-horn-hybrid                                              3.035 m wide
-#   3  5× flexy-folded-horn-hybrid                                              3.035 m wide
+#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
+#   2  4× flexy-folded-horn-hybrid at 440 mm gaps                               3.684 m wide
+#   3  4× flexy-folded-horn-hybrid at 440 mm gaps                               3.684 m wide
 #   4  3× tecnare-m2122                                                          1.54 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: block` spreads the top tier onto the edges of the row carrying it.
-#   * the 5× flexy-folded-horn-hybrid row is 3.035 m on a 2.462 m row, so it overhangs 286 mm each side
 #
 id: stacked-1-pooled--------v-------upright-alternate-block--low-----possible
 name: "Solved rig — one stack, tiers justified"

@@ -20,16 +20,7 @@
 #   * the subs reach 0.530 m against the 2.000 m interface asked for, so the tops sit 1470 mm lower than ideal —
 #     0.530 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 7 cabinets in 2 rows:
-#
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°     4.98 m wide
-#   2  1× tecnare-m2122                                                           0.5 m wide
-#
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.57 m of cabinet.
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
-#
-# main-ours-1 — ours-1, 5 cabinets in 3 rows:
+# main-ours-3 — ours-3, 5 cabinets in 3 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
@@ -38,6 +29,17 @@
 # Subs reach 1.182 m against a 2.0 m interface. The stack is 2.142 m of cabinet.
 #   * the subs reach 1.182 m against the 2.000 m interface asked for, so the tops sit 818 mm lower than ideal —
 #     1.182 m is the most they reach while every tier is still carried
+#
+# main-ours-2 — ours-2, 7 cabinets in 4 rows:
+#
+#   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
+#   4  1× tecnare-m2122                                                           0.5 m wide
+#
+# Subs reach 1.792 m against a 2.0 m interface. The stack is 2.752 m of cabinet.
+#   * the subs reach 1.792 m against the 2.000 m interface asked for, so the tops sit 208 mm lower than ideal —
+#     1.792 m is the most they reach while every tier is still carried
 #
 # main-gmss-2 — gmss-2, 8 cabinets in 5 rows:
 #
@@ -55,7 +57,7 @@
 #   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° row is 2.820 m on a 1.560 m row, so it overhangs 630
 #     mm each side
 #
-# main-ours-3 — ours-3, 5 cabinets in 3 rows:
+# main-ours-1 — ours-1, 5 cabinets in 3 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
@@ -88,7 +90,7 @@ focus:
 placements:
   # gmss-3, 3 cabinets in 2 rows
   - id: main-gmss-3
-    at: [-7.678, 0.0]
+    at: [-6.112, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -109,9 +111,32 @@ placements:
         - device: turbo-top
           count: 1
 
-  # ours-2, 7 cabinets in 2 rows
+  # ours-3, 5 cabinets in 3 rows
+  - id: main-ours-3
+    at: [-4.159, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      shape: v
+      from:
+        - device: flexy-folded-horn-hybrid
+          count: 4
+          roll_mirror: 90.0
+        - device: tecnare-m2122
+          count: 1
+
+  # ours-2, 7 cabinets in 4 rows
   - id: main-ours-2
-    at: [-4.008, 0.0]
+    at: [-1.962, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -134,33 +159,9 @@ placements:
         - device: tecnare-m2122
           count: 1
 
-  # ours-1, 5 cabinets in 3 rows
-  - id: main-ours-1
-    at: [-0.245, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      shape: v
-      mirror: true             # the mirror image of stack ours-1
-      from:
-        - device: flexy-folded-horn-hybrid
-          count: 4
-          roll_mirror: 90.0
-        - device: tecnare-m2122
-          count: 1
-
   # gmss-2, 8 cabinets in 5 rows
   - id: main-gmss-2
-    at: [2.438, 0.0]
+    at: [0.872, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -187,9 +188,9 @@ placements:
         - device: turbo-top
           count: 1
 
-  # ours-3, 5 cabinets in 3 rows
-  - id: main-ours-3
-    at: [5.121, 0.0]
+  # ours-1, 5 cabinets in 3 rows
+  - id: main-ours-1
+    at: [3.555, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -203,6 +204,7 @@ placements:
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: v
+      mirror: true             # the mirror image of stack ours-1
       from:
         - device: flexy-folded-horn-hybrid
           count: 4
@@ -212,7 +214,7 @@ placements:
 
   # gmss-1, 3 cabinets in 2 rows
   - id: main-gmss-1
-    at: [7.074, 0.0]
+    at: [5.508, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

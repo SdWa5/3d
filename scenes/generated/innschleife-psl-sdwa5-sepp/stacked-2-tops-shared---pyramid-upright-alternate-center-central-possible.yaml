@@ -18,13 +18,13 @@
 # main-ours-1 — ours-1, 13 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid                           1.822 m wide
-#   3  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
+#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
+#   3  1× achenbach-18 + 1× skram at 84 mm gaps                                1.294 m wide
 #   4  1× tms4 + 1× eighteensound-2way-15 + 1× thebox-achat-112m             1.3656 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.58 m of cabinet.
-#   * the 1× achenbach-18 + 1× skram + 1× achenbach-18 row is 1.850 m on a 1.822 m row, so it overhangs 14 mm each
-#     side
+#   * the 1× tms4 + 1× eighteensound-2way-15 + 1× thebox-achat-112m row is 1.366 m on a 1.294 m row, so it
+#     overhangs 36 mm each side
 #
 # main-ours-2 — ours-2, 13 cabinets in 4 rows:
 #
@@ -122,7 +122,7 @@ placements:
 
   # ours-2, 13 cabinets in 4 rows
   - id: main-ours-2
-    at: [-7.718, 0.0]
+    at: [-7.709, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -154,7 +154,7 @@ placements:
 
   # psl-1, 9 cabinets in 2 rows
   - id: main-psl-1
-    at: [-4.227, 0.0]
+    at: [-4.218, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -190,7 +190,7 @@ placements:
 
   # psl-2, 9 cabinets in 2 rows
   - id: main-psl-2
-    at: [-0.169, 0.0]
+    at: [-0.16, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -224,7 +224,7 @@ placements:
 
   # innschleife-1, 12 cabinets in 2 rows
   - id: main-innschleife-1
-    at: [4.85, 0.0]
+    at: [4.859, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -261,7 +261,7 @@ placements:
 
   # innschleife-2, 11 cabinets in 3 rows
   - id: main-innschleife-2
-    at: [9.67, 0.0]
+    at: [9.679, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

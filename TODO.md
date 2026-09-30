@@ -23,7 +23,7 @@ file: 551 of the sweep's refusals were that one message.
 comes out does not matter at all unless a parameter limiting the width is explicitly passed. That is CVR-8, **built**
 together with CVR-7, and no generated scene carries a width any more.
 
-Where that stands: bare `scene:stack` writes **1374 scenes of 2718 candidates**, every stack's sub/top transition
+Where that stands: bare `scene:stack` writes **2726 scenes**, every stack's sub/top transition
 **aimed at 2.5 m** and its miss written on the file where it misses, every refusal named, and every shape rule stated in
 **metres rather than in cabinet counts**. What is still refused is geometry and duplicates — grouped below by cause.
 
@@ -99,16 +99,15 @@ so it is 1h 30m of work for half a minute and drops to P3 with the rest of them.
 the item: **a priority argued from a measurement expires when the measurement does**, and this one expired inside a
 single release.
 
-1. **GEO-13**, gaps inside a row. Unblocked by GEO-12 and it is the same lever: a row-width budget wider than the
-   cabinets need *is* a gapped row, so the search that landed already does half of it.
-2. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis with three values on it is
-   the thing that makes the enable/disable surface worth building — and **the directory is now 1374 files**, which is
+1. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis with three values on it is
+   the thing that makes the enable/disable surface worth building — and **the directory is now 2726 files**, which is
    the half of SWP-3 that has stopped being a preference.
-3. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 did **not**
+2. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 did **not**
    fall out of SWP-2 as this list expected: `tops-shared` shares the pool, where SYM-3 needs a row bridging two walls,
    which only a mirrored pair can carry level. So the mechanism is still to be built, and the evenness rule is **equal
-   pitch**, settled, with its 169 mm cost on the tightest tops row measured.
-4. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
+   pitch**, settled, with its 169 mm cost on the tightest tops row measured. GEO-13's gapped rows are equal pitch
+   already, one gap per row.
+3. **GEO-11's scene-level half** — aiming and cross-placement alignment, which is the genuinely circular part. The
    stack-local half shipped in 0.83.0 and unblocked GEO-9 and GEO-4 as far as it can; what is left needs the front face
    and the solve to stop depending on each other.
 
@@ -116,8 +115,8 @@ single release.
 its four blocking questions are answered: the shapes keep priority, height and acoustics are weighted metrics traded off
 against each other, "central" is the rig's centre line for mono and each stack's own for stereo, and the fill key is
 frequency. **The frequency quarter is done.** One sub-question is left before the rest can start, which is where the
-weights live — a constant, a CLI option or a scene key. The power quarter waits on SPEC-13. Pick this up after GEO-12,
-which is where the settled order still starts.
+weights live — a constant, a CLI option or a scene key. The power quarter waits on SPEC-13. Pick this up after SWP-3,
+which is where the settled order now starts.
 
 **CVR-1 is parked on the owner rather than on code** and is P4 for that reason.
 
@@ -131,7 +130,6 @@ GEO-3, GEO-6 and GEO-10 are done and their rows are deleted — the CHANGELOG ha
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| GEO-13 | **Gaps inside a row, chosen rather than constant.** `gap_m` is one uniform working gap everywhere and nothing can space a row out. The **checking** half is already built and load-bearing — see the section — so what is missing is the half that proposes the gaps. **Same lever as GEO-12**: a row-width budget wider than the cabinets need *is* a gapped row | P2 | 6h | rows that reach wider than their cabinet count allows, which is what a wide base and SYM-3's equal pitch both want | GEO-12 | open |
 | GEO-14 | **The lowest subs belong as low and as central as the rig allows — built as the eighth sweep axis, and two of its four quarters are closed.** `--low-end=central|low` ranks the arrangements the shapes and the bearing rules already accept, never refusing one and never narrowing a rig, and `StackSolver::spreadRows()` adds the candidate the search did not contain: the lowest type one to a row, each cabinet flanked into a full-width row, which is what puts two SKRAMs one above the other on the centre line. **What is left is quarter 4, central across stacks**: in a 2- or 3-stack rig nothing puts the deepest cabinets in the inner stacks, `StackDeal::byType()` balances on `quantity × width` alone, and `$index === $middle` in `inventoryFor()` is the existing inner/outer vocabulary to build it on. **And the power half cannot be built at all** — no wattage, sensitivity or SPL on a `DeviceSpec` — which is SPEC-13 | P2 | 4h | the low end in the inner stacks of a split rig, which is the only quarter with no incumbent rule to argue with | SPEC-13 for the power half | partial |
 | GEO-11 | **Stack-local half DONE in 0.83.0**, scene-level half open. `StackSolver::solve()` takes a seating predicate and `SceneCompiler` supplies it, so the fill refuses an arrangement that overlaps *while it is still searching* rather than the whole rig being discarded at the end. It caught a rig being shipped with two cabinets inside each other. **What is left is aiming and cross-placement alignment**, which is the genuinely circular half: aiming needs the front face, the front face needs every placement, and every placement needs the solve | P1 | 6h | GEO-4, the rest of GEO-5 and GEO-9's tower | — | partial |
 | GEO-9 | **`tower` and `mixed` shapes** — a wall of one width, and a tower base with a tapering top. **The cheap version is measured and does not work**: a bound in `ceilingFor()` cannot make a wall flush, so this is a change to `packedRows()`'s objective, which is GEO-11. **Both must be width rules**, stated by the owner, so they belong in `StackChecks::silhouetteProblem()` beside the other three | P1 | 8h | nothing measurable — it does **not** buy GEO-2, see there. A shape people build, which is worth having on its own | GEO-11 | measured |
@@ -139,32 +137,6 @@ GEO-3, GEO-6 and GEO-10 are done and their rows are deleted — the CHANGELOG ha
 | GEO-5 | **Mostly closed by 0.81.0.** The cap is a width now, in `StackChecks::silhouetteProblem()`, with a tenth of a cabinet per side as the shoulder — so the false premise this entry was written about is gone. What is left is that the width rules refuse arrangements mid-search and the sweep got four times slower, which is GEO-11's shape again | P3 | 3h | — | GEO-11 | partial |
 | GEO-8 | Stability is weighed per row, never for the **whole rig** — 2 200 kg on a 1.34 m base is compared against nothing | P3 | 1h 15m | — (wants reporting, not refusing) | — | open |
 | GEO-7 | Only one tier per pass is flanked from below, and only if it fits a single row — the general case is untested | P3 | 1h | — | — | known |
-
-#### GEO-13 — gaps inside a row
-
-Where: `Tier::seats()` and `Tier::widthM()`, which take one `$gapM` and use it between every pair of neighbours.
-
-**The checking half is finished and the proposing half does not exist.** Worth writing down in that order, because the
-hard part is the one already built:
-
-* **`Gravity::runs()`** splits a row into runs and `topFacesOf()` hands the tier above whatever faces those runs
-  offer. A gapped row is already representable — it is a row of several runs with air between them.
-* **`Gravity::MIN_BEARING = 1/3`** is the "does not fall through" rule, per cabinet.
-* **`StackChecks::bearingProblems()`** catches both halves: nothing underneath at all, and touching rather than
-  sitting on what carries it.
-* **`Stability::tips()`** asks it of the row as one body, which no per-cabinet rule can.
-
-So the condition — either the row above fits on the runs below, or its cabinets are wide enough to bridge the gaps and
-still land on a third of themselves — is already enforced. What is missing is a solver that *chooses* the gaps.
-
-**Do it as GEO-12's budget rather than as its own mechanism.** A row given more metres than its cabinets need is a
-gapped row, so the two are one search and building them apart would build it twice. The open question is what the
-scene records: a solved gap has to survive the re-solve, either by being reproduced deterministically like the budget
-or by being written out per row, and `gap_m` today is a single scalar with no place to put a row.
-
-**ALN-4 stays untouched.** That rule forbids *spreading a load-bearing tier* through the placement alignment, and it
-forbids it for exactly this reason. A gap the fill chose and the bearing rules verified is a different object from a
-tier stretched after the fact by a scalar that cannot see what stands on it.
 
 #### GEO-14 — low and central, which is four rules and only one of them exists
 

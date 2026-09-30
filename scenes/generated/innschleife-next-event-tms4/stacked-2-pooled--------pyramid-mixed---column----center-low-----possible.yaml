@@ -26,18 +26,20 @@
 #   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 row is 0.986 m on a 0.914 m row, so it overhangs 36 mm each
 #     side
 #
-# main-2 — 2, 13 cabinets in 4 rows:
+# main-2 — 2, 13 cabinets in 5 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.786 m wide
-#   3  1× skram rolled 270° + 1× achenbach-18                                 1.534 m wide
-#   4  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 42 mm gaps    1.568 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps     1.72 m wide
+#   4  3× achenbach-18                                                           1.84 m wide
+#   5  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
 #
-# Subs reach 1.801 m against a 2.0 m interface. The stack is 2.761 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
-#     1.801 m is the most they reach while every tier is still carried
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps row is
+#     1.720 m on a 1.568 m row, so it overhangs 76 mm each side
+#   * the 3× achenbach-18 row is 1.840 m on a 1.720 m row, so it overhangs 60 mm each side
 #
 id: stacked-2-pooled--------pyramid-mixed---column----center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -53,7 +55,7 @@ focus:
 placements:
   # 1, 12 cabinets in 5 rows
   - id: main-1
-    at: [-2.108, 0.0]
+    at: [-1.792, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -77,7 +79,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 13 cabinets in 4 rows
+  # 2, 13 cabinets in 5 rows
   - id: main-2
     at: [1.1125, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

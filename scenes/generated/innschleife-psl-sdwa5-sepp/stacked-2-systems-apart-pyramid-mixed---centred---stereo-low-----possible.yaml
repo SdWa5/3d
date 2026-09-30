@@ -28,19 +28,21 @@
 #   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
 #     1.801 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 13 cabinets in 4 rows:
+# main-ours-2 — ours-2, 13 cabinets in 5 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.786 m wide
-#   3  1× skram rolled 270° + 1× achenbach-18                                 1.534 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122        1.5056 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 42 mm gaps    1.568 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps     1.72 m wide
+#   4  3× achenbach-18                                                           1.84 m wide
+#   5  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122        1.5056 m wide
 #
-# Subs reach 1.801 m against a 2.0 m interface. The stack is 2.761 m of cabinet.
+# Subs reach 2.696 m against a 2.0 m interface. The stack is 3.656 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
-#     1.801 m is the most they reach while every tier is still carried
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps row is
+#     1.720 m on a 1.568 m row, so it overhangs 76 mm each side
+#   * the 3× achenbach-18 row is 1.840 m on a 1.720 m row, so it overhangs 60 mm each side
 #
 # main-psl-1 — psl-1, 9 cabinets in 3 rows:
 #
@@ -96,7 +98,7 @@ focus:
 placements:
   # ours-1, 12 cabinets in 4 rows
   - id: main-ours-1
-    at: [-8.518, 0.0]
+    at: [-8.05, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -129,7 +131,7 @@ placements:
           count: 1
           aim: near
 
-  # ours-2, 13 cabinets in 4 rows
+  # ours-2, 13 cabinets in 5 rows
   - id: main-ours-2
     at: [-4.906, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -165,7 +167,7 @@ placements:
 
   # psl-1, 9 cabinets in 3 rows
   - id: main-psl-1
-    at: [-1.355, 0.0]
+    at: [-1.823, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -204,7 +206,7 @@ placements:
 
   # psl-2, 9 cabinets in 3 rows
   - id: main-psl-2
-    at: [2.135, 0.0]
+    at: [1.667, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -242,7 +244,7 @@ placements:
 
   # innschleife-1, 10 cabinets in 5 rows
   - id: main-innschleife-1
-    at: [5.34, 0.0]
+    at: [4.872, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -279,7 +281,7 @@ placements:
 
   # innschleife-2, 10 cabinets in 5 rows
   - id: main-innschleife-2
-    at: [8.26, 0.0]
+    at: [7.792, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

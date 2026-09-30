@@ -20,15 +20,19 @@
 #
 # Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
 #
-# main-ours — ours, 9 cabinets in 3 rows:
+# main-ours — ours, 9 cabinets in 4 rows:
 #
-#   1  1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90°               1.84 m wide
-#   2  2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.84 m wide
-#   3  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
+#   1  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
+#   2  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
+#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° at 132 mm gaps    1.332 m wide
+#   4  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
 #
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.036 m of cabinet.
-#   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
-#     1.200 m is the most they reach while every tier is still carried
+# Subs reach 1.8 m against a 2.0 m interface. The stack is 2.636 m of cabinet.
+#   * the subs reach 1.800 m against the 2.000 m interface asked for, so the tops sit 200 mm lower than ideal —
+#     1.800 m is the most they reach while every tier is still carried
+#   * the 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° at 132 mm gaps row is 1.332 m on a 1.220 m row,
+#     so it overhangs 56 mm each side
+#   * the 1× turbo-top + 2× eighteensound-2way-15 row is 1.421 m on a 1.332 m row, so it overhangs 45 mm each side
 #
 id: stacked-1-tops-shared---pyramid-turned--alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -44,7 +48,7 @@ focus:
 placements:
   # gmss, 13 cabinets in 4 rows
   - id: main-gmss
-    at: [-1.472, 0.0]
+    at: [-1.2626, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -71,7 +75,7 @@ placements:
         - device: turbo-top
           count: 2
 
-  # ours, 9 cabinets in 3 rows
+  # ours, 9 cabinets in 4 rows
   - id: main-ours
     at: [2.008, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

@@ -31,18 +31,23 @@
 #   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
 #     2.926 m row, so it overhangs 93 mm each side
 #
-# main-2 — 2, 17 cabinets in 2 rows:
+# main-2 — 2, 17 cabinets in 6 rows:
 #
-#   1  1× iq-sub rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× wall-bass rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid + 2× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 2× iq-sub rolled 90° + 1× mid-bass    10.94 m wide
-#   2  1× turbo-top + 2× tecnare-m2122 + 1× turbo-top                          1.96 m wide
+#   1  1× skram rolled 270° + 1× nuke rolled 90°                             1.704 m wide
+#   2  1× wall-bass rolled 270° + 1× mid-bass                                  2.62 m wide
+#   3  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90° at 375 mm gaps     2.62 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° at 252 mm gaps    2.621 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° at 252 mm gaps    2.621 m wide
+#   6  1× turbo-top + 2× tecnare-m2122 + 1× turbo-top                          1.96 m wide
 #
-# Subs reach 0.763 m against a 2.0 m interface. The stack is 1.723 m of cabinet.
+# Subs reach 3.466 m against a 2.0 m interface. The stack is 4.426 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 0.763 m against the 2.000 m interface asked for, so the tops sit 1237 mm lower than ideal —
-#     0.763 m is the most they reach while every tier is still carried
+#   * the subs reach 3.466 m against the 3.000 m ceiling asked for, so they stand 466 mm too high — 3.466 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× wall-bass rolled 270° + 1× mid-bass row is 2.620 m on a 1.704 m row, so it overhangs 458 mm each side
 #
 id: stacked-2-pooled--------v-------mixed---centred---center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -58,7 +63,7 @@ focus:
 placements:
   # 1, 14 cabinets in 5 rows
   - id: main-1
-    at: [-6.022, 0.0]
+    at: [-1.8625, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -89,7 +94,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 17 cabinets in 2 rows
+  # 2, 17 cabinets in 6 rows
   - id: main-2
     at: [1.504, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

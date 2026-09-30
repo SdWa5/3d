@@ -16,72 +16,86 @@
 #
 # 9 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours-1 — ours-1, 6 cabinets in 2 rows:
+# main-ours-1 — ours-1, 7 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
+#   1  2× achenbach-18                                                           1.22 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 1.2 m of cabinet.
+# Subs reach 1.782 m against a 2.0 m interface. The stack is 2.742 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.200 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
+#     1.782 m is the most they reach while every tier is still carried
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 1.546 m on a
+#     1.220 m row, so it overhangs 163 mm each side
 #
-# main-ours-2 — ours-2, 15 cabinets in 2 rows:
+# main-ours-2 — ours-2, 9 cabinets in 5 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 + 2× flexy-folded-horn-hybrid rolled 90°     6.22 m wide
-#   2  2× concert-audio-ef6 + 1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 2× concert-audio-ef6   4.0256 m wide
+#   1  2× achenbach-18                                                           1.22 m wide
+#   2  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
+#   5  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 0.61 m against a 2.0 m interface. The stack is 1.57 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 0.610 m against the 2.000 m interface asked for, so the tops sit 1390 mm lower than ideal —
-#     0.610 m is the most they reach while every tier is still carried
+#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.220 m row, so it overhangs 314 mm each
+#     side
 #
-# main-ours-3 — ours-3, 6 cabinets in 2 rows:
+# main-ours-3 — ours-3, 7 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
+#   1  2× achenbach-18                                                           1.22 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 1.2 m of cabinet.
+# Subs reach 1.782 m against a 2.0 m interface. The stack is 2.618 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.200 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
+#     1.782 m is the most they reach while every tier is still carried
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 1.546 m on a
+#     1.220 m row, so it overhangs 163 mm each side
 #
-# main-psl-1 — psl-1, 4 cabinets in 2 rows:
+# main-psl-1 — psl-1, 5 cabinets in 3 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
 #   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
+#   3  1× tms4                                                                    0.5 m wide
 #
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 1.18 m of cabinet.
+# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.32 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.180 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
+#     1.180 m is the most they reach while every tier is still carried
 #
-# main-psl-2 — psl-2, 4 cabinets in 2 rows:
+# main-psl-2 — psl-2, 5 cabinets in 3 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
 #   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
+#   3  1× tms4                                                                    0.5 m wide
 #
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 1.18 m of cabinet.
+# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.32 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.180 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
+#     1.180 m is the most they reach while every tier is still carried
 #
-# main-psl-3 — psl-3, 4 cabinets in 2 rows:
+# main-psl-3 — psl-3, 5 cabinets in 3 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
 #   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
+#   3  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 1.18 m of cabinet.
+# Subs reach 1.18 m against a 2.0 m interface. The stack is 2.14 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.180 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
+#     1.180 m is the most they reach while every tier is still carried
 #
-# main-innschleife-1 — innschleife-1, 5 cabinets in 2 rows:
+# main-innschleife-1 — innschleife-1, 6 cabinets in 2 rows:
 #
 #   1  1× sbh-18 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 90°           3.29 m wide
-#   2  1× tecnare-m2122 + 1× tms4                                               1.02 m wide
+#   2  1× concert-audio-ef6 + 1× eighteensound-2way-15 + 1× concert-audio-ef6   1.6816 m wide
 #
-# Subs reach 0.57 m against a 2.0 m interface. The stack is 1.71 m of cabinet.
+# Subs reach 0.57 m against a 2.0 m interface. The stack is 1.406 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
@@ -97,9 +111,9 @@
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   4  1× eighteensound-2way-15                                                0.4656 m wide
+#   4  1× concert-audio-ef6                                                     0.588 m wide
 #
-# Subs reach 1.69 m against a 2.0 m interface. The stack is 2.526 m of cabinet.
+# Subs reach 1.69 m against a 2.0 m interface. The stack is 2.47 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
@@ -117,9 +131,9 @@
 # main-innschleife-3 — innschleife-3, 5 cabinets in 2 rows:
 #
 #   1  1× wsx-18 rolled 270° + 1× kicker-15 + 1× sbh-18 rolled 90°           3.29 m wide
-#   2  1× tms4 + 1× tecnare-m2122                                               1.02 m wide
+#   2  1× concert-audio-ef6 + 1× concert-audio-ef6                             1.196 m wide
 #
-# Subs reach 0.57 m against a 2.0 m interface. The stack is 1.71 m of cabinet.
+# Subs reach 0.57 m against a 2.0 m interface. The stack is 1.35 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
@@ -142,9 +156,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours-1, 6 cabinets in 2 rows
+  # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [-14.565, 0.0]
+    at: [-12.069, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -169,8 +183,10 @@ placements:
           roll_mirror: 90.0
         - device: achenbach-18
           count: 2
+        - device: tecnare-m2122
+          count: 1
 
-  # ours-2, 15 cabinets in 2 rows
+  # ours-2, 9 cabinets in 5 rows
   - id: main-ours-2
     at: [-9.872, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -198,18 +214,12 @@ placements:
           roll_mirror: 90.0
         - device: achenbach-18
           count: 2
-        - device: concert-audio-ef6
-          count: 5
         - device: tecnare-m2122
           count: 1
-          aim: near
-        - device: eighteensound-2way-15
-          count: 1
-          aim: near
 
-  # ours-3, 6 cabinets in 2 rows
+  # ours-3, 7 cabinets in 4 rows
   - id: main-ours-3
-    at: [-5.179, 0.0]
+    at: [-7.675, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -233,10 +243,12 @@ placements:
           roll_mirror: 90.0
         - device: achenbach-18
           count: 2
+        - device: eighteensound-2way-15
+          count: 1
 
-  # psl-1, 4 cabinets in 2 rows
+  # psl-1, 5 cabinets in 3 rows
   - id: main-psl-1
-    at: [-2.406, 0.0]
+    at: [-5.212, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -259,10 +271,12 @@ placements:
         - device: concert-audio-esx
           count: 4
           roll_mirror: 90.0
+        - device: tms4
+          count: 1
 
-  # psl-2, 4 cabinets in 2 rows
+  # psl-2, 5 cabinets in 3 rows
   - id: main-psl-2
-    at: [0.474, 0.0]
+    at: [-2.332, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -284,10 +298,12 @@ placements:
         - device: concert-audio-esx
           count: 4
           roll_mirror: 90.0
+        - device: tms4
+          count: 1
 
-  # psl-3, 4 cabinets in 2 rows
+  # psl-3, 5 cabinets in 3 rows
   - id: main-psl-3
-    at: [3.354, 0.0]
+    at: [0.548, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -309,10 +325,12 @@ placements:
         - device: concert-audio-esx
           count: 4
           roll_mirror: 90.0
+        - device: tecnare-m2122
+          count: 1
 
-  # innschleife-1, 5 cabinets in 2 rows
+  # innschleife-1, 6 cabinets in 2 rows
   - id: main-innschleife-1
-    at: [6.689, 0.0]
+    at: [3.883, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -340,14 +358,15 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           count: 1
-        - device: tms4
+        - device: concert-audio-ef6
+          count: 2
+        - device: eighteensound-2way-15
           count: 1
-        - device: tecnare-m2122
-          count: 1
+          aim: near
 
   # innschleife-2, 7 cabinets in 4 rows
   - id: main-innschleife-2
-    at: [10.044, 0.0]
+    at: [7.238, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -374,12 +393,12 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           count: 2
-        - device: eighteensound-2way-15
+        - device: concert-audio-ef6
           count: 1
 
   # innschleife-3, 5 cabinets in 2 rows
   - id: main-innschleife-3
-    at: [13.399, 0.0]
+    at: [10.593, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -406,8 +425,6 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           count: 1
-        - device: tms4
-          count: 1
-        - device: tecnare-m2122
-          count: 1
+        - device: concert-audio-ef6
+          count: 2
 

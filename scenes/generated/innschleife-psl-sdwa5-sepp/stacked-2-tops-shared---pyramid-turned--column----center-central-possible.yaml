@@ -47,15 +47,20 @@
 #   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
 #     1.178 m is the most they reach while every tier is still carried
 #
-# main-psl-2 — psl-2, 9 cabinets in 3 rows:
+# main-psl-2 — psl-2, 9 cabinets in 4 rows:
 #
-#   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   2  1× concert-audio-esf rolled 270° + 1× thebox-tp218-1600 rolled 90° + 1× thebox-tp118-800 rolled 90°    2.638 m wide
-#   3  1× tms2 + 1× tecnare-m2122 + 1× concert-audio-ef6                      1.558 m wide
+#   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
+#   2  1× concert-audio-esx rolled 270° + 1× thebox-tp218-1600 rolled 90°      2.4 m wide
+#   3  1× concert-audio-esf rolled 270° + 1× thebox-tp118-800 rolled 90° at 74 mm gaps    1.472 m wide
+#   4  1× tms2 + 1× tecnare-m2122 + 1× concert-audio-ef6                      1.558 m wide
 #
-# Subs reach 1.178 m against a 2.0 m interface. The stack is 2.138 m of cabinet.
-#   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
-#     1.178 m is the most they reach while every tier is still carried
+# Subs reach 1.768 m against a 2.0 m interface. The stack is 2.728 m of cabinet.
+#   * the subs reach 1.768 m against the 2.000 m interface asked for, so the tops sit 232 mm lower than ideal —
+#     1.768 m is the most they reach while every tier is still carried
+#   * the 1× concert-audio-esx rolled 270° + 1× thebox-tp218-1600 rolled 90° row is 2.400 m on a 2.380 m row, so
+#     it overhangs 10 mm each side
+#   * the 1× tms2 + 1× tecnare-m2122 + 1× concert-audio-ef6 row is 1.558 m on a 1.472 m row, so it overhangs 43 mm
+#     each side
 #
 # main-innschleife-1 — innschleife-1, 11 cabinets in 3 rows:
 #
@@ -91,7 +96,7 @@ focus:
 placements:
   # ours-1, 13 cabinets in 4 rows
   - id: main-ours-1
-    at: [-11.348, 0.0]
+    at: [-10.758, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -129,7 +134,7 @@ placements:
 
   # ours-2, 13 cabinets in 4 rows
   - id: main-ours-2
-    at: [-7.736, 0.0]
+    at: [-7.146, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -165,7 +170,7 @@ placements:
 
   # psl-1, 10 cabinets in 3 rows
   - id: main-psl-1
-    at: [-3.89, 0.0]
+    at: [-3.3, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -206,7 +211,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # psl-2, 9 cabinets in 3 rows
+  # psl-2, 9 cabinets in 4 rows
   - id: main-psl-2
     at: [0.19, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -248,7 +253,7 @@ placements:
 
   # innschleife-1, 11 cabinets in 3 rows
   - id: main-innschleife-1
-    at: [4.81, 0.0]
+    at: [4.22, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -288,7 +293,7 @@ placements:
 
   # innschleife-2, 11 cabinets in 3 rows
   - id: main-innschleife-2
-    at: [9.97, 0.0]
+    at: [9.38, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

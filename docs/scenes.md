@@ -517,7 +517,7 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 | `target_sub_height_m` | the sub/top transition to **aim at**, between the floor and the ceiling. **Defaults to 2.5**, the middle of the band, and it is what the solve optimises — where the two bounds are the band the miss is measured against. A preference and never a refusal. Written into a scene only when it is not the default. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
 | `max_height_m` | a ceiling or a rigging limit |
-| `gap_m` | working gap between neighbours in a row |
+| `gap_m` | working gap between neighbours in a row. A row the solver gaps out to its shape uses a wider one of its own, see [Gapping a row out to its shape](#gapping-a-row-out-to-its-shape) |
 | `slide_slack_m` | how far sideways a badly-carried row may be moved to get it under something, in metres, or `.inf` for "bounded only by the stage". **Unstated means it may not move at all**, which is the right answer for a stack with a neighbour to slide into. A statement about the rest of the scene rather than about gravity — see [sliding a row rather than losing the rig](#sliding-a-row-rather-than-losing-the-rig) |
 
 A `stack` replaces `device` and any group — both are decided by the solve, and stating one as well is
@@ -608,6 +608,39 @@ The price is stated rather than hidden: a wide-but-shallow type can end up *unde
 inversion the fill order otherwise exists to prevent. That is why **all three shapes are generated** — `free` keeps
 the deepest and heaviest cabinets on the floor and accepts whatever silhouette falls out, where the other two choose
 one and give up the ordering.
+
+### Gapping a row out to its shape
+
+`gap_m` is the air between every pair of neighbours in a row, so a row packed at that gap is as wide as its cabinets
+make it. Where that width breaks the shape's rule, the solver also offers the same rows with the offending one
+**gapped out**, one even gap across the whole row:
+
+* **`pyramid`**, top down. The row under a too-wide row is widened until the one above sits no more than its tenth
+  of a cabinet proud, and widening it can ask the same of the row under that.
+* **`v`**, bottom up. A sub row narrower than the one under it is widened to that row's full width, so a tall wall
+  does not narrow by its tolerance on every row.
+
+The gapped arrangement is one more candidate, ranked like the others, and a row that packs to its shape is never
+gapped. Measured on the pooled sdwa5 and sepp rig with the SKRAMs and Flexys rolled: a pyramid's third row goes to
+148 mm gaps to reach 2.420 m under the 2.511 m tops row. Six Flexys on six Achenbachs in a V go to 31 mm gaps and
+3.701 m on the Achenbachs' 3.700. The committed scenes hold gaps from 26 mm to 1200 mm.
+
+**The gap has no cap of its own.** The owner settled that on 2026-10-01, and the bearing rules are the whole limit.
+Every cabinet of the row above still has to land on a third of its own width. Each cabinet of a gapped row stands
+apart from its neighbours, so it is also weighed on its own, against the supports it actually touches, where a
+packed row is weighed as one strapped body. Two rolled SKRAMs gapped out under five tops would leave the middle
+Tecnare over 580 mm of air, and that arrangement is refused for having nothing under it.
+
+The bearing rules weigh rows, and a row can pass them and still leave a cabinet over air once the stack is placed,
+aligned and mirrored. The seating predicate `SceneCompiler::stackSurvives()` therefore also runs
+`PlacementChecks::floatingFaults()` on every arrangement with a gapped row, so such an arrangement loses to one that
+stands. Measured on `innschleife-psl-sdwa5-sepp` without it, the aimed PSL tops row shifted 0.2 m and left a
+thebox-dsp-112 entirely over air.
+
+The scene records no gap. Like the row budget, the gaps come out of the constraints, so a re-solve reproduces them.
+The writer's row comment names a gapped row, for example `6× achenbach-18 at 262 mm gaps`, and `stack.gap_m` stays the
+packed gap. Alignment still never spreads a load-bearing tier (ALN-4). A gapped row is chosen by the fill and
+verified by the bearing rules, which is a different thing from a tier stretched afterwards.
 
 ### A ceiling on the sub height
 
@@ -817,7 +850,7 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 **The default is a sweep of one inventory, not of every rig the library can name.** `bin/console scene:stack` with no
 options writes every sensible configuration it can stand up **out of our own gear and Sepp's, pooled** — by one, two
 and three stacks, in all three shapes, all three alignments, all seven orientation/mirror pairs and both ends of the
-low-end axis. **146 scenes, every one of them possible**, with every refusal printed and its reason given.
+low-end axis. **166 scenes, every one of them possible**, with every refusal printed and its reason given.
 
 **The separation axis contributes nothing here, and that is the grouping working.** `sdwa5` and `sepp` are one
 system by default, so a rig that separates them has nothing to separate and `pooled` is the only value offered. The
@@ -1079,7 +1112,7 @@ one command:
 
 | folder | inventory | scenes |
 | --- | --- | --- |
-| `sdwa5-sepp/` | the default: ours and Sepp's | 146 |
+| `sdwa5-sepp/` | the default: ours and Sepp's | 166 |
 | `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 353 |
 | `gmss-sdwa5/` | GMSS and ours | 482 |
 | `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 477 |
@@ -1093,7 +1126,7 @@ one command:
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate, so it writes 146 today against `next-event`'s 506. See below.
+One system has nothing to separate, so it writes 166 today against `next-event`'s 506. See below.
 
 **`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
 which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
@@ -1519,7 +1552,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2706 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates. That folder holds **480** files, 434 possible and 46 impossible, 77 pooled, 197 with the systems apart and 206 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2726 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates. That folder holds **480** files, 432 possible and 48 impossible, 77 pooled, 197 with the systems apart and 206 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1542,7 +1575,7 @@ stays exactly as it was, because 433 written scenes record their own regeneratio
 **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
 `tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **854 `systems-apart`, 930 `tops-shared` and 922 `pooled`**, for **2706** — within 9 % of each
+values come to **854 `systems-apart`, 930 `tops-shared` and 942 `pooled`**, for **2726** — within 9 % of each
 other, which is the measurement this paragraph exists to lose if the axis ever became mostly one rig.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
@@ -1550,7 +1583,7 @@ both separated values: one system's subs with its own tops dealt back onto them 
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
 rigs are 301 of the sweep across five folders: `gmss` 111, `innschleife-next-event-thl4` 101, `sdwa5` 66,
 `psl-next-event` 16 and `sepp` 7. **`sdwa5-sepp` is single-owner too**, by grouping rather than by ownership, which
-is why it writes 146 `pooled` scenes and no separated ones.
+is why it writes 166 `pooled` scenes and no separated ones.
 
 ##### What `tops-shared` shares is the pool and not the row
 

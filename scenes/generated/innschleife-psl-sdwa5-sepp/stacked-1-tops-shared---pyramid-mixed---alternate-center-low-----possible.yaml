@@ -14,16 +14,18 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 26 cabinets in 4 rows:
+# main-ours — ours, 26 cabinets in 6 rows:
 #
-#   1  4× flexy-folded-horn-hybrid rolled 270° + 4× flexy-folded-horn-hybrid rolled 90°    6.244 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 4× achenbach-18 + 2× flexy-folded-horn-hybrid rolled 90°    5.592 m wide
-#   3  1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18    3.088 m wide
-#   4  1× thebox-achat-112m + 1× thebox-pa302 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   2.9336 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  5× achenbach-18                                                           3.08 m wide
+#   5  1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 at 217 mm gaps    2.862 m wide
+#   6  1× thebox-achat-112m + 1× thebox-pa302 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   2.9336 m wide
 #
-# Subs reach 1.801 m against a 2.0 m interface. The stack is 2.941 m of cabinet.
-#   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
-#     1.801 m is the most they reach while every tier is still carried
+# Subs reach 2.983 m against a 2.0 m interface. The stack is 4.123 m of cabinet.
+#   * the 1× thebox-achat-112m + 1× thebox-pa302 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1×
+#     concert-audio-ef6 row is 2.934 m on a 2.862 m row, so it overhangs 36 mm each side
 #
 # main-psl — psl, 19 cabinets in 3 rows:
 #
@@ -35,14 +37,17 @@
 #   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
 #     1.178 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 22 cabinets in 2 rows:
+# main-innschleife — innschleife, 22 cabinets in 5 rows:
 #
-#   1  2× sbh-18 rolled 270° + 2× kicker-15 + 2× wsx-18 rolled 270° + 4× sub-60x60 + 2× wsx-18 rolled 90° + 2× kicker-15 + 2× sbh-18 rolled 90°     15.7 m wide
-#   2  1× thebox-achat-112m + 1× tms2 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6    2.914 m wide
+#   1  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
+#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
+#   3  4× kicker-15                                                              3.86 m wide
+#   4  4× sub-60x60 at 148 mm gaps                                              2.844 m wide
+#   5  1× thebox-achat-112m + 1× tms2 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6    2.914 m wide
 #
-# Subs reach 0.6 m against a 2.0 m interface. The stack is 1.74 m of cabinet.
-#   * the subs reach 0.600 m against the 2.000 m interface asked for, so the tops sit 1400 mm lower than ideal —
-#     0.600 m is the most they reach while every tier is still carried
+# Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.
+#   * the 1× thebox-achat-112m + 1× tms2 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 1×
+#     concert-audio-ef6 row is 2.914 m on a 2.844 m row, so it overhangs 35 mm each side
 #
 id: stacked-1-tops-shared---pyramid-mixed---alternate-center-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -56,9 +61,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 26 cabinets in 4 rows
+  # ours, 26 cabinets in 6 rows
   - id: main-ours
-    at: [-12.242, 0.0]
+    at: [-6.822, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -98,7 +103,7 @@ placements:
 
   # psl, 19 cabinets in 3 rows
   - id: main-psl
-    at: [-5.03, 0.0]
+    at: [-1.176, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -138,9 +143,9 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 22 cabinets in 2 rows
+  # innschleife, 22 cabinets in 5 rows
   - id: main-innschleife
-    at: [6.91, 0.0]
+    at: [5.344, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

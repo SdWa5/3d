@@ -32,17 +32,6 @@
 #   * the subs reach 1.782 m against the 2.000 m interface asked for, so the tops sit 218 mm lower than ideal —
 #     1.782 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 9 cabinets in 4 rows:
-#
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
-#   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× eighteensound-2way-15                                                0.4656 m wide
-#
-# Subs reach 1.82 m against a 2.0 m interface. The stack is 2.656 m of cabinet.
-#   * the subs reach 1.820 m against the 2.000 m interface asked for, so the tops sit 180 mm lower than ideal —
-#     1.820 m is the most they reach while every tier is still carried
-#
 # main-gmss-2 — gmss-2, 8 cabinets in 5 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
@@ -52,6 +41,20 @@
 #   5  1× turbo-top                                                              0.45 m wide
 #
 # Subs reach 2.28 m against a 2.0 m interface. The stack is 2.99 m of cabinet.
+#
+# main-ours-2 — ours-2, 9 cabinets in 5 rows:
+#
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps    1.666 m wide
+#   3  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   4  2× achenbach-18                                                           1.22 m wide
+#   5  1× eighteensound-2way-15                                                0.4656 m wide
+#
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.228 m of cabinet.
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps row is
+#     1.666 m on a 1.546 m row, so it overhangs 60 mm each side
+#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.666 m row, so it overhangs 91 mm each
+#     side
 #
 # main-ours-1 — ours-1, 7 cabinets in 4 rows:
 #
@@ -87,7 +90,7 @@ focus:
 placements:
   # gmss-3, 4 cabinets in 2 rows
   - id: main-gmss-3
-    at: [-6.428, 0.0]
+    at: [-6.112, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -114,7 +117,7 @@ placements:
 
   # ours-3, 7 cabinets in 4 rows
   - id: main-ours-3
-    at: [-4.475, 0.0]
+    at: [-4.159, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -130,34 +133,6 @@ placements:
       low_end: central
       shape: pyramid
       from:
-        - device: flexy-folded-horn-hybrid
-          count: 4
-          roll_mirror: 90.0
-        - device: achenbach-18
-          count: 2
-        - device: eighteensound-2way-15
-          count: 1
-
-  # ours-2, 9 cabinets in 4 rows
-  - id: main-ours-2
-    at: [-1.962, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      low_end: central
-      shape: pyramid
-      from:
-        - device: skram
-          roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 4
           roll_mirror: 90.0
@@ -168,7 +143,7 @@ placements:
 
   # gmss-2, 8 cabinets in 5 rows
   - id: main-gmss-2
-    at: [1.188, 0.0]
+    at: [-1.476, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -195,9 +170,37 @@ placements:
         - device: turbo-top
           count: 1
 
+  # ours-2, 9 cabinets in 5 rows
+  - id: main-ours-2
+    at: [1.358, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      low_end: central
+      shape: pyramid
+      from:
+        - device: skram
+          roll_mirror: 90.0
+        - device: flexy-folded-horn-hybrid
+          count: 4
+          roll_mirror: 90.0
+        - device: achenbach-18
+          count: 2
+        - device: eighteensound-2way-15
+          count: 1
+
   # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [3.871, 0.0]
+    at: [3.555, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -224,7 +227,7 @@ placements:
 
   # gmss-1, 4 cabinets in 2 rows
   - id: main-gmss-1
-    at: [5.824, 0.0]
+    at: [5.508, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
