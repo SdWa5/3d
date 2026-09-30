@@ -12,10 +12,8 @@ use App\Scene\Interpenetration;
 use App\Scene\PlacedDevice;
 use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
-use App\Scene\SceneLoader;
 use App\Scene\SceneReport;
 use App\Spec\DeviceSpec;
-use App\Spec\InvalidSpecException;
 use App\Spec\Violation;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,7 +34,7 @@ final class SceneBuildCommand extends BaseCommand
         $this
             ->setName('scene:build')
             ->setDescription('Assemble a scene from scenes/<name>.yaml into build/scenes/<id>.blend')
-            ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id or path; omit to build every scene')
+            ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id, path or folder; omit to build every scene')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Report the setup without running Blender')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Reassemble even when the .blend looks up to date');
     }
@@ -152,50 +150,6 @@ final class SceneBuildCommand extends BaseCommand
     private function blendFor(\App\Scene\SceneSpec $scene, ModelBuilder $builder): string
     {
         return $this->derivedDir($builder->buildDir().'/scenes', $scene).'/'.$scene->id.'.blend';
-    }
-
-    /**
-     * @return list<\App\Scene\SceneSpec>|null null when a named scene does not exist
-     */
-    private function selectScenes(?string $nameOrPath): ?array
-    {
-        $loader = new SceneLoader($this->scenesDir());
-
-        try {
-            if (null === $nameOrPath) {
-                return array_map([$loader, 'load'], $loader->files());
-            }
-
-            ['scene' => $scene, 'known' => $known, 'ambiguous' => $ambiguous] = $loader->find($nameOrPath);
-            // **AN ID THAT NAMES TEN SCENES IS NOT A SCENE**, and picking the first was how this behaved until the
-            // inventory became a folder. Every generated rig of every inventory carries the same basename now, so
-            // the answer is the paths and a request to name one.
-            if ([] !== $ambiguous) {
-                $this->io->error(sprintf(
-                    "'%s' names %d scenes — say which:\n  %s",
-                    $nameOrPath,
-                    count($ambiguous),
-                    implode("\n  ", array_map(fn (string $p): string => $this->relative($p), $ambiguous)),
-                ));
-
-                return null;
-            }
-            if (null === $scene) {
-                $this->io->error(sprintf(
-                    "Unknown scene '%s'%s",
-                    $nameOrPath,
-                    [] === $known ? '' : '. Available: '.implode(', ', $known),
-                ));
-
-                return null;
-            }
-
-            return [$scene];
-        } catch (InvalidSpecException $e) {
-            $this->io->error('Cannot read scene: '.$e->getMessage());
-
-            return null;
-        }
     }
 
     /**

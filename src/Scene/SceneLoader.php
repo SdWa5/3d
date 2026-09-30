@@ -137,6 +137,33 @@ final class SceneLoader
     }
 
     /**
+     * Every scene below a folder, or null when `$folder` names no folder.
+     *
+     * The folder is a path, `scenes/generated/gmss` or an absolute one, or a folder under `scenes/`, so
+     * `generated/gmss` names the same one. An inventory's folder is the unit a person asks for when an event needs
+     * its rigs, and before this the choice was one scene or all 2746 of them.
+     *
+     * @return list<string>|null sorted, empty for a folder that holds no scene
+     */
+    public function filesUnder(string $folder): ?array
+    {
+        $directory = realpath($folder);
+        if (false === $directory || !is_dir($directory)) {
+            $directory = realpath(rtrim($this->scenesDir, '/').'/'.trim($folder, '/'));
+        }
+        if (false === $directory || !is_dir($directory)) {
+            return null;
+        }
+
+        $prefix = rtrim(str_replace('\\', '/', $directory), '/').'/';
+
+        return array_values(array_filter(
+            $this->files(),
+            static fn (string $file): bool => str_starts_with(str_replace('\\', '/', (string) realpath($file)), $prefix),
+        ));
+    }
+
+    /**
      * Finds a scene by id or by path, so `scene:build staudham` and
      * `scene:build scenes/staudham.yaml` both work.
      *

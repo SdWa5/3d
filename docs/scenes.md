@@ -1207,7 +1207,10 @@ failure mode of a wrongly-keyed artifact is a skipped rebuild, which looks exact
 
 Every derived artifact mirrors the scene's own directory, so `scenes/generated/gmss/x.yaml` builds to
 `build/scenes/generated/gmss/x.blend`. `scene:build` and `scene:render` accept either form, and a bare basename
-that names more than one scene is refused with the paths rather than resolved by sort order.
+that names more than one scene is refused with the paths rather than resolved by sort order. Both also accept a
+folder, relative to `scenes/` or as a path, and then take every scene below it, so
+`scene:render scenes/generated/innschleife-psl-sdwa5-sepp` renders one event's inventory on its own. A folder with
+no scene in it is refused (`SceneLoader::filesUnder()`).
 
 #### Each system aims at its own focus
 
@@ -2147,6 +2150,7 @@ Plus warnings that are cheap here and expensive on site:
 ```bash
 ddev exec bin/console scene:build                    # every scene
 ddev exec bin/console scene:build full-rig           # one, by id
+ddev exec bin/console scene:build generated/sepp     # every scene in a folder
 ddev exec bin/console scene:build --dry-run          # report only, no Blender
 ```
 
@@ -2162,6 +2166,7 @@ one copy of the geometry — the shipped 15-cabinet scene is under 100 KB.
 ddev exec bin/console scene:render full-rig                       # three-quarter / studio, 1600x900
 ddev exec bin/console scene:render full-rig -c crowd -l stage     # eye height, event lighting
 ddev exec bin/console scene:render full-rig -c top -l daylight    # plan view on grass
+ddev exec bin/console scene:render generated/sepp                 # every scene in a folder
 ddev exec bin/console scene:render --presets                      # list every preset
 ```
 

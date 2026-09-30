@@ -9,6 +9,7 @@ use App\Process\ProcOpenProcessRunner;
 use App\Scene\SceneLoader;
 use App\Scene\SceneSpec;
 use App\Spec\DeviceSpec;
+use App\Spec\InvalidSpecException;
 use App\Spec\SpecLoader;
 use App\Spec\SpecValidator;
 use App\Spec\Violation;
@@ -93,6 +94,67 @@ abstract class BaseCommand extends Command
     protected function sceneKey(SceneSpec $scene): string
     {
         return (new SceneLoader($this->scenesDir()))->keyOf($scene->sourcePath);
+    }
+
+    /**
+     * The scenes a `scene` argument names: every scene when it is omitted, every scene below a folder when it
+     * names one, and otherwise the one scene an id or a path names.
+     *
+     * A folder is tried before an id, since no scene file is a directory. `scene:build` and `scene:render` shared
+     * this method as two copies until a folder was added to it.
+     *
+     * @return list<SceneSpec>|null null when nothing matches, which has already been reported
+     */
+    protected function selectScenes(?string $nameOrPath): ?array
+    {
+        $loader = new SceneLoader($this->scenesDir());
+
+        try {
+            if (null === $nameOrPath) {
+                return array_map([$loader, 'load'], $loader->files());
+            }
+
+            $folder = $loader->filesUnder($nameOrPath);
+            if (null !== $folder) {
+                if ([] === $folder) {
+                    $this->io->error(sprintf("'%s' is a folder with no scene in it", $nameOrPath));
+
+                    return null;
+                }
+
+                return array_map([$loader, 'load'], $folder);
+            }
+
+            ['scene' => $scene, 'known' => $known, 'ambiguous' => $ambiguous] = $loader->find($nameOrPath);
+            // **AN ID THAT NAMES TEN SCENES IS NOT A SCENE**, and picking the first was how this behaved until the
+            // inventory became a folder. Every generated rig of every inventory carries the same basename now, so
+            // the answer is the paths and a request to name one.
+            if ([] !== $ambiguous) {
+                $this->io->error(sprintf(
+                    "'%s' names %d scenes — say which, or name their folder:\n  %s",
+                    $nameOrPath,
+                    count($ambiguous),
+                    implode("\n  ", array_map(fn (string $p): string => $this->relative($p), $ambiguous)),
+                ));
+
+                return null;
+            }
+            if (null === $scene) {
+                $this->io->error(sprintf(
+                    "Unknown scene '%s'%s",
+                    $nameOrPath,
+                    [] === $known ? '' : '. Available: '.implode(', ', $known),
+                ));
+
+                return null;
+            }
+
+            return [$scene];
+        } catch (InvalidSpecException $e) {
+            $this->io->error('Cannot read scene: '.$e->getMessage());
+
+            return null;
+        }
     }
 
     protected function loader(): SpecLoader

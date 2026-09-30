@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.121.0] - 2026-10-01
+
+### Added
+
+- **`scene:build` and `scene:render` take a folder.** A folder relative to `scenes/` or as a path selects every
+  scene below it, so `scene:render scenes/generated/innschleife-psl-sdwa5-sepp` renders one event's inventory on
+  its own. A folder with no scene in it is refused. `SceneLoader::filesUnder()` is new.
+- `SceneLoaderFolderTest`, and folder cases in `SceneBuildCommandTest`.
+
+### Changed
+
+- The scene selection of both commands is one `BaseCommand::selectScenes()`, and an ambiguous basename now
+  suggests naming its folder.
+
 ## [0.120.0] - 2026-10-01
 
 ### Added
