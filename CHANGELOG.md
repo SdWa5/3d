@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.131.0] - 2026-10-01
+
+### Added
+
+- An event states where each system wants its lowest cabinets, as `systems.<owner>.low_end`, and
+  `--system-low-end=OWNER:MODE` states the same directly. A stack follows the value its subs' systems agree on, and
+  the recorded line carries it.
+- The next event puts ours and Sepp's low end `central` and Innschleife's `low`, so the combined rig carries two rows
+  of [3 Flexy | SKRAM | 3 Flexy] and Innschleife's photo rows at once. PSL states none.
+
+### Changed
+
+- A rig whose every system states the same low end is swept once, named `stated`, instead of once per low end.
+- `SweepAxes::STATED_ORIENTATION` is `SweepAxes::STATED`, since the low-end axis uses the value too.
+- `innschleife-next-event` keeps its 25 `low` scenes, renamed `stated`, and loses the 18 `central` ones.
+- `next-event` goes from 26 scenes to 6, all `pyramid` and all carrying Innschleife's photo rows. Its four
+  `systems-apart` rigs now stack ours as two rows of [3 Flexy | SKRAM | 3 Flexy] over six Achenbach.
+- `psl-next-event` changes only in its recorded lines.
+
 ## [0.130.0] - 2026-10-01
 
 ### Added

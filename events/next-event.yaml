@@ -7,14 +7,22 @@ room:
 # Innschleife's kickers stand as measured anyway, 0.95 m wide, as on their photo. Every next-event sweep then has no
 # orientation left to vary, and its scenes are named `stated`.
 #
+# Where each system wants its lowest cabinets, stated by Stefan on 2026-10-01 against two renders of the combined rig.
+# Ours and Sepp's `central`, which stacks two [3 Flexy | SKRAM | 3 Flexy] rows over the six Achenbach, and
+# Innschleife's `low`, which is their photo layout. PSL states none, because both values build PSL the same rig. So a
+# combined sweep still varies the low end for PSL, the two candidates are the same rig, and the one kept is named
+# `low`, the first value swept, although ours sits `central` in it. See docs/scenes.md.
+#
 # `brings` is what each system brings, as counts that override the specs for this event. It was a roster file per
 # system in `rosters/` until 0.130.0. A device left out keeps its spec's quantity, and zero leaves it at home. See
 # src/Spec/Event.php.
 systems:
   sdwa5:
     orientation: upright
+    low_end: central
   sepp:
     orientation: upright
+    low_end: central
   psl:
     orientation: turned
     # Twelve of PSL's biggest sub and five of their biggest top, stated by PSL to Stefan on 2026-09-02 as "12x the
@@ -58,6 +66,7 @@ systems:
     interface_height_m: 1.6
     target_sub_height_m: 1.75
     orientation: turned
+    low_end: low
     stand: [ kicker-15 ]
     # Stated by Innschleife to Stefan on 2026-09-02: "Also wir nehmen 4x Sbh 18, 4x Wsx 18, 4x die blauen Kicker 15,
     # und entweder alle 4 kleinen Tops oder die 2 großen Thl4." The small tops are two rather than four, corrected

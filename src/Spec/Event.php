@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Spec;
 
+use App\Scene\LowEndBias;
 use App\Scene\RoomBounds;
 use App\Scene\StackOrientation;
 use Symfony\Component\Yaml\Yaml;
@@ -37,6 +38,7 @@ final class Event
      * @param array<string, StackOrientation> $orientations how each named system is set up at this event
      * @param list<string> $standing device ids that stand as measured whatever their system's orientation
      * @param array<string, array<string, int>> $brings owner to device id to units brought, in file order
+     * @param array<string, LowEndBias> $lowEnds where each named system wants its lowest cabinets
      */
     public function __construct(
         public readonly string $id,
@@ -50,6 +52,7 @@ final class Event
         /** Air between neighbouring stacks at this event, or null for the command's default. */
         public readonly ?float $clearanceM = null,
         public readonly array $brings = [],
+        public readonly array $lowEnds = [],
     ) {
     }
 
@@ -62,6 +65,7 @@ final class Event
         $brings = [];
         $orientations = [];
         $standing = [];
+        $lowEnds = [];
         $settings = $reader->optionalSection('systems');
         foreach ($settings?->keys() ?? [] as $owner) {
             $system = $settings->requireSection($owner);
@@ -79,6 +83,11 @@ final class Event
                 /** @var StackOrientation $orientation */
                 $orientation = $system->requireEnum('orientation', StackOrientation::class);
                 $orientations[$owner] = $orientation;
+            }
+            if ($system->has('low_end')) {
+                /** @var LowEndBias $lowEnd */
+                $lowEnd = $system->requireEnum('low_end', LowEndBias::class);
+                $lowEnds[$owner] = $lowEnd;
             }
             foreach ($system->stringList('stand') as $id) {
                 $standing[] = $id;
@@ -109,6 +118,7 @@ final class Event
             $standing,
             $clearance,
             $brings,
+            $lowEnds,
         );
     }
 

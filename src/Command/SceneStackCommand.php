@@ -177,6 +177,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('system-interface', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Interface for walls of this owner\'s subs')
             ->addOption('system-target', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Sub-height target for walls of this owner\'s subs')
             ->addOption('system-orientation', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:MODE. How this owner\'s cabinets are set up (upright, turned, mixed), whatever --orientation sweeps')
+            ->addOption('system-low-end', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:MODE. Where this owner\'s lowest cabinets belong (low, central), whatever --low-end sweeps')
             ->addOption('stand', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids that stand as measured under any orientation. Repeatable')
             ->addOption('backdrop', null, InputOption::VALUE_REQUIRED, 'TRUSS:SEGMENTS:TOWER. The truss a brought deco device hangs from, behind the rig')
             ->addOption('quantity', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'DEVICE:COUNT — build with this many of a device instead of the number its spec states. 0 leaves it at home. Repeatable')
@@ -528,12 +529,16 @@ final class SceneStackCommand extends BaseCommand
                 $rigOrientations = $this->eventOptions->fixesOrientation($devices, $rig['from']) ? [null] : $orientations;
                 $resolve = [] === $this->eventOptions->orientations ? null
                     : fn (?StackOrientation $orientation): array => $this->eventOptions->rolls($orientation, $devices, $rig['from'], $rolled);
+                // The same for the low end. The one value swept is a placeholder that every stack overrides, see
+                // {@see SceneEventOptions::fixesLowEnd}, and it is the first one asked for so the recorded line says it.
+                $lowEndFixed = $this->eventOptions->fixesLowEnd($devices, $rig['from']);
+                $rigLowEnds = $lowEndFixed ? [$lowEnds[0]] : $lowEnds;
                 foreach (SweepAxes::pairs($rigOrientations, $styles, $rolled, $devices, $rig['from'], $resolve) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
-                        foreach ($lowEnds as $lowEnd) {
+                        foreach ($rigLowEnds as $lowEnd) {
                             // **EVERY AXIS IS IN THE NAME, AT A FIXED WIDTH**, in the order the sweep nests them: the rig
                             // (owners and stack count), then shape, orientation, mirror style, alignment. See
-                            // {@see SweepAxes::padded} for why the widths, and {@see SweepAxes::STATED_ORIENTATION} for the one value that has
+                            // {@see SweepAxes::padded} for why the widths, and {@see SweepAxes::STATED} for the one value that has
                             // no enum case behind it.
                             //
                             // Three axes used to be omitted at one value each — `pyramid`, `upright` and `alternate` — so
@@ -559,10 +564,10 @@ final class SceneStackCommand extends BaseCommand
                                 'stacks' => (string) $rig['stacks'],
                                 'systems' => $rig['split']->value,
                                 'shape' => $shape->value,
-                                'orientation' => $orientation->value ?? SweepAxes::STATED_ORIENTATION,
+                                'orientation' => $orientation->value ?? SweepAxes::STATED,
                                 'mirror-style' => $style->value,
                                 'align' => $mode->value,
-                                'low-end' => $lowEnd->value,
+                                'low-end' => $lowEndFixed ? SweepAxes::STATED : $lowEnd->value,
                             ];
                             // Padded for the name and raw for the path — see {@see SceneLayout::pathFor} on why a
                             // directory does not carry a column's padding.
@@ -1223,7 +1228,8 @@ final class SceneStackCommand extends BaseCommand
             targetSubHeightM: $this->eventOptions->targets[$system ?? ''] ?? $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
             shape: $shape,
             mirrorStyle: $style,
-            lowEnd: $lowEnd,
+            // A system that states its low end keeps it whatever the sweep varies, see {@see SceneEventOptions::lowEndFor}.
+            lowEnd: $this->eventOptions->lowEndFor($ids, $devices) ?? $lowEnd,
             // **STILL ONLY A SOLO STACK, AND IT IS NOT FOR WANT OF THE BOUND.** The bound a multi-stack rig needs is
             // `max(0.0, clearance / 2 - gap)`, since {@see StackSceneWriter::centres} leaves exactly `--clearance`
             // between two envelopes and half of it each, less a working gap, keeps two rows sliding towards each other

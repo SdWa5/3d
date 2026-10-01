@@ -9,47 +9,50 @@
 #     --backdrop=truss-f33-2m:5:truss-tower-4m --system-interface=innschleife:1.6 --system-target=innschleife:1.75
 #     --system-orientation=innschleife:turned --system-orientation=psl:turned --system-orientation=sdwa5:upright
 #     --system-orientation=sepp:upright --system-low-end=innschleife:low --system-low-end=sdwa5:central
-#     --system-low-end=sepp:central --stand=kicker-15 --systems=systems-apart --order=ours,psl,innschleife
+#     --system-low-end=sepp:central --stand=kicker-15 --systems=tops-shared --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
 #     --quantity=deco-panel-10x3-03:1 --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0
 #     --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0
 #     --quantity=thebox-tp218-1600:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram
 #     --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=kicker-15 --from=achenbach-18 --from=top-70x93
-#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --stacks=1 --align=center
+#     --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2 --from=eighteensound-2way-15 --stacks=1 --align=stereo
 #     --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked --into=next-event
 #
 # 3 stacks side by side, with 0.24 m of air between them.
 #
-# main-ours — ours, 25 cabinets in 4 rows:
+# main-ours — ours, 24 cabinets in 4 rows:
 #
 #   1  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
 #   2  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
 #   3  6× achenbach-18                                                            3.7 m wide
-#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   4  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× concert-audio-ef6   2.2016 m wide
 #
 # Subs reach 2.428 m against a 2.0 m interface. The stack is 3.388 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-psl — psl, 17 cabinets in 5 rows:
+# main-psl — psl, 16 cabinets in 5 rows:
 #
 #   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
 #   2  2× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     3.58 m wide
 #   3  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
 #   4  2× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     3.58 m wide
-#   5  5× concert-audio-ef6                                                      3.02 m wide
+#   5  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms2 + 1× concert-audio-ef6    2.166 m wide
 #
-# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.14 m of cabinet.
+# Subs reach 2.36 m against a 2.0 m interface. The stack is 3.32 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-innschleife — innschleife, 15 cabinets in 4 rows:
+# main-innschleife — innschleife, 17 cabinets in 4 rows:
 #
 #   1  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
 #   2  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
 #   3  4× kicker-15                                                              3.86 m wide
-#   4  1× tms2 + 1× top-70x93 + 1× tms2                                         1.6 m wide
+#   4  1× top-70x93 + 1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2   2.7636 m wide
 #
-# Subs reach 1.71 m against a 1.6 m interface. The stack is 2.64 m of cabinet.
+# Subs reach 1.71 m against a 1.6 m interface. The stack is 2.67 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-id: stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible
-name: "Solved rig — 3 stacks side by side, tiers centred"
+id: stacked-1-tops-shared---pyramid-stated--alternate-stereo-low-----possible
+name: "Solved rig — 3 stacks side by side, tiers split left and right"
 
 focus:
   far:
@@ -60,7 +63,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 25 cabinets in 4 rows
+  # ours, 24 cabinets in 4 rows
   - id: main-ours
     at: [-4.662, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -71,6 +74,8 @@ placements:
       near:
         distance_m: 2.0
         height_m: 1.8
+    align:
+      mode: stereo
     stack:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
@@ -82,11 +87,16 @@ placements:
         - skram
         - flexy-folded-horn-hybrid
         - achenbach-18
-        - tecnare-m2122
+        - device: concert-audio-ef6
+          count: 2
+        - device: tecnare-m2122
+          count: 1
+          aim: near
         - device: eighteensound-2way-15
+          count: 1
           aim: near
 
-  # psl, 17 cabinets in 5 rows
+  # psl, 16 cabinets in 5 rows
   - id: main-psl
     at: [-0.494, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -97,6 +107,8 @@ placements:
       near:
         distance_m: 2.0
         height_m: 1.8
+    align:
+      mode: stereo
     stack:
       interface_height_m: 2.0
       max_sub_height_m: 3.0
@@ -108,9 +120,15 @@ placements:
           count: 12
           roll_mirror: 90.0
         - device: concert-audio-ef6
-          count: 5
+          count: 2
+        - device: tecnare-m2122
+          count: 1
+          aim: near
+        - device: tms2
+          count: 1
+          aim: near
 
-  # innschleife, 15 cabinets in 4 rows
+  # innschleife, 17 cabinets in 4 rows
   - id: main-innschleife
     at: [3.866, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -121,6 +139,8 @@ placements:
       near:
         distance_m: 2.0
         height_m: 1.8
+    align:
+      mode: stereo
     stack:
       interface_height_m: 1.6
       max_sub_height_m: 3.0
@@ -135,7 +155,17 @@ placements:
           roll_mirror: 90.0
         - kicker-15
         - top-70x93
+        - device: concert-audio-ef6
+          count: 1
+          aim: near
+        - device: tecnare-m2122
+          count: 1
+          aim: near
+        - device: eighteensound-2way-15
+          count: 1
+          aim: near
         - device: tms2
+          count: 1
           aim: near
 
   # Backdrop: deco-panel-10x3-03 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
