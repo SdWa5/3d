@@ -24,7 +24,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class StackMixFlankedRowsTest extends TestCase
 {
-    /** What the roster brings, in the order the sweep deals it: `wsx-18` first as the heaviest. */
+    /** What Innschleife brings to the next event, in the order the sweep deals it: `wsx-18` first as the heaviest. */
     private const PHOTO = ['wsx-18' => 4, 'sbh-18' => 4, 'kicker-15' => 4, 'top-70x93' => 1, 'tms2' => 2];
 
     /** @var array<string, DeviceSpec> */

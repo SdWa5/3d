@@ -71,7 +71,7 @@ final class SystemGrouping
                 }
                 if (isset($seen[$owner])) {
                     // Two systems claiming one owner is not a grouping, and picking by argument order would make
-                    // the rig depend on typing order. The same refusal two rosters get when they disagree.
+                    // the rig depend on typing order.
                     return sprintf("--group: '%s' is in two systems, %s and %s", $owner, $seen[$owner], $parts[0]);
                 }
                 $seen[$owner] = $parts[0];

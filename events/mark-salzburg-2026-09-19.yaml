@@ -1,0 +1,27 @@
+# WHAT WE TOOK TO THE MARK IN SALZBURG ON 2026-09-19: twelve Flexy, two SKRAM and two of the three Tecnare.
+#
+# Stated by the owner from the van on the day of the get-in, while the rig was going up. This file is the count half of
+# that event. The signal chain it was patched into is `docs/signal-chain.md`. It was the roster
+# `sdwa5-mark-salzburg-2026-09-19` until 0.130.0 folded rosters into events.
+#
+# NO ROOM IS STATED, because nobody measured the hall, so a sweep against this event has no room limit.
+id: mark-salzburg-2026-09-19
+name: "MARK Salzburg 2026-09-19"
+systems:
+  sdwa5:
+    # THE TECNARE IS THE ONLY REAL OVERRIDE HERE. The spec says three exist and two went to Salzburg. The Flexy at
+    # twelve and the SKRAM at two match their specs and are still written out, because an event file that lists only
+    # the surprises reads as if the rest was never considered.
+    #
+    # THE AMPLIFIERS AND THE DSPS ARE NOT IN HERE, and that is the schema rather than an omission. They have no specs
+    # of their own, `specs/racks/sdwa5/rack-amp-12u.yaml` carries them as a rack's weight. What went to Salzburg was
+    # four MM14K, one Tulun TIP10000q, the 8x8 and the DCX2496.
+    #
+    # Eleven of the twelve amplifier channels were used. The subs ran two Flexy per channel at 4 ohm across three
+    # MM14K, the two SKRAM took one channel each at 8 ohm on the fourth, and the two Tecnare took all four channels of
+    # the TIP10000q bi-amped. One DSP output carried an unprocessed full-range copy of the mix to the video mapping
+    # rig, which is why the 8x8 ran out of outputs and the DCX2496 had to carry the tops. See docs/signal-chain.md.
+    brings:
+      flexy-folded-horn-hybrid: 12   # the full set, as the spec states
+      skram: 2                       # the full set, as the spec states
+      tecnare-m2122: 2               # of three; the third stayed at home

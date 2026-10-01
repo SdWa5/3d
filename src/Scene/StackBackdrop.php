@@ -12,7 +12,7 @@ use App\Spec\DeviceSpec;
  *
  * **PSL's 10 x 3.03 m panel at the next event is the case**, stated on 2026-10-01 as hung "from the front of the three
  * point truss, truss standing behind the systems". The truss and the towers are ours and are named by the event as
- * `TRUSS:SEGMENTS:TOWER`, see {@see parse}. The panel comes from the roster as a device of subtype `deco`.
+ * `TRUSS:SEGMENTS:TOWER`, see {@see parse}. The panel is what PSL brings to the event, a device of subtype `deco`.
  *
  * **EVERY NUMBER IS DERIVED, NOT CHOSEN.**
  *

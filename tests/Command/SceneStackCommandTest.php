@@ -22,7 +22,7 @@ use App\Tests\Support\SpecFactory;
  *
  * The axes have suites of their own, and each of them is named after what it varies:
  * {@see SceneStackMirrorTest}, {@see SceneStackSystemsTest}, {@see SceneStackFeasibilityTest} and
- * {@see SceneStackRosterTest}. The shared fixture and the cleanup live in {@see SceneStackTestCase}, because
+ * {@see SceneStackBringsTest}. The shared fixture and the cleanup live in {@see SceneStackTestCase}, because
  * these tests write into the real `scenes/` directory and a second copy of that rule would be a second
  * chance to get it wrong.
  */

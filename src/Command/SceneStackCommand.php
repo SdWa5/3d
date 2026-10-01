@@ -36,7 +36,6 @@ use App\Scene\SystemGrouping;
 use App\Scene\SystemSplit;
 use App\Spec\DeviceSpec;
 use App\Spec\InvalidSpecException;
-use App\Spec\RosterLoader;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -172,7 +171,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Build from these owners\' gear only. Default: sweep every combination of them')
-            ->addOption('event', null, InputOption::VALUE_REQUIRED, 'Event id from events/. Applies hard room limits and system preferences')
+            ->addOption('event', null, InputOption::VALUE_REQUIRED, 'Event id from events/. Applies its hard room limits, how each system is set up and what each system brings')
             ->addOption('room-width', null, InputOption::VALUE_REQUIRED, 'Hard width limit for the whole compiled rig, in metres')
             ->addOption('room-height', null, InputOption::VALUE_REQUIRED, 'Hard ceiling for the whole compiled rig, in metres')
             ->addOption('system-interface', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Interface for walls of this owner\'s subs')
@@ -180,7 +179,6 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('system-orientation', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:MODE. How this owner\'s cabinets are set up (upright, turned, mixed), whatever --orientation sweeps')
             ->addOption('stand', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids that stand as measured under any orientation. Repeatable')
             ->addOption('backdrop', null, InputOption::VALUE_REQUIRED, 'TRUSS:SEGMENTS:TOWER. The truss a brought deco device hangs from, behind the rig')
-            ->addOption('roster', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A file in rosters/ stating what a system brings to one event. Overrides the specs\' quantities. Repeatable')
             ->addOption('quantity', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'DEVICE:COUNT — build with this many of a device instead of the number its spec states. 0 leaves it at home. Repeatable')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per system, side by side, instead of one rig from everything')
             ->addOption('order', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'System names, left to right, overriding the tallest-in-the-middle rule. Repeatable or comma-separated')
@@ -206,9 +204,9 @@ final class SceneStackCommand extends BaseCommand
     private array $counts = [];
 
     /**
-     * Every cabinet a roster brings at least one of, by the roster that brings it, whether or not the count differs
-     * from the spec. {@see $counts} drops a count that restates the spec, so it cannot answer whether a roster's
-     * cabinets are in the rig at all, and that is what this is for.
+     * Every cabinet the event's systems bring at least one of, by the system that brings it, whether or not the count
+     * differs from the spec. {@see $counts} drops a count that restates the spec, so it cannot answer whether the
+     * brought cabinets are in the rig at all, and that is what this is for.
      *
      * @var array<string, string>
      */
@@ -237,7 +235,7 @@ final class SceneStackCommand extends BaseCommand
     /** Event limits resolved before the sweep forks. */
     private SceneEventOptions $eventOptions;
 
-    /** The deco device a roster or `--quantity` brings, or null when it brings none. */
+    /** The deco device an event or `--quantity` brings, or null when it brings none. */
     private ?DeviceSpec $deco = null;
 
     /** What {@see $deco} hangs from, resolved from {@see SceneEventOptions::$backdrop} once a deco is brought. */
@@ -265,7 +263,7 @@ final class SceneStackCommand extends BaseCommand
         // reaches the solver through a dozen paths — the fill order, the by-type balance, the owner list, the
         // silhouette widths — and threading an override down all of them would be a dozen chances to miss one. The
         // specs are rewritten here instead, once, and everything downstream goes on reading `->quantity` in
-        // ignorance. See {@see \App\Spec\Roster} for why the count lives outside the spec file at all.
+        // ignorance. See {@see \App\Spec\Event} for why the count lives outside the spec file at all.
         $layout = SceneLayout::of((array) $input->getOption('folders'));
         if (is_string($layout)) {
             $this->io->error($layout);
@@ -393,11 +391,12 @@ final class SceneStackCommand extends BaseCommand
             $splits,
         );
 
-        // **A ROSTER WHOSE CABINETS ARE NOT IN THE SWEEP IS REFUSED, BECAUSE ITS COUNTS WOULD CHANGE NOTHING.** Counts
+        // **BROUGHT CABINETS THAT ARE NOT IN THE SWEEP ARE REFUSED, BECAUSE THEIR COUNTS WOULD CHANGE NOTHING.** Counts
         // rewrite the specs, and which specs a rig is built from is decided by `--owner` and `--from`, not by the
-        // roster. So `--roster=innschleife-next-event-tms4` without `--owner=innschleife` swept everything else in
-        // the library and filed it under Innschleife's name: 146 scenes of sdwa5 and sepp cabinets at 0.105.0, with
-        // the roster's counts applied to cabinets none of them held. Named per cabinet so the fix is obvious.
+        // event. Only the systems a run sweeps have their counts applied, see {@see countOverrides}, so what is left
+        // to catch is a `--from` list that names some of a system's cabinets and not the rest it brings. The roster
+        // files this replaced could be named without their owner, and at 0.105.0 that filed 146 scenes of sdwa5 and
+        // sepp cabinets under Innschleife's name. Named per cabinet so the fix is obvious.
         $swept = [];
         foreach ($rigs as $rig) {
             $swept = [...$swept, ...$rig['from']];
@@ -406,7 +405,7 @@ final class SceneStackCommand extends BaseCommand
         if ([] !== $absent) {
             $device = (string) array_key_first($absent);
             $this->io->error(sprintf(
-                '--roster=%s brings %s, which the swept inventory does not hold. Say --owner=%s, or name them with --from',
+                'the event has %s bring %s, which the swept inventory does not hold. Say --owner=%s, or name them with --from',
                 $absent[$device],
                 implode(', ', array_keys($absent)),
                 $devices[$device]->owner,
@@ -420,23 +419,23 @@ final class SceneStackCommand extends BaseCommand
         // reading it off the first is a fact rather than a shortcut. A stated `--into` wins, which is what a replay
         // uses: the recorded line names a cabinet list rather than an owner, so it cannot re-derive its own folder.
         $into = (string) ($input->getOption('into') ?? '');
-        /** @var list<string> $rosters */
-        $rosters = $input->getOption('roster');
-        if ('' === $into && 1 === count($rosters)) {
-            // **ONE ROSTER NAMES THE FOLDER, BECAUSE THE RIG IT BUILDS IS NOT THE INVENTORY'S RIG.** Both variants of
-            // Innschleife's next event are `--owner=innschleife`, so both would be filed under `innschleife/` beside
-            // the rigs built from everything they own, under the same file names, and the last run would win. The
-            // roster's id is the one name that tells the three apart.
-            $into = $rosters[0];
+        /** @var list<string> $owners */
+        $owners = (array) $input->getOption('owner');
+        if ('' === $into && null !== $this->eventOptions->eventId && 1 === count($owners)) {
+            // **ONE SYSTEM AT AN EVENT IS FILED AS `<owner>-<event>`, BECAUSE ITS RIG IS NOT THE INVENTORY'S RIG.** The
+            // event's counts and its room both change it, so filed under `innschleife/` it would land beside the rigs
+            // built from everything Innschleife owns, under the same file names, and the last run would win. It is the
+            // name the roster file of the same system and event used to carry, so no folder moved with the merge.
+            $into = $owners[0].'-'.$this->eventOptions->eventId;
         }
         if ('' === $into && [] !== $counts) {
             // **A CHANGED RIG UNDER AN UNCHANGED NAME IS THE ONE FAILURE THIS COMMAND MUST NOT HAVE.** Every other
             // axis is in the file name or in the folder, so two different rigs cannot collide; a count override is
-            // in neither, and the sweep would quietly write its files over the ones a bare sweep just wrote. Two
-            // rosters cannot pick between their own names either, so both cases end here.
+            // in neither, and the sweep would quietly write its files over the ones a bare sweep just wrote. Several
+            // systems at one event have no single name either, so both cases end here.
             $this->io->error(
                 '--quantity changes the rig without changing its name — say --into=NAME for the folder to write it '
-                .'into, or state the counts as a single --roster, whose id names the folder',
+                .'into, or sweep a single --owner with --event, which files it as OWNER-EVENT',
             );
 
             return self::FAILURE;
@@ -1249,16 +1248,17 @@ final class SceneStackCommand extends BaseCommand
      * The count every device is built with where that is not the number its spec states, or the reason the run
      * cannot start.
      *
-     * **Two ways in, and they are the same fact at two levels of permanence.** `--roster` reads a file somebody
-     * committed, which is where "what Innschleife brings on the 6th" belongs; `--quantity` is the same statement
-     * typed at a shell, for the question nobody will ask twice. So `--quantity` wins where both name a device: the
-     * typed value is the newer of the two by construction, and a file that a caller has deliberately overridden on
-     * the command line is not an argument for refusing to run.
+     * **Two ways in, and they are the same fact at two levels of permanence.** The event's `systems.<owner>.brings`
+     * is a file somebody committed, which is where "what Innschleife brings on the 6th" belongs, and `--quantity` is
+     * the same statement typed at a shell, for the question nobody will ask twice. So `--quantity` wins where both name
+     * a device: the typed value is the newer of the two by construction, and a file a caller has deliberately
+     * overridden on the command line is not an argument for refusing to run.
      *
-     * **Two rosters naming the same device is a refusal, though**, and the difference is worth stating. Neither file
-     * is newer than the other, both were written on purpose, and picking one by argument order would make the rig
-     * depend on the order two options were typed in. There is nothing to prefer, so there is nothing to do but say
-     * so and name both files.
+     * **Only the systems this run sweeps bring anything.** They are the `--owner`s, or the owners of the `--from`
+     * cabinets, or every owner when neither is stated. So `--owner=innschleife --event=next-event` builds Innschleife's
+     * rig with Innschleife's counts and leaves PSL's panel out, exactly as the roster files this replaced did when only
+     * Innschleife's was named. A system brings only its own gear, which {@see SceneEventOptions::resolve} enforces, so
+     * two systems can never state two counts for one device.
      *
      * @param array<string, DeviceSpec> $devices
      *
@@ -1266,45 +1266,36 @@ final class SceneStackCommand extends BaseCommand
      */
     private function countOverrides(InputInterface $input, array $devices): array|string
     {
-        $loader = new RosterLoader($this->rostersDir());
         $counts = [];
         $this->brought = [];
-        $statedBy = [];
 
-        /** @var list<string> $rosters */
-        $rosters = $input->getOption('roster');
-        foreach ($rosters as $id) {
-            try {
-                $roster = $loader->load($id);
-            } catch (InvalidSpecException $e) {
-                $available = $loader->available();
-
-                return sprintf(
-                    '--roster=%s: %s%s',
-                    $id,
-                    $e->getMessage(),
-                    [] === $available ? '' : ' (there is '.implode(', ', $available).')',
-                );
+        /** @var list<string> $owners */
+        $owners = (array) $input->getOption('owner');
+        if ([] === $owners) {
+            foreach ((array) $input->getOption('from') as $id) {
+                if (isset($devices[$id])) {
+                    $owners[] = $devices[$id]->owner;
+                }
             }
-
-            foreach ($roster->brings as $device => $count) {
+        }
+        foreach ($this->eventOptions->brings as $owner => $brings) {
+            // **A SYSTEM BRINGS ITS OWN GEAR**, checked for every system rather than only the swept ones, so a slip in
+            // PSL's counts is caught by an Innschleife run too rather than waiting for the run that reads it.
+            foreach (array_keys($brings) as $device) {
                 if (!isset($devices[$device])) {
-                    return sprintf("%s: no device is called '%s'", $this->relative($roster->sourcePath), $device);
+                    return sprintf("systems.%s.brings: no device is called '%s'", $owner, $device);
                 }
-                if (isset($statedBy[$device]) && $counts[$device] !== $count) {
-                    return sprintf(
-                        '--roster: %s says %d× %s and %s says %d× — the two rosters disagree and neither is newer',
-                        $statedBy[$device],
-                        $counts[$device],
-                        $device,
-                        $id,
-                        $count,
-                    );
+                if ($devices[$device]->owner !== $owner) {
+                    return sprintf('systems.%s.brings names %s, which belongs to %s', $owner, $device, $devices[$device]->owner);
                 }
+            }
+            if ([] !== $owners && !in_array($owner, $owners, true)) {
+                continue;
+            }
+            foreach ($brings as $device => $count) {
                 $counts[$device] = $count;
-                $statedBy[$device] = $id;
                 if ($count > 0) {
-                    $this->brought[$device] = $id;
+                    $this->brought[$device] = $owner;
                 }
             }
         }
@@ -1322,7 +1313,7 @@ final class SceneStackCommand extends BaseCommand
             $counts[$parts[0]] = (int) $parts[1];
         }
 
-        // Explicit quantities override a roster. Cabinets left at home must not fail the inventory check.
+        // Explicit quantities override the event. Cabinets left at home must not fail the inventory check.
         $this->brought = array_filter(
             $this->brought,
             static fn (string $id): bool => $counts[$id] > 0,

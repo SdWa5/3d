@@ -26,7 +26,7 @@ gone.
 | Layer | Changes | Lives in |
 |-------|---------|----------|
 | **Master data** — per speaker group its impedance, RMS rating and delay; per amplifier the gains its DIP switches offer | when a driver is swapped or a cabinet is rebuilt | `specs/`, once `SPEC-13` and `SIG-3` land. Today still the `Drivers` and `Amp_GainSelector` sheets in Drive |
-| **The patch** — which cabinets are there, how many hang on each amplifier channel, which DSP output drives which group | once per event | a section in this file, and the counts in [`rosters/`](../rosters) |
+| **The patch** — which cabinets are there, how many hang on each amplifier channel, which DSP output drives which group | once per event | a section in this file, and the counts in the event's `brings` in [`events/`](../events) |
 | **The table** — thresholds, headroom, delays, the routing matrix | never by hand | derived from the two above |
 
 The arithmetic that turns the first two into the third is four lines and is now
@@ -64,7 +64,7 @@ rigs recorded here that reasoning does not hold, and the sweep under each rig sh
 ## MARK Salzburg, 2026-09-19
 
 Twelve Flexy, two SKRAM, two Tecnare M2122, four GISEN MM14K, one Tulun/Play/Prokustk TIP10000q, both DSPs.
-Counts in [`rosters/sdwa5-mark-salzburg-2026-09-19.yaml`](../rosters/sdwa5-mark-salzburg-2026-09-19.yaml).
+Counts in [`events/mark-salzburg-2026-09-19.yaml`](../events/mark-salzburg-2026-09-19.yaml).
 
 **The video mapping rig is what decided the topology.** It needed one DSP output of its own. The 8x8 has
 eight, two of which are permanently spent on the stereo bus compressor — they leave the box on OUT1 and OUT2

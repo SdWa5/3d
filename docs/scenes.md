@@ -669,7 +669,7 @@ against the default 2.5 m target and the 2.0 m interface neither reaches the ban
 transition aimed just above the photo's, both recorded in every scene's regenerate line:
 
 ```bash
-bin/console scene:stack --owner=innschleife --roster=innschleife-next-event --event=next-event
+bin/console scene:stack --owner=innschleife --event=next-event
 ```
 
 Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` and `v`, `stated`, `alternate`,
@@ -1160,7 +1160,7 @@ one command:
 | `sdwa5/` | ours alone | 66 |
 | `sepp/` | Sepp's alone | 7 |
 | `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 422 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 26 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts the event states for them | 26 |
 | `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 43 |
 | `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6, in front of their deco panel on our truss | 10 |
 
@@ -1181,16 +1181,16 @@ second ask was really after.
 
 #### Event rooms and system preferences
 
-`events/next-event.yaml` saves the room at 13 m wide and 4 m high. Add `--event=next-event` to each next-event
+`events/next-event.yaml` saves the room at 13 m wide and 4 m high, and what each system brings, see
+[What a system brings](#what-a-system-brings-against-what-it-owns). Add `--event=next-event` to each next-event
 sweep. `--room-width` and `--room-height` can tighten these limits. They cannot loosen an event's limits.
 The check uses every compiled device's world box, so it includes space between stacks, rotated cabinets and
 flown equipment. A rig outside the room is refused before writing, including a rig otherwise marked impossible.
 
 ```bash
-bin/console scene:stack --owner=innschleife --roster=innschleife-next-event --event=next-event
-bin/console scene:stack --owner=psl --roster=psl-next-event --event=next-event
-bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife \
-  --roster=psl-next-event --roster=innschleife-next-event --event=next-event \
+bin/console scene:stack --owner=innschleife --event=next-event
+bin/console scene:stack --owner=psl --event=next-event
+bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event \
   --into=next-event --order=ours,psl,innschleife
 ```
 
@@ -1220,8 +1220,8 @@ orientation that rolls the same cabinets as an earlier one is dropped as the sam
 of the default 0.5 m. An explicit `--clearance` replaces it, and the recorded line carries the number as
 `--clearance=0.24`. See [Repeating a flanked row](#repeating-a-flanked-row) for why it is 0.24.
 
-The event also names the truss a deco device hangs from, as `backdrop: {truss, segments, towers}`. A run whose roster
-brings a `deco` device gets that truss behind the rig with the panel on its front, see
+The event also names the truss a deco device hangs from, as `backdrop: {truss, segments, towers}`. A run whose systems
+bring a `deco` device gets that truss behind the rig with the panel on its front, see
 [A deco backdrop behind a generated rig](#a-deco-backdrop-behind-a-generated-rig). A run that brings none records no
 backdrop, so the block changes no other folder.
 
@@ -1229,64 +1229,67 @@ Recorded commands save the resolved room dimensions and system preferences rathe
 Replaying an old scene therefore keeps its limits even when the event file changes. These limits belong to scene
 generation. Editing a scene by hand does not add a room check to `scene:build`.
 
-#### Rosters — what a system brings, against what it owns
+#### What a system brings, against what it owns
 
-A spec's `quantity` is **how many exist**. It is not how many turn up. The Innschleife roster brings five of the seven cabinet types currently documented; a box is in the workshop with a blown driver; a rental company brings twelve of a sub its published
-package lists six of. None of that is a correction to a spec, so none of it is written into one.
+A spec's `quantity` is **how many exist**. It is not how many turn up. Innschleife bring five of the seven cabinet
+types currently documented, a box is in the workshop with a blown driver, a rental company brings twelve of a sub its
+published package lists six of. None of that is a correction to a spec, so none of it is written into one.
 
-**A roster is a file in [`rosters/`](../rosters) stating what one system brings to one event**, and it overrides the
-counts it names for one run of `scene:stack` and nothing else:
+**What a system brings is `systems.<owner>.brings` in the event file**, and it overrides the counts it names for the
+runs of `scene:stack` that use the event and nothing else. Until 0.130.0 it was a roster file of its own in
+`rosters/`, one per system and event, and every one of them was about exactly one event, so the counts moved into it.
 
 ```yaml
-id: psl-next-event
-name: "PSL, next event — twelve ESX under five EF 6"
-
-brings:
-  concert-audio-esx: 12
-  concert-audio-ef6: 5
-  thebox-tp218-1600: 0        # not this time
+systems:
+  psl:
+    brings:
+      concert-audio-esx: 12
+      concert-audio-ef6: 5
+      thebox-tp218-1600: 0        # not this time
 ```
 
 ```bash
-bin/console scene:stack --owner=psl --roster=psl-next-event
+bin/console scene:stack --owner=psl --event=next-event
 ```
 
 Five things about it are worth knowing before writing one.
 
 **It changes counts and nothing else.** It does not select owners, name a rig or decide a layout. `--owner` still
-says whose gear is in the inventory, and a device the file never mentions keeps the quantity its spec states. That
-is what makes rosters composable: state Innschleife's counts and our own gear is untouched, all of it, exactly as a
-bare sweep would build it. Two rosters in one run compose the same way, and two rosters that disagree about one
-device are refused rather than resolved — neither file is newer than the other, so there is nothing to prefer.
+says whose gear is in the inventory, and a device the map never mentions keeps the quantity its spec states. **Only
+the swept systems bring anything**, the `--owner`s, the owners of the `--from` cabinets, or every owner when neither
+is stated. So `--owner=innschleife --event=next-event` builds Innschleife's rig with Innschleife's counts and leaves
+PSL's ESX and panel out. **A system brings only its own gear**, and an entry naming another owner's device is refused
+for every system in the file, so two systems can never state two counts for one device.
 
 **Zero is how a cabinet stays at home**, and naming it at zero is not the same as leaving it out. Left out means
 "bring whatever the spec says". So a statement like "PSL are bringing the following" is written with a zero for
-every cabinet it excludes, which is why that roster has eight of them.
+every cabinet it excludes, which is why PSL's map has eight of them.
 
-**A roster names the folder its scenes are written into.** Both variants of one event are `--owner=innschleife`, so
-without that they would land in `innschleife/` under the same file names as the rigs built from everything
-Innschleife own, and the last run would win. The roster's id is the one name that tells them apart. `--quantity`
-carries no name of its own, so a run that uses it without `--into` is refused rather than allowed to overwrite:
+**One system at an event is filed as `<owner>-<event>`.** Without that, `--owner=innschleife --event=next-event` would
+land in `innschleife/` under the same file names as the rigs built from everything Innschleife own, and the last run
+would win. It is the name the roster file carried, so no folder moved with the merge. Several systems need `--into`,
+and so does `--quantity`, which carries no name of its own, rather than being allowed to overwrite:
 
 ```bash
 bin/console scene:stack --owner=innschleife --quantity=tms4:2 --into=a-name-for-it
 ```
 
-**A roster whose cabinets the sweep does not hold is refused.** Counts rewrite specs, and which specs a rig is built
-from is still `--owner`'s and `--from`'s decision, so a roster run without the right owner changes nothing and files
-the sweep under the roster's name anyway. That happened once: `innschleife-next-event-tms4/` was swept without
-`--owner=innschleife` and held 146 scenes of sdwa5 and sepp cabinets. The refusal names the cabinets and the owner:
+**Brought cabinets the sweep does not hold are refused.** Counts rewrite specs, and which specs a rig is built from is
+still `--owner`'s and `--from`'s decision, so a `--from` list that names some of a system's cabinets and not the rest
+it brings would change nothing for the rest. The roster files could be named without their owner, and once
+`innschleife-next-event-tms4/` was swept that way and held 146 scenes of sdwa5 and sepp cabinets. The refusal names
+the cabinets and the owner:
 
 ```
---roster=innschleife-next-event brings wsx-18, sbh-18, kicker-15, tms2, top-70x93, which the swept inventory does not
-hold. Say --owner=innschleife, or name them with --from
+the event has innschleife bring kicker-15, tms2, top-70x93, which the swept inventory does not hold. Say
+--owner=innschleife, or name them with --from
 ```
 
-**The recorded regenerate line carries the counts, never the roster.** It is the same argument the `--from` list is
-written out on: a replay has to rebuild *that* scene, and a roster is a file somebody can edit. Recording
-`--roster=` would make every replay depend on what the file says on the day it runs, so a roster corrected next
-week would silently rewrite last week's rigs under their old names. The roster is the human-facing record and the
-way a folder is generated in the first place; the line inside a scene file pins the numbers.
+**The recorded regenerate line carries the counts, never the event.** It is the same argument the `--from` list is
+written out on: a replay has to rebuild *that* scene, and an event is a file somebody can edit. Recording `--event=`
+would make every replay depend on what the file says on the day it runs, so a count corrected next week would
+silently rewrite last week's rigs under their old names. The event is the human-facing record and the way a folder is
+generated in the first place, and the line inside a scene file pins the numbers.
 
 #### A scene's key is its path, and its `id` is a label
 
@@ -1562,10 +1565,9 @@ so block and stereo alignment have nothing left to spread it into.
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 | `--low-end=MODE` | repeatable: `low` or `central`. Where the lowest-reaching cabinets belong. Default both — **one scene each**. `low` puts them on the floor, `central` pulls them onto the centre line even when that costs a row, which is what stacks two SKRAMs one above the other. See [where the low end goes](#where-the-low-end-goes) |
-| `--event=ID` | Applies a saved room and system preferences from `events/` |
+| `--event=ID` | a file in `events/`: the room, how each system is set up and what each system brings, overriding the specs' quantities for the swept systems. **A count of zero means left at home**, which is a different fact from a device the event never names. One `--owner` with an event is filed as `OWNER-EVENT` |
 | `--room-width=M`, `--room-height=M` | Hard limits on the entire compiled rig. An event's limits can be tightened but not loosened |
 | `--system-interface=OWNER:M`, `--system-target=OWNER:M` | Repeatable preferences for sub walls belonging to one owner. Pooled walls keep the ordinary defaults |
-| `--roster=ID` | repeatable: a file in `rosters/` stating what a system brings to one event, overriding the specs' quantities for this run. **A count of zero means left at home**, which is a different fact from a device the roster never names. The roster's id names the folder |
 | `--quantity=DEVICE:COUNT` | repeatable: build with this many instead of the number the spec states. **Requires `--into=NAME`** — it changes the rig without changing its name, so the folder has to be said out loud |
 | `--group=NAME:owner+owner` | repeatable: which owners are **one sound system**. Default `ours:sdwa5+sepp`, so a separated rig gives us one wall rather than two |
 | `--order=NAME[,NAME]` | repeatable or comma-separated: system labels **left to right**, overriding the tallest-in-the-middle rule. A label the order does not name keeps its place at the end, so naming two of three systems is a partial instruction rather than a filter. **The rank is taken on the system part of the label**, so `--stacks=2`'s `ours-1` and `ours-2` both match `ours` and stay adjacent; and an order naming **none** of a rig's stacks, which is what a system order is to a `pooled` rig, leaves the height rule alone rather than silently putting it in solve order. `next-event` and `innschleife-psl-sdwa5-sepp` are generated with `--order=ours,psl,innschleife` |
@@ -2207,7 +2209,7 @@ its own height. Any other device, and any height above the spec's, is refused.
 
 PSL bring a deco panel of 10 × 3.03 m to the next event, stated on 2026-10-01 together with their print file. It hangs from the front of our
 F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-10x3-03.yaml`
-is the panel, `rosters/psl-next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
+is the panel, PSL's `brings` in `events/next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
 
 ```yaml
 backdrop:
@@ -2230,7 +2232,7 @@ The truss and the panel share `fly.id: backdrop`, so the report adds them up as 
 **Four refusals, each a fact about the gear rather than an arrangement.** A panel wider than the truss, more segments
 than are owned, a panel that would reach the floor, and a tower load over the tower's `max_load_kg`. Our Varytec
 stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 45.45 kg, so each tower carries 45.975 kg,
-and the panel may weigh up to 123.5 kg. A roster that brings a deco device with no truss named is refused too, and
+and the panel may weigh up to 123.5 kg. A run that brings a deco device with no truss named is refused too, and
 `--backdrop=TRUSS:SEGMENTS:TOWER` states one without an event.
 
 The recorded line carries `--backdrop` and the panel's `--quantity`, even though one panel matches its spec. A count

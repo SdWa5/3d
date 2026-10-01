@@ -48,15 +48,6 @@ abstract class BaseCommand extends Command
         return $this->projectDir().'/specs';
     }
 
-    /**
-     * Where the event rosters live — beside `specs/` rather than inside it, since {@see SpecLoader} would read one
-     * as a broken device. {@see \App\Spec\RosterLoader} says why at length.
-     */
-    protected function rostersDir(): string
-    {
-        return $this->projectDir().'/rosters';
-    }
-
     protected function scenesDir(): string
     {
         return $this->projectDir().'/scenes';

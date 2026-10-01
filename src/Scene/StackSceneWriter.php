@@ -122,7 +122,7 @@ final class StackSceneWriter
     /**
      * @param list<StackBlock> $blocks one solved stack each, left to right
      * @param array{float, float} $at where the whole arrangement is centred
-     * @param array<string, int> $stated devices whose count came from a roster or `--quantity` rather than from
+     * @param array<string, int> $stated devices whose count came from an event or `--quantity` rather than from
      *                                   their spec, which must be written into the file whatever the share works out to. See {@see yaml}
      * @param bool $perSystemFocus whether each block is its own sound system and therefore aims at its own focus
      *                             rather than at the rig's — true for the separated values of {@see SystemSplit}, false for `pooled`
@@ -228,9 +228,9 @@ final class StackSceneWriter
 
                 // The mapping form only when there is something to say, so an ordinary rig keeps the shorthand.
                 //
-                // **A COUNT THAT CAME FROM A ROSTER IS ALWAYS SOMETHING TO SAY, AND LEAVING IT OUT WROTE FILES
+                // **A COUNT THAT CAME FROM AN EVENT IS ALWAYS SOMETHING TO SAY, AND LEAVING IT OUT WROTE FILES
                 // THAT REBUILT INTO A DIFFERENT RIG.** `owned()` reports the quantity of the specs this run was
-                // given, and a roster hands the command specs it has already rewritten — so twelve of twelve ESX
+                // given, and an event hands the command specs it has already rewritten — so twelve of twelve ESX
                 // looked like the whole inventory and the shorthand was used. Loading that file back reads the
                 // spec on disk, which says six, and the compiler dealt out a rig with three fewer rows under a
                 // top row laid out for twelve. Two of the sixteen PSL scenes came out with a floating cabinet

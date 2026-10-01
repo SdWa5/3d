@@ -150,12 +150,12 @@ final class RecordedCommand
         foreach ($groups as $group) {
             $parts[] = '--group='.$group;
         }
-        // **THE COUNTS, NOT THE ROSTER THAT STATED THEM.** The same argument the `--from` list below is written out
-        // on: a replay has to rebuild *this* scene, and a roster is a file that can be edited. Recording
-        // `--roster=innschleife-next-event` would make every replay of every scene in that folder depend on
-        // what the file says today, and a roster corrected next week would silently rewrite last week's rigs under
-        // their old names. The roster stays the human-facing record and the way the folder is generated in the
-        // first place; the line that rebuilds one file pins the numbers.
+        // **THE COUNTS, NOT THE EVENT THAT STATED THEM.** The same argument the `--from` list below is written out
+        // on: a replay has to rebuild *this* scene, and an event is a file that can be edited. Recording
+        // `--event=next-event` would make every replay of every scene in that folder depend on what the file says
+        // today, and a count corrected next week would silently rewrite last week's rigs under their old names. The
+        // event stays the human-facing record and the way the folder is generated in the first place; the line that
+        // rebuilds one file pins the numbers.
         foreach ($counts as $device => $count) {
             $parts[] = sprintf('--quantity=%s:%d', $device, $count);
         }
