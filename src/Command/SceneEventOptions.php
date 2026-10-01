@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Scene\RoomBounds;
+use App\Scene\StackOrientation;
 use App\Spec\DeviceSpec;
 use App\Spec\Event;
 use App\Spec\InvalidSpecException;
@@ -16,6 +17,8 @@ final class SceneEventOptions
     /**
      * @param array<string, float> $interfaces
      * @param array<string, float> $targets
+     * @param array<string, StackOrientation> $orientations how each named system is set up, see {@see rolls}
+     * @param list<string> $standing device ids that stand as measured under any orientation
      */
     private function __construct(
         public readonly RoomBounds $room,
@@ -23,6 +26,8 @@ final class SceneEventOptions
         public readonly array $targets,
         /** `TRUSS:SEGMENTS:TOWER`, read only once a deco device is brought, see {@see StackBackdrop::parse}. */
         public readonly ?string $backdrop = null,
+        public readonly array $orientations = [],
+        public readonly array $standing = [],
     ) {
     }
 
@@ -65,8 +70,38 @@ final class SceneEventOptions
             ));
         }
         unset($values);
+
+        // **THE SAME SHAPE AS THE INTERFACE, AND RECORDED THE SAME WAY.** The event states how each system is set up,
+        // `--system-orientation=OWNER:MODE` states or overrides it, and the resolved pairs are written back so the
+        // recorded line replays them without the event file.
+        $orientations = null === $event ? [] : $event->orientations;
+        foreach ((array) $input->getOption('system-orientation') as $pair) {
+            $parts = explode(':', (string) $pair);
+            $mode = 2 === count($parts) && '' !== $parts[0] ? StackOrientation::tryFrom($parts[1]) : null;
+            if (null === $mode) {
+                throw new InvalidSpecException('--system-orientation expects OWNER:upright|turned|mixed');
+            }
+            $orientations[$parts[0]] = $mode;
+        }
+        ksort($orientations);
+        $input->setOption('system-orientation', array_map(
+            static fn (string $owner): string => $owner.':'.$orientations[$owner]->value,
+            array_keys($orientations),
+        ));
+        $standing = array_values(array_unique([
+            ...(null === $event ? [] : $event->standing),
+            ...array_map('strval', (array) $input->getOption('stand')),
+        ]));
+        sort($standing);
+        $input->setOption('stand', $standing);
+        foreach ($standing as $id) {
+            if (!isset($devices[$id])) {
+                throw new InvalidSpecException('--stand names unknown device '.$id);
+            }
+        }
+
         $known = array_unique(array_map(static fn (DeviceSpec $device): string => $device->owner, $devices));
-        foreach (array_unique([...array_keys($interfaces), ...array_keys($targets)]) as $owner) {
+        foreach (array_unique([...array_keys($interfaces), ...array_keys($targets), ...array_keys($orientations)]) as $owner) {
             if (!in_array($owner, $known, true)) {
                 throw new InvalidSpecException('unknown system owner '.$owner);
             }
@@ -81,7 +116,61 @@ final class SceneEventOptions
         $backdrop = $input->getOption('backdrop') ?? $event?->backdrop;
         $input->setOption('backdrop', $backdrop);
 
-        return new self($room, $interfaces, $targets, null === $backdrop ? null : (string) $backdrop);
+        return new self($room, $interfaces, $targets, null === $backdrop ? null : (string) $backdrop, $orientations, $standing);
+    }
+
+    /**
+     * The device ids out of `$ids` that lie on their sides, **resolved per system** and nowhere else.
+     *
+     * A cabinet whose owner has a stated orientation follows it, and every other cabinet follows the sweep's
+     * `$orientation`. A null mode on both sides means the caller named the cabinets outright with `--roll-mirror`, which
+     * `$stated` carries. A standing cabinet is never rolled by a mode, because the owner of the gear said so: at the
+     * next event Innschleife is set up turned, and its kickers stand as measured anyway.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     * @param list<string> $stated
+     *
+     * @return list<string>
+     */
+    public function rolls(?StackOrientation $orientation, array $devices, array $ids, array $stated): array
+    {
+        $rolls = [];
+        foreach ($ids as $id) {
+            $mode = $this->orientations[$devices[$id]->owner ?? ''] ?? $orientation;
+            if (null === $mode) {
+                if (in_array($id, $stated, true)) {
+                    $rolls[] = $id;
+                }
+                continue;
+            }
+            if (!in_array($id, $this->standing, true) && [] !== $mode->rolls($devices, [$id])) {
+                $rolls[] = $id;
+            }
+        }
+
+        return $rolls;
+    }
+
+    /**
+     * Whether every cabinet of the rig belongs to a system with a stated orientation, which leaves the sweep's
+     * orientation axis nothing to vary.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     */
+    public function fixesOrientation(array $devices, array $ids): bool
+    {
+        if ([] === $this->orientations || [] === $ids) {
+            return false;
+        }
+        foreach ($ids as $id) {
+            if (!isset($devices[$id], $this->orientations[$devices[$id]->owner])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -3,10 +3,21 @@ name: Next event
 room:
   width_m: 13.0
   height_m: 4.0
+# How each system is set up, stated by Stefan on 2026-10-01: ours and Sepp's upright, PSL and Innschleife turned.
+# Innschleife's kickers stand as measured anyway, 0.95 m wide, as on their photo. Every next-event sweep then has no
+# orientation left to vary, and its scenes are named `stated`.
 systems:
+  sdwa5:
+    orientation: upright
+  sepp:
+    orientation: upright
+  psl:
+    orientation: turned
   innschleife:
     interface_height_m: 1.6
     target_sub_height_m: 1.75
+    orientation: turned
+    stand: [ kicker-15 ]
 # Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a roster brings. PSL's 10 m panel
 # hangs from it, stated 2026-10-01. Under the 4 m ceiling the truss rests at 3.742 m. See docs/scenes.md.
 backdrop:

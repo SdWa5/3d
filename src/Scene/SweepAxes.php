@@ -214,6 +214,12 @@ final class SweepAxes
      * @param list<string> $rolled the device ids `--roll-mirror` named, which is what a null orientation defers to
      * @param array<string, DeviceSpec> $devices
      * @param list<string> $from
+     * @param (\Closure(StackOrientation|null): list<string>)|null $resolve null when the event states no orientation
+     *
+     * `$resolve` answers which cabinets an orientation lays down once the event's per-system orientations apply.
+     * **With per-system orientations a mode can repeat another one's rig**, because the fixed systems roll the same
+     * cabinets under every mode and only the others change. A mode whose resolved cabinets an earlier mode already
+     * laid down is dropped for the same reason as a mode that rolls nothing: it is that rig under another name.
      *
      * @return list<array{StackOrientation|null, MirrorStyle}>
      */
@@ -223,12 +229,23 @@ final class SweepAxes
         array $rolled,
         array $devices,
         array $from,
+        ?\Closure $resolve = null,
     ): array {
         $pairs = [];
+        $seen = [];
         foreach ($orientations as $orientation) {
-            $rolls = $orientation?->rolls($devices, $from) ?? array_values(array_intersect($from, $rolled));
-            if ([] === $rolls && null !== $orientation && StackOrientation::Upright !== $orientation) {
-                continue;
+            if (null !== $resolve) {
+                $rolls = $resolve($orientation);
+                $key = implode(',', $rolls);
+                if (isset($seen[$key])) {
+                    continue;
+                }
+                $seen[$key] = true;
+            } else {
+                $rolls = $orientation?->rolls($devices, $from) ?? array_values(array_intersect($from, $rolled));
+                if ([] === $rolls && null !== $orientation && StackOrientation::Upright !== $orientation) {
+                    continue;
+                }
             }
 
             $styles = [] !== $stated ? $stated : ([] === $rolls ? [MirrorStyle::Alternate] : MirrorStyle::cases());

@@ -35,6 +35,26 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringContainsString('1× tms2 + 1× top-70x93 + 1× tms2', $tester->getDisplay());
     }
 
+    /**
+     * The event sets Innschleife up turned with its kickers standing, which is the photo, so `--orientation` has
+     * nothing left to vary and the one candidate is named `stated`.
+     */
+    public function testTheEventsOrientationReplacesTheSweptOne(): void
+    {
+        $display = $this->invoke(self::OPTIONS)->getDisplay();
+
+        self::assertStringContainsString('-stated-', $display);
+        self::assertStringNotContainsString('-mixed-', $display);
+        self::assertStringNotContainsString('--orientation=', $display);
+        self::assertStringContainsString('--system-orientation=innschleife:turned', $display);
+        self::assertStringContainsString('--system-orientation=psl:turned', $display);
+        self::assertStringContainsString('--system-orientation=sdwa5:upright', $display);
+        self::assertStringContainsString('--system-orientation=sepp:upright', $display);
+        self::assertStringContainsString('--stand=kicker-15', $display);
+        self::assertStringContainsString('wsx-18 rolled', $display);
+        self::assertStringNotContainsString('kicker-15 rolled', $display);
+    }
+
     public function testAnExplicitRoomOptionCannotLoosenTheSavedEventLimit(): void
     {
         $tester = $this->invoke(self::OPTIONS + ['--room-width' => '100']);

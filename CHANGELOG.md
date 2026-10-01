@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.128.0] - 2026-10-01
+
+### Added
+
+- An event states how each system is set up, as `systems.<owner>.orientation`, and which cabinets stand as measured
+  anyway, as `systems.<owner>.stand`. `--system-orientation=OWNER:MODE` and `--stand=ID` state the same directly, and
+  the recorded line carries both.
+- The next event sets ours and Sepp's gear upright and PSL's and Innschleife's turned, with Innschleife's kickers
+  standing as on their photo.
+
+### Changed
+
+- A rig whose every system has a stated orientation is swept once, named `stated`, instead of once per orientation.
+  With only some systems stated, an orientation that rolls the same cabinets as an earlier one is dropped.
+- An event's system may state an orientation without an interface and a target. Those two still come as a pair.
+- `innschleife-next-event`, `psl-next-event` and `next-event` regenerated under the stated orientations.
+
 ## [0.127.0] - 2026-10-01
 
 ### Changed
