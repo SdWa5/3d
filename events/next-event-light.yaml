@@ -21,9 +21,17 @@ room:
 # src/Spec/Event.php.
 systems:
   sdwa5:
+    # Without the Achenbach our stack chased the default 2.0 m interface into three rows of Flexy and stood
+    # 3.551 m against PSL's 2.55 and Innschleife's 2.85. Stefan asked on 2026-10-01 for it to match the others,
+    # so ours and Sepp's take Innschleife's 1.6 m interface aimed at 1.75 m, which builds two rows of
+    # [3 Flexy | SKRAM | 3 Flexy] at 2.788 m.
+    interface_height_m: 1.6
+    target_sub_height_m: 1.75
     orientation: upright
     low_end: central
   sepp:
+    interface_height_m: 1.6
+    target_sub_height_m: 1.75
     orientation: upright
     low_end: central
     # No Achenbach at all in this version. The rest of Sepp's gear keeps its spec's quantity.
@@ -68,7 +76,7 @@ systems:
       hk-linear5-112x: 0
       # Hung from our truss behind the systems, stated by Stefan on 2026-10-01. It is no cabinet, so the solver never
       # places it, and `scene:stack` hangs it from the backdrop below. See docs/scenes.md.
-      deco-panel-10x3-03: 1
+      deco-panel-9x1-8: 1
   innschleife:
     interface_height_m: 1.6
     target_sub_height_m: 1.75
@@ -105,7 +113,7 @@ systems:
 # is 13.516 m and the room refuses it.
 stack_clearance_m: 0.24
 
-# Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a system brings. PSL's 10 m panel
+# Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a system brings. PSL's 9 m panel
 # hangs from it, stated 2026-10-01. Under the 4 m ceiling the truss rests at 3.742 m. See docs/scenes.md.
 backdrop:
   truss: truss-f33-2m

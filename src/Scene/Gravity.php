@@ -99,11 +99,12 @@ final class Gravity
             // which read as though it were a property of tops rows. It is not: a *packed sub* row lands the same way and
             // had no repair at all, which is what refused GMSS's one arrangement inside the sub height band.
             //
-            // **Two repairs, best of**, because they answer different shapes and neither subsumes the other: seating the
-            // ends outboard needs a stepped support with at least two runs to seat onto, and sliding needs nothing but
-            // room beside the row — so the packed row `outboardSeats` returns null for is exactly the one the slide
-            // carries. Both are discarded unless they improve the worst bearing, which is what keeps this safe rather
-            // than the tier index.
+            // **Three repairs, best of**, because they answer different shapes and none subsumes the others: seating the
+            // ends outboard needs a stepped support with at least two runs to seat onto, seating the middle needs a
+            // raised run inside the row, and sliding needs nothing but room beside the row — so the packed row
+            // `outboardSeats` returns null for is exactly the one the slide carries. All are discarded unless they
+            // improve the worst bearing, which is what keeps this safe rather than the tier index. On a tie the earlier
+            // one keeps the slot, so the slide is the last resort it was before.
             // **A REPAIR IS JUDGED ON THIS TIER *AND* ON THE ONE IT CARRIES.** Judging it on its own bearing alone is a
             // local optimum the tier above pays for: a row slides or reseats itself for its own sake and walks out from
             // under what stands on it, and because this pass runs bottom-up nothing has looked at that tier yet. The
@@ -135,6 +136,7 @@ final class Gravity
             if (self::worstBearing($runs) < self::MIN_BEARING) {
                 foreach ([
                     self::outboardSeats($tier->seats($gapM), $below, $ownGapM),
+                    self::raisedMiddleSeats($tier->seats($gapM), $below, $ownGapM),
                     self::slidSeats(
                         $tier->seats($gapM),
                         $below,
@@ -454,6 +456,101 @@ final class Gravity
         }
 
         return $placed;
+    }
+
+    /**
+     * A tier laid out **around a raised middle**: as many of its central cabinets as fit on the highest support, and
+     * the rest flush beside it on the lower supports, mirrored.
+     *
+     * The opposite shape to {@see outboardSeats}, which seats the ends on high shoulders around a low middle. Ours is
+     * the case that needed it: two rows of [3 Flexy | SKRAM | 3 Flexy] put the SKRAM 0.302 m above the Flexys, and a
+     * centred row of five tops across that step caught the SKRAM's edges. The slide then carried it by walking the
+     * whole row 0.77 m to one side, measured on the light next event's combined rig, so the tops ended up off the
+     * stack's centre with two of them on the SKRAM and the outer one yawed 36.8° to reach its focus.
+     *
+     * The middle count keeps the parity of the row, so what is left splits evenly to both sides and a palindrome stays
+     * one. Null unless the highest support is a single run inside the row, higher than both its neighbours by more than
+     * {@see LEVEL_TOLERANCE_M}, and at least one cabinet fits on it. Whether the result is carried is left to the
+     * scoring in {@see resolve}, like the other repairs.
+     *
+     * @param list<array{DeviceSpec, int, float, float}> $seats
+     * @param list<array{id: string, lo: float, hi: float, top: float}> $below
+     *
+     * @return list<array{DeviceSpec, int, float, float}>|null
+     */
+    private static function raisedMiddleSeats(array $seats, array $below, float $gapM): ?array
+    {
+        $last = count($below) - 1;
+        if ($last < 2) {
+            return null;
+        }
+
+        $peak = 0;
+        foreach ($below as $slot => $face) {
+            if ($face['top'] > $below[$peak]['top']) {
+                $peak = $slot;
+            }
+        }
+        $top = $below[$peak]['top'];
+        if (0 === $peak || $last === $peak
+            || $below[$peak - 1]['top'] > $top - self::LEVEL_TOLERANCE_M
+            || $below[$peak + 1]['top'] > $top - self::LEVEL_TOLERANCE_M) {
+            return null;
+        }
+
+        /** @var list<array{DeviceSpec, float, float}> $cabinets device, roll and width, in row order */
+        $cabinets = [];
+        foreach ($seats as [$device, $count, , $roll]) {
+            for ($seat = 0; $seat < $count; ++$seat) {
+                $cabinets[] = [$device, $roll, RolledBox::widthOf($device, $roll)];
+            }
+        }
+
+        $total = count($cabinets);
+        $room = $below[$peak]['hi'] - $below[$peak]['lo'] + self::CONTACT_EPSILON_M;
+        $middle = null;
+        for ($count = $total; $count >= 1; $count -= 2) {
+            $first = intdiv($total - $count, 2);
+            $span = ($count - 1) * $gapM;
+            for ($slot = $first; $slot < $first + $count; ++$slot) {
+                $span += $cabinets[$slot][2];
+            }
+            if ($span <= $room) {
+                $middle = [$first, $count, $span];
+                break;
+            }
+        }
+        if (null === $middle) {
+            return null;
+        }
+
+        [$first, $count, $span] = $middle;
+        $placed = [];
+
+        $x = ($below[$peak]['lo'] + $below[$peak]['hi']) / 2 - $span / 2;
+        for ($slot = $first; $slot < $first + $count; ++$slot) {
+            [$device, $roll, $width] = $cabinets[$slot];
+            $placed[$slot] = [$device, 1, $x + $width / 2, $roll];
+            $x += $width + $gapM;
+        }
+
+        $x = $below[$peak]['lo'] - $gapM;
+        for ($slot = $first - 1; $slot >= 0; --$slot) {
+            [$device, $roll, $width] = $cabinets[$slot];
+            $placed[$slot] = [$device, 1, $x - $width / 2, $roll];
+            $x -= $width + $gapM;
+        }
+
+        $x = $below[$peak]['hi'] + $gapM;
+        for ($slot = $first + $count; $slot < $total; ++$slot) {
+            [$device, $roll, $width] = $cabinets[$slot];
+            $placed[$slot] = [$device, 1, $x + $width / 2, $roll];
+            $x += $width + $gapM;
+        }
+
+        ksort($placed);
+
+        return array_values($placed);
     }
 
     /**

@@ -3,8 +3,8 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-2/1k-2 and main-2/2e are 0.0381 m inside each other
-#   * main-1/1b and main-1/2a-2 are 0.0022 m inside each other
+#   * a concert-audio-ef6 stands at 0.600 m with nothing under it across x
+#   * a thebox-achat-112m stands at 0.600 m with nothing under it across x
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -20,47 +20,23 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 27 cabinets in 2 rows:
+# main-1 — 1, 31 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 2× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× sub-60x60 rolled 270° + 2× achenbach-18 rolled 270° + 2× kicker-15 rolled 90° + 1× achenbach-18 rolled 90° + 1× sub-60x60 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°   17.238 m wide
+#   1  1× thebox-tp118-800 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 2× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× sub-60x60 rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× skram rolled 90° + 2× kicker-15 rolled 90° + 1× achenbach-18 rolled 90° + 1× sub-60x60 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
 #   2  2× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m   3.5516 m wide
 #
 # Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * thebox-tp218-1600: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
-#     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
-#     split work, which is what the -turned rig does
-#   * thebox-tp118-800: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
-#     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
-#     split work, which is what the -turned rig does
-#   * concert-audio-esf: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
-#     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
-#     split work, which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
 #     0.950 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 36 cabinets in 2 rows:
+# main-2 — 2, 32 cabinets in 2 rows:
 #
-#   1  1× thebox-tp118-800 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× sub-60x60 rolled 270° + 1× achenbach-18 rolled 270° + 1× skram rolled 270° + 2× kicker-15 rolled 270° + 1× skram rolled 90° + 2× achenbach-18 rolled 90° + 1× sub-60x60 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 2× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90° + 1× thebox-tp218-1600 rolled 90° + 1× thebox-tp118-800 rolled 90°   24.422 m wide
+#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× sub-60x60 rolled 270° + 1× achenbach-18 rolled 270° + 2× kicker-15 rolled 270° + 1× skram rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× sub-60x60 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 2× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90° + 1× thebox-tp218-1600 rolled 90° + 1× thebox-tp118-800 rolled 90°    20.83 m wide
 #   2  1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 2× concert-audio-ef6 + 1× tecnare-m2122   4.0716 m wide
 #
 # Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * thebox-tp218-1600: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
-#     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
-#     split work, which is what the -turned rig does
-#   * thebox-tp118-800: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
-#     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
-#     split work, which is what the -turned rig does
-#   * concert-audio-esf: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
-#     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
-#     split work, which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
@@ -78,9 +54,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 27 cabinets in 2 rows
+  # 1, 31 cabinets in 2 rows
   - id: main-1
-    at: [-12.763, 0.0]
+    at: [-10.967, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -94,6 +70,12 @@ placements:
           roll_mirror: 90.0
         - device: sbh-18
           count: 2
+          roll_mirror: 90.0
+        - device: skram
+          count: 1
+          roll_mirror: 90.0
+        - device: thebox-tp218-1600
+          count: 1
           roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6
@@ -109,6 +91,12 @@ placements:
           roll_mirror: 90.0
         - device: sub-60x60
           count: 2
+          roll_mirror: 90.0
+        - device: thebox-tp118-800
+          count: 1
+          roll_mirror: 90.0
+        - device: concert-audio-esf
+          count: 1
           roll_mirror: 90.0
         - device: tms4
           count: 1
@@ -128,9 +116,9 @@ placements:
           count: 1
           aim: near
 
-  # 2, 36 cabinets in 2 rows
+  # 2, 32 cabinets in 2 rows
   - id: main-2
-    at: [8.567, 0.0]
+    at: [10.363, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -145,8 +133,10 @@ placements:
           count: 2
           roll_mirror: 90.0
         - device: skram
+          count: 1
           roll_mirror: 90.0
         - device: thebox-tp218-1600
+          count: 1
           roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6
@@ -164,8 +154,10 @@ placements:
           count: 2
           roll_mirror: 90.0
         - device: thebox-tp118-800
+          count: 1
           roll_mirror: 90.0
         - device: concert-audio-esf
+          count: 1
           roll_mirror: 90.0
         - device: tms4
           count: 1

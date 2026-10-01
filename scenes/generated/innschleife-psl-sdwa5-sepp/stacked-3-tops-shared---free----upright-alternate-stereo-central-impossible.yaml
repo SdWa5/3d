@@ -61,14 +61,14 @@
 #   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
 #     1.180 m is the most they reach while every tier is still carried
 #
-# main-psl-2 — psl-2, 15 cabinets in 2 rows:
+# main-psl-2 — psl-2, 14 cabinets in 2 rows:
 #
 #   1  1× thebox-tp118-800 + 1× concert-audio-esf + 1× concert-audio-esx + 2× thebox-tp218-1600 + 1× concert-audio-esx + 1× concert-audio-esf + 1× thebox-tp118-800    4.696 m wide
-#   2  2× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× tms4 + 2× concert-audio-ef6    3.972 m wide
+#   2  2× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms2 + 2× concert-audio-ef6    3.382 m wide
 #
-# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.34 m of cabinet.
+# Subs reach 1.2 m against a 2.0 m interface. The stack is 2.16 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * tms2: LEFT OUT, it cannot be carried in this stack — a concert-audio-ef6 in the 2× concert-audio-ef6 + 1×
+#   * tms4: LEFT OUT, it cannot be carried in this stack — a concert-audio-ef6 in the 2× concert-audio-ef6 + 1×
 #     tms4 + 1× tecnare-m2122 + 1× tms2 + 1× tms4 + 2× concert-audio-ef6 row would land on only 26% of its own width —
 #     it is touching what carries it rather than sitting on it. Line the segments up with what carries them
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
@@ -260,7 +260,7 @@ placements:
         - device: hk-linear5-112x
           aim: near
 
-  # psl-2, 15 cabinets in 2 rows
+  # psl-2, 14 cabinets in 2 rows
   - id: main-psl-2
     at: [-0.456, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -285,9 +285,10 @@ placements:
         - thebox-tp118-800
         - concert-audio-esf
         - concert-audio-ef6
-        - device: tms4
-          aim: near
         - device: tecnare-m2122
+          count: 1
+          aim: near
+        - device: tms2
           count: 1
           aim: near
 

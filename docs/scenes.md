@@ -694,8 +694,10 @@ two in `pyramid` and two in `v`, where it had 26 while Innschleife was still swe
 **`next-event-light` is the same event without any Achenbach and with nine ESX**, asked for by Stefan on 2026-10-01
 as a second version. `events/next-event-light.yaml` is a copy of `next-event.yaml` that differs in two counts, Sepp's
 `achenbach-18: 0` and PSL's `concert-audio-esx: 9`, because an event has no way to inherit from another. Both events
-bring four EF 6 since the same day. The light rig is 11.77 m wide against 13.00 m, so the room no longer limits the
-layout and `v` fits with the systems apart as well. It writes 20 scenes, 18 possible, and PSL alone writes 13:
+bring four EF 6 since the same day. Ours and Sepp's take Innschleife's 1.6 m interface aimed at 1.75 m in this
+version. At the default 2.0 m our stack chased the interface into three rows of Flexy and stood 3.551 m against PSL's
+2.55 m and Innschleife's 2.85 m. Now it is two rows of [3 Flexy | SKRAM | 3 Flexy] at 2.788 m, and the rig is 13.00 m
+wide like `next-event`'s. It writes 18 scenes, 16 possible, and PSL alone writes 13:
 
 ```bash
 bin/console scene:stack --owner=psl --event=next-event-light
@@ -1177,15 +1179,15 @@ one command:
 | folder | inventory | scenes |
 | --- | --- | --- |
 | `sdwa5-sepp/` | the default: ours and Sepp's | 132 |
-| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 367 |
-| `gmss-sdwa5/` | GMSS and ours | 456 |
-| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 496 |
-| `gmss/` | GMSS alone | 112 |
-| `sdwa5/` | ours alone | 64 |
+| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 371 |
+| `gmss-sdwa5/` | GMSS and ours | 464 |
+| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 497 |
+| `gmss/` | GMSS alone | 114 |
+| `sdwa5/` | ours alone | 68 |
 | `sepp/` | Sepp's alone | 8 |
-| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 446 |
+| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 443 |
 | `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts the event states for them | 8 |
-| `next-event-light/` | the same event without any Achenbach and with nine ESX, see [Repeating a flanked row](#repeating-a-flanked-row) | 20 |
+| `next-event-light/` | the same event without any Achenbach and with nine ESX, see [Repeating a flanked row](#repeating-a-flanked-row) | 18 |
 | `innschleife-next-event/` | what Innschleife are bringing on its own, two TMS-2 around a TMS-4 on their photo's sub rows. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 25 |
 | `psl-next-event/` | what PSL are bringing on its own: twelve ESX under four EF 6, in front of their deco panel on our truss | 11 |
 | `psl-next-event-light/` | the same with nine ESX | 13 |
@@ -1711,7 +1713,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the thirteen committed inventories come to 2158 scenes across thirteen runs, and the largest committed inventory is `gmss-sdwa5-sepp` at **496** files. The room-limited `next-event` folder holds **8** files, all possible, none pooled, 4 with the systems apart and 4 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the thirteen committed inventories come to 2172 scenes across thirteen runs, and the largest committed inventory is `gmss-sdwa5-sepp` at **497** files. The room-limited `next-event` folder holds **8** files, all possible, none pooled, 4 with the systems apart and 4 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1731,15 +1733,15 @@ point. A rig with each system in its own stack could be asked for by hand and ne
 older way to ask for one value of it, means `systems-apart`, and collapses the sweep rather than narrowing it — it
 stays exactly as it was, because 433 written scenes record their own regeneration with it.
 
-**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **134 `systems-apart`, 130
+**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **137 `systems-apart`, 131
 `tops-shared` and 103 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **641 `systems-apart`, 738 `tops-shared` and 779 `pooled`**, for **2158**. All three values remain represented after the room limits.
+values come to **653 `systems-apart`, 731 `tops-shared` and 788 `pooled`**, for **2172**. All three values remain represented after the room limits.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 233 of the sweep across six folders: `gmss` 112, `sdwa5` 64, `innschleife-next-event` 25,
+rigs are 239 of the sweep across six folders: `gmss` 114, `sdwa5` 68, `innschleife-next-event` 25,
 `psl-next-event-light` 13, `psl-next-event` 11 and `sepp` 8. **`sdwa5-sepp` is single-owner too**, by grouping rather
 than by ownership, which is why it writes 132 `pooled` scenes and no separated ones.
 
@@ -2259,8 +2261,8 @@ its own height. Any other device, and any height above the spec's, is refused.
 
 ### A deco backdrop behind a generated rig
 
-PSL bring a deco panel of 10 × 3.03 m to the next event, stated on 2026-10-01 together with their print file. It hangs from the front of our
-F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-10x3-03.yaml`
+PSL bring a deco panel of 9 × 1.8 m to the next event, stated on 2026-10-01 after 10 × 3.03 m with their print file, which is stretched to fit. It hangs from the front of our
+F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-9x1-8.yaml`
 is the panel, PSL's `brings` in `events/next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
 
 ```yaml
@@ -2277,13 +2279,13 @@ backdrop:
 |---|---|
 | `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the unmodelled outriggers spread to 1.6 m |
 | `backdrop-truss` | five segments flush, 10 m, centred on the rig. It rests at the ceiling less its own 0.258 m, so at 3.742 m under the 4 m room, with the towers cranked to that |
-| `backdrop-deco` | flush on the truss's front face. Its top goes up to the ceiling, but at most half the panel stands above the truss's top. Under the next event's 4 m ceiling the truss already touches it, so the panel's top is the truss's top and its bottom is at 0.97 m. With no ceiling the panel's top is at 4.258 + 1.515 = 5.773 m |
+| `backdrop-deco` | flush on the truss's front face. Its top goes up to the ceiling, but at most half the panel stands above the truss's top. Under the next event's 4 m ceiling the truss already touches it, so the panel's top is the truss's top and its bottom is at 2.2 m. With no ceiling the panel's top is at 4.258 + 0.9 = 5.158 m |
 
 The truss and the panel share `fly.id: backdrop`, so the report adds them up as one bar.
 
 **Four refusals, each a fact about the gear rather than an arrangement.** A panel wider than the truss, more segments
 than are owned, a panel that would reach the floor, and a tower load over the tower's `max_load_kg`. Our Varytec
-stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 45.45 kg, so each tower carries 45.975 kg,
+stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 24.3 kg, so each tower carries 35.4 kg,
 and the panel may weigh up to 123.5 kg. A run that brings a deco device with no truss named is refused too, and
 `--backdrop=TRUSS:SEGMENTS:TOWER` states one without an event.
 

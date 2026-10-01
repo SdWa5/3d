@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.133.0] - 2026-10-01
+
+### Changed
+
+- In `next-event-light` ours and Sepp's take a 1.6 m interface aimed at 1.75 m. Our stack goes from three rows of
+  Flexy at 3.551 m to two rows of [3 Flexy | SKRAM | 3 Flexy] at 2.788 m, next to PSL's 2.55 m and Innschleife's
+  2.85 m. The folder goes from 20 scenes to 18. Four `v` stereo layouts no longer fit the room and two `free` ones
+  are added.
+- PSL's deco panel is 9.00 x 1.80 m instead of 10.00 x 3.03 m, renamed from `deco-panel-10x3-03` to
+  `deco-panel-9x1-8`. Its print is stretched from 3.3:1 to 5:1 on purpose, and its estimated weight goes from 45.45 kg
+  to 24.3 kg, so each tower carries 35.4 kg. Under the 4 m ceiling its bottom edge is at 2.2 m.
+- Every generated folder is regenerated with both changes and the fix below.
+
+  | folder | before | after | rewritten | removed | added |
+  | --- | --- | --- | --- | --- | --- |
+  | `sdwa5-sepp` | 132 | 132 | 0 | 0 | 0 |
+  | `gmss` | 112 | 114 | 4 | 0 | 2 |
+  | `gmss-sepp` | 367 | 371 | 16 | 4 | 8 |
+  | `gmss-sdwa5` | 456 | 464 | 25 | 5 | 13 |
+  | `gmss-sdwa5-sepp` | 496 | 497 | 29 | 14 | 15 |
+  | `sdwa5` | 64 | 68 | 0 | 0 | 4 |
+  | `sepp` | 8 | 8 | 0 | 0 | 0 |
+  | `innschleife-psl-sdwa5-sepp` | 446 | 443 | 12 | 24 | 21 |
+  | `innschleife-next-event` | 25 | 25 | 0 | 0 | 0 |
+  | `psl-next-event` | 11 | 11 | 11 | 0 | 0 |
+  | `psl-next-event-light` | 13 | 13 | 13 | 0 | 0 |
+  | `next-event` | 8 | 8 | 8 | 0 | 0 |
+  | `next-event-light` | 20 | 18 | 16 | 4 | 2 |
+
+- `docs/scenes.md` carries the new counts, 2172 scenes in all.
+
+### Fixed
+
+- A tops row over a sub row with a raised middle is seated around the middle instead of slid sideways. Over
+  [3 Flexy | SKRAM | 3 Flexy] the SKRAM stands 0.302 m above the Flexy, the outboard repair gave up on a raised
+  middle, and the slide pushed the whole row 0.77 m off centre. Gravity now also tries `raisedMiddleSeats`, which
+  puts the widest centred run on the raised middle and mirrors the rest outwards from its edges.
+
 ## [0.132.0] - 2026-10-01
 
 ### Added

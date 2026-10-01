@@ -14,14 +14,13 @@
 # main-gmss — gmss, 14 cabinets in 5 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90°      4.04 m wide
-#   2  1× nuke rolled 270° + 1× nuke rolled 90°                               1.56 m wide
+#   2  1× nuke rolled 270° + 1× nuke + 1× iq-sub rolled 90°                  2.07 m wide
 #   3  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
-#   4  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
+#   4  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
 #   5  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
 #
-# Subs reach 2.59 m against a 2.0 m interface. The stack is 3.426 m of cabinet.
-#   * the 1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90° row is 1.910 m on a 1.560 m row, so it
-#     overhangs 175 mm each side
+# Subs reach 2.63 m against a 2.0 m interface. The stack is 3.466 m of cabinet.
+#   * the 1× turbo-top + 2× eighteensound-2way-15 row is 1.421 m on a 1.360 m row, so it overhangs 31 mm each side
 #
 # main-ours — ours, 8 cabinets in 4 rows:
 #

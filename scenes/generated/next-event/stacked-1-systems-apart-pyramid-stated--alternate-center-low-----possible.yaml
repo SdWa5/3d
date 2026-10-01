@@ -10,7 +10,7 @@
 #     --system-orientation=innschleife:turned --system-orientation=psl:turned --system-orientation=sdwa5:upright
 #     --system-orientation=sepp:upright --system-low-end=innschleife:low --system-low-end=sdwa5:central
 #     --system-low-end=sepp:central --stand=kicker-15 --systems=systems-apart --order=ours,psl,innschleife
-#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=deco-panel-10x3-03:1
+#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=deco-panel-9x1-8:1
 #     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
 #     --quantity=tms4:1 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
@@ -138,8 +138,8 @@ placements:
         - device: tms2
           aim: near
 
-  # Backdrop: deco-panel-10x3-03 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
-  # The truss tops out at 4 m. Each tower carries 45.975 kg.
+  # Backdrop: deco-panel-9x1-8 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
+  # The truss tops out at 4 m. Each tower carries 35.4 kg.
   - id: backdrop-tower-left
     device: truss-tower-4m
     at: [-5.2, 1.282]
@@ -158,9 +158,9 @@ placements:
       count: 5
       gap_m: 0.0
   - id: backdrop-deco
-    device: deco-panel-10x3-03
+    device: deco-panel-9x1-8
     at: [-0.302, 1.112]
     fly:
-      height_m: 0.97
+      height_m: 2.2
       id: backdrop
 

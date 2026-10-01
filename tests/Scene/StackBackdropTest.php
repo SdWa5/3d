@@ -67,22 +67,22 @@ final class StackBackdropTest extends TestCase
     /** Under the 4 m ceiling the truss already touches, the panel's top stays at the truss's top. */
     public function testTheCeilingHoldsThePanelAtTheTrussTop(): void
     {
-        self::assertEqualsWithDelta(4.0, $this->ours()->panelTopM($this->devices['deco-panel-10x3-03'], 4.0), 1e-9);
+        self::assertEqualsWithDelta(4.0, $this->ours()->panelTopM($this->devices['deco-panel-9x1-8'], 4.0), 1e-9);
     }
 
     /** A 5 m room leaves the truss at its full 4.258 m, and the panel rises to the ceiling, 0.742 m above it. */
     public function testThePanelRisesToAHigherCeiling(): void
     {
-        self::assertEqualsWithDelta(5.0, $this->ours()->panelTopM($this->devices['deco-panel-10x3-03'], 5.0), 1e-9);
+        self::assertEqualsWithDelta(5.0, $this->ours()->panelTopM($this->devices['deco-panel-9x1-8'], 5.0), 1e-9);
     }
 
-    /** With no ceiling half of the 3.03 m panel stands above the truss's 4.258 m, and no more. */
+    /** With no ceiling half of the 1.8 m panel stands above the truss's 4.258 m, and no more. */
     public function testAtMostHalfThePanelStandsAboveTheTruss(): void
     {
-        $panel = $this->devices['deco-panel-10x3-03'];
+        $panel = $this->devices['deco-panel-9x1-8'];
 
-        self::assertEqualsWithDelta(4.258 + 1.515, $this->ours()->panelTopM($panel, null), 1e-9);
-        self::assertEqualsWithDelta(4.258 + 1.515, $this->ours()->panelTopM($panel, 13.0), 1e-9);
+        self::assertEqualsWithDelta(4.258 + 0.9, $this->ours()->panelTopM($panel, null), 1e-9);
+        self::assertEqualsWithDelta(4.258 + 0.9, $this->ours()->panelTopM($panel, 13.0), 1e-9);
     }
 
     public function testAPanelReachingTheFloorIsRefused(): void
@@ -92,13 +92,13 @@ final class StackBackdropTest extends TestCase
         self::assertStringContainsString('top at 4.000 m would reach 0.500 m below the floor', (string) $this->ours()->problem($tall, 4.0));
     }
 
-    /** 46.5 kg of truss and the 45.45 kg panel estimate are 45.975 kg a tower, about half the 85 kg rating. */
+    /** 46.5 kg of truss and the 24.3 kg panel estimate are 35.4 kg a tower, well under half the 85 kg rating. */
     public function testThePanelIsWellInsideTheTowerRating(): void
     {
         $backdrop = $this->ours();
-        $panel = $this->devices['deco-panel-10x3-03'];
+        $panel = $this->devices['deco-panel-9x1-8'];
 
-        self::assertEqualsWithDelta(45.975, $backdrop->towerLoadKg($panel), 1e-9);
+        self::assertEqualsWithDelta(35.4, $backdrop->towerLoadKg($panel), 1e-9);
         self::assertNull($backdrop->problem($panel, 4.0));
     }
 
@@ -121,7 +121,7 @@ final class StackBackdropTest extends TestCase
         $six = StackBackdrop::parse('truss-f33-2m:6:truss-tower-4m', $this->devices);
 
         self::assertInstanceOf(StackBackdrop::class, $six);
-        self::assertStringContainsString('5 exist', (string) $six->problem($this->devices['deco-panel-10x3-03'], 4.0));
+        self::assertStringContainsString('5 exist', (string) $six->problem($this->devices['deco-panel-9x1-8'], 4.0));
     }
 
     /**
@@ -130,7 +130,7 @@ final class StackBackdropTest extends TestCase
      */
     public function testTheWrittenBackdropCompilesUnderTheCeiling(): void
     {
-        $panel = $this->devices['deco-panel-10x3-03'];
+        $panel = $this->devices['deco-panel-9x1-8'];
         $lines = $this->ours()->yaml($panel, -0.3, 0.5, 4.0);
         $scene = SceneSpec::fromArray(
             Yaml::parse("id: backdrop\nname: Backdrop\nplacements:\n".implode("\n", $lines)),
@@ -150,8 +150,8 @@ final class StackBackdropTest extends TestCase
         self::assertEqualsWithDelta(3.742 / 4.0, $byId['backdrop-tower-left']->scaleZ, 1e-9);
         self::assertEqualsWithDelta(4.0, $byId['backdrop-truss-1']->topZ(), 1e-6);
         self::assertEqualsWithDelta(4.0, $byId['backdrop-deco']->topZ(), 1e-6);
-        // 3.03 m of panel under a 4 m ceiling leaves 0.97 m below it.
-        self::assertEqualsWithDelta(0.97, $byId['backdrop-deco']->worldBox()['min'][2], 1e-6);
+        // 1.8 m of panel under a 4 m ceiling leaves 2.2 m below it.
+        self::assertEqualsWithDelta(2.2, $byId['backdrop-deco']->worldBox()['min'][2], 1e-6);
 
         $truss = $this->extentOf(array_filter($result['placed'], static fn (PlacedDevice $p): bool => str_starts_with($p->placementId, 'backdrop-truss')));
         self::assertEqualsWithDelta(-5.3, $truss['min'][0], 1e-6);
@@ -168,7 +168,7 @@ final class StackBackdropTest extends TestCase
     /** Raised above the truss, the panel still hangs in contact with it, so nothing reads it as floating. */
     public function testAPanelAboveTheTrussCompiles(): void
     {
-        $lines = $this->ours()->yaml($this->devices['deco-panel-10x3-03'], 0.0, 0.5, 5.0);
+        $lines = $this->ours()->yaml($this->devices['deco-panel-9x1-8'], 0.0, 0.5, 5.0);
         $scene = SceneSpec::fromArray(
             Yaml::parse("id: backdrop\nname: Backdrop\nplacements:\n".implode("\n", $lines)),
             'test',
@@ -190,7 +190,7 @@ final class StackBackdropTest extends TestCase
     /** Without a ceiling the towers stand at full extension and the scene says nothing about cranking them. */
     public function testFullExtensionWritesNoCrank(): void
     {
-        $lines = implode("\n", $this->ours()->yaml($this->devices['deco-panel-10x3-03'], 0.0, 0.5, null));
+        $lines = implode("\n", $this->ours()->yaml($this->devices['deco-panel-9x1-8'], 0.0, 0.5, null));
 
         self::assertStringNotContainsString('extend_to_m', $lines);
         self::assertStringContainsString('height_m: 4', $lines);

@@ -36,14 +36,25 @@
 #   * the 2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90° row is 4.780 m on a 3.884 m row, so
 #     it overhangs 448 mm each side
 #
-# main-innschleife — innschleife, 23 cabinets in 2 rows:
+# main-innschleife — innschleife, 23 cabinets in 6 rows:
 #
-#   1  2× sbh-18 rolled 270° + 2× kicker-15 + 2× wsx-18 rolled 270° + 4× sub-60x60 + 2× wsx-18 rolled 90° + 2× kicker-15 + 2× sbh-18 rolled 90°     15.7 m wide
-#   2  1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6 + 1× tms4    3.412 m wide
+#   1  4× sub-60x60                                                              2.46 m wide
+#   2  3× kicker-15                                                              2.89 m wide
+#   3  1× wsx-18 rolled 270° + 1× wsx-18 + 1× kicker-15 at 135 mm gaps        2.89 m wide
+#   4  1× wsx-18 rolled 270° + 1× wsx-18 + 1× sbh-18 rolled 90°              2.91 m wide
+#   5  1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90°              2.99 m wide
+#   6  1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6 + 1× tms4    3.412 m wide
 #
-# Subs reach 0.6 m against a 2.0 m interface. The stack is 1.74 m of cabinet.
-#   * the subs reach 0.600 m against the 2.000 m interface asked for, so the tops sit 1400 mm lower than ideal —
-#     0.600 m is the most they reach while every tier is still carried
+# Subs reach 4.57 m against a 2.0 m interface. The stack is 5.71 m of cabinet.
+#   * the subs reach 4.570 m against the 3.000 m ceiling asked for, so they stand 1570 mm too high — 4.570 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 3× kicker-15 row is 2.890 m on a 2.460 m row, so it overhangs 215 mm each side
+#   * the 1× wsx-18 rolled 270° + 1× wsx-18 + 1× sbh-18 rolled 90° row is 2.910 m on a 2.890 m row, so it
+#     overhangs 10 mm each side
+#   * the 1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90° row is 2.990 m on a 2.910 m row, so it
+#     overhangs 40 mm each side
+#   * the 1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 1×
+#     concert-audio-ef6 + 1× tms4 row is 3.412 m on a 2.990 m row, so it overhangs 211 mm each side
 #
 id: stacked-1-tops-shared---v-------mixed---centred---center-central-possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -59,7 +70,7 @@ focus:
 placements:
   # ours, 28 cabinets in 4 rows
   - id: main-ours
-    at: [-11.042, 0.0]
+    at: [-4.898, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -101,7 +112,7 @@ placements:
 
   # psl, 16 cabinets in 4 rows
   - id: main-psl
-    at: [-5.503, 0.0]
+    at: [0.641, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -139,7 +150,7 @@ placements:
           count: 1
           aim: near
 
-  # innschleife, 23 cabinets in 2 rows
+  # innschleife, 23 cabinets in 6 rows
   - id: main-innschleife
     at: [5.237, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
