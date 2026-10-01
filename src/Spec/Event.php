@@ -16,6 +16,8 @@ final class Event
         public readonly string $name,
         public readonly RoomBounds $room,
         public readonly array $systems = [],
+        /** `TRUSS:SEGMENTS:TOWER`, the truss a `deco` device brought to this event hangs from, or null for none. */
+        public readonly ?string $backdrop = null,
     ) {
     }
 
@@ -36,11 +38,19 @@ final class Event
             $systems[$owner] = ['interface_height_m' => $interface, 'target_sub_height_m' => $target];
         }
 
+        $backdrop = $reader->optionalSection('backdrop');
+
         return new self(
             $reader->requireString('id'),
             $reader->requireString('name'),
             new RoomBounds($room->requireFloat('width_m'), $room->requireFloat('height_m')),
             $systems,
+            null === $backdrop ? null : sprintf(
+                '%s:%d:%s',
+                $backdrop->requireString('truss'),
+                $backdrop->requireInt('segments'),
+                $backdrop->requireString('towers'),
+            ),
         );
     }
 

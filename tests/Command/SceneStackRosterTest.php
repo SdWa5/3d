@@ -173,8 +173,10 @@ final class SceneStackRosterTest extends SceneStackTestCase
      */
     public function testARosterBuiltSceneStatesItsCountsInTheFileItWrites(): void
     {
+        // The deco panel stays at home, because without an event nothing names a truss for it. See SceneStackEventTest.
         $tester = $this->invoke([
-            '--owner' => ['psl'], '--roster' => ['psl-next-event'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['psl'], '--roster' => ['psl-next-event'], '--quantity' => ['deco-panel-10x2-5:0'],
+            '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());

@@ -115,6 +115,9 @@ def build(plan):
             placement["yaw_deg"],
         )
         instance.rotation_euler = tuple(math.radians(angle) for angle in rotation)
+        # A truss tower cranked below its full extension. The scale is in the instance's own frame, so it
+        # shortens the mast along its height whatever the rotation, and its bottom stays on the slot.
+        instance.scale = (1.0, 1.0, placement.get("scale_z", 1.0))
         instance["sdwa5_device"] = placement["device"]
         scene_collection.objects.link(instance)
 

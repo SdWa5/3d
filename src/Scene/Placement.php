@@ -75,6 +75,15 @@ final class Placement
          * @var array<string, Focus>
          */
         public readonly array $focusByName = [],
+        /**
+         * The height a telescoping truss tower is cranked to, or null for its full extension.
+         *
+         * **A WIND-UP STAND IS NOT ONE HEIGHT**, and a spec can only state one, which is its maximum. A truss that
+         * has to stay under a 4 m ceiling stands on towers cranked down to 3.742 m, and drawn at their full 4 m
+         * they would run 258 mm into it. Only a `truss`/`tower` device takes it, and only at or below its own
+         * height, see {@see SceneCompiler::extended}.
+         */
+        public readonly ?float $extendToM = null,
     ) {
     }
 
@@ -117,7 +126,7 @@ final class Placement
     /** Everything a placement may say that is not a group. {@see GroupReader::keys} supplies the rest. */
     private const KEYS = [
         'id', 'device', 'at', 'yaw_deg', 'pitch_deg', 'roll_deg',
-        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack', 'focus',
+        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack', 'focus', 'extend_to_m',
     ];
 
     public static function fromReader(ArrayReader $reader, int $index): self
@@ -158,6 +167,7 @@ final class Placement
             aimLines: $reader->has('aim_lines') ? $reader->requireBool('aim_lines') : null,
             align: ($align = $reader->optionalSection('align')) === null ? null : Alignment::fromReader($align),
             stack: null === $stack ? null : Stack::fromReader($stack),
+            extendToM: $reader->optionalFloat('extend_to_m'),
         );
     }
 

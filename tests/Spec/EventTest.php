@@ -17,6 +17,12 @@ final class EventTest extends TestCase
         self::assertSame(13.0, $event->room->widthM);
         self::assertSame(4.0, $event->room->heightM);
         self::assertSame(['interface_height_m' => 1.6, 'target_sub_height_m' => 1.75], $event->systems['innschleife']);
+        self::assertSame('truss-f33-2m:5:truss-tower-4m', $event->backdrop);
+    }
+
+    public function testAnEventWithoutABackdropNamesNone(): void
+    {
+        self::assertNull(Event::fromArray(['id' => 'e', 'name' => 'E', 'room' => ['width_m' => 13, 'height_m' => 4]])->backdrop);
     }
 
     public function testANegativeRoomDimensionIsRefused(): void

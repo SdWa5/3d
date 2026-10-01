@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Scene;
 
+use App\Spec\Category;
 use App\Spec\DeviceSpec;
 use App\Spec\Violation;
 
@@ -71,9 +72,14 @@ final class SceneCompiler
                 continue;
             }
 
-            $device = $this->devicesById[$placement->deviceId] ?? null;
-            if (null === $device) {
+            $model = $this->devicesById[$placement->deviceId] ?? null;
+            if (null === $model) {
                 $add("placement '{$placement->id}' references unknown device '{$placement->deviceId}'");
+                continue;
+            }
+            $device = self::extended($placement, $model);
+            if (is_string($device)) {
+                $add("placement '{$placement->id}': {$device}");
                 continue;
             }
 
@@ -212,6 +218,7 @@ final class SceneCompiler
                     $copy->seated && null === $placement->fly,
                     $placement->aimLines,
                     $placement->fly?->label($placement->id),
+                    $device->dimensions->height / $model->dimensions->height,
                 );
 
                 $placed[] = $entry;
@@ -437,6 +444,7 @@ final class SceneCompiler
                 align: $copy->align,
                 stack: $copy->stack,
                 focusByName: $copy->focusByName,
+                extendToM: $copy->extendToM,
             );
         }
 
@@ -1020,6 +1028,34 @@ final class SceneCompiler
     }
 
     /**
+     * The device a placement stands, cranked to its `extend_to_m` when it states one, or why it cannot be.
+     *
+     * **Only a truss tower telescopes**, so a speaker or a truss segment given a height is a typo or a wish and is
+     * refused rather than stretched. A tower can be cranked down and never above its spec, whose height is its
+     * full extension.
+     */
+    public static function extended(Placement $placement, DeviceSpec $device): DeviceSpec|string
+    {
+        $height = $placement->extendToM;
+        if (null === $height) {
+            return $device;
+        }
+        if (Category::Truss !== $device->category || 'tower' !== $device->subtype) {
+            return sprintf('extend_to_m only applies to a truss tower, and %s is %s/%s', $device->id, $device->category->value, $device->subtype);
+        }
+        if (!is_finite($height) || $height <= 0.0 || $height > $device->dimensions->height + 1e-9) {
+            return sprintf(
+                'extend_to_m %.3f is outside what %s reaches, which is above 0 and at most %.3f m',
+                $height,
+                $device->id,
+                $device->dimensions->height,
+            );
+        }
+
+        return $device->withHeight($height);
+    }
+
+    /**
      * The cabinets a placement produces. The only place expansion happens.
      *
      * @return list<PlacementCopy>
@@ -1063,6 +1099,9 @@ final class SceneCompiler
             if (null === $device) {
                 continue;
             }
+            // A refused extension is reported by the placing loop. Here it only must not move the front.
+            $extended = self::extended($placement, $device);
+            $device = is_string($extended) ? $device : $extended;
 
             $base = $placement->at;
             if (null === $base && null !== $placement->on) {

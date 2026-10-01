@@ -62,6 +62,7 @@ appearance:
 
 physical:
   weight_kg: 35.0             # required; a DIY build rarely weighs what the original does
+  max_load_kg: 85.0           # optional: what a stand or tower may carry. A truss backdrop is refused above it
   handles: [left, right]      # left | right | back | top — cut as recesses
 
 rigging:

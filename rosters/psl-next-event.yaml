@@ -27,6 +27,10 @@
 # EIGHT ZEROS, BECAUSE THE STATEMENT IS EXHAUSTIVE. "The following" means the following and nothing else, so every
 # other PSL cabinet is named at zero rather than left out — left out means "whatever the spec says", which would
 # quietly add nine more boxes to the rig. See src/Spec/Roster.php.
+#
+# THE DECO PANEL WAS ADDED ON 2026-10-01, stated by Stefan as about 10 x 2.5 m and hung from the front of our F33
+# truss behind the systems. It is no cabinet, so the solver never places it. `scene:stack` stands our truss on our
+# two wind-up towers behind the rig and hangs the panel from it, see docs/scenes.md.
 id: psl-next-event
 name: "PSL, next event — twelve ESX under five EF 6"
 
@@ -41,6 +45,7 @@ brings:
   thebox-dsp-112: 0
   thebox-pa302: 0
   hk-linear5-112x: 0
+  deco-panel-10x2-5: 1          # hung from our truss behind the systems, stated 2026-10-01
 
 notes: |
   A rig from this roster is 1128 kg of sub and 325 kg of top by the published figures, all of it arriving in PSL's

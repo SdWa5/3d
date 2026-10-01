@@ -42,6 +42,7 @@ placements:
 | `placements[].at` | ground position `[x, y]` in metres |
 | `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs |
 | `placements[].fly` | `{ height_m, point, id }` — hang from a point in the air instead. `point` names one of the device's `rigging.points`; `id` is what the weight is grouped under. Exclusive with `on`; see below |
+| `placements[].extend_to_m` | the height a `truss`/`tower` device is cranked to, at most its spec's height. See [a tower cranked lower](#a-tower-cranked-lower) |
 | `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses. An `arc` supplies this instead |
 | `placements[].pitch_deg` | down-tilt. Positive is nose-down, for aiming into an audience rather than over it |
 | `placements[].roll_deg` | rotation about the front-to-back axis — 180 turns a cabinet upside down, 90 lays it on its side, and either way it keeps facing forward |
@@ -1154,7 +1155,7 @@ one command:
 | `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 422 |
 | `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 33 |
 | `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 87 |
-| `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6 | 16 |
+| `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6, in front of their deco panel on our truss | 15 |
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
@@ -1189,6 +1190,11 @@ bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschlei
 The event gives Innschleife sub walls a 1.6 m interface and a 1.75 m target. A wall containing subs from several
 owners keeps the ordinary defaults. Borrowed tops do not change which system owns the sub wall.
 `--system-interface=OWNER:METRES` and `--system-target=OWNER:METRES` can state these preferences directly.
+
+The event also names the truss a deco device hangs from, as `backdrop: {truss, segments, towers}`. A run whose roster
+brings a `deco` device gets that truss behind the rig with the panel on its front, see
+[A deco backdrop behind a generated rig](#a-deco-backdrop-behind-a-generated-rig). A run that brings none records no
+backdrop, so the block changes no other folder.
 
 Recorded commands save the resolved room dimensions and system preferences rather than the editable event id.
 Replaying an old scene therefore keeps its limits even when the event file changes. These limits belong to scene
@@ -1622,7 +1628,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2220 scenes across eleven runs, and the largest committed inventory is `gmss-sdwa5` at **482** files. The room-limited `next-event` folder holds **33** files, 30 possible and 3 impossible, 3 pooled, 20 with the systems apart and 10 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2219 scenes across eleven runs, and the largest committed inventory is `gmss-sdwa5` at **482** files. The room-limited `next-event` folder holds **33** files, 30 possible and 3 impossible, 3 pooled, 20 with the systems apart and 10 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1645,7 +1651,7 @@ stays exactly as it was, because 433 written scenes record their own regeneratio
 **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
 `tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **677 `systems-apart`, 734 `tops-shared` and 809 `pooled`**, for **2220** . All three values remain represented after the room limits.
+values come to **677 `systems-apart`, 734 `tops-shared` and 808 `pooled`**, for **2219** . All three values remain represented after the room limits.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
@@ -2151,6 +2157,55 @@ Three things in that are worth knowing:
 
 A truss is the one device whose geometry is not its bounding box: see
 [spec-format.md](spec-format.md#truss) for why, and `roll_deg: 180` for a triangular truss the other way up.
+
+### A tower cranked lower
+
+A wind-up stand is not one height, and a spec states only its full extension. `extend_to_m` on a placement states
+how far a `truss`/`tower` device is cranked:
+
+```yaml
+  - id: tower-left
+    device: truss-tower-4m
+    at: [ -5.2, 1.258 ]
+    extend_to_m: 3.742
+```
+
+The compiler places a copy of the spec that is 3.742 m tall, so contact, the overlap check, the room check and the
+report all read the cranked height. Blender instances the one model built at full extension and scales it along
+its own height. Any other device, and any height above the spec's, is refused.
+
+### A deco backdrop behind a generated rig
+
+PSL bring a deco panel of about 10 × 2.5 m to the next event, stated on 2026-10-01. It hangs from the front of our
+F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-10x2-5.yaml`
+is the panel, `rosters/psl-next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
+
+```yaml
+backdrop:
+  truss: truss-f33-2m
+  segments: 5
+  towers: truss-tower-4m
+```
+
+`scene:stack` reads `subtype: deco` as "hang this". The solver never places it. After the rig is solved and compiled,
+`StackBackdrop` adds four placements and the scene is compiled again, so every check sees them:
+
+| Placement | Where, and why there |
+|---|---|
+| `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the unmodelled outriggers spread to 1.6 m |
+| `backdrop-truss` | five segments flush, 10 m, centred on the rig. It rests at the ceiling less its own 0.258 m, so at 3.742 m under the 4 m room, with the towers cranked to that |
+| `backdrop-deco` | flush on the truss's front face, its top at the truss's top, so its bottom is at 1.5 m |
+
+The truss and the panel share `fly.id: backdrop`, so the report adds them up as one bar.
+
+**Four refusals, each a fact about the gear rather than an arrangement.** A panel wider than the truss, more segments
+than are owned, a panel that would reach the floor, and a tower load over the tower's `max_load_kg`. Our Varytec
+stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 37.5 kg, so each tower carries 42 kg,
+and the panel may weigh up to 123.5 kg. A roster that brings a deco device with no truss named is refused too, and
+`--backdrop=TRUSS:SEGMENTS:TOWER` states one without an event.
+
+The recorded line carries `--backdrop` and the panel's `--quantity`, even though one panel matches its spec. A count
+that restates the spec is otherwise dropped from the line, and the replay would lose the backdrop.
 
 ## Hanging fixtures from a truss
 
