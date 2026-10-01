@@ -258,8 +258,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 - [Signal chain](docs/signal-chain.md) — limiter thresholds, amplifier gain and DSP routing, per event
 
-Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository, which is
-still private.
+Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository.
 
 ## Development
 
@@ -299,9 +298,17 @@ inside PHPUnit.
 `phpunit.xml` sets the mode again at runtime and switches the JIT back on before a single test executes. That is what
 made 0.113.0 report the suite as gaining nothing.
 
+In CI, `composer test` runs as three parallel jobs. Each takes its `--filter` from
+[`.github/phpunit-shards.json`](.github/phpunit-shards.json), and a step in the `static` job fails unless the shards
+together list every test exactly once. A single shard runs locally the same way:
+
+```bash
+ddev exec composer test -- --filter "$(jq -r '.["other-commands"]' .github/phpunit-shards.json)"
+```
+
 The two `gitleaks` runs are the same ones [`.github/workflows/tests.yml`](.github/workflows/tests.yml) performs, and
-the same check runs in the other two SdWa5 repositories. They are going public, and a public repository publishes every
-past commit at once. This repository is clean in both tree and history, measured 2026-09-08, so the gate exists to stop
+the same check runs in the other two SdWa5 repositories. All three went public on 2026-09-30, and a public repository
+publishes every past commit at once. This repository is clean in both tree and history, measured 2026-09-08, so the gate exists to stop
 the next secret rather than to find a current one.
 
 Tests do not need Blender: the spec, catalog and orchestration layers are unit-tested, and the Blender invocation is

@@ -1,0 +1,5 @@
+{
+  "scene-stack-command": "/^App\\\\Tests\\\\Command\\\\SceneStackCommandTest::/",
+  "other-commands": "/^App\\\\Tests\\\\Command\\\\(?!SceneStackCommandTest::)/",
+  "rest": "/^(?!App\\\\Tests\\\\Command\\\\)/"
+}
