@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.126.0] - 2026-10-01
+
+### Added
+
+- PSL's deco panel carries their print as its `front_image`, mapped at 1.978 px/cm from the 1978 × 600 px file. The
+  file lives at `meshes/psl/deco-panel-front.jpg`, which is gitignored like every front image, and `docs/sources.md`
+  records where it came from.
+
+### Changed
+
+- The deco panel is 10 × 3.03 m instead of 10 × 2.5 m, and its id is now `deco-panel-10x3-03`. The estimated weight
+  follows at 1.5 kg/m², so it is 45.45 kg and each tower carries 45.975 kg of its 85 kg rating. Under the 4 m ceiling
+  the panel's bottom is at 0.97 m.
+- `psl-next-event` and `next-event` regenerated with the new panel. Both keep their scene names, and only the backdrop
+  lines changed.
+
 ## [0.125.1] - 2026-10-01
 
 ### Changed

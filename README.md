@@ -17,9 +17,10 @@ Next-event generations use [events/next-event.yaml](events/next-event.yaml). `sc
 refuses a compiled rig wider than 13 m or higher than 4 m. Insets, gaps, aiming and flown equipment count towards
 those limits. The event lowers the interface only for walls built from Innschleife's subs.
 
-PSL's 10 × 2.5 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the
+PSL's 10 × 3.03 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the
 rig. The event names that truss, and `scene:stack` adds it to every rig whose roster brings a `deco` device. Under
-the 4 m ceiling the towers are cranked to 3.742 m, and each carries 42 kg of its 85 kg rating.
+the 4 m ceiling the towers are cranked to 3.742 m, and each carries 45.975 kg of its 85 kg rating. The panel shows PSL's print
+when its file is in `meshes/psl/` and the model is built with `--front-images`.
 See [the backdrop](docs/scenes.md#a-deco-backdrop-behind-a-generated-rig).
 
 ## Requirements

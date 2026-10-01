@@ -64,13 +64,13 @@ final class StackBackdropTest extends TestCase
         self::assertSame(4.0, $backdrop->flyHeightM(13.0));
     }
 
-    /** 46.5 kg of truss and the 37.5 kg panel estimate are 42 kg a tower, half the 85 kg rating. */
+    /** 46.5 kg of truss and the 45.45 kg panel estimate are 45.975 kg a tower, about half the 85 kg rating. */
     public function testThePanelIsWellInsideTheTowerRating(): void
     {
         $backdrop = $this->ours();
-        $panel = $this->devices['deco-panel-10x2-5'];
+        $panel = $this->devices['deco-panel-10x3-03'];
 
-        self::assertEqualsWithDelta(42.0, $backdrop->towerLoadKg($panel), 1e-9);
+        self::assertEqualsWithDelta(45.975, $backdrop->towerLoadKg($panel), 1e-9);
         self::assertNull($backdrop->problem($panel, 4.0));
     }
 
@@ -83,7 +83,7 @@ final class StackBackdropTest extends TestCase
 
     public function testAPanelWiderThanTheTrussIsRefused(): void
     {
-        $wide = $this->deco(['geometry' => ['dimensions_m' => ['width' => 10.5, 'height' => 2.5, 'depth' => 0.05]]]);
+        $wide = $this->deco(['geometry' => ['dimensions_m' => ['width' => 10.5, 'height' => 3.03, 'depth' => 0.05]]]);
 
         self::assertStringContainsString('spans 10.000 m', (string) $this->ours()->problem($wide, 4.0));
     }
@@ -93,7 +93,7 @@ final class StackBackdropTest extends TestCase
         $six = StackBackdrop::parse('truss-f33-2m:6:truss-tower-4m', $this->devices);
 
         self::assertInstanceOf(StackBackdrop::class, $six);
-        self::assertStringContainsString('5 exist', (string) $six->problem($this->devices['deco-panel-10x2-5'], 4.0));
+        self::assertStringContainsString('5 exist', (string) $six->problem($this->devices['deco-panel-10x3-03'], 4.0));
     }
 
     /**
@@ -102,7 +102,7 @@ final class StackBackdropTest extends TestCase
      */
     public function testTheWrittenBackdropCompilesUnderTheCeiling(): void
     {
-        $panel = $this->devices['deco-panel-10x2-5'];
+        $panel = $this->devices['deco-panel-10x3-03'];
         $lines = $this->ours()->yaml($panel, -0.3, 0.5, 4.0);
         $scene = SceneSpec::fromArray(
             Yaml::parse("id: backdrop\nname: Backdrop\nplacements:\n".implode("\n", $lines)),
@@ -122,6 +122,8 @@ final class StackBackdropTest extends TestCase
         self::assertEqualsWithDelta(3.742 / 4.0, $byId['backdrop-tower-left']->scaleZ, 1e-9);
         self::assertEqualsWithDelta(4.0, $byId['backdrop-truss-1']->topZ(), 1e-6);
         self::assertEqualsWithDelta(4.0, $byId['backdrop-deco']->topZ(), 1e-6);
+        // 3.03 m of panel under a 4 m ceiling leaves 0.97 m below it.
+        self::assertEqualsWithDelta(0.97, $byId['backdrop-deco']->worldBox()['min'][2], 1e-6);
 
         $truss = $this->extentOf(array_filter($result['placed'], static fn (PlacedDevice $p): bool => str_starts_with($p->placementId, 'backdrop-truss')));
         self::assertEqualsWithDelta(-5.3, $truss['min'][0], 1e-6);
@@ -138,7 +140,7 @@ final class StackBackdropTest extends TestCase
     /** Without a ceiling the towers stand at full extension and the scene says nothing about cranking them. */
     public function testFullExtensionWritesNoCrank(): void
     {
-        $lines = implode("\n", $this->ours()->yaml($this->devices['deco-panel-10x2-5'], 0.0, 0.5, null));
+        $lines = implode("\n", $this->ours()->yaml($this->devices['deco-panel-10x3-03'], 0.0, 0.5, null));
 
         self::assertStringNotContainsString('extend_to_m', $lines);
         self::assertStringContainsString('height_m: 4', $lines);
@@ -162,8 +164,8 @@ final class StackBackdropTest extends TestCase
             'build' => 'original',
             'clone_of' => null,
             'audio' => null,
-            'geometry' => ['dimensions_m' => ['width' => 10.0, 'height' => 2.5, 'depth' => 0.05]],
-            'physical' => ['weight_kg' => 37.5],
+            'geometry' => ['dimensions_m' => ['width' => 10.0, 'height' => 3.03, 'depth' => 0.05]],
+            'physical' => ['weight_kg' => 45.45],
             ...$overrides,
         ]);
     }
