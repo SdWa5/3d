@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Spec;
 
 use App\Scene\RoomBounds;
+use App\Scene\StackOrientation;
 use Symfony\Component\Yaml\Yaml;
 
 /** An event states its room and system preferences. Rosters continue to state counts alone. */
 final class Event
 {
-    /** @param array<string, array{interface_height_m: float, target_sub_height_m: float}> $systems */
+    /**
+     * @param array<string, array{interface_height_m: float, target_sub_height_m: float}> $systems
+     * @param array<string, StackOrientation> $orientations how each named system is set up at this event
+     * @param list<string> $standing device ids that stand as measured whatever their system's orientation
+     */
     public function __construct(
         public readonly string $id,
         public readonly string $name,
@@ -18,6 +23,8 @@ final class Event
         public readonly array $systems = [],
         /** `TRUSS:SEGMENTS:TOWER`, the truss a `deco` device brought to this event hangs from, or null for none. */
         public readonly ?string $backdrop = null,
+        public readonly array $orientations = [],
+        public readonly array $standing = [],
     ) {
     }
 
@@ -27,15 +34,29 @@ final class Event
         $reader = new ArrayReader($data);
         $room = $reader->requireSection('room');
         $systems = [];
+        $orientations = [];
+        $standing = [];
         $settings = $reader->optionalSection('systems');
         foreach ($settings?->keys() ?? [] as $owner) {
             $system = $settings->requireSection($owner);
-            $interface = $system->requireFloat('interface_height_m');
-            $target = $system->requireFloat('target_sub_height_m');
-            if (!is_finite($interface) || !is_finite($target) || $interface <= 0.0 || $target < $interface) {
-                throw new InvalidSpecException('systems.'.$owner.' needs a positive interface and a finite target at or above it');
+            // The interface and the target come as a pair or not at all, because a target without its interface
+            // has nothing to stand above.
+            if ($system->has('interface_height_m') || $system->has('target_sub_height_m')) {
+                $interface = $system->requireFloat('interface_height_m');
+                $target = $system->requireFloat('target_sub_height_m');
+                if (!is_finite($interface) || !is_finite($target) || $interface <= 0.0 || $target < $interface) {
+                    throw new InvalidSpecException('systems.'.$owner.' needs a positive interface and a finite target at or above it');
+                }
+                $systems[$owner] = ['interface_height_m' => $interface, 'target_sub_height_m' => $target];
             }
-            $systems[$owner] = ['interface_height_m' => $interface, 'target_sub_height_m' => $target];
+            if ($system->has('orientation')) {
+                /** @var StackOrientation $orientation */
+                $orientation = $system->requireEnum('orientation', StackOrientation::class);
+                $orientations[$owner] = $orientation;
+            }
+            foreach ($system->stringList('stand') as $id) {
+                $standing[] = $id;
+            }
         }
 
         $backdrop = $reader->optionalSection('backdrop');
@@ -51,6 +72,8 @@ final class Event
                 $backdrop->requireInt('segments'),
                 $backdrop->requireString('towers'),
             ),
+            $orientations,
+            $standing,
         );
     }
 

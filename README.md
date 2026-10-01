@@ -15,7 +15,9 @@ See [the generation command](docs/scenes.md#repeating-a-flanked-row).
 
 Next-event generations use [events/next-event.yaml](events/next-event.yaml). `scene:stack --event=next-event`
 refuses a compiled rig wider than 13 m or higher than 4 m. Insets, gaps, aiming and flown equipment count towards
-those limits. The event lowers the interface only for walls built from Innschleife's subs.
+those limits. The event lowers the interface only for walls built from Innschleife's subs. It also states how each
+system is set up, which is ours and Sepp's upright and PSL's and Innschleife's turned, with Innschleife's kickers
+standing as measured. A next-event sweep therefore does not vary orientation, and its scenes are named `stated`.
 
 PSL's 10 × 3.03 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the
 rig. The event names that truss, and `scene:stack` adds it to every rig whose roster brings a `deco` device. Under

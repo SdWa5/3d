@@ -177,6 +177,8 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('room-height', null, InputOption::VALUE_REQUIRED, 'Hard ceiling for the whole compiled rig, in metres')
             ->addOption('system-interface', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Interface for walls of this owner\'s subs')
             ->addOption('system-target', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Sub-height target for walls of this owner\'s subs')
+            ->addOption('system-orientation', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:MODE. How this owner\'s cabinets are set up (upright, turned, mixed), whatever --orientation sweeps')
+            ->addOption('stand', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids that stand as measured under any orientation. Repeatable')
             ->addOption('backdrop', null, InputOption::VALUE_REQUIRED, 'TRUSS:SEGMENTS:TOWER. The truss a brought deco device hangs from, behind the rig')
             ->addOption('roster', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A file in rosters/ stating what a system brings to one event. Overrides the specs\' quantities. Repeatable')
             ->addOption('quantity', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'DEVICE:COUNT — build with this many of a device instead of the number its spec states. 0 leaves it at home. Repeatable')
@@ -522,7 +524,12 @@ final class SceneStackCommand extends BaseCommand
                 $requestProblem ??= $rigProblem;
             }
             foreach ($shapes as $shape) {
-                foreach (SweepAxes::pairs($orientations, $styles, $rolled, $devices, $rig['from']) as [$orientation, $style]) {
+                // A rig whose every system has a stated orientation has no orientation left to sweep, and its one
+                // candidate is named `stated`, like a rig whose rolled cabinets were named outright.
+                $rigOrientations = $this->eventOptions->fixesOrientation($devices, $rig['from']) ? [null] : $orientations;
+                $resolve = [] === $this->eventOptions->orientations ? null
+                    : fn (?StackOrientation $orientation): array => $this->eventOptions->rolls($orientation, $devices, $rig['from'], $rolled);
+                foreach (SweepAxes::pairs($rigOrientations, $styles, $rolled, $devices, $rig['from'], $resolve) as [$orientation, $style]) {
                     foreach ($modes as $mode) {
                         foreach ($lowEnds as $lowEnd) {
                             // **EVERY AXIS IS IN THE NAME, AT A FIXED WIDTH**, in the order the sweep nests them: the rig
@@ -1178,9 +1185,11 @@ final class SceneStackCommand extends BaseCommand
         //
         // The stated form stays because **no spec field says which cabinets are horn-loaded**, and adding one to drive a
         // rotation would be inventing a property to serve a layout. `subtype: sub` is a different claim, already
-        // recorded and made for its own reasons, which is why an orientation may lean on it.
-        /** @var list<string> $turned */
-        $turned = $orientation?->rolls($devices, $ids) ?? $input->getOption('roll-mirror');
+        // recorded and made for its own reasons, which is why an orientation may lean on it. An event's per-system
+        // orientations apply first, see {@see SceneEventOptions::rolls}.
+        /** @var list<string> $stated */
+        $stated = $input->getOption('roll-mirror');
+        $turned = $this->eventOptions->rolls($orientation, $devices, $ids, $stated);
 
         // The widest top is the long throw; every narrower one is fill and is aimed at the near focus.
         $fills = $this->nearFieldFills($devices, $ids);
