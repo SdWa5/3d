@@ -2194,7 +2194,7 @@ backdrop:
 |---|---|
 | `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the unmodelled outriggers spread to 1.6 m |
 | `backdrop-truss` | five segments flush, 10 m, centred on the rig. It rests at the ceiling less its own 0.258 m, so at 3.742 m under the 4 m room, with the towers cranked to that |
-| `backdrop-deco` | flush on the truss's front face, its top at the truss's top, so its bottom is at 0.97 m |
+| `backdrop-deco` | flush on the truss's front face. Its top goes up to the ceiling, but at most half the panel stands above the truss's top. Under the next event's 4 m ceiling the truss already touches it, so the panel's top is the truss's top and its bottom is at 0.97 m. With no ceiling the panel's top is at 4.258 + 1.515 = 5.773 m |
 
 The truss and the panel share `fly.id: backdrop`, so the report adds them up as one bar.
 
