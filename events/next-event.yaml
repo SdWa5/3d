@@ -18,6 +18,11 @@ systems:
     target_sub_height_m: 1.75
     orientation: turned
     stand: [ kicker-15 ]
+# Air between neighbouring stacks, chosen by Stefan on 2026-10-01 so that the combined rig with Innschleife's photo
+# layout fits the 13 m room: 4.276 + 3.58 + 4.66 m of stacks and two 0.24 m gaps are 12.996 m. At the default 0.5 m it
+# is 13.516 m and the room refuses it.
+stack_clearance_m: 0.24
+
 # Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a roster brings. PSL's 10 m panel
 # hangs from it, stated 2026-10-01. Under the 4 m ceiling the truss rests at 3.742 m. See docs/scenes.md.
 backdrop:

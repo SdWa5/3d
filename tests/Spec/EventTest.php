@@ -34,6 +34,19 @@ final class EventTest extends TestCase
         self::assertArrayNotHasKey('psl', $event->systems);
     }
 
+    /** 0.24 m between stacks is what fits the combined rig with Innschleife's photo layout into the 13 m room. */
+    public function testTheNextEventNarrowsTheAirBetweenStacks(): void
+    {
+        self::assertSame(0.24, Event::load(dirname(__DIR__, 2).'/events', 'next-event')->clearanceM);
+        self::assertNull(Event::fromArray(['id' => 'e', 'name' => 'E', 'room' => ['width_m' => 13, 'height_m' => 4]])->clearanceM);
+    }
+
+    public function testANegativeStackClearanceIsRefused(): void
+    {
+        $this->expectException(InvalidSpecException::class);
+        Event::fromArray(['id' => 'bad', 'name' => 'Bad', 'room' => ['width_m' => 13, 'height_m' => 4], 'stack_clearance_m' => -0.1]);
+    }
+
     public function testAnInterfaceWithoutItsTargetIsRefused(): void
     {
         $this->expectException(InvalidSpecException::class);

@@ -5,7 +5,7 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --room-width=13 --room-height=4 --system-interface=innschleife:1.6
+#   bin/console scene:stack --clearance=0.24 --room-width=13 --room-height=4 --system-interface=innschleife:1.6
 #     --system-target=innschleife:1.75 --system-orientation=innschleife:turned --system-orientation=psl:turned
 #     --system-orientation=sdwa5:upright --system-orientation=sepp:upright --stand=kicker-15 --systems=pooled
 #     --quantity=sub-60x60:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=kicker-15 --from=top-70x93 --from=tms2

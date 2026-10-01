@@ -676,10 +676,11 @@ Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` an
 `low`, at `center` and `stereo`. The event sets Innschleife up turned with the kickers standing, see
 [Event rooms and system preferences](#event-rooms-and-system-preferences).
 
-**The combined `next-event` run cannot hold the photo rig in a 13 m room**, measured on 2026-10-01. Its `low`
-variant builds it, but our stack is 4.28 m wide, PSL's 3.58 m and the photo rig 4.66 m, so with 0.5 m between stacks
-the rig is 13.515 m wide and the room refuses it. Every `central` variant puts Innschleife three cabinets wide
-instead.
+**The combined `next-event` run holds the photo rig because the event narrows the air between stacks.** Its `low`
+variant builds it, and our stack is 4.275 m wide, PSL's 3.58 m and the photo rig 4.66 m. With the default 0.5 m
+between stacks the rig is 13.515 m wide and the 13 m room refuses it, measured on 2026-10-01. The event's
+`stack_clearance_m: 0.24`, chosen by Stefan the same day, makes it 12.995 m. Every `central` variant still puts
+Innschleife three cabinets wide.
 
 ### A ceiling on the sub height
 
@@ -1159,7 +1160,7 @@ one command:
 | `sdwa5/` | ours alone | 66 |
 | `sepp/` | Sepp's alone | 7 |
 | `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 422 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 20 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 26 |
 | `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 43 |
 | `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6, in front of their deco panel on our truss | 10 |
 
@@ -1214,6 +1215,10 @@ wide. So Innschleife turned with standing kickers is exactly the photo. When eve
 orientation, the sweep has nothing left to vary and writes one candidate named `stated`. When only some do, an
 orientation that rolls the same cabinets as an earlier one is dropped as the same rig.
 `--system-orientation=OWNER:MODE` and `--stand=ID` state the same directly, and the recorded line carries both.
+
+`stack_clearance_m` sets the air between neighbouring stacks for the event's runs, 0.24 m at the next event instead
+of the default 0.5 m. An explicit `--clearance` replaces it, and the recorded line carries the number as
+`--clearance=0.24`. See [Repeating a flanked row](#repeating-a-flanked-row) for why it is 0.24.
 
 The event also names the truss a deco device hangs from, as `backdrop: {truss, segments, towers}`. A run whose roster
 brings a `deco` device gets that truss behind the rig with the panel on its front, see

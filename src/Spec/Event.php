@@ -25,6 +25,8 @@ final class Event
         public readonly ?string $backdrop = null,
         public readonly array $orientations = [],
         public readonly array $standing = [],
+        /** Air between neighbouring stacks at this event, or null for the command's default. */
+        public readonly ?float $clearanceM = null,
     ) {
     }
 
@@ -60,6 +62,10 @@ final class Event
         }
 
         $backdrop = $reader->optionalSection('backdrop');
+        $clearance = $reader->optionalFloat('stack_clearance_m');
+        if (null !== $clearance && (!is_finite($clearance) || $clearance < 0.0)) {
+            throw new InvalidSpecException('stack_clearance_m must be a finite distance of zero or more');
+        }
 
         return new self(
             $reader->requireString('id'),
@@ -74,6 +80,7 @@ final class Event
             ),
             $orientations,
             $standing,
+            $clearance,
         );
     }
 

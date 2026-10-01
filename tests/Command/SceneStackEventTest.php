@@ -55,6 +55,37 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringNotContainsString('kicker-15 rolled', $display);
     }
 
+    /**
+     * **The combined next-event rig carries Innschleife's photo layout**, which it could not at 0.5 m between stacks:
+     * our 4.275 m, PSL's 3.58 m and the photo rig's 4.66 m are 13.515 m with two 0.5 m gaps, and 12.995 m with the
+     * event's 0.24 m.
+     */
+    public function testTheCombinedRigFitsThePhotoLayoutIntoTheRoom(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'], '--roster' => ['psl-next-event', 'innschleife-next-event'],
+            '--event' => 'next-event', '--into' => 'next-event', '--order' => ['ours,psl,innschleife'],
+            '--systems' => ['systems-apart'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
+            '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('--clearance=0.24', $display);
+        self::assertStringContainsString('stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible', $display);
+        self::assertSame(2, substr_count($display, '1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°'));
+        self::assertStringContainsString('4× kicker-15', $display);
+        self::assertStringContainsString('1× tms2 + 1× top-70x93 + 1× tms2', $display);
+    }
+
+    public function testAnExplicitClearanceReplacesTheEvents(): void
+    {
+        $display = $this->invoke(self::OPTIONS + ['--clearance' => '0.6'])->getDisplay();
+
+        self::assertStringContainsString('--clearance=0.6', $display);
+        self::assertStringNotContainsString('--clearance=0.24', $display);
+    }
+
     public function testAnExplicitRoomOptionCannotLoosenTheSavedEventLimit(): void
     {
         $tester = $this->invoke(self::OPTIONS + ['--room-width' => '100']);
