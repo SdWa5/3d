@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.130.0] - 2026-10-01
+
+### Added
+
+- An event states what each system brings, as `systems.<owner>.brings`, counts that override the specs for the swept
+  systems. A negative count and an empty map are refused, and a system may name only its own devices.
+- `events/mark-salzburg-2026-09-19.yaml`, the counts sdwa5 took to Salzburg.
+
+### Changed
+
+- An event's `room` is optional, and an event without one sets no room limit.
+- One `--owner` swept with an event is filed as `<owner>-<event>`, the folder name the roster files carried.
+- `events/next-event.yaml` holds PSL's and Innschleife's counts. The generated scenes are byte-identical.
+
+### Removed
+
+- `--roster`, `Roster`, `RosterLoader` and `rosters/`, folded into the event files.
+
 ## [0.129.1] - 2026-10-01
 
 ### Added

@@ -9,14 +9,14 @@ use App\Command\SceneStackCommand;
 final class SceneStackEventTest extends SceneStackTestCase
 {
     private const OPTIONS = [
-        '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event'],
+        '--owner' => ['innschleife'],
         '--event' => 'next-event', '--orientation' => ['mixed'], '--stacks' => '1',
         '--align' => ['center'], '--shape' => ['pyramid'], '--mirror-style' => ['alternate'],
         '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
     ];
 
     private const PSL = [
-        '--owner' => ['psl'], '--roster' => ['psl-next-event'],
+        '--owner' => ['psl'],
         '--event' => 'next-event', '--orientation' => ['turned'], '--stacks' => '1',
         '--align' => ['center'], '--shape' => ['pyramid'], '--mirror-style' => ['alternate'],
         '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
@@ -63,7 +63,7 @@ final class SceneStackEventTest extends SceneStackTestCase
     public function testTheCombinedRigFitsThePhotoLayoutIntoTheRoom(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'], '--roster' => ['psl-next-event', 'innschleife-next-event'],
+            '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'],
             '--event' => 'next-event', '--into' => 'next-event', '--order' => ['ours,psl,innschleife'],
             '--systems' => ['systems-apart'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
             '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
@@ -111,7 +111,7 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringContainsString('finite positive number', $tester->getDisplay());
     }
 
-    /** PSL's roster brings the deco panel, and the event hangs it from our truss behind the rig. */
+    /** PSL brings the deco panel to the event, and the event hangs it from our truss behind the rig. */
     public function testABroughtDecoPanelHangsFromTheEventsTruss(): void
     {
         $tester = $this->invoke(self::PSL);
@@ -127,7 +127,9 @@ final class SceneStackEventTest extends SceneStackTestCase
 
     public function testADecoPanelWithNoTrussIsRefused(): void
     {
-        $tester = $this->invoke(array_diff_key(self::PSL, ['--event' => true]));
+        $tester = $this->invoke(array_diff_key(self::PSL, ['--event' => true]) + [
+            '--quantity' => ['deco-panel-10x3-03:1'], '--into' => self::THROWAWAY_ID,
+        ]);
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('nothing names a truss', $tester->getDisplay());

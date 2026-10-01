@@ -19,6 +19,7 @@ final class SceneEventOptions
      * @param array<string, float> $targets
      * @param array<string, StackOrientation> $orientations how each named system is set up, see {@see rolls}
      * @param list<string> $standing device ids that stand as measured under any orientation
+     * @param array<string, array<string, int>> $brings owner to device id to units, see {@see Event}
      */
     private function __construct(
         public readonly RoomBounds $room,
@@ -28,6 +29,9 @@ final class SceneEventOptions
         public readonly ?string $backdrop = null,
         public readonly array $orientations = [],
         public readonly array $standing = [],
+        public readonly array $brings = [],
+        /** The event's id, which names the folder of a one-system run, or null without an event. */
+        public readonly ?string $eventId = null,
     ) {
     }
 
@@ -40,8 +44,8 @@ final class SceneEventOptions
         $height = self::number($input->getOption('room-height'), 'room-height');
         // An explicit option may tighten an event's hard limit, but cannot loosen it.
         if (null !== $event) {
-            $width = null === $width ? $event->room->widthM : min($width, $event->room->widthM);
-            $height = null === $height ? $event->room->heightM : min($height, $event->room->heightM);
+            $width = self::tighter($width, $event->room->widthM);
+            $height = self::tighter($height, $event->room->heightM);
         }
         $room = new RoomBounds($width, $height);
         $interfaces = [];
@@ -100,8 +104,11 @@ final class SceneEventOptions
             }
         }
 
+        // Checked against the specs by {@see SceneStackCommand::countOverrides}, which holds the whole library.
+        $brings = null === $event ? [] : $event->brings;
+
         $known = array_unique(array_map(static fn (DeviceSpec $device): string => $device->owner, $devices));
-        foreach (array_unique([...array_keys($interfaces), ...array_keys($targets), ...array_keys($orientations)]) as $owner) {
+        foreach (array_unique([...array_keys($interfaces), ...array_keys($targets), ...array_keys($orientations), ...array_keys($brings)]) as $owner) {
             if (!in_array($owner, $known, true)) {
                 throw new InvalidSpecException('unknown system owner '.$owner);
             }
@@ -121,7 +128,16 @@ final class SceneEventOptions
         $backdrop = $input->getOption('backdrop') ?? $event?->backdrop;
         $input->setOption('backdrop', $backdrop);
 
-        return new self($room, $interfaces, $targets, null === $backdrop ? null : (string) $backdrop, $orientations, $standing);
+        return new self(
+            $room,
+            $interfaces,
+            $targets,
+            null === $backdrop ? null : (string) $backdrop,
+            $orientations,
+            $standing,
+            $brings,
+            $event?->id,
+        );
     }
 
     /**
@@ -194,6 +210,12 @@ final class SceneEventOptions
         }
 
         return 1 === count($owners) ? array_key_first($owners) : null;
+    }
+
+    /** An explicit limit may tighten the event's but never loosen it, and an event with no room sets none. */
+    private static function tighter(?float $stated, ?float $event): ?float
+    {
+        return null === $stated || null === $event ? $stated ?? $event : min($stated, $event);
     }
 
     private static function number(mixed $value, string $option): ?float

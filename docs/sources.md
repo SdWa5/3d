@@ -549,8 +549,8 @@ against the opposite move, letting a *name* set an unmeasured size, and the two 
 payoff was four estimates becoming datasheet figures, every one of them optimistic: 358 mm of depth and 31.8 kg
 that the rigs did not know about.
 
-**What is brought is not what is owned**, and the difference now has a home: [`rosters/`](../rosters) holds what
-a system brings to one event, as counts that override the specs for one run. The specs keep saying what exists.
+**What is brought is not what is owned**, and the difference now has a home: each event in [`events/`](../events) holds what
+each system brings to it, as counts that override the specs for one run. The specs keep saying what exists.
 Every gap in both systems is listed in [requests.md](requests.md).
 
 ### Not owned

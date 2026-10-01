@@ -18,7 +18,7 @@ id: top-a                     # lowercase-dashes; must match the filename, must 
 name: "Top A"                 # human label, shown in the catalog and asset browser
 category: speaker             # speaker | truss | rack | stand | vehicle | other
 subtype: top                  # see the category table below
-quantity: 2                   # how many of these exist — see rosters/ for how many turn up
+quantity: 2                   # how many of these exist — see events/ for how many turn up
 owner: sdwa5                  # default sdwa5; lowercase-dashes. Borrowed gear names its owner
 build: self-built             # self-built | own-design | original
 carried_on: null              # optional: the id of the ONE transporter this may ride on. See below

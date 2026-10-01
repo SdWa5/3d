@@ -22,7 +22,7 @@ use Symfony\Component\Console\Tester\CommandTester;
  * The suites: {@see SceneStackCommandTest} for the sweep itself and the refusals,
  * {@see SceneStackMirrorTest} for the mirror and orientation axes, {@see SceneStackSystemsTest} for the
  * separation, split and stack-count axes, {@see SceneStackFeasibilityTest} for the heights, bands and what
- * happens to a rig that does not stand up, and {@see SceneStackRosterTest} for the count overrides.
+ * happens to a rig that does not stand up, and {@see SceneStackBringsTest} for the count overrides.
  */
 abstract class SceneStackTestCase extends TestCase
 {
