@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.122.0] - 2026-10-01
+
+### Added
+
+- **Repeated flanked rows, the rig on Innschleife's photo.** `StackMix::flankedRows()` splits the widest sub
+  evenly over two or more rows and flanks each row with the same pairs of a sub type no more than 30 mm taller or
+  shorter, which builds two rows of [WSX | SBH SBH | WSX]. `StackMix::levelFlanks()` names the types that qualify.
+  `StackSolver::fill()` offers one candidate per qualifying flank and row budget, ranked like every other.
+- **`top-70x93`, Innschleife's black middle top**, estimated off the photo against the TMS-2 beside it.
+- **`scene:stack` refuses a roster whose cabinets the swept inventory does not hold**, naming them and the owner
+  to state.
+- `StackMixFlankedRowsTest`, and refusal and zero-quantity override cases in `SceneStackRosterTest`.
+- A GitLab test configuration adapted from the shared Composer PHPUnit job.
+
+### Changed
+
+- **`rosters/innschleife-next-event-tms4.yaml` is `rosters/innschleife-next-event.yaml`** and brings the photo's
+  tops, two TMS-2 and the `top-70x93`, with the TMS-4 at zero.
+- **`scenes/generated/innschleife-next-event/` replaces `innschleife-next-event-tms4/`.** It is swept with
+  `--owner=innschleife` at a 1.6 m interface aimed at 1.75 m and holds 95 scenes, four of them the photo row for
+  row.
+
+- Replayed all 2,675 generated scene commands. Removed ten obsolete feasibility counterparts. Six next-event
+  scenes become possible; the joint Innschleife inventory has two changes in each direction.
+
+### Removed
+
+- `scenes/generated/innschleife-next-event-tms4/`. Its 146 scenes were swept without `--owner=innschleife` and held
+  no Innschleife cabinet.
+
 ## [0.121.0] - 2026-10-01
 
 ### Added

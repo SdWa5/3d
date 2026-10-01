@@ -21,20 +21,53 @@ final class SceneStackRosterTest extends SceneStackTestCase
     /**
      * **A roster builds the rig it states, not the rig the specs describe.**.
      *
-     * The big-top variant is the sharp one: `tms4` is brought and `tms2` is left at
-     * home at zero, so the cabinet that every other Innschleife rig is built with must not appear anywhere in the
-     * output — not in a stack, not in a refusal, not in the recorded line's `--from` list.
+     * `tms4` is left at home at zero, so a cabinet Innschleife own must not appear anywhere in the output — not in
+     * a stack, not in a refusal, not in the recorded line's `--from` list — while the middle top the roster brings
+     * does.
      */
     public function testARosterBuildsWithTheCountsItStatesRatherThanTheSpecs(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-tms4'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
-        self::assertStringContainsString('tms4', $tester->getDisplay());
-        self::assertStringNotContainsString('device: tms2', $tester->getDisplay());
-        self::assertStringNotContainsString('--from=tms2', $tester->getDisplay());
+        self::assertStringContainsString('--from=top-70x93', $tester->getDisplay());
+        self::assertStringNotContainsString('device: tms4', $tester->getDisplay());
+        self::assertStringNotContainsString('--from=tms4', $tester->getDisplay());
+    }
+
+    /**
+     * **A roster whose cabinets the sweep does not hold is refused**, because its counts would change nothing and
+     * the scenes would still be filed under its name. Swept at 0.105.0 without `--owner`, Innschleife's roster
+     * produced 146 scenes of sdwa5 and sepp cabinets.
+     */
+    public function testARosterWhoseCabinetsAreNotSweptIsRefused(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['sdwa5'], '--roster' => ['innschleife-next-event'], '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        // The error box wraps its text, so the words are compared with the line breaks folded back into spaces.
+        $display = (string) preg_replace('/\s+/', ' ', $tester->getDisplay());
+        self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString('--roster=innschleife-next-event brings wsx-18', $display);
+        self::assertStringContainsString('Say --owner=innschleife', $display);
+    }
+
+    /** Explicit zero quantities leave the roster's cabinets at home before the inventory check. */
+    public function testZeroQuantitiesOverrideTheRosterBeforeCheckingTheInventory(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['sdwa5'], '--roster' => ['innschleife-next-event'],
+            '--quantity' => ['wsx-18:0', 'sbh-18:0', 'kicker-15:0', 'tms2:0', 'top-70x93:0'],
+            '--orientation' => ['mixed'], '--stacks' => '1', '--align' => ['center'],
+            '--shape' => ['pyramid'], '--mirror-style' => ['alternate'], '--systems' => ['pooled'],
+            '--low-end' => ['low'], '--dry-run' => true,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringNotContainsString('which the swept inventory does not hold', $tester->getDisplay());
     }
 
     /**
@@ -48,10 +81,10 @@ final class SceneStackRosterTest extends SceneStackTestCase
     public function testTheRecordedLineCarriesTheCountsRatherThanTheRoster(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-tms4'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertStringContainsString('--quantity=tms2:0', $tester->getDisplay());
+        self::assertStringContainsString('--quantity=tms4:0', $tester->getDisplay());
         self::assertStringNotContainsString('--roster=', $tester->getDisplay());
     }
 
@@ -94,10 +127,10 @@ final class SceneStackRosterTest extends SceneStackTestCase
     public function testASingleRosterNamesTheFolderTheScenesAreFiledUnder(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event-tms4'], '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--roster' => ['innschleife-next-event'], '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertStringContainsString('--into=innschleife-next-event-tms4', $tester->getDisplay());
+        self::assertStringContainsString('--into=innschleife-next-event', $tester->getDisplay());
     }
 
     public function testAnUnknownRosterIsRefusedWithTheOnesThereAre(): void
@@ -106,7 +139,7 @@ final class SceneStackRosterTest extends SceneStackTestCase
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('no roster named no-such-event', $tester->getDisplay());
-        self::assertStringContainsString('innschleife-next-event-tms4', $tester->getDisplay());
+        self::assertStringContainsString('innschleife-next-event', $tester->getDisplay());
     }
 
     public function testACountForADeviceThatDoesNotExistIsRefused(): void

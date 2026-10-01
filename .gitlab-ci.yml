@@ -1,0 +1,18 @@
+# Adapted from components/composer/lib/composer-base.yml (.phpunit).
+# This public library uses locked dependencies and needs no deployment or registry credentials.
+stages:
+  - phpunit
+
+phpunit:
+  stage: phpunit
+  image: composer:2
+  before_script:
+    - composer install --prefer-dist --no-progress --no-interaction
+  script:
+    - php -d memory_limit=-1 -d opcache.enable_cli=1 -d opcache.jit_buffer_size=64M -d opcache.jit=tracing vendor/bin/phpunit --configuration phpunit.xml
+    - composer static
+    - php bin/console specs:validate
+  rules:
+    - exists:
+        - phpunit.xml
+  allow_failure: false

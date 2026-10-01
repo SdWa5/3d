@@ -1,0 +1,60 @@
+# Innschleife's big black middle top, SEEN ON A PHOTOGRAPH OF THEIR STACK ON 2026-10-01 AND NAMED BY NOBODY.
+#
+# **THE ID IS ITS FRONT SIZE BECAUSE THAT IS ALL THERE IS**, the same convention `sub-60x60` is under. The photo
+# shows Innschleife's rig as they actually build it: two rows of WSX and SBH lying down, the four blue kickers on
+# top of them, and three tops above that. The two outer tops are the purple TMS-2s. The one between them is black,
+# visibly wider and a little taller, and appears in no Staudham drawing and in no statement.
+#
+# **EVERY NUMBER HERE IS READ OFF THAT ONE PHOTOGRAPH AGAINST THE TMS-2 BESIDE IT**, which is the only scale in the
+# picture with a published size. The TMS-2's front is 0.430 x 0.870 m. The middle top reads at about 1.6 of that
+# width and about 1.07 of that height, so 0.70 x 0.93 m. A perspective photo taken from below the top row
+# foreshortens heights more than widths, so the height is the weaker of the two.
+#
+#   * DEPTH 0.600 m is a guess, slightly deeper than the TMS-2's 0.578 because the cabinet is bigger. The photo is
+#     taken from the front and shows no side. Depth is the axis this repository has been worst at, see tms2.yaml.
+#   * WEIGHT 78 kg is the modelled volume at 200 kg/m3, this library's central density. Both identified
+#     Innschleife tops came out about 16 kg heavy against that model, so this estimate may understate the real weight.
+#
+# QUANTITY 1 IS WHAT THE PHOTO SHOWS. One cabinet, centred between the two TMS-2s. Whether Innschleife own more is
+# not known.
+#
+# SUBTYPE `top` FROM POSITION, the same reasoning as tms2.yaml: it stands in the top row with nothing on it.
+id: top-70x93
+name: "Innschleife black 70x93 top"
+category: speaker
+subtype: top
+quantity: 1
+owner: innschleife
+build: original
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  dimensions_m: { width: 0.700, height: 0.930, depth: 0.600 }
+  origin: bottom-center
+  chamfer_m: 0.012
+
+appearance:
+  # Black, as the photo shows it. A photograph's average is not a paint colour, see wsx-18.yaml, so this is a
+  # near black chosen to stay distinguishable from the purple TMS-2s in a render rather than a sampled value.
+  color: "#1a1a1a"
+
+physical:
+  weight_kg: 78.0
+  handles: [ left, right ]
+
+rigging:
+  flyable: false
+  points: [ ]
+
+# NO `audio` BLOCK. Nothing about the drivers is visible beyond a grille, and the make is unknown.
+
+mesh_override: null
+
+notes: |
+  ADDED 2026-10-01 FROM A PHOTOGRAPH OF INNSCHLEIFE'S STACK, so that a generated rig can match what they build.
+  The make and model are the open question. A front-panel reading or the owners' word would turn every estimate
+  here into a datasheet figure, the way it did for both TMS cabinets on 2026-09-05.

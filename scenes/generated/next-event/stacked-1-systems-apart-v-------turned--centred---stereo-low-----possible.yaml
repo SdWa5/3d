@@ -45,21 +45,15 @@
 #   * the 2× concert-audio-ef6 + 1× concert-audio-ef6 + 2× concert-audio-ef6 row is 3.020 m on a 2.380 m row, so it
 #     overhangs 320 mm each side
 #
-# main-innschleife — innschleife, 14 cabinets in 6 rows:
+# main-innschleife — innschleife, 14 cabinets in 4 rows:
 #
-#   1  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90°                     2.34 m wide
-#   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 140 mm gaps            2.34 m wide
-#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 140 mm gaps            2.34 m wide
-#   4  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   5  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   6  1× tms4 + 1× tms4                                                        1.02 m wide
+#   1  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
+#   2  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
+#   3  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° at 794 mm gaps     4.662 m wide
+#   4  1× tms4 + 1× tms4                                                        1.02 m wide
 #
-# Subs reach 3.19 m against a 2.0 m interface. The stack is 4.33 m of cabinet.
+# Subs reach 2.09 m against a 2.0 m interface. The stack is 3.23 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 3.190 m against the 3.000 m ceiling asked for, so they stand 190 mm too high — 3.190 m is the
-#     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.340 m row, so it overhangs 40 mm each
-#     side
 #
 id: stacked-1-systems-apart-v-------turned--centred---stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
@@ -75,7 +69,7 @@ focus:
 placements:
   # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [-3.522, 0.0]
+    at: [-4.643, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -106,7 +100,7 @@ placements:
 
   # psl, 17 cabinets in 7 rows
   - id: main-psl
-    at: [1.137, 0.0]
+    at: [0.016, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -131,7 +125,7 @@ placements:
         - device: concert-audio-ef6
           count: 5
 
-  # innschleife, 14 cabinets in 6 rows
+  # innschleife, 14 cabinets in 4 rows
   - id: main-innschleife
     at: [4.357, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

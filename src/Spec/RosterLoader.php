@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  * break the library rather than extend it. A roster is not a spec — it states nothing about an object, only about
  * one occasion — and giving it its own directory says that once instead of teaching two loaders to skip each other.
  *
- * **The file name is the id.** `rosters/innschleife-next-event-tms4.yaml` is `--roster=innschleife-next-event-tms4`,
+ * **The file name is the id.** `rosters/innschleife-next-event.yaml` is `--roster=innschleife-next-event`,
  * and the `id:` inside has to agree, which is the same rule the device specs follow. It matters more here, because
  * the roster's id names the folder the scenes are written into: a file whose name and id disagree would put one
  * event's rigs under another event's name.

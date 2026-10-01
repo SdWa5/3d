@@ -246,6 +246,107 @@ final class StackMix
     }
 
     /**
+     * How far apart in height two sub types may be and still count as one row height to {@see flankedRows}.
+     *
+     * **Three centimetres, because that is what the rig on Innschleife's own photo needs and nothing more.** Their
+     * SBH lies at 0.550 m and their WSX at 0.570 m, and they build them in one row anyway. Each cabinet lands on the
+     * one under it, see {@see Gravity}, so a repeated row stands as columns and the 20 mm step only reaches the row
+     * that is not repeated, where {@see StackChecks::supportChecks} weighs it like any other step.
+     */
+    public const LEVEL_ROWS_TOLERANCE_M = 0.03;
+
+    /**
+     * The sub types that could flank the widest one row after row, because they stand as high as it does.
+     *
+     * Every one is a candidate, since which flank makes the better rig is the ranking's question. Innschleife's
+     * kicker stands 0.570 m high like the WSX, so both are offered around the SBH and the photo picks the WSX.
+     *
+     * @param list<array{DeviceSpec, int}> $remaining
+     *
+     * @return list<int>
+     */
+    public static function levelFlanks(array $remaining, Stack $stack): array
+    {
+        $centre = self::widestSub($remaining, $stack);
+        if (null === $centre) {
+            return [];
+        }
+        $device = $remaining[$centre][0];
+        $height = RolledBox::heightOf($device, StackMetrics::rollFor($device, $stack));
+
+        $flanks = [];
+        foreach ($remaining as $index => [$flank, $count]) {
+            if ($index === $centre || $count < 2 || 'sub' !== $flank->subtype) {
+                continue;
+            }
+            $flankHeight = RolledBox::heightOf($flank, StackMetrics::rollFor($flank, $stack));
+            if (abs($flankHeight - $height) <= self::LEVEL_ROWS_TOLERANCE_M + StackMetrics::EPSILON_M) {
+                $flanks[] = $index;
+            }
+        }
+
+        return $flanks;
+    }
+
+    /**
+     * The widest sub split evenly over several rows, **each row flanked by the same pairs of `$flank`**, or null
+     * when that cannot be built.
+     *
+     * **The arrangement on Innschleife's photo of 2026-10-01**, two rows of [WSX | SBH SBH | WSX], and one nothing
+     * else here proposes. {@see mixedBottomRow} flanks a single row and puts the whole centre type in it, which
+     * makes [WSX | 4× SBH | WSX] at 7.0 m. {@see StackSolver::spreadRows} deals the centre type one to a row and only
+     * under the `central` bias. Neither repeats a flanked row.
+     *
+     * **The fewest rows that fit, from two up.** The centre count has to divide evenly so every row is the same, and
+     * every row takes the same pairs of flanks so the wall stays symmetric. Fewer rows are wider and therefore lower,
+     * so the first row count whose row fits the budget is the one built. Flanks left over are dealt above it like
+     * any other cabinet.
+     *
+     * **The centre may be shorter than its flanks here, by {@see LEVEL_ROWS_TOLERANCE_M} at most.** The crater
+     * guard of {@see mixedBottomRow} exists because a different row lands on such a row and hangs over the hole. A
+     * repeated row lands centre on centre and flank on flank, so the hole only reaches the last of them.
+     *
+     * @param list<array{DeviceSpec, int}> $remaining
+     *
+     * @return array{list<Tier>, list<array{DeviceSpec, int}>}|null
+     */
+    public static function flankedRows(array $remaining, Stack $stack, RowBudget $budget, int $flank): ?array
+    {
+        $centre = self::widestSub($remaining, $stack);
+        if (null === $centre || !in_array($flank, self::levelFlanks($remaining, $stack), true)) {
+            return null;
+        }
+
+        [$device, $available] = $remaining[$centre];
+        [$flankDevice, $flankAvailable] = $remaining[$flank];
+        $roll = StackMetrics::rollFor($device, $stack);
+        $flankRoll = StackMetrics::rollFor($flankDevice, $stack);
+        $ceiling = RowBudget::narrower($budget->ceilingFor($device, $stack, $roll), $stack->maxWidthM);
+
+        for ($rows = 2; $rows <= $available; ++$rows) {
+            $pairs = intdiv($flankAvailable, 2 * $rows);
+            if (0 !== $available % $rows || $pairs < 1) {
+                continue;
+            }
+            $row = new Tier([
+                [$flankDevice, $pairs, $flankRoll],
+                [$device, intdiv($available, $rows), $roll],
+                [$flankDevice, $pairs, $flankRoll],
+            ]);
+            if (null !== $ceiling && $row->widthM($stack->gapM) > $ceiling + StackMetrics::EPSILON_M) {
+                continue;
+            }
+
+            $remaining[$centre] = [$device, 0];
+            $remaining[$flank] = [$flankDevice, $flankAvailable - 2 * $pairs * $rows];
+
+            return [array_fill(0, $rows, $row), $remaining];
+        }
+
+        return null;
+    }
+
+    /**
      * How wide the first row of the next device with anything left would be — the row that comes to stand
      * on `$index`'s. Null when nothing does, which is the top of the stack.
      *

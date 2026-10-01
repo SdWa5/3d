@@ -642,6 +642,38 @@ The writer's row comment names a gapped row, for example `6× achenbach-18 at 26
 packed gap. Alignment still never spreads a load-bearing tier (ALN-4). A gapped row is chosen by the fill and
 verified by the bearing rules, which is a different thing from a tier stretched afterwards.
 
+### Repeating a flanked row
+
+A sub type split evenly over several rows, **each row flanked by the same pairs of a second type of the same height**,
+is one more candidate. It is the arrangement on Innschleife's photo of their own stack, taken 2026-10-01: two rows of
+[WSX | SBH SBH | WSX] lying down, the four kickers standing on them and three tops above. Nothing else here proposed
+it. The mixed bottom row flanks a single row and puts every cabinet of the centre type into it, which makes
+[WSX | 4× SBH | WSX] at 7.0 m. The spread deals the centre type one to a row and only under the `central` bias.
+
+* **The centre is the widest sub**, the same rule the mixed bottom row follows, and every other sub type no more than
+  **30 mm** taller or shorter is offered as its flank. Innschleife's SBH lies at 0.550 m and both the WSX and the
+  kicker stand at 0.570 m, so both are offered and the ranking picks the WSX.
+* **The fewest rows that fit, from two up.** The centre count has to divide evenly and every row takes the same
+  pairs, so the wall stays symmetric. Fewer rows are wider and lower, so the first row count whose row fits the
+  budget is the one built, and leftover flanks are dealt above it.
+* **The centre may be up to 30 mm shorter than its flanks.** The mixed bottom row refuses that, because a different
+  row lands on it and hangs over the dip. A repeated row lands centre on centre and flank on flank, since each cabinet
+  falls onto whatever is under it, so only the last repeated row passes the step on, and the bearing rules weigh it
+  there.
+
+The candidate is offered once per row budget and ranked like every other. **It ties on height with the unmixed rows
+it competes with.** The photo's rig stands 1.71 m to the tops and SBH and WSX in rows of their own stand 1.69 m, so
+against the default 2.5 m target and the 2.0 m interface neither reaches the band, and at a 1.70 m target both miss by
+10 mm and the first wins. The `innschleife-next-event` folder is therefore generated against a lower interface and a
+transition aimed just above the photo's, both recorded in every scene's regenerate line:
+
+```bash
+bin/console scene:stack --owner=innschleife --roster=innschleife-next-event --interface-height=1.6 --target-sub-height=1.75
+```
+
+Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` and `v`, `mixed`, `alternate`,
+`low`, at `center` and `stereo`.
+
 ### A ceiling on the sub height
 
 `interface_height_m` is a **floor** and the solver chases it by narrowing rows — narrower rows mean more of them,
@@ -1119,14 +1151,14 @@ one command:
 | `gmss/` | GMSS alone | 111 |
 | `sdwa5/` | ours alone | 66 |
 | `sepp/` | Sepp's alone | 7 |
-| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 423 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 506 |
-| `innschleife-next-event-thl4/` | what Innschleife are bringing on its own, with their two big tops | 101 |
+| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 422 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 480 |
+| `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 95 |
 | `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6 | 16 |
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate, so it writes 166 today against `next-event`'s 506. See below.
+One system has nothing to separate, so it writes 166 today against `next-event`'s 480. See below.
 
 **`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
 which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
@@ -1141,8 +1173,7 @@ second ask was really after.
 
 #### Rosters — what a system brings, against what it owns
 
-A spec's `quantity` is **how many exist**. It is not how many turn up. Innschleife own five cabinet types and bring
-four of them; a box is in the workshop with a blown driver; a rental company brings twelve of a sub its published
+A spec's `quantity` is **how many exist**. It is not how many turn up. The Innschleife roster brings five of the seven cabinet types currently documented; a box is in the workshop with a blown driver; a rental company brings twelve of a sub its published
 package lists six of. None of that is a correction to a spec, so none of it is written into one.
 
 **A roster is a file in [`rosters/`](../rosters) stating what one system brings to one event**, and it overrides the
@@ -1162,7 +1193,7 @@ brings:
 bin/console scene:stack --owner=psl --roster=psl-next-event
 ```
 
-Four things about it are worth knowing before writing one.
+Five things about it are worth knowing before writing one.
 
 **It changes counts and nothing else.** It does not select owners, name a rig or decide a layout. `--owner` still
 says whose gear is in the inventory, and a device the file never mentions keeps the quantity its spec states. That
@@ -1180,7 +1211,17 @@ Innschleife own, and the last run would win. The roster's id is the one name tha
 carries no name of its own, so a run that uses it without `--into` is refused rather than allowed to overwrite:
 
 ```bash
-bin/console scene:stack --owner=innschleife --quantity=thl4:2 --into=a-name-for-it
+bin/console scene:stack --owner=innschleife --quantity=tms4:2 --into=a-name-for-it
+```
+
+**A roster whose cabinets the sweep does not hold is refused.** Counts rewrite specs, and which specs a rig is built
+from is still `--owner`'s and `--from`'s decision, so a roster run without the right owner changes nothing and files
+the sweep under the roster's name anyway. That happened once: `innschleife-next-event-tms4/` was swept without
+`--owner=innschleife` and held 146 scenes of sdwa5 and sepp cabinets. The refusal names the cabinets and the owner:
+
+```
+--roster=innschleife-next-event brings wsx-18, sbh-18, kicker-15, tms2, top-70x93, which the swept inventory does not
+hold. Say --owner=innschleife, or name them with --from
 ```
 
 **The recorded regenerate line carries the counts, never the roster.** It is the same argument the `--from` list is
@@ -1555,7 +1596,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2726 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates. That folder holds **480** files, 432 possible and 48 impossible, 77 pooled, 197 with the systems apart and 206 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2675 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates. That folder holds **480** files, 438 possible and 42 impossible, 77 pooled, 197 with the systems apart and 206 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1578,13 +1619,13 @@ stays exactly as it was, because 433 written scenes record their own regeneratio
 **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
 `tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **854 `systems-apart`, 930 `tops-shared` and 942 `pooled`**, for **2726** — within 9 % of each
+values come to **854 `systems-apart`, 930 `tops-shared` and 891 `pooled`**, for **2675** — within 9 % of each
 other, which is the measurement this paragraph exists to lose if the axis ever became mostly one rig.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 301 of the sweep across five folders: `gmss` 111, `innschleife-next-event-thl4` 101, `sdwa5` 66,
+rigs are 295 of the sweep across five folders: `gmss` 111, `innschleife-next-event` 95, `sdwa5` 66,
 `psl-next-event` 16 and `sepp` 7. **`sdwa5-sepp` is single-owner too**, by grouping rather than by ownership, which
 is why it writes 166 `pooled` scenes and no separated ones.
 

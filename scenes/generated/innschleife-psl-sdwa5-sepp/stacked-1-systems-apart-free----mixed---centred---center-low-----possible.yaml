@@ -14,16 +14,14 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 25 cabinets in 5 rows:
+# main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°     4.98 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   4  6× achenbach-18                                                            3.7 m wide
-#   5  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   1  3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°    5.308 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°    5.308 m wide
+#   3  6× achenbach-18                                                            3.7 m wide
+#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
-#   * the 6× achenbach-18 row is 3.700 m on a 3.112 m row, so it overhangs 294 mm each side
+# Subs reach 2.428 m against a 2.0 m interface. The stack is 3.388 m of cabinet.
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -38,15 +36,13 @@
 #
 # main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
-#   2  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
+#   1  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
+#   2  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
 #   3  4× kicker-15                                                              3.86 m wide
 #   4  4× sub-60x60                                                              2.46 m wide
 #   5  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #
-# Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.
-#   * the 2× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 4.860 m on a 4.460 m row, so it overhangs 200 mm
-#     each side
+# Subs reach 2.31 m against a 2.0 m interface. The stack is 3.45 m of cabinet.
 #
 id: stacked-1-systems-apart-free----mixed---centred---center-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -60,9 +56,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 25 cabinets in 5 rows
+  # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [-6.165, 0.0]
+    at: [-6.065, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -89,7 +85,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-0.242, 0.0]
+    at: [0.022, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -127,7 +123,7 @@ placements:
 
   # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
-    at: [5.621, 0.0]
+    at: [5.785, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

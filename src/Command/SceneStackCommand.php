@@ -197,6 +197,15 @@ final class SceneStackCommand extends BaseCommand
     private array $counts = [];
 
     /**
+     * Every cabinet a roster brings at least one of, by the roster that brings it, whether or not the count differs
+     * from the spec. {@see $counts} drops a count that restates the spec, so it cannot answer whether a roster's
+     * cabinets are in the rig at all, and that is what this is for.
+     *
+     * @var array<string, string>
+     */
+    private array $brought = [];
+
+    /**
      * Every option's declared default, by name — what {@see RecordedCommand} compares a stated value against.
      *
      * **Read off the `InputDefinition` once, in the parent, and passed down.** The recorded line only writes a
@@ -324,6 +333,28 @@ final class SceneStackCommand extends BaseCommand
             $this->grouping,
             $splits,
         );
+
+        // **A ROSTER WHOSE CABINETS ARE NOT IN THE SWEEP IS REFUSED, BECAUSE ITS COUNTS WOULD CHANGE NOTHING.** Counts
+        // rewrite the specs, and which specs a rig is built from is decided by `--owner` and `--from`, not by the
+        // roster. So `--roster=innschleife-next-event-tms4` without `--owner=innschleife` swept everything else in
+        // the library and filed it under Innschleife's name: 146 scenes of sdwa5 and sepp cabinets at 0.105.0, with
+        // the roster's counts applied to cabinets none of them held. Named per cabinet so the fix is obvious.
+        $swept = [];
+        foreach ($rigs as $rig) {
+            $swept = [...$swept, ...$rig['from']];
+        }
+        $absent = array_diff_key($this->brought, array_flip($swept));
+        if ([] !== $absent) {
+            $device = (string) array_key_first($absent);
+            $this->io->error(sprintf(
+                '--roster=%s brings %s, which the swept inventory does not hold. Say --owner=%s, or name them with --from',
+                $absent[$device],
+                implode(', ', array_keys($absent)),
+                $devices[$device]->owner,
+            ));
+
+            return self::FAILURE;
+        }
 
         // **THE OUTPUT DIRECTORY IS THE RUN'S INVENTORY, AND A RUN HAS EXACTLY ONE.**
         // {@see SweepAxes::inventory} returns a single subset, so every rig in `$rigs` shares a label and
@@ -1149,6 +1180,7 @@ final class SceneStackCommand extends BaseCommand
     {
         $loader = new RosterLoader($this->rostersDir());
         $counts = [];
+        $this->brought = [];
         $statedBy = [];
 
         /** @var list<string> $rosters */
@@ -1183,6 +1215,9 @@ final class SceneStackCommand extends BaseCommand
                 }
                 $counts[$device] = $count;
                 $statedBy[$device] = $id;
+                if ($count > 0) {
+                    $this->brought[$device] = $id;
+                }
             }
         }
 
@@ -1198,6 +1233,13 @@ final class SceneStackCommand extends BaseCommand
             }
             $counts[$parts[0]] = (int) $parts[1];
         }
+
+        // Explicit quantities override a roster. Cabinets left at home must not fail the inventory check.
+        $this->brought = array_filter(
+            $this->brought,
+            static fn (string $id): bool => $counts[$id] > 0,
+            ARRAY_FILTER_USE_KEY,
+        );
 
         // Sorted by device id, so the recorded command line comes out the same whichever order the options were
         // typed in — a replay that differs from its own scene only in the order of two flags is a diff nobody wants

@@ -40,20 +40,18 @@
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 6 rows:
+# main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  4× wsx-18                                                                 2.34 m wide
-#   2  4× sbh-18                                                                 2.26 m wide
-#   3  2× kicker-15                                                              1.92 m wide
-#   4  2× kicker-15                                                              1.92 m wide
-#   5  4× sub-60x60                                                              2.46 m wide
-#   6  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
+#   1  1× sub-60x60 + 2× kicker-15 + 1× sub-60x60                              3.16 m wide
+#   2  1× sub-60x60 + 2× kicker-15 + 1× sub-60x60                              3.16 m wide
+#   3  4× wsx-18                                                                 2.34 m wide
+#   4  4× sbh-18                                                                 2.26 m wide
+#   5  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
 #
-# Subs reach 4.04 m against a 2.0 m interface. The stack is 5.18 m of cabinet.
+# Subs reach 3.5 m against a 2.0 m interface. The stack is 4.64 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 4.040 m against the 3.000 m ceiling asked for, so they stand 1040 mm too high — 4.040 m is the
+#   * the subs reach 3.500 m against the 3.000 m ceiling asked for, so they stand 500 mm too high — 3.500 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 4× sub-60x60 row is 2.460 m on a 1.920 m row, so it overhangs 270 mm each side
 #
 id: stacked-1-systems-apart-free----upright-alternate-stereo-low-----impossible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
@@ -69,7 +67,7 @@ focus:
 placements:
   # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [-5.6, 0.0]
+    at: [-5.95, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -95,7 +93,7 @@ placements:
 
   # psl, 22 cabinets in 2 rows
   - id: main-psl
-    at: [0.921, 0.0]
+    at: [0.571, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -128,7 +126,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 6 rows
+  # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
     at: [6.219, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

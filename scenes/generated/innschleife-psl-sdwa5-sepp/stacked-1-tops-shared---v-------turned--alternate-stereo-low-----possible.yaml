@@ -36,26 +36,24 @@
 #   2  1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esf rolled 270° + 1× thebox-tp218-1600 rolled 90°     3.22 m wide
 #   3  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
 #   4  2× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     3.58 m wide
-#   5  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× hk-linear5-112x + 1× thebox-dsp-112   2.1936 m wide
+#   5  1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1× thebox-achat-112m    2.296 m wide
 #
-# Subs reach 2.356 m against a 2.0 m interface. The stack is 3.316 m of cabinet.
+# Subs reach 2.356 m against a 2.0 m interface. The stack is 3.496 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esf rolled 270° + 1× thebox-tp218-1600 rolled 90°
 #     row is 3.220 m on a 2.056 m row, so it overhangs 582 mm each side
 #   * the 1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90° row is 3.580 m on a 3.220 m row, so
 #     it overhangs 180 mm each side
 #
-# main-innschleife — innschleife, 23 cabinets in 4 rows:
+# main-innschleife — innschleife, 23 cabinets in 2 rows:
 #
-#   1  2× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° + 2× sub-60x60 rolled 90°     4.82 m wide
-#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90° at 140 mm gaps            4.82 m wide
-#   3  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
-#   4  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1× thebox-achat-112m + 1× concert-audio-ef6    3.512 m wide
+#   1  2× sbh-18 rolled 270° + 2× wsx-18 rolled 270° + 2× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° + 2× sub-60x60 rolled 90° + 2× wsx-18 rolled 90° + 2× sbh-18 rolled 90°    14.18 m wide
+#   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× hk-linear5-112x + 1× thebox-dsp-112 + 1× concert-audio-ef6   3.4096 m wide
 #
-# Subs reach 2.07 m against a 2.0 m interface. The stack is 3.21 m of cabinet.
+# Subs reach 0.95 m against a 2.0 m interface. The stack is 1.91 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 4.860 m on a 4.820 m row, so it overhangs 20 mm each
-#     side
+#   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
+#     0.950 m is the most they reach while every tier is still carried
 #
 id: stacked-1-tops-shared---v-------turned--alternate-stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
@@ -71,7 +69,7 @@ focus:
 placements:
   # ours, 27 cabinets in 6 rows
   - id: main-ours
-    at: [-5.022, 0.0]
+    at: [-9.682, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -115,7 +113,7 @@ placements:
 
   # psl, 17 cabinets in 5 rows
   - id: main-psl
-    at: [-0.9562, 0.0]
+    at: [-5.6162, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -141,20 +139,19 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-esf
           roll_mirror: 90.0
+        - device: tms4
+          count: 1
         - device: tecnare-m2122
           count: 1
-        - device: eighteensound-2way-15
+        - device: thebox-achat-115m
+          aim: near
+        - device: thebox-pa302
+          aim: near
+        - device: thebox-achat-112m
           count: 1
-          aim: near
-        - device: tms2
-          count: 1
-          aim: near
-        - device: hk-linear5-112x
-          aim: near
-        - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 23 cabinets in 4 rows
+  # innschleife, 23 cabinets in 2 rows
   - id: main-innschleife
     at: [3.7638, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -184,17 +181,17 @@ placements:
           roll_mirror: 90.0
         - device: concert-audio-ef6
           count: 2
-        - device: tms4
-          count: 1
-          aim: near
         - device: tecnare-m2122
           count: 1
           aim: near
-        - device: thebox-achat-115m
-          aim: near
-        - device: thebox-pa302
-          aim: near
-        - device: thebox-achat-112m
+        - device: eighteensound-2way-15
           count: 1
+          aim: near
+        - device: tms2
+          count: 1
+          aim: near
+        - device: hk-linear5-112x
+          aim: near
+        - device: thebox-dsp-112
           aim: near
 

@@ -40,12 +40,12 @@
 #
 # main-innschleife — innschleife, 15 cabinets in 4 rows:
 #
-#   1  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
-#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
+#   1  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
+#   2  1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°     4.66 m wide
 #   3  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90°                     2.34 m wide
 #   4  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122                      1.628 m wide
 #
-# Subs reach 2.07 m against a 2.0 m interface. The stack is 3.21 m of cabinet.
+# Subs reach 2.09 m against a 2.0 m interface. The stack is 3.23 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 id: stacked-1-tops-shared---pyramid-turned--column----stereo-low-----possible
@@ -62,7 +62,7 @@ focus:
 placements:
   # ours, 23 cabinets in 5 rows
   - id: main-ours
-    at: [-5.022, 0.0]
+    at: [-4.922, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -98,7 +98,7 @@ placements:
 
   # psl, 18 cabinets in 5 rows
   - id: main-psl
-    at: [-0.393, 0.0]
+    at: [-0.293, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

@@ -245,8 +245,20 @@ final class StackSolver
                     $spreads = $packed || LowEndBias::Central !== $stack->lowEnd
                         ? [null]
                         : [null, $lowest];
-                    foreach (array_unique($spreads, SORT_REGULAR) as $spread) {
-                        $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align, $spread);
+                    $leads = array_map(
+                        static fn (?string $spread): array => [$spread, null],
+                        array_unique($spreads, SORT_REGULAR),
+                    );
+                    // **REPEATED FLANKED ROWS ARE ONE MORE CANDIDATE, OFFERED ONCE PER BUDGET STEP.** They ignore
+                    // `$pairs` the way a packed pass does, so offering them on every pass would solve the same rows
+                    // again. See {@see StackMix::flankedRows}.
+                    if (!$packed && 0 === $pairs) {
+                        foreach (StackMix::levelFlanks($inventory, $stack) as $flank) {
+                            $leads[] = [null, $flank];
+                        }
+                    }
+                    foreach ($leads as [$spread, $flankedBy]) {
+                        $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align, $spread, $flankedBy);
                         // A spread that could not be built returns nothing rather than quietly falling back to the
                         // ordinary arrangement, which would enter the same candidate twice.
                         if ([] === $tiers) {
@@ -468,6 +480,7 @@ final class StackSolver
         bool $packed = false,
         ?LayoutMode $align = null,
         ?string $spreadId = null,
+        ?int $flankedBy = null,
     ): array {
         $remaining = [];
         foreach ($inventory as $index => [$device, $count]) {
@@ -493,7 +506,14 @@ final class StackSolver
         }
 
         $tiers = [];
-        if (null !== $spreadId) {
+        if (null !== $flankedBy) {
+            // Like a spread, a candidate that cannot be built is no candidate rather than the ordinary arrangement.
+            $flanked = StackMix::flankedRows($remaining, $stack, $budget, $flankedBy);
+            if (null === $flanked) {
+                return [];
+            }
+            [$tiers, $remaining] = $flanked;
+        } elseif (null !== $spreadId) {
             // **BEFORE THE MIXED BOTTOM ROW, BECAUSE BOTH WANT THE SAME CABINETS.** A mixed bottom row would
             // consume the very type this is spreading and the spread would have nothing left to deal. Where it
             // cannot be built the candidate is simply the ordinary one, which is what `null` means here.
