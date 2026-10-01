@@ -1200,8 +1200,6 @@ final class SceneStackCommand extends BaseCommand
 
         $mixes = $this->readMixes($input);
 
-        $system = $this->eventOptions->subOwner($ids, $devices);
-
         return new Stack(
             // Otherwise the shorthand form — one device id per entry. Anything wanting `count` or `align` is edited
             // into the written file afterwards; `mix_with` used to be too, and `--mix` exists because a hand edit to
@@ -1221,11 +1219,11 @@ final class SceneStackCommand extends BaseCommand
             maxWidthM: $maxWidthM,
             minWidthM: $this->readFloat($input, 'min-width'),
             maxHeightM: $this->readFloat($input, 'max-height'),
-            interfaceHeightM: $this->eventOptions->interfaces[$system ?? ''] ?? (float) $input->getOption('interface-height'),
+            interfaceHeightM: $this->eventOptions->interfaceFor($ids, $devices) ?? (float) $input->getOption('interface-height'),
             gapM: (float) $input->getOption('gap'),
             mirror: $mirror,
             maxSubHeightM: $this->readFloat($input, 'max-sub-height'),
-            targetSubHeightM: $this->eventOptions->targets[$system ?? ''] ?? $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
+            targetSubHeightM: $this->eventOptions->targetFor($ids, $devices) ?? $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
             shape: $shape,
             mirrorStyle: $style,
             // A system that states its low end keeps it whatever the sweep varies, see {@see SceneEventOptions::lowEndFor}.

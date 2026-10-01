@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.136.0] - 2026-10-01
+
+### Added
+
+- `front_image.cutout`, which cuts the whole panel along a PNG's alpha, so a deco cut to its motif shows what stands
+  behind it through the gaps. Front, back and edges are cut along the same outline. `plan_version` 8 carries it.
+- `events/next-event-light-achenbach.yaml`, the light next event with four of Sepp's Achenbach, and its 16 scenes in
+  `scenes/generated/next-event-light-achenbach/`.
+- Phase plugs in the EF 6's two LF horns, between each driver and its waveguide.
+- A plain front without a baffle layout takes `appearance.front_color` on its face alone.
+
+### Changed
+
+- Every Concert Audio cabinet is black with a white front. The body black is `#0a0a0a`, so cones drawn in the
+  library's `#141414` read a bit lighter than the cabinet, and the ESX's cones are `#141414` like every other.
+- The EF 6's HF section has no recess of its own. It is the band of the shared horn between two horizontal white
+  shelves, with the 1.5" exit as deep as the 12" pair.
+- A front image is applied whenever its file exists. `models:build` records per model which image it was built with,
+  so an image that appears or goes later rebuilds the model.
+- PSL's deco panel is `deco-panel-8x2-03`, 8 × 2.03 m and cut to the motif of PSL's new print. Every event and
+  generated scene names the new id.
+- `appearance.front_color` is refused beside a `front_image` and on a `mesh_override` rather than without a layout.
+
+### Fixed
+
+- A stack whose subs belong to several systems takes their event interface and target when they all state the same
+  one. Our Flexys with Sepp's Achenbach fell back to the 2.0 m default although both state 1.6 m.
+
+### Removed
+
+- `models:build --front-images`.
+
 ## [0.135.0] - 2026-10-01
 
 ### Added

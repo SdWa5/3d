@@ -725,6 +725,17 @@ bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschlei
 Innschleife bring the same gear to both, so `innschleife-next-event` serves both and there is no light folder for
 them.
 
+**`next-event-light-achenbach` is the light event with four of Sepp's Achenbach**, asked for by Stefan on 2026-10-01 so
+the outer tops of the stereo setup stand higher. The solver does not do that yet. At the 1.6 m interface both our
+systems state, `center` puts all four Achenbach in one middle row under every top, and the `stereo` rig is 16.03 m wide
+and refused by the 13 m room. The folder holds 16 scenes, 14 possible. A rule that seats a riser under the outer tops
+is TODO GEO-17.
+
+```bash
+bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light-achenbach \
+  --into=next-event-light-achenbach --order=ours,psl,innschleife
+```
+
 ### A ceiling on the sub height
 
 `interface_height_m` is a **floor** and the solver chases it by narrowing rows — narrower rows mean more of them,
@@ -2283,8 +2294,9 @@ height as before.
 
 ### A deco backdrop behind a generated rig
 
-PSL bring a deco panel of 9 × 1.8 m to the next event, stated on 2026-10-01 after 10 × 3.03 m with their print file, which is stretched to fit. It hangs from the front of our
-F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-9x1-8.yaml`
+PSL bring a deco panel to the next event, cut to the outline of its motif and 8 × 2.03 m across, stated on 2026-10-01 after
+10 × 3.03 m and 9 × 1.8 m. It hangs from the front of our
+F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-8x2-03.yaml`
 is the panel, PSL's `brings` in `events/next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
 
 ```yaml

@@ -17,29 +17,26 @@ final class ModelBuilder
 
     public const LIBRARY_SCRIPT = 'blender/build_library.py';
 
-    /**
-     * @param bool $frontImages whether a spec's `front_image` is applied at all. **Off by default**,
-     *                          and deliberately a constructor argument rather than only a command
-     *                          option, so the plain library stays what a caller gets without asking.
-     *                          A run that flips it is caught by {@see Staleness::settingsChanged}
-     *                          rather than by mtimes, because nothing on disk moves when a switch does
-     */
     public function __construct(
         private readonly string $projectDir,
         private readonly BlenderRunner $blender,
-        private readonly bool $frontImages = false,
     ) {
     }
 
     /**
-     * The settings stamp for this builder, recorded per output tree so a model built without
-     * photographs is not mistaken for one built with them.
+     * What one model is built with, recorded per output tree: the front photograph it carries, or null.
+     *
+     * **A front image is applied whenever the spec names one and the file exists**, stated by the owner on
+     * 2026-10-01. It used to wait for a `--front-images` switch, and `build:all` never passed it, so the next full
+     * build would have rebuilt the deco panel without its print. The validator already keeps a front image to a
+     * plain block, so nothing else decides it. Recorded per model rather than per run, because the image file can
+     * appear after the model was built, and {@see Staleness::outOfDate} does not count an input that was missing.
      *
      * @return array<string, mixed>
      */
-    public function builtWith(): array
+    public function builtWith(DeviceSpec $spec): array
     {
-        return ['front_images' => $this->frontImages];
+        return ['front_image' => $this->frontImagePath($spec)];
     }
 
     public function glbPath(DeviceSpec $spec): string
@@ -79,9 +76,8 @@ final class ModelBuilder
         if (null !== $spec->meshOverride) {
             $inputs[] = $this->resolve($spec->meshOverride->path);
         }
-        // Counted whether or not front images are switched on for this run. A photograph that changed
-        // while the feature was off still has to rebuild the model the moment it is switched back on,
-        // and the setting itself is watched separately through Staleness::settingsChanged.
+        // A photograph that changed rebuilds the model. One that appeared or went is watched through
+        // {@see builtWith}, because a missing input is not counted here.
         if (null !== $spec->frontImage) {
             $inputs[] = $this->resolve($spec->frontImage->path);
         }
@@ -181,15 +177,23 @@ final class ModelBuilder
             $candidate = $this->resolve($spec->meshOverride->path);
             $overridePath = is_file($candidate) ? $candidate : null;
         }
-        // Same fallback for a front photograph, and additionally off unless this run asked for it.
-        $frontImagePath = null;
-        if ($this->frontImages && null !== $spec->frontImage) {
-            $candidate = $this->resolve($spec->frontImage->path);
-            $frontImagePath = is_file($candidate) ? $candidate : null;
-        }
-        $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend, $overridePath, $frontImagePath));
+        $this->writeJson($planFile, BuildPlan::forSpec($spec, $glb, $blend, $overridePath, $this->frontImagePath($spec)));
 
         return $planFile;
+    }
+
+    /**
+     * The front photograph this spec's model carries, with the same fallback as an override: one that is named but
+     * not on disk leaves the plain block, because the photographs are not committed.
+     */
+    private function frontImagePath(DeviceSpec $spec): ?string
+    {
+        if (null === $spec->frontImage) {
+            return null;
+        }
+        $candidate = $this->resolve($spec->frontImage->path);
+
+        return is_file($candidate) ? $candidate : null;
     }
 
     /**

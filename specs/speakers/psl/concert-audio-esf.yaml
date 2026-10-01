@@ -32,8 +32,11 @@ geometry:
   chamfer_m: 0.010
 
 appearance:
-  # White, like the rest of PSL's Evolution gear. See concert-audio-ef6.yaml.
-  color: "#f2f2f0"
+  # Black with a white front, as the owner stated on 2026-10-01 for every Concert Audio cabinet, like the ESX and
+  # the EF 6. The body black is theirs, a shade under the #141414 every cone is drawn in, so the cones read lighter
+  # than the cabinet. See concert-audio-ef6.yaml.
+  color: "#0a0a0a"
+  front_color: "#f2f2f0"
 
 physical:
   weight_kg: 46.0

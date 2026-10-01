@@ -39,8 +39,10 @@ geometry:
   chamfer_m: 0.010
 
 appearance:
-  # Black with a white front. See the header. The black is the Flexy's, since no PSL black was sampled.
-  color: "#141414"
+  # Black with a white front. See the header. No PSL black was sampled.
+  # The body is #0a0a0a, a shade under the #141414 every cone in this library is drawn in, so the cones read a bit
+  # lighter than the cabinet, as the owner asked on 2026-10-01. The body went darker rather than the cone lighter.
+  color: "#0a0a0a"
   front_color: "#f2f2f0"
 
 physical:
@@ -76,14 +78,25 @@ audio:
   #
   # ONE CONNECTED HORN FRONT, as the owner stated on 2026-10-01, built like the Tecnare M2122's. The two 12"
   # fire into two horns that share one mouth across the whole face, with a black plug in each throat and a
-  # green waveguide in front of it, and the 1.5" driver has its own small horn deep in the middle. So the LF
-  # pair is joined to 0.15 m, and the HF horn carves into the wedge the join leaves between them. Its mouth
-  # is the light trapezoid between the two white shelves in the photo, 0.24 x 0.25 m around the dark throat.
+  # green waveguide in front of it. So the LF pair is joined to 0.15 m.
   # A horn's throat sits on its mouth's axis, so the LF throats are drawn at the centre of their mouths,
   # about 0.07 m nearer the middle than the photo has the plugs, and the whole front at x -0.02 rather than
   # the photo's -0.05. Mouths, throats, depths and the join depth are ESTIMATED. This is the right-hand
   # cabinet of a pair, and a scene's mirror makes the other one. The colours are white-balanced against the
   # body's own white, giving #749375 for the waveguides and #2a1812 for the plugs.
+  #
+  # EACH WAVEGUIDE HOLDS A PHASE PLUG between it and the driver, as the owner stated on 2026-10-01. The plug stands
+  # 0.10 m forward from the 0.30 m deep throat, so its tip ends 0.20 m back and stays behind the waveguide, which
+  # runs from 0.12 to 0.18 m. Its 6" base sits inside the 8" throat. Both sizes are ESTIMATED.
+  #
+  # THE HF SECTION HAS NO RECESS OF ITS OWN, as the owner stated on 2026-10-01. It is the band of the shared horn
+  # between two horizontal white shelves, so its sides are the LF horns' sides and the 1.5" driver sits as deep as
+  # the 12" pair. `hf` carves that band with the LF horns' own width law (0.53 m mouth, 8" throat, exponential over
+  # 0.30 m), so its side walls run on from theirs. The shelves are 0.02 m plates like the waveguides but deeper,
+  # 0.15 m from 0.15 m back to the driver. Their front edge spans the 0.33 m the horn is wide there, and their back
+  # runs into the side walls. The driver's exit is a dark 1.5" disc on the flat back wall, drawn as a flat plug.
+  # The photo puts the shelves at about z +0.13 and -0.11 m, so the band is centred at +0.01 m. The exit reads at
+  # +0.03 m, which is within the reading error, so it stays on the band's axis. Every size is ESTIMATED.
   layout:
     provenance: estimated
     inset_m: 0.0
@@ -93,10 +106,15 @@ audio:
       - { id: lf-lo, kind: horn, at_m: [ -0.02, -0.185 ], mouth_m: [ 0.53, 0.36 ], throat_in: 8.0, driver_in: 12, depth_m: 0.30,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential, color: "#2a1812",
           join: { with: lf-up, depth_m: 0.15 } }
-      - { id: hf, kind: horn, at_m: [ -0.03, 0.02 ], mouth_m: [ 0.24, 0.25 ], throat_in: 1.5, depth_m: 0.32,
-          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
+      - { id: hf, kind: horn, at_m: [ -0.02, 0.01 ], mouth_m: [ 0.53, 0.24 ], throat_in: 8.0, depth_m: 0.30,
+          profile: pyramid, sides: 4, flare: exponential }
+      - { id: shelf-up, kind: fin, at_m: [ -0.02,  0.13 ], mouth_m: [ 0.33, 0.02 ], depth_m: 0.15, setback_m: 0.15, color: "#f2f2f0" }
+      - { id: shelf-lo, kind: fin, at_m: [ -0.02, -0.11 ], mouth_m: [ 0.33, 0.02 ], depth_m: 0.15, setback_m: 0.15, color: "#f2f2f0" }
+      - { id: hf-exit, kind: plug, inside: hf, diameter_in: 1.5, depth_m: 0.002, color: "#1a1210" }
       - { id: guide-up, kind: fin, at_m: [ -0.02,  0.195 ], mouth_m: [ 0.27, 0.02 ], depth_m: 0.06, setback_m: 0.12, color: "#749375" }
       - { id: guide-lo, kind: fin, at_m: [ -0.02, -0.185 ], mouth_m: [ 0.27, 0.02 ], depth_m: 0.06, setback_m: 0.12, color: "#749375" }
+      - { id: plug-up, kind: plug, inside: lf-up, diameter_in: 6, depth_m: 0.10, color: "#2a1812" }
+      - { id: plug-lo, kind: plug, inside: lf-lo, diameter_in: 6, depth_m: 0.10, color: "#2a1812" }
 
 mesh_override: null
 

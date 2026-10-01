@@ -92,6 +92,27 @@ final class ModelBuilderTest extends TestCase
         self::assertSame(0.8, $plan['geometry']['dimensions_m']['width']);
     }
 
+    public function testAFrontImageIsAppliedWheneverItsFileExists(): void
+    {
+        $file = SpecFactory::writeYaml($this->project.'/specs/speakers');
+        $spec = SpecFactory::spec(['front_image' => 'meshes/front.png'], $file);
+
+        // Named but not on disk: the plain block, and the record says so.
+        self::assertSame(['front_image' => null], $this->builder()->builtWith($spec));
+
+        mkdir($this->project.'/meshes', 0o775, true);
+        file_put_contents($this->project.'/meshes/front.png', 'png');
+        self::assertSame(['front_image' => $this->project.'/meshes/front.png'], $this->builder()->builtWith($spec));
+
+        try {
+            $this->builder()->build($spec);
+        } catch (\RuntimeException) {
+            // Expected: the fake Blender writes no files.
+        }
+        $plan = json_decode((string) file_get_contents($this->project.'/build/plans/top-a.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame($this->project.'/meshes/front.png', $plan['front_image']['path']);
+    }
+
     public function testBuildFailsLoudlyWhenBlenderWritesNothing(): void
     {
         // Blender can exit 0 after a script error, so a silent no-op must not look like success.

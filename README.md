@@ -27,7 +27,7 @@ light version ours and Sepp's take a 1.6 m interface, so our stack stands as low
 PSL's 9 × 1.8 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the rig.
 The event names that truss, and `scene:stack` adds it to every rig whose systems bring a `deco` device. Under the 4 m
 ceiling the towers are cranked to 3.742 m, and each carries 35.4 kg of its 85 kg rating. The panel shows PSL's print,
-stretched to the panel's 5:1, when its file is in `meshes/psl/` and the model is built with `--front-images`. See [the
+stretched to the panel's 5:1, whenever its file is in `meshes/psl/`. See [the
 backdrop](docs/scenes.md#a-deco-backdrop-behind-a-generated-rig).
 
 ## Requirements
@@ -291,7 +291,7 @@ ddev exec composer static                        # PHPStan level 5 + Symfony cod
 ddev exec composer cs-fix                        # apply the coding standards
 pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and tools/
 ddev exec bin/console specs:validate             # same check CI runs
-ddev exec bin/console models:build --front-images  # cabinets wearing their front photograph
+ddev exec bin/console models:build                # every model, with front photographs where their file exists
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed — not a CI step, see below
 python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
 gitleaks dir . --redact --config .gitleaks.toml   # no secret in the working tree

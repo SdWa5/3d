@@ -49,11 +49,20 @@ final class BuildPlanTest extends TestCase
         self::assertSame(90, $plan['front_image']['rotate_deg']);
     }
 
+    public function testACutOutTravelsToTheBuilderAndIsOffByDefault(): void
+    {
+        $cut = SpecFactory::spec(['front_image' => ['path' => 'meshes/deco.png', 'cutout' => true]]);
+        $plain = SpecFactory::spec(['front_image' => 'meshes/deco.png']);
+
+        self::assertTrue(BuildPlan::forSpec($cut, '/g.glb', '/b.blend', null, '/project/meshes/deco.png')['front_image']['cutout']);
+        self::assertFalse(BuildPlan::forSpec($plain, '/g.glb', '/b.blend', null, '/project/meshes/deco.png')['front_image']['cutout']);
+    }
+
     public function testCarriesGeometryAppearanceAndOutputs(): void
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(7, $plan['plan_version']);
+        self::assertSame(8, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);

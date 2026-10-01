@@ -57,8 +57,9 @@ geometry:
 
 appearance:
   color: "#111111"            # #rrggbb, sRGB
-  front_color: null           # optional: the front face and every opening carved into it, on a generated
-                              # shell with a baffle layout. PSL's black cabinets with white fronts use it
+  front_color: null           # optional: the front face and every opening carved into it except a driver's
+                              # bore, on a generated shell. PSL's black cabinets with white fronts
+                              # use it, and the ESF without a layout takes it on the face alone
   grille:
     inset_m: 0.014            # how deep the grille sits behind the front; omit for no grille
     color: "#0a0a0a"          # defaults to appearance.color
@@ -642,11 +643,19 @@ front_image:                                     # or spelled out
   rotate_deg: 90                                 # 0 (default) | 90 | 180 | 270
   px_per_cm: 1.0                                 # the scale the drawing was made at
   tolerance: 0.10                                # how far the implied size may miss the cabinet
+  cutout: false                                  # true cuts the whole panel along a PNG's alpha
 ```
 
-**Off by default, and switched on per run.** `models:build --front-images` applies them; without it
-every cabinet is built plain. Flipping the switch rebuilds, because nothing on disk moves when a
-setting does and `Staleness::settingsChanged` watches it separately from the mtimes.
+**`cutout: true` gives the object the image's outline.** The PNG's alpha cuts the front, and the back and the edges
+take the body colour cut along the same outline, on UVs projected straight back from the front. PSL's deco panel is
+cut to its motif this way, so the truss behind it shows through the gaps. The cut edges have no wall of their own,
+which shows at a grazing angle only. Only a PNG carries an alpha channel here, so a cut-out on a JPEG is refused.
+
+**Applied whenever the file exists**, stated by the owner on 2026-10-01. A spec that names an image whose file is
+not in `meshes/` builds plain, since the photographs are not committed. Each model records the image it was built
+with in `build/glb/built-with.json`, so an image that appears or goes later rebuilds the model, which the mtimes
+alone would miss. Up to 0.135.0 the images waited for a `--front-images` switch that `build:all` never passed, so a
+full build lost the deco panel's print.
 
 **Only a cabinet with no interior may have one**, and the validator refuses the other two cases
 rather than skipping them quietly:
@@ -724,8 +733,8 @@ the origin and licence in [sources.md](sources.md).
   `driver_in` or `join`. `dome_m`, `rim_m` or `rim_color` on anything but a round grille, a dome not above 0
   and at most 0.03 m, a rim not above 0 and below the grille's radius, a `rim_color` without `rim_m`, or one
   that is not `#rrggbb`
-* `appearance.front_color` that is not `#rrggbb`, or on a spec without a baffle layout or with a
-  `mesh_override`
+* `appearance.front_color` that is not `#rrggbb`, on a spec with a `mesh_override`, or beside a `front_image`,
+  which covers the same face
 * in `physical.castors`: an unknown key; a face other than `back`, `left` or `right`; a diameter that is not
   above 0 and at most 0.2 m; a `locking` count outside 0 to 4; a colour that is not `#rrggbb`; and wheels too
   big for four of them to fit the face
@@ -746,7 +755,7 @@ the origin and licence in [sources.md](sources.md).
   misses the cabinet; a section with fewer than three corners, one that encloses no area, or one that lies
   wholly outside the cabinet
 * a `front_image` on a spec that has an `audio.layout` or a `mesh_override`; one whose extension is not
-  `.png`, `.jpg` or `.jpeg`; a `rotate_deg` that is not 0, 90, 180 or 270; a `px_per_cm` of zero or
+  `.png`, `.jpg` or `.jpeg`; a `cutout` on anything but a `.png`; a `rotate_deg` that is not 0, 90, 180 or 270; a `px_per_cm` of zero or
   less; a file that cannot be read as an image; and an image whose implied size misses the cabinet's
   front by more than its tolerance. A path that does not exist is a **warning**, not an error, exactly
   as for a mesh override

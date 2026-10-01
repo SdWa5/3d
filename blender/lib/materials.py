@@ -20,6 +20,7 @@ VEHICLE_OUTLINE = "sdwa5-vehicle-outline"
 BAY = "sdwa5-bay"
 BAY_FLOOR = "sdwa5-bay-floor"
 FRONT_IMAGE = "sdwa5-front-image"
+FRONT_IMAGE_BACKING = "sdwa5-front-image-backing"
 HARDWARE = "sdwa5-hardware"
 
 
@@ -187,7 +188,7 @@ def mesh(color):
     return material
 
 
-def front_image(path):
+def front_image(path, cutout=False):
     """A photograph of the cabinet's front, as an image texture on its own material.
 
     Given its own material rather than being mixed into the cabinet one, because only the front face
@@ -236,6 +237,9 @@ def front_image(path):
     texture.extension = "EXTEND"
 
     tree.links.new(texture.outputs["Color"], bsdf.inputs["Base Color"])
+    if cutout:
+        # The image's alpha is the panel's outline, see `front_image_backing()` for the rest of the panel.
+        tree.links.new(texture.outputs["Alpha"], bsdf.inputs["Alpha"])
 
     # A photograph already carries its own shading, so a glossy highlight on top of it reads as a
     # wet cabinet. Almost fully rough, and never metallic.
@@ -249,6 +253,27 @@ def front_image(path):
 
     material.diffuse_color = (0.5, 0.5, 0.5, 1.0)
     material.roughness = 0.9
+
+    return material
+
+
+def front_image_backing(image_material, color):
+    """The back and the edges of a cut-out panel, in the body's colour and cut by the front image's alpha.
+
+    Without it a cut-out's back face stays a solid rectangle, which shows through every gap the front cuts. It
+    samples the very image the front carries, on UVs `geometry.apply_front_image()` projects straight back from
+    the front, so the back and the edges are cut along the same outline.
+    """
+    texture = image_material.node_tree.nodes["sdwa5-front-texture"]
+    material = _principled(FRONT_IMAGE_BACKING, hex_to_linear_rgba(color), roughness=0.9)
+    tree = material.node_tree
+    backing = tree.nodes.get("sdwa5-front-texture")
+    if backing is None:
+        backing = tree.nodes.new("ShaderNodeTexImage")
+        backing.name = "sdwa5-front-texture"
+    backing.image = texture.image
+    backing.extension = "EXTEND"
+    tree.links.new(backing.outputs["Alpha"], tree.nodes["Principled BSDF"].inputs["Alpha"])
 
     return material
 

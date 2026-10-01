@@ -92,7 +92,7 @@ final class EventTest extends TestCase
 
         self::assertSame(['psl', 'innschleife'], array_keys($event->brings));
         self::assertSame(12, $event->brings['psl']['concert-audio-esx']);
-        self::assertSame(1, $event->brings['psl']['deco-panel-9x1-8']);
+        self::assertSame(1, $event->brings['psl']['deco-panel-8x2-03']);
         self::assertSame(['wsx-18' => 4, 'sbh-18' => 4, 'kicker-15' => 4, 'sub-60x60' => 0, 'tms2' => 2, 'tms4' => 1], $event->brings['innschleife']);
     }
 
