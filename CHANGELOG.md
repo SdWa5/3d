@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.125.1] - 2026-10-01
+
+### Changed
+
+- **`TODO.md` compacted from 1062 lines to 568.** Every open row is kept, and the history the CHANGELOG already holds is
+  cut from the detail blocks. The order list no longer names SWP-3, which closed in 0.100.0, and the SWP section and
+  CVR-3's block are gone with it. Where two texts disagreed the newer one is kept, so GEO-14 is P2 and GEO-9 is P1.
+  Tables and sections are sorted by priority as the file's own rules ask, and the GEO-14 row no longer breaks its table
+  on an unescaped pipe.
+- CVR-6 no longer waits on CVR-5, which shipped. TOOL-21 waits on TOOL-20 alone, since the repository went public and
+  billing is gone. TOOL-16 states the command's current 1571 lines, and TOOL-20 the local suite at 11 min 25 s.
+- The negative result on splitting a tops row moved from GEO-2's block to INFO-3. SPEC-3 states the Varytec's 1.6 m
+  outrigger spread and that we own two stands.
+
 ## [0.125.0] - 2026-10-01
 
 ### Added
