@@ -36,7 +36,7 @@ final class CandidateCheck
      *
      * @return array{cabinets: int, fingerprint: string, faults: list<Fault>}|string
      */
-    public static function compileYaml(string $yaml, array $devices): array|string
+    public static function compileYaml(string $yaml, array $devices, ?RoomBounds $room = null): array|string
     {
         try {
             /** @var array<string, mixed> $data */
@@ -50,6 +50,11 @@ final class CandidateCheck
         $errors = Violation::errorsIn($result['violations']);
         if ([] !== $errors) {
             return $errors[0]->message;
+        }
+
+        $roomProblem = $room?->problem($result['placed']);
+        if (null !== $roomProblem) {
+            return $roomProblem;
         }
 
         // **THE TWO CHECKS THAT NAME A CABINET NO LONGER REFUSE — THEY REPORT.** A rig that floats a top or buries

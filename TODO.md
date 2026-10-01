@@ -23,7 +23,7 @@ file: 551 of the sweep's refusals were that one message.
 comes out does not matter at all unless a parameter limiting the width is explicitly passed. That is CVR-8, **built**
 together with CVR-7, and no generated scene carries a width any more.
 
-Where that stands: bare `scene:stack` writes **166 scenes**, and the committed inventories hold **2675 scenes**, every stack's sub/top transition
+Where that stands: bare `scene:stack` writes **166 scenes**, and the committed inventories hold **2220 scenes**, every stack's sub/top transition
 **aimed at 2.5 m** and its miss written on the file where it misses, every refusal named, and every shape rule stated in
 **metres rather than in cabinet counts**. What is still refused is geometry and duplicates — grouped below by cause.
 
@@ -100,7 +100,7 @@ the item: **a priority argued from a measurement expires when the measurement do
 single release.
 
 1. **SWP-3**, sweep configuration and system grouping. After SWP-2, since a seventh axis with three values on it is
-   the thing that makes the enable/disable surface worth building — and **the directory is now 2675 files**, which is
+   the thing that makes the enable/disable surface worth building — and **the directory is now 2220 files**, which is
    the half of SWP-3 that has stopped being a preference.
 2. **SYM-3 and GEO-9**, both raised to P1 by the owner. Placement breadth and the two missing shapes. SYM-3 did **not**
    fall out of SWP-2 as this list expected: `tops-shared` shares the pool, where SYM-3 needs a row bridging two walls,

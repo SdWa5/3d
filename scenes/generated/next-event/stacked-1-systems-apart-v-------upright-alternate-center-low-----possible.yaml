@@ -5,12 +5,13 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=upright --systems=systems-apart --order=ours,psl,innschleife
+#   bin/console scene:stack --room-width=13 --room-height=4 --system-interface=innschleife:1.6
+#     --system-target=innschleife:1.75 --orientation=upright --systems=systems-apart --order=ours,psl,innschleife
 #     --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12
 #     --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
 #     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
-#     --quantity=tms2:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
-#     --from=kicker-15 --from=achenbach-18 --from=tms4 --from=tecnare-m2122 --from=concert-audio-ef6
+#     --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx
+#     --from=kicker-15 --from=achenbach-18 --from=top-70x93 --from=tecnare-m2122 --from=concert-audio-ef6 --from=tms2
 #     --from=eighteensound-2way-15 --stacks=1 --align=center --low-end=low --shape=v --mirror-style=alternate --id=stacked
 #     --into=next-event
 #
@@ -33,14 +34,14 @@
 #
 # Subs reach 2.36 m against a 2.0 m interface. The stack is 3.14 m of cabinet.
 #
-# main-innschleife — innschleife, 14 cabinets in 4 rows:
+# main-innschleife — innschleife, 15 cabinets in 4 rows:
 #
 #   1  4× sbh-18 + 1× wsx-18                                                    2.85 m wide
 #   2  3× wsx-18 + 1× kicker-15 at 64 mm gaps                                  2.852 m wide
 #   3  3× kicker-15                                                              2.89 m wide
-#   4  2× tms4                                                                   1.02 m wide
+#   4  1× tms2 + 1× top-70x93 + 1× tms2                                         1.6 m wide
 #
-# Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
+# Subs reach 2.87 m against a 1.6 m interface. The stack is 3.8 m of cabinet.
 #   * the 3× kicker-15 row is 2.890 m on a 2.852 m row, so it overhangs 19 mm each side
 #
 id: stacked-1-systems-apart-v-------upright-alternate-center-low-----possible
@@ -103,7 +104,7 @@ placements:
         - device: concert-audio-ef6
           count: 5
 
-  # innschleife, 14 cabinets in 4 rows
+  # innschleife, 15 cabinets in 4 rows
   - id: main-innschleife
     at: [4.4985, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -115,8 +116,9 @@ placements:
         distance_m: 2.0
         height_m: 1.8
     stack:
-      interface_height_m: 2.0
+      interface_height_m: 1.6
       max_sub_height_m: 3.0
+      target_sub_height_m: 1.75
       gap_m: 0.02
       slide_slack_m: .inf
       shape: v
@@ -124,5 +126,7 @@ placements:
         - wsx-18
         - sbh-18
         - kicker-15
-        - tms4
+        - top-70x93
+        - device: tms2
+          aim: near
 

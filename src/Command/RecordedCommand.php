@@ -72,11 +72,17 @@ final class RecordedCommand
 
         foreach ([
             'min-width', 'max-height', 'interface-height', 'max-sub-height', 'target-sub-height', 'gap', 'at', 'split',
-            'clearance',
+            'clearance', 'room-width', 'room-height',
         ] as $option) {
             $value = $input->getOption($option);
             if (null !== $value && (string) $value !== (string) ($defaults[$option] ?? null)) {
                 $parts[] = sprintf('--%s=%s', $option, $value);
+            }
+        }
+        // Record the resolved numbers rather than the editable event id.
+        foreach (['system-interface', 'system-target'] as $option) {
+            foreach ((array) $input->getOption($option) as $value) {
+                $parts[] = '--'.$option.'='.$value;
             }
         }
         // **THE MODE, NOT THE CABINETS IT RESOLVED TO.** `--orientation=turned` means "every sub", and writing the

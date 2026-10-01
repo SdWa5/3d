@@ -1152,13 +1152,13 @@ one command:
 | `sdwa5/` | ours alone | 66 |
 | `sepp/` | Sepp's alone | 7 |
 | `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 422 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 480 |
-| `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 95 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts they stated. Two rosters in one run | 33 |
+| `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 87 |
 | `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6 | 16 |
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate, so it writes 166 today against `next-event`'s 480. See below.
+One system has nothing to separate, so it writes 166 today against `next-event`'s 33. See below.
 
 **`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
 which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
@@ -1170,6 +1170,29 @@ whoever gets specced next.
 inventing a `system:` field to serve a sweep would be inventing a property to serve a layout. What the default subset
 does is make that gap cheap — a grouping stated at invocation time rather than in the specs, which is what SWP-3's
 second ask was really after.
+
+#### Event rooms and system preferences
+
+`events/next-event.yaml` saves the room at 13 m wide and 4 m high. Add `--event=next-event` to each next-event
+sweep. `--room-width` and `--room-height` can tighten these limits. They cannot loosen an event's limits.
+The check uses every compiled device's world box, so it includes space between stacks, rotated cabinets and
+flown equipment. A rig outside the room is refused before writing, including a rig otherwise marked impossible.
+
+```bash
+bin/console scene:stack --owner=innschleife --roster=innschleife-next-event --event=next-event
+bin/console scene:stack --owner=psl --roster=psl-next-event --event=next-event
+bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife \
+  --roster=psl-next-event --roster=innschleife-next-event --event=next-event \
+  --into=next-event --order=ours,psl,innschleife
+```
+
+The event gives Innschleife sub walls a 1.6 m interface and a 1.75 m target. A wall containing subs from several
+owners keeps the ordinary defaults. Borrowed tops do not change which system owns the sub wall.
+`--system-interface=OWNER:METRES` and `--system-target=OWNER:METRES` can state these preferences directly.
+
+Recorded commands save the resolved room dimensions and system preferences rather than the editable event id.
+Replaying an old scene therefore keeps its limits even when the event file changes. These limits belong to scene
+generation. Editing a scene by hand does not add a room check to `scene:build`.
 
 #### Rosters — what a system brings, against what it owns
 
@@ -1504,6 +1527,9 @@ so block and stereo alignment have nothing left to spread it into.
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 | `--low-end=MODE` | repeatable: `low` or `central`. Where the lowest-reaching cabinets belong. Default both — **one scene each**. `low` puts them on the floor, `central` pulls them onto the centre line even when that costs a row, which is what stacks two SKRAMs one above the other. See [where the low end goes](#where-the-low-end-goes) |
+| `--event=ID` | Applies a saved room and system preferences from `events/` |
+| `--room-width=M`, `--room-height=M` | Hard limits on the entire compiled rig. An event's limits can be tightened but not loosened |
+| `--system-interface=OWNER:M`, `--system-target=OWNER:M` | Repeatable preferences for sub walls belonging to one owner. Pooled walls keep the ordinary defaults |
 | `--roster=ID` | repeatable: a file in `rosters/` stating what a system brings to one event, overriding the specs' quantities for this run. **A count of zero means left at home**, which is a different fact from a device the roster never names. The roster's id names the folder |
 | `--quantity=DEVICE:COUNT` | repeatable: build with this many instead of the number the spec states. **Requires `--into=NAME`** — it changes the rig without changing its name, so the folder has to be said out loud |
 | `--group=NAME:owner+owner` | repeatable: which owners are **one sound system**. Default `ours:sdwa5+sepp`, so a separated rig gives us one wall rather than two |
@@ -1596,7 +1622,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2675 scenes across eleven runs, and the largest single run is `next-event` at **506** candidates. That folder holds **480** files, 438 possible and 42 impossible, 77 pooled, 197 with the systems apart and 206 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2220 scenes across eleven runs, and the largest committed inventory is `gmss-sdwa5` at **482** files. The room-limited `next-event` folder holds **33** files, 30 possible and 3 impossible, 3 pooled, 20 with the systems apart and 10 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1619,13 +1645,12 @@ stays exactly as it was, because 433 written scenes record their own regeneratio
 **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
 `tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **854 `systems-apart`, 930 `tops-shared` and 891 `pooled`**, for **2675** — within 9 % of each
-other, which is the measurement this paragraph exists to lose if the axis ever became mostly one rig.
+values come to **677 `systems-apart`, 734 `tops-shared` and 809 `pooled`**, for **2220** . All three values remain represented after the room limits.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 295 of the sweep across five folders: `gmss` 111, `innschleife-next-event` 95, `sdwa5` 66,
+rigs are 287 of the sweep across five folders: `gmss` 111, `innschleife-next-event` 87, `sdwa5` 66,
 `psl-next-event` 16 and `sepp` 7. **`sdwa5-sepp` is single-owner too**, by grouping rather than by ownership, which
 is why it writes 166 `pooled` scenes and no separated ones.
 
