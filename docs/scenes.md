@@ -2256,8 +2256,13 @@ how far a `truss`/`tower` device is cranked:
 ```
 
 The compiler places a copy of the spec that is 3.742 m tall, so contact, the overlap check, the room check and the
-report all read the cranked height. Blender instances the one model built at full extension and scales it along
-its own height. Any other device, and any height above the spec's, is refused.
+report all read the cranked height. Any other device, any height above the spec's, and for a `shape: mast` any
+height below its collapsed height, is refused. Ours cranks down to 2.225 m.
+
+In Blender a mast slides its stages. Each height gets a copy of the model in which stage k of N is lowered by k/N
+of the loss, so the legs, the winch and the adapter keep their size. The copies share their meshes with the model.
+A tower still drawn as a box, such as GMSS's, is instanced from the full-extension model and scaled along its own
+height as before.
 
 ### A deco backdrop behind a generated rig
 
@@ -2277,14 +2282,15 @@ backdrop:
 
 | Placement | Where, and why there |
 |---|---|
-| `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the unmodelled outriggers spread to 1.6 m |
+| `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the legs spread to 1.6 m and no scene check sees them |
 | `backdrop-truss` | five segments flush, 10 m, centred on the rig. It rests at the ceiling less its own 0.258 m, so at 3.742 m under the 4 m room, with the towers cranked to that |
 | `backdrop-deco` | flush on the truss's front face. Its top goes up to the ceiling, but at most half the panel stands above the truss's top. Under the next event's 4 m ceiling the truss already touches it, so the panel's top is the truss's top and its bottom is at 2.2 m. With no ceiling the panel's top is at 4.258 + 0.9 = 5.158 m |
 
 The truss and the panel share `fly.id: backdrop`, so the report adds them up as one bar.
 
-**Four refusals, each a fact about the gear rather than an arrangement.** A panel wider than the truss, more segments
-than are owned, a panel that would reach the floor, and a tower load over the tower's `max_load_kg`. Our Varytec
+**Five refusals, each a fact about the gear rather than an arrangement.** A panel wider than the truss, more segments
+than are owned, a ceiling that would need the towers below their collapsed height, a panel that would reach the
+floor, and a tower load over the tower's `max_load_kg`. Our Varytec
 stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 24.3 kg, so each tower carries 35.4 kg,
 and the panel may weigh up to 123.5 kg. A run that brings a deco device with no truss named is refused too, and
 `--backdrop=TRUSS:SEGMENTS:TOWER` states one without an event.

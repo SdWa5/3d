@@ -728,13 +728,14 @@ final class SpecValidator
             ...$this->validateTruss($spec),
             ...$this->validateMovingHead($spec),
             ...$this->validateScaffold($spec),
+            ...$this->validateMast($spec),
         ];
     }
 
     /**
      * Each shape that is not a hexahedron needs its own block, and refuses everyone else's.
      *
-     * One loop rather than the same six lines in three methods: the rule is identical for all of them, and it is
+     * One loop rather than the same six lines in four methods: the rule is identical for all of them, and it is
      * the rule the taper fields already follow — a shape's extra geometry is stated outright or the spec is wrong.
      *
      * @return list<string>
@@ -745,6 +746,7 @@ final class SpecValidator
             'truss' => [Shape::Truss, $spec->truss],
             'moving_head' => [Shape::MovingHead, $spec->movingHead],
             'scaffold' => [Shape::Scaffold, $spec->scaffold],
+            'mast' => [Shape::Mast, $spec->mast],
         ];
 
         $messages = [];
@@ -867,6 +869,141 @@ final class SpecValidator
                 $scaffold->braceDiameter,
                 $scaffold->postDiameter,
             );
+        }
+
+        return $messages;
+    }
+
+    /**
+     * A wind-up stand's tubes have to nest inside each other and inside the column, and its stages have to overlap.
+     *
+     * **The overlap check is the one that earns its place.** A tube length and a stage count that leave a stage
+     * standing out of the one below it on a few centimetres would draw a stand that falls apart at full extension.
+     * The legs are held to the footprint the datasheet states, because the spread is what has to be kept clear.
+     *
+     * @return list<string>
+     */
+    private function validateMast(DeviceSpec $spec): array
+    {
+        $mast = $spec->mast;
+        if (null === $mast) {
+            return [];
+        }
+
+        $messages = [];
+        $height = $spec->dimensions->height;
+
+        foreach ([
+            'transport_length_m' => $mast->transportLength,
+            'hub_height_m' => $mast->hubHeight,
+            'spigot_diameter_m' => $mast->spigotDiameter,
+            'base_spread_m' => $mast->baseSpread,
+            'leg_width_m' => $mast->legWidth,
+            ...(null === $mast->adapter ? [] : [
+                'adapter.length_m' => $mast->adapter->length,
+                'adapter.bar_m' => $mast->adapter->bar,
+                'adapter.height_m' => $mast->adapter->height,
+                'adapter.clamp_spacing_m' => $mast->adapter->clampSpacing,
+            ]),
+        ] as $key => $value) {
+            if ($value <= 0.0) {
+                $messages[] = "geometry.mast.{$key} must be greater than 0, got {$value}";
+            }
+        }
+        if ([] !== $messages) {
+            return $messages;
+        }
+
+        if (Origin::BottomCenter !== $spec->origin) {
+            $messages[] = "geometry.mast stands on the floor and needs origin 'bottom-center', not '{$spec->origin->value}'";
+        }
+
+        $sections = $mast->sections;
+        if (count($sections) < 2) {
+            $messages[] = 'geometry.mast.sections_m needs a sleeve and at least one stage, got '.count($sections);
+        }
+        foreach ($sections as $index => $diameter) {
+            if ($diameter <= 0.0) {
+                $messages[] = "geometry.mast.sections_m[{$index}] must be greater than 0, got {$diameter}";
+            } elseif ($index > 0 && $diameter >= $sections[$index - 1]) {
+                $messages[] = sprintf(
+                    'geometry.mast.sections_m[%d] (%s) does not fit inside the tube below it (%s)',
+                    $index,
+                    $diameter,
+                    $sections[$index - 1],
+                );
+            }
+        }
+        if ([] !== $messages) {
+            return $messages;
+        }
+
+        $column = min($spec->dimensions->width, $spec->dimensions->depth);
+        if ($sections[0] > $column + self::FIT_TOLERANCE_M) {
+            $messages[] = sprintf('geometry.mast.sections_m[0] (%s) is wider than the %s m column', $sections[0], $column);
+        }
+        if ($mast->spigotDiameter >= $sections[count($sections) - 1]) {
+            $messages[] = sprintf(
+                'geometry.mast.spigot_diameter_m (%s) does not fit the top stage (%s)',
+                $mast->spigotDiameter,
+                $sections[count($sections) - 1],
+            );
+        }
+
+        if ($mast->collapsedHeightM() >= $height) {
+            $messages[] = sprintf(
+                'geometry.mast collapses to %.3f m, which is not below its %s m full extension',
+                $mast->collapsedHeightM(),
+                $height,
+            );
+        }
+        if ($mast->hubHeight >= $mast->sleeveBottomM() + $mast->tubeLengthM()) {
+            $messages[] = sprintf(
+                'geometry.mast.hub_height_m (%s) is above the sleeve, which ends at %.3f m',
+                $mast->hubHeight,
+                $mast->sleeveBottomM() + $mast->tubeLengthM(),
+            );
+        }
+        if ($mast->overlapM($height) < Mast::MIN_OVERLAP_M) {
+            $messages[] = sprintf(
+                'geometry.mast: at %s m each stage overlaps the one below by %.3f m, under the %.2f m a stage needs.'
+                .' Add a section or lengthen the tubes',
+                $height,
+                $mast->overlapM($height),
+                Mast::MIN_OVERLAP_M,
+            );
+        }
+
+        if ($mast->legs < 3 || $mast->legs > 8) {
+            $messages[] = "geometry.mast.legs must be 3 to 8, got {$mast->legs}";
+        }
+        if ($mast->baseSpread < max($spec->dimensions->width, $spec->dimensions->depth)) {
+            $messages[] = sprintf('geometry.mast.base_spread_m (%s) is narrower than the column', $mast->baseSpread);
+        }
+
+        $adapter = $mast->adapter;
+        if (null !== $adapter) {
+            if ($adapter->length > $mast->baseSpread) {
+                $messages[] = sprintf(
+                    'geometry.mast.adapter.length_m (%s) reaches past the %s m base spread',
+                    $adapter->length,
+                    $mast->baseSpread,
+                );
+            }
+            if ($adapter->clampSpacing >= $adapter->length) {
+                $messages[] = sprintf(
+                    'geometry.mast.adapter.clamp_spacing_m (%s) puts the clamps off the %s m bar',
+                    $adapter->clampSpacing,
+                    $adapter->length,
+                );
+            }
+            if ($adapter->height <= 2 * $adapter->bar) {
+                $messages[] = sprintf(
+                    'geometry.mast.adapter.height_m (%s) leaves no spigot under a %s m bar and its clamps',
+                    $adapter->height,
+                    $adapter->bar,
+                );
+            }
         }
 
         return $messages;

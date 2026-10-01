@@ -44,6 +44,7 @@ final class DeviceSpec
         public readonly ?Truss $truss,
         public readonly ?MovingHead $movingHead,
         public readonly ?Scaffold $scaffold,
+        public readonly ?Mast $mast,
         public readonly Origin $origin,
         public readonly float $chamfer,
         public readonly string $color,
@@ -132,6 +133,9 @@ final class DeviceSpec
                 : null,
             scaffold: ($scaffoldSection = $geometry->optionalSection('scaffold')) !== null
                 ? Scaffold::fromReader($scaffoldSection)
+                : null,
+            mast: ($mastSection = $geometry->optionalSection('mast')) !== null
+                ? Mast::fromReader($mastSection)
                 : null,
             origin: $geometry->optionalEnum('origin', Origin::class, Origin::BottomCenter),
             chamfer: $geometry->optionalFloat('chamfer_m', 0.0) ?? 0.0,
@@ -229,6 +233,7 @@ final class DeviceSpec
             truss: $this->truss,
             movingHead: $this->movingHead,
             scaffold: $this->scaffold,
+            mast: $this->mast,
             origin: $this->origin,
             chamfer: $this->chamfer,
             color: $this->color,
@@ -394,6 +399,9 @@ final class DeviceSpec
             // with them, so its bounding box is legitimately a little under its declared width and the
             // checker needs to know by how much it may be.
             'chamfer_m' => $this->chamfer,
+            // Also for tools/check-glb.py: a wind-up stand's legs reach past its mast column to this spread, and
+            // nowhere else. Null for everything that is not a mast.
+            'base_spread_m' => $this->mast?->baseSpread,
             'weight_kg' => $this->weightKg,
             'flyable' => $this->flyable,
             'rigging_points' => array_map(

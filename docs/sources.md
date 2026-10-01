@@ -82,7 +82,7 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `truss-tower-4m` | — (factory stand) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, supplied by the owner 2026-08-17 | **Varytec Wind Up 85 kg identified**, replacing an assumed Global Truss ST-132. 25 kg, max height 4.0 m, **transport 1.75 m**, **max load 85 kg**, min load 25 kg, 1 3/8″ receiver, crossbar 1300 × 35 × 35 mm, base spread 1.6 m, TÜV |
 | | | | The owner | That we have **2 telescopic stands at 4 m** |
 | `truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
-| `tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our ST-132 |
+| `tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our Varytec Wind Up |
 | `mac-2000-performance-ii` | — (factory fixture) | `datasheet` | [Martin MAC 2000 Performance II](https://www.martin.com/en-US/products/mac-2000-performance-ii) | 408 × 490 × 743 mm head straight up, 39.5 kg, 1200 W lamp, 540°/267° pan and tilt |
 | | | | A message from GMSS | That they have **4 of them** — "4pcs Martin mac performance 2", read as the Performance II |
 | `geruest-krause-ah7` | — (factory scaffold) | `datasheet` | [Krause Plattformgerüst AH7](https://www.bauhaus.at/kleingerueste/krause-plattformgeruest-ah7/p/29059229) | Arbeitshöhe 7 m, platform 1.50 × 0.60 m rated 200 kg, frame field 1.50 × 0.65 m, ~84 kg |
@@ -146,8 +146,9 @@ FD32 are within a few millimetres, which is what makes it a class rather than a 
 | 1.5 m | 8.33 (published 8.2) |
 | 3.0 m | 14.10 (published 14.1) |
 
-The 2.55 kg intercept is the end connectors, which is why a short segment is so heavy per metre. Our 2 m segment
-is therefore **10.3 kg** and GMSS's 9 m run **37.2 kg** — though bolted up from three 3 m pieces it would be
+The 2.55 kg intercept is the end connectors, which is why a short segment is so heavy per metre. The fit gave our
+2 m segment **10.3 kg**, and the published F33200 figure that replaced it is **9.3 kg**, see below. GMSS's 9 m run
+is still the fit's **37.2 kg** — though bolted up from three 3 m pieces it would be
 42.3 kg, since each segment brings its own pair of connectors. The 37.2 is what is modelled; the 42.3 is what
 would be on the truck.
 
@@ -158,7 +159,7 @@ bounding box is that plus one chord diameter: **257.8 mm tall, 290 mm across**, 
 `bay_length_m` — the pitch of the zigzag — has **no source at all**. Manufacturers publish tube sizes and weights
 but rarely the brace pitch. It changes how many diagonals are drawn and nothing about the box or the weight.
 
-### The towers are placeholders, and look it
+### The towers: ours is drawn from its photographs, GMSS's is a box
 
 **THE TOWER WAS THE WRONG PRODUCT WITH THE RIGHT NUMBERS, AND THAT IS THE INSTRUCTIVE PART.** It was modelled as a
 Global Truss ST-132 on the reasoning that the class is standardised. The real machine is a Varytec Wind Up 85 kg, and
@@ -177,15 +178,16 @@ three to within 0.13 kg. At 2 m it said 10.25. The published F33200 figure is **
 the one length nobody had published, and across five segments that is 5 kg. A derivation that matches its own inputs
 can still be wrong between them.
 
-The older reasoning, kept because it is what got replaced: `truss-tower-4m` matched the ST-132 on the stated
-description, so its **weight and heights were
-published**: 25 kg, 4.0 m max, 1.8 m min, 100 kg load. What is estimated is its *shape* — a telescopic mast on
-folding outriggers is neither a hexahedron nor a truss, so it is drawn as a 0.203 m column, which is the folded
-base size. **The outriggers are not modelled**: unfolded they spread to 1.499 × 1.499 m, which is the footprint
-that actually has to be kept clear on a stage. So the footprint these specs report is the mast's — not the working
-footprint, and not the folded transport size either. It is the one number in them to be careful with.
+**SINCE 0.134.0 OUR STAND IS DRAWN AS WHAT IT IS**, a `shape: mast` from the bundle's Thomann photographs, looked
+at on 2026-10-01. Three black legs hinge from a hub collar, struts run from a lower collar, two round chrome stages
+slide out of the sleeve, a winch with a crank sits on the back, and the Varytec 35 mm truss adapter is on top. The
+height, spread, transport length and receiver are the datasheet's. The leg count, the round mast and the winch's
+side are the photographs'. Every diameter, the hub height and the adapter's sizes are estimated off the
+photographs. The 4.0 m is taken at the adapter's top face, because the datasheet does not say whether it includes
+an adapter. The legs are drawn but stay outside the box the scene checks read, see
+[spec-format.md](spec-format.md#mast).
 
-`tower-5m` has no datasheet behind it at all. Its 33 kg is our ST-132's published 25 kg at 4 m scaled by
+`tower-5m` has no datasheet behind it at all. Its 33 kg is our Varytec Wind Up's published 25 kg at 4 m scaled by
 height into a taller class — an inference from one datapoint in a neighbouring class, and the first number to
 replace if GMSS ever names the brand.
 

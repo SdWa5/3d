@@ -21,6 +21,7 @@ from lib import (  # noqa: E402  (after sys.path)
     export,
     fixture,
     geometry,
+    mast,
     materials,
     mesh_import,
     scaffold,
@@ -28,12 +29,15 @@ from lib import (  # noqa: E402  (after sys.path)
 )
 
 # Shapes that are not loudspeaker cabinets, each with its own builder. A table rather than a chain of branches:
-# there are three now, and the next one should be a line here rather than another arm. Mirrors
+# there are five now, and the next one should be a line here rather than another arm. A builder returns its body, or
+# its body and the parts that have to stay separate objects, such as a wind-up stand's sliding stages. Mirrors
 # `App\Spec\Shape::isCabinet()`, which is the PHP side of the same question.
 OPEN_FRAME_BUILDERS = {
     "truss": truss.build,
     "moving-head": fixture.build,
     "scaffold": scaffold.build,
+    # A wind-up stand: legs, winch and adapter on a mast whose stages a scene slides down rather than squashes.
+    "mast": mast.build,
     # A transporter, drawn as its own outline with its load bay caged inside it. Stated by the owner: the vans need
     # wire-type models so a pack can be planned, and a solid van would hide the rig it is there to carry.
     "load-bay": bay.build,
@@ -55,8 +59,10 @@ def build(plan):
         # chamfer to round, no drivers behind a baffle and no coverage cone. Everything below the branch still
         # applies — the origin shift, the rigging markers and the estimated marker are about the device rather
         # than about its being a cabinet.
-        body = open_frame(plan, material_set)
+        built = open_frame(plan, material_set)
+        body, parts = built if isinstance(built, tuple) else (built, [])
         collection.objects.link(body)
+        extras += parts
     elif plan.get("mesh_override"):
         # A real mesh replaces the generated shell entirely — including the grille and handle
         # recesses, which it already has modelled far better than the builder could.

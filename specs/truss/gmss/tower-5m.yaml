@@ -6,15 +6,16 @@
 # `shape: box`, for the same reason as `truss-tower-4m.yaml`: a telescopic mast on outriggers is neither a
 # hexahedron nor a truss, and a narrow column is a harmless placeholder where a solid truss would not be.
 #
-# THE WEIGHT IS THE WEAKEST NUMBER HERE and it is worth saying so plainly. Our own 4 m stand is a Global Truss
-# ST-132 at a published 25 kg. A 5.2 m stand is the next class up — taller mast, more sections, a bigger base — and
+# THE WEIGHT IS THE WEAKEST NUMBER HERE and it is worth saying so plainly. Our own 4 m stand is a Varytec Wind Up
+# at a published 25 kg. A 5.2 m stand is the next class up — taller mast, more sections, a bigger base — and
 # scaling 25 kg by height alone gives 32.5, which is why 33 is written below. That is an inference from one
 # datapoint in a neighbouring class, not a figure anybody published for these towers. It is the number to replace
 # first if GMSS ever names the brand.
 #
-# MAST SECTION: 0.203 m square, taken from the ST-132's folded base for want of anything better. A 5.2 m tower's
-# mast is probably a little heavier in section than a 4 m one; nothing states it. THE OUTRIGGERS ARE NOT MODELLED,
-# the same as ours — so this spec's footprint is the mast's and not the working footprint.
+# MAST SECTION: 0.203 m square, the box our own stand was drawn as before 0.134.0, for want of anything better. A
+# 5.2 m tower's mast is probably a little heavier in section than a 4 m one; nothing states it. THE OUTRIGGERS ARE
+# NOT MODELLED, because nothing names the model, so this spec's footprint is the mast's and not the working one.
+# Ours is drawn as a `shape: mast` with its legs since 0.134.0.
 id: tower-5m
 name: "GMSS Tower — 5.2 m"
 category: truss
@@ -38,7 +39,7 @@ appearance:
   color: "#9A9EA3"
 
 physical:
-  # ESTIMATE by comparison, not a published figure: our 4 m ST-132 is 25 kg, scaled by height for a taller class.
+  # ESTIMATE by comparison, not a published figure: our 4 m Varytec Wind Up is 25 kg, scaled by height for a taller class.
   weight_kg: 33.0
   handles: [ ]
 
@@ -52,7 +53,7 @@ notes: |
   "max" matters: these telescope, so 5.2 m is the top of a range. A scene standing them lower is stating something
   this spec cannot express — `dimensions_m.height` is the maximum, as it is for our own stand.
 
-  The weight is an inference from our ST-132's published 25 kg at 4 m, scaled by height. Not published for these.
+  The weight is an inference from our Varytec Wind Up's published 25 kg at 4 m, scaled by height. Not published for these.
   NOT MODELLED: the outriggers, so the reported footprint is the mast's rather than the working one.
 
   Two of these carrying `truss-9m` is a goalpost, and at 5.2 m it clears the 3.0 m GMSS stack comfortably.

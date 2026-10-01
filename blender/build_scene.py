@@ -41,6 +41,45 @@ def _append_collection(blend_path, device_id, cache):
     return collection
 
 
+def _cranked(collection, scale_z, cache):
+    """The collection to instance for a stand cranked to `scale_z` of its full height, and the scale to give it.
+
+    **A mast slides its stages, so it gets a collection of its own per height and no scale.** Stretching the
+    instance would squash the legs, the collars and the winch with the mast, and the real stand keeps its base and
+    loses height only between its stages. Stage k of N moves down by k/N of what the stand loses, so every joint
+    keeps the same overlap. The copies share their mesh data with the appended model, so a cranked stand costs a
+    handful of objects and no geometry.
+
+    A collection without stages, such as a tower still drawn as a box, keeps the stretch it always had.
+    """
+    stages = [obj for obj in collection.all_objects if "sdwa5_stage" in obj]
+    if not stages or abs(scale_z - 1.0) < 1e-9:
+        return collection, scale_z
+
+    key = (collection.name, round(scale_z, 6))
+    if key in cache:
+        return cache[key], 1.0
+
+    body = next(obj for obj in collection.all_objects if "sdwa5_mast_stages" in obj)
+    full = float(body["sdwa5_dimensions_m"][1])
+    count = int(body["sdwa5_mast_stages"])
+    drop = full * (1.0 - scale_z)
+
+    cranked = bpy.data.collections.new("%s@%.3fm" % (collection.name, full * scale_z))
+    copies = {obj: obj.copy() for obj in collection.all_objects}
+    for original, copy in copies.items():
+        cranked.objects.link(copy)
+        if original.parent in copies:
+            copy.parent = copies[original.parent]
+        if "sdwa5_stage" in original:
+            copy.location.z -= drop * original["sdwa5_stage"] / count
+    cranked.instance_offset = collection.instance_offset
+    cranked.use_fake_user = True
+    cache[key] = cranked
+
+    return cranked, 1.0
+
+
 def _fault_cages(plan, scene_collection):
     """Draw a red cage around every cabinet the geometry checks object to.
 
@@ -94,9 +133,11 @@ def build(plan):
 
     scene_collection = bpy.context.scene.collection
     cache = {}
+    cranked = {}
 
     for placement in plan["placements"]:
         collection = _append_collection(placement["blend"], placement["device"], cache)
+        collection, scale_z = _cranked(collection, placement.get("scale_z", 1.0), cranked)
 
         instance = bpy.data.objects.new(placement["placement_id"], None)
         instance.instance_type = "COLLECTION"
@@ -115,9 +156,11 @@ def build(plan):
             placement["yaw_deg"],
         )
         instance.rotation_euler = tuple(math.radians(angle) for angle in rotation)
-        # A truss tower cranked below its full extension. The scale is in the instance's own frame, so it
-        # shortens the mast along its height whatever the rotation, and its bottom stays on the slot.
-        instance.scale = (1.0, 1.0, placement.get("scale_z", 1.0))
+        # A truss tower cranked below its full extension. A mast has already slid its stages down and is
+        # instanced at full scale. A tower still drawn as a box is stretched instead. That scale is in the
+        # instance's own frame, so it shortens the column along its height whatever the rotation, and its
+        # bottom stays on the slot.
+        instance.scale = (1.0, 1.0, scale_z)
         instance["sdwa5_device"] = placement["device"]
         scene_collection.objects.link(instance)
 

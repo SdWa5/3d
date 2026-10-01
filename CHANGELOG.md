@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.134.0] - 2026-10-01
+
+### Added
+
+- `shape: mast` for a wind-up stand, with a `mast:` block of tube sections, transport length, hub height, legs,
+  base spread, winch and an optional truss adapter. The validator refuses tubes that do not nest, stages that
+  overlap by less than 0.20 m, a collapsed height not below the full one and an adapter that does not fit.
+- `truss-tower-4m` is a `shape: mast` drawn from the bundle's Thomann photographs. It has three legs to a 1.6 m
+  spread, a chrome sleeve with two stages, a winch with a crank and the Varytec 35 mm truss adapter on top.
+- A black `sdwa5-hardware` material for legs, collars and the winch.
+
+### Changed
+
+- A cranked mast slides its stages in Blender instead of being scaled along its height. Each height gets its own
+  copy of the model, sharing the meshes. A tower drawn as a box still stretches.
+- `plan_version` 6, because the build plan carries the mast block with its worked-out lengths.
+- `tools/check-glb.py` lets a mast's width and depth reach its `base_spread_m`. The model library spaces a mast by
+  its spread.
+- `extend_to_m` below a mast's collapsed height is refused, and so is a backdrop ceiling that would need it. Ours
+  cranks down to 2.225 m.
+- `detail-check` is respaced so the tripod clears its neighbours.
+
+### Fixed
+
+- Front images render without a specular highlight. At the default 0.5 the studio's area lights laid a grey veil
+  over the whole print, which turned the black ground of PSL's deco panel mid grey and washed out its colours.
+- Stale comments and docs that still described the towers as a Global Truss ST-132 or their legs as unmodelled, in
+  `truss-f33-2m`, `tower-5m`, `full-rig-truss`, `docs/sources.md` and `docs/scenes.md`.
+
 ## [0.133.0] - 2026-10-01
 
 ### Changed

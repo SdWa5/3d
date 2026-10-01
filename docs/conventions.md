@@ -117,6 +117,11 @@ Two deliberate consequences:
   unaffected: its side faces stay where they are and only the corners between them go. `tools/check-glb.py`
   is asymmetric for exactly this reason — it refuses any overshoot at 0.1 mm, and allows an undershoot of up
   to the chamfer.
+
+  **A wind-up stand is the one exception, and only in plan view.** A `shape: mast`'s box is its mast column, and
+  its legs reach out to the stated `base_spread_m`. `tools/check-glb.py` lets width and depth reach that spread
+  for such a model. Height and the floor stay strict. Scene checks still read only the column, which is why a
+  backdrop keeps the legs clear by distance, see [spec-format.md](spec-format.md#mast).
 * **Markers do not render.** Rigging markers, the estimated tag and the coverage cone are set to
   render-invisible: they exist to snap to, to nag and to sight along, not to turn up in a preview image
   handed to the crew. It is also what lets them leave the bounding box — the coverage cone reaches ten

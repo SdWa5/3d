@@ -53,7 +53,7 @@ final class BuildPlanTest extends TestCase
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(5, $plan['plan_version']);
+        self::assertSame(6, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
@@ -62,6 +62,7 @@ final class BuildPlanTest extends TestCase
         self::assertNull($plan['geometry']['truss'], 'a cabinet has no tubes');
         self::assertNull($plan['geometry']['moving_head']);
         self::assertNull($plan['geometry']['scaffold']);
+        self::assertNull($plan['geometry']['mast']);
         self::assertNull($plan['geometry']['load_bay'], 'a cabinet has no inside to cage');
         self::assertSame('bottom-center', $plan['geometry']['origin']);
         self::assertSame(0.012, $plan['appearance']['grille']['inset_m']);
@@ -141,6 +142,43 @@ final class BuildPlanTest extends TestCase
 
         self::assertSame('scaffold', $tower['geometry']['shape']);
         self::assertSame(5.000, $tower['geometry']['scaffold']['platform_height_m']);
+    }
+
+    /**
+     * A wind-up stand reaches the plan with its tube lengths worked out, which is the reason `plan_version` went to
+     * 6: the bpy side builds each stage where these say and derives nothing.
+     */
+    public function testAMastCarriesItsWorkedOutLengthsIntoThePlan(): void
+    {
+        $plan = BuildPlan::forSpec(
+            SpecFactory::spec(['geometry' => [
+                'shape' => 'mast',
+                'dimensions_m' => ['width' => 0.203, 'height' => 4.0, 'depth' => 0.203],
+                'chamfer_m' => 0.0,
+                'mast' => [
+                    'sections_m' => [0.060, 0.050, 0.040],
+                    'transport_length_m' => 1.750,
+                    'hub_height_m' => 0.950,
+                    'spigot_diameter_m' => 0.035,
+                    'legs' => 3,
+                    'base_spread_m' => 1.600,
+                    'leg_width_m' => 0.030,
+                    'adapter' => ['length_m' => 0.4, 'bar_m' => 0.04, 'height_m' => 0.12, 'clamp_spacing_m' => 0.24],
+                ],
+            ]]),
+            '/glb',
+            '/blend',
+        );
+
+        $mast = $plan['geometry']['mast'];
+        self::assertSame('mast', $plan['geometry']['shape']);
+        self::assertSame(2, $mast['moving_stages']);
+        self::assertEqualsWithDelta(0.475, $mast['sleeve_bottom_m'], 1e-9);
+        self::assertEqualsWithDelta(1.63, $mast['tube_length_m'], 1e-9);
+        self::assertEqualsWithDelta(0.8875, $mast['travel_m'], 1e-9);
+        self::assertSame(0.24, $mast['adapter']['clamp_spacing_m']);
+        self::assertFalse($mast['winch'], 'a winch is stated, never assumed');
+        self::assertNull($plan['geometry']['truss'], 'one shape, one block');
     }
 
     public function testGrilleFallsBackToTheCabinetColour(): void

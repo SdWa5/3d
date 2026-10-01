@@ -29,22 +29,26 @@
 # and it is unsafe to crank. Nothing in the schema holds a *lower* bound on a load, so it is in the notes.
 #
 # TWO TRUSS ADAPTERS came with the bundle, Varytec 35 mm, for putting a truss on the 1 3/8" receiver. They have no
-# published mass or dimensions and are not specced; they are named here so the inventory is not silently missing a
-# part that a rig needs.
+# published mass or dimensions, so their mass is not in the 25 kg. Since 0.134.0 each stand is drawn with one on top.
 #
-# `shape: box`, AND DELIBERATELY SO. A wind-up stand is a nested telescopic mast on folding outriggers, which is
-# neither a hexahedron nor a truss — it wants a shape of its own and does not have one yet. A 0.203 m column is a
-# harmless placeholder in a way a solid truss never would be: it occludes almost nothing, and at 4 m tall in a
-# render it reads as roughly the right thing in roughly the right place.
+# `shape: mast`, drawn from the bundle's Thomann photographs, looked at on 2026-10-01: three black square legs hinged
+# from a hub collar, struts from a lower collar where the chrome sleeve ends, two round chrome stages out of it, a
+# black winch with a crank on its back, and the truss adapter on top. See docs/spec-format.md#mast.
 #
-# **WHAT THE BOUNDING BOX IS, AND WHY IT IS WRONG FOR PACKING.** It is the MAST at its full 4 m extension. That is
-# right for a rig render and actively misleading for a load: this stand **transports at 1.75 m**, and the packed
-# convoy render duly showed a 4 m mast standing on a 1 m trailer. A device has an erected size and a transport size
-# and this schema has one field for both. Filed as SPEC-15.
+# **WHAT THE BOUNDING BOX IS.** The mast column at its full 4 m extension, as before, so placement and the overlap
+# sweep read the same box they always did. The legs reach outside it to the published 1.6 m spread, and no scene
+# check sees them. A backdrop stands its towers 0.8 m behind the rig for that reason, see src/Scene/StackBackdrop.php.
+# The box is still wrong for packing, because the stand transports at 1.75 m. Filed as SPEC-15.
 #
-# THE OUTRIGGERS ARE NOT MODELLED: spread they reach 1.6 m, which is what has to be kept clear on a stage and is
-# stated here rather than drawn. So the footprint this spec reports is the mast's, not the working footprint, and
-# not the transport size either. That is the one number to be careful with in the catalog.
+# WHERE EACH FIGURE COMES FROM:
+#
+#   height 4.0 m, spread 1.6 m, transport 1.75 m, 35 mm receiver   datasheet
+#   three legs, a round mast of three tubes, the winch at the back   photographs
+#   every diameter, the hub height, the adapter's sizes              estimated off the photographs
+#
+# The 4.0 m is taken at the adapter's top face, where the truss rests, because the datasheet does not say whether it
+# includes one. The stand cranks down to 2.225 m, the 1.75 m transport length on the 0.475 m strut collar, and no
+# lower. A scene that asks for less is refused.
 id: truss-tower-4m
 name: "Varytec Wind Up 85 kg — 4 m truss lift"
 category: truss
@@ -56,16 +60,30 @@ build: original
 # No `clone_of`: a factory stand copies nothing. Manufacturer and datasheet are in the notes and docs/sources.md.
 
 provenance:
-  # The mast section is inferred from the published folded base; the height and weight are published outright.
+  # The height, spread and transport length are published. Every tube, the hub and the adapter are estimated off
+  # the photographs, so the model keeps its estimated marker.
   dimensions: estimated
   weight: datasheet
 
 geometry:
-  shape: box
-  # The mast at full extension. See the header for what this box does and does not include.
+  shape: mast
+  # The mast column at full extension. See the header for what this box does and does not include.
   dimensions_m: { width: 0.203, height: 4.000, depth: 0.203 }
   origin: bottom-center
-  chamfer_m: 0.004
+  chamfer_m: 0.0
+  mast:
+    sections_m: [ 0.060, 0.050, 0.040 ]
+    transport_length_m: 1.750
+    hub_height_m: 0.950
+    spigot_diameter_m: 0.035
+    legs: 3
+    base_spread_m: 1.600
+    leg_width_m: 0.030
+    # One leg straight back, +Y, away from the rig. The other two then reach 0.4 m towards it, half the 0.8 m a
+    # backdrop leaves.
+    leg_yaw_deg: 90
+    winch: true
+    adapter: { length_m: 0.400, bar_m: 0.040, height_m: 0.120, clamp_spacing_m: 0.240 }
 
 appearance:
   # Mill-finish aluminium, as the truss it carries.
@@ -98,11 +116,14 @@ notes: |
   IT TRANSPORTS AT 1.75 m and is modelled at its erected 4 m, because one field carries both. That is why the packed
   convoy render showed a mast standing out of a trailer. See SPEC-15.
 
-  THE OUTRIGGERS SPREAD TO 1.6 m and are not modelled. That is the footprint to keep clear on a stage, and it is
-  eight times the 0.203 m column this spec reports.
+  THE LEGS SPREAD TO 1.6 m. That is the footprint to keep clear on a stage, eight times the 0.203 m column this spec
+  reports, and since 0.134.0 the model draws it. Three legs, one straight back, as the photographs show.
+
+  CRANKED DOWN, THE STAGES SLIDE. A scene that sets `extend_to_m` keeps the base, the legs and the winch as they are,
+  and each stage drops by its share. 2.225 m is the lowest it goes.
 
   THE RECEIVER IS 1 3/8" and takes a 35 mm speaker flange directly. Two Varytec 35 mm truss adapters came with the
-  bundle for mounting truss instead; they are not specced, having no published mass or dimensions.
+  bundle for mounting truss instead. They are drawn on top of the stands, and their mass is unpublished.
 
   THE CROSSBAR that came with each stand is 130 x 3.5 x 3.5 cm. Not specced separately either — it is part of the
   stand as bought rather than a device in its own right.

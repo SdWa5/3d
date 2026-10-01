@@ -37,8 +37,9 @@ final class BuildPlan
             // `geometry.truss`, which the bpy side branches on to build tubes instead of a shell; 3 added
             // `moving_head` and `scaffold`, which do the same for two more open-frame shapes; 4 added
             // `load_bay`, which draws a transporter as a cage rather than a solid; 5 added
-            // `front_image`, which puts a photograph on a plain cabinet's front face.
-            'plan_version' => 5,
+            // `front_image`, which puts a photograph on a plain cabinet's front face; 6 added `mast`, a wind-up
+            // stand whose stages are separate objects so a scene can slide them.
+            'plan_version' => 6,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,
@@ -53,6 +54,8 @@ final class BuildPlan
                 'truss' => $spec->truss?->toArray(),
                 'moving_head' => $spec->movingHead?->toArray(),
                 'scaffold' => $spec->scaffold?->toArray(),
+                // With every tube length already worked out, so the bpy side derives nothing.
+                'mast' => $spec->mast?->planArray($spec->dimensions),
                 // The inside of a transporter, for `shape: load-bay`. Null for everything else, like the three
                 // above it — a vehicle is the fourth open-frame shape and needs no new mechanism.
                 'load_bay' => $spec->vehicle?->loadBayPlan(),

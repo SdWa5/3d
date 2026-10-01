@@ -71,7 +71,7 @@ appearance:
   color: "#9A9EA3"
 
 physical:
-  # 2.55 kg of connectors + 3.85 kg/m x 2 m, from the published weights — see the header.
+  # Published for the F33200. The 10.25 kg the old line fit gave is in the header.
   weight_kg: 9.3
   handles: [ ]
 
@@ -82,15 +82,10 @@ rigging:
   points: [ ]
 
 notes: |
-  Stated by the owner: 5 segments, 2 m, three-point. Everything else is the 300 mm class standard.
+  Identified as the Global Truss F33200 from the bundle's product data, supplied by the owner on 2026-08-17. Five
+  segments, three from the Stairville Wind Up DJ Bundle III and two bought afterwards. See docs/sources.md.
 
-  Modelled on the Global Truss F33 300 (12") straight segment — https://globaltruss.de/en/F33-300cm/F33300 and
-  https://www.stagespot.com/global-truss-f33-triangular-truss-straight-segments.html. Recorded as a class
-  standard rather than a claim that ours are that brand; see docs/sources.md.
-
-  `provenance: estimated` on both axes, and the reason is worth being precise about: the tube diameters and the
-  weight model are genuinely published, but that these are F33-class segments is an inference from "2 m three
-  point". Measure the outer width across the flats and the chord diameter with a caliper and this becomes
-  `datasheet` on dimensions without any other change.
+  Tube sizes, length and weight are published, so `provenance` is `datasheet` on both axes. The cross-section is
+  derived from the published tube spacing, see the header.
 
   `bay_length_m` is the only number with no source at all. It affects the picture and nothing else.

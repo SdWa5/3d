@@ -23,9 +23,8 @@
 # a stand under each end sits at that centre line plus and minus 4.000. Our rig's centre is -0.302, the same as
 # `full-rig-arc` uses, so the stands are at -4.302 and 3.698.
 #
-# WHAT IS NOT MODELLED, and it matters for reading this picture: the stands' outriggers, which unfolded spread to
-# 1.499 x 1.499 m each. On a real stage that is what has to be kept clear at the feet, and this scene shows a
-# 0.203 m column instead. See `truss-tower-4m.yaml`.
+# THE STANDS' LEGS ARE DRAWN, and they spread to 1.6 m each. On a real stage that is what has to be kept clear at
+# the feet. No scene check sees them, because the checks read the 0.203 m mast column. See `truss-tower-4m.yaml`.
 id: full-rig-truss
 name: "Full rig — under a truss"
 

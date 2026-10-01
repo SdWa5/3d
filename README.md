@@ -119,7 +119,9 @@ gets a tape measure to it. See [docs/sources.md](docs/sources.md) for where each
 telescopic stands that hold them up, and [`scenes/full-rig-truss.yaml`](scenes/full-rig-truss.yaml) puts a goalpost
 over the full rig. A truss is the one device whose geometry is *not* its bounding box: it is mostly air, so drawing
 the box would stand a solid wall where the span should be and hide the rig behind it. `shape: truss` builds chords
-and bracing from the tube sizes instead ([docs/spec-format.md](docs/spec-format.md#truss)).
+and bracing from the tube sizes instead ([docs/spec-format.md](docs/spec-format.md#truss)). Our two wind-up stands
+are drawn as tripod masts with their winch and truss adapter, and a stand cranked lower slides its stages rather
+than shrinking ([docs/spec-format.md](docs/spec-format.md#mast)).
 
 Beyond that: [`specs/lighting/`](specs/lighting) holds GMSS's four Martin MAC 2000 Performance II — the only gear of
 theirs with a real datasheet — and [`specs/stands/`](specs/stands) the two Krause AH7 scaffold towers.

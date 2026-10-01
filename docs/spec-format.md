@@ -40,7 +40,7 @@ deviations: |                 # optional: how the build differs from the origina
   Custom grille art, different corner hardware.
 
 geometry:
-  shape: box                  # box | trapezoid | wedge | truss | moving-head | scaffold | load-bay
+  shape: box                  # box | trapezoid | wedge | truss | moving-head | scaffold | mast | load-bay
   dimensions_m:               # outer dimensions, always the true bounding box
     width: 0.80
     height: 0.58
@@ -50,6 +50,7 @@ geometry:
   truss: null                 # truss only: the tubes — see Shapes below
   moving_head: null           # moving-head only: base, yoke and head
   scaffold: null              # scaffold only: posts, bracing and platform
+  mast: null                  # mast only: tubes, legs, winch and adapter of a wind-up stand
   # load-bay takes its geometry from the `vehicle:` block below rather than from a section here
   origin: bottom-center       # bottom-center | rigging-point | geometric-center
   chamfer_m: 0.012            # edge bevel; below half the smallest edge
@@ -340,6 +341,7 @@ from a ratio would invent a measurement, which is exactly what `provenance` exis
 | `truss` | `truss` (a block) | chords and bracing instead of a shell — see below |
 | `moving-head` | `moving_head` (a block) | base, yoke arms and head — see below |
 | `scaffold` | `scaffold` (a block) | posts, bracing and a platform — see below |
+| `mast` | `mast` (a block) | a wind-up stand: telescoping tubes on a tripod, a winch and a truss adapter — see below |
 | `load-bay` | the [`vehicle`](#vehicle) block's `load_bay_m` | a transporter's **outline with its load bay caged inside it**. A solid van would be the largest object in any picture that included it and would hide the rig it carries. With no bay measured it draws the outline alone, which is the honest picture of a van nobody has been inside |
 
 The front face stays a full `width × height` (or `width × front_height_m`) rectangle in the first three,
@@ -418,6 +420,44 @@ geometry:
 5 m, because the convention adds two metres for a person's reach. That two metres is a fact about people and has no
 place in a bounding box: `dimensions_m.height` is the frame, and the validator refuses a platform above it.
 Guardrails and rungs are not modelled, so the box stops at the deck.
+
+### mast
+
+A wind-up stand, our Varytec Wind Up being the case. Round tubes slide inside each other on a tripod, a winch on the
+outer sleeve cranks them, and an optional truss adapter sits on the top stage.
+
+```yaml
+geometry:
+  shape: mast
+  dimensions_m: { width: 0.203, height: 4.000, depth: 0.203 }
+  origin: bottom-center           # required, the stand stands on the floor
+  mast:
+    sections_m: [0.060, 0.050, 0.040]   # tube diameters, the sleeve first, strictly decreasing
+    transport_length_m: 1.750     # folded length, adapter included
+    hub_height_m: 0.950           # where the legs hinge; the sleeve starts at half of it
+    spigot_diameter_m: 0.035
+    legs: 3
+    base_spread_m: 1.600
+    leg_width_m: 0.030
+    leg_yaw_deg: 90               # one leg straight back, +Y
+    winch: true
+    adapter: { length_m: 0.400, bar_m: 0.040, height_m: 0.120, clamp_spacing_m: 0.240 }
+```
+
+**The bounding box is the mast column at full extension, and the legs reach outside it.** Placement, the overlap
+sweep and every scene check read only the box, so they do not see the legs. The legs stay within the
+`base_spread_m` square in plan view, nothing goes above `height` or below the floor, and `tools/check-glb.py`
+allows width and depth up to the spread for that reason. A backdrop keeps the legs clear of the rig by distance,
+see `StackBackdrop::OUTRIGGER_CLEARANCE_M`.
+
+**`height` is taken at the adapter's top face**, where the truss rests. Each tube is the transport length less the
+adapter, and the PHP side works out the travel per stage, the overlap and the collapsed height into the build plan,
+so the Blender side derives nothing.
+
+**Cranking slides the stages.** An `extend_to_m` below full height moves stage k of N down by k/N of the loss, so
+every joint keeps the same overlap and the base keeps its size. A tower still drawn as a box stretches as before.
+The collapsed height, the transport length on the sleeve's bottom, is the lowest a stand goes. Ours is 2.225 m, and
+a scene or a backdrop that needs less is refused.
 
 ## Mesh overrides
 
@@ -521,6 +561,11 @@ the origin and licence in [sources.md](sources.md).
 * duplicate rigging point ids, and points outside the cabinet
 * a taper field missing for its shape, present on the wrong shape, or larger than the dimension it
   tapers from
+* in `mast`: a non-positive value; an origin other than `bottom-center`; fewer than two sections, sections that
+  do not strictly decrease, or a sleeve wider than the column; a spigot that does not fit the top stage; a
+  collapsed height not below the full height; a hub above the sleeve's top; stages that overlap by less than
+  0.20 m at full extension; legs outside 3 to 8; a spread narrower than the column; an adapter longer than the
+  spread, with its clamps off its bar, or too low to leave a spigot
 * coverage angles outside 0–360; drivers with no size or a count below 1
 * in `audio.layout`: a negative `inset_m`; a duplicate feature id; an unknown `kind`; a horn with no
   `throat_in` or a cone with no `diameter_in`; a `depth_m` that is zero or deeper than the cabinet; a

@@ -20,6 +20,7 @@ VEHICLE_OUTLINE = "sdwa5-vehicle-outline"
 BAY = "sdwa5-bay"
 BAY_FLOOR = "sdwa5-bay-floor"
 FRONT_IMAGE = "sdwa5-front-image"
+HARDWARE = "sdwa5-hardware"
 
 
 def hex_to_linear_rgba(value, alpha=1.0):
@@ -101,6 +102,9 @@ def build_set(appearance):
         # Moulded plastic or painted ply.
         HORN: _principled(HORN, cabinet_color, roughness=0.55),
         RIGGING: _principled(RIGGING, hex_to_linear_rgba("#9a9a9a"), roughness=0.35, metallic=0.9),
+        # Black powder coat, as on a wind-up stand's legs, collars and winch. A fixed colour rather than the
+        # device's own, because the same stand is chrome in its mast and black in its base.
+        HARDWARE: _principled(HARDWARE, hex_to_linear_rgba("#1c1c1e"), roughness=0.6),
         # Estimated marker glows so a guessed cabinet is impossible to miss in the viewport.
         ESTIMATED: _principled(
             ESTIMATED, hex_to_linear_rgba("#ff8800"), roughness=0.4, emission_strength=2.0
@@ -175,6 +179,11 @@ def front_image(path):
     # wet cabinet. Almost fully rough, and never metallic.
     bsdf.inputs["Roughness"].default_value = 0.9
     bsdf.inputs["Metallic"].default_value = 0.0
+    # No specular at all. Roughness alone only spreads the highlight, and spread over a large face
+    # under the studio's three 10 m area lights it lays a grey veil across the whole image. Measured
+    # on PSL's 9 m deco panel, whose black ground rendered at 84 to 115 of 255 at the default 0.5
+    # and at black with 0.
+    bsdf.inputs["Specular IOR Level"].default_value = 0.0
 
     material.diffuse_color = (0.5, 0.5, 0.5, 1.0)
     material.roughness = 0.9

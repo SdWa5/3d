@@ -145,8 +145,9 @@ final class ModelBuilder
                 'category' => $spec->category->value,
                 'subtype' => $spec->subtype,
                 'provenance' => $spec->provenance->label(),
-                // Used to lay the devices out side by side in the library file.
-                'width_m' => $spec->dimensions->width,
+                // Used to lay the devices out side by side in the library file. A wind-up stand's legs reach past its
+                // column to the base spread, so the spread is what it needs beside its neighbours.
+                'width_m' => $spec->mast->baseSpread ?? $spec->dimensions->width,
                 'blend' => $this->blendPath($spec),
             ];
         }
