@@ -57,6 +57,8 @@ geometry:
 
 appearance:
   color: "#111111"            # #rrggbb, sRGB
+  front_color: null           # optional: the front face and every opening carved into it, on a generated
+                              # shell with a baffle layout. PSL's black cabinets with white fronts use it
   grille:
     inset_m: 0.014            # how deep the grille sits behind the front; omit for no grille
     color: "#0a0a0a"          # defaults to appearance.color
@@ -64,7 +66,10 @@ appearance:
 physical:
   weight_kg: 35.0             # required; a DIY build rarely weighs what the original does
   max_load_kg: 85.0           # optional: what a stand or tower may carry. A truss backdrop is refused above it
-  handles: [left, right]      # left | right | back | top — cut as recesses
+  handles: [left, right]      # left | right | back | top — cut as recesses, side ones no deeper than
+                              # the wall a baffle opening leaves beside them
+  castors: null               # optional: { face: back | left | right, diameter_m, color, locking } — four
+                              # wheels near the corners, drawn outside the declared box. See below
 
 rigging:
   flyable: false              # true requires at least one point
@@ -185,20 +190,29 @@ the cabinet's `origin` does.
 | `provenance` | the layout | `measured`, `plans`, `datasheet` or `estimated`. Required — the numbers in a layout are the easiest in the whole spec to invent |
 | `inset_m` | the layout | how far the baffle sits behind the outer front face. A CAD cabinet often recesses it well back |
 | `id` | every feature | referenced by `inside`, and used to name the geometry |
-| `kind` | every feature | `cone` (a driver) or `horn` (a flare) |
-| `at_m` | unnested features | `[x, z]` centre on the baffle |
+| `kind` | every feature | `cone` (a driver), `horn` (a flare), `cell` (an open rectangular recess), `fin` (a thin plate behind the baffle), `grille` (a see-through sheet) or `plug` (a dome in front of a horn's throat). See [Cells and fins](#cells-and-fins) and [Grilles and plugs](#grilles-and-plugs) |
+| `at_m` | unnested features, nested horns with `setback_m` | `[x, z]` centre in the baffle frame. A set-back nested horn may use it to stand off its host's centre |
 | `depth_m` | every feature | how deep it reaches into the cabinet |
-| `mouth_m` | horns | `[width, height]` of the opening at the baffle |
+| `mouth_m` | horns, cells, fins, square grilles | `[width, height]` of the opening at the baffle, of a fin's front edge or of a grille |
 | `throat_in` | horns | throat size in inches, as the audio world names it |
 | `driver_in` | horns | puts a driver cone at the throat and bores the chamber through to it, which is what a horn-loaded driver looks like |
-| `diameter_in` | cones | the cone's diameter — usually the baffle cut-out rather than the driver's nominal size, since the frame hides behind the panel |
-| `inside` | nested features | nests this feature at the named horn's throat, facing forward. This is how "the HF horn sits inside the LF horn as a phase plug" stays in the data instead of in two hand-matched sets of coordinates |
+| `diameter_in` | cones, plugs, round grilles | the diameter of a plug or a round grille, or the cone's diameter — usually the baffle cut-out rather than the driver's nominal size, since the frame hides behind the panel |
+| `inside` | nested features | nests this feature at the named horn's throat, facing forward, or puts a cone or a grille on a cell's back wall. This is how "the HF horn sits inside the LF horn as a phase plug" stays in the data instead of in two hand-matched sets of coordinates |
 | `profile` | horns | the **mouth's** cross-section: `pyramid` (default) or `elliptical` |
 | `throat_profile` | horns | the **throat's** cross-section, defaulting to the mouth's. `profile: pyramid` with `throat_profile: elliptical` is a horn with straight edges outside and a round throat, which is what a compression-driver horn is — the throat is a round bolt flange. The flare morphs between the two |
 | `sides` | pyramid ends | wall count, default 4. `8` gives the familiar octagon |
-| `flare` | horns | `linear` (default) — a straight-walled conical horn — or `exponential`, where the area grows exponentially with depth, as most real horns do |
+| `flare` | horns and tilted cells | `linear` (default) — a straight-walled conical horn — or `exponential`, where a horn's area grows exponentially with depth. On a tilted cell, `exponential` bows its back wall forward while preserving its end depths |
 | `join.with` | horns | an **earlier** horn this one shares its mouth with. Both must sit on the baffle, be apart on one axis and line up on the other — two horns side by side or stacked |
 | `join.depth_m` | horns | how much of the wall between the two is missing, measured from the baffle inwards. Less than either horn's own `depth_m`, so some of the wall survives |
+| `throat_blend_m` | horns | how far in front of the throat the mouth's shape starts turning into the throat's. Unstated, it blends over the whole depth. A short blend keeps a straight-edged horn's walls flat, which is how the Tecnare's joined LF pair reads as one piece |
+| `angle_deg` | fins, cells | turns a fin's plate about its front edge, or tilts a cell's back wall, default 0 |
+| `turn` | fins, cells | `yaw` (about a vertical line) or `pitch` (about a horizontal one). Unstated, it is the longer front edge |
+| `mitre` | turned fins | cuts the plate's front and back edges parallel to the depth axis, so mirrored neighbours share one cut face |
+| `setback_m` | fins, grilles, nested horns | how far behind the baffle plane a fin starts, default 0. A grille's is measured from the cabinet's front face. A nested horn's puts its mouth that far behind its host's, instead of ending it at the host's throat |
+| `dome_m` | round grilles | how far the sheet's middle bulges forward of its edge, above 0 and at most 0.03 m. Unstated, the sheet is flat |
+| `rim_m` | round grilles | the width of a solid ring round the sheet's edge, standing 8 mm proud of it. Above 0 and below the grille's radius |
+| `rim_color` | round grilles with `rim_m` | `#rrggbb` for the ring. Unstated, it takes the grille's own colour |
+| `color` | every feature | `#rrggbb` for what the feature shows of its own. That is a cone's paper, a cell's back wall, a fin's plate, or the driver at a horn's throat, which is why a horn needs `driver_in` to take one. Without it the feature takes `appearance.color` |
 
 Both flare laws meet the declared `mouth_m` and `throat_in` exactly, so switching between them changes
 the walls and never the sizes. The defaults are chosen so a layout written without these fields builds
@@ -210,6 +224,78 @@ horns that ask for it pay that.
 
 The features are a flat list with `inside` references rather than a nested tree: easier to validate, and
 it reads as a parts list.
+
+### Cells and fins
+
+A **cell** is a straight-walled rectangular recess, cut like a horn whose mouth and throat are the same
+size. It is what the open mouths of a folded horn and the slots between drivers look like from the front.
+It takes `at_m`, `mouth_m` and `depth_m`, and with a `color` it gets a thin back panel in that colour while
+its side walls stay the cabinet's. That is how a black cabinet with blue panels inside is written.
+
+A **fin** is a plate standing behind the baffle plane, such as a divider, a brace or a splitter. It is
+drawn as a part of its own rather than cut, so it needs a cell, a horn or an imported mouth around it to
+be seen at all. `at_m` is the centre of its front edge and `mouth_m` is that edge's `[width, height]`.
+The longer of the two is the fin's axis, so a fin is vertical when it is at least as tall as it is wide.
+`depth_m` is how far the plate runs back.
+
+```yaml
+- { id: slot,  kind: cell, at_m: [ 0.0, 0.0 ], mouth_m: [ 0.54, 0.27 ], depth_m: 0.35, color: "#1b3f8f" }
+- { id: brace, kind: fin,  at_m: [ 0.0, 0.0 ], mouth_m: [ 0.02, 0.27 ], depth_m: 0.02, setback_m: 0.08,
+    angle_deg: 30, color: "#37822f" }
+```
+
+`angle_deg` turns the plate about its front edge. A positive angle swings its back towards +x on a
+vertical fin and towards +z on a horizontal one. A turned plate's front corner would poke out through the
+baffle, so it is shifted back until its foremost corner touches the plane, and `setback_m` moves it
+further back from there. The validator checks the extent the turned plate actually reaches, using the same
+arithmetic as the builder (`BaffleFeature::finFootprint()`). Several fins make up a bent bar, and the
+Flexy's VVV brace is six of them.
+
+A cell's back wall tilts with `angle_deg`. It still passes through `depth_m` at the cell's centre and lies
+deeper towards +x on a `yaw` and towards +z on a `pitch` for a positive angle. A cone placed `inside` such a
+cell sits at the centre of that wall and faces along it, which is how the ESX's drivers on their 45° walls are
+written. A tilted cell with `flare: exponential` bows forward between the same two end depths, while its other
+walls stay flat. This forms the Innschleife tops' curved port floor. A cone or grille needs a flat wall, so it cannot
+sit on this bowed cell wall. The cell needs `angle_deg` for an exponential wall.
+
+A nested horn with `setback_m` may state `at_m` in the baffle frame. Its mouth can then sit off its host's centre,
+as the HF horn does near the upper edge of the TMS-2's port. The validator checks that its mouth still fits inside
+the host. Other nested features keep the host's centre and cannot state `at_m`.
+
+With `mitre: true` a turned plate's front and back edges are cut parallel to the depth axis instead of square
+to the plate. Two mirrored neighbours then share one cut face, and a zigzag of them has a single point at every
+corner. The Flexy's VVV brace is built that way.
+
+Cells and fins have no throat and no driver, so `throat_in`, `diameter_in`, `driver_in` and `inside` are
+refused on them. On a cabinet with a `mesh_override` nothing is cut, so a cell draws nothing there, while
+a fin is added as usual.
+
+### Grilles and plugs
+
+A **grille** is a see-through sheet of perforated metal or mesh. It is rectangular with `mouth_m` or round
+with `diameter_in`, and `depth_m` is its thickness, at most 0.01 m. On the baffle it stands `setback_m` behind
+the cabinet's front face, so it can sit in front of an inset baffle. With `inside` a cell it sits 12 mm in
+front of that cell's back wall and tilts with it, which is how a grille over a driver on a sloping wall is
+written. Its colour is its own `color`, then `appearance.grille.color`, then the body's.
+
+```yaml
+- { id: grille, kind: grille, at_m: [ 0.0, 0.0 ], mouth_m: [ 0.564, 0.564 ], depth_m: 0.0015, setback_m: 0.001 }
+- { id: grille-up, kind: grille, inside: horn-up, diameter_in: 17, depth_m: 0.002, dome_m: 0.02, rim_m: 0.015, color: "#3a3a3a", rim_color: "#141414" }
+```
+
+A round grille may bulge forward by `dome_m` and carry a solid ring `rim_m` wide round its edge, which is what
+a pressed speaker grille looks like. A black sheet over a black cone vanishes at scene distance, and the ESX's
+dark grey dome inside a black rim reads as a grille from across the room.
+
+The holes are punched by the material, as a 5 mm square grid with half the sheet open. Scenes render from
+the .blend, which keeps them. A glTF export cannot carry the procedural alpha and shows the sheet solid.
+
+A **plug** is a solid dome `diameter_in` across and `depth_m` tall, standing forward from the throat of the
+horn it sits `inside`. It is the phase plug in front of a cone driver, as on the TMS-2's TurboMid.
+
+```yaml
+- { id: mid-plug, kind: plug, inside: mid, diameter_in: 7, depth_m: 0.08 }
+```
 
 ### Two horns on one mouth
 
@@ -247,6 +333,23 @@ For a **generated** cabinet the openings are cut into the shell, so a horn's fla
 cabinet and its own material forms the walls — which is what a wooden horn is. For one with a
 `mesh_override` the CAD already has its holes, so nothing is cut and only the parts behind them are
 added.
+
+## Castors
+
+`physical.castors` puts four wheels on one face, one near each corner, and brakes the first `locking` of them,
+the two nearer the floor. Each is a plate, a swivel, a fork and a wheel in `color`. They stand
+`1.28 × diameter_m` off the face, which is a catalogue castor's height for its wheel.
+
+```yaml
+physical:
+  castors: { face: back, diameter_m: 0.10, color: "#1f4fa8", locking: 2 }
+```
+
+**This is the one part of a model that lies outside its declared box.** A castor is what a cabinet rolls on,
+and a datasheet states a cabinet "ohne Rollen" for the same reason. The metadata carries `protrusion_m`, and
+`tools/check-glb.py` allows exactly that much on the face's axis. A scene still packs cabinets by their box,
+so two cabinets back to back can show their wheels touching. Only the back and the sides can carry wheels,
+because wheels under the bottom would change the height every stack is built from.
 
 ## Categories and subtypes
 
@@ -486,9 +589,43 @@ would quietly poison every setup built from it — so a mismatch has to be recon
 Override meshes are third-party files and are **not committed**: `/meshes/` is gitignored. Keep them
 there (or anywhere) and record their origin and licence in [sources.md](sources.md).
 
-Worked example: the Flexy's CAD mesh imports correctly with `units: mm` and
-`rotate_deg: [90, 0, 90]`, and its depth and height match the spec exactly — but it is 18 mm
-narrower, so the builder rejects it. That is the mechanism doing its job.
+Worked example: the Flexy's original CAD export measures 0.573 m across where the cabinet is 0.591 m,
+so the builder rejects it. That is the mechanism doing its job. The `flexy-1to10.stl` export it uses now
+measures 0.588 m and passes within the 5 mm tolerance.
+
+### Painting and removing parts of an imported mesh
+
+A CAD mesh is one material and shows whatever the CAD modelled. Two lists under `mesh_override` change
+that without editing the file.
+
+```yaml
+mesh_override:
+  path: meshes/flexy-1to10.stl
+  paint:
+    - { id: port-left, at_m: [ -0.142, -0.340 ], size_m: [ 0.104, 0.100 ], setback_m: 0.0563, depth_m: 0.019,
+        color: "#37822f" }
+  remove:
+    - { id: cross-plank-front, x_m: [ -0.276, 0.276 ],
+        section_m: [ [ -0.008, -0.162 ], [ 0.130, -0.162 ], [ 0.130, -0.1215 ], [ -0.008, -0.1215 ] ] }
+```
+
+`paint` recolours every face inside a box. `at_m` is the box's `[x, z]` centre measured from the centre of
+the bounding box's front face, `size_m` is its `[width, height]`, and it reaches from `setback_m` behind
+the bounding box's front plane to `depth_m` further back. The front plane is the bounding box's and not the
+layout's `inset_m`. The mesh is cut along the box's six planes first, so the paint stops at the box and not
+at whatever triangle the CAD happened to make. A region that paints no face at all fails the build.
+
+`remove` cuts parts away. Each entry is a prism, with `section_m` its side view as a list of
+`[setback, z]` corners, using the same frame as `paint`, and `x_m` the `[from, to]` range it is extruded
+across. Setbacks may be negative, so a prism can start in the air in front of the cabinet. Each prism is
+subtracted in an exact boolean of its own after the mesh is repaired, and closed pieces that end up lying
+wholly inside the prisms are deleted afterwards. A removal that leaves the face count unchanged fails the
+build.
+
+A prism face that meets a remaining panel must lie **exactly** in that panel's plane. One that stops
+short leaves a visible step, and one that reaches past grooves the panel. Read the planes off the mesh's
+own vertices rather than off a measurement of the render. Removals run before painting, so a region
+painted afterwards sees the finished shell.
 
 ## Front images
 
@@ -572,7 +709,26 @@ the origin and licence in [sources.md](sources.md).
   missing or non-positive mouth; a throat that is not smaller than its mouth; `inside` combined with
   `at_m`, naming an unknown feature, naming one that comes later in the list, or naming something that
   is not a horn; a nested feature wider or deeper than the horn hosting it; a feature whose mouth
-  reaches past the edge of the baffle
+  reaches past the edge of the baffle; an unknown key on a feature
+* on a cell or fin: `throat_in`, `diameter_in`, `driver_in` or `inside`. On anything but a fin or a cell:
+  `angle_deg` or `turn`. A `turn` other than `yaw` or `pitch`, a `mitre` on anything but a turned fin, and a
+  tilted cell whose back wall comes out of the front or reaches past the back. `setback_m` on anything but a
+  fin, a grille on the baffle or a horn nested in another, a negative one, and a nested horn set back so far
+  that it reaches past its host's throat. A `throat_blend_m` on anything but a horn, or one that is not above
+  0 and at most the horn's depth. A fin none of whose edges is at most 0.05 m, or one that reaches past the
+  baffle or behind the cabinet once turned and set back. On any feature: a `color` that is not `#rrggbb`,
+  or a `color` on a horn without `driver_in`
+* on a grille: both or neither of `mouth_m` and `diameter_in`, a thickness above 0.01 m, `inside` anything
+  but a cell, a size that does not fit the cell's back wall, or a setback that reaches past the cabinet. On a
+  plug: no `diameter_in`, a `mouth_m`, no `inside`, or a host that is not a horn. On either: `throat_in`,
+  `driver_in` or `join`. `dome_m`, `rim_m` or `rim_color` on anything but a round grille, a dome not above 0
+  and at most 0.03 m, a rim not above 0 and below the grille's radius, a `rim_color` without `rim_m`, or one
+  that is not `#rrggbb`
+* `appearance.front_color` that is not `#rrggbb`, or on a spec without a baffle layout or with a
+  `mesh_override`
+* in `physical.castors`: an unknown key; a face other than `back`, `left` or `right`; a diameter that is not
+  above 0 and at most 0.2 m; a `locking` count outside 0 to 4; a colour that is not `#rrggbb`; and wheels too
+  big for four of them to fit the face
 * in `audio.passband_hz`: a `low_hz` of zero or less; a `high_hz` at or below `low_hz`; a `driven_from_hz`
   below `low_hz` (a cabinet cannot be driven lower than it reaches) or at or above `high_hz` (which leaves no
   band at all)
@@ -584,6 +740,11 @@ the origin and licence in [sources.md](sources.md).
   or that line up on neither axis and so have no shared mouth to open
 * a `mesh_override` whose path does not exist, whose extension Blender cannot import
   (`.FCStd` being the common mistake), whose `units` are unknown, or whose tolerance is negative
+* in `mesh_override.paint`: an unknown key; a `color` that is not `#rrggbb`; a size or depth that is zero
+  or less; a negative `setback_m`; a box that reaches past the front face or past the cabinet's depth
+* in `mesh_override.remove`: an unknown key; an `x_m` that does not run from lower to higher or that
+  misses the cabinet; a section with fewer than three corners, one that encloses no area, or one that lies
+  wholly outside the cabinet
 * a `front_image` on a spec that has an `audio.layout` or a `mesh_override`; one whose extension is not
   `.png`, `.jpg` or `.jpeg`; a `rotate_deg` that is not 0, 90, 180 or 270; a `px_per_cm` of zero or
   less; a file that cannot be read as an image; and an image whose implied size misses the cabinet's

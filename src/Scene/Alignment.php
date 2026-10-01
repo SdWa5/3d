@@ -108,6 +108,17 @@ final class Alignment
          * is a fact about the tier. See {@see columnOf} for what a split did to a fill run of two.
          */
         public readonly float $side = 0.0,
+        /**
+         * Whether `inset_m` under `clear_of` is the exact air to stand at rather than the least, so the copies are
+         * pulled in towards the reference as well as pushed away from it.
+         *
+         * **A STEREO TOPS ROW PACKS ITS NEAR-FIELD TOPS OUTWARD**, as the owner stated on 2026-10-01: each one
+         * stands as far out as it can, against the long throw at its end of the row. As a minimum the clearance
+         * left them wherever the row dealt them, 0.323 m off the outer Tecnare and 0.405 m off the middle one on
+         * `stacked-1-systems-apart-pyramid-stated--alternate-stereo-low-----possible`. {@see Stack::throwFirst}
+         * sets it on those fills only. Not read from a scene file.
+         */
+        public readonly bool $hug = false,
     ) {
     }
 

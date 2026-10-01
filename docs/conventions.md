@@ -71,15 +71,24 @@ a colour scheme can be changed in one place:
 | `sdwa5-handle` | handle recesses |
 | `sdwa5-cone` | driver cones |
 | `sdwa5-horn` | horn flares |
-| `sdwa5-rigging` | rigging point markers |
+| `sdwa5-rigging` | rigging point markers and castor brakes |
+| `sdwa5-hardware` | a mast's legs, collars and winch, and castor plates and forks |
+| `sdwa5-<role>-<hex>` | a baffle feature's own `color`, shared by every feature of one role and colour |
+| `sdwa5-front-<hex>` | `appearance.front_color` on the front face and every opening carved into it |
+| `sdwa5-mesh-<hex>` | a layout grille, with round holes punched into its alpha |
 | `sdwa5-coverage` | the coverage cone |
 | `sdwa5-estimated` | the orange tag on guessed cabinets |
 
-**Every visible material takes `appearance.color`** — one colour per cabinet, for now. The parts keep their
-own materials so they can be differentiated again without restructuring, and they differ in `roughness`
-(how sharp a highlight is) but not in hue. The horn flares used to be lighter than the shell so a mouth read
-as an opening; on a cabinet whose horn spans most of its baffle that read as a differently-coloured panel
-instead. Per-device colour is on [`../TODO.md`](../TODO.md).
+**Every visible material takes `appearance.color` unless something states its own.** A baffle feature's
+`color` paints a cone's paper, a cell's back wall, a fin's plate, a grille, a plug or the driver at a horn's
+throat, and `appearance.front_color` paints the front face with every opening carved into it. The parts keep
+their own materials, and they differ in `roughness` (how sharp a highlight is) but not in hue. The horn flares
+used to be lighter than the shell so a mouth read as an opening; on a cabinet whose horn spans most of its
+baffle that read as a differently-coloured panel instead.
+
+**Specular is 0.2, not Blender's 0.5.** At 0.5 a black cabinet reflected about 4 % of the light at any angle
+against the 0.7 % its paint reflects diffusely, and rendered mid grey. The Studio lighting preset also runs at
+an exposure of −1.25 for the same reason.
 
 Hex colours in specs are sRGB and are converted to linear on the way in — skipping that makes
 every model noticeably too bright.
@@ -95,10 +104,12 @@ Models are accurate on the outside and empty on the inside:
 * handle recesses cut into the sides listed in `physical.handles`
 * small markers at the rigging points
 * the openings on the front baffle, when the spec has an `audio.layout`: driver cones with a surround
-  roll and a domed dust cap, horn flares with a configurable mouth shape and flare law, and a driver
-  chamber bored through behind a horn-loaded throat
+  roll and a domed dust cap, horn flares with a configurable mouth shape and flare law, a driver
+  chamber bored through behind a horn-loaded throat, open cells, fins and braces standing in them,
+  see-through grilles and phase plugs
+* castors on the face `physical.castors` names
 
-No ports, bracing or wiring, and nothing behind a baffle that you cannot see through it. Detail can be raised for a single device later — either by
+No ports, internal bracing or wiring, and nothing behind a baffle that you cannot see through it. Detail can be raised for a single device later — either by
 extending the builder or by pointing `mesh_override` at a hand-made mesh — without changing any
 dimension, because the spec stays the authority. A `mesh_override` replaces the generated shell
 outright, but only if the mesh agrees with the spec's declared dimensions — see
@@ -122,6 +133,8 @@ Two deliberate consequences:
   its legs reach out to the stated `base_spread_m`. `tools/check-glb.py` lets width and depth reach that spread
   for such a model. Height and the floor stay strict. Scene checks still read only the column, which is why a
   backdrop keeps the legs clear by distance, see [spec-format.md](spec-format.md#mast).
+* **Castors are the other exception.** They stand `protrusion_m` off their face, and `tools/check-glb.py`
+  allows exactly that on the face's axis. See [spec-format.md](spec-format.md#castors).
 * **Markers do not render.** Rigging markers, the estimated tag and the coverage cone are set to
   render-invisible: they exist to snap to, to nag and to sight along, not to turn up in a preview image
   handed to the crew. It is also what lets them leave the bounding box — the coverage cone reaches ten

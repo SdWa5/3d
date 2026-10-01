@@ -16,15 +16,15 @@
 #
 # main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  2× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram + 3× achenbach-18 rolled 90°    4.644 m wide
-#   2  3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90°    5.298 m wide
-#   3  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° at 144 mm gaps    5.298 m wide
+#   1  3× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 3× flexy-folded-horn-hybrid rolled 90°    6.546 m wide
+#   2  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90° at 590 mm gaps     6.55 m wide
+#   3  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° at 395 mm gaps    6.553 m wide
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
 #
-# Subs reach 2.105 m against a 2.0 m interface. The stack is 3.065 m of cabinet.
+# Subs reach 1.801 m against a 2.0 m interface. The stack is 2.761 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 3× flexy-folded-horn-hybrid rolled 90° row
-#     is 5.298 m on a 4.644 m row, so it overhangs 327 mm each side
+#   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
+#     1.801 m is the most they reach while every tier is still carried
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -92,7 +92,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-0.083, 0.0]
+    at: [0.5445, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -133,7 +133,7 @@ placements:
 
   # innschleife, 20 cabinets in 4 rows
   - id: main-innschleife
-    at: [5.8, 0.0]
+    at: [6.4275, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

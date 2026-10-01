@@ -92,6 +92,14 @@ mesh_override:
   path: meshes/eighteensound-2way-15.stl
   units: mm
   rotate_deg: [ 0, 0, 0 ]
+  # The two ports are lined green on the cabinet, as reference-files/pasted file 3.png shows (2026-10-01).
+  # In the CAD a port is only its 100 mm hole through the 18 mm baffle, so the hole's wall is what gets
+  # painted. The holes were ray-cast out of the mesh on 2026-10-01 and run x 0.092 to 0.192 and z 0.030 to
+  # 0.126 from the floor. The box starts 0.5 mm behind the baffle's front face, so the face itself stays black.
+  # The colour is sampled off that photo at three points of the two port rings.
+  paint:
+    - { id: port-left,  at_m: [ -0.142, -0.340 ], size_m: [ 0.104, 0.100 ], setback_m: 0.0563, depth_m: 0.019, color: "#37822f" }
+    - { id: port-right, at_m: [  0.142, -0.340 ], size_m: [ 0.104, 0.100 ], setback_m: 0.0563, depth_m: 0.019, color: "#37822f" }
 
 notes: |
   15W700 woofer plus ND1460 compression driver on an XT1464 horn, crossover around 1.5 kHz.

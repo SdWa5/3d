@@ -84,6 +84,18 @@ final class Placement
          * height, see {@see SceneCompiler::extended}.
          */
         public readonly ?float $extendToM = null,
+        /**
+         * The world y the front edge of every copy's foot is moved onto, or null to leave each copy where `at` puts
+         * it.
+         *
+         * **A STACK STANDS FLUSH AT THE FRONT**, as the owner stated on 2026-10-01, and centring every cabinet on
+         * one y put a 0.813 m SKRAM 76 mm behind the 0.964 m Flexys beside it and every top behind the front edge
+         * of the wall it stands on. {@see Stack::expand} sets this to the front of the deepest cabinet in the
+         * stack. Unaimed, a cabinet only has to stand back by half the difference in depth, which `at` already
+         * says. An aimed one swings a front corner forward, by how much depends on where it ends up, so the
+         * compiler moves it back after aiming, see {@see SceneCompiler::flushFront}. Not read from a scene file.
+         */
+        public readonly ?float $frontYM = null,
     ) {
     }
 

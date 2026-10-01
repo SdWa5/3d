@@ -64,10 +64,17 @@ audio:
     # centred on the 600 x 600 baffle. 416 mm is the driver's cut-out, not its nominal 18" (457 mm) frame
     # diameter — the frame sits behind the panel and only the cone shows through, so the cut-out is what
     # is visible. Same reasoning as the 18sound's 353 mm.
+    #
+    # A GRILLE COVERS THE WHOLE FRONT between the outer walls, as the owner stated on 2026-10-01. The CAD has
+    # none and its baffle is flush with the walls, so `mesh_override.remove` takes 4 mm off the baffle's face
+    # between the walls and the grille sits in that recess, 1 mm behind the walls' front edges. `inset_m` is
+    # the recessed baffle's depth. Recess and grille thickness are ESTIMATED, the owner's account being that
+    # the grille sits inside the walls rather than any measured depth.
     provenance: plans
-    inset_m: 0.0
+    inset_m: 0.004
     features:
       - { id: woofer, kind: cone, at_m: [ 0.0, 0.0 ], diameter_in: 16.38, depth_m: 0.11 }
+      - { id: grille, kind: grille, at_m: [ 0.0, 0.0 ], mouth_m: [ 0.564, 0.564 ], depth_m: 0.0015, setback_m: 0.001 }
 
 mesh_override:
   # Converted from the FreeCAD model with `ddev mesh-convert`; its 600 x 700 x 600 mm matches this
@@ -76,6 +83,11 @@ mesh_override:
   path: meshes/achenbach-18.stl
   units: mm
   rotate_deg: [ 0, 0, 0 ]
+  # The grille's recess, see audio.layout. It reaches 0.5 mm into each side wall rather than stopping on its
+  # inner face, because a cutter face lying exactly on the mesh's is what the exact boolean mishandles.
+  remove:
+    - { id: grille-recess, x_m: [ -0.2825, 0.2825 ],
+        section_m: [ [ -0.008, -0.282 ], [ 0.004, -0.282 ], [ 0.004, 0.282 ], [ -0.008, 0.282 ] ] }
 
 notes: |
   Driver: B&C 18TBW100 (18", 1000 W, 8 Ohm, 35 - 1000 Hz), one per cabinet.

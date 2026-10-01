@@ -99,6 +99,13 @@ def check(path):
     # declared box in plan view, so width and depth may reach it. Height and the floor stay held to the column.
     spread = metadata.get("base_spread_m")
 
+    # Castors stand off one face, outside the declared box, by the height they declare and no more. The face's
+    # axis may overshoot by that much.
+    castors = metadata.get("castors") or {}
+    allowance = [0.0, 0.0, 0.0]
+    if castors:
+        allowance[2 if castors["face"] == "back" else 0] = float(castors["protrusion_m"])
+
     problems = []
     for axis, label in enumerate(("width", "height", "depth")):
         if spread is not None and label != "height":
@@ -111,7 +118,7 @@ def check(path):
                     "%s is %.4f m, narrower than the %.4f m mast column" % (label, actual[axis], expected[axis])
                 )
             continue
-        over = actual[axis] - expected[axis]
+        over = actual[axis] - expected[axis] - allowance[axis]
         if over > tolerance:
             problems.append(
                 "%s is %.4f m but the spec says %.4f m — %.4f m of it lies outside the declared box"

@@ -11,60 +11,46 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 20 cabinets in 6 rows:
+# main-2 — 2, 17 cabinets in 8 rows:
 #
-#   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
-#   2  1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass             3.068 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   4  1× nuke rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90°    3.126 m wide
-#   5  1× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.05 m wide
-#   6  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
+#   1  1× wall-bass rolled 90°                                                   1.4 m wide
+#   2  1× mid-bass                                                                1.2 m wide
+#   3  1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°         1.697 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   6  1× flexy-folded-horn-hybrid rolled 270° + 1× nuke rolled 90°          1.553 m wide
+#   7  1× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.05 m wide
+#   8  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
 #
-# Subs reach 2.982 m against a 2.0 m interface. The stack is 3.942 m of cabinet.
+# Subs reach 4.073 m against a 2.0 m interface. The stack is 5.033 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass row is 3.068 m on a 2.820 m row, so it
-#     overhangs 124 mm each side
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
-#     3.068 m row, so it overhangs 22 mm each side
+#   * the subs reach 4.073 m against the 3.000 m ceiling asked for, so they stand 1073 mm too high — 4.073 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 1.697 m on a 1.200 m row, so it
+#     overhangs 249 mm each side
+#   * the 1× iq-sub rolled 270° + 2× iq-sub rolled 90° row is 2.050 m on a 1.553 m row, so it overhangs 249 mm
+#     each side
 #
-# main-1 — 1, 11 cabinets in 5 rows:
+# main-1 — 1, 14 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  2× iq-sub rolled 270° + 1× iq-sub rolled 90°                           2.05 m wide
+#   1  1× skram rolled 270° + 1× wall-bass rolled 90°                        2.334 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   4  2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°     2.84 m wide
 #   5  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
-# Subs reach 2.303 m against a 2.0 m interface. The stack is 3.263 m of cabinet.
+# Subs reach 2.432 m against a 2.0 m interface. The stack is 3.392 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 2× iq-sub rolled 270° + 1× iq-sub rolled 90° row is 2.050 m on a 1.546 m row, so it overhangs 252 mm
-#     each side
+#   * the 2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90° row is 2.840 m on a 2.329 m row, so
+#     it overhangs 256 mm each side
 #
 id: stacked-2-pooled--------free----mixed---column----stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -78,9 +64,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 20 cabinets in 6 rows
+  # 2, 17 cabinets in 8 rows
   - id: main-2
-    at: [-1.577, 0.0]
+    at: [-1.972, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -91,14 +77,17 @@ placements:
       mirror_style: column
       from:
         - device: wall-bass
+          count: 1
           roll_mirror: 90.0
         - mid-bass
         - device: skram
+          count: 1
           roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6
           roll_mirror: 90.0
         - device: nuke
+          count: 1
           roll_mirror: 90.0
         - device: iq-sub
           count: 3
@@ -109,9 +98,9 @@ placements:
           count: 2
           aim: near
 
-  # 1, 11 cabinets in 5 rows
+  # 1, 14 cabinets in 5 rows
   - id: main-1
-    at: [1.511, 0.0]
+    at: [0.973, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -122,8 +111,17 @@ placements:
       mirror_style: column
       mirror: true             # the mirror image of stack 1
       from:
+        - device: wall-bass
+          count: 1
+          roll_mirror: 90.0
+        - device: skram
+          count: 1
+          roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           count: 6
+          roll_mirror: 90.0
+        - device: nuke
+          count: 1
           roll_mirror: 90.0
         - device: iq-sub
           count: 3

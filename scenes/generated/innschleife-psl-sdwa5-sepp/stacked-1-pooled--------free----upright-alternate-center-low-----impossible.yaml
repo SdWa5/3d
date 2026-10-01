@@ -6,10 +6,11 @@
 #   * a tms2 stands at 1.780 m with nothing under it across x
 #   * a eighteensound-2way-15 stands at 1.780 m with nothing under it across x
 #   * a thebox-achat-112m stands at 1.700 m with nothing under it across x
-#   * main/3d and main/3b are 0.3577 m inside each other
-#   * main/3e and main/3c are 0.3174 m inside each other
-#   * main/3d and main/3a are 0.0231 m inside each other
-#   * main/2b and main/3b are 0.0019 m inside each other
+#   * main/3d and main/3b are 0.3393 m inside each other
+#   * main/3e and main/3c are 0.2187 m inside each other
+#   * main/3d and main/3a are 0.0415 m inside each other
+#   * main/2b and main/3b are 0.0155 m inside each other
+#   * main/3e and main/3b are 0.0040 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

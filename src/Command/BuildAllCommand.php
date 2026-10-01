@@ -599,11 +599,11 @@ final class BuildAllCommand extends BaseCommand
         $roots = [
             $build.'/scenes' => self::filesUnder($build.'/scenes/'.SceneLoader::GENERATED, ['blend', 'blend1']),
             $build.'/plans' => self::filesUnder($build.'/plans/'.SceneLoader::GENERATED, ['json']),
-            $build.'/renders' => self::filesUnder($build.'/renders/'.SceneLoader::GENERATED, ['png']),
+            $build.'/renders' => self::filesUnder($build.'/renders/'.SceneLoader::GENERATED, ['png', 'mp4']),
         ];
         foreach (glob($build.'/renders/*', GLOB_ONLYDIR) ?: [] as $variant) {
             if (SceneLoader::GENERATED !== basename($variant)) {
-                $roots[$variant] = self::filesUnder($variant.'/'.SceneLoader::GENERATED, ['png']);
+                $roots[$variant] = self::filesUnder($variant.'/'.SceneLoader::GENERATED, ['png', 'mp4']);
             }
         }
 
@@ -639,7 +639,7 @@ final class BuildAllCommand extends BaseCommand
     /**
      * The scene **key** a derived file belongs to, or null when its name says nothing.
      *
-     * The three shapes it has to read are `<name>.blend`, `_scene-<name>.json` and `<name>-<camera>.png`. A camera
+     * Fly-through plans and MP4s carry a recognised fly-through suffix. The other shapes are `<name>.blend`, `_scene-<name>.json` and `<name>-<camera>.png`. A camera
      * suffix is stripped from a known list rather than by taking everything before the last dash, because scene
      * names contain dashes themselves — `stacked-sdwa5-2-center-three-quarter.png` would otherwise resolve to a
      * scene called `stacked-sdwa5-2-center-three`.
@@ -655,6 +655,13 @@ final class BuildAllCommand extends BaseCommand
         $prefix = rtrim(str_replace('\\', '/', $root), '/').'/';
         $directory = str_replace('\\', '/', pathinfo($file, PATHINFO_DIRNAME)).'/';
         $relative = str_starts_with($directory, $prefix) ? substr($directory, strlen($prefix)) : '';
+        if (str_ends_with($file, '.mp4') || str_ends_with($file, '.json')) {
+            foreach (['-fly-through-perpendicular', '-fly-through'] as $suffix) {
+                if (str_ends_with($name, $suffix)) {
+                    return $relative.substr($name, 0, -strlen($suffix));
+                }
+            }
+        }
         if (str_starts_with($name, '_scene-')) {
             return $relative.substr($name, strlen('_scene-'));
         }

@@ -281,7 +281,8 @@ final class Stack
      *
      * Each tier stands `on` the one below, so no height is written; every tier is given the stack's own
      * `at`, so a short top tier stays centred on the rig's centre line rather than on whatever the row
-     * below happened to anchor at. The aim is copied onto **top** tiers only, because that is what every
+     * below happened to anchor at. Front to back every cabinet stands flush with the front of the deepest one,
+     * see {@see Placement::$frontYM}. The aim is copied onto **top** tiers only, because that is what every
      * hand-written rig does: the subs fire straight ahead and the tops are turned into the room.
      *
      * @param list<Tier> $tiers
@@ -294,6 +295,16 @@ final class Stack
         $placements = [];
 
         $resolved = Gravity::resolve($tiers, $this->gapM, $placement->id, $this->slideSlackM, $this->maxWidthM);
+
+        // Flush at the front, on the plane the deepest cabinet's front stands on when centred on `at`. So the rig's
+        // front face does not move, and every shallower cabinet stands back by half of what it lacks in depth.
+        $deepest = 0.0;
+        foreach ($resolved as $runs) {
+            foreach ($runs as $run) {
+                $deepest = max($deepest, $run['device']->dimensions->depth);
+            }
+        }
+        $frontY = $at[1] - $deepest / 2;
 
         foreach ($resolved as $index => $runs) {
             $tier = $tiers[$index];
@@ -325,7 +336,8 @@ final class Stack
             // The long throw first, then the fills beside it — because a fill is solved `outside` the long
             // throw, and `outside` has to name a placement that already exists. Order is otherwise irrelevant:
             // a placement's geometry does not depend on when it was emitted, only its references do.
-            [$runs, $throw] = $isTop ? self::throwFirst($runs) : [$runs, null];
+            $outward = LayoutMode::Stereo === $this->alignFor($tier, $placement->align)?->mode;
+            [$runs, $throw] = $isTop ? self::throwFirst($runs, $outward) : [$runs, null];
 
             foreach ($runs as $run) {
                 $own = $this->entryFor($run['device']->id)?->aim;
@@ -342,7 +354,7 @@ final class Stack
                             $run['roll'],
                             ($run['lo'] + $run['hi']) / 2,
                         ),
-                        $at[1],
+                        $frontY + $run['device']->dimensions->depth / 2,
                     ],
                     yawDeg: $placement->yawDeg,
                     pitchDeg: $placement->pitchDeg,
@@ -374,6 +386,7 @@ final class Stack
                     // A tier that landed in several places is left alone: each run has its own support and
                     // its own width, and there is no single envelope to justify them into.
                     align: $this->alignmentFor($tier, $placement, $run, $runs, $throw, $isTop, $index),
+                    frontYM: $frontY,
                 );
             }
         }
@@ -553,11 +566,13 @@ final class Stack
      *
      * Null when there is nothing to chain — a row that landed in one run has no neighbour to clear.
      *
+     * **`$outward` CHAINS A STEREO ROW FROM ITS ENDS INSTEAD**, see {@see outwardChain}.
+     *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
      *
-     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>, array<string, array{id: string, side: float}>|null} the runs in emission order, and what each is spaced against
+     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>, array<string, array{id: string, side: float, hug: bool}>|null} the runs in emission order, and what each is spaced against
      */
-    private static function throwFirst(array $runs): array
+    private static function throwFirst(array $runs, bool $outward = false): array
     {
         if (count($runs) < 2) {
             return [$runs, null];
@@ -575,6 +590,10 @@ final class Stack
             return 0 !== $byDistance ? $byDistance : $a['lo'] <=> $b['lo'];
         });
 
+        if ($outward && self::mirroredRuns($runs)) {
+            return self::outwardChain($runs);
+        }
+
         $ordered = $runs;
         $references = [[
             'id' => $ordered[0]['id'],
@@ -585,8 +604,86 @@ final class Stack
         $chain = [];
         foreach (array_slice($ordered, 1) as $run) {
             $against = self::nearest($references, $run);
-            $chain[$run['id']] = ['id' => $against['id'], 'side' => $against['side']];
+            $chain[$run['id']] = ['id' => $against['id'], 'side' => $against['side'], 'hug' => false];
             $references[] = ['id' => $run['id'], 'lo' => $run['lo'], 'hi' => $run['hi']];
+        }
+
+        return [$ordered, $chain];
+    }
+
+    /**
+     * Whether both halves have matching cabinets at matching support heights.
+     *
+     * An asymmetric row keeps gravity's inward chain. Reversing one across a support step put a turbo top
+     * 32.4 mm into the raised fill beside it on the pooled GMSS rig. Mirrored rows can pack outward without
+     * using one side's support arrangement as an assumption about the other.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     */
+    private static function mirroredRuns(array $runs): bool
+    {
+        usort($runs, static fn (array $a, array $b): int => $a['lo'] <=> $b['lo']);
+        $centre = ($runs[0]['lo'] + $runs[count($runs) - 1]['hi']) / 2;
+        foreach ($runs as $index => $left) {
+            $right = $runs[count($runs) - 1 - $index];
+            if ($left['device']->id !== $right['device']->id || $left['count'] !== $right['count']
+                || abs($left['top'] - $right['top']) > StepSolver::TOLERANCE_M
+                || abs($left['lo'] + $right['hi'] - 2 * $centre) > StepSolver::TOLERANCE_M) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * A stereo tops row chained from its ends: the innermost run and the outermost run on each side keep gravity's
+     * position, and every run between is pulled out against its outer neighbour until the working gap is all the
+     * air between them.
+     *
+     * **THE NEAR-FIELD TOPS STAND AS FAR OUT AS THEY CAN, AGAINST THE LONG THROWS AT THE ENDS**, as the owner stated
+     * on 2026-10-01. A stereo row already deals the long throws to its ends, see {@see StackTops::topRow}, and gravity
+     * seats those on the ends of the row below. Chained inward-out as {@see throwFirst} does, a fill only had to clear
+     * the middle and stayed where the row dealt it. Chained from the ends it hugs the long throw, with the air of the
+     * row collected in the middle. A side with only one run beside the innermost has no fill to pull, so that run is
+     * chained to the innermost the usual way, which keeps two throw runs from landing inside each other.
+     *
+     * Emission order is innermost first, then each side from the outside in, so every reference is placed before
+     * the run that names it.
+     *
+     * @param non-empty-list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs innermost first
+     *
+     * @return array{list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>, array<string, array{id: string, side: float, hug: bool}>}
+     */
+    private static function outwardChain(array $runs): array
+    {
+        $inner = $runs[0];
+        $middle = ($inner['lo'] + $inner['hi']) / 2;
+        $ordered = [$inner];
+        $chain = [];
+
+        foreach ([-1.0, 1.0] as $direction) {
+            $side = array_values(array_filter(
+                array_slice($runs, 1),
+                static fn (array $run): bool => (($run['lo'] + $run['hi']) / 2 - $middle) * $direction > 0.0,
+            ));
+            // Outside in: the furthest from the middle first.
+            usort($side, static fn (array $a, array $b): int => abs(($b['lo'] + $b['hi']) / 2 - $middle) <=> abs(($a['lo'] + $a['hi']) / 2 - $middle));
+
+            if (1 === count($side)) {
+                $ordered[] = $side[0];
+                $chain[$side[0]['id']] = ['id' => $inner['id'], 'side' => $direction, 'hug' => false];
+
+                continue;
+            }
+
+            foreach ($side as $index => $run) {
+                $ordered[] = $run;
+                if (0 < $index) {
+                    // Inboard of its reference, so the side that is out of it points back at the middle.
+                    $chain[$run['id']] = ['id' => $side[$index - 1]['id'], 'side' => -$direction, 'hug' => true];
+                }
+            }
         }
 
         return [$ordered, $chain];
@@ -634,7 +731,7 @@ final class Stack
      *
      * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
      * @param array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float} $run
-     * @param array<string, array{id: string, side: float}>|null $throw what each fill clears, from {@see throwFirst}
+     * @param array<string, array{id: string, side: float, hug: bool}>|null $throw what each fill clears, from {@see throwFirst}
      */
     private function alignmentFor(
         Tier $tier,
@@ -662,6 +759,7 @@ final class Stack
                 clearOf: $nearest['id'],
                 insetM: $tier->gapFor($this->gapM),
                 side: $nearest['side'],
+                hug: $nearest['hug'],
             );
         }
 

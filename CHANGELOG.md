@@ -4,6 +4,63 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.135.0] - 2026-10-01
+
+### Added
+
+- `scene:fly-through` renders an H.264 MP4 between the outer stacks' far focus points while looking at the rig.
+  A perpendicular mode keeps the camera normal to the systems. Duration, fps, resolution, samples and lighting
+  are configurable, with a preview mode and a plan-only dry run.
+- Baffle feature kinds `cell` (an open rectangular recess) and `fin` (a plate standing behind the baffle), with
+  `angle_deg`, `turn` (`yaw` or `pitch`), `mitre` and `setback_m` on fins and a tilted back wall on cells. A cone
+  can sit `inside` a cell, on its back wall.
+- Baffle feature kinds `grille` (a see-through sheet, square or round, on the baffle or on a cell's back wall) and
+  `plug` (a phase-plug dome in front of a horn's throat).
+- `color` on every baffle feature, and `appearance.front_color` for a front face in a colour of its own.
+- `throat_blend_m` on a horn, so a straight-edged horn keeps flat walls until near its round throat.
+- `setback_m` on a horn nested in another, so it can stand in front of its host's throat.
+- `mesh_override.paint` and `mesh_override.remove`, to colour parts of an imported mesh and to cut away parts the
+  real cabinet does not have.
+- `physical.castors`, four wheels on the back or a side, drawn outside the declared box. `tools/check-glb.py`
+  allows exactly their height on that axis.
+- A perforated `sdwa5-mesh-<hex>` grille material, and per-feature `sdwa5-<role>-<hex>` materials.
+- Photo-read fronts for PSL's ESX and EF 6 and for Innschleife's WSX 18, SBH 18, kicker 15, TMS-2 and TMS-4.
+- The Flexy's VVV steel brace and four blue castors, the Achenbach's front grille, the Tecnare's HF bracket arms
+  and the 2-way's green port linings.
+- `dome_m`, `rim_m` and `rim_color` on a round grille, for a sheet pressed forward inside a rim of its own. The
+  ESX's grilles use them.
+- A mirrored stereo tops row packs its near-field tops outward until they touch the long throws beside them,
+  bounded by its bearing. Asymmetric rows keep gravity's inward chain.
+- `tests/Spec/BaffleFeatureKindsTest.php` for the new kinds and keys.
+
+### Changed
+
+- `plan_version` 7, because the build plan carries the new feature keys, the front colour and castors.
+- Specular level 0.2 instead of 0.5 on every material, and the Studio lighting preset renders at an exposure of
+  −1.25. Black cabinets rendered mid grey before.
+- PSL's ESX and EF 6 are black with a white front.
+- The Tecnare's whole front is centred vertically, with 40 mm between the mid horn and the LF pair. Its HF plugs
+  are 1.3 times larger and stand directly in front of continuous bracket arms.
+- The Innschleife tops' bottom section is a port horn fed by the drivers' backs, with a bowed bottom and the HF
+  section inside it. The TMS-2 has a phase plug and the TMS-4 a waveguide and an HF horn.
+- The TMS-4 is black all over. The TMS-2 is a dark navy with a black front, and the kicker 15 is a near-black blue.
+- The WSX 18 and SBH 18 are black folded horns with no port. The WSX's angled boards are dark blue, and the SBH's
+  are black. The horn wall slopes back at 18° on the WSX and at 30° on the SBH, and the uprights behind the boards
+  stand on the centreline, so a rolled copy matches an upright one.
+- Stacks stand flush at the front by each cabinet's foot, and a top stands on the front edge of the wall below it.
+- Every generated scene is regenerated against the new solver.
+- Side handle cups are no deeper than the wall a baffle opening leaves beside them, and are skipped where none is
+  left.
+
+### Fixed
+
+- Stale-artifact cleanup recognises fly-through plans and videos by their source scene.
+- The chamfer runs before the handle recesses are cut. The other way round, the exact boolean dropped the TMS-4's
+  mid horn.
+- A Flexy line across the mouth, left by a sliver of the CAD's back plank.
+- A white ring round every ESX dust cap, where the driver bore stood in front of the surround on its tilted wall.
+- The Flexy deviations note, which still described the 0.573 m CAD export as the one in use.
+
 ## [0.134.0] - 2026-10-01
 
 ### Added

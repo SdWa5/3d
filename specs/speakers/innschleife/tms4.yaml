@@ -40,7 +40,7 @@
 # drawing, and this is a factory box. A `manufacturer`/`model` pair is not in the schema, so the identification
 # lives in this header and in docs/sources.md rather than in a field.
 #
-# NO `audio` BLOCK, EVEN THOUGH THE DATASHEET HAS ONE. The published TMS-4 states 450 W RMS, 105 dB sensitivity,
+# `audio` CARRIES ONLY THE BAFFLE LAYOUT, EVEN THOUGH THE DATASHEET HAS MORE. The published TMS-4 states 450 W RMS, 105 dB sensitivity,
 # a 55 Hz to 17 kHz response and an 18"/10"/1" complement. None of it is written here yet, because adopting a
 # passband changes `Passband::orderingLowHz()` and therefore which cabinet goes where in every stack, and that is
 # a rig change rather than a documentation change. It is worth doing deliberately — see docs/requests.md.
@@ -69,9 +69,12 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  # The classic Turbosound purple, read as a body colour rather than as the photograph's average. See
-  # tms2.yaml, which is the same livery and is the reason the livery alone was never enough to name either.
-  color: "#3d1f4a"
+  # Near black, read off meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01 and white-balanced as described
+  # under `audio.layout`. The frame's lit edge reads #40474d and the face in shadow #0e1117, and this is
+  # between the two. This file carried the Turbosound purple #3d1f4a before. The owner stated on 2026-10-01
+  # that it is completely black, the uprights across the HF horn included, so it takes the #141414 of every
+  # black cabinet here rather than the #1e2124 the photo averaged.
+  color: "#141414"
 
 physical:
   weight_kg: 74.8
@@ -80,6 +83,33 @@ physical:
 rigging:
   flyable: false
   points: [ ]
+
+audio:
+  # Front-baffle layout. Origin at the centre of the 0.500 x 1.140 front face, +X right, +Z up. TAKEN FROM
+  # THE BLACK MIDDLE TOP IN meshes/innschleife/photo-2026-09-19.jpeg, which the owner chose on 2026-10-01 as
+  # this cabinet's front. The photo's front is 0.60 as wide as it is tall where the datasheet's is 0.44, so
+  # the two disagree on its proportions. Every reading is scaled to the datasheet's size on each axis
+  # separately, which keeps the sections where the photo has them and stretches them to fit.
+  #
+  # From the top down it shows the 10" mid horn, the HF horn with two uprights across it and the
+  # port at the bottom. All three are horn-shaped, as the owner stated on 2026-10-01: the bottom is a port
+  # fed by the back of the drivers above it, like the TMS-2's, so no driver shows at its throat, the middle section is the 1" HF horn as on the TMS-2, and the mid driver has a waveguide in
+  # front of it, drawn as two plates closing towards the driver. Depths are ESTIMATED. The colours are white-balanced against the SBH's white fins in the same photo, which is the only white in
+  # it, so every colour here carries that one assumption.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: mid, kind: horn, at_m: [ 0.0, 0.34 ], mouth_m: [ 0.42, 0.36 ], throat_in: 10.0, driver_in: 10, depth_m: 0.30,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
+      - { id: guide-up, kind: fin, at_m: [ 0.0, 0.41 ], mouth_m: [ 0.40, 0.015 ], depth_m: 0.10, setback_m: 0.17, angle_deg: -20 }
+      - { id: guide-lo, kind: fin, at_m: [ 0.0, 0.27 ], mouth_m: [ 0.40, 0.015 ], depth_m: 0.10, setback_m: 0.17, angle_deg: 20 }
+      - { id: upright-l, kind: fin, at_m: [ -0.154, 0.03 ], mouth_m: [ 0.018, 0.20 ], depth_m: 0.02, setback_m: 0.005 }
+      - { id: upright-r, kind: fin, at_m: [  0.154, 0.03 ], mouth_m: [ 0.018, 0.20 ], depth_m: 0.02, setback_m: 0.005 }
+      - { id: lf, kind: cell, at_m: [ 0.0, -0.2025 ], mouth_m: [ 0.44, 0.685 ], depth_m: 0.32, angle_deg: 41.2, turn: pitch,
+          flare: exponential }
+      - { id: hf, kind: horn, inside: lf, at_m: [ 0.0, 0.03 ], setback_m: 0.01, mouth_m: [ 0.44, 0.20 ], throat_in: 1.0, depth_m: 0.15,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
 
 mesh_override: null
 

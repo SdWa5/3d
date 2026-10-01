@@ -386,18 +386,18 @@ Reference photo: `/home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.
    no provenance field for rigging, so the estimate lives in a comment.
 5. **The SKRAM mesh's orientation.** `rotate_deg: [90, 0, 0]` puts the open chambers upwards, and `[90, 0, 180]` and
    `[-90, 0, 0]` are the other candidates. Nobody has checked which face carries the mouth on the real cabinet.
-6. The Flexy and SKRAM have no `audio.layout`, because their drivers sit deep in a folded horn path. It only matters if
-   a render ever looks into a mouth from close up.
+6. The SKRAM has no `audio.layout`, and the Flexy's carries only its brace, because their drivers sit deep in a folded
+   horn path. It only matters if a render ever looks into a mouth from close up.
 
 #### SPEC-2 — geometry still missing
 
-1. **Tecnare top**: add the HF horn's mounting braces, and make each side of the connected horns one flat piece instead
-   of three.
-2. Find our **custom Flexy** 3D model with the actual W-like metal braces, in Drive or locally.
-3. **2-way top**: find or model the actual horn, or at least close the gap between horn and cabinet. The 18Sound's two
+1. **2-way top**: find or model the actual horn, or at least close the gap between horn and cabinet. The 18Sound's two
    Ø100 mm ports come from its CAD, nothing sits behind them, and a generated cabinet cannot declare a port at all.
-4. **Handle recesses** are a plain rectangular cut. A rounded dish would read better, which wants a general handle
+2. **Handle recesses** are a plain rectangular cut. A rounded dish would read better, which wants a general handle
    model.
+3. **Castors on the PSL subs.** `physical.castors` draws the Flexy's since 0.135.0. The ESX and the TP118 both have
+   four 100 mm castors, but on which face of the upright frame they sit depends on how PSL stands them, and the photo
+   shows them lying on a side. One question to the owner settles it (ca. 15 minutes).
 
 #### SPEC-3 — lighting
 
@@ -530,15 +530,15 @@ load-bearing tier.
 | SCN-7 | End-fire setup: add the other sub and the tops | P3 | 30m | — | — | open |
 | SCN-4 | Daylight renders: the insides of speakers come out a little too dark | P3 | 30m | — | — | open |
 | SCN-5 | Finish the scene work, see [docs/scenes.md](docs/scenes.md). `scene:build` itself is done | P3 | 2h | — | — | partial |
-| SCN-6 | Fly-through renders, combined with a new project from the [audio routing table](https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604) | P3 | 3h | — | — | open |
+| SCN-6 | Connect the fly-through preview with a new project from the [audio routing table](https://docs.google.com/spreadsheets/d/1lLv8RN6I70Efh1ktJXTcqyx2qMsr7obSXus2ypfaWUs/edit?gid=1412726604#gid=1412726604) | P3 | ca. 3 hours | — | — | open |
 
 #### SCN-5 — what is left of the scene work
 
 1. Write the **splayed sub arc** scene. `arc` covers the schema side, since a mirrored Flexy arc is `arc` plus
    `roll_deg: 180`, but no scene uses it. A sub arc is where the reported footprint reads worst, because a bounding
    box around a fan includes floor nothing stands on.
-2. Render polish: per-device colour (e.g. Flexy bracings green), and a truss or stage backdrop so a preview looks like
-   a venue rather than a void. Since 0.124.0 a generated rig that brings a deco device gets one.
+2. Render polish: a truss or stage backdrop so a preview looks like a venue rather than a void. Since 0.124.0 a
+   generated rig that brings a deco device gets one.
 3. Porting the 2D setup drawings is CVR-4, which is coverage rather than polish.
 
 ## VIS · the long view

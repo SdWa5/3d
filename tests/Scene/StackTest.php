@@ -91,6 +91,23 @@ final class StackTest extends TestCase
     }
 
     /**
+     * A stack stands flush at the front, on the front of its deepest cabinet, which the owner stated on 2026-10-01.
+     * Centred on one y, the 0.52 m Tecnares stood 222 mm behind the front of the 0.964 m Flexys under them. The
+     * outer Tecnares are aimed, so this also holds them to it after the yaw has swung a front corner forward. It is
+     * the foot that stands flush, so a top tilted down leans its upper edge out over the wall.
+     */
+    public function testEveryCabinetStandsFlushWithTheFrontOfTheDeepest(): void
+    {
+        $placed = $this->compile($this->rig());
+
+        foreach ($placed as $entry) {
+            self::assertEqualsWithDelta(-0.964 / 2, $entry->footFrontY(), 1e-5, $entry->placementId);
+        }
+        $aimed = array_filter($placed, static fn (PlacedDevice $e): bool => abs($e->yawDeg()) > 1.0);
+        self::assertNotSame([], $aimed, 'the rig has an aimed top to hold to the front');
+    }
+
+    /**
      * A mixed row is several placements, because a `row` group makes copies of **one** device. Segments get
      * letters so they cannot be confused with the numeric `-1`, `-2` suffixes every group appends.
      *
@@ -146,8 +163,8 @@ final class StackTest extends TestCase
         // their front corners were 20 mm apart in nominal widths but not in fact. The middle segment does not move,
         // because spreading a row scales its offsets about its own centre.
         self::assertEqualsWithDelta(-0.302, $centre('main/4b'), 1e-9);
-        self::assertEqualsWithDelta(-1.340096, $centre('main/4a'), 1e-6);
-        self::assertEqualsWithDelta(0.736096, $centre('main/4c'), 1e-6);
+        self::assertEqualsWithDelta(-1.342456, $centre('main/4a'), 1e-6);
+        self::assertEqualsWithDelta(0.738456, $centre('main/4c'), 1e-6);
 
         // The number the positions above exist to deliver, measured the way the solve measures it. Symmetric to the
         // micrometre, which is itself worth pinning: a one-sided answer would mean the two fills were solved against
@@ -246,14 +263,15 @@ final class StackTest extends TestCase
             ]],
         ]);
 
-        // 1.5427 m. Two effects, pulling opposite ways, and the row used to record only the first of them. A toed-in
+        // 1.5391 m, and 1.5427 while the tops stood centred on the Flexys rather than flush with their front. Two effects, pulling opposite ways, and the row used to record only the first of them. A toed-in
         // trapezoid's outermost point is its *back* bottom corner and sits inside its half-width, which is why the row
         // is not simply the 1.540 m of three 0.500 m cabinets plus two gaps. But the same yaw swings each cabinet's
         // *front* corners towards its neighbour, so at nominal spacing the air between them fell under the 20 mm the
         // row was given, and 1.5137 m was a row whose cabinets were closer together than asked. The spacing solve now
-        // restores the gap, which costs 29 mm of width and lands just past the unrotated 1.540.
+        // restores the gap, which cost 29 mm of width. Standing 222 mm further back the tops toe in a little less
+        // and the row lands just under the unrotated 1.540.
         $tops = $this->edgesOf($placed, 'main/4');
-        self::assertEqualsWithDelta(1.5427, $tops['max'] - $tops['min'], 1e-4);
+        self::assertEqualsWithDelta(1.5391, $tops['max'] - $tops['min'], 1e-4);
     }
 
     public function testAnUnknownDeviceInFromIsReported(): void
@@ -299,6 +317,86 @@ final class StackTest extends TestCase
         self::assertEqualsWithDelta(0.0, $tops[0] + $tops[4], 0.001, 'the outer tops mirrored');
         self::assertEqualsWithDelta(0.0, $tops[1] + $tops[3], 0.001, 'the inner tops mirrored');
         self::assertLessThan(0.65, $tops[1] - $tops[0], 'the left pair keeps its own spacing');
+    }
+
+    /**
+     * **A stereo tops row packs its near-field tops outward, against the long throws at its ends.**.
+     *
+     * The owner stated on 2026-10-01 that the two-ways stand as far out as they can, touching the Tecnare at their end
+     * of the row. Before, each was only kept clear of the middle Tecnare and stood wherever the row dealt it, 0.323 m
+     * off the outer one. So each two-way stands one working gap off the Tecnare outboard of it, measured on the shells,
+     * and further than that off the one inboard.
+     */
+    public function testAStereoTopsRowPacksItsFillsAgainstTheOuterLongThrows(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'align' => ['mode' => 'stereo'], 'stack' => [
+                'max_width_m' => 4.30, 'interface_height_m' => 1.6, 'gap_m' => 0.02,
+                'from' => [
+                    ['device' => 'flexy-folded-horn-hybrid', 'count' => 6],
+                    ['device' => 'tecnare-m2122', 'count' => 3],
+                    ['device' => 'eighteensound-2way-15', 'count' => 2],
+                ],
+            ]],
+        ]);
+
+        $of = static fn (string $id): array => array_values(array_filter($placed, static fn (PlacedDevice $e): bool => $id === $e->device->id));
+        $throws = $of('tecnare-m2122');
+        $fills = $of('eighteensound-2way-15');
+        self::assertCount(3, $throws);
+        self::assertCount(2, $fills);
+        usort($throws, static fn (PlacedDevice $a, PlacedDevice $b): int => $a->position[0] <=> $b->position[0]);
+
+        foreach ($fills as $fill) {
+            $left = $fill->position[0] < 0.0;
+            $outer = $left ? $throws[0] : $throws[2];
+            self::assertEqualsWithDelta(0.02, Interpenetration::gapBetween([$fill], [$outer]), 1e-4, $fill->placementId.' against the outer Tecnare');
+            self::assertGreaterThan(0.02 + 1e-3, Interpenetration::gapBetween([$fill], [$throws[1]]), $fill->placementId.' off the middle one');
+        }
+    }
+
+    public function testAnAsymmetricStereoRowKeepsItsFillsClearAcrossASupportStep(): void
+    {
+        $placements = Yaml::parse(
+            <<<'YAML'
+                - id: main-gmss
+                  at:
+                  - 2.993
+                  - 0.0
+                  aim: far
+                  focus:
+                    far:
+                      distance_m: 10.0
+                      height_m: 1.8
+                    near:
+                      distance_m: 2.0
+                      height_m: 1.8
+                  align:
+                    mode: stereo
+                  stack:
+                    interface_height_m: 2.0
+                    max_sub_height_m: 3.0
+                    gap_m: 0.02
+                    slide_slack_m: .inf
+                    shape: pyramid
+                    from:
+                    - wall-bass
+                    - mid-bass
+                    - nuke
+                    - iq-sub
+                    - tecnare-m2122
+                    - device: eighteensound-2way-15
+                      count: 1
+                      aim: near
+                    - device: turbo-top
+                      count: 1
+                      aim: near
+                YAML
+        );
+        $placed = $this->compile($placements);
+
+        self::assertSame([], Interpenetration::faults($placed, 0.001));
+        self::assertSame([], \App\Scene\PlacementChecks::floatingFaults($placed));
     }
 
     /**
@@ -469,7 +567,7 @@ final class StackTest extends TestCase
 
         // Four pitches, none of them a row width. The seam between the two runs is the solved 20 mm clearance
         // rather than the aim spread, so it is a hair tighter than the two inside the first run.
-        self::assertEqualsWithDelta([0.6252, 0.6252, 0.6210, 0.6163], $pitches, 1e-4);
+        self::assertEqualsWithDelta([0.6210, 0.6210, 0.6180, 0.6134], $pitches, 1e-4);
 
         // The row is 3.0 m of cabinet and the stack stands 2.38 m wide, so a split run showed up as a pitch of
         // roughly a row width. Stated as a bound as well as as numbers, because that is the property rather than

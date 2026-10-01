@@ -52,9 +52,11 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  # No photograph of this cabinet exists in anything we hold, so there is nothing to sample. Near black, which is
-  # what every other Innschleife sub but the 57x110 reads as. It is a placeholder and it says so.
-  color: "#1d1d1d"
+  # Read off meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01, the first photograph of this cabinet anybody has
+  # held, and white-balanced as described under `audio.layout`. That read a dark slate blue #1f303c, and the
+  # owner stated on 2026-10-01 that the cabinet is black all over except the white boards in the front row. The
+  # owner then stated on 2026-10-01 that those boards are black too, so the whole cabinet is this one colour.
+  color: "#141414"
 
 physical:
   weight_kg: 106.0
@@ -64,9 +66,42 @@ rigging:
   flyable: false
   points: [ ]
 
-# NO `audio` BLOCK. "SBH 18" says a sub bass horn with an 18", which is a driver size and not a passband, and this
+# `audio` CARRIES ONLY THE BAFFLE LAYOUT. "SBH 18" says a sub bass horn with an 18", which is a driver size and
+# not a passband, and this
 # repository does not write a frequency range it was not given. `Passband::orderingLowHz()` therefore cannot rank
 # this cabinet and the fill order falls back to mass — where, at 106 kg, it goes to the floor anyway.
+
+audio:
+  # Front-baffle layout in the upright baffle frame: origin at the centre of the 0.550 x 1.200 front face, +X
+  # right, +Z up. READ OFF meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01, where these lie on their side in
+  # the bottom row, at about 715 px/m and turned back upright with the photo's left end at the top.
+  #
+  # The upper fifth is closed face. Below it the horn mouth opens over the full width, with two white boards
+  # standing in it at an angle and a dark shelf deeper in the lower part. Each board's far edge reads shorter
+  # than its near one, which puts the near edge at the front and tilts the board's back downwards. The angles
+  # come from how wide each board's face shows, at an ESTIMATED 0.25 m of depth. The white boards stand at the
+  # front and the black shelf deep behind them, as the owner stated on 2026-10-01. The shelf stands on the
+  # centreline, where the photo shows it in both mirrored SBH, so a copy rolled either way puts it at one height. It starts 0.249 back, where the
+  # angled white boards end, so it touches them without passing through, as the owner asked on 2026-10-01. It is a folded horn with no
+  # port.
+  #
+  # THE HORN FLARES OVER THE UPPER PART OF THE MOUTH, as the owner stated on 2026-10-01. Its back wall leaves
+  # the front 20 mm under the closed face and slopes back at 30° to 0.268 m at the upper board. It was 45° at
+  # first, then 60°, and the owner stated on 2026-10-01 that the wall runs flat at 30°. That is how the photo's dark panel above the boards
+  # and the floor narrowing towards the closed end read. The flare overlaps the straight section by 10 mm so
+  # the two cuts share no face. The angle is ESTIMATED.
+  #
+  # The boards read white in the photo, and the owner stated on 2026-10-01 that they are black, so they carry the
+  # body's colour rather than one of their own. The photo's white balance still rests on their white faces.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: flare, kind: cell, at_m: [ 0.0,  0.145 ], mouth_m: [ 0.52, 0.43 ], depth_m: 0.1441, angle_deg: -30, turn: pitch }
+      - { id: mouth, kind: cell, at_m: [ 0.0, -0.3225 ], mouth_m: [ 0.52, 0.525 ], depth_m: 0.45 }
+      - { id: board-up, kind: fin, at_m: [ 0.0, -0.074 ], mouth_m: [ 0.52, 0.02 ], depth_m: 0.25, angle_deg: -20, setback_m: 0.0 }
+      - { id: board-lo, kind: fin, at_m: [ 0.0, -0.361 ], mouth_m: [ 0.52, 0.02 ], depth_m: 0.25, angle_deg: -13, setback_m: 0.0 }
+      - { id: shelf, kind: fin, at_m: [ 0.0, -0.381 ], mouth_m: [ 0.02, 0.40 ], depth_m: 0.181, setback_m: 0.249 }
 
 mesh_override: null
 

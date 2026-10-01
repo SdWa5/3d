@@ -17,9 +17,10 @@ clone_of:
 provenance: plans
 deviations: |
   Width is 0.591 m — confirmed by the owner and by
-  PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx. The CAD mesh in Drive measures only 0.573 m
-  across, so it is missing roughly 17 mm of the real cabinet (side cladding or a baffle the model
-  leaves out). Height and depth are taken from that mesh, which agrees with the spreadsheet's
+  PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx. The original CAD export in Drive measures only
+  0.573 m across, so it is missing roughly 17 mm of the real cabinet (side cladding or a baffle the
+  model leaves out). The `flexy-1to10.stl` export this spec uses measures 0.588 m and passes within the
+  5 mm tolerance. Height and depth are taken from the mesh, which agrees with the spreadsheet's
   rounded 0.76 / 0.96 while being more precise.
 
 geometry:
@@ -37,6 +38,9 @@ physical:
   # 70 kg empty + 15 kg driver, per the comparison spreadsheet.
   weight_kg: 85.0
   handles: [ left, right ]
+  # Four blue wheels on the back, two of them braked, as the owner stated on 2026-10-01. The wheel size is
+  # ESTIMATED at the common 100 mm, because nobody has measured one.
+  castors: { face: back, diameter_m: 0.10, color: "#1f4fa8", locking: 2 }
 
 rigging:
   flyable: false
@@ -51,13 +55,80 @@ audio:
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 
-# The design's CAD mesh is available and correctly oriented with `units: mm` and
-# `rotate_deg: [90, 0, 90]`, but it measures 0.573 m across where this cabinet is 0.591 m, so the
-# builder rejects it. Reconcile the 18 mm first — see TODO.md item 1.3.
+  # THE BRACE IN THE HORN MOUTH, which replaces the CAD's cross (see mesh_override.remove below). It is steel
+  # and painted green, as photo-flexy-wall.png and photo-full-rig.png in meshes/sdwa5/ show (2026-10-01).
+  #
+  # WHAT THE OWNER STATED on 2026-10-01, in corrections to a series of renders. Both bars are a VVV in side
+  # view with the tips facing out of the cabinet. Both are flat plates that are thin across the cabinet's
+  # other axis, the long bar thin top to bottom and the upright thin left to right, and wide in depth. They
+  # are not the same length and they meet in the middle of each. Each bar ends in a mounting foot, four per
+  # cabinet, oblong from front to back. The deepest corners sat 0.40 m back first and were then moved forward
+  # to 0.35 m on request. Of four rendered variants the owner picked a right angle inside each V over 45°,
+  # and asked for single-pointed corners, which is why every segment is `mitre`d.
+  #
+  # WHAT FOLLOWS FROM THAT. Every segment is turned 45° off the depth axis. The long bar runs from wall to
+  # wall in six segments of 0.092 m across, so the VVV is 0.092 m deep, with its tips at 0.258 m and its
+  # back corners at 0.35 m. The upright runs from the floor foot to the foot under the sloped panel, z 0.026
+  # to 0.364 from the floor, also in six segments. Its tips share the long bar's depth, so the two middle
+  # tips meet, and its back corners are at 0.314 m. Its middle, z 0.1949, is where the long bar sits. Both
+  # plates are 6 mm thin and 40 mm wide, and the feet are 30 x 100 x 8 mm. The heights come from the CAD,
+  # which was ray-cast for them. Section and feet are ESTIMATED from the photos, which show the shape but
+  # not a dimension. The colour is the green sampled off the 18Sound ports in daylight, because both Flexy
+  # photos are colour-graded or UV-lit.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: brace-h1, kind: fin, at_m: [  0.000, -0.1866 ], mouth_m: [ 0.04, 0.006 ], depth_m: 0.1301, angle_deg:  45.00, turn: yaw, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-h2, kind: fin, at_m: [  0.000, -0.1866 ], mouth_m: [ 0.04, 0.006 ], depth_m: 0.1301, angle_deg: -45.00, turn: yaw, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-h3, kind: fin, at_m: [  0.184, -0.1866 ], mouth_m: [ 0.04, 0.006 ], depth_m: 0.1301, angle_deg: -45.00, turn: yaw, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-h4, kind: fin, at_m: [  0.184, -0.1866 ], mouth_m: [ 0.04, 0.006 ], depth_m: 0.1301, angle_deg:  45.00, turn: yaw, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-h5, kind: fin, at_m: [ -0.184, -0.1866 ], mouth_m: [ 0.04, 0.006 ], depth_m: 0.1301, angle_deg:  45.00, turn: yaw, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-h6, kind: fin, at_m: [ -0.184, -0.1866 ], mouth_m: [ 0.04, 0.006 ], depth_m: 0.1301, angle_deg: -45.00, turn: yaw, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-v1, kind: fin, at_m: [ 0.0, -0.2992 ], mouth_m: [ 0.006, 0.04 ], depth_m: 0.0796, angle_deg:  45.00, turn: pitch, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-v2, kind: fin, at_m: [ 0.0, -0.2992 ], mouth_m: [ 0.006, 0.04 ], depth_m: 0.0796, angle_deg: -45.00, turn: pitch, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-v3, kind: fin, at_m: [ 0.0, -0.1866 ], mouth_m: [ 0.006, 0.04 ], depth_m: 0.0796, angle_deg:  45.00, turn: pitch, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-v4, kind: fin, at_m: [ 0.0, -0.1866 ], mouth_m: [ 0.006, 0.04 ], depth_m: 0.0796, angle_deg: -45.00, turn: pitch, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-v5, kind: fin, at_m: [ 0.0, -0.0741 ], mouth_m: [ 0.006, 0.04 ], depth_m: 0.0796, angle_deg:  45.00, turn: pitch, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: brace-v6, kind: fin, at_m: [ 0.0, -0.0741 ], mouth_m: [ 0.006, 0.04 ], depth_m: 0.0796, angle_deg: -45.00, turn: pitch, mitre: true, setback_m: 0.2297, color: "#37822f" }
+      - { id: foot-floor, kind: fin, at_m: [ 0.0, -0.3595 ], mouth_m: [ 0.03, 0.008 ], depth_m: 0.10, setback_m: 0.2643, color: "#37822f" }
+      # Pitched to lie against the panel above, whose underside falls 19.2° toward the back here.
+      - { id: foot-top, kind: fin, at_m: [ 0.0, 0.0036 ], mouth_m: [ 0.03, 0.008 ], depth_m: 0.10, angle_deg: -19.2, setback_m: 0.2643, color: "#37822f" }
+      - { id: foot-left,  kind: fin, at_m: [ -0.272, -0.1866 ], mouth_m: [ 0.008, 0.03 ], depth_m: 0.10, setback_m: 0.3000, color: "#37822f" }
+      - { id: foot-right, kind: fin, at_m: [  0.272, -0.1866 ], mouth_m: [ 0.008, 0.03 ], depth_m: 0.10, setback_m: 0.3000, color: "#37822f" }
+
+# The design's CAD mesh, the 1:10 STL in centimetres. It measures 0.588 m across against this cabinet's
+# 0.591 m, which is inside the builder's tolerance, so it is imported rather than the box.
 mesh_override:
   path: meshes/flexy-1to10.stl
   units: cm
   rotate_deg: [ 90, 0, 90 ]
+  # THE CAD'S CROSS IS NOT THE REAL BRACE, so it is cut away. The CAD welds a plywood cross into the horn
+  # mouth: a vertical divider from the front face to 0.560 m back, a front plank across the mouth to 0.130 m
+  # and a second plank at 0.275 to 0.375 m. The real cabinets have none of it. Their brace is steel and
+  # stands 0.40 m back, as the owner stated on 2026-10-01, and it is added as fins under `audio.layout`.
+  #
+  # All three parts were measured by ray-casting the imported mesh on 2026-10-01. The divider is x ±0.0105
+  # and ends at 0.560 m. The planks are 18 mm thick, span wall to wall at x ±0.276 and slope down toward
+  # the back. The channel above them is closed by a panel whose underside slopes from z 0.481 at the front
+  # face to a bend at 0.319 m back, z 0.370, and then more gently to z 0.332 at 0.560 m (heights from the
+  # floor). Every prism face that meets a panel lies exactly in that panel's plane, read off the mesh's own
+  # vertices: the divider's prism runs along the underside and the floor at z 0.018, and the planks' prisms
+  # end at the walls. A prism stopping short leaves a visible step, and one reaching past grooves the panel.
+  # The planks stand free between the walls, so their prisms reach 10 mm past them into air in depth and
+  # height. A prism cut to the plank's nominal edges left a sliver under 3 mm deep at 0.272 m, which showed
+  # as a fine line across the mouth and was found by ray-casting the build on 2026-10-01.
+  # Each prism is its own boolean, because a cutter made of overlapping prisms left a sheet where they met.
+  # The divider's prism runs on past the divider's end at 0.560 m to 0.62 m, still along the underside,
+  # because a back face lying exactly on the divider's own end face was kept standing by the boolean as a
+  # sheet. A small block inside the divider in the CAD goes with it.
+  remove:
+    - { id: cross-divider, x_m: [ -0.0107, 0.0107 ],
+        section_m: [ [ -0.008, -0.3635 ], [ 0.62, -0.3635 ], [ 0.62, -0.058305 ], [ 0.31925, -0.0115 ], [ 0.0, 0.0995 ], [ -0.008, 0.0995 ] ] }
+    - { id: cross-plank-front, x_m: [ -0.276, 0.276 ],
+        section_m: [ [ -0.008, -0.172 ], [ 0.140, -0.172 ], [ 0.140, -0.1115 ], [ -0.008, -0.1115 ] ] }
+    - { id: cross-plank-back, x_m: [ -0.276, 0.276 ],
+        section_m: [ [ 0.2625, -0.2115 ], [ 0.3875, -0.2115 ], [ 0.3875, -0.1535 ], [ 0.2625, -0.1535 ] ] }
 
 notes: |
   The backbone of the PA — 14 cabinets, 1190 kg of sub on its own.

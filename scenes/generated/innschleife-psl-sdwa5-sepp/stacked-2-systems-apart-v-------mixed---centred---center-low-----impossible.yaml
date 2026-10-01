@@ -3,7 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-psl-1/1b and main-psl-1/2c are 0.0103 m inside each other
+#   * main-psl-1/1b and main-psl-1/2c are 0.0127 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -68,12 +68,15 @@
 #   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
 #     1.180 m is the most they reach while every tier is still carried
 #
-# main-psl-2 — psl-2, 12 cabinets in 2 rows:
+# main-psl-2 — psl-2, 12 cabinets in 5 rows:
 #
-#   1  1× thebox-tp218-1600 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× thebox-tp118-800 rolled 90° + 1× thebox-tp218-1600 rolled 90°    8.306 m wide
-#   2  1× thebox-achat-112m + 2× concert-audio-ef6                             1.576 m wide
+#   1  1× thebox-tp118-800 rolled 270° + 1× thebox-tp118-800 rolled 90°      1.256 m wide
+#   2  1× concert-audio-esf rolled 270° + 1× concert-audio-esf rolled 90°     1.58 m wide
+#   3  1× thebox-tp218-1600 rolled 270° + 1× thebox-tp218-1600 rolled 90°     2.42 m wide
+#   4  1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90°     2.99 m wide
+#   5  1× thebox-achat-112m + 2× concert-audio-ef6                             1.576 m wide
 #
-# Subs reach 1.18 m against a 2.0 m interface. The stack is 1.96 m of cabinet.
+# Subs reach 2.868 m against a 2.0 m interface. The stack is 3.648 m of cabinet.
 #   * thebox-tp218-1600: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
 #     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
 #     split work, which is what the -turned rig does
@@ -83,8 +86,12 @@
 #   * concert-audio-esf: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot
 #     be flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the
 #     split work, which is what the -turned rig does
-#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
-#     1.180 m is the most they reach while every tier is still carried
+#   * the 1× concert-audio-esf rolled 270° + 1× concert-audio-esf rolled 90° row is 1.580 m on a 1.256 m row, so
+#     it overhangs 162 mm each side
+#   * the 1× thebox-tp218-1600 rolled 270° + 1× thebox-tp218-1600 rolled 90° row is 2.420 m on a 1.580 m row, so
+#     it overhangs 420 mm each side
+#   * the 1× concert-audio-esx rolled 270° + 1× concert-audio-esx + 1× concert-audio-esx rolled 90° row is 2.990
+#     m on a 2.420 m row, so it overhangs 285 mm each side
 #
 # main-innschleife-1 — innschleife-1, 10 cabinets in 5 rows:
 #
@@ -130,7 +137,7 @@ focus:
 placements:
   # ours-1, 11 cabinets in 5 rows
   - id: main-ours-1
-    at: [-10.544, 0.0]
+    at: [-7.886, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -160,7 +167,7 @@ placements:
 
   # ours-2, 14 cabinets in 6 rows
   - id: main-ours-2
-    at: [-8.2, 0.0]
+    at: [-5.542, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -191,7 +198,7 @@ placements:
 
   # psl-1, 6 cabinets in 2 rows
   - id: main-psl-1
-    at: [-5.281, 0.0]
+    at: [-2.623, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -217,7 +224,7 @@ placements:
           count: 1
           aim: near
 
-  # psl-2, 12 cabinets in 2 rows
+  # psl-2, 12 cabinets in 5 rows
   - id: main-psl-2
     at: [0.867, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -252,7 +259,7 @@ placements:
 
   # innschleife-1, 10 cabinets in 5 rows
   - id: main-innschleife-1
-    at: [6.73, 0.0]
+    at: [4.072, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -287,7 +294,7 @@ placements:
 
   # innschleife-2, 10 cabinets in 5 rows
   - id: main-innschleife-2
-    at: [9.65, 0.0]
+    at: [6.992, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

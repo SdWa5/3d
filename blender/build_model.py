@@ -67,6 +67,8 @@ def build(plan):
         # A real mesh replaces the generated shell entirely — including the grille and handle
         # recesses, which it already has modelled far better than the builder could.
         body = mesh_import.load(plan, material_set[materials.CABINET])
+        mesh_import.remove(body, plan)
+        mesh_import.paint(body, plan)
         if body.name not in collection.objects:
             collection.objects.link(body)
             for other in bpy.context.scene.collection.objects:
@@ -83,10 +85,13 @@ def build(plan):
         body, front_y, front_height = geometry.build_body(plan, material_set)
         collection.objects.link(body)
 
-        # Order matters: recesses are cut into the raw shell, then the chamfer rounds every edge
-        # including the new ones.
-        geometry.cut_handles(plan, body, front_height)
+        # Order matters: the chamfer rounds the raw box first, and the handle recesses are cut into it
+        # afterwards with sharp edges. The other way round, the bevel ran on round the recesses and left
+        # geometry that made the EXACT boolean carving the baffle drop a horn without a word: the TMS-4's
+        # mid horn was never cut at any width from 0.45 to 0.51 m, and was with the bevel or the handles
+        # taken away.
         geometry.add_chamfer(body, plan["geometry"]["chamfer_m"])
+        geometry.cut_handles(plan, body, front_height)
 
         extras += geometry.build_grille(plan, material_set, front_y, front_height)
 
@@ -114,6 +119,7 @@ def build(plan):
         extras += drivers.build_features(plan, material_set, baffle_y, carve_into)
         extras += drivers.build_coverage_cone(plan, material_set)
 
+    extras += geometry.build_castors(plan, material_set)
     extras += geometry.build_rigging_markers(plan, material_set)
     extras += geometry.build_estimated_marker(plan, material_set)
     for obj in extras:

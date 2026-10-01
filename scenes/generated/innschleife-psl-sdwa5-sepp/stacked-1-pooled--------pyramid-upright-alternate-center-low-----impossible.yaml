@@ -5,11 +5,11 @@
 #
 #   * a tms2 stands at 0.763 m with nothing under it across x
 #   * a thebox-achat-112m stands at 0.780 m with nothing under it across x
-#   * main/1h-1 and main/2p are 0.1936 m inside each other
 #   * main/1g and main/2p are 0.1340 m inside each other
-#   * main/1g and main/2o are 0.1318 m inside each other
+#   * main/1g and main/2o are 0.1228 m inside each other
+#   * main/1h-1 and main/2p are 0.0735 m inside each other
 #   * main/1e-1 and main/2j are 0.0296 m inside each other
-#   * main/2j and main/2k-1 are 0.0257 m inside each other
+#   * main/2j and main/2k-1 are 0.0258 m inside each other
 #   * main/1f and main/2o are 0.0170 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler

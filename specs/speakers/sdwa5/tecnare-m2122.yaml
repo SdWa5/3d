@@ -72,23 +72,33 @@ audio:
     # their compression drivers, whose throats are round bolt flanges. So `profile: pyramid` with
     # `throat_profile: elliptical` throughout.
     #
+    # THE LF SIDE WALLS ARE FLAT, as the owner stated on 2026-10-01. Morphing the square mouth into the round
+    # throat over the whole depth bowed each side wall, so the joined pair showed two ridges and read as three
+    # pieces. `throat_blend_m: 0.04` keeps the walls straight until 40 mm in front of the drivers.
+    #
+    # THE WHOLE FRONT IS CENTRED ON THE BAFFLE, as the owner stated on 2026-10-01. It spans 0.812 m from the
+    # top of the mid horn to the bottom of the lower LF horn, which leaves 74 mm above and below. It sat
+    # 63 mm higher before, with 25 mm above and 151 mm below. The mid horn stands 40 mm clear of the LF pair,
+    # widened from 12 mm on the owner's request of the same day.
+    #
     # SIZES are still estimated: every mouth size, centre height, throat size, depth and flare law below is
     # derived from the outer dimensions and the driver sizes, which is why this layout's provenance stays
     # `estimated`. Exponential because no real compression-driver horn is straight-walled; the HF plugs are
     # left linear because at this size the law makes no visible difference.
     #
     # All three compression-driver horns share the mid horn's 2.25 : 1 mouth — 0.45 x 0.20 for the mid and
-    # 0.135 x 0.06 for the two HF plugs, which is the same proportion at the same mouth area the plugs had
-    # when they were square. The mid horn is 0.12 deep rather than 0.18: at 0.18 it read as a tunnel next
+    # 0.175 x 0.078 for the two HF plugs. The plugs were 0.135 x 0.06 x 0.05 deep, the mouth area they had
+    # when they were square, and were scaled by 1.3 in all three dimensions on the owner's request of
+    # 2026-10-01. Their 1" throat stays, because it is the driver's exit. The mid horn is 0.12 deep rather than 0.18: at 0.18 it read as a tunnel next
     # to the two LF horns beside it.
     provenance: estimated
     inset_m: 0.018
     features:
-      - { id: mid,   kind: horn, at_m: [ 0.0,  0.355 ], mouth_m: [ 0.45, 0.20 ], throat_in: 2.0, depth_m: 0.12,
+      - { id: mid,   kind: horn, at_m: [ 0.0,  0.306 ], mouth_m: [ 0.45, 0.20 ], throat_in: 2.0, depth_m: 0.12,
           profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: lf-up, kind: horn, at_m: [ 0.0,  0.103 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
-          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
-      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [ 0.135, 0.06 ], throat_in: 1.0, depth_m: 0.05,
+      - { id: lf-up, kind: horn, at_m: [ 0.0,  0.026 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential, throat_blend_m: 0.04 }
+      - { id: hf-up, kind: horn, inside: lf-up,       mouth_m: [ 0.175, 0.078 ], throat_in: 1.0, depth_m: 0.065, setback_m: 0.12,
           profile: pyramid, sides: 4, throat_profile: elliptical }
       # SHARED MOUTH, from the owner: the two 12" horns are connected. The wall between them is gone for
       # 0.190 of the 0.20 they are deep — practically the whole flare — so the front is one opening
@@ -99,11 +109,24 @@ audio:
       # rather than that the wall ends at some measured depth, and 0.190 is that account taken as far as
       # the geometry allows: at 0.20 there would be no wall left at all, which is a different cabinet —
       # one horn with two throats — and not something this spec can say. A tape measure settles it.
-      - { id: lf-lo, kind: horn, at_m: [ 0.0, -0.189 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
-          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential,
+      - { id: lf-lo, kind: horn, at_m: [ 0.0, -0.266 ], mouth_m: [ 0.45, 0.28 ], throat_in: 10.0, driver_in: 12, depth_m: 0.20,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential, throat_blend_m: 0.04,
           join: { with: lf-up, depth_m: 0.130 } }
-      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [ 0.135, 0.06 ], throat_in: 1.0, depth_m: 0.05,
+      - { id: hf-lo, kind: horn, inside: lf-lo,       mouth_m: [ 0.175, 0.078 ], throat_in: 1.0, depth_m: 0.065, setback_m: 0.12,
           profile: pyramid, sides: 4, throat_profile: elliptical }
+      # HF BRACKET ARMS, read off meshes/sdwa5/photo-full-rig.png (2026-10-01), where they show as bars in the
+      # shared LF mouth. One bar runs across each LF horn and one down the centre line through both, and the
+      # two 1" plugs sit directly in front of them, as the owner stated on 2026-10-01: each plug's mouth is
+      # `setback_m: 0.12` behind the baffle, so it ends at 0.185, and the bars start 1 mm behind that and stop
+      # 1 mm short of the LF drivers. Their ends run on into the solid body, which hides them where the LF
+      # flare is narrower than the bar. The upright bar is 2 mm thinner and 1 mm further back than the cross
+      # bars, so that where they cross no two faces share a plane and flicker. Section and length are
+      # ESTIMATED: the photo is sepia-graded and taken from below, so bars of about 15 mm are an assumption,
+      # not a reading. They are black, as the owner stated on 2026-10-01, drawn a shade lighter than the body
+      # so that they still read against the dark mouth.
+      - { id: arm-up,  kind: fin, at_m: [ 0.0,  0.026 ], mouth_m: [ 0.45, 0.015 ], depth_m: 0.013, setback_m: 0.186, color: "#1c1c1c" }
+      - { id: arm-lo,  kind: fin, at_m: [ 0.0, -0.266 ], mouth_m: [ 0.45, 0.015 ], depth_m: 0.013, setback_m: 0.186, color: "#1c1c1c" }
+      - { id: arm-v,   kind: fin, at_m: [ 0.0, -0.12 ],  mouth_m: [ 0.013, 0.572 ], depth_m: 0.011, setback_m: 0.187, color: "#1c1c1c" }
 
 mesh_override: null
 

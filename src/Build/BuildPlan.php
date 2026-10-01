@@ -38,8 +38,10 @@ final class BuildPlan
             // `moving_head` and `scaffold`, which do the same for two more open-frame shapes; 4 added
             // `load_bay`, which draws a transporter as a cage rather than a solid; 5 added
             // `front_image`, which puts a photograph on a plain cabinet's front face; 6 added `mast`, a wind-up
-            // stand whose stages are separate objects so a scene can slide them.
-            'plan_version' => 6,
+            // stand whose stages are separate objects so a scene can slide them; 7 added the `cell` and `fin` baffle
+            // features, a `color` on every feature and a dome and a rim on a round grille, which the bpy side carves,
+            // draws and paints.
+            'plan_version' => 7,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,
@@ -64,6 +66,7 @@ final class BuildPlan
             ],
             'appearance' => [
                 'color' => $spec->color,
+                'front_color' => $spec->frontColor,
                 'grille' => [
                     'inset_m' => $spec->grilleInset,
                     'color' => $spec->grilleColor ?? $spec->color,
@@ -75,6 +78,7 @@ final class BuildPlan
             'physical' => [
                 'weight_kg' => $spec->weightKg,
                 'handles' => $spec->handles,
+                'castors' => $spec->castors?->toArray(),
             ],
             'rigging' => [
                 'flyable' => $spec->flyable,

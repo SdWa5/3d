@@ -12,6 +12,8 @@ Fidelity is deliberately "block level": true outer dimensions, chamfered edges, 
 grille behind a frame, handle recesses and rigging markers. No internal components.
 """
 
+import math
+
 import bmesh
 import bpy
 
@@ -26,6 +28,9 @@ _GRILLE_THICKNESS = 0.006
 _HANDLE_SIZE = (0.13, 0.05)
 _HANDLE_DEPTH = 0.02
 _HANDLE_HEIGHT_RATIO = 0.62
+# What a side handle cup leaves of the wall beside a baffle opening, and the shallowest cup still worth cutting.
+_HANDLE_WALL_M = 0.006
+_HANDLE_MIN_DEPTH = 0.008
 
 _RIGGING_MARKER_SIZE = 0.02
 _ESTIMATED_MARKER_SIZE = 0.05
@@ -266,6 +271,39 @@ def build_grille(plan, material_set, front_y, front_height):
     return objects
 
 
+def _side_handle_depth(plan, z):
+    """How deep a side handle cup at height `z` may go before it breaks into an opening of the baffle layout.
+
+    A cell, horn or cone that reaches back past the cup's front edge and overlaps it in height leaves only the
+    wall between its mouth and the side of the cabinet, and the cup takes that wall less 6 mm. Cut to the full
+    20 mm, the SBH's and the kicker's cups showed as holes in the side walls of their mouths, which sit 15 mm
+    inside the cabinet's sides. Returns 0 when no usable cup is left.
+    """
+    dims = plan["geometry"]["dimensions_m"]
+    layout = plan.get("baffle_layout") or {}
+    cup_front = dims["depth"] / 2.0 - _HANDLE_SIZE[0] / 2.0
+    cup_bottom, cup_top = z - _HANDLE_SIZE[1] / 2.0, z + _HANDLE_SIZE[1] / 2.0
+    depth = _HANDLE_DEPTH
+    for feature in layout.get("features", []):
+        if feature.get("inside") or feature["kind"] in ("fin", "grille", "plug"):
+            continue
+        reach = feature["depth_m"]
+        if feature["kind"] == "horn" and feature.get("cone_diameter_m"):
+            # The driver's chamber behind the throat, as `drivers.build_features()` bores it.
+            reach += 0.13
+        elif feature["kind"] == "cell" and feature.get("angle_deg"):
+            extent = feature["mouth_m"][0] if feature.get("turn") == "yaw" else feature["mouth_m"][1]
+            reach += extent / 2.0 * abs(math.tan(math.radians(feature["angle_deg"])))
+        at_x, at_z = feature["at_m"]
+        half_w, half_h = feature["mouth_m"][0] / 2.0, feature["mouth_m"][1] / 2.0
+        centre_z = at_z + dims["height"] / 2.0
+        if reach <= cup_front or centre_z + half_h <= cup_bottom or centre_z - half_h >= cup_top:
+            continue
+        depth = min(depth, dims["width"] / 2.0 - (abs(at_x) + half_w) - _HANDLE_WALL_M)
+
+    return depth if depth >= _HANDLE_MIN_DEPTH else 0.0
+
+
 def cut_handles(plan, body, front_height):
     """Cut handle recesses into the shell for every side listed in the spec.
 
@@ -281,10 +319,11 @@ def cut_handles(plan, body, front_height):
     long_side, short_side = _HANDLE_SIZE
     z = front_height * _HANDLE_HEIGHT_RATIO
 
+    side_depth = _side_handle_depth(plan, z)
     placements = {
         # side: (center, size) — the cutter reaches slightly past the surface so the cut is clean.
-        "left": ((-width / 2.0, 0.0, z), (_HANDLE_DEPTH * 2.0, long_side, short_side)),
-        "right": ((width / 2.0, 0.0, z), (_HANDLE_DEPTH * 2.0, long_side, short_side)),
+        "left": ((-width / 2.0, 0.0, z), (side_depth * 2.0, long_side, short_side)),
+        "right": ((width / 2.0, 0.0, z), (side_depth * 2.0, long_side, short_side)),
         "back": ((0.0, depth / 2.0, z), (long_side, _HANDLE_DEPTH * 2.0, short_side)),
         "top": ((0.0, 0.0, height), (long_side, short_side, _HANDLE_DEPTH * 2.0)),
     }
@@ -295,6 +334,9 @@ def cut_handles(plan, body, front_height):
             print("sdwa5-3d: ignoring unknown handle side %r" % side)
             continue
         center, size = placement
+        if size[0] <= 0.0:
+            print("sdwa5-3d: no wall left beside the baffle openings for a %s handle, skipping" % side)
+            continue
         # Too deep a recess for a shallow cabinet would punch through it.
         if min(width, depth, height) <= _HANDLE_DEPTH * 2.5:
             print("sdwa5-3d: cabinet too small for handle recesses, skipping")
@@ -312,6 +354,86 @@ def cut_handles(plan, body, front_height):
         bpy.ops.object.modifier_apply(modifier=modifier.name)
 
         bpy.data.objects.remove(cutter, do_unlink=True)
+
+
+def _cylinder(name, center, radius, length, axis, material, segments=24):
+    """A closed cylinder along world axis `axis` (0 = x, 1 = y, 2 = z)."""
+    others = [index for index in range(3) if index != axis]
+    verts = []
+    for end in (-length / 2.0, length / 2.0):
+        for step in range(segments):
+            angle = 2.0 * math.pi * step / segments
+            point = list(center)
+            point[axis] += end
+            point[others[0]] += radius * math.cos(angle)
+            point[others[1]] += radius * math.sin(angle)
+            verts.append(tuple(point))
+    faces = [tuple(range(segments)), tuple(range(segments, 2 * segments))]
+    faces += [(k, (k + 1) % segments, segments + (k + 1) % segments, segments + k) for k in range(segments)]
+
+    return _mesh_object(name, verts, faces, material)
+
+
+def build_castors(plan, material_set):
+    """Four castors on the face `physical.castors` names, one near each corner, outside the declared box.
+
+    Each is a mounting plate, a swivel, a fork and the wheel in its own colour, and the `locking` ones nearest the
+    floor get a brake pedal. They stand `protrusion_m` off the face, the figure tools/check-glb.py allows on that
+    axis. The wheel's axle lies across the face, so the cabinet rolls along its height when it lies on them.
+    """
+    castors = plan["physical"].get("castors")
+    if not castors:
+        return []
+
+    dims = plan["geometry"]["dimensions_m"]
+    diameter = castors["diameter_m"]
+    face = castors["face"]
+    # The face as (normal axis, its sign, the axis across it, the extent across it).
+    normal, sign, across, extent = {
+        "back": (1, 1.0, 0, dims["width"]),
+        "left": (0, -1.0, 1, dims["depth"]),
+        "right": (0, 1.0, 1, dims["depth"]),
+    }[face]
+    surface = sign * (dims["depth"] if normal == 1 else dims["width"]) / 2.0
+    inset = max(0.06, diameter * 0.8)
+    plate, wheel_width = diameter * 0.8, diameter * 0.35
+    hardware = material_set[materials.HARDWARE]
+    wheel = materials.feature("castor", castors["color"], 0.6) if castors["color"] else hardware
+
+    def point(off, out, z):
+        """World coordinates of `off` across the face, `out` off it and `z` up."""
+        coords = [0.0, 0.0, z]
+        coords[across] = off
+        coords[normal] = surface + sign * out
+        return tuple(coords)
+
+    def size(off, out, z):
+        sizes = [0.0, 0.0, z]
+        sizes[across] = off
+        sizes[normal] = out
+        return tuple(sizes)
+
+    objects = []
+    offsets = (-extent / 2.0 + inset, extent / 2.0 - inset)
+    corners = [(off, z) for z in (inset, dims["height"] - inset) for off in offsets]
+    for index, (off, z) in enumerate(corners):
+        name = "%s-castor-%d" % (plan["id"], index + 1)
+        axle = castors["protrusion_m"] - diameter / 2.0
+        objects.append(_box(name + "-plate", point(off, 0.003, z), size(plate, 0.006, plate), hardware))
+        objects.append(_cylinder(name + "-swivel", point(off, 0.006 + diameter * 0.06, z), diameter * 0.25,
+                                 diameter * 0.12, normal, hardware))
+        for side in (-1.0, 1.0):
+            objects.append(_box(
+                name + "-fork-%s" % ("a" if side < 0 else "b"),
+                point(off + side * (wheel_width / 2.0 + 0.005), (axle + 0.018) / 2.0, z),
+                size(0.004, axle + 0.006, diameter * 0.45), hardware,
+            ))
+        objects.append(_cylinder(name + "-wheel", point(off, axle, z), diameter / 2.0, wheel_width, across, wheel))
+        if index < castors["locking"]:
+            objects.append(_box(name + "-brake", point(off, axle * 0.55, z + diameter * 0.32),
+                                size(wheel_width * 1.4, 0.008, diameter * 0.22), material_set[materials.RIGGING]))
+
+    return objects
 
 
 def build_rigging_markers(plan, material_set):

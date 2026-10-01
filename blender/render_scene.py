@@ -190,6 +190,8 @@ def render(plan):
     scene.cycles.use_denoising = True
     scene.render.resolution_x, scene.render.resolution_y = plan["render"]["resolution"]
     scene.render.resolution_percentage = 100
+    # Stated by the lighting preset, see LightingPreset::exposure(). Older plans carry none and render as before.
+    scene.view_settings.exposure = plan["render"].get("exposure", 0.0)
     scene.render.image_settings.file_format = "PNG"
     scene.render.filepath = plan["output"]
 
@@ -197,7 +199,32 @@ def render(plan):
     if directory and not os.path.isdir(directory):
         os.makedirs(directory, exist_ok=True)
 
-    bpy.ops.render.render(write_still=True)
+    route = plan.get("fly_through")
+    if route:
+        scene.render.image_settings.file_format = "FFMPEG"
+        scene.render.ffmpeg.format = "MPEG4"
+        scene.render.ffmpeg.codec = "H264"
+        scene.render.ffmpeg.constant_rate_factor = "MEDIUM"
+        scene.render.fps = route["fps"]
+        scene.frame_start = 1
+        scene.frame_end = route["frames"]
+        camera = scene.camera
+        # Key every pose so the rig remains the target while the camera crosses the room.
+        start, end, target = Vector(route["start"]), Vector(route["end"]), route["target"]
+        for frame in range(1, scene.frame_end + 1):
+            t = (frame - 1) / (scene.frame_end - 1)
+            camera.location = start.lerp(end, t)
+            if route.get("camera_aim") == "perpendicular":
+                # Cabinet fronts face -Y. A camera looking along +Y stays normal to that plane.
+                _aim(camera, camera.location + Vector((0.0, 1.0, 0.0)))
+            else:
+                _aim(camera, target)
+            camera.keyframe_insert(data_path="location", frame=frame)
+            camera.keyframe_insert(data_path="rotation_euler", frame=frame)
+        scene.render.use_persistent_data = True
+        bpy.ops.render.render(animation=True)
+    else:
+        bpy.ops.render.render(write_still=True)
 
     print("sdwa5-3d: rendered %s (%s camera, %s lighting, %d samples, %d aim line(s)) → %s" % (
         plan["scene_id"],

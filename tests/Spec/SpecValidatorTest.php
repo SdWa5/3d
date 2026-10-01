@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Spec;
 
 use App\Spec\DeviceSpec;
+use App\Spec\InvalidSpecException;
+use App\Spec\MeshRemoval;
 use App\Spec\SpecValidator;
 use App\Spec\Violation;
 use App\Tests\Support\SpecFactory;
@@ -43,14 +45,93 @@ final class SpecValidatorTest extends TestCase
         self::assertSame([], $this->validate($spec));
     }
 
+    public function testAnOpenCellWithFinsAndColoursIsValid(): void
+    {
+        // The shape of PSL's ESX centre slot: a cell, a green brace across it, a turned white wall in it,
+        // and a black cone beside it on a white cabinet.
+        $spec = SpecFactory::spec(['audio' => ['layout' => self::layout([
+            ['id' => 'slot', 'kind' => 'cell', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.3, 0.5], 'depth_m' => 0.4,
+                'color' => '#22406e'],
+            ['id' => 'brace', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.3, 0.02], 'depth_m' => 0.02,
+                'setback_m' => 0.03, 'color' => '#78b06e'],
+            ['id' => 'wall', 'kind' => 'fin', 'at_m' => [-0.1, 0.0], 'mouth_m' => [0.02, 0.5], 'depth_m' => 0.3,
+                'angle_deg' => 20.0],
+            ['id' => 'woofer', 'kind' => 'cone', 'at_m' => [0.27, 0.0], 'diameter_in' => 9, 'depth_m' => 0.1,
+                'color' => '#1b1a19'],
+        ])]]);
+
+        self::assertSame([], $this->validate($spec));
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>, string}>
      */
     public static function rejectionCases(): iterable
     {
+        yield 'feature colour that is not hex' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'slot', 'kind' => 'cell', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.3, 0.3], 'depth_m' => 0.2,
+                    'color' => 'blue'],
+            ])]],
+            "'slot': color 'blue' must be a #rrggbb hex colour",
+        ];
+        yield 'colour on a horn with no driver' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'horn', 'kind' => 'horn', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.2],
+                    'throat_in' => 1.4, 'depth_m' => 0.1, 'color' => '#ffffff'],
+            ])]],
+            'this horn has no driver_in',
+        ];
+        yield 'cell with a throat' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'slot', 'kind' => 'cell', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.3, 0.3], 'depth_m' => 0.2,
+                    'throat_in' => 2.0],
+            ])]],
+            "'slot': throat_in has no meaning on a cell",
+        ];
+        yield 'cell without a mouth' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'slot', 'kind' => 'cell', 'at_m' => [0.0, 0.0], 'depth_m' => 0.2],
+            ])]],
+            "'slot': a cell needs mouth_m",
+        ];
+        yield 'fin with no thin edge' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.1, 0.3], 'depth_m' => 0.2],
+            ])]],
+            "'fin': a fin is a plate",
+        ];
+        yield 'fin turned past the side of the baffle' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.35, 0.0], 'mouth_m' => [0.02, 0.3], 'depth_m' => 0.3,
+                    'angle_deg' => 30.0],
+            ])]],
+            "'fin': reaches past the baffle on x",
+        ];
+        yield 'fin set back past the back of the cabinet' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.02, 0.3], 'depth_m' => 0.4,
+                    'setback_m' => 0.1],
+            ])]],
+            'past the cabinet',
+        ];
+        yield 'fin turned a quarter or more' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.02, 0.3], 'depth_m' => 0.1,
+                    'angle_deg' => 90.0],
+            ])]],
+            'angle_deg must be between -90 and 90',
+        ];
+        yield 'turn on something that is neither a fin nor a cell' => [
+            ['audio' => ['layout' => self::layout([
+                ['id' => 'woofer', 'kind' => 'cone', 'at_m' => [0.0, 0.0], 'diameter_in' => 10, 'depth_m' => 0.1,
+                    'angle_deg' => 10.0],
+            ])]],
+            "'woofer': angle_deg only applies to a fin or a cell",
+        ];
         yield 'front image on a spec with a layout' => [
             ['front_image' => 'meshes/x.png', 'audio' => ['layout' => self::layout([
-                ['id' => 'lf', 'kind' => 'port', 'at_m' => [0.0, 0.0], 'size_m' => [0.2, 0.1], 'depth_m' => 0.2],
+                ['id' => 'lf', 'kind' => 'cell', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.2, 0.1], 'depth_m' => 0.2],
             ])]],
             'front_image is only for a cabinet with no interior',
         ];
@@ -516,6 +597,62 @@ final class SpecValidatorTest extends TestCase
             ['mesh_override' => ['path' => 'meshes/sub.obj', 'units' => 'inches']],
             "mesh_override.units 'inches' is unknown",
         ];
+        yield 'paint region with a named colour' => [
+            ['mesh_override' => self::paintedMesh(['color' => 'green'])],
+            "color 'green' must be a #rrggbb hex colour",
+        ];
+        yield 'paint region with no size' => [
+            ['mesh_override' => self::paintedMesh(['size_m' => [0.0, 0.1]])],
+            'size_m and depth_m must be greater than 0',
+        ];
+        yield 'paint region measured from the floor' => [
+            ['mesh_override' => self::paintedMesh(['at_m' => [0.0, 0.5]])],
+            'at_m is measured from the centre of the front face',
+        ];
+        yield 'removal running backwards across x' => [
+            ['mesh_override' => self::removedMesh(['x_m' => [0.1, -0.1]])],
+            'x_m must run from the smaller x to the larger',
+        ];
+        yield 'removal with two corners' => [
+            ['mesh_override' => self::removedMesh(['section_m' => [[0.0, 0.0], [0.1, 0.0]]])],
+            'needs at least three [setback, z] corners',
+        ];
+        yield 'removal with a flat section' => [
+            ['mesh_override' => self::removedMesh(['section_m' => [[0.0, 0.0], [0.1, 0.0], [0.2, 0.0]]])],
+            'encloses no area',
+        ];
+        yield 'removal measured from the floor' => [
+            ['mesh_override' => self::removedMesh(['section_m' => [[0.0, 0.31], [0.2, 0.31], [0.2, 0.5]]])],
+            'section_m lies outside the cabinet',
+        ];
+        yield 'paint region deeper than the cabinet' => [
+            ['mesh_override' => self::paintedMesh(['setback_m' => 0.4, 'depth_m' => 0.1])],
+            'reaches past the 0.45 deep cabinet',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $removal
+     *
+     * @return array<string, mixed>
+     */
+    private static function removedMesh(array $removal): array
+    {
+        return ['path' => 'meshes/sub.obj', 'remove' => [
+            [...['x_m' => [-0.01, 0.01], 'section_m' => [[-0.01, -0.28], [0.3, -0.28], [0.3, 0.1], [-0.01, 0.15]]], ...$removal],
+        ]];
+    }
+
+    /**
+     * @param array<string, mixed> $region
+     *
+     * @return array<string, mixed>
+     */
+    private static function paintedMesh(array $region): array
+    {
+        return ['path' => 'meshes/sub.obj', 'paint' => [
+            [...['at_m' => [0.0, 0.1], 'size_m' => [0.02, 0.3], 'depth_m' => 0.068, 'color' => '#78b06e'], ...$region],
+        ]];
     }
 
     /**
@@ -806,6 +943,68 @@ final class SpecValidatorTest extends TestCase
                 static fn ($violation): string => $violation->message,
                 $validator->validate([$spec]),
             ));
+        } finally {
+            SpecFactory::removeDir($dir);
+        }
+    }
+
+    public function testAPaintRegionWithAMisspelledKeyIsRefusedWhileParsing(): void
+    {
+        $this->expectException(InvalidSpecException::class);
+        $this->expectExceptionMessage("mesh_override.paint 1: unknown key 'colour'");
+
+        SpecFactory::spec(['mesh_override' => self::paintedMesh(['colour' => '#78b06e'])]);
+    }
+
+    public function testARemovalStartingInFrontOfTheCabinetIsAccepted(): void
+    {
+        $dir = SpecFactory::tempDir();
+        try {
+            file_put_contents($dir.'/custom.glb', 'glb');
+            $validator = new SpecValidator($dir);
+            $spec = SpecFactory::spec(['mesh_override' => ['path' => 'custom.glb', 'remove' => [
+                ['id' => 'divider', 'x_m' => [-0.0107, 0.0107], 'section_m' => [[-0.008, -0.28], [0.56, -0.28], [0.56, 0.0], [0.32, 0.05], [-0.008, 0.1]]],
+            ]]], $dir.'/top-a.yaml');
+
+            self::assertSame([], array_map(
+                static fn ($violation): string => $violation->message,
+                $validator->validate([$spec]),
+            ));
+            $removal = $spec->meshOverride?->remove[0];
+            self::assertNotNull($removal);
+            self::assertSame(['id' => 'divider', 'x_m' => [-0.0107, 0.0107], 'section_m' => [[-0.008, -0.28], [0.56, -0.28], [0.56, 0.0], [0.32, 0.05], [-0.008, 0.1]]], $removal->toArray());
+        } finally {
+            SpecFactory::removeDir($dir);
+        }
+    }
+
+    public function testASquareRemovalSectionHasItsArea(): void
+    {
+        $removal = new MeshRemoval('box', [-0.1, 0.1], [[0.0, 0.0], [0.2, 0.0], [0.2, 0.3], [0.0, 0.3]]);
+
+        self::assertEqualsWithDelta(0.06, $removal->sectionArea(), 1e-12);
+    }
+
+    public function testAPaintRegionInsideTheMeshIsAccepted(): void
+    {
+        $dir = SpecFactory::tempDir();
+        try {
+            file_put_contents($dir.'/custom.glb', 'glb');
+            $validator = new SpecValidator($dir);
+            $spec = SpecFactory::spec(['mesh_override' => ['path' => 'custom.glb', 'paint' => [
+                ['id' => 'brace', 'at_m' => [0.0, 0.1], 'size_m' => [0.8, 0.02], 'depth_m' => 0.068, 'color' => '#78b06e'],
+                ['at_m' => [0.3, -0.25], 'size_m' => [0.05, 0.1], 'depth_m' => 0.4, 'setback_m' => 0.05, 'color' => '#78B06E'],
+            ]]], $dir.'/top-a.yaml');
+
+            self::assertSame([], array_map(
+                static fn ($violation): string => $violation->message,
+                $validator->validate([$spec]),
+            ));
+            self::assertSame('paint-2', $spec->meshOverride->paint[1]->id);
+            self::assertSame(
+                ['id' => 'brace', 'at_m' => [0.0, 0.1], 'size_m' => [0.8, 0.02], 'depth_m' => 0.068, 'setback_m' => 0.0, 'color' => '#78b06e'],
+                $spec->meshOverride->toArray()['paint'][0],
+            );
         } finally {
             SpecFactory::removeDir($dir);
         }

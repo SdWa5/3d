@@ -285,6 +285,33 @@ final class ArrayReader
     }
 
     /**
+     * A list of two-number points, e.g. a removal's `section_m: [[0.0, 0.1], [0.2, 0.1], ...]`.
+     *
+     * @return list<array{float, float}>
+     */
+    public function pointList(string $key): array
+    {
+        if (!$this->has($key)) {
+            return [];
+        }
+        $value = $this->data[$key];
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new InvalidSpecException("{$this->keyPath($key)}: expected a list of [a, b] points");
+        }
+
+        $points = [];
+        foreach ($value as $index => $point) {
+            if (!is_array($point) || !array_is_list($point) || 2 !== count($point)
+                || (!is_int($point[0]) && !is_float($point[0])) || (!is_int($point[1]) && !is_float($point[1]))) {
+                throw new InvalidSpecException("{$this->keyPath($key)}[{$index}]: expected [a, b]");
+            }
+            $points[] = [(float) $point[0], (float) $point[1]];
+        }
+
+        return $points;
+    }
+
+    /**
      * Exactly three numbers, used for `position_m: [x, y, z]`.
      *
      * @return array{float, float, float}
