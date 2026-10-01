@@ -21,13 +21,14 @@ its scenes are named `stated`. The event puts ours and Sepp's low end central an
 rig carries both wanted layouts at once, two rows of [3 Flexy | SKRAM | 3 Flexy] for ours and the photo rows for
 Innschleife. The event leaves 0.24 m between stacks, which is what fits that combined rig into the 13 m room.
 [events/next-event-light.yaml](events/next-event-light.yaml) is the same event without any Achenbach and with nine
-ESX instead of twelve, generated into `next-event-light` and `psl-next-event-light`. Both bring four EF 6.
+ESX instead of twelve, generated into `next-event-light` and `psl-next-event-light`. Both bring four EF 6. In the
+light version ours and Sepp's take a 1.6 m interface, so our stack stands as low as the other two.
 
-PSL's 10 × 3.03 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the
-rig. The event names that truss, and `scene:stack` adds it to every rig whose systems bring a `deco` device. Under
-the 4 m ceiling the towers are cranked to 3.742 m, and each carries 45.975 kg of its 85 kg rating. The panel shows PSL's print
-when its file is in `meshes/psl/` and the model is built with `--front-images`.
-See [the backdrop](docs/scenes.md#a-deco-backdrop-behind-a-generated-rig).
+PSL's 9 × 1.8 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the rig.
+The event names that truss, and `scene:stack` adds it to every rig whose systems bring a `deco` device. Under the 4 m
+ceiling the towers are cranked to 3.742 m, and each carries 35.4 kg of its 85 kg rating. The panel shows PSL's print,
+stretched to the panel's 5:1, when its file is in `meshes/psl/` and the model is built with `--front-images`. See [the
+backdrop](docs/scenes.md#a-deco-backdrop-behind-a-generated-rig).
 
 ## Requirements
 
@@ -212,7 +213,7 @@ them can be read on the web without a checkout and a solve — see [docs/scenes.
 
 ## Current state
 
-**Five systems, 39 devices, 102 units, 6849.4 kg, 45.5 m³.** `bin/console catalog` is the authority and
+**Five systems, 39 devices, 102 units, 6828.3 kg, 44.8 m³.** `bin/console catalog` is the authority and
 [docs/catalog.md](docs/catalog.md) is its written form. What we own ourselves is the first two rows:
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |

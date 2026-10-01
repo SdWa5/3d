@@ -6,12 +6,13 @@
 # Regenerate it with:
 #
 #   bin/console scene:stack --clearance=0.24 --room-width=13 --room-height=4
-#     --backdrop=truss-f33-2m:5:truss-tower-4m --system-interface=innschleife:1.6 --system-target=innschleife:1.75
+#     --backdrop=truss-f33-2m:5:truss-tower-4m --system-interface=innschleife:1.6 --system-interface=sdwa5:1.6
+#     --system-interface=sepp:1.6 --system-target=innschleife:1.75 --system-target=sdwa5:1.75 --system-target=sepp:1.75
 #     --system-orientation=innschleife:turned --system-orientation=psl:turned --system-orientation=sdwa5:upright
 #     --system-orientation=sepp:upright --system-low-end=innschleife:low --system-low-end=sdwa5:central
 #     --system-low-end=sepp:central --stand=kicker-15 --systems=tops-shared --order=ours,psl,innschleife
 #     --quantity=achenbach-18:0 --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:9
-#     --quantity=deco-panel-10x3-03:1 --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0
+#     --quantity=deco-panel-9x1-8:1 --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0 --quantity=thebox-achat-112m:0
 #     --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0
 #     --quantity=thebox-tp218-1600:0 --quantity=tms4:1 --from=wsx-18 --from=sbh-18 --from=skram
 #     --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=kicker-15 --from=tms4 --from=tecnare-m2122
@@ -20,14 +21,13 @@
 #
 # 3 stacks side by side, with 0.24 m of air between them.
 #
-# main-ours — ours, 18 cabinets in 4 rows:
+# main-ours — ours, 18 cabinets in 3 rows:
 #
-#   1  2× flexy-folded-horn-hybrid + 2× skram + 2× flexy-folded-horn-hybrid    3.684 m wide
-#   2  4× flexy-folded-horn-hybrid at 440 mm gaps                               3.684 m wide
-#   3  4× flexy-folded-horn-hybrid at 440 mm gaps                               3.684 m wide
-#   4  1× eighteensound-2way-15 + 1× tecnare-m2122 + 2× concert-audio-ef6    2.2016 m wide
+#   1  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
+#   2  3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid    4.276 m wide
+#   3  1× eighteensound-2way-15 + 1× tecnare-m2122 + 2× concert-audio-ef6    2.2016 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
+# Subs reach 1.828 m against a 1.6 m interface. The stack is 2.788 m of cabinet.
 #
 # main-psl — psl, 12 cabinets in 4 rows:
 #
@@ -63,7 +63,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 18 cabinets in 4 rows
+  # ours, 18 cabinets in 3 rows
   - id: main-ours
     at: [-4.562, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -75,8 +75,9 @@ placements:
         distance_m: 2.0
         height_m: 1.8
     stack:
-      interface_height_m: 2.0
+      interface_height_m: 1.6
       max_sub_height_m: 3.0
+      target_sub_height_m: 1.75
       gap_m: 0.02
       slide_slack_m: .inf
       low_end: central
@@ -95,7 +96,7 @@ placements:
 
   # psl, 12 cabinets in 4 rows
   - id: main-psl
-    at: [-0.69, 0.0]
+    at: [-0.394, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -124,7 +125,7 @@ placements:
 
   # innschleife, 17 cabinets in 4 rows
   - id: main-innschleife
-    at: [3.57, 0.0]
+    at: [3.866, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -158,8 +159,8 @@ placements:
           count: 1
           aim: near
 
-  # Backdrop: deco-panel-10x3-03 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
-  # The truss tops out at 4 m. Each tower carries 45.975 kg.
+  # Backdrop: deco-panel-9x1-8 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
+  # The truss tops out at 4 m. Each tower carries 35.4 kg.
   - id: backdrop-tower-left
     device: truss-tower-4m
     at: [-5.2, 1.282]
@@ -178,9 +179,9 @@ placements:
       count: 5
       gap_m: 0.0
   - id: backdrop-deco
-    device: deco-panel-10x3-03
+    device: deco-panel-9x1-8
     at: [-0.302, 1.112]
     fly:
-      height_m: 0.97
+      height_m: 2.2
       id: backdrop
 

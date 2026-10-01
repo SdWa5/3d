@@ -11,50 +11,32 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-2 — 2, 20 cabinets in 3 rows:
+# main-1 — 1, 14 cabinets in 3 rows:
 #
-#   1  1× iq-sub + 3× flexy-folded-horn-hybrid + 2× wall-bass + 3× flexy-folded-horn-hybrid + 2× iq-sub    6.656 m wide
-#   2  1× nuke + 2× skram + 1× nuke + 1× mid-bass                             3.68 m wide
-#   3  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
+#   1  6× flexy-folded-horn-hybrid                                              3.646 m wide
+#   2  2× iq-sub + 1× nuke + 1× skram + 1× wall-bass + 1× iq-sub             3.55 m wide
+#   3  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
-# Subs reach 2.314 m against a 2.0 m interface. The stack is 3.274 m of cabinet.
+# Subs reach 2.163 m against a 2.0 m interface. The stack is 3.123 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
-# main-1 — 1, 11 cabinets in 4 rows:
+# main-2 — 2, 17 cabinets in 2 rows:
 #
-#   1  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   3  3× iq-sub                                                                 1.63 m wide
-#   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
+#   1  1× iq-sub + 3× flexy-folded-horn-hybrid + 1× wall-bass + 1× skram + 1× nuke + 3× flexy-folded-horn-hybrid + 2× iq-sub + 1× mid-bass    8.436 m wide
+#   2  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
 #
-# Subs reach 2.196 m against a 2.0 m interface. The stack is 3.156 m of cabinet.
+# Subs reach 1.4 m against a 2.0 m interface. The stack is 2.36 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
-#   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
+#     1.400 m is the most they reach while every tier is still carried
 #
 id: stacked-2-pooled--------pyramid-upright-alternate-stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -68,35 +50,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 2, 20 cabinets in 3 rows
-  - id: main-2
-    at: [-1.4585, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      shape: pyramid
-      from:
-        - wall-bass
-        - mid-bass
-        - skram
-        - device: flexy-folded-horn-hybrid
-          count: 6
-        - nuke
-        - device: iq-sub
-          count: 3
-        - device: tecnare-m2122
-          count: 2
-        - device: turbo-top
-          count: 2
-          aim: near
-
-  # 1, 11 cabinets in 4 rows
+  # 1, 14 cabinets in 3 rows
   - id: main-1
-    at: [3.276, 0.0]
+    at: [-4.77, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -107,13 +63,48 @@ placements:
       shape: pyramid
       mirror: true             # the mirror image of stack 1
       from:
+        - device: wall-bass
+          count: 1
+        - device: skram
+          count: 1
         - device: flexy-folded-horn-hybrid
           count: 6
+        - device: nuke
+          count: 1
         - device: iq-sub
           count: 3
         - device: tecnare-m2122
           count: 1
         - device: turbo-top
           count: 1
+          aim: near
+
+  # 2, 17 cabinets in 2 rows
+  - id: main-2
+    at: [1.771, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      shape: pyramid
+      from:
+        - device: wall-bass
+          count: 1
+        - mid-bass
+        - device: skram
+          count: 1
+        - device: flexy-folded-horn-hybrid
+          count: 6
+        - device: nuke
+          count: 1
+        - device: iq-sub
+          count: 3
+        - device: tecnare-m2122
+          count: 2
+        - device: turbo-top
+          count: 2
           aim: near
 

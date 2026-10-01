@@ -10,7 +10,7 @@ use App\Spec\DeviceSpec;
 /**
  * A truss standing behind a generated rig on two towers, with a deco panel hung from its front.
  *
- * **PSL's 10 x 3.03 m panel at the next event is the case**, stated on 2026-10-01 as hung "from the front of the three
+ * **PSL's 9 x 1.8 m panel at the next event is the case**, stated on 2026-10-01 as hung "from the front of the three
  * point truss, truss standing behind the systems". The truss and the towers are ours and are named by the event as
  * `TRUSS:SEGMENTS:TOWER`, see {@see parse}. The panel is what PSL brings to the event, a device of subtype `deco`.
  *

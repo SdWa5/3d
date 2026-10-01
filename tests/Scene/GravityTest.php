@@ -380,6 +380,53 @@ final class GravityTest extends TestCase
     }
 
     /**
+     * **A row over a raised middle is seated around it, mirrored, rather than slid off to one side.**.
+     *
+     * Two rows of [3 Flexy | SKRAM | 3 Flexy] put the SKRAM 0.302 m above the Flexys. A centred row of five tops
+     * catches the SKRAM's edges, and before `Gravity::raisedMiddleSeats()` the slide carried it by moving the whole
+     * row 0.77 m to one side, measured on the light next event's combined rig. Now one Tecnare stands on the SKRAM,
+     * and the other four stand flush beside it on the Flexys, mirrored about the stack's centre.
+     */
+    public function testARowOverARaisedMiddleIsSeatedAroundItAndMirrored(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $wall = new Tier([[$flexy, 3], [$this->devices['skram'], 1], [$flexy, 3]]);
+        $tiers = [
+            $wall,
+            $wall,
+            new Tier([
+                [$this->devices['eighteensound-2way-15'], 1],
+                [$this->devices['tecnare-m2122'], 3],
+                [$this->devices['eighteensound-2way-15'], 1],
+            ]),
+        ];
+
+        $resolved = Gravity::resolve($tiers, 0.02, 'main', slideSlackM: INF);
+        $tops = $resolved[2];
+
+        self::assertGreaterThan(Gravity::MIN_BEARING, $this->carried($tops), 'every top is carried');
+
+        $centres = [];
+        foreach ($tops as $run) {
+            $width = ($run['hi'] - $run['lo'] - ($run['count'] - 1) * 0.02) / $run['count'];
+            for ($seat = 0; $seat < $run['count']; ++$seat) {
+                $centres[] = $run['lo'] + $width / 2 + $seat * ($width + 0.02);
+            }
+        }
+        sort($centres);
+        self::assertCount(5, $centres);
+        foreach ([0, 1] as $slot) {
+            self::assertEqualsWithDelta(-$centres[4 - $slot], $centres[$slot], 1e-9, 'mirrored pair '.$slot);
+        }
+        self::assertEqualsWithDelta(0.0, $centres[2], 1e-9, 'the middle top stands on the stack centre');
+
+        $raised = array_values(array_filter($tops, static fn (array $run): bool => $run['on'] === $resolved[1][1]['id']));
+        self::assertCount(1, $raised, 'one run stands on the SKRAM');
+        self::assertSame('tecnare-m2122', $raised[0]['device']->id);
+        self::assertSame(1, $raised[0]['count']);
+    }
+
+    /**
      * The worst-carried cabinet in a row, counting one that stands on nothing as nothing.
      *
      * The same reading {@see Gravity::carriedBearing} takes, restated here because the test has to be able to catch a
