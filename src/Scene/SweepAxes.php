@@ -43,7 +43,8 @@ final class SweepAxes
     public const DEFAULT_OWNERS = ['sdwa5', 'sepp'];
 
     /**
-     * What the orientation axis is called in a scene name when `--roll-mirror` named the cabinets outright.
+     * What the orientation axis is called in a scene name when `--roll-mirror` named the cabinets outright, and what
+     * the orientation and low-end axes are called when an event stated them for every system in the rig.
      *
      * **The one axis value with no enum case behind it, and it needs one anyway.** `--orientation=MODE` says *which*
      * cabinets lie down by a rule — every sub, or only the ones that get wider on their side — where `--roll-mirror`
@@ -53,9 +54,10 @@ final class SweepAxes
      * **Not a {@see StackOrientation} case**, deliberately. An enum case would be offerable as `--orientation=stated`,
      * which means nothing without a `--roll-mirror` beside it and would have to be refused wherever it appeared alone.
      * The name is a fact about how the rig was *asked for* rather than about which cabinets ended up on their sides,
-     * so it belongs to the naming rather than to the axis.
+     * so it belongs to the naming rather than to the axis. The low-end axis took the same value in 0.131.0, for the
+     * same reason: a rig whose every system states where its low end goes has nothing left to sweep there.
      */
-    public const STATED_ORIENTATION = 'stated';
+    public const STATED = 'stated';
 
     /**
      * The filler that pads an axis value out to its axis's widest one.
@@ -277,9 +279,9 @@ final class SweepAxes
         foreach ($axis::cases() as $case) {
             $width = max($width, strlen((string) $case->value));
         }
-        // The orientation axis carries one value that is not a case of it, so the column has to clear that too.
-        if (StackOrientation::class === $axis) {
-            $width = max($width, strlen(self::STATED_ORIENTATION));
+        // The orientation and low-end axes carry one value that is not a case of them, so the column clears it too.
+        if (StackOrientation::class === $axis || LowEndBias::class === $axis) {
+            $width = max($width, strlen(self::STATED));
         }
 
         return str_pad($value, $width, self::NAME_PAD);

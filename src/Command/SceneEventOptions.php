@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Scene\LowEndBias;
 use App\Scene\RoomBounds;
 use App\Scene\StackOrientation;
 use App\Spec\DeviceSpec;
@@ -20,6 +21,7 @@ final class SceneEventOptions
      * @param array<string, StackOrientation> $orientations how each named system is set up, see {@see rolls}
      * @param list<string> $standing device ids that stand as measured under any orientation
      * @param array<string, array<string, int>> $brings owner to device id to units, see {@see Event}
+     * @param array<string, LowEndBias> $lowEnds where each named system wants its lowest cabinets, see {@see lowEndFor}
      */
     private function __construct(
         public readonly RoomBounds $room,
@@ -32,6 +34,7 @@ final class SceneEventOptions
         public readonly array $brings = [],
         /** The event's id, which names the folder of a one-system run, or null without an event. */
         public readonly ?string $eventId = null,
+        public readonly array $lowEnds = [],
     ) {
     }
 
@@ -92,6 +95,21 @@ final class SceneEventOptions
             static fn (string $owner): string => $owner.':'.$orientations[$owner]->value,
             array_keys($orientations),
         ));
+        // The low end follows the same shape, as `--system-low-end=OWNER:low|central`.
+        $lowEnds = null === $event ? [] : $event->lowEnds;
+        foreach ((array) $input->getOption('system-low-end') as $pair) {
+            $parts = explode(':', (string) $pair);
+            $bias = 2 === count($parts) && '' !== $parts[0] ? LowEndBias::tryFrom($parts[1]) : null;
+            if (null === $bias) {
+                throw new InvalidSpecException('--system-low-end expects OWNER:low|central');
+            }
+            $lowEnds[$parts[0]] = $bias;
+        }
+        ksort($lowEnds);
+        $input->setOption('system-low-end', array_map(
+            static fn (string $owner): string => $owner.':'.$lowEnds[$owner]->value,
+            array_keys($lowEnds),
+        ));
         $standing = array_values(array_unique([
             ...(null === $event ? [] : $event->standing),
             ...array_map('strval', (array) $input->getOption('stand')),
@@ -108,7 +126,7 @@ final class SceneEventOptions
         $brings = null === $event ? [] : $event->brings;
 
         $known = array_unique(array_map(static fn (DeviceSpec $device): string => $device->owner, $devices));
-        foreach (array_unique([...array_keys($interfaces), ...array_keys($targets), ...array_keys($orientations), ...array_keys($brings)]) as $owner) {
+        foreach (array_unique([...array_keys($interfaces), ...array_keys($targets), ...array_keys($orientations), ...array_keys($lowEnds), ...array_keys($brings)]) as $owner) {
             if (!in_array($owner, $known, true)) {
                 throw new InvalidSpecException('unknown system owner '.$owner);
             }
@@ -137,6 +155,7 @@ final class SceneEventOptions
             $standing,
             $brings,
             $event?->id,
+            $lowEnds,
         );
     }
 
@@ -192,6 +211,80 @@ final class SceneEventOptions
         }
 
         return true;
+    }
+
+    /**
+     * Where the stack built from `$ids` puts its lowest cabinets, when its systems said so, or null for the sweep's
+     * value.
+     *
+     * **The owners of the subs decide, and they have to agree**, the same rule {@see subOwner} gives the interface: a
+     * stack of Innschleife's subs under a borrowed top follows Innschleife. Ours is two owners, sdwa5 and Sepp, so a
+     * single owner would leave our wall unstated, and agreement is what lets a pooled wall of two systems follow both.
+     * A stack with no subs at all follows the owners of what it does hold.
+     *
+     * @param list<string> $ids
+     * @param array<string, DeviceSpec> $devices
+     */
+    public function lowEndFor(array $ids, array $devices): ?LowEndBias
+    {
+        $stated = null;
+        foreach ($this->lowEndOwners($ids, $devices) as $owner) {
+            $bias = $this->lowEnds[$owner] ?? null;
+            if (null === $bias || (null !== $stated && $stated !== $bias)) {
+                return null;
+            }
+            $stated = $bias;
+        }
+
+        return $stated;
+    }
+
+    /**
+     * Whether every stack the rig could be dealt into has a stated low end, which leaves the sweep's low-end axis
+     * nothing to vary.
+     *
+     * **Every owner in the rig, and one value between them.** The stacks are not dealt yet when the sweep asks, so the
+     * answer has to hold for any of them. A rig of Innschleife alone qualifies. The combined next-event rig does not,
+     * because PSL states nothing, and neither would it if PSL did, since a pooled wall of ours and Innschleife's subs
+     * would have two answers and fall back to the swept one.
+     *
+     * @param array<string, DeviceSpec> $devices
+     * @param list<string> $ids
+     */
+    public function fixesLowEnd(array $devices, array $ids): bool
+    {
+        $stated = [];
+        foreach ($ids as $id) {
+            $bias = $this->lowEnds[$devices[$id]->owner ?? ''] ?? null;
+            if (null === $bias) {
+                return false;
+            }
+            $stated[$bias->value] = true;
+        }
+
+        return 1 === count($stated);
+    }
+
+    /**
+     * The owners whose low end a stack follows, see {@see lowEndFor}.
+     *
+     * @param list<string> $ids
+     * @param array<string, DeviceSpec> $devices
+     *
+     * @return list<string>
+     */
+    private function lowEndOwners(array $ids, array $devices): array
+    {
+        $subs = [];
+        $all = [];
+        foreach ($ids as $id) {
+            $all[$devices[$id]->owner] = true;
+            if ('sub' === $devices[$id]->subtype) {
+                $subs[$devices[$id]->owner] = true;
+            }
+        }
+
+        return array_keys([] === $subs ? $all : $subs);
     }
 
     /**

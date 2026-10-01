@@ -673,14 +673,15 @@ bin/console scene:stack --owner=innschleife --event=next-event
 ```
 
 Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` and `v`, `stated`, `alternate`,
-`low`, at `center` and `stereo`. The event sets Innschleife up turned with the kickers standing, see
+`stated`, at `center` and `stereo`. The second `stated` is the low end, which the event sets to `low` for Innschleife. The event sets Innschleife up turned with the kickers standing, see
 [Event rooms and system preferences](#event-rooms-and-system-preferences).
 
-**The combined `next-event` run holds the photo rig because the event narrows the air between stacks.** Its `low`
-variant builds it, and our stack is 4.275 m wide, PSL's 3.58 m and the photo rig 4.66 m. With the default 0.5 m
-between stacks the rig is 13.515 m wide and the 13 m room refuses it, measured on 2026-10-01. The event's
-`stack_clearance_m: 0.24`, chosen by Stefan the same day, makes it 12.995 m. Every `central` variant still puts
-Innschleife three cabinets wide.
+**The combined `next-event` run holds the photo rig because the event narrows the air between stacks.** Our stack
+is 4.276 m wide, PSL's 3.58 m and the photo rig 4.66 m. With the default 0.5 m between stacks the rig is 13.516 m
+wide and the 13 m room refuses it, measured on 2026-10-01. The event's `stack_clearance_m: 0.24`, chosen by Stefan
+the same day, makes it 12.996 m. Since 0.131.0 the event also fixes Innschleife's low end at `low`, so every combined
+rig carries the photo layout. Only `pyramid` fits it into the room, which leaves `next-event` with six scenes, four
+`systems-apart` and two `tops-shared`, where it had 26 while Innschleife was still swept `central` as well.
 
 ### A ceiling on the sub height
 
@@ -1216,6 +1217,31 @@ orientation, the sweep has nothing left to vary and writes one candidate named `
 orientation that rolls the same cabinets as an earlier one is dropped as the same rig.
 `--system-orientation=OWNER:MODE` and `--stand=ID` state the same directly, and the recorded line carries both.
 
+The event states where each system wants its lowest cabinets too, as `low_end`, stated by Stefan on 2026-10-01 against
+two renders. Ours and Sepp's are `central`, which builds two rows of [3 Flexy | SKRAM | 3 Flexy] over the six
+Achenbach. Innschleife's is `low`, which is their photo. PSL states none, because both values build PSL the same rig.
+
+```yaml
+systems:
+  sdwa5: { orientation: upright, low_end: central }
+  sepp: { orientation: upright, low_end: central }
+  innschleife: { orientation: turned, low_end: low, ... }
+```
+
+A stack follows the low end its subs' systems agree on, so ours follows sdwa5 and Sepp together and a borrowed top
+changes nothing. A pooled wall of two systems that disagree, or that holds a system stating none, follows
+`--low-end` as before, and a stack without subs follows the owners of what it does hold. When every system of a rig
+states the same low end, the axis has nothing left to vary and the one candidate is named `stated`, which is what
+`innschleife-next-event` now holds. `--system-low-end=OWNER:low|central` states the same directly, and the recorded
+line carries it.
+
+**The combined rig is named `low` although ours sits `central` in it.** PSL states nothing, so the combined sweep
+still varies the low end for PSL. Both values build the same rig, and the deduplication keeps the first one swept,
+which is `low` because `LowEndBias::Low` is declared first. The file is
+`next-event/stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible.yaml`, and the `low_end:
+central` on our stack inside it is what the solver used. Stating a low end for PSL would not rename it to `stated`
+either, because a pooled wall of ours and Innschleife's subs would have two answers.
+
 `stack_clearance_m` sets the air between neighbouring stacks for the event's runs, 0.24 m at the next event instead
 of the default 0.5 m. An explicit `--clearance` replaces it, and the recorded line carries the number as
 `--clearance=0.24`. See [Repeating a flanked row](#repeating-a-flanked-row) for why it is 0.24.
@@ -1566,6 +1592,7 @@ so block and stereo alignment have nothing left to spread it into.
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 | `--low-end=MODE` | repeatable: `low` or `central`. Where the lowest-reaching cabinets belong. Default both — **one scene each**. `low` puts them on the floor, `central` pulls them onto the centre line even when that costs a row, which is what stacks two SKRAMs one above the other. See [where the low end goes](#where-the-low-end-goes) |
 | `--event=ID` | a file in `events/`: the room, how each system is set up and what each system brings, overriding the specs' quantities for the swept systems. **A count of zero means left at home**, which is a different fact from a device the event never names. One `--owner` with an event is filed as `OWNER-EVENT` |
+| `--system-low-end=OWNER:MODE` | repeatable: where this owner's lowest cabinets go, `low` or `central`, whatever `--low-end` sweeps. A stack follows the value its subs' systems agree on, and a rig whose systems all state one value sweeps one candidate named `stated` |
 | `--room-width=M`, `--room-height=M` | Hard limits on the entire compiled rig. An event's limits can be tightened but not loosened |
 | `--system-interface=OWNER:M`, `--system-target=OWNER:M` | Repeatable preferences for sub walls belonging to one owner. Pooled walls keep the ordinary defaults |
 | `--quantity=DEVICE:COUNT` | repeatable: build with this many instead of the number the spec states. **Requires `--into=NAME`** — it changes the rig without changing its name, so the folder has to be said out loud |

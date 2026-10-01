@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Spec;
 
+use App\Scene\LowEndBias;
 use App\Scene\StackOrientation;
 use App\Spec\DeviceSpec;
 use App\Spec\Event;
@@ -119,6 +120,27 @@ final class EventTest extends TestCase
         $this->expectException(InvalidSpecException::class);
 
         Event::fromArray(['id' => 'e', 'name' => 'E', 'systems' => ['psl' => ['brings' => ['a-sub' => 'two']]]]);
+    }
+
+    /**
+     * Ours and Sepp's low end central and Innschleife's low, which are the two layouts the renders showed. PSL
+     * states none, because both values build PSL the same rig.
+     */
+    public function testTheNextEventStatesWhereEachSystemsLowEndGoes(): void
+    {
+        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event');
+
+        self::assertSame(
+            ['sdwa5' => LowEndBias::Central, 'sepp' => LowEndBias::Central, 'innschleife' => LowEndBias::Low],
+            $event->lowEnds,
+        );
+    }
+
+    public function testAnUnknownLowEndIsRefused(): void
+    {
+        $this->expectException(InvalidSpecException::class);
+
+        Event::fromArray(['id' => 'e', 'name' => 'E', 'systems' => ['psl' => ['low_end' => 'middle']]]);
     }
 
     /** A past event is worth recording for what was brought even when nobody measured the hall. */

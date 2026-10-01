@@ -6,6 +6,7 @@ namespace App\Tests\Command;
 
 use App\Command\SceneEventOptions;
 use App\Command\SceneStackCommand;
+use App\Scene\LowEndBias;
 use App\Scene\StackOrientation;
 use App\Spec\InvalidSpecException;
 use App\Tests\Support\SpecFactory;
@@ -57,6 +58,58 @@ final class SceneEventOptionsTest extends TestCase
         self::assertFalse($options->fixesOrientation($devices, $ids));
         self::assertTrue($options->fixesOrientation($devices, ['our-sub', 'inn-kick']));
         self::assertSame(['innschleife:turned', 'sdwa5:upright'], $input->getOption('system-orientation'));
+    }
+
+    /**
+     * **A stack follows the low end its subs' systems agree on**, so ours follows sdwa5 and Sepp together, a borrowed
+     * top changes nothing, and a pooled wall of two systems that disagree keeps the swept value.
+     */
+    public function testAStackFollowsTheLowEndItsSubsSystemsAgreeOn(): void
+    {
+        $devices = [
+            'our-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sdwa5']),
+            'sepp-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sepp']),
+            'inn-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'innschleife']),
+            'psl-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'psl']),
+            'psl-top' => SpecFactory::spec(['owner' => 'psl']),
+        ];
+        $input = new ArrayInput(['--system-low-end' => ['sepp:central', 'sdwa5:central', 'innschleife:low']], (new SceneStackCommand())->getDefinition());
+        $options = SceneEventOptions::resolve($input, dirname(__DIR__, 2).'/events', $devices);
+
+        self::assertSame(LowEndBias::Central, $options->lowEndFor(['our-sub', 'sepp-sub', 'psl-top'], $devices));
+        self::assertSame(LowEndBias::Low, $options->lowEndFor(['inn-sub'], $devices));
+        self::assertNull($options->lowEndFor(['our-sub', 'inn-sub'], $devices));
+        self::assertNull($options->lowEndFor(['psl-sub'], $devices));
+        self::assertNull($options->lowEndFor(['psl-top'], $devices));
+        self::assertSame(['innschleife:low', 'sdwa5:central', 'sepp:central'], $input->getOption('system-low-end'));
+    }
+
+    /**
+     * The sweep's low-end axis is left with nothing to vary only when every system in the rig states one value, because
+     * any of them could end up in one pooled wall.
+     */
+    public function testOnlyARigWhoseSystemsAllAgreeFixesTheLowEnd(): void
+    {
+        $devices = [
+            'our-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sdwa5']),
+            'sepp-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sepp']),
+            'inn-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'innschleife']),
+            'psl-top' => SpecFactory::spec(['owner' => 'psl']),
+        ];
+        $input = new ArrayInput(['--system-low-end' => ['sdwa5:central', 'sepp:central', 'innschleife:low']], (new SceneStackCommand())->getDefinition());
+        $options = SceneEventOptions::resolve($input, dirname(__DIR__, 2).'/events', $devices);
+
+        self::assertTrue($options->fixesLowEnd($devices, ['our-sub', 'sepp-sub']));
+        self::assertTrue($options->fixesLowEnd($devices, ['inn-sub']));
+        self::assertFalse($options->fixesLowEnd($devices, ['our-sub', 'inn-sub']));
+        self::assertFalse($options->fixesLowEnd($devices, ['inn-sub', 'psl-top']));
+    }
+
+    public function testAMalformedSystemLowEndIsRefused(): void
+    {
+        $input = new ArrayInput(['--system-low-end' => ['psl:middle']], (new SceneStackCommand())->getDefinition());
+        $this->expectException(InvalidSpecException::class);
+        SceneEventOptions::resolve($input, dirname(__DIR__, 2).'/events', ['sub' => SpecFactory::spec()]);
     }
 
     public function testAMalformedSystemOrientationIsRefused(): void

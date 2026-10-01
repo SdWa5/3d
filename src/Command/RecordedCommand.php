@@ -80,7 +80,7 @@ final class RecordedCommand
             }
         }
         // Record the resolved numbers rather than the editable event id.
-        foreach (['system-interface', 'system-target', 'system-orientation', 'stand'] as $option) {
+        foreach (['system-interface', 'system-target', 'system-orientation', 'system-low-end', 'stand'] as $option) {
             foreach ((array) $input->getOption($option) as $value) {
                 $parts[] = '--'.$option.'='.$value;
             }

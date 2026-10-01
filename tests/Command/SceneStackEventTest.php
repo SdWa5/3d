@@ -56,6 +56,41 @@ final class SceneStackEventTest extends SceneStackTestCase
     }
 
     /**
+     * Innschleife states its low end, so a run of Innschleife alone has no low end left to sweep, whatever `--low-end`
+     * asks for, and its one candidate is named `stated` there too.
+     */
+    public function testTheEventsLowEndReplacesTheSweptOne(): void
+    {
+        $display = $this->invoke([...self::OPTIONS, '--low-end' => ['low', 'central']])->getDisplay();
+
+        self::assertStringContainsString('center-stated--', $display);
+        self::assertStringNotContainsString('center-central', $display);
+        self::assertStringContainsString('--system-low-end=innschleife:low', $display);
+        self::assertStringContainsString('--system-low-end=sdwa5:central', $display);
+    }
+
+    /**
+     * **The combined next-event rig carries both wanted layouts at once.** Ours is central, two rows of [3 Flexy |
+     * SKRAM | 3 Flexy] over the Achenbach, and Innschleife's is low, the photo. Both low ends are still swept for PSL,
+     * which states none, and they build the same rig, so the second is dropped as a duplicate of the first.
+     */
+    public function testTheCombinedRigCarriesEachSystemsOwnLowEnd(): void
+    {
+        $tester = $this->invoke([
+            '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'],
+            '--event' => 'next-event', '--into' => 'next-event', '--order' => ['ours,psl,innschleife'],
+            '--systems' => ['systems-apart'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
+            '--mirror-style' => ['alternate'], '--dry-run' => true, '--jobs' => '1',
+        ]);
+
+        $display = $tester->getDisplay();
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertSame(2, substr_count($display, '3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid'));
+        self::assertSame(2, substr_count($display, '1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°'));
+        self::assertStringContainsString('center-central-possible — the same rig as stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible', $display);
+    }
+
+    /**
      * **The combined next-event rig carries Innschleife's photo layout**, which it could not at 0.5 m between stacks:
      * our 4.275 m, PSL's 3.58 m and the photo rig's 4.66 m are 13.515 m with two 0.5 m gaps, and 12.995 m with the
      * event's 0.24 m.
