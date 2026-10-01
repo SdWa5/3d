@@ -12,15 +12,14 @@
 #
 # 6 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours-2 — ours-2, 9 cabinets in 5 rows:
+# main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
-#   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
-#   5  1× eighteensound-2way-15                                                0.4656 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
+#   4  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.228 m of cabinet.
+# Subs reach 2.428 m against a 2.0 m interface. The stack is 3.264 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 # main-ours-3 — ours-3, 7 cabinets in 4 rows:
@@ -94,7 +93,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours-2, 9 cabinets in 5 rows
+  # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
     at: [-5.868, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -126,7 +125,7 @@ placements:
 
   # ours-3, 7 cabinets in 4 rows
   - id: main-ours-3
-    at: [-3.671, 0.0]
+    at: [-3.507, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -154,7 +153,7 @@ placements:
 
   # gmss-1, 4 cabinets in 2 rows
   - id: main-gmss-1
-    at: [-1.718, 0.0]
+    at: [-1.554, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -183,7 +182,7 @@ placements:
 
   # gmss-3, 3 cabinets in 2 rows
   - id: main-gmss-3
-    at: [0.142, 0.0]
+    at: [0.306, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -208,7 +207,7 @@ placements:
 
   # gmss-2, 8 cabinets in 4 rows
   - id: main-gmss-2
-    at: [2.732, 0.0]
+    at: [2.896, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -240,7 +239,7 @@ placements:
 
   # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [5.415, 0.0]
+    at: [5.579, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

@@ -29,7 +29,7 @@
 #
 # QUANTITY 4 IS THE DRAWN COUNT and it is no longer the event count. Four appear in both drawing generations, and
 # `quantity` is what Innschleife own rather than what they bring — the roster says they are staying home this
-# time. See rosters/innschleife-next-event-tms4.yaml.
+# time. See rosters/innschleife-next-event.yaml.
 id: sub-60x60
 name: "Innschleife JBL 60x60 sub"
 category: speaker

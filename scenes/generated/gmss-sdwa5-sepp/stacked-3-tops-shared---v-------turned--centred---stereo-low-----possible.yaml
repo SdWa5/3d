@@ -14,15 +14,13 @@
 #
 # main-ours-2 — ours-2, 10 cabinets in 4 rows:
 #
-#   1  1× achenbach-18 rolled 270° + 1× skram + 1× achenbach-18 rolled 90°     1.85 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 650 mm gaps    2.176 m wide
+#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° at 976 mm gaps    2.176 m wide
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
-# Subs reach 2.419 m against a 2.0 m interface. The stack is 3.379 m of cabinet.
+# Subs reach 2.428 m against a 2.0 m interface. The stack is 3.388 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90° row is
-#     2.176 m on a 1.850 m row, so it overhangs 163 mm each side
 #
 # main-ours-1 — ours-1, 7 cabinets in 4 rows:
 #

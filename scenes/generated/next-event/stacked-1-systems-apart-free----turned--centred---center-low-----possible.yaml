@@ -16,17 +16,14 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 25 cabinets in 5 rows:
+# main-ours — ours, 25 cabinets in 4 rows:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90°     4.98 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   4  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
-#   5  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   1  3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°    5.308 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°    5.308 m wide
+#   3  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
+#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
-#   * the 3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90° row is 3.700 m on a 3.112 m row, so it
-#     overhangs 294 mm each side
+# Subs reach 2.428 m against a 2.0 m interface. The stack is 3.388 m of cabinet.
 #
 # main-psl — psl, 17 cabinets in 7 rows:
 #
@@ -65,7 +62,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 25 cabinets in 5 rows
+  # ours, 25 cabinets in 4 rows
   - id: main-ours
     at: [-4.542, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -95,7 +92,7 @@ placements:
 
   # psl, 17 cabinets in 7 rows
   - id: main-psl
-    at: [-0.042, 0.0]
+    at: [0.122, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -119,7 +116,7 @@ placements:
 
   # innschleife, 14 cabinets in 5 rows
   - id: main-innschleife
-    at: [4.198, 0.0]
+    at: [4.362, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

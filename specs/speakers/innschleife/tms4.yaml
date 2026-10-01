@@ -89,8 +89,9 @@ notes: |
   where a `--max-sub-height` of 3.0 m has already spent most of its budget, and the extra 210 mm of depth is
   210 mm the stack behind them does not have.
 
-  rosters/innschleife-next-event-tms4.yaml is the rig that brings them, and it is one half of a fork — Innschleife
-  bring either these two or the four small tops, never both. A rig holding both is one nobody has ever stood up.
+  No roster brings them any more. `rosters/innschleife-next-event-tms4.yaml` did until 2026-10-01, when a photo
+  of Innschleife's stack showed the TMS-2s around a black middle top instead, and that roster became
+  `innschleife-next-event` with these at zero. Innschleife bring either these two or the small tops, never both.
 
   ONLY THE EARLIEST DRAWING REVISIONS SHOW IT, so there is one source for its front and no second look at it. The
   later revisions replace it with `tms2`, and the owner's "either the four small ones or the two big ones"

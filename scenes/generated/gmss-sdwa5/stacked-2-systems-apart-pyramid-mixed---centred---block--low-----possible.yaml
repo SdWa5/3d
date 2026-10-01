@@ -51,25 +51,20 @@
 #   * the 1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° row is 2.780 m on a 2.626 m row, so it overhangs
 #     77 mm each side
 #
-# main-ours-2 — ours-2, 10 cabinets in 5 rows:
+# main-ours-2 — ours-2, 10 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps    1.666 m wide
-#   4  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   5  2× tecnare-m2122                                                          1.02 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  2× tecnare-m2122                                                          1.02 m wide
 #
-# Subs reach 2.383 m against a 2.0 m interface. The stack is 3.343 m of cabinet.
+# Subs reach 2.419 m against a 2.0 m interface. The stack is 3.379 m of cabinet.
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps row is
-#     1.666 m on a 1.546 m row, so it overhangs 60 mm each side
-#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.666 m row, so it overhangs 91 mm each
-#     side
 #
 # main-ours-1 — ours-1, 7 cabinets in 4 rows:
 #
@@ -102,7 +97,7 @@ focus:
 placements:
   # gmss-1, 4 cabinets in 2 rows
   - id: main-gmss-1
-    at: [-4.159, 0.0]
+    at: [-4.323, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -129,7 +124,7 @@ placements:
 
   # gmss-2, 10 cabinets in 4 rows
   - id: main-gmss-2
-    at: [-1.294, 0.0]
+    at: [-1.458, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -158,7 +153,7 @@ placements:
         - device: turbo-top
           count: 2
 
-  # ours-2, 10 cabinets in 5 rows
+  # ours-2, 10 cabinets in 4 rows
   - id: main-ours-2
     at: [1.54, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -188,7 +183,7 @@ placements:
 
   # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [3.737, 0.0]
+    at: [3.901, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

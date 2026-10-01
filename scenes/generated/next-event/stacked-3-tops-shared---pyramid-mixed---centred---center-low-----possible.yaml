@@ -26,18 +26,13 @@
 #   * the subs reach 1.782 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
 #     a sub wing, so the interface decides nothing about it
 #
-# main-ours-2 — ours-2, 8 cabinets in 4 rows:
+# main-ours-2 — ours-2, 8 cabinets in 3 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps    1.666 m wide
-#   3  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   4  2× achenbach-18                                                           1.22 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   3  2× achenbach-18                                                           1.22 m wide
 #
-# Subs reach 2.392 m against a 2.0 m interface. The stack is 2.392 m of cabinet.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps row is
-#     1.666 m on a 1.546 m row, so it overhangs 60 mm each side
-#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.666 m row, so it overhangs 91 mm each
-#     side
+# Subs reach 2.428 m against a 2.0 m interface. The stack is 2.428 m of cabinet.
 #
 # main-ours-3 — ours-3, 6 cabinets in 3 rows:
 #
@@ -140,7 +135,7 @@ focus:
 placements:
   # ours-1, 6 cabinets in 3 rows
   - id: main-ours-1
-    at: [-12.069, 0.0]
+    at: [-12.233, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -163,7 +158,7 @@ placements:
         - device: achenbach-18
           count: 2
 
-  # ours-2, 8 cabinets in 4 rows
+  # ours-2, 8 cabinets in 3 rows
   - id: main-ours-2
     at: [-9.872, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -191,7 +186,7 @@ placements:
 
   # ours-3, 6 cabinets in 3 rows
   - id: main-ours-3
-    at: [-7.675, 0.0]
+    at: [-7.511, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -215,7 +210,7 @@ placements:
 
   # psl-1, 5 cabinets in 3 rows
   - id: main-psl-1
-    at: [-5.212, 0.0]
+    at: [-5.048, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -240,7 +235,7 @@ placements:
 
   # psl-2, 6 cabinets in 3 rows
   - id: main-psl-2
-    at: [-2.332, 0.0]
+    at: [-2.168, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -267,7 +262,7 @@ placements:
 
   # psl-3, 6 cabinets in 3 rows
   - id: main-psl-3
-    at: [0.548, 0.0]
+    at: [0.712, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -294,7 +289,7 @@ placements:
 
   # innschleife-1, 6 cabinets in 2 rows
   - id: main-innschleife-1
-    at: [3.883, 0.0]
+    at: [4.047, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -327,7 +322,7 @@ placements:
 
   # innschleife-2, 7 cabinets in 4 rows
   - id: main-innschleife-2
-    at: [7.238, 0.0]
+    at: [7.402, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -356,7 +351,7 @@ placements:
 
   # innschleife-3, 6 cabinets in 2 rows
   - id: main-innschleife-3
-    at: [10.593, 0.0]
+    at: [10.757, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
