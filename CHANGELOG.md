@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.129.1] - 2026-10-01
+
+### Added
+
+- `TODO.md` rows GEO-15, TOOL-23 and SCN-12, filed as proposals, and the `proposal` state that marks them.
+
 ## [0.129.0] - 2026-10-01
 
 ### Added
