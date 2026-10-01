@@ -73,10 +73,13 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  # Sampled off the drawing's own cabinet photograph, which averages #45464D. A photograph's average is not a
-  # paint colour — our Flexy's image averages #C7C7C7 where the cabinet is black — so read this as "mid grey,
-  # lighter than everything else in the rig" rather than as a value.
-  color: "#45464d"
+  # Read off meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01 and white-balanced as described under
+  # `audio.layout`. The body is a blue-black, and the dividers across the open front are painted blue. The
+  # drawing's photograph averaged #45464D, which was what this file carried before. The owner stated on
+  # 2026-10-01 that the cabinet is black all over except the coloured boards in the front row, and that those
+  # are a normal blue rather than the light one the photo's #244b8b rendered as. #12307a was still too light, as
+  # the owner stated on 2026-10-01.
+  color: "#141414"
 
 physical:
   weight_kg: 110.0
@@ -86,10 +89,53 @@ rigging:
   flyable: false
   points: [ ]
 
-# NO `audio` BLOCK. No passband, no driver size, no driver count and no coverage figure exists for this
-# cabinet. The photograph shows a curved horn mouth over four cells and that is a description of a front, not
+# `audio` CARRIES ONLY THE BAFFLE LAYOUT. No passband, no driver size, no driver count and no coverage figure
+# exists for this cabinet. The photograph shows a curved horn mouth over four cells and that is a description of a front, not
 # a driver complement. Inventing an 18" because the box is big enough for one is exactly what this repository
 # does not do.
+
+audio:
+  # Front-baffle layout in the upright baffle frame: origin at the centre of the 0.570 x 1.100 front face, +X
+  # right, +Z up. READ OFF meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01, where these lie on their side in
+  # the bottom row, at about 700 px/m and turned back upright with the photo's left end at the top. Which
+  # end is up is not readable from the photo, and a scene's roll decides it anyway.
+  #
+  # The front is one open recess behind a 20 mm frame, split by two blue boards running across it. The section
+  # between them holds one upright board and the lower end section another. How deep it all goes is not
+  # readable, so 0.40 is ESTIMATED like every size here. The photo also shows a black board across the middle,
+  # which the owner stated on 2026-10-01 is not there, the middle section holding only the upright one.
+  #
+  # ONLY THE BLUE BOARDS REACH THE FRONT, as the owner stated on 2026-10-01. The blue boards are 0.20 deep, half of
+  # what they were first, as the owner asked on 2026-10-01. Both upright boards start where the blue ones end,
+  # 0.201 back at their tilted corners, so they touch without passing through them, in one line and at one depth. That is the folded
+  # horn's path turning rather than a port. The cabinet has no port. The 0.20
+  # is ESTIMATED. The blue boards are angled like the SBH's white ones, at the same -20° and -13°, as the owner
+  # stated on 2026-10-01. Each upright runs the whole way between the back edges of
+  # the blue boards around it, as the owner asked on 2026-10-01. Both uprights stand on the centreline, where the photo
+  # shows them in the WSX on either side of the wall. Off it, a copy rolled the other way put them 100 mm apart.
+  #
+  # THE HORN FLARES IN THE SECTION ABOVE THE UPPER BLUE BOARD, as the owner stated on 2026-10-01. Its back wall
+  # leaves the front 20 mm inside the frame and slopes back at 18° to 0.236 m, 0.666 m down, which is past the
+  # upper blue board and two thirds of the way down the middle section. The owner asked on 2026-10-01 for twice the
+  # length it had ending at the board. So the upper blue board is 0.14 deep, which stops it in front of the wall,
+  # and the middle upright only fills the part of that section below the wall's end. It was 49° at first,
+  # then 60° and 30°, and the owner stated on 2026-10-01 that the wall runs flatter still, at 15° to 20°. 18° is
+  # the middle of that. It overlaps the rest of the mouth by 16 mm so the two cuts
+  # share no face. Which section flares is read off the photo, where that one is empty and dark while the
+  # others hold boards and shelves, so it is ESTIMATED like its angle.
+  #
+  # The colours are white-balanced against the SBH's white fins in the same photo, which is the only white in
+  # it, so every colour here carries that one assumption.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: flare, kind: cell, at_m: [ 0.0,  0.197 ], mouth_m: [ 0.53, 0.666 ], depth_m: 0.1282, angle_deg: -18, turn: pitch }
+      - { id: mouth, kind: cell, at_m: [ 0.0, -0.325 ], mouth_m: [ 0.53, 0.41 ], depth_m: 0.40 }
+      - { id: divider-up,  kind: fin, at_m: [ 0.0,  0.207 ], mouth_m: [ 0.53, 0.025 ], depth_m: 0.14, angle_deg: -20, color: "#0b1f52" }
+      - { id: divider-lo,  kind: fin, at_m: [ 0.0, -0.210 ], mouth_m: [ 0.53, 0.025 ], depth_m: 0.20, angle_deg: -13, color: "#0b1f52" }
+      - { id: shelf-mid, kind: fin, at_m: [ 0.0, -0.1815 ], mouth_m: [ 0.02, 0.123 ], depth_m: 0.199, setback_m: 0.201 }
+      - { id: shelf-lo,  kind: fin, at_m: [ 0.0, -0.3935 ], mouth_m: [ 0.02, 0.253 ], depth_m: 0.199, setback_m: 0.201 }
 
 mesh_override: null
 

@@ -88,6 +88,18 @@ final class DeviceSpec
          */
         public readonly ?string $carriedOn,
         public readonly ?string $notes,
+        /**
+         * The colour of the front and everything carved into it, or null when it is the body's own.
+         *
+         * **PSL's Concert Audio cabinets are black with a white front**, as the owner stated on 2026-10-01. Only a
+         * generated shell with a baffle layout uses it: its front face, the walls of every opening cut into it
+         * and every horn flare take this colour, while a feature that states its own `color` keeps that.
+         */
+        public readonly ?string $frontColor = null,
+        /**
+         * The wheels the cabinet rolls on, drawn outside its declared box. See {@see Castors}.
+         */
+        public readonly ?Castors $castors = null,
     ) {
     }
 
@@ -164,6 +176,8 @@ final class DeviceSpec
                 : null,
             carriedOn: $reader->optionalString('carried_on'),
             notes: $reader->optionalString('notes'),
+            frontColor: $appearance?->optionalString('front_color'),
+            castors: Castors::fromReader($physical->optionalSection('castors')),
         );
     }
 
@@ -253,6 +267,8 @@ final class DeviceSpec
             vehicle: $this->vehicle,
             carriedOn: $this->carriedOn,
             notes: $this->notes,
+            frontColor: $this->frontColor,
+            castors: $this->castors,
         );
     }
 
@@ -402,6 +418,8 @@ final class DeviceSpec
             // Also for tools/check-glb.py: a wind-up stand's legs reach past its mast column to this spread, and
             // nowhere else. Null for everything that is not a mast.
             'base_spread_m' => $this->mast?->baseSpread,
+            // Also for tools/check-glb.py: the wheels stand this far off their face, outside the declared box.
+            'castors' => $this->castors?->toArray(),
             'weight_kg' => $this->weightKg,
             'flyable' => $this->flyable,
             'rigging_points' => array_map(

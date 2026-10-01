@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Spec;
 
 use App\Spec\BaffleFeature;
+use App\Spec\InvalidSpecException;
 use App\Spec\Provenance;
 use App\Tests\Support\SpecFactory;
 use PHPUnit\Framework\TestCase;
@@ -167,7 +168,7 @@ final class BaffleLayoutTest extends TestCase
     public function testAJoinRejectsAMisspelledField(): void
     {
         // Neither field has a default, so a typo would build a different cabinet with nothing to see.
-        $this->expectException(\App\Spec\InvalidSpecException::class);
+        $this->expectException(InvalidSpecException::class);
         $this->expectExceptionMessage("join: unknown key 'depth'");
 
         $this->layout([
@@ -176,6 +177,84 @@ final class BaffleLayoutTest extends TestCase
             ['id' => 'lf-lo', 'kind' => 'horn', 'at_m' => [0.0, -0.15], 'mouth_m' => [0.4, 0.2],
                 'throat_in' => 10.0, 'depth_m' => 0.2,
                 'join' => ['with' => 'lf-up', 'depth' => 0.045]],
+        ]);
+    }
+
+    public function testACellAndAFinCarryTheirOwnFieldsIntoThePlan(): void
+    {
+        $layout = $this->layout([
+            ['id' => 'slot', 'kind' => 'cell', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.3, 0.5], 'depth_m' => 0.4,
+                'color' => '#22406e'],
+            ['id' => 'brace', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.02, 0.5], 'depth_m' => 0.2,
+                'angle_deg' => 20.0, 'setback_m' => 0.03, 'color' => '#78b06e'],
+        ]);
+
+        $slot = $layout->feature('slot')->toArray();
+        self::assertSame('cell', $slot['kind']);
+        self::assertSame([0.3, 0.5], $slot['mouth_m']);
+        self::assertSame('#22406e', $slot['color']);
+        // A cell's back wall is square to the baffle unless it states a tilt.
+        self::assertSame(0.0, $slot['angle_deg']);
+        self::assertNull($slot['throat_m']);
+
+        $brace = $layout->feature('brace')->toArray();
+        self::assertSame(20.0, $brace['angle_deg']);
+        self::assertSame(0.03, $brace['setback_m']);
+        self::assertSame('#78b06e', $brace['color']);
+    }
+
+    public function testAFinThatStatesNoTurnIsSquareToTheBaffle(): void
+    {
+        $fin = $this->layout([
+            ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.1, 0.0], 'mouth_m' => [0.02, 0.4], 'depth_m' => 0.3],
+        ])->feature('fin');
+
+        self::assertSame(0.0, $fin->toArray()['angle_deg']);
+        self::assertSame(0.0, $fin->toArray()['setback_m']);
+        $footprint = $fin->finFootprint();
+        self::assertNotNull($footprint);
+        self::assertEqualsWithDelta([0.09, 0.11], $footprint['x'], 1e-9);
+        self::assertEqualsWithDelta([-0.2, 0.2], $footprint['z'], 1e-9);
+        self::assertEqualsWithDelta(0.3, $footprint['reach'], 1e-9);
+    }
+
+    public function testATurnedFinSwingsItsBackTowardsPositiveXAndStaysBehindTheBaffle(): void
+    {
+        // 30 degrees on a 0.2 m deep, 0.02 m thick vertical plate: the back moves 0.1 m to +x, and the
+        // front corner that would poke out by 0.005 m is shifted back, so the reach grows by that much.
+        $fin = $this->layout([
+            ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.02, 0.4], 'depth_m' => 0.2,
+                'angle_deg' => 30.0, 'setback_m' => 0.01],
+        ])->feature('fin');
+
+        $footprint = $fin->finFootprint();
+        self::assertNotNull($footprint);
+        self::assertEqualsWithDelta(-0.01 * cos(M_PI / 6), $footprint['x'][0], 1e-9);
+        self::assertEqualsWithDelta(0.2 * sin(M_PI / 6) + 0.01 * cos(M_PI / 6), $footprint['x'][1], 1e-9);
+        self::assertEqualsWithDelta(0.01 + 0.2 * cos(M_PI / 6) + 0.02 * sin(M_PI / 6), $footprint['reach'], 1e-9);
+    }
+
+    public function testAWideFinIsHorizontalAndTurnsTowardsPositiveZ(): void
+    {
+        $fin = $this->layout([
+            ['id' => 'shelf', 'kind' => 'fin', 'at_m' => [0.0, 0.1], 'mouth_m' => [0.4, 0.02], 'depth_m' => 0.2,
+                'angle_deg' => 30.0],
+        ])->feature('shelf');
+
+        $footprint = $fin->finFootprint();
+        self::assertNotNull($footprint);
+        self::assertEqualsWithDelta([-0.2, 0.2], $footprint['x'], 1e-9);
+        self::assertGreaterThan(0.1 + 0.09, $footprint['z'][1]);
+    }
+
+    public function testAFeatureRejectsAMisspelledField(): void
+    {
+        $this->expectException(InvalidSpecException::class);
+        $this->expectExceptionMessage("unknown key 'colour'");
+
+        $this->layout([
+            ['id' => 'fin', 'kind' => 'fin', 'at_m' => [0.0, 0.0], 'mouth_m' => [0.02, 0.4], 'depth_m' => 0.2,
+                'colour' => '#ffffff'],
         ]);
     }
 

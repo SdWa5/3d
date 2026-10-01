@@ -11,16 +11,17 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 14 cabinets in 4 rows:
+# main-gmss — gmss, 14 cabinets in 5 rows:
 #
-#   1  1× wall-bass rolled 270° + 1× wall-bass + 1× mid-bass                   3.3 m wide
-#   2  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× nuke + 2× iq-sub rolled 90°     3.45 m wide
+#   1  1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90°      4.04 m wide
+#   2  1× nuke rolled 270° + 1× nuke rolled 90°                               1.56 m wide
 #   3  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
-#   4  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
+#   4  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
+#   5  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
 #
-# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.676 m of cabinet.
-#   * the 1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× nuke + 2× iq-sub rolled 90° row is 3.450 m on a
-#     3.300 m row, so it overhangs 75 mm each side
+# Subs reach 2.59 m against a 2.0 m interface. The stack is 3.426 m of cabinet.
+#   * the 1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90° row is 1.910 m on a 1.560 m row, so it
+#     overhangs 175 mm each side
 #
 # main-ours — ours, 8 cabinets in 4 rows:
 #
@@ -45,7 +46,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 14 cabinets in 4 rows
+  # gmss, 14 cabinets in 5 rows
   - id: main-gmss
     at: [-1.162, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -77,7 +78,7 @@ placements:
 
   # ours, 8 cabinets in 4 rows
   - id: main-ours
-    at: [1.673, 0.0]
+    at: [1.968, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

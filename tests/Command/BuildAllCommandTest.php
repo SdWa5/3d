@@ -100,6 +100,10 @@ final class BuildAllCommandTest extends TestCase
         $method = new \ReflectionMethod(BuildAllCommand::class, 'sceneKeyOf');
 
         foreach ([
+            ['build/plans/generated/next-event/rig-fly-through.json', 'build/plans', 'generated/next-event/rig'],
+            ['build/renders/generated/next-event/rig-fly-through.mp4', 'build/renders', 'generated/next-event/rig'],
+            ['build/renders/generated/next-event/rig-fly-through-perpendicular.mp4',
+                'build/renders', 'generated/next-event/rig'],
             ['build/scenes/generated/stacked-sdwa5-----2-free----turned--centred---center.blend', 'build/scenes',
                 'generated/stacked-sdwa5-----2-free----turned--centred---center'],
             ['build/plans/generated/_scene-stacked-sdwa5-----2-free----turned--centred---center.json', 'build/plans',

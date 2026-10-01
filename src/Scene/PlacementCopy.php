@@ -113,6 +113,24 @@ final class PlacementCopy
     }
 
     /**
+     * This copy slid along y, for a stack standing flush at the front once its tops are aimed.
+     *
+     * The same contract as {@see movedInX}: only y moves, and the aim is answered afterwards against the position
+     * this produces. See {@see SceneCompiler::flushFront}.
+     */
+    public function movedInY(float $y): self
+    {
+        return new self(
+            $this->path,
+            [$this->offset[0], self::snap($y), $this->offset[2]],
+            $this->rotation,
+            $this->isAnchor,
+            $this->pitchIncrementDeg,
+            $this->seated,
+        );
+    }
+
+    /**
      * This copy nested inside `$outer` — `$outer` places it, so `$outer`'s turn applies to this one's
      * offset as well as to its rotation.
      *

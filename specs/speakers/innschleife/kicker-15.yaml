@@ -69,12 +69,16 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  # **BLUE, STATED BY THE OWNERS, AND THE PHOTOGRAPH SAID NEAR BLACK.** Its average is #1D201C, which is what this
-  # file carried until Innschleife named this box as "die blaue Electro-Voice 95 x 57" on 2026-09-05. See the
-  # header: the same statement moved the near black onto `sub-60x60`, where the photograph had been right.
-  #
-  # A mid blue standing in for a shade nobody has measured. One photograph in daylight would settle it.
-  color: "#2f4f8f"
+  # **BLUE, STATED BY THE OWNERS, AND THE PHOTOGRAPHS SAY BLUE-BLACK WITH A BLUE-GREY DIVIDER.** The setup
+  # drawing's photograph averaged #1D201C. Innschleife named this box "die blaue Electro-Voice 95 x 57" on
+  # 2026-09-05, and this file carried a mid blue #2f4f8f for that until 2026-10-01. Then
+  # meshes/innschleife/photo-2026-09-19.jpeg showed the body as a blue-black and the board between the two mouths
+  # as a lighter blue-grey, both white-balanced as described under `audio.layout`. That the owners' "blau"
+  # means this pair rather than a paint the photo fails to show is INFERRED, and one photograph in daylight
+  # would settle it. The owner stated on 2026-10-01 that the W-bin is a dark, almost black blue, darker than the
+  # #202a36 read off the photo. #151b2b and #0f1526 were still too light, and the board between the mouths is the same blue as
+  # the rest rather than the photo's blue-grey, as the owner stated on 2026-10-01.
+  color: "#090d18"
 
 physical:
   weight_kg: 65.0
@@ -84,8 +88,33 @@ rigging:
   flyable: false
   points: [ ]
 
-# NO `audio` BLOCK. The photograph shows two horn mouths side by side and states nothing about what drives
-# them. See wsx-18.yaml.
+# `audio` CARRIES ONLY THE BAFFLE LAYOUT. The photograph shows two horn mouths side by side and states nothing
+# about what drives them. See wsx-18.yaml.
+
+audio:
+  # Front-baffle layout. Origin at the centre of the 0.950 x 0.570 front face, +X right, +Z up. READ OFF
+  # meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01 at about 716 px/m, where four of these stand on the
+  # subs. Two mouths fill the face either side of a 0.12 m board, whose face is drawn as a 6 mm
+  # recess in the body's colour. Depths are ESTIMATED. The colours are white-balanced against the SBH's
+  # white fins in the same photo, which is the only white in it, so every colour here carries that one
+  # assumption.
+  #
+  # A W-BIN, AS THE OWNER STATED ON 2026-10-01. Seen from above the walls of the two mouths form a W. Each
+  # outer wall runs from the outer front edge inwards to the back, and the board between the mouths is the
+  # blunt front of a wedge whose two sides run outwards to the back. Each mouth narrows from 0.40 m at the
+  # front to a 0.12 m throat at 0.45 m back, so every wall is an 18 mm plate turned 17.3°. The throat width
+  # and the plate thickness are ESTIMATED. The plates close the open corners of the cells behind them.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: mouth-l, kind: cell, at_m: [ -0.26, 0.0 ], mouth_m: [ 0.40, 0.54 ], depth_m: 0.45 }
+      - { id: mouth-r, kind: cell, at_m: [  0.26, 0.0 ], mouth_m: [ 0.40, 0.54 ], depth_m: 0.45 }
+      - { id: divider, kind: cell, at_m: [  0.0,  0.0 ], mouth_m: [ 0.12, 0.54 ], depth_m: 0.006 }
+      - { id: wall-outer-l, kind: fin, at_m: [ -0.451, 0.0 ], mouth_m: [ 0.018, 0.54 ], depth_m: 0.4713, angle_deg:  17.28 }
+      - { id: wedge-l,      kind: fin, at_m: [ -0.069, 0.0 ], mouth_m: [ 0.018, 0.54 ], depth_m: 0.4713, angle_deg: -17.28 }
+      - { id: wedge-r,      kind: fin, at_m: [  0.069, 0.0 ], mouth_m: [ 0.018, 0.54 ], depth_m: 0.4713, angle_deg:  17.28 }
+      - { id: wall-outer-r, kind: fin, at_m: [  0.451, 0.0 ], mouth_m: [ 0.018, 0.54 ], depth_m: 0.4713, angle_deg: -17.28 }
 
 mesh_override: null
 

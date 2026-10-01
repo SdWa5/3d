@@ -53,7 +53,7 @@ final class BuildPlanTest extends TestCase
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(6, $plan['plan_version']);
+        self::assertSame(7, $plan['plan_version']);
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
@@ -190,6 +190,21 @@ final class BuildPlanTest extends TestCase
         );
 
         self::assertSame('#223344', $plan['appearance']['grille']['color']);
+    }
+
+    public function testCastorsReachTheBuilderWithHowFarTheyStandOff(): void
+    {
+        $base = SpecFactory::specArray();
+        $plan = BuildPlan::forSpec(
+            SpecFactory::spec(['physical' => [...$base['physical'], 'castors' => ['face' => 'back', 'diameter_m' => 0.1, 'locking' => 2]]]),
+            '/glb',
+            '/blend',
+        );
+
+        self::assertSame('back', $plan['physical']['castors']['face']);
+        self::assertSame(2, $plan['physical']['castors']['locking']);
+        self::assertEqualsWithDelta(0.128, $plan['physical']['castors']['protrusion_m'], 1e-9);
+        self::assertNull(BuildPlan::forSpec(SpecFactory::spec(), '/glb', '/blend')['physical']['castors']);
     }
 
     public function testOnlyEstimatedSpecsAreMarked(): void

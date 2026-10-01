@@ -54,6 +54,22 @@ enum LightingPreset: string
     }
 
     /**
+     * Exposure in stops, applied by the view transform after rendering.
+     *
+     * **Studio was lit so brightly that every dark surface turned grey.** A ground of linear albedo 0.045 rendered
+     * as #aeaeb1 and a #141414 cabinet as #646464, because AgX compresses an over-lit frame instead of clipping it.
+     * Of renders at 0, -1 and -1.5 stops the owner chose the darker pair on 2026-10-01, and -1.25 lies between
+     * them. The other presets were not measured and stay at 0.
+     */
+    public function exposure(): float
+    {
+        return match ($this) {
+            self::Studio => -1.25,
+            self::Stage, self::Daylight, self::Flat => 0.0,
+        };
+    }
+
+    /**
      * World background colour, which is also the ambient fill.
      *
      * @return array{float, float, float}

@@ -3,7 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-gmss-1/1b and main-gmss-1/2b are 0.0374 m inside each other
+#   * main-gmss-1/1b and main-gmss-1/2b are 0.0398 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

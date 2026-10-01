@@ -4,16 +4,16 @@
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
 #   * a thebox-achat-115m stands at 1.180 m with nothing under it across x
-#   * main/2e and main/2c are 0.3981 m inside each other
-#   * main/2d and main/2b are 0.3094 m inside each other
-#   * main/2d and main/2a are 0.0907 m inside each other
-#   * main/1l-3 and main/2i are 0.0662 m inside each other
-#   * main/1n and main/2l are 0.0488 m inside each other
-#   * main/2e and main/2b are 0.0274 m inside each other
-#   * main/1m-2 and main/2k are 0.0239 m inside each other
+#   * main/2f and main/2d are 0.4040 m inside each other
+#   * main/2e and main/2c are 0.3414 m inside each other
+#   * main/2e and main/2b are 0.0701 m inside each other
+#   * main/1l-3 and main/2i are 0.0671 m inside each other
+#   * main/1n and main/2l are 0.0470 m inside each other
+#   * main/1m-2 and main/2k are 0.0232 m inside each other
 #   * main/1k-1 and main/2f are 0.0200 m inside each other
 #   * main/1k-2 and main/2g are 0.0200 m inside each other
 #   * main/1k-2 and main/2f are 0.0200 m inside each other
+#   * main/2f and main/2c are 0.0134 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

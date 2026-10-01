@@ -23,12 +23,16 @@ final class MeshOverride
 
     /**
      * @param array{float, float, float} $rotateDeg applied X, then Y, then Z, before measuring
+     * @param list<PaintRegion> $paint boxes whose surfaces take their own colour, see {@see PaintRegion}
+     * @param list<MeshRemoval> $remove prisms cut away before painting, see {@see MeshRemoval}
      */
     public function __construct(
         public readonly string $path,
         public readonly string $units = 'm',
         public readonly array $rotateDeg = [0.0, 0.0, 0.0],
         public readonly float $toleranceM = self::DEFAULT_TOLERANCE_M,
+        public readonly array $paint = [],
+        public readonly array $remove = [],
     ) {
     }
 
@@ -42,6 +46,10 @@ final class MeshOverride
      *   path: meshes/sub.obj
      *   units: mm
      *   rotate_deg: [90, 0, 90]
+     *   remove:
+     *     - { x_m: [-0.011, 0.011], section_m: [[-0.01, -0.36], [0.56, -0.36], [0.56, -0.05], [-0.01, 0.1]] }
+     *   paint:
+     *     - { at_m: [0.0, 0.23], size_m: [0.021, 0.4], depth_m: 0.068, color: "#78b06e" }
      * ```
      */
     public static function fromReader(ArrayReader $reader, string $key): ?self
@@ -55,12 +63,24 @@ final class MeshOverride
         }
 
         $section = $reader->requireSection($key);
+        $paint = $section->has('paint') ? array_values($section->sectionList('paint')) : [];
+        $remove = $section->has('remove') ? array_values($section->sectionList('remove')) : [];
 
         return new self(
             $section->requireString('path'),
             $section->optionalString('units', 'm') ?? 'm',
             $section->has('rotate_deg') ? $section->requireVector3('rotate_deg') : [0.0, 0.0, 0.0],
             $section->optionalFloat('tolerance_m', self::DEFAULT_TOLERANCE_M) ?? self::DEFAULT_TOLERANCE_M,
+            array_map(
+                static fn (ArrayReader $entry, int $index): PaintRegion => PaintRegion::fromReader($entry, $index + 1),
+                $paint,
+                array_keys($paint),
+            ),
+            array_map(
+                static fn (ArrayReader $entry, int $index): MeshRemoval => MeshRemoval::fromReader($entry, $index + 1),
+                $remove,
+                array_keys($remove),
+            ),
         );
     }
 
@@ -80,7 +100,7 @@ final class MeshOverride
     }
 
     /**
-     * @return array{path: string, units: string, unit_scale: float, rotate_deg: array{float, float, float}, tolerance_m: float}
+     * @return array{path: string, units: string, unit_scale: float, rotate_deg: array{float, float, float}, tolerance_m: float, paint: list<array<string, mixed>>, remove: list<array<string, mixed>>}
      */
     public function toArray(): array
     {
@@ -90,6 +110,8 @@ final class MeshOverride
             'unit_scale' => $this->unitScale() ?? 1.0,
             'rotate_deg' => $this->rotateDeg,
             'tolerance_m' => $this->toleranceM,
+            'paint' => array_map(static fn (PaintRegion $region): array => $region->toArray(), $this->paint),
+            'remove' => array_map(static fn (MeshRemoval $removal): array => $removal->toArray(), $this->remove),
         ];
     }
 }

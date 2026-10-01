@@ -3,7 +3,8 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-2/8b and main-2/9d are 0.0423 m inside each other
+#   * a turbo-top stands at 5.717 m with nothing under it across x
+#   * main-2/8b and main-2/9d are 0.0454 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.

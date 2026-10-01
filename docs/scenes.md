@@ -545,6 +545,15 @@ two of them multiples of anything. Every row count is worked out per cabinet and
 rather than multiplied — a fill that assumed a module would look right on the Flexys alone and fall apart
 the moment an Achenbach or a SKRAM is in the same stack.
 
+**A stack stands flush at the front, by each cabinet's foot**, since 0.135.0. Cabinets of different depths used to
+line up on their centres, so a SKRAM stood back from the Flexy beside it and a kicker stood back from the subs under
+it. Every tier now puts its front face on the front face of the tier below, and a top stands on the front edge of the
+wall it sits on, which is how the owner stated a rig is built. A cabinet is held by the front edge of its bottom
+face rather than by its frontmost point, because a top tilted towards its focus leans its upper edge out, and held by
+that, its foot stood back from the front of the wall under it. The rows move only
+in depth, so the bearing and interpenetration checks see the same widths as before. They do see different overlaps
+between tiers, which is why several generated rigs changed when this landed.
+
 ### Which way round the tops go
 
 The alignment mode decides the **order** of the tops row, not just its spacing, and the two orders are mirror
@@ -573,6 +582,14 @@ landed over three ESX columns as runs of 2, 2 and 1. Spread by those runs, the o
 line with a pair beside it, measured on the next event's combined rig while PSL still brought five. Now a run is cut where its cabinets change
 group, each group moves as one, and the row is a pair at each edge with the odd top on the centre line, mirrored to the
 millimetre. A row whose runs already were its groups, which is most of them, comes out as before.
+
+**A mirrored stereo row packs its near-field fills outward, against the long throws**, since 0.135.0, as the owner stated on
+2026-10-01. The fills used to keep gravity's spacing inboard of the main clusters, 0.323 m and 0.405 m from the
+outer M2122 on the next event's rig. Now the outermost group on each side keeps its place and every group inboard of
+it is pulled out until it stands at the row's gap from its outer neighbour, so the fills sit as far apart as the
+clusters let them. A side with a single group has nothing to pack against and keeps its place. The pull is solved
+the same way as `clear_of`, as the smallest move that still clears, so it never pushes a fill into its neighbour. The pull stops before it reduces the bearing gravity provided.
+An asymmetric row keeps the existing inward chain because its support steps can differ between sides.
 
 **A true palindrome needs every top group's count to be even, or exactly one of them odd.** With two odd groups —
 three M2122s and three turbo tops — the centre holds one of each and the row is symmetric everywhere except inside
@@ -2384,6 +2401,25 @@ ddev exec bin/console scene:render --presets                      # list every p
 
 Output goes to `build/renders/<scene>-<camera>.png`. On the container's CPU a 15-cabinet scene takes
 about 8 seconds at the default 64 samples.
+
+### Fly-through videos
+
+`scene:fly-through` renders an MP4 from the leftmost stack's far focus point to the rightmost stack's far focus
+point. Each point uses that system's own front plane and focus height, as its tops do. The camera looks at the rig's
+centre throughout a straight move. The scene needs at least two stack placements with distinct far focus x
+coordinates. The command builds the scene when needed and writes its plan beside the other scene plans.
+
+```bash
+ddev exec bin/console scene:fly-through --quick-preview scenes/generated/next-event-light/stacked-1-systems-apart-pyramid-stated--alternate-stereo-low-----possible.yaml
+```
+
+The default is six seconds at 24 fps, Full HD and 128 Cycles samples. `--quick-preview` uses 960×540 and 16 samples.
+`--lens=42` narrows the view with a 42 mm lens; the default is 24 mm.
+`--seconds`, `--fps`, `--samples`, `--resolution=WIDTHxHEIGHT` and `--lighting` set those values explicitly.
+`--camera-aim=perpendicular` keeps the camera looking along +Y, normal to the systems' front plane, throughout
+the move. It writes a separate `-fly-through-perpendicular.mp4` by default. `--camera-aim=rig-centre` is the default
+and turns towards the rig centre. `--out=PATH.mp4` chooses the output path. `--dry-run` writes the plan without building or rendering. Otherwise the
+video goes to `build/renders/<scene directory>/<scene id>-fly-through.mp4`. Blender encodes H.264 in an MP4 container.
 
 ### Camera presets (`-c`, `--camera`)
 

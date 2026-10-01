@@ -1,4 +1,4 @@
-"""Driver cones and horn flares on the front baffle.
+"""Driver cones, horn flares, open cells and fins on the front baffle.
 
 Until this existed, a cabinet's CAD cut the holes and left nothing behind them — so any view that saw
 into a cabinet saw an empty box. These are the parts you actually look at.
@@ -10,7 +10,12 @@ front of a cabinet is the easiest way to break it by accident.
 Geometry conventions follow the rest of the builder: metres, +Z up, front towards −Y. A feature's
 `at_m` is `[x, z]` in the baffle frame — origin at the centre of the front face.
 
-Both shapes are the same construction: a stack of rings along −Y with quads between them. Nothing here
+Cones, horns and cells are carved, and a cell is a horn whose mouth and throat are the same size. A fin
+is a thin plate added as its own object behind the baffle plane, so it is seen through the opening around
+it. A feature with its own `color` gets that colour on what it shows of its own: a cone's paper, the driver
+at a horn's throat, a cell's back panel, or a fin's plate.
+
+Cones and horns are the same construction: a stack of rings along −Y with quads between them. Nothing here
 uses Blender's mesh primitives. They add caps you cannot switch off — a truncated cone primitive fills
 its wide end with an n-gon, which is exactly what made a driver read as a flat disc — and they arrive
 rotated and scaled, which would break the assumption tools/check-glb.py makes about untransformed
@@ -73,6 +78,19 @@ _JOIN_WEDGE_EDGE_M = 0.002
 _MOUTH_ROUNDOVER_M = 0.012
 
 _MOUTH_ROUNDOVER_RINGS = 4
+
+# How far a cell's coloured back panel stands in front of the carved back wall, and how thick it is. On the
+# wall exactly, the two would be coplanar faces, and those flicker in every render.
+_LINING_GAP_M = 0.002
+
+_LINING_THICKNESS_M = 0.002
+# How far a grille on a cell's back wall stands in front of it: clear of the driver's surround, which crests on
+# the wall, and as close as a real grille sits.
+_GRILLE_STANDOFF_M = 0.012
+
+# How far a round grille's rim stands proud of the sheet's edge, and how many rings press a domed sheet.
+_GRILLE_RIM_DEPTH_M = 0.008
+_GRILLE_DOME_RINGS = 8
 
 # How far a join's cutter stops short of its two horns' side walls. Reaching them exactly is what a
 # shared mouth wants and what the solver handles worst: over the strip where the cutter reaches into
@@ -220,10 +238,22 @@ def _flare_half(mouth, throat, flare, t):
     return mouth[0] / 2.0 * scale_w, mouth[1] / 2.0 * scale_h
 
 
+def _blend(t, blend_from):
+    """How far a horn has blended from its mouth's shape into its throat's at flare position `t`.
+
+    The blend runs from `blend_from` to the throat, so a horn stays straight-walled in front of it. With
+    `blend_from` 0 it runs the whole depth, which is what every horn did before `throat_blend_m` existed.
+    """
+    if t <= blend_from:
+        return 0.0
+
+    return (t - blend_from) / (1.0 - blend_from)
+
+
 def _flare_rings(
     mouth, throat, front_y, depth, centre,
     profile=PYRAMID, throat_profile=None, sides=4, flare=LINEAR,
-    cap_throat=True, cap_mouth=False, bore_depth=0.0,
+    cap_throat=True, cap_mouth=False, bore_depth=0.0, blend_from=0.0,
 ):
     """Rings of a horn: `mouth` at the baffle, narrowing to `throat` at `depth`.
 
@@ -264,12 +294,14 @@ def _flare_rings(
     if cap_mouth:
         rings.append(ring(0.0, 0.0, front_y, mouth_round))
 
-    for step in range(steps + 1):
-        t = step / steps
+    # The point where the blend begins gets a ring of its own, or a linear flare's two rings would blend
+    # across the whole depth regardless.
+    positions = sorted({step / steps for step in range(steps + 1)} | ({blend_from} if blend_from else set()))
+    for t in positions:
         half_w, half_h = _flare_half(mouth, throat, flare, t)
         rings.append(ring(
             half_w, half_h, front_y + depth * t,
-            mouth_round + (throat_round - mouth_round) * t,
+            mouth_round + (throat_round - mouth_round) * _blend(t, blend_from),
         ))
 
     back_y = front_y + depth
@@ -288,8 +320,11 @@ def _flare(name, material, *args, **kwargs):
     return _shell(name, _flare_rings(*args, **kwargs), material)
 
 
-def _driver_cone(name, diameter, front_y, depth, material, centre):
-    """A driver's moving assembly: surround roll, cone, and a dust cap doming forward at its centre."""
+def _driver_cone(name, diameter, front_y, depth, material, centre, tilt=None):
+    """A driver's moving assembly: surround roll, cone, and a dust cap doming forward at its centre.
+
+    `tilt` turns the whole assembly about the centre of its front, for a driver on a tilted cell wall.
+    """
     radius = diameter / 2.0
     cap_radius = max(radius * _DUST_CAP_RATIO, 0.004)
     # The dome must not reach past the baffle on a shallow cone, or the model's bounding box grows.
@@ -307,6 +342,8 @@ def _driver_cone(name, diameter, front_y, depth, material, centre):
         angle = (math.pi / 2.0) * index / _DOME_RINGS
         dome_radius = cap_radius * math.cos(angle)
         rings.append(_ring(centre, dome_radius, dome_radius, base_y - rise * math.sin(angle), None))
+    if tilt:
+        rings = _tilt_rings(rings, (centre[0], front_y, centre[1]), tilt)
 
     return [_shell(name, rings, material)]
 
@@ -341,7 +378,9 @@ def _horn_roundness(horn, y):
     round at the throat has already begun curving where the wall between two of them ends, and a cutter
     that ignored that would cut its corners into wood no flare ever reached.
     """
-    return horn["mouth_round"] + (horn["throat_round"] - horn["mouth_round"]) * _horn_t(horn, y)
+    blend = _blend(_horn_t(horn, y), horn.get("blend_from", 0.0))
+
+    return horn["mouth_round"] + (horn["throat_round"] - horn["mouth_round"]) * blend
 
 
 def _horn_section(horn, y):
@@ -658,6 +697,219 @@ def _disc_rings(diameter, front_y, depth, centre):
     ]
 
 
+def _dome_rings(diameter, front_y, depth, dome, centre):
+    """A round sheet `depth` thick whose edge stands at `front_y` and whose middle bulges `dome` forward of it.
+
+    The bulge follows a parabola, which over a shallow dome is a sphere's cap to well under a millimetre.
+    """
+    radius = diameter / 2.0
+    front, back = [], []
+    for index in range(_GRILLE_DOME_RINGS + 1):
+        r = radius * index / _GRILLE_DOME_RINGS
+        y = front_y - dome * (1.0 - (r / radius) ** 2)
+        front.append(_ring(centre, r, r, y, None))
+        back.append(_ring(centre, r, r, y + depth, None))
+
+    return front + back[::-1]
+
+
+def _rim_rings(diameter, width, front_y, depth, centre):
+    """A closed flat ring `width` wide round a round grille's edge, standing `_GRILLE_RIM_DEPTH_M` proud of it."""
+    outer = diameter / 2.0
+    inner = outer - width
+    near, far = front_y - _GRILLE_RIM_DEPTH_M, front_y + depth
+    rings = [
+        _ring(centre, inner, inner, near, None),
+        _ring(centre, outer, outer, near, None),
+        _ring(centre, outer, outer, far, None),
+        _ring(centre, inner, inner, far, None),
+    ]
+
+    return rings + rings[:1]
+
+
+def _box_rings(centre, half_w, half_h, front_y, depth):
+    """A closed straight-walled box along +Y: a cell's cutter, or a cell's back panel."""
+    return [
+        _ring(centre, 0.0, 0.0, front_y, None),
+        _ring(centre, half_w, half_h, front_y, 4, roundness=0.0),
+        _ring(centre, half_w, half_h, front_y + depth, 4, roundness=0.0),
+        _ring(centre, 0.0, 0.0, front_y + depth, None),
+    ]
+
+
+# How strongly an exponential cell wall bows. The wall runs through the same two end depths as the straight one,
+# and at its middle it stands this much of the way between them: 1 / (1 + e^(k/2)), so about 22 % at k = 2.5.
+_CELL_BOW = 2.5
+_CELL_BOW_RINGS = 24
+
+
+def _bowed_cell_rings(centre, half_w, half_h, front_y, depth, tilt):
+    """A cell's cutter whose back wall bows forward along an exponential instead of lying in a plane.
+
+    Built as a stack of cross-sections across the tilt, each a rectangle reaching from in front of the baffle back
+    to the wall's depth there, so the walls square to the tilt stay flat and only the back wall curves. The two end
+    depths are the straight wall's, `BaffleFeature::cellBackDepths()`, which is what the validator checks, and
+    in between the wall stands in front of the straight one. That is the TMS-2's port: flat sides and top, and a
+    floor that rises in a curve from the front to the slot at the top of the back.
+    """
+    turn, angle = tilt
+    cx, cz = centre
+    extent = half_w if turn == "yaw" else half_h
+    offset = extent * abs(math.tan(angle))
+    shallow, deep = depth - offset, depth + offset
+    rising = angle > 0
+    scale = math.exp(_CELL_BOW) - 1.0
+    near = front_y - _CUTTER_OVERLAP
+
+    rings = []
+    for index in range(_CELL_BOW_RINGS + 1):
+        u = -extent + 2.0 * extent * index / _CELL_BOW_RINGS
+        t = (u + extent) / (2.0 * extent)
+        t = t if rising else 1.0 - t
+        back = front_y + shallow + (deep - shallow) * (math.exp(_CELL_BOW * t) - 1.0) / scale
+        if turn == "yaw":
+            x = cx + u
+            rings.append([
+                (x, near, cz - half_h), (x, near, cz + half_h), (x, back, cz + half_h), (x, back, cz - half_h),
+            ])
+        else:
+            z = cz + u
+            rings.append([
+                (cx - half_w, near, z), (cx + half_w, near, z), (cx + half_w, back, z), (cx - half_w, back, z),
+            ])
+
+    def cap(ring):
+        return [tuple(sum(point[k] for point in ring) / 4.0 for k in range(3))]
+
+    return [cap(rings[0])] + rings + [cap(rings[-1])]
+
+
+def _cell_tilt(feature):
+    """A cell's back-wall tilt as (turn, angle in radians), or None when the wall is square to the baffle."""
+    angle = feature.get("angle_deg") or 0.0
+    if not angle:
+        return None
+    width, height = feature["mouth_m"]
+
+    return feature.get("turn") or ("yaw" if height >= width else "pitch"), math.radians(angle)
+
+
+def _shear_back(rings, centre, tilt, from_index=0):
+    """Push every ring from `from_index` on back by its offset across the cell times tan(angle).
+
+    That turns a box's square back face into the tilted wall `BaffleFeature::cellBackDepths()` describes,
+    still passing through the box's depth at its centre. The front rings stay where they are, so the
+    opening in the baffle keeps its rectangle.
+    """
+    turn, angle = tilt
+    slope = math.tan(angle)
+    sheared = list(rings[:from_index])
+    for ring in rings[from_index:]:
+        sheared.append([
+            (x, y + ((x - centre[0]) if turn == "yaw" else (z - centre[1])) * slope, z) for x, y, z in ring
+        ])
+
+    return sheared
+
+
+def _tilt_rings(rings, pivot, tilt):
+    """Rotate rings about `pivot` so that what faced -y faces out of a wall `_shear_back()` tilted."""
+    turn, angle = tilt
+    px, py, pz = pivot
+    cos, sin = math.cos(angle), math.sin(angle)
+    tilted = []
+    for ring in rings:
+        points = []
+        for x, y, z in ring:
+            across = (x - px) if turn == "yaw" else (z - pz)
+            back = y - py
+            across, back = across * cos - back * sin, across * sin + back * cos
+            points.append((px + across, py + back, z) if turn == "yaw" else (x, py + back, pz + across))
+        tilted.append(points)
+
+    return tilted
+
+
+def _fin(name, feature, baffle_y, baffle_z0, material):
+    """A thin plate behind the baffle, turned about its front edge and optionally mitred.
+
+    The arithmetic is `BaffleFeature::finFootprint()` on the PHP side, which the validator checks: the long
+    front edge is the axis unless `turn` names the other one, `angle_deg` swings the back towards +x on a yaw
+    and +z on a pitch, and the turned plate is shifted back until its foremost corner touches the baffle
+    plane, so nothing reaches out of the bounding box. `setback_m` moves it further back from there. `mitre`
+    cuts the front and back edges parallel to the depth axis, so mirrored neighbours share one cut face.
+    """
+    width, height = feature["mouth_m"]
+    depth = feature["depth_m"]
+    # A yaw turns the plate about a vertical front edge, a pitch about a horizontal one. Unstated, it is the
+    # longer edge, which is what the plan carries for every fin since BaffleFeature::toArray() resolves it.
+    vertical = (feature.get("turn") or ("yaw" if height >= width else "pitch")) == "yaw"
+    thickness, length = (width, height) if vertical else (height, width)
+    angle = math.radians(feature.get("angle_deg") or 0.0)
+    # A mitred plate keeps its front and back edges parallel to the depth axis, so two mirrored neighbours
+    # share one cut face and a zigzag of them has a single point at every corner. The plan resolves it to
+    # false on anything but a turned plate, which keeps the division away from a zero sine.
+    mitre = bool(feature.get("mitre"))
+
+    section = []
+    for u, y in ((-thickness / 2, 0.0), (thickness / 2, 0.0), (thickness / 2, depth), (-thickness / 2, depth)):
+        if mitre:
+            section.append((y * math.sin(angle), y * math.cos(angle) - u / math.sin(angle)))
+        else:
+            section.append((u * math.cos(angle) + y * math.sin(angle), -u * math.sin(angle) + y * math.cos(angle)))
+    front = baffle_y + (feature.get("setback_m") or 0.0) - min(y for _, y in section)
+
+    at_x, at_z = feature["at_m"]
+    at_z += baffle_z0
+    verts = []
+    for along in (-length / 2, length / 2):
+        for lateral, y in section:
+            if vertical:
+                verts.append((at_x + lateral, front + y, at_z + along))
+            else:
+                verts.append((at_x + along, front + y, at_z + lateral))
+    faces = [(0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0)]
+
+    return _mesh_object(name, verts, faces, material)
+
+
+def _grille(name, rings, material, pivot=None, tilt=None):
+    """A see-through sheet from a closed ring stack, with UVs in metres on its own plane for the mesh's holes.
+
+    The UVs are laid out before `tilt` turns the sheet, so they stay square to it on a tilted cell wall and the
+    holes stay round.
+    """
+    flat, faces = _shell_geometry(rings)
+    verts = _shell_geometry(_tilt_rings(rings, pivot, tilt))[0] if tilt else flat
+    obj = _mesh_object(name, verts, faces, material)
+    layer = obj.data.uv_layers.new(name="UVMap")
+    for loop in obj.data.loops:
+        x, _, z = flat[loop.vertex_index]
+        layer.data[loop.index].uv = (x, z)
+
+    return obj
+
+
+def _plug(name, diameter, base_y, depth, centre, material):
+    """A solid dome `depth` tall standing forward from `base_y`, as a phase plug in front of a driver."""
+    radius = diameter / 2.0
+    rings = [_ring(centre, 0.0, 0.0, base_y, None), _ring(centre, radius, radius, base_y, None)]
+    for index in range(1, _DOME_RINGS * 2 + 1):
+        angle = (math.pi / 2.0) * index / (_DOME_RINGS * 2)
+        dome = radius * math.cos(angle)
+        rings.append(_ring(centre, dome, dome, base_y - depth * math.sin(angle), None))
+
+    return _shell(name, rings, material)
+
+
+def _feature_material(feature, role, default, roughness):
+    """The feature's own `color` as a material, or the shared one when it states none."""
+    color = feature.get("color")
+
+    return materials.feature(role, color, roughness) if color else default
+
+
 def _join(feature, state, placed, openings):
     """Add this horn's join to the cutters, if it has one and both sides can carry it.
 
@@ -707,6 +959,81 @@ def _join(feature, state, placed, openings):
         state["mouth_rolled"] = partner["mouth_rolled"] = True
 
 
+def _in_bore(polygon, bore):
+    """Whether a face is the wall or the floor of a driver's bore, a cylinder given as (front centre, unit axis,
+    radius, depth).
+
+    Tested by facing as well as position, because a face's centre alone says little about a large face: a
+    cell's side walls are a few big faces whose centres fell inside the cylinder and turned the ESX's horns
+    black. The wall faces across the axis at the bore's radius and the floor faces along it at its depth.
+    """
+    (cx, cy, cz), (ax, ay, az), radius, depth = bore
+    point, normal = polygon.center, polygon.normal
+    dx, dy, dz = point.x - cx, point.y - cy, point.z - cz
+    along = dx * ax + dy * ay + dz * az
+    if not -0.012 <= along <= depth + 0.002:
+        return False
+    off = math.sqrt(max(dx * dx + dy * dy + dz * dz - along * along, 0.0))
+    facing = abs(normal.x * ax + normal.y * ay + normal.z * az)
+    if facing < 0.05:
+        return abs(off - radius) <= 0.003
+    if facing > 0.95:
+        return abs(along - depth) <= 0.002 and off <= radius + 0.002
+
+    return False
+
+
+def _paint_front(body, layout, baffle_y, baffle_z0, material, bores=()):
+    """Give the front face and the walls of every opening carved into it their own colour.
+
+    A face counts as front when it faces straight forward on the baffle plane, or when it lies behind that plane
+    inside the outline of a top-level feature, which is every wall the carve left: a horn's flare, a cell's sides
+    and back, a driver's bore and the roundover at a mouth. The outline is widened by that roundover only as deep
+    as the roundover reaches. Widened all the way back, it took in the ESX's handle cups, whose floors lie 5 mm
+    outside its horns. Only faces still on the cabinet material are painted, so nothing that already took
+    another colour is overwritten.
+
+    A driver's bore is left out. `bores` holds each cut cone as (front centre, axis, radius, depth), and its wall stays
+    the cabinet's colour, which reads as the driver's basket. Painted, it showed as a white ring round every ESX
+    cone where the bore stands in front of the surround on the tilted wall.
+
+    Returns the number of faces painted.
+    """
+    margin = _MOUTH_ROUNDOVER_M + 0.002
+    outlines = []
+    deepest = 0.0
+    for feature in layout["features"]:
+        if feature.get("inside") or feature["kind"] in ("fin", "grille"):
+            continue
+        at_x, at_z = feature["at_m"]
+        half_w, half_h = feature["mouth_m"][0] / 2, feature["mouth_m"][1] / 2
+        outlines.append((at_x - half_w, at_x + half_w, at_z + baffle_z0 - half_h, at_z + baffle_z0 + half_h))
+        deepest = max(deepest, feature["depth_m"])
+
+    mesh = body.data
+    slot = len(mesh.materials)
+    mesh.materials.append(material)
+
+    painted = 0
+    for polygon in mesh.polygons:
+        if polygon.material_index != 0:
+            continue
+        centre = polygon.center
+        on_front = polygon.normal.y < -0.999 and abs(centre.y - baffle_y) < 0.001
+        grow = margin if centre.y < baffle_y + margin else 0.001
+        inside = baffle_y + 0.0005 < centre.y < baffle_y + deepest + 0.01 and any(
+            left - grow <= centre.x <= right + grow and bottom - grow <= centre.z <= top + grow
+            for left, right, bottom, top in outlines
+        )
+        if inside and any(_in_bore(polygon, bore) for bore in bores):
+            continue
+        if on_front or inside:
+            polygon.material_index = slot
+            painted += 1
+
+    return painted
+
+
 def build_features(plan, material_set, baffle_y, carve_into=None):
     """Build every baffle feature. Returns a list of objects, empty when there is no layout.
 
@@ -730,10 +1057,12 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
 
     horn_material = material_set[materials.HORN]
     cone_material = material_set[materials.CONE]
+    cabinet_material = material_set[materials.CABINET]
 
     objects = []
     openings = []
     placed = {}
+    bores = []
 
     for feature in layout["features"]:
         name = "%s-%s" % (plan["id"], feature["id"])
@@ -747,24 +1076,116 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
                 print("sdwa5-3d: skipping %s — no such parent feature %r"
                       % (feature["id"], feature["inside"]))
                 continue
-            # A phase plug sits at the far end of its host horn, facing forward out of the throat.
+            # A phase plug sits at the far end of its host horn, facing forward out of the throat, unless it
+            # states how far behind its host's mouth its own starts.
             centre = parent["centre"]
             front = parent["front_y"] + parent["depth"] - depth
+            if feature.get("setback_m") is not None:
+                front = parent["front_y"] + feature["setback_m"]
+                # A horn set back may stand anywhere in its host's mouth, as the TMS-2's HF horn does at the top
+                # of the port below it.
+                if feature.get("at_m") is not None:
+                    centre = (feature["at_m"][0], feature["at_m"][1] + baffle_z0)
         else:
             at_x, at_z = feature["at_m"]
             centre = (at_x, at_z + baffle_z0)
             front = baffle_y
 
-        # Only openings that break the outer surface are cut; a nested plug already sits inside one.
-        cut = carve_into is not None and not nested
+        # Only openings that break the outer surface are cut; a nested plug already sits inside one. A cone
+        # on a cell's back wall is the exception, because the wall is solid and the driver needs its hole.
+        on_wall = nested and placed[feature["inside"]].get("kind") == "cell" and feature["kind"] in ("cone", "grille")
+        tilt = placed[feature["inside"]].get("tilt") if on_wall else None
+        if on_wall:
+            front = parent["front_y"] + parent["depth"]
+        cut = carve_into is not None and (not nested or on_wall)
         state = {"centre": centre, "front_y": front, "depth": depth, "cut": cut}
+
+        if feature["kind"] == "fin":
+            # Not cut: a fin is a part standing in a cell or a horn, seen through its opening.
+            objects.append(_fin(name, feature, baffle_y, baffle_z0, _feature_material(
+                feature, "fin", cabinet_material, 0.6,
+            )))
+            continue
+
+        if feature["kind"] == "grille":
+            # Not cut either: a sheet in front of what it covers. On a cell's back wall it stands off the wall
+            # by enough to clear the driver's surround and turns with the wall; on the baffle `setback_m` is
+            # measured from the cabinet's front face, so a grille can stand in front of an inset baffle. Without a
+            # colour of its own it takes `appearance.grille.color`, which the plan resolves to the body's.
+            material = materials.mesh(feature.get("color") or plan["appearance"]["grille"]["color"])
+            pivot = None
+            if on_wall:
+                front = parent["front_y"] + parent["depth"] - _GRILLE_STANDOFF_M - depth
+                pivot = (centre[0], parent["front_y"] + parent["depth"], centre[1])
+            elif not nested:
+                front = -dims["depth"] / 2 + (feature.get("setback_m") or 0.0)
+            if feature.get("round") and feature.get("dome_m"):
+                rings = _dome_rings(feature["mouth_m"][0], front, depth, feature["dome_m"], centre)
+            elif feature.get("round"):
+                rings = _disc_rings(feature["mouth_m"][0], front, depth, centre)
+            else:
+                rings = _box_rings(centre, mouth[0] / 2.0, mouth[1] / 2.0, front, depth)
+            objects.append(_grille(name, rings, material, pivot, tilt))
+            if feature.get("rim_m"):
+                # A solid ring round the sheet's edge, which is what makes a black grille read against a black cone.
+                rim = _rim_rings(feature["mouth_m"][0], feature["rim_m"], front, depth, centre)
+                verts, faces = _shell_geometry(_tilt_rings(rim, pivot, tilt) if tilt else rim)
+                rim_color = feature.get("rim_color") or feature.get("color") or plan["appearance"]["grille"]["color"]
+                rim_material = materials.feature("grille-rim", rim_color, 0.6)
+                objects.append(_mesh_object(name + "-rim", verts, faces, rim_material))
+            continue
+
+        if feature["kind"] == "plug":
+            objects.append(_plug(
+                name, feature["cone_diameter_m"], parent["front_y"] + parent["depth"], depth, centre,
+                _feature_material(feature, "plug", cabinet_material, 0.6),
+            ))
+            continue
+
+        if feature["kind"] == "cell":
+            half_w, half_h = mouth[0] / 2.0, mouth[1] / 2.0
+            cell_tilt = _cell_tilt(feature)
+            state.update({"kind": "cell", "tilt": cell_tilt})
+            if cut and cell_tilt and feature.get("flare") == EXPONENTIAL:
+                openings.append(_shell_geometry(_bowed_cell_rings(centre, half_w, half_h, front, depth, cell_tilt)))
+            elif cut:
+                rings = _box_rings(centre, half_w, half_h, front - _CUTTER_OVERLAP, depth + _CUTTER_OVERLAP)
+                if cell_tilt:
+                    # Only the back face and its cap tilt; the overlap in front of the baffle stays square.
+                    rings = _shear_back(rings, centre, cell_tilt, from_index=2)
+                openings.append(_shell_geometry(rings))
+            if feature.get("color"):
+                # The back wall in its own colour, as a panel standing just proud of the carved one: on it
+                # exactly, the two faces would be coplanar and flicker. A hair narrower than the cell for
+                # the same reason at its edges.
+                lining = _box_rings(
+                    centre, half_w - _LINING_GAP_M, half_h - _LINING_GAP_M,
+                    front + depth - _LINING_GAP_M - _LINING_THICKNESS_M, _LINING_THICKNESS_M,
+                )
+                if cell_tilt:
+                    lining = _shear_back(lining, centre, cell_tilt)
+                objects.append(_shell(name + "-lining", lining, materials.feature("lining", feature["color"], 0.75)))
+            placed[feature["id"]] = state
+            continue
 
         if feature["kind"] == "cone":
             if cut:
-                openings.append(_shell_geometry(
-                    _disc_rings(mouth[0], front - _CUTTER_OVERLAP, depth, centre),
-                ))
-            objects += _driver_cone(name, mouth[0], front, depth, cone_material, centre)
+                # A bore on a cell wall starts proud of the wall like every cutter, so it has to run on by the same
+                # margin. Cut to the cone's own depth, its floor stood in front of the cone's neck and showed as a
+                # ring round every ESX dust cap. A cone on the front keeps its depth, as every cone always had.
+                bore_depth = depth + _CUTTER_OVERLAP + 0.001 if on_wall else depth
+                disc = _disc_rings(mouth[0], front - _CUTTER_OVERLAP, bore_depth, centre)
+                axis = [[(centre[0], front, centre[1]), (centre[0], front + 1.0, centre[1])]]
+                if tilt:
+                    disc = _tilt_rings(disc, (centre[0], front, centre[1]), tilt)
+                    axis = _tilt_rings(axis, (centre[0], front, centre[1]), tilt)
+                openings.append(_shell_geometry(disc))
+                start, end = axis[0]
+                direction = tuple(e - s for s, e in zip(start, end, strict=True))
+                bores.append((start, direction, mouth[0] / 2, bore_depth - _CUTTER_OVERLAP))
+            objects += _driver_cone(name, mouth[0], front, depth, _feature_material(
+                feature, "cone", cone_material, 0.88,
+            ), centre, tilt)
         else:
             throat = feature["throat_m"] or min(mouth) * 0.2
             driver = feature.get("cone_diameter_m")
@@ -773,6 +1194,10 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
                 "throat_profile": feature.get("throat_profile"),
                 "sides": feature.get("sides"),
                 "flare": feature.get("flare") or LINEAR,
+                # Where along the flare the mouth's shape starts turning into the throat's. A stated
+                # `throat_blend_m` keeps the walls straight until that far in front of the throat.
+                "blend_from": max(0.0, 1.0 - feature["throat_blend_m"] / depth)
+                if feature.get("throat_blend_m") else 0.0,
             }
 
             visible = min(driver, throat) if driver else None
@@ -783,6 +1208,7 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
                 "mouth_round": 1.0 if shape["profile"] == ELLIPTICAL else 0.0,
                 "throat_round":
                     1.0 if (shape["throat_profile"] or shape["profile"]) == ELLIPTICAL else 0.0,
+                "blend_from": shape["blend_from"],
             })
 
             if cut:
@@ -807,7 +1233,8 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
                 # clamped to the throat: a 12" cone behind a narrower throat would otherwise push
                 # straight through the flare walls.
                 objects += _driver_cone(
-                    name + "-driver", visible, front + depth, driver_depth, cone_material, centre,
+                    name + "-driver", visible, front + depth, driver_depth,
+                    _feature_material(feature, "cone", cone_material, 0.88), centre,
                 )
 
             _join(feature, state, placed, openings)
@@ -827,6 +1254,13 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
             openings.append(_shell_geometry(collar))
 
     _carve(carve_into, plan["id"] + "-openings", openings)
+
+    front_color = plan["appearance"].get("front_color")
+    if front_color and carve_into is not None:
+        painted = _paint_front(
+            carve_into, layout, baffle_y, baffle_z0, materials.feature("front", front_color, 0.75), bores,
+        )
+        print("sdwa5-3d: front colour %s on %d face(s)" % (front_color, painted))
 
     if objects:
         print("sdwa5-3d: %d baffle feature object(s) (%s)"

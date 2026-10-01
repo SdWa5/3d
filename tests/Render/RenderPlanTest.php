@@ -258,6 +258,7 @@ final class RenderPlanTest extends TestCase
         self::assertFalse($plan['ground']['enabled']);
         self::assertSame(12, $plan['render']['samples']);
         self::assertSame([640, 480], $plan['render']['resolution']);
+        self::assertSame(LightingPreset::Studio->exposure(), $plan['render']['exposure']);
     }
 
     public function testAnEmptySceneStillProducesAUsablePlan(): void

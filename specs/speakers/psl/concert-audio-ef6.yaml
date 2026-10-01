@@ -10,10 +10,11 @@
 # 224 across the back over 720 mm of depth is a 14 degree taper per side, which is what makes the array the
 # datasheet talks about possible at all.
 #
-# WHITE, NOT BLACK, AND THAT IS PSL'S CABINET RATHER THAN THE PRODUCT. The catalogue describes the finish as
-# black; the "Evolution Mod System" and "Hornsystem Mod" packages are described as "in weiss ein echter
-# Hingucker" and the setup drawing's own cabinet images are white. So the colour here is PSL's build of a black
-# product, and it is the one field in this file that does not come from the technical data.
+# BLACK WITH A WHITE FRONT, as the owner stated on 2026-10-01. The catalogue describes the finish as black, and
+# the "Evolution Mod System" and "Hornsystem Mod" packages are described as "in weiss ein echter Hingucker". The
+# setup drawing's cabinet images and PSL's photo show the fronts, which are white, so this file carried an
+# all-white cabinet until the owner corrected it. The front colour is the one field in this file that does not
+# come from the technical data.
 #
 # QUANTITY 4 IS THE PACKAGE FIGURE, CONFIRMED BY THE DRAWING. "Hornsystem Mod" is stated as four horn tops plus
 # six hybrid-horn subs, and PSL_SdWa5_Kraut_V7 places exactly four of these. Two independent statements of the
@@ -38,8 +39,9 @@ geometry:
   chamfer_m: 0.010
 
 appearance:
-  # PSL's cabinets are white. See the header.
-  color: "#f2f2f0"
+  # Black with a white front. See the header. The black is the Flexy's, since no PSL black was sampled.
+  color: "#141414"
+  front_color: "#f2f2f0"
 
 physical:
   weight_kg: 65.0
@@ -67,6 +69,35 @@ audio:
     - { size_in: 12, type: woofer, count: 2 }
     - { size_in: 1.5, type: compression-driver, count: 1 }
 
+  # Front-baffle layout. Origin at the centre of the 0.588 x 0.780 front face, +X right, +Z up. READ OFF
+  # meshes/psl/photo-2026-10-01.jpeg on 2026-10-01, where four of these stand in two mirrored pairs on the
+  # ESX, at about 630 px/m across. Every size is a reading off one photo taken at an angle, so the layout is
+  # `estimated`.
+  #
+  # ONE CONNECTED HORN FRONT, as the owner stated on 2026-10-01, built like the Tecnare M2122's. The two 12"
+  # fire into two horns that share one mouth across the whole face, with a black plug in each throat and a
+  # green waveguide in front of it, and the 1.5" driver has its own small horn deep in the middle. So the LF
+  # pair is joined to 0.15 m, and the HF horn carves into the wedge the join leaves between them. Its mouth
+  # is the light trapezoid between the two white shelves in the photo, 0.24 x 0.25 m around the dark throat.
+  # A horn's throat sits on its mouth's axis, so the LF throats are drawn at the centre of their mouths,
+  # about 0.07 m nearer the middle than the photo has the plugs, and the whole front at x -0.02 rather than
+  # the photo's -0.05. Mouths, throats, depths and the join depth are ESTIMATED. This is the right-hand
+  # cabinet of a pair, and a scene's mirror makes the other one. The colours are white-balanced against the
+  # body's own white, giving #749375 for the waveguides and #2a1812 for the plugs.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: lf-up, kind: horn, at_m: [ -0.02,  0.195 ], mouth_m: [ 0.53, 0.36 ], throat_in: 8.0, driver_in: 12, depth_m: 0.30,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential, color: "#2a1812" }
+      - { id: lf-lo, kind: horn, at_m: [ -0.02, -0.185 ], mouth_m: [ 0.53, 0.36 ], throat_in: 8.0, driver_in: 12, depth_m: 0.30,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential, color: "#2a1812",
+          join: { with: lf-up, depth_m: 0.15 } }
+      - { id: hf, kind: horn, at_m: [ -0.03, 0.02 ], mouth_m: [ 0.24, 0.25 ], throat_in: 1.5, depth_m: 0.32,
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
+      - { id: guide-up, kind: fin, at_m: [ -0.02,  0.195 ], mouth_m: [ 0.27, 0.02 ], depth_m: 0.06, setback_m: 0.12, color: "#749375" }
+      - { id: guide-lo, kind: fin, at_m: [ -0.02, -0.185 ], mouth_m: [ 0.27, 0.02 ], depth_m: 0.06, setback_m: 0.12, color: "#749375" }
+
 mesh_override: null
 
 notes: |
@@ -79,5 +110,5 @@ notes: |
   Coverage is stated as 55 x 40 degrees at -6 dB between 600 and 10000 Hz, which is a narrower band than the
   passband and is the figure the array design rests on.
 
-  No baffle layout: the front is one coaxial horn mouth across the whole face, and neither its mouth size nor
-  its flare law is published. Modelling it would be inventing it.
+  The baffle layout is read off PSL's own photo. Neither the coaxial horn's mouth size nor its flare law is
+  published, so the outer flare is left out rather than invented.

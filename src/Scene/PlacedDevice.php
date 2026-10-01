@@ -142,6 +142,27 @@ final class PlacedDevice
     }
 
     /**
+     * World y of the frontmost point of the cabinet's bottom face, which is the edge it stands on.
+     *
+     * Not the frontmost point of the whole cabinet. A top tilted down towards its focus leans its upper front edge
+     * out, and held to that, its foot stood back from the front of the wall it is on.
+     */
+    public function footFrontY(): float
+    {
+        $corners = $this->corners();
+        $bottom = min(array_map(static fn (array $corner): float => $corner[2], $corners));
+
+        $front = INF;
+        foreach ($corners as $corner) {
+            if ($corner[2] <= $bottom + 1e-9) {
+                $front = min($front, $this->orientation->apply($corner)[1]);
+            }
+        }
+
+        return $this->position[1] + $front;
+    }
+
+    /**
      * Height of this cabinet's highest point — what anything stacked on it stands on.
      */
     public function topZ(): float

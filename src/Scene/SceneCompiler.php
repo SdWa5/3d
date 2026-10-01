@@ -17,6 +17,12 @@ use App\Spec\Violation;
  */
 final class SceneCompiler
 {
+    /** How often {@see flushFront} re-aims a copy at most. Two passes settle a 10 m focus to well under this. */
+    private const FLUSH_PASSES = 4;
+
+    /** How far a copy's front may stand off the stack's front plane and count as on it. */
+    private const FLUSH_TOLERANCE_M = 1e-6;
+
     /**
      * @param array<string, DeviceSpec> $devicesById
      */
@@ -28,6 +34,36 @@ final class SceneCompiler
          */
         private readonly bool $probing = false,
     ) {
+    }
+
+    /**
+     * Named focus points of the stacks, using the same front plane as their aimed cabinets.
+     *
+     * @return array<string, array{float, float, float}>
+     */
+    public function stackFocusPoints(SceneSpec $scene, string $name = 'far'): array
+    {
+        $points = [];
+        foreach ($scene->placements as $placement) {
+            if (null === $placement->stack) {
+                continue;
+            }
+            $focus = $placement->focusByName[$name] ?? $scene->focusByName[$name] ?? null;
+            if (null === $focus) {
+                throw new \InvalidArgumentException("Stack '{$placement->id}' has no '{$name}' focus");
+            }
+            $expanded = $this->expandStacks(
+                $scene,
+                [$placement],
+                static function (string $message): void { throw new \InvalidArgumentException($message); },
+                static function (string $message): void {},
+            );
+            if ([] !== $expanded) {
+                $points[$placement->id] = $focus->point($this->frontCentre($expanded));
+            }
+        }
+
+        return $points;
     }
 
     /**
@@ -185,6 +221,11 @@ final class SceneCompiler
                 },
             );
 
+            // **AND MOVED BACK ONTO THE STACK'S FRONT**, which only an aimed cabinet needs, because aiming swings a
+            // front corner forward. The spacing above was solved on copies flushed the same way, see {@see placedFor},
+            // so this moves nothing the solve did not already measure.
+            $copies = $this->flushFront($placement, $device, $copies, $base, $target, $hangAim, $pitch);
+
             // A group can put part of itself below its own base — turning a multi-tier cell over maps its
             // offsets `z → −z` — so the whole arrangement is raised back onto the slot, exactly as one
             // rotated cabinet is. A hang is exempt: it belongs below its anchor.
@@ -245,6 +286,68 @@ final class SceneCompiler
         }
 
         return ['placed' => $placed, 'violations' => $violations];
+    }
+
+    /**
+     * Every copy moved front to back until the front edge of its foot stands on the placement's `frontYM`.
+     *
+     * **An aimed cabinet's front is not where `at` put it.** {@see Stack::expand} stands every cabinet flush at
+     * the front, which holds for one firing straight ahead. A top yawed 25° towards the far focus swings its
+     * outer front corner about 80 mm forward of the wall it stands on. So each copy is aimed, the front of its
+     * foot measured, and the copy moved back by what pokes out. The foot rather than the whole cabinet, because a
+     * top tilted down leans its upper front edge out over the wall the way a real one on a wedge does, see
+     * {@see PlacedDevice::footFrontY}. Moving it changes its aim
+     * a little, so this repeats until the front stays put, which at a 10 m focus takes two passes.
+     *
+     * Only y moves. {@see placedFor} flushes every candidate the same way before it measures it, so the spacing
+     * that `align` and the row clearance solve for is the spacing of the flushed copies, and neither undoes the
+     * other.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     *
+     * @return list<PlacementCopy>
+     */
+    private function flushFront(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+    ): array {
+        if (null === $placement->frontYM || null !== $placement->fly) {
+            return $copies;
+        }
+
+        $lift = GroupStack::zLift($device, $copies, $pitchDeg, $placement->rollDeg);
+        $flushed = [];
+        foreach ($copies as $copy) {
+            for ($pass = 0; $pass < self::FLUSH_PASSES; ++$pass) {
+                $position = [
+                    $base[0] + $copy->offset[0],
+                    $base[1] + $copy->offset[1],
+                    $base[2] + $copy->offset[2] + $lift,
+                ];
+                $orientation = $this->orientationFor($placement, $device, $copy, $position, $target, $hangAim);
+                if (null === $orientation) {
+                    // Refused by the placing loop, which says why.
+                    break;
+                }
+
+                $front = (new PlacedDevice('', $device, $position, $orientation, $copy->seated))->footFrontY();
+                $shift = $placement->frontYM - $front;
+                if (abs($shift) < self::FLUSH_TOLERANCE_M) {
+                    break;
+                }
+                $copy = $copy->movedInY($copy->offset[1] + $shift);
+            }
+            $flushed[] = $copy;
+        }
+
+        return $flushed;
     }
 
     /**
@@ -445,6 +548,7 @@ final class SceneCompiler
                 stack: $copy->stack,
                 focusByName: $copy->focusByName,
                 extendToM: $copy->extendToM,
+                frontYM: $copy->frontYM,
             );
         }
 
@@ -796,6 +900,53 @@ final class SceneCompiler
             );
         }
 
+        // **UNLESS THE ALIGNMENT HUGS, WHEN IT IS A TARGET.** A copy standing further off than asked is pulled in until
+        // the air is exactly `inset_m`, which moves it against the stated side, so the parameter runs negative and the
+        // mirrored objective is what rises. One standing too close falls through to the push below like any other.
+        if ($align->hug && $clearanceAt($align->startParameter()) > $align->insetM + StepSolver::TOLERANCE_M) {
+            $pulled = StepSolver::solve(
+                static fn (float $parameter): float => -$clearanceAt(-$parameter),
+                -$align->insetM,
+                $align->startParameter(),
+            );
+
+            if (null === $pulled) {
+                return $copies;
+            }
+
+            // **The pull stops where the fill would leave what carries it.** Gravity seats a fill on a shoulder for
+            // its bearing, and pulled the whole way to its neighbour it came off that shoulder: 98 of the 2172
+            // generated scenes turned `-impossible` with a 2-way standing on nothing. So the pull goes as far as it
+            // leaves the fill no more overhanging than gravity left it, bisected where the full pull would not.
+            $supports = array_merge(...array_values($placedById));
+            $overhangAt = fn (float $parameter): float => $this->overhangOf(
+                $placement,
+                $device,
+                $align->apply($copies, $parameter),
+                $base,
+                $target,
+                $hangAim,
+                $pitchDeg,
+                $supports,
+            );
+            $allowed = $overhangAt($align->startParameter()) + StepSolver::TOLERANCE_M;
+            $reach = -$pulled;
+            if ($overhangAt($reach) > $allowed) {
+                $carried = $align->startParameter();
+                for ($step = 0; $step < 40; ++$step) {
+                    $middle = ($carried + $reach) / 2;
+                    if ($overhangAt($middle) > $allowed) {
+                        $reach = $middle;
+                    } else {
+                        $carried = $middle;
+                    }
+                }
+                $reach = $carried;
+            }
+
+            return $align->apply($copies, $reach);
+        }
+
         // **`inset_m` is a minimum, not a target.** Cabinets already further out than asked are left exactly where
         // they are rather than pulled back in, and that is the useful reading as well as the safe one: a fill that
         // {@see Gravity} re-seated onto a shoulder for its bearing is 517 mm clear, and dragging it back to 20 mm
@@ -886,6 +1037,37 @@ final class SceneCompiler
     }
 
     /**
+     * How far, along x, the worst of the copies reaches past everything standing level under it.
+     *
+     * {@see PlacementChecks::coveredFraction} is the measure, so the hug bounds itself by the same coverage the
+     * floating check later reports on.
+     *
+     * @param list<PlacementCopy> $copies
+     * @param array{float, float, float} $base
+     * @param array{float, float, float}|null $target
+     * @param list<PlacedDevice> $supports every cabinet placed so far
+     */
+    private function overhangOf(
+        Placement $placement,
+        DeviceSpec $device,
+        array $copies,
+        array $base,
+        ?array $target,
+        ?Orientation $hangAim,
+        float $pitchDeg,
+        array $supports,
+    ): float {
+        $worst = 0.0;
+        foreach ($this->placedFor($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg) as $cabinet) {
+            $box = $cabinet->worldBox();
+            $extent = $box['max'][0] - $box['min'][0];
+            $worst = max($worst, $extent * (1.0 - PlacementChecks::coveredFraction($cabinet, $supports, 0)));
+        }
+
+        return $worst;
+    }
+
+    /**
      * How much air a `clear_of` alignment leaves between its cabinets and the ones it must not touch.
      *
      * {@see clearanceOf}'s sibling, and the difference is the whole reason both exist. That one asks how far past a
@@ -940,6 +1122,8 @@ final class SceneCompiler
         ?Orientation $hangAim,
         float $pitchDeg,
     ): array {
+        // Flushed first, so the solve measures each copy where the placing loop will finally put it.
+        $copies = $this->flushFront($placement, $device, $copies, $base, $target, $hangAim, $pitchDeg);
         $lift = GroupStack::zLift($device, $copies, $pitchDeg, $placement->rollDeg);
 
         $placed = [];

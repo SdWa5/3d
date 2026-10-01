@@ -44,7 +44,15 @@ def hex_to_linear_rgba(value, alpha=1.0):
     return (channels[0], channels[1], channels[2], alpha)
 
 
-def _principled(name, color, roughness, metallic=0.0, emission_strength=0.0):
+# **A black cabinet rendered as mid grey, and the gloss was most of it.** Blender's default specular level of 0.5
+# reflects about 4 % of the light at any angle, against the 0.7 % a #141414 surface reflects diffusely, so the
+# highlight outweighed the paint five to one. Measured on the next-event render on 2026-10-01: a Tecnare side read
+# #646464 at 0.5 and #4a4949 at 0.2 under the same light, while the white ESX moved from #e4e4e3 to #e3e3e2.
+# Textured paint and tolex are matte, so 0.2 is the honest default as well as the readable one.
+SPECULAR = 0.2
+
+
+def _principled(name, color, roughness, metallic=0.0, emission_strength=0.0, specular=SPECULAR):
     material = bpy.data.materials.get(name)
     if material is None:
         material = bpy.data.materials.new(name)
@@ -60,6 +68,7 @@ def _principled(name, color, roughness, metallic=0.0, emission_strength=0.0):
     bsdf.inputs["Base Color"].default_value = color
     bsdf.inputs["Roughness"].default_value = roughness
     bsdf.inputs["Metallic"].default_value = metallic
+    bsdf.inputs["Specular IOR Level"].default_value = specular
     if emission_strength > 0.0:
         bsdf.inputs["Emission Color"].default_value = color
         bsdf.inputs["Emission Strength"].default_value = emission_strength
@@ -77,12 +86,14 @@ def build_set(appearance):
     Returns a dict keyed by the module-level material name constants.
     """
     cabinet_color = hex_to_linear_rgba(appearance["color"])
+    # A horn flare is part of the front, so a cabinet with its own front colour gives its horns that colour.
+    front_color = hex_to_linear_rgba(appearance.get("front_color") or appearance["color"])
     grille_color = hex_to_linear_rgba(appearance["grille"]["color"] or appearance["color"])
 
     return {
-        # Every part of a cabinet is one colour for now — `appearance.color`, whatever that says. The parts
-        # still have their own materials so a future change can differentiate them again without
-        # restructuring anything, but they no longer differ by hue.
+        # Every part of a cabinet takes `appearance.color` unless a baffle feature states its own `color`, which
+        # `feature()` below paints. The parts still have their own materials, so that default could differ by
+        # part again without restructuring anything, but it no longer differs by hue.
         #
         # What they differed by, and why it was dropped: the horn flares were #3a3a3c against a #141414
         # cabinet, deliberately lighter "so the mouth reads as an opening with something inside it", and the
@@ -100,7 +111,7 @@ def build_set(appearance):
         # than as a shiny funnel.
         CONE: _principled(CONE, cabinet_color, roughness=0.88),
         # Moulded plastic or painted ply.
-        HORN: _principled(HORN, cabinet_color, roughness=0.55),
+        HORN: _principled(HORN, front_color, roughness=0.55),
         RIGGING: _principled(RIGGING, hex_to_linear_rgba("#9a9a9a"), roughness=0.35, metallic=0.9),
         # Black powder coat, as on a wind-up stand's legs, collars and winch. A fixed colour rather than the
         # device's own, because the same stand is chrome in its mast and black in its base.
@@ -123,6 +134,57 @@ def build_set(appearance):
             COVERAGE, hex_to_linear_rgba("#33aaff"), roughness=0.5, emission_strength=1.0
         ),
     }
+
+
+def feature(role, color, roughness):
+    """A material of a baffle feature's own colour — a cone's paper, a horn's driver, a cell's back wall, a fin.
+
+    A feature that states no colour takes the cabinet's, as every feature did before this existed, so the caller
+    passes the shared set's material then and only asks here for a stated one. Named by role and colour, so the
+    ten green braces of one cabinet share one material, and reused when a second feature asks for the same.
+    """
+    name = "sdwa5-%s-%s" % (role, color.lstrip("#").lower())
+
+    return _principled(name, hex_to_linear_rgba(color), roughness=roughness)
+
+
+# **A grille is mostly holes.** Perforated steel and plastic-coated mesh both pass about half the light, which
+# is what the 2 mm mesh's "70 % transmission" on the ESX datasheet means acoustically too. Holes on a square
+# grid of this pitch are below a pixel in any scene render, so there they average to that open fraction, and
+# in a close-up they read as the punched sheet a real grille is.
+MESH_PITCH_M = 0.005
+MESH_OPEN_FRACTION = 0.5
+
+
+def mesh(color):
+    """A see-through grille material: the colour, with round holes punched in it on a square grid.
+
+    The holes are cut in the alpha by a 2D Voronoi on the grille's own UVs, which `drivers._grille()` lays out in
+    metres on the sheet's plane, so the pattern stays round on a tilted grille. A glTF export cannot carry the
+    procedural alpha and shows the sheet solid, which is why scenes are rendered from the .blend.
+    """
+    name = "sdwa5-mesh-%s" % color.lstrip("#").lower()
+    material = _principled(name, hex_to_linear_rgba(color), roughness=0.6)
+    tree = material.node_tree
+    if tree.nodes.get("sdwa5-mesh-holes") is not None:
+        return material
+
+    bsdf = tree.nodes.get("Principled BSDF")
+    uv = tree.nodes.new("ShaderNodeTexCoord")
+    voronoi = tree.nodes.new("ShaderNodeTexVoronoi")
+    voronoi.voronoi_dimensions = "2D"
+    voronoi.inputs["Scale"].default_value = 1.0 / MESH_PITCH_M
+    voronoi.inputs["Randomness"].default_value = 0.0
+    holes = tree.nodes.new("ShaderNodeMath")
+    holes.name = "sdwa5-mesh-holes"
+    holes.operation = "GREATER_THAN"
+    # A hole of radius t pitches open pi t^2 of its cell.
+    holes.inputs[1].default_value = (MESH_OPEN_FRACTION / 3.141592653589793) ** 0.5
+    tree.links.new(uv.outputs["UV"], voronoi.inputs["Vector"])
+    tree.links.new(voronoi.outputs["Distance"], holes.inputs[0])
+    tree.links.new(holes.outputs["Value"], bsdf.inputs["Alpha"])
+
+    return material
 
 
 def front_image(path):

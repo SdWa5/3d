@@ -64,11 +64,14 @@ geometry:
   chamfer_m: 0.012
 
 appearance:
-  # Purple. The photograph averages #231126 because most of its area is shadowed horn mouth, so this value is
-  # a reading of the cabinet's body rather than that average — see wsx-18.yaml on why an average is not a paint
-  # colour. The colour is worth carrying because it is the only thing that makes this cabinet identifiable in a
-  # render, and because it is one clue to who built it.
-  color: "#3d1f4a"
+  # Navy, read off the lit side of meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01 and white-balanced as
+  # described under `audio.layout`. This file carried a purple #3d1f4a before, read off the setup drawing's
+  # photograph. The front, the phase plug and the driver are black and only the enclosure is navy, as the
+  # owner stated on 2026-10-01. The photo's front reads near black, which was taken for shadow before. The
+  # enclosure is a normal to dark blue, as the owner stated on 2026-10-01, and the #3f547c read off the photo
+  # rendered light. #1a2b55 and #111d3d were still too light, as the owner stated on 2026-10-01.
+  color: "#0a1228"
+  front_color: "#141414"
 
 physical:
   weight_kg: 48.0
@@ -78,10 +81,40 @@ rigging:
   flyable: false
   points: [ ]
 
-# NO `audio` BLOCK, WHICH COSTS MORE ON A TOP THAN ON A SUB. A top's coverage is what decides where it is aimed,
+# `audio` CARRIES ONLY THE BAFFLE LAYOUT, WHICH COSTS MORE ON A TOP THAN ON A SUB. A top's coverage is what decides where it is aimed,
 # and `aim: far` in a generated scene is a geometric statement that owes nothing to this field, so nothing breaks.
 # But a rig that mixes our 60 x 40 Tecnare with an unknown pattern is a rig nobody can check for coverage, which
 # is what CVR wants and cannot have here.
+
+audio:
+  # Front-baffle layout. Origin at the centre of the 0.430 x 0.870 front face, +X right, +Z up. READ OFF
+  # meshes/innschleife/photo-2026-09-19.jpeg on 2026-10-01 at about 640 px/m across and 678 up, where one stands
+  # either side of the middle top. From the top down it shows the 10" mid horn, rectangular at the mouth and
+  # round deeper in, the 1" HF slot and the Turbobass mouth. Depths are ESTIMATED. The colours are
+  # white-balanced against the SBH's white fins in the same photo, which is the only white in it, so every
+  # colour here carries that one assumption.
+  #
+  # THE MID HORN HAS THE TURBOMID'S PHASE PLUG AND A SPIKE, as the photo shows and the owner asked for on
+  # 2026-10-01. The plug is a dome about 0.18 m across on the driver at the throat, and the spike is a thin
+  # upright plate on the centre line in front of it.
+  #
+  # THE BOTTOM IS A PORT SHAPED LIKE A HORN, as the owner stated on 2026-10-01 for all Innschleife tops. It is
+  # fed by the back of the drivers above it, so no driver shows at its throat. The mouth runs from 27 mm under the HF slot to 23 mm above the bottom edge and has one
+  # brace across it, where the photo shows a bar. The photo's lower panel with the logo is the horn's own
+  # front, darker only because it lies in shadow. Throat, depth and the brace's section are ESTIMATED.
+  layout:
+    provenance: estimated
+    inset_m: 0.0
+    features:
+      - { id: mid, kind: horn, at_m: [ 0.0, 0.27 ], mouth_m: [ 0.38, 0.26 ], throat_in: 10.0, driver_in: 10, depth_m: 0.25, color: "#141414",
+          profile: pyramid, sides: 4, throat_profile: elliptical, flare: exponential }
+      - { id: mid-plug, kind: plug, inside: mid, diameter_in: 7, depth_m: 0.08, color: "#141414" }
+      - { id: mid-spike, kind: fin, at_m: [ 0.0, 0.27 ], mouth_m: [ 0.012, 0.22 ], depth_m: 0.08, setback_m: 0.08, color: "#141414" }
+      - { id: lf, kind: cell, at_m: [ 0.0, -0.146 ], mouth_m: [ 0.38, 0.532 ], depth_m: 0.26, angle_deg: 42.06, turn: pitch,
+          flare: exponential }
+      - { id: hf, kind: horn, inside: lf, at_m: [ 0.0, 0.06 ], setback_m: 0.01, mouth_m: [ 0.37, 0.11 ], throat_in: 1.0, depth_m: 0.10,
+          profile: pyramid, sides: 4, throat_profile: elliptical }
+      - { id: lf-brace, kind: fin, at_m: [ 0.0, -0.185 ], mouth_m: [ 0.38, 0.015 ], depth_m: 0.015, setback_m: 0.03, color: "#141414" }
 
 mesh_override: null
 

@@ -54,11 +54,16 @@ ddev exec bin/console scene:stack         # solve a rig from constraints, write 
 ddev exec bin/console scene:stack         # generate every sensible rig — no flags needed
 ddev exec bin/console scene:build         # assemble a setup from scenes/*.yaml
 ddev exec bin/console scene:render        # render it to a PNG — no Blender knowledge needed
+ddev exec bin/console scene:fly-through --quick-preview <scene>  # MP4 between outer far focus points
 ddev exec bin/console scene:render full-rig-arc --aim-lines     # ...with laser lines showing the aim
 ddev exec bin/console catalog             # equipment table with weight/volume totals
 ddev exec bin/console build:all           # all of the above, in order
 ddev exec bin/console list                # all commands
 ```
+
+`scene:fly-through` renders an MP4 between the outer stacks' far focus points. Use
+`--camera-aim=perpendicular --lens=42` for a fixed view normal to the systems with a narrower field of view.
+See [fly-through videos](docs/scenes.md#fly-through-videos) for duration, frame rate and quality options.
 
 Then in Blender: **Preferences → File Paths → Asset Libraries → +**, point it at `build/library/`, open an Asset Browser
 and drag devices into a scene. Every device is one collection asset at true scale, already sitting on the floor.
@@ -220,11 +225,11 @@ them can be read on the web without a checkout and a solve — see [docs/scenes.
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |
 |--------------------------|-------|-----|---------------------------------------------|------------------|--------------------------|
-| Flexy Folded Horn Hybrid | sdwa5 | 12  | 0.591 × 0.763 × 0.964                       | 85               | CAD — four horn mouths   |
+| Flexy Folded Horn Hybrid | sdwa5 | 12  | 0.591 × 0.763 × 0.964                       | 85               | CAD — four horn mouths, VVV brace, castors |
 | SKRAM                    | sdwa5 | 2   | 0.610 × 0.914 × 0.813                       | 90               | CAD — vent array         |
-| Tecnare M2122            | sdwa5 | 3   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated + 3 horns, 2 cones (est.) |
+| Tecnare M2122            | sdwa5 | 3   | 0.500 × 0.960 × 0.520 (tapered, 0.345 rear) | 68               | generated + 5 horns, bracket arms (est.) |
 | Eighteensound 2-Way 15″  | sepp  | 2   | 0.466 × 0.836 × 0.427                       | 41 (est.)        | CAD + horn and cone      |
-| Achenbach 18             | sepp  | 6   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD + 18″ cone           |
+| Achenbach 18             | sepp  | 6   | 0.600 × 0.600 × 0.700                       | 50 (est.)        | CAD + 18″ cone, grille   |
 
 That is 25 cabinets and 1786 kg, and it is the inventory a bare `scene:stack` builds. The other 3239 kg belongs to
 GMSS, PSL and Innschleife and arrives in their own vans — see the four borrowed systems above, and
@@ -241,6 +246,14 @@ a domed dust cap, and horn flares whose mouth shape, throat shape and flare law 
 generated and its numbers are estimated — the flares are carved into the shell rather than sitting behind a CAD hole.
 Its two 12″ horns are **connected**: the wall between them stops behind the baffle, so the front shows one opening and
 the two throats only part company inside, which any pair of horns can now say with `join`.
+
+**PSL's and Innschleife's cabinets look like their photographs.** Their fronts are read off one photo per system and
+corrected by the owner. Open cells, braces and boards (`fin`), see-through grilles, phase plugs, tilted driver walls
+and a front colour of its own give the ESX and EF 6 their black bodies with white fronts and the Innschleife subs and
+tops their folded horns and port horns. Castors can be drawn too, and the Flexy has four blue ones on its back.
+
+**A generated stack stands flush at the front**, every tier on the front edge of the one below, and a stereo tops row
+packs its near-field fills outward against the long throws ([docs/scenes.md](docs/scenes.md#stack)).
 
 All three Tecnare tops share one spec at quantity 3. Two are factory cabinets and the third is a self-built copy, but
 the geometry is identical, so modelling it twice was wasted work; the distinction is recorded in the spec's notes.

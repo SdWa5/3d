@@ -143,6 +143,7 @@ final class RenderPlan
             'render' => [
                 'samples' => $samples,
                 'resolution' => [$resolution[0], $resolution[1]],
+                'exposure' => $lighting->exposure(),
             ],
             'aim_lines' => $lines,
             'labels' => $labels ? self::labels($placed, $min, $max, $radius) : [],

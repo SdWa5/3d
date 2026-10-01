@@ -41,6 +41,7 @@ use App\Command\LibraryBuildCommand;
 use App\Command\LoadPlanCommand;
 use App\Command\ModelsBuildCommand;
 use App\Command\SceneBuildCommand;
+use App\Command\SceneFlyThroughCommand;
 use App\Command\ScenePackCommand;
 use App\Command\SceneRenderCommand;
 use App\Command\SceneStackCommand;
@@ -63,6 +64,7 @@ $app->addCommands([
     new LibraryBuildCommand(),
     new SceneStackCommand(),
     new SceneBuildCommand(),
+    new SceneFlyThroughCommand(),
     new ScenePackCommand(),
     new SceneRenderCommand(),
     new CatalogCommand(),

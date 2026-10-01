@@ -11,22 +11,6 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 18 cabinets in 6 rows:
-#
-#   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   6  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
-#
-# Subs reach 3.662 m against a 2.0 m interface. The stack is 4.622 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 3.662 m against the 3.000 m ceiling asked for, so they stand 662 mm too high — 3.662 m is the
-#     nearest the 2.500 m target that every tier is still carried at
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid
-#     rolled 90° row is 2.157 m on a 1.848 m row, so it overhangs 154 mm each side
-#
 # main-gmss — gmss, 13 cabinets in 6 rows:
 #
 #   1  1× mid-bass                                                                1.2 m wide
@@ -45,6 +29,17 @@
 #   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° row is 2.820 m on a 1.560 m row, so it overhangs 630
 #     mm each side
 #
+# main-ours — ours, 18 cabinets in 3 rows:
+#
+#   1  3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°    5.308 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°    5.308 m wide
+#   3  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
+#
+# Subs reach 1.828 m against a 2.0 m interface. The stack is 2.788 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the subs reach 1.828 m against the 2.000 m interface asked for, so the tops sit 172 mm lower than ideal —
+#     1.828 m is the most they reach while every tier is still carried
+#
 id: stacked-1-tops-shared---v-------turned--centred---stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
 
@@ -57,40 +52,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 18 cabinets in 6 rows
-  - id: main-ours
-    at: [-1.962, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      mirror_style: centred
-      shape: v
-      from:
-        - device: skram
-          roll_mirror: 90.0
-        - device: flexy-folded-horn-hybrid
-          roll_mirror: 90.0
-        - device: tecnare-m2122
-          count: 2
-        - device: turbo-top
-          count: 2
-          aim: near
-
   # gmss, 13 cabinets in 6 rows
   - id: main-gmss
-    at: [1.0265, 0.0]
+    at: [-3.206, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -121,5 +85,36 @@ placements:
           count: 1
         - device: turbo-top
           count: 1
+          aim: near
+
+  # ours, 18 cabinets in 3 rows
+  - id: main-ours
+    at: [1.358, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      mirror_style: centred
+      shape: v
+      from:
+        - device: skram
+          roll_mirror: 90.0
+        - device: flexy-folded-horn-hybrid
+          roll_mirror: 90.0
+        - device: tecnare-m2122
+          count: 2
+        - device: turbo-top
+          count: 2
           aim: near
 
