@@ -109,6 +109,11 @@ final class SceneEventOptions
                 throw new InvalidSpecException('system target must be at or above its interface');
             }
         }
+        // The event's air between stacks replaces the default, and an explicit `--clearance` replaces the event's.
+        // Only the number is recorded, as for the room.
+        if (null !== $event?->clearanceM && !$input->hasParameterOption('--clearance')) {
+            $input->setOption('clearance', (string) $event->clearanceM);
+        }
         $input->setOption('room-width', null === $width ? null : (string) $width);
         $input->setOption('room-height', null === $height ? null : (string) $height);
 

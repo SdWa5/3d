@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.129.0] - 2026-10-01
+
+### Added
+
+- An event may state `stack_clearance_m`, the air between neighbouring stacks for its runs. An explicit `--clearance`
+  replaces it, and the recorded line carries the number.
+- The next event leaves 0.24 m between stacks. The combined rig with Innschleife's photo layout is 12.995 m wide then,
+  where the default 0.5 m made it 13.515 m and the 13 m room refused it.
+
+### Changed
+
+- `innschleife-next-event`, `psl-next-event` and `next-event` regenerated with the narrower gaps. `next-event` now
+  holds the photo rig in four combined `systems-apart` rigs, all `pyramid` with the low end `low`, and grows from
+  20 scenes to 26.
+
 ## [0.128.0] - 2026-10-01
 
 ### Added
