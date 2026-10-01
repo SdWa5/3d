@@ -116,6 +116,24 @@ final class StackBackdropTest extends TestCase
         self::assertStringContainsString('spans 10.000 m', (string) $this->ours()->problem($wide, 4.0));
     }
 
+    /** A 2.4 m room would need the truss at 2.142 m, and our stands crank no lower than 2.225 m. */
+    public function testACeilingBelowTheCollapsedStandIsRefused(): void
+    {
+        self::assertStringContainsString(
+            'below the 2.225 m it cranks down to',
+            (string) $this->ours()->problem($this->devices['deco-panel-9x1-8'], 2.4),
+        );
+    }
+
+    /** The clearance behind the rig is half the spread the tower spec draws its legs to. */
+    public function testTheClearanceIsHalfTheTowersSpread(): void
+    {
+        $mast = $this->devices['truss-tower-4m']->mast;
+
+        self::assertNotNull($mast);
+        self::assertEqualsWithDelta($mast->baseSpread / 2, StackBackdrop::OUTRIGGER_CLEARANCE_M, 1e-9);
+    }
+
     public function testMoreSegmentsThanWeOwnAreRefused(): void
     {
         $six = StackBackdrop::parse('truss-f33-2m:6:truss-tower-4m', $this->devices);

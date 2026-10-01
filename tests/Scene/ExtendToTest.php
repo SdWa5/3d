@@ -52,6 +52,15 @@ final class ExtendToTest extends TestCase
         self::assertSame([], $result['placed']);
     }
 
+    /** Every stage inside the sleeve leaves our stand at 2.225 m, so it cranks no lower. */
+    public function testAMastCannotBeCrankedBelowItsCollapsedHeight(): void
+    {
+        $result = $this->compile(['id' => 'tower', 'device' => 'truss-tower-4m', 'at' => [0, 0], 'extend_to_m' => 1.0]);
+
+        self::assertStringContainsString('below the 2.225 m truss-tower-4m cranks down to', $result['violations'][0]->message);
+        self::assertSame([], $result['placed']);
+    }
+
     public function testOnlyATowerTelescopes(): void
     {
         $result = $this->compile(['id' => 'sub', 'device' => 'wsx-18', 'at' => [0, 0], 'extend_to_m' => 0.5]);

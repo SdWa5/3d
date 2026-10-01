@@ -17,9 +17,11 @@ namespace App\Spec;
  * - `MovingHead` — base, yoke and head, because a moving head's shape is its identity and a box
  *   would be unrecognisable. See {@see MovingHead}.
  * - `Scaffold` — posts, bracing and a platform. See {@see Scaffold}.
+ * - `Mast` — a wind-up stand's legs, telescoping stages, winch and truss adapter. See {@see Mast}.
+ * - `LoadBay` — a transporter's outline with its bay caged inside it.
  *
  * None of them is a loudspeaker, which is why {@see isCabinet} exists and why the builder skips
- * grille, handles, chamfer, drivers and the coverage cone for all three.
+ * grille, handles, chamfer, drivers and the coverage cone for all of them.
  */
 enum Shape: string
 {
@@ -29,6 +31,7 @@ enum Shape: string
     case Truss = 'truss';
     case MovingHead = 'moving-head';
     case Scaffold = 'scaffold';
+    case Mast = 'mast';
 
     /**
      * A transporter's **load bay**, drawn as a wireframe volume inside a wireframe of the vehicle.
@@ -57,7 +60,7 @@ enum Shape: string
     {
         return match ($this) {
             self::LoadBay => true,
-            self::Box, self::Trapezoid, self::Wedge, self::Truss, self::MovingHead, self::Scaffold => false,
+            self::Box, self::Trapezoid, self::Wedge, self::Truss, self::MovingHead, self::Scaffold, self::Mast => false,
         };
     }
 
@@ -68,14 +71,14 @@ enum Shape: string
      * that decides: a rack is `Box` and gets the same shell treatment a cabinet does, while a truss
      * cannot take a grille no matter what category it is filed under.
      *
-     * Written as the list of shapes that ARE cabinets rather than as "not truss". There are three that are not
+     * Written as the list of shapes that ARE cabinets rather than as "not truss". There are five that are not
      * now, and a fourth added without thinking would otherwise quietly inherit a grille and a coverage cone.
      */
     public function isCabinet(): bool
     {
         return match ($this) {
             self::Box, self::Trapezoid, self::Wedge => true,
-            self::Truss, self::MovingHead, self::Scaffold, self::LoadBay => false,
+            self::Truss, self::MovingHead, self::Scaffold, self::Mast, self::LoadBay => false,
         };
     }
 }

@@ -5,9 +5,10 @@
 
 Every model carries its declared dimensions in the glTF `extras`, so the file can be checked
 against itself: the geometry's bounding box must equal `dimensions_m`, and the cabinet must sit on
-the floor. That is the promise the whole library rests on — models from different specs only stack
-and snap together if it holds — and a builder bug would otherwise be invisible until somebody
-noticed a stack looking wrong.
+the floor. A wind-up stand (`shape: mast`) is the one exception in plan view, where its legs may
+reach the `base_spread_m` it declares. That is the promise the whole library rests on — models
+from different specs only stack and snap together if it holds — and a builder bug would
+otherwise be invisible until somebody noticed a stack looking wrong.
 
 Plain Python, no bpy: runnable without Blender, on the host or in the container.
 """
@@ -94,8 +95,22 @@ def check(path):
     chamfer = float(metadata.get("chamfer_m") or 0.0)
     undershoot = max(tolerance, chamfer)
 
+    # A wind-up stand's legs reach past its mast column, to the base spread and no further. The spread is the
+    # declared box in plan view, so width and depth may reach it. Height and the floor stay held to the column.
+    spread = metadata.get("base_spread_m")
+
     problems = []
     for axis, label in enumerate(("width", "height", "depth")):
+        if spread is not None and label != "height":
+            if actual[axis] > float(spread) + tolerance:
+                problems.append(
+                    "%s is %.4f m and reaches past the %.4f m base spread" % (label, actual[axis], float(spread))
+                )
+            elif actual[axis] < expected[axis] - undershoot:
+                problems.append(
+                    "%s is %.4f m, narrower than the %.4f m mast column" % (label, actual[axis], expected[axis])
+                )
+            continue
         over = actual[axis] - expected[axis]
         if over > tolerance:
             problems.append(

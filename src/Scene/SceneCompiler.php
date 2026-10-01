@@ -1032,7 +1032,7 @@ final class SceneCompiler
      *
      * **Only a truss tower telescopes**, so a speaker or a truss segment given a height is a typo or a wish and is
      * refused rather than stretched. A tower can be cranked down and never above its spec, whose height is its
-     * full extension.
+     * full extension. A tower drawn as a mast also stops at the height it collapses to.
      */
     public static function extended(Placement $placement, DeviceSpec $device): DeviceSpec|string
     {
@@ -1050,6 +1050,11 @@ final class SceneCompiler
                 $device->id,
                 $device->dimensions->height,
             );
+        }
+        // A wind-up stand cranks down until every stage is inside its sleeve, and no further.
+        $collapsed = $device->mast?->collapsedHeightM();
+        if (null !== $collapsed && $height < $collapsed - 1e-9) {
+            return sprintf('extend_to_m %.3f is below the %.3f m %s cranks down to', $height, $collapsed, $device->id);
         }
 
         return $device->withHeight($height);

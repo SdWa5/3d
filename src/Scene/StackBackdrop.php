@@ -23,8 +23,8 @@ use App\Spec\DeviceSpec;
  *   * The panel hangs flush against the truss's front face. Its top goes as high as the room allows, but at most
  *     half the panel may stand above the truss, see {@see panelTopM}. Under a ceiling the truss already touches, that
  *     puts the panel's top at the truss's top.
- *   * The towers stand {@see OUTRIGGER_CLEARANCE_M} behind the deepest back face of the rig, because their unmodelled
- *     outriggers spread to 1.6 m and the outer stacks of a wide rig stand right in front of them.
+ *   * The towers stand {@see OUTRIGGER_CLEARANCE_M} behind the deepest back face of the rig, because their legs
+ *     spread to 1.6 m and the outer stacks of a wide rig stand right in front of them.
  *
  * Symmetric about the rig's own centre, so it moves neither the front centre the focus is measured from nor the
  * rig's x extent in a way that changes which side is wider.
@@ -34,8 +34,9 @@ final class StackBackdrop
     /**
      * How far behind the rig's deepest back face the towers' centre lines stand.
      *
-     * Half the 1.6 m base spread a Varytec Wind Up reaches, see `truss-tower-4m.yaml`. The outriggers are not drawn,
-     * so nothing would report a foot under a cabinet, and the distance is what keeps that from being true.
+     * Half the 1.6 m base spread a Varytec Wind Up reaches, see `truss-tower-4m.yaml`. The legs are drawn since
+     * 0.134.0, but no scene check sees them, because they lie outside the mast column the checks read. So nothing
+     * would report a foot under a cabinet, and the distance is what keeps that from being true.
      */
     public const OUTRIGGER_CLEARANCE_M = 0.8;
 
@@ -143,6 +144,16 @@ final class StackBackdrop
         $fly = $this->flyHeightM($ceilingM);
         if ($fly <= 0.0) {
             return sprintf('a %.3f m ceiling leaves no room for %s', $ceilingM, $this->truss->id);
+        }
+        $collapsed = $this->tower->mast?->collapsedHeightM();
+        if (null !== $collapsed && $fly < $collapsed - 1e-9) {
+            return sprintf(
+                'a %.3f m ceiling needs %s at %.3f m, below the %.3f m it cranks down to',
+                $ceilingM,
+                $this->tower->id,
+                $fly,
+                $collapsed,
+            );
         }
         $top = $this->panelTopM($deco, $ceilingM);
         $bottom = $top - $deco->dimensions->height;

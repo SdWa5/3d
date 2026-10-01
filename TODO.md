@@ -344,7 +344,7 @@ The first two are compatible with each other and with either structural option, 
 
 | ID | Item | Prio | Effort | Buys | Needs | State |
 |----|------|------|--------|------|-------|-------|
-| SPEC-15 | **A device has an erected size and a transport size and the schema has one field for both.** The 4 m truss lift transports at 1.75 m, its published figure, and is modelled at 4 m because a rig render needs that, so the packed convoy render showed a mast standing out of a trailer. The 5 m scaffold tower is the same. Needs a `transport:` block that defaults to `dimensions_m` when a device does not fold | P1 | 2h | a pack that is right about every folding device, which is four of ours | — | open |
+| SPEC-15 | **A device has an erected size and a transport size and the schema has one field for both.** The 4 m truss lift transports at 1.75 m, its published figure, and is modelled at 4 m because a rig render needs that, so the packed convoy render showed a mast standing out of a trailer. Since 0.134.0 its `mast` block states `transport_length_m` and works out the collapsed height, which a `transport:` block can read. The 5 m scaffold tower is the same. Needs a `transport:` block that defaults to `dimensions_m` when a device does not fold | P1 | 2h | a pack that is right about every folding device, which is four of ours | — | open |
 | SPEC-1 | Finish GMSS. Five specs exist from the builder's own figures, and measuring them is what is left | P2 | phys | provenance for 14 cabinets, 994 kg | — | partial |
 | SPEC-5 | Measure the cabinets, see [docs/measuring.md](docs/measuring.md). Every spec describes a design or a datasheet, not our build | P2 | phys | — | — | partial |
 | SPEC-6 | `audio.drivers` cannot record a count without a size. `size_in` is required, so "2× unknown" has to omit the whole `audio` block | P2 | 45m | `mid-bass` keeps what is known | — | open |
@@ -355,7 +355,7 @@ The first two are compatible with each other and with either structural option, 
 | SPEC-14 | **No schema field holds electrical output.** Sepp's generator is 25 kVA on a Hatz 3M41 and both figures live in its `notes`. Worth a `power:` block once a second device needs one, such as a distro or a second generator, and not before, since a field with one user will be wrong about the second | P3 | 1h 30m | somewhere for kVA to live that a report can read | a second power device | open |
 | SPEC-2 | Detailed geometry for the remaining cabinets ([docs/sources.md](docs/sources.md#3d-geometry-per-device)) | P3 | 3h | — | — | partial |
 | SPEC-7 | `provenance.dimensions` cannot say "outer box sourced, internals estimated". It is one field for the whole geometry, which the part-built shapes break | P3 | 1h 15m | — | — | open |
-| SPEC-3 | The remaining lighting, plus a **telescoping mast** shape for the towers | P3 | 2h 30m | — | — | partial |
+| SPEC-3 | The remaining lighting | P3 | 2h 30m | — | — | partial |
 | SPEC-10 | `rack-power-12u` is the weakest spec in the repo. Its 15 kg of contents is a guess with no component list | P3 | phys | — | — | open |
 | SPEC-9 | The amplifiers have no specs of their own. They are invisible inside a closed rack, so their figures live in the rack's header | P3 | — | — | — | known |
 
@@ -399,16 +399,10 @@ Reference photo: `/home/stefanr/.config/JetBrains/PhpStorm2026.2/scratches/GMSS.
 4. **Handle recesses** are a plain rectangular cut. A rounded dish would read better, which wants a general handle
    model.
 
-#### SPEC-3 — lighting and the mast
+#### SPEC-3 — lighting
 
 1. **Lighting**: 2× 600 W RGB LED strobe, 1 mini moving head, 1 mini laser. No brands are stated, so there are no
    dimensions. `shape: moving-head` already exists for the mini head.
-2. **A telescoping mast shape.** `truss-tower-4m` and `tower-5m` are `shape: box` columns, and since 0.124.0 a cranked
-   tower is drawn by scaling that box along its height. A wind-up stand is a nested mast on folding outriggers, and the
-   outriggers matter most. The Varytec spreads to 1.6 m, which is what must be kept clear at the feet, where the scene
-   shows a 0.203 m column. A `mast` shape taking a section count and the folded and unfolded base fixes both.
-3. **"Truss tower feet are three"** belongs to the mast shape. It most likely means each stand has a three-leg base.
-   We own two stands, which the Stairville bundle settles.
 
 ## CVR · coverage, and the inputs that were secretly gates
 

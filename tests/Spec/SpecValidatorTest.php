@@ -24,6 +24,11 @@ final class SpecValidatorTest extends TestCase
         self::assertSame([], $this->validate(SpecFactory::spec()));
     }
 
+    public function testOurWindUpStandIsAValidMast(): void
+    {
+        self::assertSame([], $this->validate(SpecFactory::spec(self::mastGeometry())));
+    }
+
     public function testTwoStackedHornsMayShareOneMouth(): void
     {
         // The arrangement the Tecnare has: apart on z, lined up on x, and the wall between them removed
@@ -259,6 +264,61 @@ final class SpecValidatorTest extends TestCase
         yield 'bracing thicker than the posts it braces' => [
             ['geometry' => ['shape' => 'scaffold', 'scaffold' => self::scaffold(['brace_diameter_m' => 0.06])]],
             'is thicker than the posts',
+        ];
+        // The wind-up stand. Same block rule as the other open frames, plus the checks that keep its tubes nested,
+        // its stages overlapping and its legs on the footprint it states.
+        yield 'mast without its parts stated' => [
+            ['geometry' => ['shape' => 'mast', 'dimensions_m' => self::MAST_BOX]],
+            "geometry.mast is required for shape 'mast'",
+        ];
+        yield 'mast block on a plain box' => [
+            ['geometry' => ['mast' => self::mast()]],
+            "geometry.mast only applies to shape 'mast'",
+        ];
+        yield 'a stage as wide as the tube it slides in' => [
+            self::mastGeometry(['sections_m' => [0.060, 0.060, 0.040]]),
+            'does not fit inside the tube below it',
+        ];
+        yield 'a mast with no stage' => [
+            self::mastGeometry(['sections_m' => [0.060]]),
+            'needs a sleeve and at least one stage',
+        ];
+        yield 'a sleeve wider than the column' => [
+            self::mastGeometry(['sections_m' => [0.300, 0.050, 0.040]]),
+            'is wider than the 0.203 m column',
+        ];
+        yield 'a spigot that does not fit the top stage' => [
+            self::mastGeometry(['spigot_diameter_m' => 0.045]),
+            'does not fit the top stage',
+        ];
+        // Two tubes of 1.63 m cannot reach 4 m from a 2.225 m collapse with any overlap left.
+        yield 'stages that barely overlap' => [
+            self::mastGeometry(['sections_m' => [0.060, 0.050]]),
+            'under the 0.20 m a stage needs',
+        ];
+        yield 'a stand that collapses no lower than it extends' => [
+            self::mastGeometry(['transport_length_m' => 3.9]),
+            'which is not below its 4 m full extension',
+        ];
+        yield 'two legs' => [
+            self::mastGeometry(['legs' => 2]),
+            'geometry.mast.legs must be 3 to 8',
+        ];
+        yield 'a spread narrower than the column' => [
+            self::mastGeometry(['base_spread_m' => 0.1]),
+            'is narrower than the column',
+        ];
+        yield 'an adapter longer than the spread' => [
+            self::mastGeometry(['adapter' => [...self::MAST_ADAPTER, 'length_m' => 2.0]]),
+            'reaches past the 1.6 m base spread',
+        ];
+        yield 'an adapter with no room for its spigot' => [
+            self::mastGeometry(['adapter' => [...self::MAST_ADAPTER, 'height_m' => 0.08]]),
+            'leaves no spigot',
+        ];
+        yield 'a mast that does not stand on the floor' => [
+            ['geometry' => [...self::mastGeometry()['geometry'], 'origin' => 'geometric-center']],
+            "needs origin 'bottom-center'",
         ];
         yield 'truss with no bay length' => [
             ['geometry' => ['shape' => 'truss', 'truss' => self::truss(['bay_length_m' => 0.0])]],
@@ -502,6 +562,51 @@ final class SpecValidatorTest extends TestCase
             'platform_thickness_m' => 0.050,
             ...$overrides,
         ];
+    }
+
+    /** Our wind-up stand's column, which the mast cases are measured against. */
+    private const MAST_BOX = ['width' => 0.203, 'height' => 4.0, 'depth' => 0.203];
+
+    private const MAST_ADAPTER = ['length_m' => 0.400, 'bar_m' => 0.040, 'height_m' => 0.120, 'clamp_spacing_m' => 0.240];
+
+    /**
+     * A valid mast block against {@see MAST_BOX}, our Varytec's figures, for cases that break one thing.
+     *
+     * @param array<string, mixed> $overrides
+     *
+     * @return array<string, mixed>
+     */
+    private static function mast(array $overrides = []): array
+    {
+        return [
+            'sections_m' => [0.060, 0.050, 0.040],
+            'transport_length_m' => 1.750,
+            'hub_height_m' => 0.950,
+            'spigot_diameter_m' => 0.035,
+            'legs' => 3,
+            'base_spread_m' => 1.600,
+            'leg_width_m' => 0.030,
+            'winch' => true,
+            'adapter' => self::MAST_ADAPTER,
+            ...$overrides,
+        ];
+    }
+
+    /**
+     * The whole geometry override for a mast spec, with the mast block broken where the case says.
+     *
+     * @param array<string, mixed> $overrides
+     *
+     * @return array{geometry: array<string, mixed>}
+     */
+    private static function mastGeometry(array $overrides = []): array
+    {
+        return ['geometry' => [
+            'shape' => 'mast',
+            'dimensions_m' => self::MAST_BOX,
+            'chamfer_m' => 0.0,
+            'mast' => self::mast($overrides),
+        ]];
     }
 
     /**
