@@ -79,7 +79,7 @@ def _mesh_object(name, verts, faces, material):
     return obj
 
 
-def apply_front_image(plan, body, material):
+def apply_front_image(plan, body, material, backing=None):
     """Map the front photograph onto every forward-facing polygon of the shell.
 
     **Selected by normal rather than by index, on purpose.** The front is `faces[2]` when the block
@@ -91,6 +91,9 @@ def apply_front_image(plan, body, material):
     UVs come from the cabinet's own extents, so the image is stretched to the front and nothing
     depends on the photograph's pixel size. `SpecValidator` has already checked that the pixel size
     agrees with the cabinet, which is what makes the stretch faithful rather than merely tidy.
+
+    `backing` is given for a cut-out. Every other polygon then takes it, on UVs projected straight back from the
+    front, so the back and the edges are cut along the outline the front's alpha draws.
 
     Returns the number of polygons that took the image, so the caller can say nothing happened.
     """
@@ -104,6 +107,11 @@ def apply_front_image(plan, body, material):
     slot = len(mesh.materials)
     mesh.materials.append(material)
 
+    backing_slot = None
+    if backing is not None:
+        backing_slot = len(mesh.materials)
+        mesh.materials.append(backing)
+
     uv_layer = mesh.uv_layers.active or mesh.uv_layers.new(name="UVMap")
 
     applied = 0
@@ -111,10 +119,12 @@ def apply_front_image(plan, body, material):
         # Forward is -Y. The tolerance is tight because a chamfer's own faces sit a few degrees off
         # and must keep the cabinet material rather than a slice of the photograph.
         if polygon.normal.y > -0.999:
-            continue
-
-        polygon.material_index = slot
-        applied += 1
+            if backing_slot is None:
+                continue
+            polygon.material_index = backing_slot
+        else:
+            polygon.material_index = slot
+            applied += 1
 
         for loop_index in polygon.loop_indices:
             vertex = mesh.vertices[mesh.loops[loop_index].vertex_index].co

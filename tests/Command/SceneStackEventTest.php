@@ -154,8 +154,8 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertSame(0, $tester->getStatusCode());
         $display = $tester->getDisplay();
         self::assertStringContainsString('--backdrop=truss-f33-2m:5:truss-tower-4m', $display);
-        self::assertStringContainsString('--quantity=deco-panel-9x1-8:1', $display);
-        self::assertStringContainsString('device: deco-panel-9x1-8', $display);
+        self::assertStringContainsString('--quantity=deco-panel-8x2-03:1', $display);
+        self::assertStringContainsString('device: deco-panel-8x2-03', $display);
         self::assertStringContainsString('extend_to_m: 3.742', $display);
         self::assertStringNotContainsString('-impossible', $display);
     }
@@ -163,7 +163,7 @@ final class SceneStackEventTest extends SceneStackTestCase
     public function testADecoPanelWithNoTrussIsRefused(): void
     {
         $tester = $this->invoke(array_diff_key(self::PSL, ['--event' => true]) + [
-            '--quantity' => ['deco-panel-9x1-8:1'], '--into' => self::THROWAWAY_ID,
+            '--quantity' => ['deco-panel-8x2-03:1'], '--into' => self::THROWAWAY_ID,
         ]);
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());

@@ -76,7 +76,7 @@ systems:
       hk-linear5-112x: 0
       # Hung from our truss behind the systems, stated by Stefan on 2026-10-01. It is no cabinet, so the solver never
       # places it, and `scene:stack` hangs it from the backdrop below. See docs/scenes.md.
-      deco-panel-9x1-8: 1
+      deco-panel-8x2-03: 1
   innschleife:
     interface_height_m: 1.6
     target_sub_height_m: 1.75
@@ -113,7 +113,7 @@ systems:
 # is 13.516 m and the room refuses it.
 stack_clearance_m: 0.24
 
-# Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a system brings. PSL's 9 m panel
+# Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a system brings. PSL's 8 m panel
 # hangs from it, stated 2026-10-01. Under the 4 m ceiling the truss rests at 3.742 m. See docs/scenes.md.
 backdrop:
   truss: truss-f33-2m

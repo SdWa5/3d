@@ -1,0 +1,122 @@
+id: next-event-light-achenbach
+name: Next event, light, with four Achenbach
+# `next-event-light` with four of Sepp's Achenbach brought, asked for by Stefan on 2026-10-01 "so we can raise the
+# outer tops in the stereo setup". Everything else is `next-event-light.yaml` as it stood that day, so its comments
+# below are kept and the one count that differs says so where it stands. See docs/scenes.md.
+room:
+  width_m: 13.0
+  height_m: 4.0
+# How each system is set up, stated by Stefan on 2026-10-01: ours and Sepp's upright, PSL and Innschleife turned.
+# Innschleife's kickers stand as measured anyway, 0.95 m wide, as on their photo. Every next-event sweep then has no
+# orientation left to vary, and its scenes are named `stated`.
+#
+# Where each system wants its lowest cabinets, stated by Stefan on 2026-10-01 against two renders of the combined rig.
+# Ours and Sepp's `central`, which stacks two [3 Flexy | SKRAM | 3 Flexy] rows over the six Achenbach, and
+# Innschleife's `low`, which is their photo layout. PSL states none, because both values build PSL the same rig. So a
+# combined sweep still varies the low end for PSL, the two candidates are the same rig, and the one kept is named
+# `low`, the first value swept, although ours sits `central` in it. See docs/scenes.md.
+#
+# `brings` is what each system brings, as counts that override the specs for this event. It was a roster file per
+# system in `rosters/` until 0.130.0. A device left out keeps its spec's quantity, and zero leaves it at home. See
+# src/Spec/Event.php.
+systems:
+  sdwa5:
+    # Without the Achenbach our stack chased the default 2.0 m interface into three rows of Flexy and stood
+    # 3.551 m against PSL's 2.55 and Innschleife's 2.85. Stefan asked on 2026-10-01 for it to match the others,
+    # so ours and Sepp's take Innschleife's 1.6 m interface aimed at 1.75 m, which builds two rows of
+    # [3 Flexy | SKRAM | 3 Flexy] at 2.788 m.
+    interface_height_m: 1.6
+    target_sub_height_m: 1.75
+    orientation: upright
+    low_end: central
+  sepp:
+    interface_height_m: 1.6
+    target_sub_height_m: 1.75
+    orientation: upright
+    low_end: central
+    # Four of the six Achenbach in this version, stated by Stefan on 2026-10-01. The rest of Sepp's gear keeps its
+    # spec's quantity.
+    brings:
+      achenbach-18: 4
+  psl:
+    orientation: turned
+    # Twelve of PSL's biggest sub and five of their biggest top, stated by PSL to Stefan on 2026-09-02 as "12x the
+    # biggest / most powerful sub they have" and "5x the biggest / most powerful top they have". The statement names
+    # no cabinet, and the specs answer it without ambiguity:
+    #
+    #   * THE SUB IS THE `concert-audio-esx`. It is 0.590 x 1.180 x 0.915 m and 94 kg against 82 for the next
+    #     heaviest, it carries two 18" against everything else's one, and at 33 Hz it reaches lower than any cabinet
+    #     this library publishes a figure for. Biggest and most powerful pick the same box.
+    #   * THE TOP IS THE `concert-audio-ef6` at 65 kg, where the next is 32.
+    #   * They are the two halves of PSL's published "Hornsystem Mod" package, so twelve under five is that package
+    #     scaled up rather than two cabinets picked off a list.
+    #
+    # **LATER ON 2026-10-01 STEFAN CUT THE TOPS TO FOUR**, so only the sub count still exceeds the specs.
+    #
+    # TWELVE IS MORE THAN THE SPECS SAY EXIST, AND THAT IS NOT AN ERROR IN EITHER PLACE. The specs keep the six and four
+    # of the published package, confirmed by our own Kraut drawing, and this records what comes to one event. **What PSL
+    # own is not written down here, deliberately**, decided on 2026-09-14: a count brought to one event would bound
+    # their stock from below, and their stock is theirs to state. docs/requests.md carries the open question.
+    #
+    # EIGHT ZEROS, BECAUSE THE STATEMENT IS EXHAUSTIVE. Left out would mean "whatever the spec says" and would quietly
+    # add nine more boxes to the rig.
+    #
+    # A rig from the stated counts is 1128 kg of sub and 325 kg of top by the published figures, all of it in PSL's own
+    # vehicles, so `load:plan` does not see it. The ESX is published without its four 100 mm castors, so a wall of
+    # them is about 100 mm taller in the yard than in the file.
+    brings:
+      concert-audio-esx: 9          # nine instead of twelve in this version, stated by Stefan on 2026-10-01
+      concert-audio-ef6: 4          # four instead of the stated five, decided by Stefan on 2026-10-01
+      concert-audio-esf: 0
+      thebox-tp118-800: 0
+      thebox-tp218-1600: 0
+      thebox-achat-112m: 0
+      thebox-achat-115m: 0
+      thebox-dsp-112: 0
+      thebox-pa302: 0
+      hk-linear5-112x: 0
+      # Hung from our truss behind the systems, stated by Stefan on 2026-10-01. It is no cabinet, so the solver never
+      # places it, and `scene:stack` hangs it from the backdrop below. See docs/scenes.md.
+      deco-panel-8x2-03: 1
+  innschleife:
+    interface_height_m: 1.6
+    target_sub_height_m: 1.75
+    orientation: turned
+    low_end: low
+    stand: [ kicker-15 ]
+    # Stated by Innschleife to Stefan on 2026-09-02: "Also wir nehmen 4x Sbh 18, 4x Wsx 18, 4x die blauen Kicker 15,
+    # und entweder alle 4 kleinen Tops oder die 2 großen Thl4." The small tops are two rather than four, corrected
+    # the same day.
+    #
+    # **THE NAMES MOVED SEVERAL TIMES AND THE COUNTS NEVER DID.** On 2026-09-03 the SBH turned out to be a
+    # 1.20 x 0.55 x 0.80 horn that appears in no drawing. On 2026-09-05 Innschleife swapped the four black JBL
+    # 60 x 60 (`sub-60x60`) for the blue Electro-Voice 95 x 57, which is "die blauen Kicker 15" (`kicker-15`). A row
+    # of four goes from 2.40 m to 3.80 m with it, the widest sub row Innschleife can field. The same day the tops
+    # matched published figures: there is no THL-4, the big top is the Turbosound TMS-4 and the small one the TMS-2.
+    #
+    # **ON 2026-10-01 A PHOTOGRAPH SETTLED THE EITHER/OR.** Stefan showed Innschleife's stack as they build it: two
+    # rows of [WSX | SBH | SBH | WSX] lying down, the four kickers standing on top, and three tops above, a TMS-2
+    # either side of a big black top no drawing shows. Stefan decided to bring the photo's tops, so the TMS-4s are at
+    # zero and the black one is `top-70x93`, a spec estimated off that photo. Its dimensions and 78 kg are estimates
+    # from this library's 200 kg/m3 volume model, and so are the sub weights.
+    #
+    # **LATER ON 2026-10-01 STEFAN CHANGED THE TOPS** to two small and one big, so the big one is a TMS-4. The
+    # estimated black top was deleted from the library the same day, so its spec and its line here are gone.
+    brings:
+      wsx-18: 4
+      sbh-18: 4
+      kicker-15: 4
+      sub-60x60: 0
+      tms2: 2
+      tms4: 1
+# Air between neighbouring stacks, chosen by Stefan on 2026-10-01 so that the combined rig with Innschleife's photo
+# layout fits the 13 m room: 4.276 + 3.58 + 4.66 m of stacks and two 0.24 m gaps are 12.996 m. At the default 0.5 m it
+# is 13.516 m and the room refuses it.
+stack_clearance_m: 0.24
+
+# Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a system brings. PSL's 8 m panel
+# hangs from it, stated 2026-10-01. Under the 4 m ceiling the truss rests at 3.742 m. See docs/scenes.md.
+backdrop:
+  truss: truss-f33-2m
+  segments: 5
+  towers: truss-tower-4m

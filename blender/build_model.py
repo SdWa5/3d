@@ -104,9 +104,11 @@ def build(plan):
         # can arrive here carrying an image.
         front_image = plan.get("front_image")
         if front_image:
-            image_material = materials.front_image(front_image["path"])
+            cutout = bool(front_image.get("cutout"))
+            image_material = materials.front_image(front_image["path"], cutout)
             if image_material is not None:
-                geometry.apply_front_image(plan, body, image_material)
+                backing = materials.front_image_backing(image_material, plan["appearance"]["color"]) if cutout else None
+                geometry.apply_front_image(plan, body, image_material, backing)
 
         # A generated shell is solid, so its openings have to be cut into it — and they are cut at the
         # body's own front plane, not at the layout's inset, which only describes a CAD baffle.

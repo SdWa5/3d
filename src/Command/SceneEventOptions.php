@@ -217,7 +217,7 @@ final class SceneEventOptions
      * Where the stack built from `$ids` puts its lowest cabinets, when its systems said so, or null for the sweep's
      * value.
      *
-     * **The owners of the subs decide, and they have to agree**, the same rule {@see subOwner} gives the interface: a
+     * **The owners of the subs decide, and they have to agree**, the same rule {@see interfaceFor} gives the interface: a
      * stack of Innschleife's subs under a borrowed top follows Innschleife. Ours is two owners, sdwa5 and Sepp, so a
      * single owner would leave our wall unstated, and agreement is what lets a pooled wall of two systems follow both.
      * A stack with no subs at all follows the owners of what it does hold.
@@ -288,21 +288,54 @@ final class SceneEventOptions
     }
 
     /**
-     * A system preference follows its subs even when it carries borrowed tops. A pooled sub wall keeps the defaults.
+     * The interface the stack built from `$ids` aims at, when its systems said so, or null for `--interface-height`.
+     *
+     * **A system preference follows its subs even when it carries borrowed tops, and a pooled wall follows them all
+     * when they agree.** Ours is two owners, sdwa5 and Sepp. A wall of our Flexys and Sepp's Achenbach used to fall
+     * back to the 2.0 m default although both state 1.6 m, measured on `next-event-light-achenbach` on 2026-10-01. Two
+     * owners that disagree, or one that states nothing, still leave the default, the same as for the low end.
      *
      * @param list<string> $ids
      * @param array<string, DeviceSpec> $devices
      */
-    public function subOwner(array $ids, array $devices): ?string
+    public function interfaceFor(array $ids, array $devices): ?float
     {
-        $owners = [];
+        return $this->agreedBySubs($this->interfaces, $ids, $devices);
+    }
+
+    /**
+     * The sub height the stack built from `$ids` aims for, by the same rule as {@see interfaceFor}.
+     *
+     * @param list<string> $ids
+     * @param array<string, DeviceSpec> $devices
+     */
+    public function targetFor(array $ids, array $devices): ?float
+    {
+        return $this->agreedBySubs($this->targets, $ids, $devices);
+    }
+
+    /**
+     * The value every owner of a sub in `$ids` states, or null when one states none, two disagree or there is no sub.
+     *
+     * @param array<string, float> $values
+     * @param list<string> $ids
+     * @param array<string, DeviceSpec> $devices
+     */
+    private function agreedBySubs(array $values, array $ids, array $devices): ?float
+    {
+        $stated = null;
         foreach ($ids as $id) {
-            if ('sub' === $devices[$id]->subtype) {
-                $owners[$devices[$id]->owner] = true;
+            if ('sub' !== $devices[$id]->subtype) {
+                continue;
             }
+            $value = $values[$devices[$id]->owner] ?? null;
+            if (null === $value || (null !== $stated && abs($stated - $value) > 1e-9)) {
+                return null;
+            }
+            $stated = $value;
         }
 
-        return 1 === count($owners) ? array_key_first($owners) : null;
+        return $stated;
     }
 
     /** An explicit limit may tighten the event's but never loosen it, and an event with no room sets none. */

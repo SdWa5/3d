@@ -139,6 +139,18 @@ final class SpecValidatorTest extends TestCase
             ['front_image' => 'meshes/x.png', 'mesh_override' => 'meshes/shell.glb'],
             'front_image needs the generated block',
         ];
+        yield 'front colour under a front image' => [
+            ['front_image' => 'meshes/x.png', 'appearance' => ['color' => '#0a0a0a', 'front_color' => '#f2f2f0']],
+            'appearance.front_color and front_image both colour the front',
+        ];
+        yield 'front colour on a mesh override' => [
+            ['mesh_override' => 'meshes/shell.glb', 'appearance' => ['color' => '#0a0a0a', 'front_color' => '#f2f2f0']],
+            'appearance.front_color needs a generated shell',
+        ];
+        yield 'cut-out front image without an alpha channel' => [
+            ['front_image' => ['path' => 'meshes/x.jpg', 'cutout' => true]],
+            'front_image.cutout needs a PNG',
+        ];
         yield 'front image with an unreadable extension' => [
             ['front_image' => 'meshes/x.tiff'],
             'has no importable extension',

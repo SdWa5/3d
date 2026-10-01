@@ -34,13 +34,7 @@ final class ModelsBuildCommand extends BaseCommand
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 'Only build these spec ids (repeatable)',
             )
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Rebuild even when the output is up to date')
-            ->addOption(
-                'front-images',
-                null,
-                InputOption::VALUE_NONE,
-                'Map each spec\'s front_image onto its front face. Off by default, and only ever applied to a cabinet with no interior',
-            );
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Rebuild even when the output is up to date');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -75,23 +69,21 @@ final class ModelsBuildCommand extends BaseCommand
             return self::SUCCESS;
         }
 
-        $frontImages = (bool) $input->getOption('front-images');
-        $builder = new ModelBuilder($this->projectDir(), new BlenderRunner($this->runner), $frontImages);
+        $builder = new ModelBuilder($this->projectDir(), new BlenderRunner($this->runner));
         $force = (bool) $input->getOption('force');
         $sink = $this->blenderOutputSink($output);
 
         // Two questions, because mtimes can only answer the first: did an input move, and was this
-        // model built with the settings now being asked for. Nothing on disk moves when
-        // `--front-images` is passed, so a plain model would otherwise stay "up to date" against a
-        // request for a photographed one. Same mechanism `scene:render` uses for its lighting and
-        // resolution.
+        // model built with what it should carry now. A front photograph that appears after the build
+        // moves nothing the mtimes watch, so a plain model would otherwise stay "up to date". Same
+        // mechanism `scene:render` uses for its lighting and resolution.
         $manifest = Staleness::manifestIn($builder->buildDir().'/glb');
-        $builtWith = $builder->builtWith();
 
         $built = 0;
         $skipped = 0;
         foreach ($selected as $spec) {
             $glb = $builder->glbPath($spec);
+            $builtWith = $builder->builtWith($spec);
             if (!$force
                 && !$builder->isStale($spec)
                 && !Staleness::settingsChanged($manifest, $glb, $builtWith)

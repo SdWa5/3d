@@ -34,6 +34,15 @@ final class BaffleFeatureKindsTest extends TestCase
         self::assertSame([], $this->validate(self::spec(self::validFeatures())));
     }
 
+    public function testAPlainFrontTakesItsOwnColourWithoutALayout(): void
+    {
+        $base = SpecFactory::specArray();
+        $plain = SpecFactory::spec(['appearance' => [...$base['appearance'], 'front_color' => '#f2f2f0']]);
+
+        self::assertNull($plain->layout);
+        self::assertSame([], $this->validate($plain));
+    }
+
     public function testARoundGrilleTakesItsDiameterAsItsOpeningAndSaysItIsRound(): void
     {
         $grille = self::feature(self::spec(self::validFeatures()), 'grille-cone');

@@ -1046,6 +1046,10 @@ def build_features(plan, material_set, baffle_y, carve_into=None):
     """
     layout = plan.get("baffle_layout")
     if not layout:
+        # A plain front still takes its own colour, as the ESF's does, on the face alone.
+        front_color = plan["appearance"].get("front_color")
+        if front_color and carve_into is not None:
+            _paint_front(carve_into, {"features": []}, baffle_y, 0.0, materials.feature("front", front_color, 0.75))
         return []
 
     dims = plan["geometry"]["dimensions_m"]

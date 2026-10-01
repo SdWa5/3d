@@ -40,8 +40,8 @@ final class BuildPlan
             // `front_image`, which puts a photograph on a plain cabinet's front face; 6 added `mast`, a wind-up
             // stand whose stages are separate objects so a scene can slide them; 7 added the `cell` and `fin` baffle
             // features, a `color` on every feature and a dome and a rim on a round grille, which the bpy side carves,
-            // draws and paints.
-            'plan_version' => 7,
+            // draws and paints; 8 added `front_image.cutout`, which cuts the whole panel along the image's alpha.
+            'plan_version' => 8,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,

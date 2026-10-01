@@ -74,14 +74,15 @@ a colour scheme can be changed in one place:
 | `sdwa5-rigging` | rigging point markers and castor brakes |
 | `sdwa5-hardware` | a mast's legs, collars and winch, and castor plates and forks |
 | `sdwa5-<role>-<hex>` | a baffle feature's own `color`, shared by every feature of one role and colour |
-| `sdwa5-front-<hex>` | `appearance.front_color` on the front face and every opening carved into it |
+| `sdwa5-front-<hex>` | `appearance.front_color` on the front face and every opening carved into it, except a driver's bore |
 | `sdwa5-mesh-<hex>` | a layout grille, with round holes punched into its alpha |
 | `sdwa5-coverage` | the coverage cone |
 | `sdwa5-estimated` | the orange tag on guessed cabinets |
 
 **Every visible material takes `appearance.color` unless something states its own.** A baffle feature's
 `color` paints a cone's paper, a cell's back wall, a fin's plate, a grille, a plug or the driver at a horn's
-throat, and `appearance.front_color` paints the front face with every opening carved into it. The parts keep
+throat, and `appearance.front_color` paints the front face with every opening carved into it. A driver's bore stays
+the cabinet's colour, which reads as the driver's basket. The parts keep
 their own materials, and they differ in `roughness` (how sharp a highlight is) but not in hue. The horn flares
 used to be lighter than the shell so a mouth read as an opening; on a cabinet whose horn spans most of its
 baffle that read as a differently-coloured panel instead.

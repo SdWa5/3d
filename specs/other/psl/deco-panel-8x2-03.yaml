@@ -1,0 +1,71 @@
+# PSL's deco panel, 8 x 2.03 m, HUNG FROM THE FRONT OF OUR TRUSS BEHIND THE SYSTEMS AT THE NEXT EVENT.
+#
+# Stated by Stefan on 2026-10-01 as "about 10m wide and about 2,5m high", to be "mounted hanging from the front of the
+# three point truss, truss standing behind the systems". Corrected the same day to 10 x 3.03 m, together with PSL's
+# print file, and later that day to 9 x 1.8 m. Size and print are what is known. Make, material and weight are not.
+#
+# CUT TO THE MOTIF'S SILHOUETTE, as Stefan stated on 2026-10-01 with PSL's new file "Krampus Gesamt.png", 2172 x 550
+# px with the motif on a transparent ground. Its 3.95:1 does not fit 9 x 1.8 m, and asked for the size Stefan chose
+# "whatever is closest to current size". So the panel keeps the 16.2 m2 the 9 x 1.8 m panel had and takes the file's
+# proportions, which misses the old width and height by about 11 % each. Either side kept alone would change the
+# other by 21 % or more.
+#
+# THE ID IS ITS SIZE because that is all there is, the same convention `sub-60x60` is under. It was
+# `deco-panel-10x2-5`, `deco-panel-10x3-03` and `deco-panel-9x1-8` until the size changed.
+#
+#   * DEPTH 0.050 m is a guess for a framed panel. A banner would be a few millimetres, and the difference moves the
+#     panel's front face by 45 mm, which nothing downstream is sensitive to.
+#   * WEIGHT 24.3 kg is 1.5 kg/m2 over the 16.2 m2 of the whole outline, an estimate for printed fabric on a light
+#     aluminium frame. The cut motif covers 55 % of it, but a cut panel's material is not known, so the estimate stays
+#     on the outline and errs heavy. It is the number the tower check reads. Our two Varytec stands carry 85 kg each, and five F33 segments are 46.5 kg, so
+#     the panel may weigh up to 123.5 kg before `scene:stack` refuses the backdrop. Weighed or stated by PSL, this
+#     becomes a fact, and only a panel heavier than about five times this estimate would change the answer.
+#
+# SUBTYPE `deco`, CATEGORY `other`, because the taxonomy has no category for set dressing. `scene:stack` reads the
+# subtype: a roster that brings a `deco` device gets a truss backdrop to hang it from. See docs/scenes.md.
+id: deco-panel-8x2-03
+name: "PSL deco panel 8 x 2.03 m"
+category: other
+subtype: deco
+quantity: 1
+owner: psl
+build: original
+
+provenance:
+  dimensions: estimated
+  weight: estimated
+
+geometry:
+  shape: box
+  # Lying along X like a truss segment: `width` is the 8 m span, `height` the 2.03 m drop, `depth` the panel.
+  dimensions_m: { width: 8.000, height: 2.026, depth: 0.050 }
+  origin: bottom-center
+  chamfer_m: 0.004
+
+appearance:
+  # The colour of the back and the edges, cut along the same outline as the front. The front carries the print.
+  color: "#3a3a40"
+
+# PSL's print file "Krampus Gesamt.png", 2172 x 550 px. Mapped at 2.715 px/cm it is 8.000 x 2.026 m, which is the
+# panel, so the default tolerance holds. Its alpha cuts the panel, see `cutout`. The cut edges along the outline have
+# no wall of their own, which shows at a grazing angle only. Kept under the gitignored meshes/ like every front image,
+# see docs/sources.md. A checkout without it builds the panel as a plain rectangle.
+front_image:
+  path: meshes/psl/deco-panel-front.png
+  px_per_cm: 2.715
+  cutout: true
+
+physical:
+  weight_kg: 24.3
+  handles: [ ]
+
+rigging:
+  # It hangs from the truss with clamps or ties, which are not modelled. Nothing hangs from it.
+  flyable: false
+  points: [ ]
+
+notes: |
+  ADDED 2026-10-01 for the next event, from the size stated by Stefan, corrected the same day to 10 x 3.03 m with
+  PSL's print, later that day to 9 x 1.8 m with the print stretched to fit, and that evening to 8 x 2.03 m, cut to
+  the motif of PSL's new file. The weight is the open question, and
+  it is the one that matters: it is what the two wind-up stands carry together with the truss.

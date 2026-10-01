@@ -173,10 +173,13 @@ final class SpecValidator
             if (1 !== preg_match(self::COLOR_PATTERN, $spec->frontColor)) {
                 $add("appearance.front_color '{$spec->frontColor}' must be a #rrggbb hex colour");
             }
-            // Painted on the carved front only, so a spec without a layout or with an imported mesh would carry a
-            // colour that nothing draws.
-            if (null === $spec->layout || null !== $spec->meshOverride) {
-                $add('appearance.front_color needs a baffle layout on a generated shell');
+            // Painted on a generated shell's front face, with or without a layout, so an imported mesh would carry
+            // a colour that nothing draws, and a front image would cover it.
+            if (null !== $spec->meshOverride) {
+                $add('appearance.front_color needs a generated shell, not a mesh_override');
+            }
+            if (null !== $spec->frontImage) {
+                $add('appearance.front_color and front_image both colour the front, so state one');
             }
         }
         if (null !== $spec->grilleInset) {
@@ -280,6 +283,13 @@ final class SpecValidator
                 "front_image.path '%s' has no importable extension (allowed: %s)",
                 $image->path,
                 implode(', ', FrontImage::IMPORTABLE),
+            );
+        }
+
+        if ($image->cutout && $image->isImportable() && FrontImage::CUTOUT_EXTENSION !== $image->extension()) {
+            $messages[] = sprintf(
+                "front_image.cutout needs a PNG, the only format here with an alpha channel, and '%s' is not one",
+                $image->path,
             );
         }
 

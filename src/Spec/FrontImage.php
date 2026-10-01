@@ -27,6 +27,11 @@ namespace App\Spec;
  * limited to the four right angles, since anything else would mean the photograph is not square to
  * the cabinet and cropping it is the fix rather than rotating it.
  *
+ * **A cut-out takes its shape from the image.** With `cutout: true` the file's alpha channel cuts the whole panel,
+ * front, back and edges alike, so a deco cut to its motif's silhouette shows the truss through its gaps. Only a PNG
+ * carries an alpha channel among the formats read here. The cut edges along the silhouette have no wall of their
+ * own, which reads at a grazing angle only.
+ *
  * **The file is not committed**, for the same two reasons `mesh_override`'s meshes are not: it is
  * binary, and it is as often as not somebody else's photograph. `meshes/README.md` carries the
  * `rclone` line to fetch each one, and the licensing paragraph in `docs/sources.md` applies to a
@@ -57,11 +62,15 @@ final class FrontImage
      */
     public const DEFAULT_TOLERANCE = 0.10;
 
+    /** The one format here with an alpha channel, which is what a cut-out is cut by. */
+    public const CUTOUT_EXTENSION = 'png';
+
     public function __construct(
         public readonly string $path,
         public readonly int $rotateDeg = 0,
         public readonly float $pxPerCm = self::DEFAULT_PX_PER_CM,
         public readonly float $tolerance = self::DEFAULT_TOLERANCE,
+        public readonly bool $cutout = false,
     ) {
     }
 
@@ -75,6 +84,9 @@ final class FrontImage
      *   path: meshes/psl/PSL_Subs_px.png
      *   rotate_deg: 90
      *   px_per_cm: 1.0
+     * front_image:
+     *   path: meshes/psl/deco-panel-front.png
+     *   cutout: true
      * ```
      */
     public static function fromReader(ArrayReader $reader, string $key): ?self
@@ -94,6 +106,7 @@ final class FrontImage
             $section->optionalInt('rotate_deg', 0) ?? 0,
             $section->optionalFloat('px_per_cm', self::DEFAULT_PX_PER_CM) ?? self::DEFAULT_PX_PER_CM,
             $section->optionalFloat('tolerance', self::DEFAULT_TOLERANCE) ?? self::DEFAULT_TOLERANCE,
+            $section->optionalBool('cutout'),
         );
     }
 
@@ -160,7 +173,7 @@ final class FrontImage
     }
 
     /**
-     * @return array{path: string, rotate_deg: int, px_per_cm: float, tolerance: float}
+     * @return array{path: string, rotate_deg: int, px_per_cm: float, tolerance: float, cutout: bool}
      */
     public function toArray(): array
     {
@@ -169,6 +182,7 @@ final class FrontImage
             'rotate_deg' => $this->rotateDeg,
             'px_per_cm' => $this->pxPerCm,
             'tolerance' => $this->tolerance,
+            'cutout' => $this->cutout,
         ];
     }
 }

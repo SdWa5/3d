@@ -27,10 +27,40 @@ final class SceneEventOptionsTest extends TestCase
         $input = new ArrayInput(['--event' => 'next-event'], (new SceneStackCommand())->getDefinition());
         $options = SceneEventOptions::resolve($input, dirname(__DIR__, 2).'/events', $devices);
 
-        self::assertSame('innschleife', $options->subOwner(['inn-sub', 'psl-top'], $devices));
-        self::assertSame('sdwa5', $options->subOwner(['our-sub', 'psl-top'], $devices));
-        self::assertNull($options->subOwner(['inn-sub', 'our-sub'], $devices));
+        self::assertSame(1.6, $options->interfaceFor(['inn-sub', 'psl-top'], $devices));
+        self::assertSame(1.75, $options->targetFor(['inn-sub', 'psl-top'], $devices));
+        self::assertNull($options->interfaceFor(['our-sub', 'psl-top'], $devices));
+        self::assertNull($options->interfaceFor(['inn-sub', 'our-sub'], $devices));
         self::assertSame(['innschleife' => 1.6], $options->interfaces);
+    }
+
+    /**
+     * Ours is a wall of two owners' subs. When both state the same interface the wall takes it, and when they differ
+     * or one is silent it keeps the default.
+     */
+    public function testAPooledWallFollowsItsSubOwnersWhenTheyAgree(): void
+    {
+        $devices = [
+            'our-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sdwa5']),
+            'sepp-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sepp']),
+            'psl-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'psl']),
+            'psl-top' => SpecFactory::spec(['owner' => 'psl']),
+            'kicker-15' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'innschleife']),
+        ];
+        $definition = (new SceneStackCommand())->getDefinition();
+        $agreed = SceneEventOptions::resolve(new ArrayInput(['--event' => 'next-event-light-achenbach'], $definition), dirname(__DIR__, 2).'/events', $devices);
+
+        self::assertSame(1.6, $agreed->interfaceFor(['our-sub', 'sepp-sub', 'psl-top'], $devices));
+        self::assertSame(1.75, $agreed->targetFor(['our-sub', 'sepp-sub'], $devices));
+        self::assertNull($agreed->interfaceFor(['our-sub', 'psl-sub'], $devices));
+
+        $differ = SceneEventOptions::resolve(new ArrayInput([
+            '--event' => 'next-event-light-achenbach',
+            '--system-interface' => ['sepp:1.7'],
+        ], $definition), dirname(__DIR__, 2).'/events', $devices);
+
+        self::assertNull($differ->interfaceFor(['our-sub', 'sepp-sub'], $devices));
+        self::assertSame(1.75, $differ->targetFor(['our-sub', 'sepp-sub'], $devices));
     }
 
     /**

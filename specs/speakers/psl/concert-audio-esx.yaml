@@ -35,7 +35,9 @@ geometry:
 appearance:
   # Black with a white front, as the owner stated on 2026-10-01, like the EF 6 above it. The catalogue's own
   # finish is "mattschwarze Strukturlackierung", and the front is PSL's own. See concert-audio-ef6.yaml.
-  color: "#141414"
+  # The body is #0a0a0a, a shade under the #141414 every cone in this library is drawn in, so the cones read a bit
+  # lighter than the cabinet, as the owner asked on 2026-10-01. The body went darker rather than the cone lighter.
+  color: "#0a0a0a"
   front_color: "#f2f2f0"
 
 physical:
@@ -75,8 +77,9 @@ audio:
   # smaller than the cross bar, so that where they cross no two faces share a plane and flicker.
   #
   # The colours are white-balanced against the body's own white. The cones sampled #4a4640, which the
-  # owner judged far too bright on 2026-10-01, so they went to #1e1c1a and then, asked for once more, to
-  # #0e0d0c. The green is the one sampled off the EF 6 slats in the same photo, because the ESX bars are
+  # owner judged far too bright on 2026-10-01. They went darker twice and then to #2a2724, and on 2026-10-01 the
+  # owner asked for them like every other cone, a bit lighter than the body black. So they are #141414, the
+  # colour every cone in this library takes, and the body went darker instead. The green is the one sampled off the EF 6 slats in the same photo, because the ESX bars are
   # 3 px wide and mixed with the white around them.
   #
   # EACH DRIVER SITS ON A WALL SLOPING 45° BACK TOWARDS THE SLOT, as the owner stated on 2026-10-01. Driver
@@ -92,8 +95,8 @@ audio:
     features:
       - { id: horn-up, kind: cell, at_m: [ 0.0,  0.3475 ], mouth_m: [ 0.54, 0.445 ], depth_m: 0.2225, angle_deg: -45, turn: pitch }
       - { id: horn-lo, kind: cell, at_m: [ 0.0, -0.3475 ], mouth_m: [ 0.54, 0.445 ], depth_m: 0.2225, angle_deg:  45, turn: pitch }
-      - { id: lf-up, kind: cone, inside: horn-up, diameter_in: 17, depth_m: 0.12, color: "#2a2724" }
-      - { id: lf-lo, kind: cone, inside: horn-lo, diameter_in: 17, depth_m: 0.12, color: "#2a2724" }
+      - { id: lf-up, kind: cone, inside: horn-up, diameter_in: 17, depth_m: 0.12, color: "#141414" }
+      - { id: lf-lo, kind: cone, inside: horn-lo, diameter_in: 17, depth_m: 0.12, color: "#141414" }
       - { id: grille-up, kind: grille, inside: horn-up, diameter_in: 17, depth_m: 0.002, dome_m: 0.02, rim_m: 0.015, color: "#3a3a3a", rim_color: "#141414" }
       - { id: grille-lo, kind: grille, inside: horn-lo, diameter_in: 17, depth_m: 0.002, dome_m: 0.02, rim_m: 0.015, color: "#3a3a3a", rim_color: "#141414" }
       - { id: slot,  kind: cell, at_m: [ 0.0,  0.0 ],   mouth_m: [ 0.54, 0.27 ], depth_m: 0.45 }
