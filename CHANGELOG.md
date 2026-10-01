@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.127.0] - 2026-10-01
+
+### Changed
+
+- A deco panel's top goes up to the room's ceiling, but at most half the panel stands above the truss it hangs from.
+  Under the next event's 4 m ceiling the truss already touches it, so no generated scene changes. With no ceiling the
+  10 × 3.03 m panel's top rises from 4.258 m to 5.773 m. The floor refusal reads the panel's new top.
+
 ## [0.126.0] - 2026-10-01
 
 ### Added

@@ -64,6 +64,34 @@ final class StackBackdropTest extends TestCase
         self::assertSame(4.0, $backdrop->flyHeightM(13.0));
     }
 
+    /** Under the 4 m ceiling the truss already touches, the panel's top stays at the truss's top. */
+    public function testTheCeilingHoldsThePanelAtTheTrussTop(): void
+    {
+        self::assertEqualsWithDelta(4.0, $this->ours()->panelTopM($this->devices['deco-panel-10x3-03'], 4.0), 1e-9);
+    }
+
+    /** A 5 m room leaves the truss at its full 4.258 m, and the panel rises to the ceiling, 0.742 m above it. */
+    public function testThePanelRisesToAHigherCeiling(): void
+    {
+        self::assertEqualsWithDelta(5.0, $this->ours()->panelTopM($this->devices['deco-panel-10x3-03'], 5.0), 1e-9);
+    }
+
+    /** With no ceiling half of the 3.03 m panel stands above the truss's 4.258 m, and no more. */
+    public function testAtMostHalfThePanelStandsAboveTheTruss(): void
+    {
+        $panel = $this->devices['deco-panel-10x3-03'];
+
+        self::assertEqualsWithDelta(4.258 + 1.515, $this->ours()->panelTopM($panel, null), 1e-9);
+        self::assertEqualsWithDelta(4.258 + 1.515, $this->ours()->panelTopM($panel, 13.0), 1e-9);
+    }
+
+    public function testAPanelReachingTheFloorIsRefused(): void
+    {
+        $tall = $this->deco(['geometry' => ['dimensions_m' => ['width' => 10.0, 'height' => 4.5, 'depth' => 0.05]]]);
+
+        self::assertStringContainsString('top at 4.000 m would reach 0.500 m below the floor', (string) $this->ours()->problem($tall, 4.0));
+    }
+
     /** 46.5 kg of truss and the 45.45 kg panel estimate are 45.975 kg a tower, about half the 85 kg rating. */
     public function testThePanelIsWellInsideTheTowerRating(): void
     {
@@ -133,6 +161,28 @@ final class StackBackdropTest extends TestCase
         self::assertEqualsWithDelta($truss['min'][1], $byId['backdrop-deco']->worldBox()['max'][1], 1e-6);
         self::assertEqualsWithDelta(0.5 + 0.8 - 0.145 - 0.05, $byId['backdrop-deco']->worldBox()['min'][1], 1e-6);
 
+        self::assertSame([], PlacementChecks::floatingFaults($result['placed']));
+        self::assertSame([], Interpenetration::faults($result['placed'], PlacementChecks::CONTACT_TOLERANCE_M));
+    }
+
+    /** Raised above the truss, the panel still hangs in contact with it, so nothing reads it as floating. */
+    public function testAPanelAboveTheTrussCompiles(): void
+    {
+        $lines = $this->ours()->yaml($this->devices['deco-panel-10x3-03'], 0.0, 0.5, 5.0);
+        $scene = SceneSpec::fromArray(
+            Yaml::parse("id: backdrop\nname: Backdrop\nplacements:\n".implode("\n", $lines)),
+            'test',
+        );
+
+        $result = (new SceneCompiler($this->devices))->compile($scene);
+
+        self::assertSame([], $result['violations']);
+        $byId = [];
+        foreach ($result['placed'] as $entry) {
+            $byId[$entry->placementId] = $entry;
+        }
+        self::assertEqualsWithDelta(4.258, $byId['backdrop-truss-1']->topZ(), 1e-6);
+        self::assertEqualsWithDelta(5.0, $byId['backdrop-deco']->topZ(), 1e-6);
         self::assertSame([], PlacementChecks::floatingFaults($result['placed']));
         self::assertSame([], Interpenetration::faults($result['placed'], PlacementChecks::CONTACT_TOLERANCE_M));
     }

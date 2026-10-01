@@ -10,7 +10,7 @@ use App\Spec\DeviceSpec;
 /**
  * A truss standing behind a generated rig on two towers, with a deco panel hung from its front.
  *
- * **PSL's 10 x 2.5 m panel at the next event is the case**, stated on 2026-10-01 as hung "from the front of the three
+ * **PSL's 10 x 3.03 m panel at the next event is the case**, stated on 2026-10-01 as hung "from the front of the three
  * point truss, truss standing behind the systems". The truss and the towers are ours and are named by the event as
  * `TRUSS:SEGMENTS:TOWER`, see {@see parse}. The panel comes from the roster as a device of subtype `deco`.
  *
@@ -20,7 +20,9 @@ use App\Spec\DeviceSpec;
  *   * Its top is at the room's ceiling or at the towers' full extension, whichever is lower. Under the next event's
  *     4 m ceiling our F33 is 0.258 m deep, so it rests at 3.742 m on towers cranked down to that.
  *   * One tower stands under each end, inset by half its own width so the truss end rests on it.
- *   * The panel hangs flush against the truss's front face with its top at the truss's top.
+ *   * The panel hangs flush against the truss's front face. Its top goes as high as the room allows, but at most
+ *     half the panel may stand above the truss, see {@see panelTopM}. Under a ceiling the truss already touches, that
+ *     puts the panel's top at the truss's top.
  *   * The towers stand {@see OUTRIGGER_CLEARANCE_M} behind the deepest back face of the rig, because their unmodelled
  *     outriggers spread to 1.6 m and the outer stacks of a wide rig stand right in front of them.
  *
@@ -96,6 +98,20 @@ final class StackBackdrop
         return null === $ceilingM ? $full : min($full, $ceilingM - $this->truss->dimensions->height);
     }
 
+    /**
+     * Where the panel's top edge is: at the ceiling, but never more than half the panel above the truss's top.
+     *
+     * Stated by the owner on 2026-10-01. The truss is at its highest already, so the panel is the only thing left to
+     * raise, and half its height is how far it may stand clear of the truss it hangs from. With no ceiling the panel
+     * takes the whole half.
+     */
+    public function panelTopM(DeviceSpec $deco, ?float $ceilingM): float
+    {
+        $top = $this->flyHeightM($ceilingM) + $this->truss->dimensions->height + $deco->dimensions->height / 2;
+
+        return null === $ceilingM ? $top : min($top, $ceilingM);
+    }
+
     /** The share of truss and panel each of the two towers carries. */
     public function towerLoadKg(DeviceSpec $deco): float
     {
@@ -128,12 +144,13 @@ final class StackBackdrop
         if ($fly <= 0.0) {
             return sprintf('a %.3f m ceiling leaves no room for %s', $ceilingM, $this->truss->id);
         }
-        $bottom = $fly + $this->truss->dimensions->height - $deco->dimensions->height;
+        $top = $this->panelTopM($deco, $ceilingM);
+        $bottom = $top - $deco->dimensions->height;
         if ($bottom < -StackMetrics::EPSILON_M) {
             return sprintf(
-                '%s hung from a truss topping out at %.3f m would reach %.3f m below the floor',
+                '%s with its top at %.3f m would reach %.3f m below the floor',
                 $deco->id,
-                $fly + $this->truss->dimensions->height,
+                $top,
                 -$bottom,
             );
         }
@@ -169,7 +186,7 @@ final class StackBackdrop
         $towerX = $this->spanM() / 2 - $this->tower->dimensions->width / 2;
         // Flush on the truss's front face, which is the side the audience is on.
         $panelY = $towerY - $this->truss->dimensions->depth / 2 - $deco->dimensions->depth / 2;
-        $panelZ = $fly + $trussH - $deco->dimensions->height;
+        $panelZ = $this->panelTopM($deco, $ceilingM) - $deco->dimensions->height;
         $extend = $fly < $this->tower->dimensions->height - 1e-9;
 
         $lines = [
