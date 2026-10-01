@@ -32,7 +32,7 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringContainsString('--system-target=innschleife:1.75', $tester->getDisplay());
         self::assertStringNotContainsString('--event=', $tester->getDisplay());
         self::assertStringContainsString('4× kicker-15', $tester->getDisplay());
-        self::assertStringContainsString('1× tms2 + 1× top-70x93 + 1× tms2', $tester->getDisplay());
+        self::assertStringContainsString('1× tms2 + 1× tms4 + 1× tms2', $tester->getDisplay());
     }
 
     /**
@@ -110,7 +110,7 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringContainsString('stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible', $display);
         self::assertSame(2, substr_count($display, '1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°'));
         self::assertStringContainsString('4× kicker-15', $display);
-        self::assertStringContainsString('1× tms2 + 1× top-70x93 + 1× tms2', $display);
+        self::assertStringContainsString('1× tms2 + 1× tms4 + 1× tms2', $display);
     }
 
     public function testAnExplicitClearanceReplacesTheEvents(): void

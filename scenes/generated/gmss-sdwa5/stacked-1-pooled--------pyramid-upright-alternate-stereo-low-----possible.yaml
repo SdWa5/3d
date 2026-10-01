@@ -11,18 +11,15 @@
 #
 # What it deals out today:
 #
-#   1  7× flexy-folded-horn-hybrid                                              4.257 m wide
-#   2  1× iq-sub + 5× flexy-folded-horn-hybrid + 1× iq-sub                    4.135 m wide
-#   3  2× iq-sub + 2× wall-bass + 1× skram + 2× iq-sub                        4.17 m wide
-#   4  1× nuke + 1× skram + 1× nuke + 1× mid-bass                             3.05 m wide
-#   5  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
+#   1  10× flexy-folded-horn-hybrid                                              6.09 m wide
+#   2  3× iq-sub + 1× flexy-folded-horn-hybrid + 2× wall-bass + 1× flexy-folded-horn-hybrid + 3× iq-sub    5.862 m wide
+#   3  1× nuke + 2× skram + 1× nuke + 1× mid-bass                             3.68 m wide
+#   4  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
 #
-# Subs reach 3.84 m against a 2.0 m interface. The stack is 4.8 m of cabinet.
+# Subs reach 3.077 m against a 2.0 m interface. The stack is 4.037 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 3.840 m against the 3.000 m ceiling asked for, so they stand 840 mm too high — 3.840 m is the
+#   * the subs reach 3.077 m against the 3.000 m ceiling asked for, so they stand 77 mm too high — 3.077 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× iq-sub + 2× wall-bass + 1× skram + 2× iq-sub row is 4.170 m on a 4.135 m row, so it overhangs 17 mm
-#     each side
 #
 id: stacked-1-pooled--------pyramid-upright-alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

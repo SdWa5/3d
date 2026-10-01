@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 final class StackMixFlankedRowsTest extends TestCase
 {
     /** What Innschleife brings to the next event, in the order the sweep deals it: `wsx-18` first as the heaviest. */
-    private const PHOTO = ['wsx-18' => 4, 'sbh-18' => 4, 'kicker-15' => 4, 'top-70x93' => 1, 'tms2' => 2];
+    private const PHOTO = ['wsx-18' => 4, 'sbh-18' => 4, 'kicker-15' => 4, 'tms4' => 1, 'tms2' => 2];
 
     /** @var array<string, DeviceSpec> */
     private array $devices;
@@ -101,7 +101,7 @@ final class StackMixFlankedRowsTest extends TestCase
 
         self::assertSame([], $result['problems']);
         self::assertSame(
-            ['1× wsx-18 + 2× sbh-18 + 1× wsx-18', '1× wsx-18 + 2× sbh-18 + 1× wsx-18', '4× kicker-15', '1× tms2 + 1× top-70x93 + 1× tms2'],
+            ['1× wsx-18 + 2× sbh-18 + 1× wsx-18', '1× wsx-18 + 2× sbh-18 + 1× wsx-18', '4× kicker-15', '1× tms2 + 1× tms4 + 1× tms2'],
             array_map(fn (Tier $t): string => $this->summary($t), $result['tiers']),
         );
     }

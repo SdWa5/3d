@@ -9,8 +9,7 @@ library usable: every piece shares one scale, one orientation and one origin con
 specs actually stack and snap together.
 
 The solver also offers repeated mixed sub rows. Innschleife's counts at the next event produce four possible scenes with
-WSX flanking two SBH in each of two rows, four kickers above them, and two TMS-2 around the estimated black middle
-top. The event gives them a 1.6 m interface and a 1.75 m sub-height target.
+WSX flanking two SBH in each of two rows, four kickers above them, and two TMS-2 around a TMS-4. The event gives them a 1.6 m interface and a 1.75 m sub-height target.
 See [the generation command](docs/scenes.md#repeating-a-flanked-row).
 
 Next-event generations use [events/next-event.yaml](events/next-event.yaml). `scene:stack --event=next-event`
@@ -21,6 +20,8 @@ turned, with Innschleife's kickers standing as measured. A next-event sweep ther
 its scenes are named `stated`. The event puts ours and Sepp's low end central and Innschleife's low, so the combined
 rig carries both wanted layouts at once, two rows of [3 Flexy | SKRAM | 3 Flexy] for ours and the photo rows for
 Innschleife. The event leaves 0.24 m between stacks, which is what fits that combined rig into the 13 m room.
+[events/next-event-light.yaml](events/next-event-light.yaml) is the same event without any Achenbach and with nine
+ESX instead of twelve, generated into `next-event-light` and `psl-next-event-light`. Both bring four EF 6.
 
 PSL's 10 × 3.03 m deco panel hangs from the front of our five F33 segments on our two wind-up towers, behind the
 rig. The event names that truss, and `scene:stack` adds it to every rig whose systems bring a `deco` device. Under
@@ -211,7 +212,7 @@ them can be read on the web without a checkout and a solve — see [docs/scenes.
 
 ## Current state
 
-**Five systems, 38 devices, 101 units, 6804.0 kg, 44.0 m³.** `bin/console catalog` is the authority and
+**Five systems, 39 devices, 102 units, 6849.4 kg, 45.5 m³.** `bin/console catalog` is the authority and
 [docs/catalog.md](docs/catalog.md) is its written form. What we own ourselves is the first two rows:
 
 | Device                   | Owner | Qty | W × H × D (m)                               | kg each          | Model                    |

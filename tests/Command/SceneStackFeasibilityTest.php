@@ -61,8 +61,14 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
      */
     public function testARigThatDoesNotStandUpIsWrittenWithTheReasonInItsHeader(): void
     {
-        // Our own gear pulled onto the centre line: GEO-13 made every gmss rig stand up, so gmss has none left to show.
-        $display = $this->invoke(['--owner' => ['sdwa5'], '--low-end' => ['central'], '--dry-run' => true])->getDisplay();
+        // GMSS under Sepp's tops in two mixed stacks, pinned on every axis. GEO-13 made every gmss rig stand up, and the
+        // group spread of 0.132.0 did the same for our own stereo rigs, so neither has one left to show.
+        $display = $this->invoke([
+            '--orientation' => ['mixed'], '--systems' => ['pooled'],
+            '--from' => ['wall-bass', 'mid-bass', 'nuke', 'achenbach-18', 'iq-sub', 'eighteensound-2way-15', 'turbo-top'],
+            '--stacks' => '2', '--align' => ['center'], '--low-end' => ['low'], '--shape' => ['pyramid'],
+            '--mirror-style' => ['alternate'], '--dry-run' => true,
+        ])->getDisplay();
 
         self::assertMatchesRegularExpression('/^id: \S+-impossible$/m', $display, 'no impossible rig was written');
         self::assertStringContainsString('THIS RIG DOES NOT STAND UP', $display);

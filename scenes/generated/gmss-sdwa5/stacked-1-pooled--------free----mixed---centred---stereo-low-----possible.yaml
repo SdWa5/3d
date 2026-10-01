@@ -11,13 +11,15 @@
 #
 # What it deals out today:
 #
-#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass + 1× skram rolled 90° + 2× flexy-folded-horn-hybrid rolled 90° + 1× mid-bass      8.3 m wide
-#   2  4× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 3× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90°    6.862 m wide
-#   3  3× iq-sub rolled 270° + 1× nuke + 3× iq-sub rolled 90°                4.73 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 2× wall-bass rolled 270° + 1× skram rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× mid-bass    9.823 m wide
+#   2  1× nuke rolled 270° + 4× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°    7.731 m wide
+#   3  2× iq-sub rolled 270° + 1× iq-sub + 2× iq-sub rolled 90°              3.29 m wide
 #   4  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
 #
-# Subs reach 2.933 m against a 2.0 m interface. The stack is 3.893 m of cabinet.
+# Subs reach 1.921 m against a 2.0 m interface. The stack is 2.881 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the subs reach 1.921 m against the 2.000 m interface asked for, so the tops sit 79 mm lower than ideal — 1.921
+#     m is the most they reach while every tier is still carried
 #
 id: stacked-1-pooled--------free----mixed---centred---stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

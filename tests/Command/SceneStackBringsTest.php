@@ -21,8 +21,8 @@ final class SceneStackBringsTest extends SceneStackTestCase
     /**
      * **The event builds the rig it states, not the rig the specs describe.**.
      *
-     * `tms4` is left at home at zero, so a cabinet Innschleife own must not appear anywhere in the output, not in a
-     * stack, not in a refusal, not in the recorded line's `--from` list, while the middle top they bring does.
+     * `sub-60x60` is left at home at zero, so a cabinet Innschleife own must not appear anywhere in the output, not in
+     * a stack, not in a refusal, not in the recorded line's `--from` list, while the big top they bring does.
      */
     public function testAnEventBuildsWithTheCountsItStatesRatherThanTheSpecs(): void
     {
@@ -31,9 +31,9 @@ final class SceneStackBringsTest extends SceneStackTestCase
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
-        self::assertStringContainsString('--from=top-70x93', $tester->getDisplay());
-        self::assertStringNotContainsString('device: tms4', $tester->getDisplay());
-        self::assertStringNotContainsString('--from=tms4', $tester->getDisplay());
+        self::assertStringContainsString('--from=tms4', $tester->getDisplay());
+        self::assertStringNotContainsString('device: sub-60x60', $tester->getDisplay());
+        self::assertStringNotContainsString('--from=sub-60x60', $tester->getDisplay());
     }
 
     /**
@@ -46,7 +46,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
             '--owner' => ['innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
-        self::assertStringContainsString('--quantity=tms4:0', $display);
+        self::assertStringContainsString('--quantity=tms4:1', $display);
         self::assertStringNotContainsString('concert-audio-esx', $display);
         self::assertStringNotContainsString('deco-panel', $display);
     }
@@ -94,7 +94,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
             '--owner' => ['innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertStringContainsString('--quantity=tms4:0', $tester->getDisplay());
+        self::assertStringContainsString('--quantity=tms4:1', $tester->getDisplay());
         self::assertStringNotContainsString('--event=', $tester->getDisplay());
     }
 
@@ -191,6 +191,5 @@ final class SceneStackBringsTest extends SceneStackTestCase
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertStringContainsString("- device: concert-audio-esx\n          count: 12", $tester->getDisplay());
-        self::assertStringContainsString("- device: concert-audio-ef6\n          count: 5", $tester->getDisplay());
     }
 }

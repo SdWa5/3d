@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.132.0] - 2026-10-01
+
+### Added
+
+- `events/next-event-light.yaml`, the next event without any Achenbach and with nine ESX instead of twelve, generated
+  into `next-event-light` with 20 scenes and `psl-next-event-light` with 13.
+
+### Changed
+
+- Innschleife bring two TMS-2 and one TMS-4 to the next event, so their stereo tops row is [TMS-2 | TMS-4 | TMS-2].
+- PSL bring four EF 6 to both next events instead of five.
+- Every generated folder is regenerated. `sdwa5-sepp` was last swept at 0.122.0 and the others at 0.120.0, so these
+  counts also carry the commits since then. Swept on the 0.131.0 code without this release, `sdwa5-sepp` comes out
+  byte-identical to what this release writes, so its change is that drift alone. The other folders were not split by
+  cause.
+
+  | folder | before | after | rewritten | removed | added |
+  | --- | --- | --- | --- | --- | --- |
+  | `sdwa5-sepp` | 166 | 132 | 0 | 38 | 4 |
+  | `gmss` | 111 | 112 | 0 | 8 | 9 |
+  | `gmss-sepp` | 353 | 367 | 0 | 23 | 37 |
+  | `gmss-sdwa5` | 482 | 456 | 7 | 92 | 66 |
+  | `gmss-sdwa5-sepp` | 477 | 496 | 6 | 63 | 82 |
+  | `sdwa5` | 66 | 64 | 1 | 12 | 10 |
+  | `sepp` | 7 | 8 | 0 | 0 | 1 |
+  | `innschleife-psl-sdwa5-sepp` | 422 | 446 | 15 | 47 | 71 |
+  | `innschleife-next-event` | 25 | 25 | 25 | 0 | 0 |
+  | `psl-next-event` | 10 | 11 | 10 | 0 | 1 |
+  | `next-event` | 6 | 8 | 6 | 0 | 2 |
+
+- `docs/scenes.md`, `docs/catalog.md` and the README carry the new counts. The library is five systems, 39 devices
+  and 102 units.
+
+### Fixed
+
+- A stereo tops row is spread by its own groups instead of by gravity's runs. Gravity merged PSL's five EF 6, built as
+  `2× | 1× | 2×`, into runs of 2, 2 and 1 over three ESX columns, so the odd top sat 0.31 m right of the centre line.
+  Now each group moves as one, and the row is mirrored to the millimetre.
+- The same fix makes `sdwa5`'s three stereo `central` rigs stand up, which 0.131.0 still writes as impossible. The
+  feasibility test takes its impossible rig from a pinned `gmss` and Sepp sweep instead.
+
+### Removed
+
+- `top-70x93`, the black Innschleife top estimated off their photo, and every reference to it.
+
 ## [0.131.0] - 2026-10-01
 
 ### Added
