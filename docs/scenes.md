@@ -2176,8 +2176,8 @@ its own height. Any other device, and any height above the spec's, is refused.
 
 ### A deco backdrop behind a generated rig
 
-PSL bring a deco panel of about 10 × 2.5 m to the next event, stated on 2026-10-01. It hangs from the front of our
-F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-10x2-5.yaml`
+PSL bring a deco panel of 10 × 3.03 m to the next event, stated on 2026-10-01 together with their print file. It hangs from the front of our
+F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-10x3-03.yaml`
 is the panel, `rosters/psl-next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
 
 ```yaml
@@ -2194,13 +2194,13 @@ backdrop:
 |---|---|
 | `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the unmodelled outriggers spread to 1.6 m |
 | `backdrop-truss` | five segments flush, 10 m, centred on the rig. It rests at the ceiling less its own 0.258 m, so at 3.742 m under the 4 m room, with the towers cranked to that |
-| `backdrop-deco` | flush on the truss's front face, its top at the truss's top, so its bottom is at 1.5 m |
+| `backdrop-deco` | flush on the truss's front face, its top at the truss's top, so its bottom is at 0.97 m |
 
 The truss and the panel share `fly.id: backdrop`, so the report adds them up as one bar.
 
 **Four refusals, each a fact about the gear rather than an arrangement.** A panel wider than the truss, more segments
 than are owned, a panel that would reach the floor, and a tower load over the tower's `max_load_kg`. Our Varytec
-stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 37.5 kg, so each tower carries 42 kg,
+stands are rated 85 kg. Five segments are 46.5 kg and the panel's estimate is 45.45 kg, so each tower carries 45.975 kg,
 and the panel may weigh up to 123.5 kg. A roster that brings a deco device with no truss named is refused too, and
 `--backdrop=TRUSS:SEGMENTS:TOWER` states one without an event.
 

@@ -8,7 +8,7 @@
 #   bin/console scene:stack --room-width=13 --room-height=4 --backdrop=truss-f33-2m:5:truss-tower-4m
 #     --system-interface=innschleife:1.6 --system-target=innschleife:1.75 --orientation=mixed --systems=tops-shared
 #     --order=ours,psl,innschleife --quantity=concert-audio-ef6:5 --quantity=concert-audio-esf:0
-#     --quantity=concert-audio-esx:12 --quantity=deco-panel-10x2-5:1 --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0
+#     --quantity=concert-audio-esx:12 --quantity=deco-panel-10x3-03:1 --quantity=hk-linear5-112x:0 --quantity=sub-60x60:0
 #     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
 #     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18
 #     --from=skram --from=flexy-folded-horn-hybrid --from=concert-audio-esx --from=kicker-15 --from=achenbach-18
@@ -160,8 +160,8 @@ placements:
           count: 1
           aim: near
 
-  # Backdrop: deco-panel-10x2-5 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
-  # The truss tops out at 4 m. Each tower carries 42 kg.
+  # Backdrop: deco-panel-10x3-03 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
+  # The truss tops out at 4 m. Each tower carries 45.975 kg.
   - id: backdrop-tower-left
     device: truss-tower-4m
     at: [-5.2, 1.282]
@@ -180,9 +180,9 @@ placements:
       count: 5
       gap_m: 0.0
   - id: backdrop-deco
-    device: deco-panel-10x2-5
+    device: deco-panel-10x3-03
     at: [-0.302, 1.112]
     fly:
-      height_m: 1.5
+      height_m: 0.97
       id: backdrop
 

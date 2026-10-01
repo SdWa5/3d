@@ -68,8 +68,8 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertSame(0, $tester->getStatusCode());
         $display = $tester->getDisplay();
         self::assertStringContainsString('--backdrop=truss-f33-2m:5:truss-tower-4m', $display);
-        self::assertStringContainsString('--quantity=deco-panel-10x2-5:1', $display);
-        self::assertStringContainsString('device: deco-panel-10x2-5', $display);
+        self::assertStringContainsString('--quantity=deco-panel-10x3-03:1', $display);
+        self::assertStringContainsString('device: deco-panel-10x3-03', $display);
         self::assertStringContainsString('extend_to_m: 3.742', $display);
         self::assertStringNotContainsString('-impossible', $display);
     }
