@@ -9,7 +9,7 @@
 #     --system-target=innschleife:1.75 --system-orientation=innschleife:turned --system-orientation=psl:turned
 #     --system-orientation=sdwa5:upright --system-orientation=sepp:upright --system-low-end=innschleife:low
 #     --system-low-end=sdwa5:central --system-low-end=sepp:central --stand=kicker-15 --systems=pooled
-#     --quantity=sub-60x60:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=kicker-15 --from=top-70x93 --from=tms2
+#     --quantity=sub-60x60:0 --quantity=tms4:1 --from=wsx-18 --from=sbh-18 --from=kicker-15 --from=tms4 --from=tms2
 #     --stacks=2 --align=center --low-end=low --shape=pyramid --mirror-style=alternate --id=stacked
 #     --into=innschleife-next-event
 #

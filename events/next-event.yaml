@@ -36,21 +36,22 @@ systems:
     #   * They are the two halves of PSL's published "Hornsystem Mod" package, so twelve under five is that package
     #     scaled up rather than two cabinets picked off a list.
     #
-    # TWELVE AND FIVE ARE MORE THAN THE SPECS SAY EXIST, AND THAT IS NOT AN ERROR IN EITHER PLACE. The specs keep the
-    # six and four of the published package, confirmed by our own Kraut drawing, and this records what comes to one
-    # event. **What PSL own is not written down here, deliberately**, decided on 2026-09-14: a count brought to one
-    # event would bound their stock from below, and their stock is theirs to state. docs/requests.md carries the
-    # open question.
+    # **LATER ON 2026-10-01 STEFAN CUT THE TOPS TO FOUR**, so only the sub count still exceeds the specs.
+    #
+    # TWELVE IS MORE THAN THE SPECS SAY EXIST, AND THAT IS NOT AN ERROR IN EITHER PLACE. The specs keep the six and four
+    # of the published package, confirmed by our own Kraut drawing, and this records what comes to one event. **What PSL
+    # own is not written down here, deliberately**, decided on 2026-09-14: a count brought to one event would bound
+    # their stock from below, and their stock is theirs to state. docs/requests.md carries the open question.
     #
     # EIGHT ZEROS, BECAUSE THE STATEMENT IS EXHAUSTIVE. Left out would mean "whatever the spec says" and would quietly
     # add nine more boxes to the rig.
     #
-    # A rig from these counts is 1128 kg of sub and 325 kg of top by the published figures, all of it in PSL's own
+    # A rig from the stated counts is 1128 kg of sub and 325 kg of top by the published figures, all of it in PSL's own
     # vehicles, so `load:plan` does not see it. The ESX is published without its four 100 mm castors, so a wall of
     # them is about 100 mm taller in the yard than in the file.
     brings:
       concert-audio-esx: 12         # "12x the biggest / most powerful sub they have"
-      concert-audio-ef6: 5          # "5x the biggest / most powerful top they have"
+      concert-audio-ef6: 4          # four instead of the stated five, decided by Stefan on 2026-10-01
       concert-audio-esf: 0
       thebox-tp118-800: 0
       thebox-tp218-1600: 0
@@ -83,14 +84,16 @@ systems:
     # either side of a big black top no drawing shows. Stefan decided to bring the photo's tops, so the TMS-4s are at
     # zero and the black one is `top-70x93`, a spec estimated off that photo. Its dimensions and 78 kg are estimates
     # from this library's 200 kg/m3 volume model, and so are the sub weights.
+    #
+    # **LATER ON 2026-10-01 STEFAN CHANGED THE TOPS** to two small and one big, so the big one is a TMS-4. The
+    # estimated black top was deleted from the library the same day, so its spec and its line here are gone.
     brings:
       wsx-18: 4
       sbh-18: 4
       kicker-15: 4
       sub-60x60: 0
       tms2: 2
-      top-70x93: 1
-      tms4: 0
+      tms4: 1
 # Air between neighbouring stacks, chosen by Stefan on 2026-10-01 so that the combined rig with Innschleife's photo
 # layout fits the 13 m room: 4.276 + 3.58 + 4.66 m of stacks and two 0.24 m gaps are 12.996 m. At the default 0.5 m it
 # is 13.516 m and the room refuses it.

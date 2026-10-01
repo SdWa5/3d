@@ -567,6 +567,13 @@ spanning 2.011 m to 3.200 m. Before this a stereo row came out at natural spacin
 ordering was right and the image was still narrow, because `align` cannot spread a tier that landed in several runs
 and a mixed row always does.
 
+**The groups are the row's own, not gravity's runs**, since 0.132.0. Gravity merges neighbouring cabinets of one
+device on one support into one run without regard to where a group ends, so PSL's five EF 6, built as `2× | 1× | 2×`,
+landed over three ESX columns as runs of 2, 2 and 1. Spread by those runs, the odd top sat 0.31 m right of the centre
+line with a pair beside it, measured on the next event's combined rig while PSL still brought five. Now a run is cut where its cabinets change
+group, each group moves as one, and the row is a pair at each edge with the odd top on the centre line, mirrored to the
+millimetre. A row whose runs already were its groups, which is most of them, comes out as before.
+
 **A true palindrome needs every top group's count to be even, or exactly one of them odd.** With two odd groups —
 three M2122s and three turbo tops — the centre holds one of each and the row is symmetric everywhere except inside
 that block. That is the least imbalance the counts allow: a centimetre in the middle rather than a whole cabinet at
@@ -673,15 +680,31 @@ bin/console scene:stack --owner=innschleife --event=next-event
 ```
 
 Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` and `v`, `stated`, `alternate`,
-`stated`, at `center` and `stereo`. The second `stated` is the low end, which the event sets to `low` for Innschleife. The event sets Innschleife up turned with the kickers standing, see
+`stated`, at `center` and `stereo`. Their middle top is a TMS-4 since 0.132.0, where the photo shows a black top no
+drawing has. The second `stated` is the low end, which the event sets to `low` for Innschleife. The event sets Innschleife up turned with the kickers standing, see
 [Event rooms and system preferences](#event-rooms-and-system-preferences).
 
 **The combined `next-event` run holds the photo rig because the event narrows the air between stacks.** Our stack
 is 4.276 m wide, PSL's 3.58 m and the photo rig 4.66 m. With the default 0.5 m between stacks the rig is 13.516 m
 wide and the 13 m room refuses it, measured on 2026-10-01. The event's `stack_clearance_m: 0.24`, chosen by Stefan
 the same day, makes it 12.996 m. Since 0.131.0 the event also fixes Innschleife's low end at `low`, so every combined
-rig carries the photo layout. Only `pyramid` fits it into the room, which leaves `next-event` with six scenes, four
-`systems-apart` and two `tops-shared`, where it had 26 while Innschleife was still swept `central` as well.
+rig carries the photo layout. The folder holds eight scenes, four `systems-apart` in `pyramid` and four `tops-shared`,
+two in `pyramid` and two in `v`, where it had 26 while Innschleife was still swept `central` as well.
+
+**`next-event-light` is the same event without any Achenbach and with nine ESX**, asked for by Stefan on 2026-10-01
+as a second version. `events/next-event-light.yaml` is a copy of `next-event.yaml` that differs in two counts, Sepp's
+`achenbach-18: 0` and PSL's `concert-audio-esx: 9`, because an event has no way to inherit from another. Both events
+bring four EF 6 since the same day. The light rig is 11.77 m wide against 13.00 m, so the room no longer limits the
+layout and `v` fits with the systems apart as well. It writes 20 scenes, 18 possible, and PSL alone writes 13:
+
+```bash
+bin/console scene:stack --owner=psl --event=next-event-light
+bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light \
+  --into=next-event-light --order=ours,psl,innschleife
+```
+
+Innschleife bring the same gear to both, so `innschleife-next-event` serves both and there is no light folder for
+them.
 
 ### A ceiling on the sub height
 
@@ -1148,26 +1171,28 @@ rather than a gig — and the sweep trips `--max-scenes` before writing a file. 
 name was padded to the widest label the *specs* could produce, so speccing a fifth owner renamed all 1374 committed
 scenes without changing one rig.
 
-**What replaced it is a subset per run and a folder per subset.** Eleven inventories are committed and each is
+**What replaced it is a subset per run and a folder per subset.** Thirteen inventories are committed and each is
 one command:
 
 | folder | inventory | scenes |
 | --- | --- | --- |
-| `sdwa5-sepp/` | the default: ours and Sepp's | 166 |
-| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 353 |
-| `gmss-sdwa5/` | GMSS and ours | 482 |
-| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 477 |
-| `gmss/` | GMSS alone | 111 |
-| `sdwa5/` | ours alone | 66 |
-| `sepp/` | Sepp's alone | 7 |
-| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 422 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts the event states for them | 26 |
-| `innschleife-next-event/` | what Innschleife are bringing on its own, with the tops on their photo. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 43 |
-| `psl-next-event/` | what PSL are bringing on its own: twelve ESX under five EF 6, in front of their deco panel on our truss | 10 |
+| `sdwa5-sepp/` | the default: ours and Sepp's | 132 |
+| `gmss-sepp/` | GMSS subs under Sepp's tops, and back | 367 |
+| `gmss-sdwa5/` | GMSS and ours | 456 |
+| `gmss-sdwa5-sepp/` | the three systems there were figures for before PSL and Innschleife | 496 |
+| `gmss/` | GMSS alone | 112 |
+| `sdwa5/` | ours alone | 64 |
+| `sepp/` | Sepp's alone | 8 |
+| `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 446 |
+| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts the event states for them | 8 |
+| `next-event-light/` | the same event without any Achenbach and with nine ESX, see [Repeating a flanked row](#repeating-a-flanked-row) | 20 |
+| `innschleife-next-event/` | what Innschleife are bringing on its own, two TMS-2 around a TMS-4 on their photo's sub rows. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 25 |
+| `psl-next-event/` | what PSL are bringing on its own: twelve ESX under four EF 6, in front of their deco panel on our truss | 11 |
+| `psl-next-event-light/` | the same with nine ESX | 13 |
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate, so it writes 166 today against `next-event`'s 33. See below.
+One system has nothing to separate, so it writes 132 today against `next-event`'s 8. See below.
 
 **`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
 which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
@@ -1270,7 +1295,7 @@ systems:
   psl:
     brings:
       concert-audio-esx: 12
-      concert-audio-ef6: 5
+      concert-audio-ef6: 4
       thebox-tp218-1600: 0        # not this time
 ```
 
@@ -1307,7 +1332,7 @@ it brings would change nothing for the rest. The roster files could be named wit
 the cabinets and the owner:
 
 ```
-the event has innschleife bring kicker-15, tms2, top-70x93, which the swept inventory does not hold. Say
+the event has innschleife bring kicker-15, tms2, tms4, which the swept inventory does not hold. Say
 --owner=innschleife, or name them with --from
 ```
 
@@ -1686,7 +1711,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the eleven committed inventories come to 2219 scenes across eleven runs, and the largest committed inventory is `gmss-sdwa5` at **482** files. The room-limited `next-event` folder holds **33** files, 30 possible and 3 impossible, 3 pooled, 20 with the systems apart and 10 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the thirteen committed inventories come to 2158 scenes across thirteen runs, and the largest committed inventory is `gmss-sdwa5-sepp` at **496** files. The room-limited `next-event` folder holds **8** files, all possible, none pooled, 4 with the systems apart and 4 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1706,17 +1731,17 @@ point. A rig with each system in its own stack could be asked for by hand and ne
 older way to ask for one value of it, means `systems-apart`, and collapses the sweep rather than narrowing it — it
 stays exactly as it was, because 433 written scenes record their own regeneration with it.
 
-**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **131 `systems-apart`, 130
-`tops-shared` and 92 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
+**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **134 `systems-apart`, 130
+`tops-shared` and 103 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
 one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **677 `systems-apart`, 734 `tops-shared` and 808 `pooled`**, for **2219** . All three values remain represented after the room limits.
+values come to **641 `systems-apart`, 738 `tops-shared` and 779 `pooled`**, for **2158**. All three values remain represented after the room limits.
 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 287 of the sweep across five folders: `gmss` 111, `innschleife-next-event` 87, `sdwa5` 66,
-`psl-next-event` 16 and `sepp` 7. **`sdwa5-sepp` is single-owner too**, by grouping rather than by ownership, which
-is why it writes 166 `pooled` scenes and no separated ones.
+rigs are 233 of the sweep across six folders: `gmss` 112, `sdwa5` 64, `innschleife-next-event` 25,
+`psl-next-event-light` 13, `psl-next-event` 11 and `sepp` 8. **`sdwa5-sepp` is single-owner too**, by grouping rather
+than by ownership, which is why it writes 132 `pooled` scenes and no separated ones.
 
 ##### What `tops-shared` shares is the pool and not the row
 

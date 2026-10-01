@@ -9,7 +9,7 @@
 #     --system-target=innschleife:1.75 --system-orientation=innschleife:turned --system-orientation=psl:turned
 #     --system-orientation=sdwa5:upright --system-orientation=sepp:upright --system-low-end=innschleife:low
 #     --system-low-end=sdwa5:central --system-low-end=sepp:central --stand=kicker-15 --systems=pooled
-#     --quantity=sub-60x60:0 --quantity=tms4:0 --from=wsx-18 --from=sbh-18 --from=kicker-15 --from=top-70x93 --from=tms2
+#     --quantity=sub-60x60:0 --quantity=tms4:1 --from=wsx-18 --from=sbh-18 --from=kicker-15 --from=tms4 --from=tms2
 #     --stacks=3 --align=center --low-end=low --shape=v --mirror-style=centred --id=stacked --into=innschleife-next-event
 #
 # 3 stacks side by side, with 0.24 m of air between them.
@@ -34,9 +34,9 @@
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   4  1× top-70x93                                                               0.7 m wide
+#   4  1× tms4                                                                    0.5 m wide
 #
-# Subs reach 1.69 m against a 1.6 m interface. The stack is 2.62 m of cabinet.
+# Subs reach 1.69 m against a 1.6 m interface. The stack is 2.83 m of cabinet.
 #   * wsx-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
 #     are not identical. --no-asymmetry leaves them out instead
 #   * sbh-18: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the stacks
@@ -119,7 +119,8 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           count: 2
-        - top-70x93
+        - device: tms4
+          count: 1
 
   # 1, 4 cabinets in 2 rows
   - id: main-1

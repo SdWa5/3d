@@ -268,6 +268,40 @@ final class StackTest extends TestCase
     }
 
     /**
+     * **A stereo tops row is spread by its own groups, not by the runs gravity seated it in.**.
+     *
+     * PSL's five EF 6 over twelve turned ESX are the palindrome `2× | 1× | 2×`, and gravity seats them over the three
+     * ESX columns as runs of 2, 2 and 1. Spread by those runs, the odd top landed 0.31 m right of the centre line with
+     * a pair beside it, measured on the next event's combined rig. Spread by its groups the row is a pair at each edge
+     * and the odd one on the centre line, mirrored to the millimetre.
+     */
+    public function testAStereoTopsRowIsSpreadByItsGroupsRatherThanByItsRuns(): void
+    {
+        $placed = $this->compile([
+            ['id' => 'main', 'at' => [0.0, 0.0], 'aim' => 'focus', 'align' => ['mode' => 'stereo'], 'stack' => [
+                'max_width_m' => 3.58, 'interface_height_m' => 2.0, 'max_sub_height_m' => 3.0, 'gap_m' => 0.02,
+                'shape' => 'pyramid',
+                'from' => [
+                    ['device' => 'concert-audio-esx', 'count' => 12, 'roll_mirror' => 90.0],
+                    ['device' => 'concert-audio-ef6', 'count' => 5],
+                ],
+            ]],
+        ]);
+
+        $tops = array_map(
+            static fn (PlacedDevice $device): float => $device->position[0],
+            array_values(array_filter($placed, static fn (PlacedDevice $device): bool => 'concert-audio-ef6' === $device->device->id)),
+        );
+        sort($tops);
+
+        self::assertCount(5, $tops);
+        self::assertEqualsWithDelta(0.0, $tops[2], 0.001, 'the odd top on the centre line');
+        self::assertEqualsWithDelta(0.0, $tops[0] + $tops[4], 0.001, 'the outer tops mirrored');
+        self::assertEqualsWithDelta(0.0, $tops[1] + $tops[3], 0.001, 'the inner tops mirrored');
+        self::assertLessThan(0.65, $tops[1] - $tops[0], 'the left pair keeps its own spacing');
+    }
+
+    /**
      * A stack whose bounds cannot be met contributes nothing and says why; the rest of the scene still builds.
      *
      * A stage narrower than a single cabinet is the honest case now. "Cannot be solved" no longer means

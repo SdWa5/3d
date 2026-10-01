@@ -4,7 +4,7 @@
 # three point truss, truss standing behind the systems". Corrected the same day to 10 x 3.03 m, together with PSL's
 # print file. Size and print are what is known. Make, material and weight are not.
 #
-# THE ID IS ITS SIZE because that is all there is, the same convention `top-70x93` and `sub-60x60` are under.
+# THE ID IS ITS SIZE because that is all there is, the same convention `sub-60x60` is under.
 #
 #   * DEPTH 0.050 m is a guess for a framed panel. A banner would be a few millimetres, and the difference moves the
 #     panel's front face by 45 mm, which nothing downstream is sensitive to.

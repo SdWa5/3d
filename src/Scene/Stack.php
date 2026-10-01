@@ -317,7 +317,7 @@ final class Stack
                 // with nothing under it and `stacked-all-3-free-stereo` a turbo top at 4.668 m, both refused by the
                 // sweep and neither visible to the tier checks, which had already read the pre-move bearings.
                 $runs = Gravity::reseat(
-                    self::spreadApart($runs, $resolved[$index - 1]),
+                    self::spreadApart($runs, $resolved[$index - 1], $tier, $tier->gapFor($this->gapM)),
                     Gravity::topFacesOf($resolved[$index - 1]),
                 );
             }
@@ -384,8 +384,16 @@ final class Stack
     /**
      * A stereo tops row's runs pushed apart until they span what carries them.
      *
-     * The slack — how much wider the support is than the row — is handed out equally between **neighbouring runs**,
-     * so each cluster keeps its own internal spacing and only the air between clusters grows. That is what `stereo`
+     * The slack — how much wider the support is than the row — is handed out equally between **neighbouring segments
+     * of the tier**, so each cluster keeps its own internal spacing and only the air between clusters grows.
+     *
+     * **Segments, not runs, and the difference is measured.** {@see StackTops} builds a stereo row as a palindrome,
+     * PSL's five EF 6 as `2× | 1× | 2×`, and gravity merges neighbouring cabinets of one device on one support into
+     * one run without regard to where a segment ends. Over three 1.18 m ESX columns that is runs of 2, 2 and 1, and
+     * equal air between those put the odd top 0.31 m right of the centre line with a pair beside it. So a run is cut
+     * where its cabinets change segment, and every segment moves as one. Where the runs already were the segments,
+     * which is most rows, nothing changes. A tier whose cabinets no longer match its segments, because gravity
+     * rearranged it, is spread by its runs as before. That is what `stereo`
      * has always meant ({@see LayoutMode::Stereo}: "natural spacing kept within each column"); the only thing new is
      * that a row which landed in several runs can now do it, where {@see alignmentFor} had to give up on one.
      *
@@ -403,16 +411,21 @@ final class Stack
      *
      * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>
      */
-    private static function spreadApart(array $runs, array $below): array
+    private static function spreadApart(array $runs, array $below, Tier $tier, float $gapM): array
     {
-        if (count($runs) < 2 || [] === $below) {
+        if ([] === $below) {
             return $runs;
         }
 
         usort($runs, static fn (array $a, array $b): int => $a['lo'] <=> $b['lo']);
+        $clusters = self::bySegment($runs, $tier, $gapM) ?? array_map(static fn (array $run): array => [$run], $runs);
+        if (count($clusters) < 2) {
+            return $runs;
+        }
 
-        $rowLo = $runs[0]['lo'];
-        $rowHi = $runs[count($runs) - 1]['hi'];
+        $rowLo = $clusters[0][0]['lo'];
+        $last = $clusters[count($clusters) - 1];
+        $rowHi = $last[count($last) - 1]['hi'];
         $supportLo = min(array_column($below, 'lo'));
         $supportHi = max(array_column($below, 'hi'));
 
@@ -422,18 +435,100 @@ final class Stack
         }
 
         // Equal air between each neighbouring pair, and the whole row re-centred on the support afterwards so the
-        // spread is symmetric however the runs happened to be sized.
-        $step = $slack / (count($runs) - 1);
+        // spread is symmetric however the clusters happened to be sized.
+        $step = $slack / (count($clusters) - 1);
         $centre = ($rowLo + $rowHi) / 2;
 
-        foreach ($runs as $position => $run) {
-            $shift = ($position - (count($runs) - 1) / 2) * $step
+        $spread = [];
+        foreach ($clusters as $position => $cluster) {
+            $shift = ($position - (count($clusters) - 1) / 2) * $step
                 + (($supportLo + $supportHi) / 2 - $centre);
-            $runs[$position]['lo'] = $run['lo'] + $shift;
-            $runs[$position]['hi'] = $run['hi'] + $shift;
+            foreach ($cluster as $run) {
+                $run['lo'] += $shift;
+                $run['hi'] += $shift;
+                $spread[] = $run;
+            }
         }
 
-        return $runs;
+        return self::relettered($spread, $runs);
+    }
+
+    /**
+     * The runs cut where their cabinets change segment and grouped by segment, or null when the cabinets do not match
+     * the tier's segments one for one.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs ordered left to right
+     *
+     * @return list<list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>>|null
+     */
+    private static function bySegment(array $runs, Tier $tier, float $gapM): ?array
+    {
+        $owners = [];
+        foreach ($tier->segments as $segment => [$device, $count]) {
+            for ($seat = 0; $seat < $count; ++$seat) {
+                $owners[] = [$segment, $device->id];
+            }
+        }
+        if (array_sum(array_column($runs, 'count')) !== count($owners)) {
+            return null;
+        }
+
+        $clusters = [];
+        $cabinet = 0;
+        foreach ($runs as $run) {
+            $pitch = RolledBox::widthOf($run['device'], $run['roll']) + $gapM;
+            $from = 0;
+            while ($from < $run['count']) {
+                [$segment, $device] = $owners[$cabinet + $from];
+                if ($device !== $run['device']->id) {
+                    return null;
+                }
+                $to = $from;
+                while ($to + 1 < $run['count'] && $owners[$cabinet + $to + 1][0] === $segment) {
+                    ++$to;
+                }
+                $piece = $run;
+                $piece['count'] = $to - $from + 1;
+                $piece['lo'] = $run['lo'] + $from * $pitch;
+                $piece['hi'] = $piece['lo'] + $piece['count'] * $pitch - $gapM;
+                // One segment is one placement wherever it can be, so a pair that gravity seated on two supports
+                // toes in as one pair, the same as its mirror image on the other side. The reseat lands it afterwards.
+                $previous = isset($clusters[$segment]) ? count($clusters[$segment]) - 1 : null;
+                if (null !== $previous && $clusters[$segment][$previous]['device'] === $piece['device']
+                    && $clusters[$segment][$previous]['roll'] === $piece['roll']) {
+                    $clusters[$segment][$previous]['count'] += $piece['count'];
+                    $clusters[$segment][$previous]['hi'] = $piece['hi'];
+                } else {
+                    $clusters[$segment][] = $piece;
+                }
+                $from = $to + 1;
+            }
+            $cabinet += $run['count'];
+        }
+
+        return array_values($clusters);
+    }
+
+    /**
+     * Fresh letters for a tier whose runs a cut regrouped, in the `<tier>a`, `<tier>b` form {@see Gravity::resolve}
+     * uses, so every placement id stays unique and runs left to right. Untouched when the runs did not change.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $spread
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     *
+     * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>
+     */
+    private static function relettered(array $spread, array $runs): array
+    {
+        if (array_column($spread, 'count') === array_column($runs, 'count')) {
+            return $spread;
+        }
+        $base = 1 === count($runs) ? $runs[0]['id'] : substr($runs[0]['id'], 0, -1);
+        foreach ($spread as $slot => $run) {
+            $spread[$slot]['id'] = $base.chr(ord('a') + $slot);
+        }
+
+        return $spread;
     }
 
     /**

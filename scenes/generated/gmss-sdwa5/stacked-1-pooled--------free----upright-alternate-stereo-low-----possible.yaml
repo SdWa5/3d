@@ -14,22 +14,21 @@
 #   1  2× wall-bass                                                              1.34 m wide
 #   2  1× skram + 1× mid-bass                                                   1.83 m wide
 #   3  1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid    2.443 m wide
-#   4  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   5  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   6  2× nuke + 1× flexy-folded-horn-hybrid + 1× iq-sub                      2.361 m wide
-#   7  5× iq-sub                                                                 2.73 m wide
-#   8  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
+#   4  5× flexy-folded-horn-hybrid                                              3.035 m wide
+#   5  2× flexy-folded-horn-hybrid + 2× nuke + 2× flexy-folded-horn-hybrid    3.644 m wide
+#   6  6× iq-sub                                                                 3.28 m wide
+#   7  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
 #
-# Subs reach 6.194 m against a 2.0 m interface. The stack is 7.154 m of cabinet.
+# Subs reach 5.431 m against a 2.0 m interface. The stack is 6.391 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 6.194 m against the 3.000 m ceiling asked for, so they stand 3194 mm too high — 6.194 m is the
+#   * the subs reach 5.431 m against the 3.000 m ceiling asked for, so they stand 2431 mm too high — 5.431 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 1× skram + 1× mid-bass row is 1.830 m on a 1.340 m row, so it overhangs 245 mm each side
 #   * the 1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid row is 2.443 m on a 1.830 m row, so
 #     it overhangs 306 mm each side
-#   * the 5× iq-sub row is 2.730 m on a 2.361 m row, so it overhangs 185 mm each side
-#   * the 1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122
-#     row is 2.950 m on a 2.730 m row, so it overhangs 110 mm each side
+#   * the 5× flexy-folded-horn-hybrid row is 3.035 m on a 2.443 m row, so it overhangs 296 mm each side
+#   * the 2× flexy-folded-horn-hybrid + 2× nuke + 2× flexy-folded-horn-hybrid row is 3.644 m on a 3.035 m row, so
+#     it overhangs 304 mm each side
 #
 id: stacked-1-pooled--------free----upright-alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"
