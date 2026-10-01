@@ -1,0 +1,9 @@
+id: next-event
+name: Next event
+room:
+  width_m: 13.0
+  height_m: 4.0
+systems:
+  innschleife:
+    interface_height_m: 1.6
+    target_sub_height_m: 1.75

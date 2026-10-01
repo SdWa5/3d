@@ -171,6 +171,11 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Build from these owners\' gear only. Default: sweep every combination of them')
+            ->addOption('event', null, InputOption::VALUE_REQUIRED, 'Event id from events/. Applies hard room limits and system preferences')
+            ->addOption('room-width', null, InputOption::VALUE_REQUIRED, 'Hard width limit for the whole compiled rig, in metres')
+            ->addOption('room-height', null, InputOption::VALUE_REQUIRED, 'Hard ceiling for the whole compiled rig, in metres')
+            ->addOption('system-interface', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Interface for walls of this owner\'s subs')
+            ->addOption('system-target', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Sub-height target for walls of this owner\'s subs')
             ->addOption('roster', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A file in rosters/ stating what a system brings to one event. Overrides the specs\' quantities. Repeatable')
             ->addOption('quantity', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'DEVICE:COUNT — build with this many of a device instead of the number its spec states. 0 leaves it at home. Repeatable')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per system, side by side, instead of one rig from everything')
@@ -225,6 +230,9 @@ final class SceneStackCommand extends BaseCommand
      */
     private SystemGrouping $grouping;
 
+    /** Event limits resolved before the sweep forks. */
+    private SceneEventOptions $eventOptions;
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io = new SymfonyStyle($input, $output);
@@ -233,6 +241,14 @@ final class SceneStackCommand extends BaseCommand
         $devices = [];
         foreach ($specs as $spec) {
             $devices[$spec->id] = $spec;
+        }
+
+        try {
+            $this->eventOptions = SceneEventOptions::resolve($input, $this->projectDir().'/events', $devices);
+        } catch (InvalidSpecException $e) {
+            $this->io->error($e->getMessage());
+
+            return self::FAILURE;
         }
 
         // **APPLIED BEFORE ANYTHING READS A QUANTITY, WHICH IS WHY IT IS THE FIRST THING THAT HAPPENS.** A count
@@ -812,7 +828,7 @@ final class SceneStackCommand extends BaseCommand
 
         // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
         // one of the possibilities, whatever the solver thought of the tiers.
-        $compiled = CandidateCheck::compileYaml($yaml, $devices);
+        $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
         if (is_string($compiled)) {
             return $compiled;
         }
@@ -1110,6 +1126,8 @@ final class SceneStackCommand extends BaseCommand
 
         $mixes = $this->readMixes($input);
 
+        $system = $this->eventOptions->subOwner($ids, $devices);
+
         return new Stack(
             // Otherwise the shorthand form — one device id per entry. Anything wanting `count` or `align` is edited
             // into the written file afterwards; `mix_with` used to be too, and `--mix` exists because a hand edit to
@@ -1129,11 +1147,11 @@ final class SceneStackCommand extends BaseCommand
             maxWidthM: $maxWidthM,
             minWidthM: $this->readFloat($input, 'min-width'),
             maxHeightM: $this->readFloat($input, 'max-height'),
-            interfaceHeightM: (float) $input->getOption('interface-height'),
+            interfaceHeightM: $this->eventOptions->interfaces[$system ?? ''] ?? (float) $input->getOption('interface-height'),
             gapM: (float) $input->getOption('gap'),
             mirror: $mirror,
             maxSubHeightM: $this->readFloat($input, 'max-sub-height'),
-            targetSubHeightM: $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
+            targetSubHeightM: $this->eventOptions->targets[$system ?? ''] ?? $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M,
             shape: $shape,
             mirrorStyle: $style,
             lowEnd: $lowEnd,

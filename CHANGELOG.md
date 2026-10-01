@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.123.0] - 2026-10-01
+
+### Added
+
+- `events/next-event.yaml` saves the 13 m room width and 4 m ceiling.
+- `scene:stack --event`, `--room-width` and `--room-height` refuse rigs outside their compiled world bounds.
+  An explicit room option can tighten a saved event limit but cannot loosen it.
+- Owner-specific interface and target preferences follow each system's subs, including walls with borrowed tops.
+  Innschleife uses a 1.6 m interface and a 1.75 m target. Pooled sub walls keep the ordinary defaults.
+- Recorded commands save resolved room limits and system preferences instead of an editable event id.
+- Focused room, event parsing, generation and owner-preference tests.
+
+### Changed
+
+- Regenerated the three next-event inventories with their saved room limits and the photo-top roster.
+  Innschleife has 87 scenes, PSL has 16, and the joint event has 33. The committed tree has 2,220 scenes.
+
 ## [0.122.0] - 2026-10-01
 
 ### Added

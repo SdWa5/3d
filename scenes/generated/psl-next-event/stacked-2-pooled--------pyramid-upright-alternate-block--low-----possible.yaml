@@ -5,7 +5,8 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:stack --orientation=upright --systems=pooled --quantity=concert-audio-ef6:5
+#   bin/console scene:stack --room-width=13 --room-height=4 --system-interface=innschleife:1.6
+#     --system-target=innschleife:1.75 --orientation=upright --systems=pooled --quantity=concert-audio-ef6:5
 #     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:12 --quantity=hk-linear5-112x:0
 #     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
 #     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --from=concert-audio-esx --from=concert-audio-ef6
