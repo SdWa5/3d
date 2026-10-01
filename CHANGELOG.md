@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.125.0] - 2026-10-01
+
+### Added
+
+- `.github/phpunit-shards.json`, which maps each CI shard of the suite to a PHPUnit `--filter`.
+- A `static` step that fails unless the shards together list every test exactly once.
+
+### Changed
+
+- The `phpunit` job runs as three parallel shards, `scene-stack-command`, `other-commands` and `rest`, built from the
+  shard file by a new `shards` job. `timeout-minutes: 90` now applies per shard.
+- `bin/console specs:validate` runs in `static` instead of `phpunit`, so it runs once rather than once per shard.
+- TOOL-20 and TOOL-21 in `TODO.md` record the public four-core runner and the shards instead of the billing block.
+
+### Fixed
+
+- `README.md` no longer calls the `docs` repository private or the SdWa5 repositories about to go public.
+
 ## [0.124.0] - 2026-10-01
 
 ### Added

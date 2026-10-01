@@ -30,11 +30,43 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  phpunit:
+  # **THE SHARD NAMES COME FROM ONE FILE, SO THE MATRIX AND THE PARTITION GUARD CANNOT DISAGREE.**
+  # `.github/phpunit-shards.json` maps each shard to a `--filter`. This job only reads the keys, and `phpunit`
+  # builds its matrix from them, so a shard added to the file runs without touching this workflow, and a shard
+  # the guard in `static` checks is by construction a shard that runs.
+  shards:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      names: ${{ steps.read.outputs.names }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: read
+        run: echo "names=$(jq -c 'keys_unsorted' .github/phpunit-shards.json)" >> "$GITHUB_OUTPUT"
+
+  # **THE SUITE RUNS AS THREE SHARDS, BECAUSE ONE JOB WAS AT THE MERCY OF A RANDOM DRAW.** Three single-job runs
+  # on the public four-core runner, 2026-09-30 and 2026-10-01: 57:54 on `5d22cbf`, 1:28:40 on `16f9849`, and
+  # cancelled at 90 minutes on `d8c9782`. Tests 1 to 63 alone swung between 3 and 18 minutes. That block holds
+  # `BuildAllCommandTest`, whose replay draws a fresh 120 of 2726 scenes per run, so the cost moves with the seed.
+  # Everything outside `App\Tests\Command\` was 12 to 15 minutes of those runs, so it stays one shard, and the
+  # `Command` tests are split in two at `SceneStackCommandTest`, which was about half of them in a local 4-core
+  # timing (19 of 39 minutes).
+  #
+  # Each shard is its own runner, which a public repository gets for free, so the wall time is the slowest shard
+  # rather than the sum. `fail-fast` is off so one red shard does not hide the result of the others.
+  phpunit:
+    needs: shards
+    name: phpunit (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.shards.outputs.names) }}
     # GitHub's default is 360 minutes, and that default is exactly what produced TOOL-20's three cancellations at
     # the six-hour ceiling for roughly 1644 minutes that bought nothing. A job that hits its own timeout reports a
-    # failure somebody can read; one cancelled at the ceiling reports that it was cancelled.
+    # failure somebody can read; one cancelled at the ceiling reports that it was cancelled. The 90 minutes now
+    # apply per shard, which is more than twice what the slowest one is expected to take.
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
@@ -62,9 +94,10 @@ jobs:
           # `-d opcache.jit_buffer_size=0`, which is the one form `ini_set` cannot undo because the buffer is
           # `PHP_INI_SYSTEM`. Only the third is a genuinely interpreted run.
           #
-          # **This is what the 90-minute timeout below rests on.** `composer test` was 108.98 min on run
-          # 33846381809 with the JIT off. At the measured ratio that is roughly 71 min, and the guard step is
-          # what keeps a silent regression from turning the budget back into an overrun.
+          # **The 90-minute budget rested on this while the suite was one job.** `composer test` was 108.98 min
+          # on run 33846381809 with the JIT off, and the measured ratio made that roughly 71 min. The single job
+          # later took between 58 and over 90 minutes, which is why it is sharded now. The guard step still
+          # keeps a silent regression from costing every shard 1.5x.
           #
           # `opcache.enable_cli` is in the list because setup-php leaves it off and a JIT buffer without opcache
           # on the CLI buys nothing.
@@ -107,29 +140,20 @@ jobs:
       # in the solver, so caching is the wrong lever for it.
       - run: composer install --prefer-dist --no-progress --no-interaction
 
-      - run: composer test
+      # A missing key makes `jq` print `null`, which PHPUnit would take as a filter matching nothing and pass
+      # with zero tests, so an unknown shard is a hard failure instead.
+      - name: composer test (${{ matrix.shard }})
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          filter=$(jq -er --arg shard "$SHARD" '.[$shard]' .github/phpunit-shards.json)
+          composer test -- --filter "$filter"
 
-      # Specs are checkable without Blender, so CI does it. This duplicates
-      # `SpecsValidateCommandTest::testTheRepositorysOwnSpecsAreValid()` and is kept anyway, because it is inside
-      # the "under 0.2 min combined" bucket and it is the only thing that runs the command's real exit-code path
-      # through the console application.
-      #
-      # **`bin/console scene:build --dry-run` used to run here and was 26.12 minutes of the 135.** It compiled
-      # every scene in the repository, which is work `composer test` had just finished doing to a stricter
-      # standard in `ShippedScenesTest`. The reasoning was already written down in `SceneBuildCommandTest`,
-      # which skips the identical whole-tree compile for exactly that reason; it had simply never been applied
-      # to the workflow.
-      #
-      # What went with it is the command's own no-argument path, which is now covered by the `full` job and by
-      # `SDWA5_FULL_REPLAY=1` rather than on every push. That is a real reduction and it is a small one: the
-      # branch is `array_map([$loader, 'load'], $loader->files())`, both halves of which are covered directly,
-      # and every scene it would have compiled is covered here anyway. `SceneBuildCommandTest` carries the
-      # longer version of this note, including why it was not replaced with a cheap throwaway-tree test.
-      - run: bin/console specs:validate
 
   # **The three static checks, in one job and ahead of nothing.** They cost seconds where the suite costs
   # minutes, so they run in parallel with it rather than gating it — a style violation and a failing solve are
-  # both worth knowing about on the same push.
+  # both worth knowing about on the same push. The shard guard and `specs:validate` ride along for the same
+  # reason.
   #
   # Ruff is pinned. `pipx run ruff` without a version picks up whatever is newest, and a new release that adds
   # a rule would fail a push that changed no Python.
@@ -156,6 +180,48 @@ jobs:
 
       - name: Ruff
         run: pipx run 'ruff==0.16.6' check .
+
+      # **EVERY TEST IN EXACTLY ONE SHARD, CHECKED RATHER THAN ASSUMED.** The filters in
+      # `.github/phpunit-shards.json` are written as complements, so a new test class lands in exactly one of
+      # them. This keeps it that way when somebody edits one: the shard lists together have to equal the
+      # unfiltered list line for line, which catches a test that runs twice as well as one that runs nowhere.
+      # `--list-tests` executes no test, so this costs seconds.
+      - name: PHPUnit shards cover the suite exactly once
+        run: |
+          set -o pipefail
+          vendor/bin/phpunit --list-tests | grep '^ - ' | sort > "$RUNNER_TEMP/all.txt"
+          : > "$RUNNER_TEMP/shards.txt"
+          for shard in $(jq -r 'keys_unsorted[]' .github/phpunit-shards.json); do
+            filter=$(jq -er --arg shard "$shard" '.[$shard]' .github/phpunit-shards.json)
+            count=$(vendor/bin/phpunit --list-tests --filter "$filter" | { grep '^ - ' || true; } | tee -a "$RUNNER_TEMP/shards.txt" | wc -l)
+            echo "$shard: $count tests"
+            if [ "$count" -eq 0 ]; then
+              echo "::error::shard $shard selects no tests"
+              exit 1
+            fi
+          done
+          sort "$RUNNER_TEMP/shards.txt" > "$RUNNER_TEMP/shards.sorted.txt"
+          echo "suite: $(wc -l < "$RUNNER_TEMP/all.txt") tests"
+          diff "$RUNNER_TEMP/all.txt" "$RUNNER_TEMP/shards.sorted.txt" \
+            || { echo "::error::the shards do not cover the suite exactly once (< missing, > duplicated)"; exit 1; }
+
+      # Specs are checkable without Blender, so CI does it. This duplicates
+      # `SpecsValidateCommandTest::testTheRepositorysOwnSpecsAreValid()` and is kept anyway, because it costs
+      # seconds and it is the only thing that runs the command's real exit-code path through the console
+      # application. It moved here from `phpunit` with the sharding, so it runs once rather than once per shard.
+      #
+      # **`bin/console scene:build --dry-run` used to run in `phpunit` and was 26.12 minutes of a 135-minute
+      # job.** It compiled every scene in the repository, which is work `composer test` does to a stricter
+      # standard in `ShippedScenesTest`. The reasoning was already written down in `SceneBuildCommandTest`,
+      # which skips the identical whole-tree compile for exactly that reason; it had simply never been applied
+      # to the workflow.
+      #
+      # What went with it is the command's own no-argument path, which is now covered by the `full` job and by
+      # `SDWA5_FULL_REPLAY=1` rather than on every push. That is a real reduction and it is a small one: the
+      # branch is `array_map([$loader, 'load'], $loader->files())`, both halves of which are covered directly,
+      # and every scene it would have compiled is covered by the suite anyway. `SceneBuildCommandTest` carries
+      # the longer version of this note, including why it was not replaced with a cheap throwaway-tree test.
+      - run: bin/console specs:validate
 
   # **The same suite with nothing sampled, nightly and on demand.**
   #
