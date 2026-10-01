@@ -22,6 +22,7 @@ use App\Scene\SceneLoader;
 use App\Scene\SharedTops;
 use App\Scene\SplitMode;
 use App\Scene\Stack;
+use App\Scene\StackBackdrop;
 use App\Scene\StackBlock;
 use App\Scene\StackChecks;
 use App\Scene\StackDeal;
@@ -176,6 +177,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('room-height', null, InputOption::VALUE_REQUIRED, 'Hard ceiling for the whole compiled rig, in metres')
             ->addOption('system-interface', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Interface for walls of this owner\'s subs')
             ->addOption('system-target', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Sub-height target for walls of this owner\'s subs')
+            ->addOption('backdrop', null, InputOption::VALUE_REQUIRED, 'TRUSS:SEGMENTS:TOWER. The truss a brought deco device hangs from, behind the rig')
             ->addOption('roster', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'A file in rosters/ stating what a system brings to one event. Overrides the specs\' quantities. Repeatable')
             ->addOption('quantity', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'DEVICE:COUNT — build with this many of a device instead of the number its spec states. 0 leaves it at home. Repeatable')
             ->addOption('per-owner', null, InputOption::VALUE_NONE, 'One stack per system, side by side, instead of one rig from everything')
@@ -233,6 +235,12 @@ final class SceneStackCommand extends BaseCommand
     /** Event limits resolved before the sweep forks. */
     private SceneEventOptions $eventOptions;
 
+    /** The deco device a roster or `--quantity` brings, or null when it brings none. */
+    private ?DeviceSpec $deco = null;
+
+    /** What {@see $deco} hangs from, resolved from {@see SceneEventOptions::$backdrop} once a deco is brought. */
+    private ?StackBackdrop $backdrop = null;
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io = new SymfonyStyle($input, $output);
@@ -281,6 +289,39 @@ final class SceneStackCommand extends BaseCommand
             $devices[$id] = $devices[$id]->withQuantity($count);
         }
         $this->counts = $counts;
+
+        // **A DECO DEVICE IS HUNG, NOT STACKED.** It never enters the sweep, so it is taken out of the inventory
+        // check below and handed to the backdrop instead. Without a truss to hang it from it is a refusal, because
+        // a panel left out of the picture would look like a rig that had room for it.
+        $decos = array_keys(array_filter(
+            $counts,
+            static fn (int $count, string $id): bool => $count > 0 && StackBackdrop::isDeco($devices[$id]),
+            ARRAY_FILTER_USE_BOTH,
+        ));
+        $this->brought = array_diff_key($this->brought, array_flip($decos));
+        if (count($decos) > 1) {
+            $this->io->error(sprintf('one backdrop hangs one deco device, and this run brings %s', implode(', ', $decos)));
+
+            return self::FAILURE;
+        }
+        $this->deco = [] === $decos ? null : $devices[$decos[0]];
+        $this->backdrop = null;
+        if (null !== $this->deco) {
+            $stated = $this->eventOptions->backdrop;
+            $backdrop = null === $stated
+                ? sprintf('%s is brought, and nothing names a truss to hang it from. Say --backdrop=TRUSS:SEGMENTS:TOWER, or an --event with one', $this->deco->id)
+                : StackBackdrop::parse($stated, $devices);
+            $problem = is_string($backdrop) ? $backdrop : $backdrop->problem($this->deco, $this->eventOptions->room->heightM);
+            if (null !== $problem) {
+                $this->io->error($problem);
+
+                return self::FAILURE;
+            }
+            /** @var StackBackdrop $backdrop */
+            $this->backdrop = $backdrop;
+        }
+        // Only a rig that has a backdrop records one, so an event naming a truss changes no file without a panel.
+        $input->setOption('backdrop', $this->backdrop?->stated());
         foreach ($this->getDefinition()->getOptions() as $option) {
             $this->defaults[$option->getName()] = $option->getDefault();
         }
@@ -833,6 +874,26 @@ final class SceneStackCommand extends BaseCommand
             return $compiled;
         }
 
+        // **THE BACKDROP GOES BEHIND THE RIG AS IT CAME OUT**, which is why it is added after the first compile: the
+        // deepest back face is the solve's answer, with the aimed tops yawed and the subs rolled. Then the whole
+        // scene is compiled again, so the room, the overlap and the floating checks see the truss as well.
+        $backdrop = $this->backdrop;
+        if (null !== $this->deco && null !== $backdrop) {
+            $yaml .= implode("\n", $backdrop->yaml(
+                $this->deco,
+                $at[0],
+                $compiled['backY'],
+                $this->eventOptions->room->heightM,
+            ))."\n";
+            $cabinets = $compiled['cabinets'];
+            $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
+            if (is_string($compiled)) {
+                return $compiled;
+            }
+            // A tower is not a cabinet, and the count is what the run reports per rig.
+            $compiled['cabinets'] = $cabinets;
+        }
+
         return ['yaml' => $yaml, 'bandMiss' => $bandMiss] + $compiled;
     }
 
@@ -1267,7 +1328,15 @@ final class SceneStackCommand extends BaseCommand
         // A count that matches the spec is dropped rather than carried: it changes no rig, and carrying it would put
         // a `--quantity` in the recorded line that does nothing, and — worse — would trip the `--into` refusal for a
         // run that has not actually overridden anything.
-        return array_filter($counts, static fn (int $count, string $id): bool => $count !== $devices[$id]->quantity, ARRAY_FILTER_USE_BOTH);
+        //
+        // **EXCEPT A DECO DEVICE THAT IS BROUGHT**, whose count is the only thing telling a replay to hang it. One panel
+        // matching a spec that says one would otherwise vanish from the line, and the replay would drop the backdrop.
+        return array_filter(
+            $counts,
+            static fn (int $count, string $id): bool => $count !== $devices[$id]->quantity
+                || ($count > 0 && StackBackdrop::isDeco($devices[$id])),
+            ARRAY_FILTER_USE_BOTH,
+        );
     }
 
     /**

@@ -74,11 +74,13 @@ appearance:
 physical:
   # Published: 25 kg.
   weight_kg: 25.0
+  # Published: 85 kg. `scene:stack` refuses a truss backdrop whose share on either stand is more, see
+  # docs/scenes.md. The 25 kg minimum load still has no field and stays in the notes.
+  max_load_kg: 85.0
   handles: [ ]
 
 rigging:
-  # A stand is what gets stood on the floor, not flown. Its own load rating — 85 kg — is a fact about what it can
-  # carry and has nowhere to go in this schema; it is in the notes.
+  # A stand is what gets stood on the floor, not flown.
   flyable: false
   points: [ ]
 

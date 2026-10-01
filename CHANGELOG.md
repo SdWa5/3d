@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.124.0] - 2026-10-01
+
+### Added
+
+- **A deco backdrop behind a generated rig.** A roster that brings a `deco` device gets a truss standing behind the
+  rig on two towers, with the panel hung flush on its front. `StackBackdrop` derives every position. The truss tops out
+  at the room ceiling or at the towers' full extension, and the towers stand 0.8 m behind the deepest back face so
+  their unmodelled outriggers clear the cabinets. The whole scene is compiled again with it, so the room, overlap and
+  floating checks see it.
+- `deco-panel-10x2-5`, PSL's 10 × 2.5 m panel, with an estimated 37.5 kg. `rosters/psl-next-event.yaml` brings it.
+- `events/next-event.yaml` names the backdrop as five `truss-f33-2m` on two `truss-tower-4m`. Under the 4 m ceiling
+  the truss rests at 3.742 m and each tower carries 42 kg.
+- `scene:stack --backdrop=TRUSS:SEGMENTS:TOWER`, recorded in the replay line only when a deco device is hung.
+  A deco device with no truss named, a panel wider than the truss, more segments than are owned and a tower load over
+  its rating are refused.
+- `extend_to_m` on a placement, the height a truss tower is cranked to. The compiler places a shortened copy of the
+  spec and Blender scales the model along its height. Any other device, and any height above the spec's, is refused.
+- `physical.max_load_kg` in the spec format. `truss-tower-4m` states its published 85 kg.
+- `StackBackdropTest`, `ExtendToTest`, and backdrop cases in `SceneStackEventTest` and `EventTest`.
+- The panel's unknown weight, depth and print in `docs/requests.md`.
+
+### Changed
+
+- A brought deco device keeps its count in the recorded line even when it matches the spec, so a replay keeps the
+  backdrop.
+- Regenerated `psl-next-event` and `next-event` with the backdrop. Every rig kept its feasibility. The committed tree
+  has 2,219 scenes.
+- `docs/catalog.md` regenerated. It was missing `top-70x93` since 0.122.0.
+- `SceneStackRosterTest` leaves the panel at home where it runs without an event.
+
+### Removed
+
+- `psl-next-event/stacked-2-pooled--------pyramid-upright-alternate-stereo-low-----possible.yaml`. It is the same rig
+  as its `block` sibling, and only floating-point noise of half a micrometre kept the two apart in 0.123.0.
+
+### Fixed
+
+- Two `StackSolverTest` cases that had failed since 0.122.0. The full pooled inventory now builds repeated flanked
+  rows instead of a gapped row, so the gap-out case uses one SKRAM, and the refused-gap case no longer expects a
+  refused rig. A new case pins the flanked rig.
+
 ## [0.123.0] - 2026-10-01
 
 ### Added

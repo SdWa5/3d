@@ -7,3 +7,9 @@ systems:
   innschleife:
     interface_height_m: 1.6
     target_sub_height_m: 1.75
+# Our five F33 segments on our two Varytec wind-up towers, for a `deco` device a roster brings. PSL's 10 m panel
+# hangs from it, stated 2026-10-01. Under the 4 m ceiling the truss rests at 3.742 m. See docs/scenes.md.
+backdrop:
+  truss: truss-f33-2m
+  segments: 5
+  towers: truss-tower-4m

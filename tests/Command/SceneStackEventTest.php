@@ -15,6 +15,13 @@ final class SceneStackEventTest extends SceneStackTestCase
         '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
     ];
 
+    private const PSL = [
+        '--owner' => ['psl'], '--roster' => ['psl-next-event'],
+        '--event' => 'next-event', '--orientation' => ['turned'], '--stacks' => '1',
+        '--align' => ['center'], '--shape' => ['pyramid'], '--mirror-style' => ['alternate'],
+        '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
+    ];
+
     public function testTheEventRecordsResolvedNumbersAndBuildsThePhotoRig(): void
     {
         $tester = $this->invoke(self::OPTIONS);
@@ -51,6 +58,37 @@ final class SceneStackEventTest extends SceneStackTestCase
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('finite positive number', $tester->getDisplay());
+    }
+
+    /** PSL's roster brings the deco panel, and the event hangs it from our truss behind the rig. */
+    public function testABroughtDecoPanelHangsFromTheEventsTruss(): void
+    {
+        $tester = $this->invoke(self::PSL);
+
+        self::assertSame(0, $tester->getStatusCode());
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('--backdrop=truss-f33-2m:5:truss-tower-4m', $display);
+        self::assertStringContainsString('--quantity=deco-panel-10x2-5:1', $display);
+        self::assertStringContainsString('device: deco-panel-10x2-5', $display);
+        self::assertStringContainsString('extend_to_m: 3.742', $display);
+        self::assertStringNotContainsString('-impossible', $display);
+    }
+
+    public function testADecoPanelWithNoTrussIsRefused(): void
+    {
+        $tester = $this->invoke(array_diff_key(self::PSL, ['--event' => true]));
+
+        self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString('nothing names a truss', $tester->getDisplay());
+    }
+
+    /** The event names a truss for every run, and only a run that hangs something records it. */
+    public function testARunWithoutDecoRecordsNoBackdrop(): void
+    {
+        $tester = $this->invoke(self::OPTIONS);
+
+        self::assertStringNotContainsString('--backdrop', $tester->getDisplay());
+        self::assertStringNotContainsString('backdrop-truss', $tester->getDisplay());
     }
 
     public function testAnUnknownEventIsRefused(): void

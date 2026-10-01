@@ -50,6 +50,13 @@ final class DeviceSpec
         public readonly ?float $grilleInset,
         public readonly ?string $grilleColor,
         public readonly float $weightKg,
+        /**
+         * The most this device may carry, in kilograms, or null when nobody has stated it.
+         *
+         * A stand's rating is the number that decides what may hang from a truss between two of them, and until
+         * this field existed it lived in the notes, where nothing could refuse a rig that broke it.
+         */
+        public readonly ?float $maxLoadKg,
         public readonly array $handles,
         public readonly bool $flyable,
         public readonly array $riggingPoints,
@@ -132,6 +139,7 @@ final class DeviceSpec
             grilleInset: $grille?->optionalFloat('inset_m'),
             grilleColor: $grille?->optionalString('color'),
             weightKg: $physical->requireFloat('weight_kg'),
+            maxLoadKg: $physical->optionalFloat('max_load_kg'),
             handles: $physical->stringList('handles'),
             flyable: $rigging?->optionalBool('flyable') ?? false,
             riggingPoints: array_map(
@@ -177,6 +185,31 @@ final class DeviceSpec
             return $this;
         }
 
+        return $this->copy($quantity, $this->dimensions);
+    }
+
+    /**
+     * This device standing `$heightM` tall instead of its stated height, for a telescoping stand cranked lower.
+     *
+     * The same copy {@see withQuantity} makes and for the same reason. The spec states the full extension, which
+     * is a fact about the stand, and one scene cranks it down, which is a fact about that scene. Everything that
+     * reads a placed device's height — the shell, contact, the room check, the report — then reads the cranked one.
+     */
+    public function withHeight(float $heightM): self
+    {
+        if ($heightM === $this->dimensions->height) {
+            return $this;
+        }
+
+        return $this->copy(
+            $this->quantity,
+            new Dimensions($this->dimensions->width, $heightM, $this->dimensions->depth),
+        );
+    }
+
+    /** Every field carried over except the two the `with…` methods change. */
+    private function copy(int $quantity, Dimensions $dimensions): self
+    {
         return new self(
             sourcePath: $this->sourcePath,
             id: $this->id,
@@ -190,7 +223,7 @@ final class DeviceSpec
             provenance: $this->provenance,
             deviations: $this->deviations,
             shape: $this->shape,
-            dimensions: $this->dimensions,
+            dimensions: $dimensions,
             backWidth: $this->backWidth,
             frontHeight: $this->frontHeight,
             truss: $this->truss,
@@ -202,6 +235,7 @@ final class DeviceSpec
             grilleInset: $this->grilleInset,
             grilleColor: $this->grilleColor,
             weightKg: $this->weightKg,
+            maxLoadKg: $this->maxLoadKg,
             handles: $this->handles,
             flyable: $this->flyable,
             riggingPoints: $this->riggingPoints,

@@ -34,7 +34,7 @@ final class CandidateCheck
      *
      * @param array<string, DeviceSpec> $devices
      *
-     * @return array{cabinets: int, fingerprint: string, faults: list<Fault>}|string
+     * @return array{cabinets: int, fingerprint: string, faults: list<Fault>, backY: float}|string
      */
     public static function compileYaml(string $yaml, array $devices, ?RoomBounds $room = null): array|string
     {
@@ -85,7 +85,18 @@ final class CandidateCheck
         }
         sort($marks);
 
-        return ['cabinets' => count($result['placed']), 'fingerprint' => implode('|', $marks), 'faults' => $faults];
+        $backY = -INF;
+        foreach ($result['placed'] as $entry) {
+            $backY = max($backY, $entry->worldBox()['max'][1]);
+        }
+
+        return [
+            'cabinets' => count($result['placed']),
+            'fingerprint' => implode('|', $marks),
+            'faults' => $faults,
+            // The deepest back face, which a backdrop stands behind. See {@see StackBackdrop}.
+            'backY' => [] === $result['placed'] ? 0.0 : $backY,
+        ];
     }
 
     /**

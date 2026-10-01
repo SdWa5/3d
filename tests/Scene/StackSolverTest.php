@@ -1245,18 +1245,24 @@ final class StackSolverTest extends TestCase
     /**
      * A pyramid whose packed rows cannot taper gets a row **gapped out** to the width the row above needs.
      *
-     * Measured on the pooled rig with the SKRAMs and Flexys rolled: packed, the three-cabinet row under the tops is
-     * narrower than the 2.511 m tops row by more than a tenth of a 2-way per side. Gapped out at 148 mm it is 2.420 m,
-     * and every row above it is still carried.
+     * Measured with one SKRAM, ten Flexys and seven Achenbachs: packed, three Achenbachs under the tops are narrower
+     * than the 2.511 m tops row by more than a tenth of a 2-way per side. Gapped out at 310 mm they are 2.420 m, and
+     * every row above them is still carried.
+     *
+     * **One SKRAM, because two no longer need a gap.** The full pooled inventory used to gap a [SKRAM | SKRAM |
+     * Achenbach] row out at 148 mm. Since 0.122.0 it builds repeated flanked rows instead, see
+     * {@see testTheFullPooledInventoryBuildsRepeatedFlankedRowsRatherThanAGap}. A single SKRAM cannot be split over two
+     * rows, so nothing but a gap carries the tops here.
      */
     public function testAPyramidGapsARowOutToCarryTheRowAbove(): void
     {
-        $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: 3.0);
+        $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: 3.0, counts: ['skram' => 1, 'flexy-folded-horn-hybrid' => 10, 'achenbach-18' => 7]);
 
         self::assertSame([], $result['problems']);
         $gapped = array_values(array_filter($result['tiers'], static fn (Tier $tier): bool => null !== $tier->gapM));
         self::assertCount(1, $gapped);
-        self::assertEqualsWithDelta(0.148, $gapped[0]->gapM, 1e-9);
+        self::assertSame('3× achenbach-18 at 310 mm gaps', $gapped[0]->label());
+        self::assertEqualsWithDelta(0.31, $gapped[0]->gapM, 1e-9);
 
         foreach (array_slice($result['tiers'], 1, null, true) as $index => $tier) {
             $below = $result['tiers'][$index - 1]->widthM(0.02);
@@ -1318,12 +1324,32 @@ final class StackSolverTest extends TestCase
         self::assertStringContainsString('tecnare-m2122 in the', implode("\n", $problems));
         self::assertStringContainsString('has nothing under it at all', implode("\n", $problems));
 
-        // And the solver does not offer it: the rig stays refused rather than coming back with that gap.
+        // And the solver does not offer it. Until 0.122.0 the rig stayed refused, and since then it comes back as
+        // repeated flanked rows, which carry the tops without any gap at all.
         $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: null);
-        self::assertNotSame([], $result['problems']);
         foreach ($result['tiers'] as $tier) {
             self::assertNull($tier->gapM, $tier->label());
         }
+    }
+
+    /**
+     * **The full pooled inventory stands as two rows of [3 Flexy | SKRAM | 3 Flexy]**, the repeated flanked row 0.122.0
+     * added for Innschleife's photo.
+     *
+     * The rolled SKRAM is 0.610 m high and the rolled Flexy 0.591 m, inside the 30 mm a repeated row allows. Measured
+     * against the gapped rig it replaced, both have three sub rows. The flanked one reaches 1.82 m against 1.80 m, so it
+     * is 19 mm nearer the 2.5 m target, and it puts both SKRAMs in the bottom rows where the low end belongs.
+     */
+    public function testTheFullPooledInventoryBuildsRepeatedFlankedRowsRatherThanAGap(): void
+    {
+        $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: 3.0);
+
+        self::assertSame([], $result['problems']);
+        $row = '3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°';
+        self::assertSame(
+            [$row, $row, '6× achenbach-18', '1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15'],
+            array_map(static fn (Tier $tier): string => $tier->label(), $result['tiers']),
+        );
     }
 
     /** A rig whose packed rows already have their shape keeps them, and `free` has no width rule to gap out for. */
@@ -1534,19 +1560,21 @@ final class StackSolverTest extends TestCase
 
     /**
      * The pooled sdwa5 and sepp rig of `scenes/generated/sdwa5-sepp`, SKRAMs and Flexys rolled, the odd cabinet
-     * centred.
+     * centred. `$counts` overrides that inventory per device.
+     *
+     * @param array<string, int> $counts
      *
      * @return array{tiers: list<Tier>, problems: list<string>, warnings: list<string>}
      */
-    private function solvePooled(StackShape $shape, ?float $maxSubHeightM): array
+    private function solvePooled(StackShape $shape, ?float $maxSubHeightM, array $counts = []): array
     {
-        $counts = [
+        $counts = array_replace([
             'skram' => 2,
             'flexy-folded-horn-hybrid' => 12,
             'achenbach-18' => 6,
             'tecnare-m2122' => 3,
             'eighteensound-2way-15' => 2,
-        ];
+        ], $counts);
 
         return StackSolver::solve(
             array_map(fn (string $id): array => [$this->devices[$id], $counts[$id]], array_keys($counts)),

@@ -21,6 +21,8 @@ final class SceneEventOptions
         public readonly RoomBounds $room,
         public readonly array $interfaces,
         public readonly array $targets,
+        /** `TRUSS:SEGMENTS:TOWER`, read only once a deco device is brought, see {@see StackBackdrop::parse}. */
+        public readonly ?string $backdrop = null,
     ) {
     }
 
@@ -75,7 +77,11 @@ final class SceneEventOptions
         $input->setOption('room-width', null === $width ? null : (string) $width);
         $input->setOption('room-height', null === $height ? null : (string) $height);
 
-        return new self($room, $interfaces, $targets);
+        // A stated backdrop replaces the event's rather than narrowing it, because two trusses have no minimum.
+        $backdrop = $input->getOption('backdrop') ?? $event?->backdrop;
+        $input->setOption('backdrop', $backdrop);
+
+        return new self($room, $interfaces, $targets, null === $backdrop ? null : (string) $backdrop);
     }
 
     /**

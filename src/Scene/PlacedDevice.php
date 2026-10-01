@@ -36,6 +36,12 @@ final class PlacedDevice
          * nothing but placed devices.
          */
         public readonly ?string $flyPoint = null,
+        /**
+         * How far the model is stretched along its own height, 1.0 unless a telescoping tower was cranked down.
+         * {@see $device} already carries the cranked height, so every check reads that. Only Blender, which
+         * instances the one model built at full extension, needs the ratio.
+         */
+        public readonly float $scaleZ = 1.0,
     ) {
     }
 
@@ -209,6 +215,6 @@ final class PlacedDevice
                 $this->position[1],
                 $this->position[2] + $this->zLift(),
             ],
-        ] + $this->orientation->toArray();
+        ] + (1.0 === $this->scaleZ ? [] : ['scale_z' => $this->scaleZ]) + $this->orientation->toArray();
     }
 }
