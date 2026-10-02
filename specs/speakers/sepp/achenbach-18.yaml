@@ -45,16 +45,17 @@ rigging:
 audio:
   # Stated by the owner from how the rig is actually driven, not read off a datasheet — hence `estimated`.
   #
-  # `driven_from_hz` is the point of this block. The cabinet reaches 35 Hz, but it is high-passed at 38 — the
-  # same corner as the Flexys — most of the time, deliberately, so that it sits ABOVE them in a stack instead
-  # of under them. A `stack` orders its tiers on the driven corner, so recording only the 35 would put four
-  # Achenbachs at the bottom of the wall carrying twelve Flexys. Keeping both numbers keeps the cabinet's real
-  # capability and the operating choice from having to overwrite each other.
+  # It is often high-passed at 38 Hz, the Flexys' corner, so that it stands above them in a stack. Since 0.137.0
+  # the stack orders on power per area in the pair's lowest octave, and the Flexy wins that by 1.4 dB from the 35
+  # Hz this cabinet reaches, so the operating corner no longer has to be recorded to keep the order.
   passband_hz:
     low_hz: 35
     high_hz: 1500
-    driven_from_hz: 38
     provenance: estimated
+  # The driver's rating, B&C 18TBW100 at 1000 W.
+  power_w:
+    rms: 1000
+    provenance: datasheet
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

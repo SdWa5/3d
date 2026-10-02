@@ -55,8 +55,12 @@ audio:
     # "40 - 220 Hz / -6 dB ohne Controller, 37 Hz / -6 dB mit Systemcontroller".
     low_hz: 37
     high_hz: 220
-    driven_from_hz: 40
     provenance: datasheet
+  # Concert Audio publish 1400 W programme and no continuous figure. The owner chose on 2026-10-02 to read
+  # their ratings as continuous, rather than halving them by the usual convention, so this is estimated.
+  power_w:
+    rms: 1400
+    provenance: estimated
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

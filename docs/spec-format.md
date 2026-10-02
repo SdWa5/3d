@@ -81,11 +81,13 @@ rigging:
 
 audio:                        # optional, but worth filling in from the original's datasheet
   coverage_deg: { horizontal: 90, vertical: 60 }   # also draws the coverage cone; see below
-  passband_hz:                # what it covers and how it is driven; orders a `stack`. See below
+  passband_hz:                # what it covers; orders a `stack`. See below
     low_hz: 35
     high_hz: 1500
-    driven_from_hz: 38        # optional: where it is high-passed in practice
     provenance: estimated     # required whenever a passband exists
+  power_w:                    # optional: continuous power; decides which sub is the lowest type. See below
+    rms: 1800
+    provenance: datasheet     # required whenever a power figure exists
   drivers:                    # the complement, for the catalog and the model's metadata
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: horn, count: 1 }
@@ -109,7 +111,7 @@ Anything marked optional can be left out entirely rather than written as `null`.
 
 ## Baffle layout
 
-### The passband, and the difference between reach and use
+### The passband
 
 `audio.passband_hz` is what orders the tiers of a [`stack`](scenes.md#stack): lowest first, so the deepest
 cabinets end up on the floor carrying everything.
@@ -117,52 +119,84 @@ cabinets end up on the floor carrying everything.
 | Field | Meaning |
 |-------|---------|
 | `low_hz` / `high_hz` | the band the cabinet **covers** |
-| `driven_from_hz` | optional — where it is **high-passed in practice**, when that is deliberately not its low corner |
 | `provenance` | `measured`, `plans`, `datasheet` or `estimated`. **Required**, for the same reason a baffle layout's is: a frequency is trivial to invent, impossible to check by looking at a render, and it silently decides the order every generated rig comes out in |
 
-**Why two low corners rather than one.** They are two different facts, and collapsing them loses the more
-useful one. Our Achenbach 18s reach **35 Hz** — lower than the Flexys' 38 — but they are run from **38** most
-of the time, the same corner as the Flexys, deliberately, so that they sit *above* them in a stack rather
-than under them. Recorded as a single number, either the cabinet's real capability or the operating choice
-has to be thrown away: write 35 and four Achenbachs end up at the bottom of the wall carrying twelve Flexys;
-write 38 and the spec now claims the cabinet cannot go below 38, which is untrue and would mislead anyone
-reading it for any other purpose. So both are kept, and the solver sorts on `driven_from_hz` where it exists.
+**Where both cabinets also state [a continuous power](#the-continuous-power), that power decides the order**,
+per square metre of front in the pair's lowest octave. Any other pair is ordered on `low_hz`, then on `high_hz`,
+then on mass. That takes in every top and every sub without a power figure.
 
-**Ties break on the high corner**, and that rule exists for exactly this pair: the Flexy and the Achenbach are
-both driven from 38 Hz, and the one that stops sooner (Flexy at 200 Hz against the Achenbach's 1500) is the
-more sub-like of the two, so it belongs lower. A spec with no passband at all sorts last within its band and
-falls back to how much row the device can make.
+**There used to be a `driven_from_hz`** for where a cabinet is high-passed in practice. It existed so the
+Achenbach, which reaches 35 Hz, would sort above the Flexy at 38. Power per area does that on its own, so the key
+was removed in 0.137.0 and a spec that still carries it is refused.
 
 The gear list as it stands. **Ours carry none on the tops**, because nothing needs one: subs always go below
 tops, and the tops all share a single row ordered by width. PSL's cabinets carry one on every device, tops
 included, because PSL publish theirs — a passband is recorded when there is a source for it rather than when
 the solver happens to need it.
 
-| Device | Covers | Driven from |
-|--------|--------|-------------|
-| `skram` | 15 – 120 Hz | — |
-| `thebox-tp218-1600` | 34 – 150 Hz | — |
-| `thebox-tp118-800` | 35 – 150 Hz | — |
-| `concert-audio-esx` | 33 – 220 Hz | **38 Hz** |
-| `flexy-folded-horn-hybrid` | 38 – 200 Hz | — |
-| `achenbach-18` | 35 – 1500 Hz | **38 Hz** |
-| `concert-audio-esf` | 37 – 220 Hz | **40 Hz** |
-| `thebox-pa302` | 40 – 20 000 Hz | — |
-| `thebox-achat-112m` | 60 – 18 000 Hz | — |
-| `thebox-achat-115m` | 60 – 17 000 Hz | — |
-| `concert-audio-ef6` | 70 – 17 000 Hz | — |
-| `hk-linear5-112x` | 79 – 18 000 Hz | — |
+| Device | Covers |
+|--------|--------|
+| `skram` | 15 – 120 Hz |
+| `concert-audio-esx` | 33 – 220 Hz |
+| `thebox-tp218-1600` | 34 – 150 Hz |
+| `thebox-tp118-800` | 35 – 150 Hz |
+| `achenbach-18` | 35 – 1500 Hz |
+| `concert-audio-esf` | 37 – 220 Hz |
+| `flexy-folded-horn-hybrid` | 38 – 200 Hz |
+| `thebox-pa302` | 40 – 20 000 Hz |
+| `thebox-achat-112m` | 60 – 18 000 Hz |
+| `thebox-achat-115m` | 60 – 17 000 Hz |
+| `concert-audio-ef6` | 70 – 17 000 Hz |
+| `hk-linear5-112x` | 79 – 18 000 Hz |
 
-**Sorted by what the solver sorts on**, which is `driven_from_hz` where it exists and `low_hz` otherwise — so the
-ESX's 33 Hz reads out of order and sits above the Flexy in a stack, because it is driven from 38 like the
-Achenbach. The SKRAM goes lowest of everything on 15 Hz, having no operating corner stated to override it. PSL's
-ESX is nevertheless the deepest cabinet anybody here *publishes* a figure for.
+**Sorted by `low_hz`, which is not the order a stack deals the subs in.** Every sub in this table also states a
+power figure, so the stack orders them SKRAM, ESX, Flexy, ESF, Achenbach, TP218, TP118, as the next section shows.
+The ESX and ESF corners are PSL's figures with the system controller, which ships with the system. Without it
+they reach 38 and 40 Hz.
 
 **Nine of our own and every GMSS and Innschleife cabinet have no passband at all**, and that is a refusal
 rather than a gap. GMSS's builder stated dimensions and weights and no frequencies; Innschleife's cabinets are
 known from a photograph. A spec with no passband sorts last within its band and falls back to how much row the
 device can make, so those cabinets are ordered by size — which is a worse answer than a frequency and a much
 better one than an invented frequency.
+
+### The continuous power
+
+`audio.power_w` is the continuous electrical power a cabinet takes. Datasheets call it RMS, AES or continuous, and
+those are the same claim under different test signals. Programme and peak ratings are not recorded, so a datasheet
+that publishes only those gets a value derived from them, `provenance: estimated` and the derivation in a comment.
+Concert Audio publish only programme ratings, and the owner chose on 2026-10-02 to read them as continuous rather
+than halve them by the usual convention.
+
+| Field | Meaning |
+|-------|---------|
+| `rms` | watts, greater than 0 |
+| `provenance` | `measured`, `plans`, `datasheet` or `estimated`. **Required**, because a wattage is as easy to invent as a frequency and it decides which sub the low-end axis is about |
+
+**What reads it is the fill order and the lowest type.** Per square metre of the cabinet's whole front, in the
+lowest octave of each pair, it decides which sub a stack deals first and which one `low_end` puts on the floor or
+the centre line. See
+[where the low end goes](scenes.md#where-the-low-end-goes). It says nothing about sensitivity, which no spec records.
+
+Each cabinet is taken as flat down to its `low_hz` and falling 24 dB per octave below it, and its level is averaged
+as power over the octave above the deeper corner of the pair. The table is in the order a stack deals them, and
+every cabinet beats every one below it. The lead is over the next row, in that pair's octave.
+
+| Device | Continuous | Source | W/m² | Lead |
+|--------|------------|--------|------|------|
+| `skram` | 1800 W | datasheet, Eighteensound 21NLW9601 at 1800 W AES | 3228 | 9.8 dB |
+| `concert-audio-esx` | 2800 W | estimated, 2800 W programme read as continuous | 4023 | 0.4 dB |
+| `flexy-folded-horn-hybrid` | 1800 W | datasheet, Eighteensound 18NLW9601 and 18NLW9600 | 3991 | 1.2 dB |
+| `concert-audio-esf` | 1400 W | estimated, 1400 W programme read as continuous | 3050 | 0.3 dB |
+| `achenbach-18` | 1000 W | datasheet, B&C 18TBW100 | 2778 | 0.6 dB |
+| `thebox-tp218-1600` | 1600 W | datasheet, 1600 W AES | 2424 | 1.4 dB |
+| `thebox-tp118-800` | 600 W | datasheet, 600 W RMS | 1765 | — |
+| `wall-bass` | 1600 W | estimated, GMSS's own message | — | — |
+
+The wall bass states no passband, so it is ordered on mass like every other GMSS cabinet.
+
+**The other subs carry none.** GMSS's iq-sub shares one 3000 W figure with the nukes and it cannot be split, the
+mid-bass has no audio block, and Innschleife's cabinets are known from a photograph.
 
 ### The coverage cone
 
@@ -738,9 +772,8 @@ the origin and licence in [sources.md](sources.md).
 * in `physical.castors`: an unknown key; a face other than `back`, `left` or `right`; a diameter that is not
   above 0 and at most 0.2 m; a `locking` count outside 0 to 4; a colour that is not `#rrggbb`; and wheels too
   big for four of them to fit the face
-* in `audio.passband_hz`: a `low_hz` of zero or less; a `high_hz` at or below `low_hz`; a `driven_from_hz`
-  below `low_hz` (a cabinet cannot be driven lower than it reaches) or at or above `high_hz` (which leaves no
-  band at all)
+* in `audio.passband_hz`: a `low_hz` of zero or less; a `high_hz` at or below `low_hz`
+* in `audio.power_w`: an `rms` of zero or less
 * an unknown `profile`, `throat_profile` or `flare`; `sides` below 3, on a horn that is elliptical at
   both ends, or on a driver cone; `throat_profile` on a driver cone
 * a `join` on a driver cone, on a spec with a `mesh_override`, or naming itself, an unknown feature, one

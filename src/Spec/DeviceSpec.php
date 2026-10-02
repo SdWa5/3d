@@ -100,6 +100,8 @@ final class DeviceSpec
          * The wheels the cabinet rolls on, drawn outside its declared box. See {@see Castors}.
          */
         public readonly ?Castors $castors = null,
+        /** The continuous power it takes; weighed per square metre of front by the low-end axis. Optional. */
+        public readonly ?Power $power = null,
     ) {
     }
 
@@ -178,6 +180,7 @@ final class DeviceSpec
             notes: $reader->optionalString('notes'),
             frontColor: $appearance?->optionalString('front_color'),
             castors: Castors::fromReader($physical->optionalSection('castors')),
+            power: Power::fromReader($audio?->optionalSection('power_w')),
         );
     }
 
@@ -269,6 +272,7 @@ final class DeviceSpec
             notes: $this->notes,
             frontColor: $this->frontColor,
             castors: $this->castors,
+            power: $this->power,
         );
     }
 
