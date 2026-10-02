@@ -152,7 +152,7 @@ final class RecordedCommand
         }
         // **THE COUNTS, NOT THE EVENT THAT STATED THEM.** The same argument the `--from` list below is written out
         // on: a replay has to rebuild *this* scene, and an event is a file that can be edited. Recording
-        // `--event=next-event` would make every replay of every scene in that folder depend on what the file says
+        // `--event=next-event-light` would make every replay of every scene in that folder depend on what the file says
         // today, and a count corrected next week would silently rewrite last week's rigs under their old names. The
         // event stays the human-facing record and the way the folder is generated in the first place; the line that
         // rebuilds one file pins the numbers.

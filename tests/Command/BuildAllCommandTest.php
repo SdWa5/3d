@@ -100,10 +100,10 @@ final class BuildAllCommandTest extends TestCase
         $method = new \ReflectionMethod(BuildAllCommand::class, 'sceneKeyOf');
 
         foreach ([
-            ['build/plans/generated/next-event/rig-fly-through.json', 'build/plans', 'generated/next-event/rig'],
-            ['build/renders/generated/next-event/rig-fly-through.mp4', 'build/renders', 'generated/next-event/rig'],
-            ['build/renders/generated/next-event/rig-fly-through-perpendicular.mp4',
-                'build/renders', 'generated/next-event/rig'],
+            ['build/plans/generated/next-event-light/rig-fly-through.json', 'build/plans', 'generated/next-event-light/rig'],
+            ['build/renders/generated/next-event-light/rig-fly-through.mp4', 'build/renders', 'generated/next-event-light/rig'],
+            ['build/renders/generated/next-event-light/rig-fly-through-perpendicular.mp4',
+                'build/renders', 'generated/next-event-light/rig'],
             ['build/scenes/generated/stacked-sdwa5-----2-free----turned--centred---center.blend', 'build/scenes',
                 'generated/stacked-sdwa5-----2-free----turned--centred---center'],
             ['build/plans/generated/_scene-stacked-sdwa5-----2-free----turned--centred---center.json', 'build/plans',
@@ -117,8 +117,8 @@ final class BuildAllCommandTest extends TestCase
                 'build/scenes', 'generated/gmss/stacked-2-pooled--------free----turned--centred---center'],
             ['build/scenes/generated/sdwa5-sepp/stacked-2-pooled--------free----turned--centred---center.blend',
                 'build/scenes', 'generated/sdwa5-sepp/stacked-2-pooled--------free----turned--centred---center'],
-            ['build/renders/generated/next-event/stacked-1-systems-apart-free----upright-alternate-center-possible-three-quarter.png',
-                'build/renders', 'generated/next-event/stacked-1-systems-apart-free----upright-alternate-center-possible'],
+            ['build/renders/generated/next-event-light/stacked-1-systems-apart-free----upright-alternate-center-possible-three-quarter.png',
+                'build/renders', 'generated/next-event-light/stacked-1-systems-apart-free----upright-alternate-center-possible'],
         ] as [$file, $root, $expected]) {
             self::assertSame($expected, $method->invoke(null, $file, $root), $file);
         }

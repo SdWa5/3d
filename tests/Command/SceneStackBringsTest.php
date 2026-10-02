@@ -27,7 +27,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testAnEventBuildsWithTheCountsItStatesRatherThanTheSpecs(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--event' => 'next-event-light', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
@@ -43,7 +43,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testOnlyTheSweptSystemsBringTheirCounts(): void
     {
         $display = $this->invoke([
-            '--owner' => ['innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--event' => 'next-event-light', '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('--quantity=tms4:1', $display);
@@ -58,7 +58,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testBroughtCabinetsTheSweepDoesNotHoldAreRefused(): void
     {
         $tester = $this->invoke([
-            '--from' => ['wsx-18', 'sbh-18'], '--event' => 'next-event', '--into' => self::THROWAWAY_ID,
+            '--from' => ['wsx-18', 'sbh-18'], '--event' => 'next-event-light', '--into' => self::THROWAWAY_ID,
             '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
@@ -73,7 +73,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testAnExplicitQuantityReplacesTheEventsCount(): void
     {
         $display = $this->invoke([
-            '--owner' => ['innschleife'], '--event' => 'next-event', '--quantity' => ['wsx-18:2'],
+            '--owner' => ['innschleife'], '--event' => 'next-event-light', '--quantity' => ['wsx-18:2'],
             '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
@@ -91,7 +91,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testTheRecordedLineCarriesTheCountsRatherThanTheEvent(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--event' => 'next-event-light', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertStringContainsString('--quantity=tms4:1', $tester->getDisplay());
@@ -134,7 +134,7 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testSeveralSystemsAtAnEventNeedAFolder(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['psl', 'innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['psl', 'innschleife'], '--event' => 'next-event-light', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(SceneStackCommand::FAILURE, $tester->getStatusCode());
@@ -148,10 +148,10 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testOneSystemAtAnEventIsFiledUnderOwnerAndEvent(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['innschleife'], '--event' => 'next-event-light', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
-        self::assertStringContainsString('--into=innschleife-next-event', $tester->getDisplay());
+        self::assertStringContainsString('--into=innschleife-next-event-light', $tester->getDisplay());
     }
 
     public function testACountForADeviceThatDoesNotExistIsRefused(): void
@@ -186,10 +186,10 @@ final class SceneStackBringsTest extends SceneStackTestCase
     public function testAnEventBuiltSceneStatesItsCountsInTheFileItWrites(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['psl'], '--event' => 'next-event', '--low-end' => ['low'], '--dry-run' => true,
+            '--owner' => ['psl'], '--event' => 'next-event-light', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
-        self::assertStringContainsString("- device: concert-audio-esx\n          count: 12", $tester->getDisplay());
+        self::assertStringContainsString("- device: concert-audio-esx\n          count: 9", $tester->getDisplay());
     }
 }

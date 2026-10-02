@@ -24,14 +24,16 @@ final class SceneEventOptionsTest extends TestCase
             'sepp-sub' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'sepp']),
             'kicker-15' => SpecFactory::spec(['subtype' => 'sub', 'owner' => 'innschleife']),
         ];
-        $input = new ArrayInput(['--event' => 'next-event'], (new SceneStackCommand())->getDefinition());
+        $input = new ArrayInput(['--event' => 'next-event-light'], (new SceneStackCommand())->getDefinition());
         $options = SceneEventOptions::resolve($input, dirname(__DIR__, 2).'/events', $devices);
 
+        // Every system with subs states 1.6 m at this event and PSL states nothing, so a wall under PSL's tops takes
+        // its subs' owner's interface and a wall of PSL alone keeps the default.
         self::assertSame(1.6, $options->interfaceFor(['inn-sub', 'psl-top'], $devices));
         self::assertSame(1.75, $options->targetFor(['inn-sub', 'psl-top'], $devices));
-        self::assertNull($options->interfaceFor(['our-sub', 'psl-top'], $devices));
-        self::assertNull($options->interfaceFor(['inn-sub', 'our-sub'], $devices));
-        self::assertSame(['innschleife' => 1.6], $options->interfaces);
+        self::assertSame(1.6, $options->interfaceFor(['our-sub', 'psl-top'], $devices));
+        self::assertNull($options->interfaceFor(['psl-top'], $devices));
+        self::assertSame(['innschleife' => 1.6, 'sdwa5' => 1.6, 'sepp' => 1.6], $options->interfaces);
     }
 
     /**

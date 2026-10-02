@@ -10,19 +10,19 @@
 #     --system-interface=sepp:1.6 --system-target=innschleife:1.75 --system-target=sdwa5:1.75 --system-target=sepp:1.75
 #     --system-orientation=innschleife:turned --system-orientation=psl:turned --system-orientation=sdwa5:upright
 #     --system-orientation=sepp:upright --system-low-end=innschleife:low --system-low-end=sdwa5:central
-#     --system-low-end=sepp:central --stand=kicker-15 --systems=pooled --quantity=concert-audio-esf:0
-#     --quantity=concert-audio-esx:9 --quantity=deco-panel-8x2-03:1 --quantity=hk-linear5-112x:0
-#     --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0 --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0
-#     --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0 --from=concert-audio-esx --from=concert-audio-ef6
-#     --stacks=1 --align=stereo --low-end=low --shape=pyramid --mirror-style=column --id=stacked
-#     --into=psl-next-event-light
+#     --system-low-end=sepp:central --stand=kicker-15 --systems=pooled --quantity=concert-audio-ef6:2
+#     --quantity=concert-audio-esf:0 --quantity=concert-audio-esx:9 --quantity=deco-panel-8x2-03:1
+#     --quantity=hk-linear5-112x:0 --quantity=thebox-achat-112m:0 --quantity=thebox-achat-115m:0
+#     --quantity=thebox-dsp-112:0 --quantity=thebox-pa302:0 --quantity=thebox-tp118-800:0 --quantity=thebox-tp218-1600:0
+#     --from=concert-audio-esx --from=concert-audio-ef6 --stacks=1 --align=stereo --low-end=low --shape=pyramid
+#     --mirror-style=column --id=stacked --into=psl-next-event-light
 #
 # What it deals out today:
 #
 #   1  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
 #   2  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
 #   3  1× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     3.58 m wide
-#   4  2× concert-audio-ef6 + 2× concert-audio-ef6                             2.412 m wide
+#   4  1× concert-audio-ef6 + 1× concert-audio-ef6                             1.196 m wide
 #
 # Subs reach 1.77 m against a 2.0 m interface. The stack is 2.55 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -57,7 +57,8 @@ placements:
         - device: concert-audio-esx
           count: 9
           roll_mirror: 90.0
-        - concert-audio-ef6
+        - device: concert-audio-ef6
+          count: 2
 
   # Backdrop: deco-panel-8x2-03 hung from 5× truss-f33-2m on two truss-tower-4m, 0.8 m behind the rig's deepest back face.
   # The truss tops out at 4 m. Each tower carries 35.4 kg.

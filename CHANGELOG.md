@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.139.0] - 2026-10-02
+
+### Added
+
+- `scene:render --distance=METRES` stands the camera that far from the rig's nearest face and zooms the lens to fit,
+  and `--eye-height=METRES` sets its height. Both adapt every existing preset, and a stated stand is written to its
+  own file, such as `<scene>-front-12m-2m-high.png`. `App\Render\CameraStand` carries them.
+- `scenes/generated/innschleife-next-event-light/`, 25 scenes with the same bodies as the deleted
+  `innschleife-next-event/`.
+
+### Changed
+
+- `next-event-light` and `next-event-light-achenbach` bring two EF 6 for PSL instead of four (SCN-14).
+- `next-event-light/` holds 39 scenes, 34 possible, where it held 18. `next-event-light-achenbach/` holds 18, 16
+  possible, where it held 16, and `psl-next-event-light/` holds 9 where it held 13.
+- Event, brings, interface and build tests read `next-event-light` instead of `next-event`.
+
+### Removed
+
+- `events/next-event.yaml` and its folders `next-event/` (8 scenes), `innschleife-next-event/` (25) and
+  `psl-next-event/` (11).
+- SCN-14 from TODO.md.
+
 ## [0.138.0] - 2026-10-02
 
 ### Added

@@ -8,6 +8,7 @@ use App\Build\BlenderRunner;
 use App\Build\ModelBuilder;
 use App\Build\Staleness;
 use App\Render\CameraPreset;
+use App\Render\CameraStand;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
 use App\Scene\SceneCompiler;
@@ -40,6 +41,8 @@ final class SceneRenderCommand extends BaseCommand
             ->setDescription('Render a scene to build/renders/<id>-<camera>.png')
             ->addArgument('scene', InputArgument::OPTIONAL, 'Scene id, path or folder; omit to render every scene')
             ->addOption('camera', 'c', InputOption::VALUE_REQUIRED, "Camera preset ({$cameras})", CameraPreset::ThreeQuarter->value)
+            ->addOption('distance', null, InputOption::VALUE_REQUIRED, 'Stand the camera this many metres from the rig\'s nearest face and zoom to fit, rather than fitting the distance')
+            ->addOption('eye-height', null, InputOption::VALUE_REQUIRED, 'Put the camera this many metres above the floor')
             ->addOption('lighting', 'l', InputOption::VALUE_REQUIRED, "Lighting preset ({$lightings})", LightingPreset::Studio->value)
             // No defaults on these two: the level flags below supply them, and a default here could not be told
             // apart from a value somebody typed — which is what decides whether it overrules the level.
@@ -170,7 +173,13 @@ final class SceneRenderCommand extends BaseCommand
                 $scene,
             );
             $target = $input->getOption('out')
-                ?? sprintf('%s/%s-%s.png', rtrim((string) $directory, '/'), $scene->id, $settings['camera']->value);
+                ?? sprintf(
+                    '%s/%s-%s%s.png',
+                    rtrim((string) $directory, '/'),
+                    $scene->id,
+                    $settings['camera']->value,
+                    $settings['stand']->suffix(),
+                );
 
             // One manifest for the whole render tree, at its root — never one per variant folder, so that
             // `build:all`'s eight subfolders share a single record keyed `studio/full-rig-side.png` and so that
@@ -196,6 +205,10 @@ final class SceneRenderCommand extends BaseCommand
                 // Part of the settings stamp, so turning labels on redraws a picture that is otherwise current.
                 'labels' => (bool) $input->getOption('labels'),
             ];
+            // Only when stated, so every picture drawn before the stand existed keeps a stamp that still matches.
+            if ($settings['stand']->isStated()) {
+                $builtWith['stand'] = [$settings['stand']->distanceM, $settings['stand']->eyeHeightM];
+            }
 
             // Only redraw what has changed. A render is the most expensive thing in the pipeline — and `build:all`
             // now sweeps eight variants of every scene at Full HD by default — so a rig nobody has touched should
@@ -223,8 +236,10 @@ final class SceneRenderCommand extends BaseCommand
                 !$settings['noGround'],
                 $aimLines,
                 (bool) $input->getOption('labels'),
+                $settings['stand'],
             ) + [
                 'scene_id' => $scene->id,
+                'camera_stand' => $settings['stand']->suffix(),
                 'scene_blend' => $sceneBlend,
                 'output' => $target,
             ];
@@ -232,7 +247,7 @@ final class SceneRenderCommand extends BaseCommand
             $this->io->text(sprintf(
                 '<info>→</info> %s — %s camera, %s lighting, %d samples, %dx%d%s',
                 $scene->id,
-                $settings['camera']->value,
+                $settings['camera']->value.$settings['stand']->suffix(),
                 $settings['lighting']->value,
                 $settings['samples'],
                 $settings['resolution'][0],
@@ -269,7 +284,7 @@ final class SceneRenderCommand extends BaseCommand
     }
 
     /**
-     * @return array{camera: CameraPreset, lighting: LightingPreset, samples: int, resolution: array{int, int}, noGround: bool, aimLines: string|null}|null
+     * @return array{camera: CameraPreset, stand: CameraStand, lighting: LightingPreset, samples: int, resolution: array{int, int}, noGround: bool, aimLines: string|null}|null
      */
     private function settings(InputInterface $input): ?array
     {
@@ -283,6 +298,18 @@ final class SceneRenderCommand extends BaseCommand
 
             return null;
         }
+
+        $stated = [];
+        foreach (['distance', 'eye-height'] as $name) {
+            $value = $input->getOption($name);
+            if (null !== $value && (!is_numeric($value) || (float) $value <= 0.0)) {
+                $this->io->error(sprintf('--%s must be a number of metres above 0, got \'%s\'', $name, $value));
+
+                return null;
+            }
+            $stated[$name] = null === $value ? null : (float) $value;
+        }
+        $stand = new CameraStand($stated['distance'], $stated['eye-height']);
 
         $lighting = LightingPreset::tryFrom((string) $input->getOption('lighting'));
         if (null === $lighting) {
@@ -342,6 +369,7 @@ final class SceneRenderCommand extends BaseCommand
 
         return [
             'camera' => $camera,
+            'stand' => $stand,
             'lighting' => $lighting,
             'samples' => $samples,
             'resolution' => $resolution,
@@ -418,10 +446,11 @@ final class SceneRenderCommand extends BaseCommand
     private function renderPlan(array $plan, string $target, OutputInterface $output): void
     {
         $planFile = sprintf(
-            '%s/build/plans/_render-%s-%s-%s%s.json',
+            '%s/build/plans/_render-%s-%s%s-%s%s.json',
             $this->projectDir(),
             $plan['scene_id'],
             $plan['camera']['preset'],
+            $plan['camera_stand'] ?? '',
             // The lighting and the aim mode belong in the name: without them two variants of one scene
             // overwrite each other's plan, and a plan that does not match the picture beside it is worse
             // than no plan at all.

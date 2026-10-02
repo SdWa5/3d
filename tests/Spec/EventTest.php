@@ -16,7 +16,7 @@ final class EventTest extends TestCase
 {
     public function testTheSavedNextEventHasTheUsersHardRoomLimits(): void
     {
-        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event');
+        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event-light');
 
         self::assertSame(13.0, $event->room->widthM);
         self::assertSame(4.0, $event->room->heightM);
@@ -27,7 +27,7 @@ final class EventTest extends TestCase
     /** Stated on 2026-10-01: ours and Sepp's upright, PSL and Innschleife turned, Innschleife's kickers as measured. */
     public function testTheNextEventStatesHowEachSystemIsSetUp(): void
     {
-        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event');
+        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event-light');
 
         self::assertSame(
             ['sdwa5' => 'upright', 'sepp' => 'upright', 'psl' => 'turned', 'innschleife' => 'turned'],
@@ -40,7 +40,7 @@ final class EventTest extends TestCase
     /** 0.24 m between stacks is what fits the combined rig with Innschleife's photo layout into the 13 m room. */
     public function testTheNextEventNarrowsTheAirBetweenStacks(): void
     {
-        self::assertSame(0.24, Event::load(dirname(__DIR__, 2).'/events', 'next-event')->clearanceM);
+        self::assertSame(0.24, Event::load(dirname(__DIR__, 2).'/events', 'next-event-light')->clearanceM);
         self::assertNull(Event::fromArray(['id' => 'e', 'name' => 'E', 'room' => ['width_m' => 13, 'height_m' => 4]])->clearanceM);
     }
 
@@ -82,16 +82,18 @@ final class EventTest extends TestCase
     public function testAMissingEventIsRefused(): void
     {
         $this->expectException(InvalidSpecException::class);
-        Event::load(dirname(__DIR__, 2).'/events', '../next-event');
+        Event::load(dirname(__DIR__, 2).'/events', '../next-event-light');
     }
 
     /** What PSL and Innschleife bring to the next event, as the roster files stated it until 0.130.0. */
     public function testTheNextEventStatesWhatEachSystemBrings(): void
     {
-        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event');
+        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event-light');
 
-        self::assertSame(['psl', 'innschleife'], array_keys($event->brings));
-        self::assertSame(12, $event->brings['psl']['concert-audio-esx']);
+        self::assertSame(['sepp', 'psl', 'innschleife'], array_keys($event->brings));
+        self::assertSame(['achenbach-18' => 0], $event->brings['sepp']);
+        self::assertSame(9, $event->brings['psl']['concert-audio-esx']);
+        self::assertSame(2, $event->brings['psl']['concert-audio-ef6']);
         self::assertSame(1, $event->brings['psl']['deco-panel-8x2-03']);
         self::assertSame(['wsx-18' => 4, 'sbh-18' => 4, 'kicker-15' => 4, 'sub-60x60' => 0, 'tms2' => 2, 'tms4' => 1], $event->brings['innschleife']);
     }
@@ -128,7 +130,7 @@ final class EventTest extends TestCase
      */
     public function testTheNextEventStatesWhereEachSystemsLowEndGoes(): void
     {
-        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event');
+        $event = Event::load(dirname(__DIR__, 2).'/events', 'next-event-light');
 
         self::assertSame(
             ['sdwa5' => LowEndBias::Central, 'sepp' => LowEndBias::Central, 'innschleife' => LowEndBias::Low],

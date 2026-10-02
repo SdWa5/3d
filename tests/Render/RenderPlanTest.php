@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Render;
 
 use App\Render\CameraPreset;
+use App\Render\CameraStand;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
 use App\Scene\Orientation;
@@ -267,6 +268,61 @@ final class RenderPlanTest extends TestCase
 
         self::assertGreaterThan(0.0, $plan['scene_bounds']['radius']);
         self::assertNotSame($plan['camera']['location'], $plan['camera']['target']);
+    }
+
+    /**
+     * **12 m in front of the front row at 2 m**, asked for on 2026-10-02 to compare two events from where an audience
+     * stands. The distance runs from the rig's nearest face, so the cube's front at y −0.5 puts the camera at −12.5.
+     */
+    public function testAStatedStandPutsTheCameraThereAndAimsAtTheRig(): void
+    {
+        $plan = RenderPlan::forScene(
+            [$this->at($this->cube(), [0.0, 0.0, 0.0])],
+            CameraPreset::Front,
+            stand: new CameraStand(12.0, 2.0),
+        );
+
+        self::assertEqualsWithDelta([0.0, -12.5, 2.0], $plan['camera']['location'], 1e-9);
+        self::assertEqualsWithDelta([0.0, 0.0, 0.5], $plan['camera']['target'], 1e-9);
+    }
+
+    /** The same stand sees a wider rig from the same place, so it is the lens that gives, not the distance. */
+    public function testAStatedStandZoomsRatherThanRetreats(): void
+    {
+        $stand = new CameraStand(12.0, 2.0);
+        $narrow = RenderPlan::forScene([$this->at($this->cube(), [0.0, 0.0, 0.0])], CameraPreset::Front, stand: $stand);
+        $wide = RenderPlan::forScene([
+            $this->at($this->cube(), [-3.0, 0.0, 0.0]),
+            $this->at($this->cube(), [3.0, 0.0, 0.0]),
+        ], CameraPreset::Front, stand: $stand);
+
+        self::assertEqualsWithDelta($narrow['camera']['location'], $wide['camera']['location'], 1e-9);
+        self::assertGreaterThan($wide['camera']['lens_mm'], $narrow['camera']['lens_mm']);
+        // 7 m wide with its front corners 12 m away, so a half-angle of atan(3.5 / 12) and the 1.15 margin on it.
+        self::assertEqualsWithDelta(36.0 / (2 * 3.5 / 12.0 * 1.15), $wide['camera']['lens_mm'], 0.5);
+    }
+
+    /** Without a distance the framing still fits the rig, and an eye height alone only lifts or lowers it. */
+    public function testAnEyeHeightAloneKeepsTheFittedDistance(): void
+    {
+        $placed = [$this->at($this->cube(), [0.0, 0.0, 0.0])];
+        $fitted = RenderPlan::forScene($placed, CameraPreset::Front);
+        $raised = RenderPlan::forScene($placed, CameraPreset::Front, stand: new CameraStand(eyeHeightM: 3.0));
+
+        self::assertSame(3.0, $raised['camera']['location'][2]);
+        self::assertSame($fitted['camera']['location'][1], $raised['camera']['location'][1]);
+        self::assertSame($fitted['camera']['lens_mm'], $raised['camera']['lens_mm']);
+    }
+
+    /** A stated stand gets its own file name, so it never overwrites the fitted picture of the same preset. */
+    public function testAStandNamesItselfAndRefusesNothingLeftToStandOn(): void
+    {
+        self::assertSame('', (new CameraStand())->suffix());
+        self::assertSame('-12m-2m-high', (new CameraStand(12.0, 2.0))->suffix());
+        self::assertSame('-7.5m', (new CameraStand(7.5))->suffix());
+
+        $this->expectException(\InvalidArgumentException::class);
+        new CameraStand(0.0);
     }
 
     /**
