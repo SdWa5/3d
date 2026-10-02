@@ -49,15 +49,14 @@
 #   * the 1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× tecnare-m2122 + 1×
 #     concert-audio-ef6 row is 3.172 m on a 3.120 m row, so it overhangs 26 mm each side
 #
-# main-1 — 1, 21 cabinets in 5 rows:
+# main-1 — 1, 21 cabinets in 4 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°     4.66 m wide
-#   2  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   3  1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90°    3.602 m wide
-#   4  1× kicker-15 + 1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90° + 1× kicker-15     4.32 m wide
-#   5  1× concert-audio-ef6 + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× concert-audio-ef6   2.6516 m wide
+#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 2× flexy-folded-horn-hybrid + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°    5.882 m wide
+#   2  1× concert-audio-esx rolled 270° + 4× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90°    4.824 m wide
+#   3  1× kicker-15 + 1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90° + 1× kicker-15     4.32 m wide
+#   4  1× concert-audio-ef6 + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× concert-audio-ef6   2.6516 m wide
 #
-# Subs reach 2.686 m against a 2.0 m interface. The stack is 3.646 m of cabinet.
+# Subs reach 2.116 m against a 2.0 m interface. The stack is 3.076 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
@@ -66,10 +65,6 @@
 #     the stacks are not identical. --no-asymmetry leaves them out instead
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90° row is
-#     3.602 m on a 2.424 m row, so it overhangs 589 mm each side
-#   * the 1× kicker-15 + 1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90° + 1× kicker-15 row
-#     is 4.320 m on a 3.602 m row, so it overhangs 359 mm each side
 #
 id: stacked-2-pooled--------free----stated--alternate-stereo-central-impossible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -85,7 +80,7 @@ focus:
 placements:
   # 2, 25 cabinets in 5 rows
   - id: main-2
-    at: [-2.752, 0.0]
+    at: [-3.363, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -121,7 +116,7 @@ placements:
           count: 1
           aim: near
 
-  # 1, 21 cabinets in 5 rows
+  # 1, 21 cabinets in 4 rows
   - id: main-1
     at: [2.778, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

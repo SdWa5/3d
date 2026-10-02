@@ -28,16 +28,16 @@
 #
 # main-ours-1 — ours-1, 9 cabinets in 3 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
+#   1  1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90°     1.84 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
 #
-# Subs reach 1.8 m against a 2.0 m interface. The stack is 1.8 m of cabinet.
+# Subs reach 2.126 m against a 2.0 m interface. The stack is 2.126 m of cabinet.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
-#   * the subs reach 1.800 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
-#     a sub wing, so the interface decides nothing about it
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid
+#     rolled 90° row is 2.157 m on a 1.840 m row, so it overhangs 159 mm each side
 #
 # main-ours-2 — ours-2, 13 cabinets in 5 rows:
 #
@@ -85,7 +85,7 @@ focus:
 placements:
   # gmss-1, 3 cabinets in 1 row
   - id: main-gmss-1
-    at: [-6.0785, 0.0]
+    at: [-6.074, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -136,7 +136,7 @@ placements:
 
   # ours-2, 13 cabinets in 5 rows
   - id: main-ours-2
-    at: [-0.879, 0.0]
+    at: [-0.8835, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -166,7 +166,7 @@ placements:
 
   # gmss-2, 13 cabinets in 2 rows
   - id: main-gmss-2
-    at: [3.5645, 0.0]
+    at: [3.56, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

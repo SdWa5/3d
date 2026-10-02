@@ -55,26 +55,25 @@
 #   * the subs reach 0.670 m against the 2.000 m interface asked for, so the tops sit 1330 mm lower than ideal —
 #     0.670 m is the most they reach while every tier is still carried
 #
-# main-ours-3 — ours-3, 7 cabinets in 4 rows:
+# main-ours-3 — ours-3, 8 cabinets in 4 rows:
 #
 #   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× tecnare-m2122                                                           0.5 m wide
+#   4  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
 #
 # Subs reach 2.126 m against a 2.0 m interface. The stack is 3.086 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-ours-2 — ours-2, 10 cabinets in 4 rows:
+# main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
-#   1  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   2  2× skram + 1× flexy-folded-horn-hybrid                                  1.851 m wide
-#   3  2× achenbach-18                                                           1.22 m wide
-#   4  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
+#   1  1× skram + 2× achenbach-18 + 1× skram                                   2.48 m wide
+#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   4  1× tecnare-m2122                                                           0.5 m wide
 #
-# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.237 m of cabinet.
+# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× skram + 1× flexy-folded-horn-hybrid row is 1.851 m on a 1.813 m row, so it overhangs 19 mm each side
 #
 id: stacked-3-tops-shared---pyramid-upright-alternate-stereo-low-----possible
 name: "Solved rig — 6 stacks side by side, tiers split left and right"
@@ -90,7 +89,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 5 rows
   - id: main-gmss-2
-    at: [-4.7775, 0.0]
+    at: [-5.092, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -117,7 +116,7 @@ placements:
 
   # ours-1, 8 cabinets in 4 rows
   - id: main-ours-1
-    at: [-2.9975, 0.0]
+    at: [-3.312, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -147,7 +146,7 @@ placements:
 
   # gmss-1, 3 cabinets in 2 rows
   - id: main-gmss-1
-    at: [-1.3475, 0.0]
+    at: [-1.662, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -172,7 +171,7 @@ placements:
 
   # gmss-3, 3 cabinets in 2 rows
   - id: main-gmss-3
-    at: [0.2325, 0.0]
+    at: [-0.082, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -194,9 +193,9 @@ placements:
         - device: turbo-top
           count: 1
 
-  # ours-3, 7 cabinets in 4 rows
+  # ours-3, 8 cabinets in 4 rows
   - id: main-ours-3
-    at: [1.8825, 0.0]
+    at: [1.568, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -219,8 +218,11 @@ placements:
           count: 2
         - device: tecnare-m2122
           count: 1
+        - device: turbo-top
+          count: 1
+          aim: near
 
-  # ours-2, 10 cabinets in 4 rows
+  # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
     at: [3.918, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -246,7 +248,4 @@ placements:
           count: 2
         - device: tecnare-m2122
           count: 1
-        - device: turbo-top
-          count: 1
-          aim: near
 

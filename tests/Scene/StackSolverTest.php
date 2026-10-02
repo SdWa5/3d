@@ -1277,21 +1277,27 @@ final class StackSolverTest extends TestCase
     /**
      * A V gets its upper rows gapped out to the full width of the row under them, so the wall never narrows.
      *
-     * Six Achenbachs are 3.700 m and six Flexys 3.646 m, so a Flexy row on them narrows by 54 mm. Gapped at 31 mm it
-     * is 3.701 m, and a second Flexy row on that one takes the same gap rather than a centimetre less each time.
+     * Six SKRAMs are 3.760 m and six Flexys 3.646 m, so a Flexy row on them narrows by 114 mm. Gapped at 43 mm it
+     * is 3.761 m, and a second Flexy row on that one takes the same gap rather than a centimetre less each time.
+     *
+     * **SKRAMs, because they reach lowest.** The test used Achenbachs until `low` started paying for the height of the
+     * low end. The solver names the Flexy the lowest of those two, so `low` stands both Flexy rows on the floor and the
+     * Achenbachs on top, which is a V that needs no gap.
      */
     public function testAVGapsItsUpperRowsOutToTheRowBelow(): void
     {
         $result = $this->solveTo(
-            ['flexy-folded-horn-hybrid', 'achenbach-18', 'tecnare-m2122'],
+            ['skram', 'flexy-folded-horn-hybrid', 'tecnare-m2122'],
             maxWidthM: null,
             maxSubHeightM: null,
+            skramCount: 6,
+            flexyCount: 12,
             shape: StackShape::V,
         );
 
         self::assertSame([], $result['problems']);
         self::assertSame(
-            ['6× achenbach-18', '6× flexy-folded-horn-hybrid at 31 mm gaps', '6× flexy-folded-horn-hybrid at 31 mm gaps'],
+            ['6× skram', '6× flexy-folded-horn-hybrid at 43 mm gaps', '6× flexy-folded-horn-hybrid at 43 mm gaps'],
             array_map(static fn (Tier $tier): string => $tier->label(), array_slice($result['tiers'], 0, 3)),
         );
         foreach ([1, 2] as $index) {

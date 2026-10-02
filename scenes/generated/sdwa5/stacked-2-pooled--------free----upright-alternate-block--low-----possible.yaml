@@ -13,8 +13,8 @@
 #
 # main-1 — 1, 8 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid + 1× skram                                  1.221 m wide
-#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
+#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
+#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   4  1× tecnare-m2122                                                           0.5 m wide
 #
@@ -22,12 +22,11 @@
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 3× flexy-folded-horn-hybrid row is 1.813 m on a 1.221 m row, so it overhangs 296 mm each side
 #
 # main-2 — 2, 9 cabinets in 4 rows:
 #
-#   1  1× skram + 1× flexy-folded-horn-hybrid                                  1.221 m wide
-#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
+#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
+#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   4  2× tecnare-m2122                                                          1.02 m wide
 #
@@ -35,7 +34,6 @@
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 3× flexy-folded-horn-hybrid row is 1.813 m on a 1.221 m row, so it overhangs 296 mm each side
 #
 id: stacked-2-pooled--------free----upright-alternate-block--low-----possible
 name: "Solved rig — 2 stacks side by side, tiers justified"
@@ -51,7 +49,7 @@ focus:
 placements:
   # 1, 8 cabinets in 4 rows
   - id: main-1
-    at: [-1.4585, 0.0]
+    at: [-1.468, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: block
@@ -70,7 +68,7 @@ placements:
 
   # 2, 9 cabinets in 4 rows
   - id: main-2
-    at: [0.8545, 0.0]
+    at: [0.864, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: block

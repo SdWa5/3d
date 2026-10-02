@@ -14,13 +14,13 @@
 #
 # main-1 — 1, 15 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   4  2× iq-sub rolled 270° + 1× iq-sub rolled 90° at 78 mm gaps            2.166 m wide
+#   1  3× achenbach-18                                                           1.84 m wide
+#   2  2× iq-sub rolled 270° + 1× iq-sub rolled 90°                           2.05 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   4  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
 #   5  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top            1.4556 m wide
 #
-# Subs reach 2.33 m against a 2.0 m interface. The stack is 3.29 m of cabinet.
+# Subs reach 2.312 m against a 2.0 m interface. The stack is 3.272 m of cabinet.
 #   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
@@ -34,6 +34,10 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * the 2× iq-sub rolled 270° + 1× iq-sub rolled 90° row is 2.050 m on a 1.840 m row, so it overhangs 105 mm
+#     each side
+#   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 2.329 m on a
+#     2.050 m row, so it overhangs 139 mm each side
 #
 # main-2 — 2, 24 cabinets in 2 rows:
 #
@@ -101,7 +105,7 @@ placements:
 
   # 2, 24 cabinets in 2 rows
   - id: main-2
-    at: [1.031, 0.0]
+    at: [1.1125, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0

@@ -629,6 +629,13 @@ narrow a wall and so is decided by how wide its bottom row is; the V puts the *n
 wall can only grow by two thirds of a cabinet per side per row and a V asked for on a full-width base has nowhere to
 go.
 
+A pyramid also tries a second order at every row width the search tries, by the width of the first row each type
+would be dealt there. Six SKRAMs and twelve Flexys show why. Counted as linear metres the Flexys are worth 7.29 m
+against 3.76 m, but at the 3.76 m step a Flexy row is 3.646 m, so the SKRAM row is the wider base and goes on the
+floor. The second order is offered beside the first and never replaces it, because a two-stack GMSS pyramid found
+nothing that reached its interface on the second order alone. The V keeps the first order only, since offering it the
+second as well cost more target miss across the regenerated scenes than it saved.
+
 The price is stated rather than hidden: a wide-but-shallow type can end up *under* a deeper one, which is the
 inversion the fill order otherwise exists to prevent. That is why **all three shapes are generated** — `free` keeps
 the deepest and heaviest cabinets on the floor and accepts whatever silhouette falls out, where the other two choose
@@ -1487,11 +1494,15 @@ bin/console scene:stack --low-end=central
 | `low` | what the solver has always done: both SKRAMs side by side on the floor, straddling the centre line |
 | `central` | one SKRAM on the floor centre and the second directly above it, each flanked to the row's width |
 
-**`low` costs nothing, deliberately.** The fill already deals the lowest-reaching type first and it already lands
-on the floor, so pricing that would re-rank every rig in the repository to express a preference they already
-satisfy — eleven solver tests said so out loud when it did. It is also declared first, so where the two values
-agree the deduplication keeps the `low` name and an unchanged rig is not renamed to claim a preference it merely
-happens to satisfy. On the GMSS inventory `central` differs on **7 rigs of 104**; on Sepp's eight cabinets, none.
+**`low` pays a little for height, 0.02 per metre.** A metre of low-end height costs what 20 mm of target miss does,
+so height still decides between rigs that keep the low end where it is. 0.1 was measured against it. It made eighteen
+`low` rigs miss their target by 13.5 m more in total and pushed two next-event V rigs past their 13 m room, where
+0.02 left five rigs 3.3 m worse and thirteen 4.3 m better. It cost nothing until 0.136.1, on the grounds
+that the fill deals the lowest-reaching type first and it lands on the floor anyway. A pyramid orders for width and
+breaks that. Six SKRAMs and twelve Flexys stood the SKRAMs on top, and one SKRAM with ten Flexys and seven
+Achenbachs put it in the top sub row for 9 mm of height. `low` is declared first, so where the two values agree the
+deduplication keeps the `low` name and an unchanged rig is not renamed to claim a preference it merely happens to
+satisfy.
 
 **Two measures, weighted four to one.** How high the low-frequency mass sits above the floor, and how far it sits
 from the centre line. Both are `moment / mass` over the same cabinets, the shape `Stability::tips()` already used

@@ -202,9 +202,7 @@ final class StackSolver
         // A wall can only grow by two thirds of a cabinet per side per row, so a V asked for on a wide base has nowhere
         // to go — the base already fills the stage. Putting the type that makes the *narrowest* row on the floor is
         // what leaves it room, exactly as the pyramid puts the widest one there to have something to taper from.
-        if (StackShape::Free !== $stack->shape) {
-            $inventory = self::widestFirst($inventory, $stack, StackShape::V === $stack->shape);
-        }
+        // The re-ordering itself is {@see searchSteps}, which pairs every budget step with the order it is dealt in.
 
         $tallestCarried = [];
         $tallestCarriedSubs = -INF;
@@ -226,7 +224,7 @@ final class StackSolver
         // on why a centroid over every sub could not see the arrangement the axis exists to choose.
         $lowest = LowEndCost::lowestType($inventory);
 
-        foreach (self::budgetLadder($inventory, $stack) as $budget) {
+        foreach (self::searchSteps($inventory, $stack) as [$budget, $dealt]) {
             // PACKING IS AN EXTRA CANDIDATE, NOT A REPLACEMENT, and measuring says so plainly: on 2 SKRAMs, 3
             // middle subs, 2 mid-bass and 2 2-ways the ordinary deal finds 1.445 m and the pack 2.465 m, because
             // one mixed row of the three tall types beats splitting them. On 6 Flexys and 8 turbo subs the pack
@@ -236,7 +234,7 @@ final class StackSolver
             // No flanking search for a packed pass: {@see packedRows} ignores `$pairs` outright, so every pass but
             // the first would re-solve the identical arrangement at the cost of a checker run per candidate pack.
             foreach (null !== $stack->maxSubHeightM ? [true, false] : [false] as $packed) {
-                $flanking = $packed ? 0 : StackTops::flankingPairs($inventory, $stack, $budget);
+                $flanking = $packed ? 0 : StackTops::flankingPairs($dealt, $stack, $budget);
                 for ($pairs = $flanking; $pairs >= 0; --$pairs) {
                     // **THE SPREAD IS A CANDIDATE, OFFERED ONLY WHERE IT COULD WIN.** `central` is the only bias
                     // that can prefer a type dealt one to a row — it is strictly taller and strictly more central,
@@ -253,12 +251,12 @@ final class StackSolver
                     // `$pairs` the way a packed pass does, so offering them on every pass would solve the same rows
                     // again. See {@see StackMix::flankedRows}.
                     if (!$packed && 0 === $pairs) {
-                        foreach (StackMix::levelFlanks($inventory, $stack) as $flank) {
+                        foreach (StackMix::levelFlanks($dealt, $stack) as $flank) {
                             $leads[] = [null, $flank];
                         }
                     }
                     foreach ($leads as [$spread, $flankedBy]) {
-                        $tiers = self::fillWith($inventory, $stack, $budget, $pairs, $packed, $align, $spread, $flankedBy);
+                        $tiers = self::fillWith($dealt, $stack, $budget, $pairs, $packed, $align, $spread, $flankedBy);
                         // A spread that could not be built returns nothing rather than quietly falling back to the
                         // ordinary arrangement, which would enter the same candidate twice.
                         if ([] === $tiers) {
@@ -933,12 +931,50 @@ final class StackSolver
     }
 
     /**
-     * The sub block re-ordered so the type that can make the **widest row** is on the floor.
+     * Every budget step of {@see budgetLadder}, each paired with the inventory order the fill deals it in.
      *
-     * `quantity × width` — the linear metres a type is worth — because that is what decides how wide its row comes
-     * out and so how wide a base the rest of the wall gets to stand on. It is the same measure
-     * {@see \App\Command\SceneStackCommand::byType} balances stacks on, and it used to be this sort's own tiebreak
-     * before weight took over.
+     * **A pyramid gets a second order per step, as an extra candidate and never as a replacement.** The first is
+     * `quantity × width`, the linear metres a type is worth, sorted once. The second is the width of the first row
+     * each type would actually be dealt at this step, because that is the base the rest of the wall stands on. Six
+     * SKRAMs under twelve Flexys measured why: the Flexys are worth 7.29 m against 3.76 m, but at the 3.76 m step a
+     * Flexy row is 3.646 m and the SKRAM row is the wider base. Sorted on linear metres alone that pyramid came out
+     * 3.646 → 3.646 → 3.76, upside down. Replacing the first order with the second lost arrangements, though. A
+     * two-stack GMSS pyramid found nothing that reached its interface any more and fell back to one 10 m row, so
+     * both are offered and the ranking chooses. Where the two agree the step is offered once.
+     *
+     * **The V keeps the first order alone.** Offered the second as well, it missed its target by far more across the
+     * regenerated scenes than it gained.
+     *
+     * @param list<array{DeviceSpec, int}> $inventory
+     *
+     * @return list<array{RowBudget, list<array{DeviceSpec, int}>}>
+     */
+    private static function searchSteps(array $inventory, Stack $stack): array
+    {
+        $reversed = StackShape::V === $stack->shape;
+        $linear = StackShape::Free === $stack->shape ? $inventory : self::widestFirst($inventory, $stack, null, $reversed);
+        $key = static fn (array $order): string => implode(',', array_map(static fn (array $e): string => $e[0]->id, $order));
+
+        $steps = [];
+        foreach (self::budgetLadder($inventory, $stack) as $budget) {
+            $steps[] = [$budget, $linear];
+            if (StackShape::Pyramid !== $stack->shape) {
+                continue;
+            }
+            $ordered = self::widestFirst($inventory, $stack, $budget, $reversed);
+            if ($key($ordered) !== $key($linear)) {
+                $steps[] = [$budget, $ordered];
+            }
+        }
+
+        return $steps;
+    }
+
+    /**
+     * The sub block re-ordered so the type that makes the **widest row** is on the floor.
+     *
+     * Without a budget the measure is `quantity × width`, the linear metres a type is worth. With one it is the width
+     * of the first row the type would be dealt under it. {@see searchSteps} offers both.
      *
      * Tops keep both their order and their position after the subs: nothing stands on a top, so the width of their
      * row buys nothing, and moving them would break the subs-before-tops rule {@see orderingProblems} enforces.
@@ -947,8 +983,19 @@ final class StackSolver
      *
      * @return list<array{DeviceSpec, int}>
      */
-    private static function widestFirst(array $inventory, Stack $stack, bool $reversed = false): array
+    private static function widestFirst(array $inventory, Stack $stack, ?RowBudget $budget, bool $reversed = false): array
     {
+        $rowOf = static function (array $entry) use ($stack, $budget): float {
+            [$device, $count] = $entry;
+            $roll = StackMetrics::rollFor($device, $stack);
+            if (null === $budget) {
+                return $count * RolledBox::widthOf($device, $roll);
+            }
+
+            return Tier::of($device, min($count, self::rowSizeFor($device, $count, $stack, $budget, $roll)), $roll)
+                ->widthM($stack->gapM);
+        };
+
         $subs = [];
         $tops = [];
         foreach ($inventory as $entry) {
@@ -962,10 +1009,7 @@ final class StackSolver
 
         usort(
             $subs,
-            static fn (array $a, array $b): int => $direction * (
-                $b[1] * RolledBox::widthOf($b[0], StackMetrics::rollFor($b[0], $stack))
-                <=> $a[1] * RolledBox::widthOf($a[0], StackMetrics::rollFor($a[0], $stack))
-            ),
+            static fn (array $a, array $b): int => $direction * ($rowOf($b) <=> $rowOf($a)),
         );
 
         return [...$subs, ...$tops];

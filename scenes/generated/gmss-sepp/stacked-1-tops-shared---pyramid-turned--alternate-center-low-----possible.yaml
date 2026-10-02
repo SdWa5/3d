@@ -11,28 +11,25 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 13 cabinets in 4 rows:
+# main-gmss — gmss, 14 cabinets in 4 rows:
 #
-#   1  3× iq-sub rolled 270° + 3× iq-sub rolled 90°                           4.12 m wide
-#   2  2× wall-bass rolled 270° + 1× nuke rolled 90°                          3.61 m wide
-#   3  1× mid-bass rolled 270° + 1× nuke rolled 90°                           1.29 m wide
-#   4  2× turbo-top                                                              0.92 m wide
+#   1  1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°      4.2 m wide
+#   2  2× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.74 m wide
+#   3  1× nuke rolled 270° + 1× mid-bass rolled 90° + 1× nuke rolled 90°     2.08 m wide
+#   4  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
 #
-# Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
+# Subs reach 2.39 m against a 2.0 m interface. The stack is 3.226 m of cabinet.
 #
-# main-ours — ours, 9 cabinets in 4 rows:
+# main-ours — ours, 8 cabinets in 4 rows:
 #
 #   1  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
 #   2  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
-#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° at 132 mm gaps    1.332 m wide
-#   4  1× turbo-top + 2× eighteensound-2way-15                                1.4212 m wide
+#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
+#   4  2× turbo-top                                                              0.92 m wide
 #
-# Subs reach 1.8 m against a 2.0 m interface. The stack is 2.636 m of cabinet.
+# Subs reach 1.8 m against a 2.0 m interface. The stack is 2.51 m of cabinet.
 #   * the subs reach 1.800 m against the 2.000 m interface asked for, so the tops sit 200 mm lower than ideal —
 #     1.800 m is the most they reach while every tier is still carried
-#   * the 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° at 132 mm gaps row is 1.332 m on a 1.220 m row,
-#     so it overhangs 56 mm each side
-#   * the 1× turbo-top + 2× eighteensound-2way-15 row is 1.421 m on a 1.332 m row, so it overhangs 45 mm each side
 #
 id: stacked-1-tops-shared---pyramid-turned--alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -46,9 +43,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 13 cabinets in 4 rows
+  # gmss, 14 cabinets in 4 rows
   - id: main-gmss
-    at: [-1.2626, 0.0]
+    at: [-1.162, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -72,12 +69,14 @@ placements:
           roll_mirror: 90.0
         - device: iq-sub
           roll_mirror: 90.0
+        - eighteensound-2way-15
         - device: turbo-top
-          count: 2
+          count: 1
+          aim: near
 
-  # ours, 9 cabinets in 4 rows
+  # ours, 8 cabinets in 4 rows
   - id: main-ours
-    at: [2.008, 0.0]
+    at: [2.048, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -95,8 +94,6 @@ placements:
       from:
         - device: achenbach-18
           roll_mirror: 90.0
-        - eighteensound-2way-15
         - device: turbo-top
-          count: 1
-          aim: near
+          count: 2
 

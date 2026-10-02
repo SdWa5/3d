@@ -24,17 +24,13 @@
 #
 # main-2 — 2, 9 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps    1.666 m wide
-#   3  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   4  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
 #   5  1× tecnare-m2122                                                           0.5 m wide
 #
 # Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 140 mm gaps row is
-#     1.666 m on a 1.546 m row, so it overhangs 60 mm each side
-#   * the 1× skram rolled 270° + 1× skram rolled 90° row is 1.848 m on a 1.666 m row, so it overhangs 91 mm each
-#     side
 #
 # main-3 — 3, 8 cabinets in 4 rows:
 #
