@@ -60,8 +60,7 @@ Settled with the owner, so a new session can act on it without re-deriving it.
 **Before the list, one errand off the keyboard. Put the Movano on a scale (LOAD-2).** Sepp's van weighed 365 kg more
 than its registration document says, and the Movano's 1024 kg payload is the same class of paper figure.
 
-1. **SYM-3 and GEO-9**, both raised to P1 by the owner. SYM-3 is a tops row shared by a mirrored pair at equal pitch,
-   and GEO-9 is the two missing shapes.
+1. **GEO-9**, raised to P1 by the owner, which is the two missing shapes.
 2. **GEO-11's scene-level half**, which is aiming and cross-placement alignment and the genuinely circular part.
 
 **GEO-14 was never placed in this order.** Its last quarter waits on one sub-question, which is where the weights live.
@@ -210,36 +209,7 @@ rows, and `Gravity` splits a wall of many thin rows into runs inside each other.
 
 | ID    | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Prio | Effort | Buys                                                                                                                           | Needs | State   |
 |-------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------|--------|--------------------------------------------------------------------------------------------------------------------------------|-------|---------|
-| SYM-3 | Stereo/mono placement breadth. Subs mono where possible and spread only as far as the tops need, tops as wide and as evenly spaced as possible, and symmetry wins ties. **Nothing blocks it any more.** The spreading half is a tops row shared across a **mirrored pair**, which is neither a change to `Alignment` nor SWP-2's `tops-shared`, since that shares the pool rather than the row. The evenness rule is **equal pitch**, settled by the owner | P1   | 5h     | the broadest stereo image and the mono spread. Costs 169 mm on the tightest tops row, which only bites where a width is stated | —     | open    |
 | SYM-2 | Stack ordering cannot make the flanks *equal*, only place the tall ones. The taller stacks go to the middle in mono and to the ends in stereo, so equal flanks depend on the split giving each stack similar contents                                                                                                                                                                                                                                      | P3   | 1h     | 3 of 13 multi-stack scenes are height-asymmetric                                                                               | GEO-4 | partial |
-
-#### SYM-3 — a shared tops row on a mirrored pair, at equal pitch
-
-The ask is that in a stereo scene the subs spread as wide as possible or necessary so the tops can stand as far apart as
-possible, and that in a mono scene the outermost tops go as wide as possible with all tops spaced as evenly as possible,
-with symmetry between and inside stacks optimised.
-
-**Spreading means sub columns, never a sub row.** Air between the cabinets of one tier is what ALN-4 forbids, and
-rightly, because `MIN_BEARING` is 1/3 and a stretched row hands the cabinet above air instead. Moving whole stacks apart
-already exists as `--stacks=N` and `--clearance`.
-
-**What is missing is a tops row that bridges stacks.** `StackTops::topRow()` builds each stack's tops from that stack,
-so the tops move with their subs. A bridging row needs level walls, and two owners' walls never are (measured at 2.31,
-2.383 and 1.8 m), so it can only stand on a mirrored pair out of one pool. **The clearance has a computable ceiling.**
-Every top over the gap still lands on a third of its width, so a 0.450 m top hangs about 0.300 m off an edge and two
-meeting tops cap the clearance near 0.600 m. That bound is what "only as far as the tops need" solves against.
-
-**Equal pitch was settled by the owner, against a recommendation of equal air.** Our tops are 0.450, 0.4656 and 0.500 m
-wide, so the two disagree, by up to 44 mm in centre position for eight tops on 4.40 m as measured by
-[`tools/tops-row-spread.php`](tools/tops-row-spread.php). A uniform pitch has to clear the widest adjacent pair, so the
-tightest eight-top row grows from 3.9212 m to 4.0900 m. Those 169 mm only matter where a width is stated, because of
-CVR-8.
-
-**How to build it.** Equal pitch whenever there is slack to distribute, never below the pitch that clears the widest
-pair, and below that the equal-air packing a `Tier` already builds. Centres on a regular grid are what a `row` group's
-`step_m` already is, so it stays inside `Alignment`'s one-scalar model. What changes is that `Tier::seats()` packs by
-equal air, so the row has to be rebuilt on a step before the solver touches it. The floor is the argument behind
-`Alignment::minParameter()`, re-derived for a pitch rather than a factor.
 
 ## LOAD · transporters and packing
 
@@ -516,8 +486,8 @@ bytes. Reconciling them is a reading job rather than a delete.
 
 ## ALN · alignment features
 
-ALN-4 and SYM-3 are independent, because SYM-3 moves whole stacks apart under a shared tops row and never spreads a
-load-bearing tier.
+ALN-4 is independent of the shared tops row of a mirrored pair, because that row moves whole stacks and never spreads
+a load-bearing tier.
 
 | ID    | Item                                                                                                                                                                                                | Prio | Effort | Buys | Needs    | State    |
 |-------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------|--------|------|----------|----------|

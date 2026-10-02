@@ -188,7 +188,8 @@ final class StackChecks
         $totalHeight = 0.0;
         $widest = 0.0;
         $widestLabel = $tiers[0]->label();
-        $hasTop = false;
+        // A wall under a shared row is not a sub wing, though its own tiers are all subs. See {@see BridgedTops}.
+        $hasTop = $stack->sharedTops;
         foreach ($tiers as $tier) {
             $totalHeight += $tier->heightM();
             if ($tier->isSub()) {

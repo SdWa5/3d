@@ -238,7 +238,8 @@ final class StackTops
             return true;
         }
 
-        $hasTop = false;
+        // A wall under a shared row carries tops that are not in its own tiers, see {@see BridgedTops}.
+        $hasTop = $stack->sharedTops;
         foreach ($tiers as $tier) {
             if (!$tier->isSub()) {
                 $hasTop = true;

@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Process\Parallel;
 use App\Scene\Alignment;
+use App\Scene\BridgedTops;
 use App\Scene\CandidateCheck;
 use App\Scene\Fault;
 use App\Scene\Feasibility;
@@ -32,6 +33,7 @@ use App\Scene\StackOrientation;
 use App\Scene\StackSceneWriter;
 use App\Scene\StackShape;
 use App\Scene\StackSolver;
+use App\Scene\StackTops;
 use App\Scene\SweepAxes;
 use App\Scene\SystemGrouping;
 use App\Scene\SystemSplit;
@@ -850,70 +852,193 @@ final class SceneStackCommand extends BaseCommand
             return $firstProblem ?? 'no workable arrangement';
         }
 
-        // Measured before the blocks are reordered, and **reported rather than refused whoever asked for it**. The
-        // sweep used to treat a wall outside the band as a rig for a different stage and a named rig as a warning,
-        // which was two answers to one question; now both are the warning, and there is no stage to move it to.
-        $bandMiss = StackChecks::bandMiss($blocks);
+        // **SYM-3, ONE TOPS ROW ACROSS A MIRRORED PAIR**, tried after the per-wall rigs because it is judged against
+        // them: it has to place at least as many cabinets as the best of them, and on a tie it wins, since symmetry
+        // wins ties. A bridged rig the compiler refuses falls back to the per-wall one rather than losing the scene.
+        $write = function (array $blocks, ?BridgedTops $bridge) use (
+            $at,
+            $devices,
+            $mode,
+            $shape,
+            $style,
+            $orientation,
+            $lowEnd,
+            $stacks,
+            $baseId,
+            $maxWidthM,
+            $from,
+            $split,
+            $into,
+            $input,
+        ): array|string {
+            // **Reported rather than refused whoever asked for it**. The
+            // sweep used to treat a wall outside the band as a rig for a different stage and a named rig as a warning,
+            // which was two answers to one question; now both are the warning, and there is no stage to move it to.
+            $bandMiss = StackChecks::bandMiss($blocks);
 
-        $blocks = StackSceneWriter::byHeight($blocks, $mode, self::statedOrder($input));
+            $clearance = null === $bridge ? (float) $input->getOption('clearance') : $bridge->clearanceM;
+            $yaml = StackSceneWriter::yaml(
+                id: 'placeholder',
+                name: $this->describe($mode, count($blocks)),
+                blocks: $blocks,
+                at: $at,
+                clearanceM: $clearance,
+                command: RecordedCommand::line(
+                    $input,
+                    $mode,
+                    $shape,
+                    $style,
+                    $orientation,
+                    $lowEnd,
+                    $stacks,
+                    $baseId,
+                    $maxWidthM,
+                    $from,
+                    $split,
+                    $into,
+                    $this->counts,
+                    $this->defaults,
+                ),
+                stated: $this->counts,
+                // Each block is a system exactly when the separation says so, which is what decides whether they
+                // share a focus. See {@see StackSceneWriter::yaml}.
+                perSystemFocus: $split->isPerOwner(),
+                bridge: $bridge,
+            );
 
-        $clearance = (float) $input->getOption('clearance');
-        $yaml = StackSceneWriter::yaml(
-            id: 'placeholder',
-            name: $this->describe($mode, count($blocks)),
-            blocks: $blocks,
-            at: $at,
-            clearanceM: $clearance,
-            command: RecordedCommand::line(
-                $input,
-                $mode,
-                $shape,
-                $style,
-                $orientation,
-                $lowEnd,
-                $stacks,
-                $baseId,
-                $maxWidthM,
-                $from,
-                $split,
-                $into,
-                $this->counts,
-                $this->defaults,
-            ),
-            stated: $this->counts,
-            // Each block is a system exactly when the separation says so, which is what decides whether they
-            // share a focus. See {@see StackSceneWriter::yaml}.
-            perSystemFocus: $split->isPerOwner(),
-        );
-
-        // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
-        // one of the possibilities, whatever the solver thought of the tiers.
-        $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
-        if (is_string($compiled)) {
-            return $compiled;
-        }
-
-        // **THE BACKDROP GOES BEHIND THE RIG AS IT CAME OUT**, which is why it is added after the first compile: the
-        // deepest back face is the solve's answer, with the aimed tops yawed and the subs rolled. Then the whole
-        // scene is compiled again, so the room, the overlap and the floating checks see the truss as well.
-        $backdrop = $this->backdrop;
-        if (null !== $this->deco && null !== $backdrop) {
-            $yaml .= implode("\n", $backdrop->yaml(
-                $this->deco,
-                $at[0],
-                $compiled['backY'],
-                $this->eventOptions->room->heightM,
-            ))."\n";
-            $cabinets = $compiled['cabinets'];
+            // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
+            // one of the possibilities, whatever the solver thought of the tiers.
             $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
             if (is_string($compiled)) {
                 return $compiled;
             }
-            // A tower is not a cabinet, and the count is what the run reports per rig.
-            $compiled['cabinets'] = $cabinets;
+
+            // **THE BACKDROP GOES BEHIND THE RIG AS IT CAME OUT**, which is why it is added after the first compile: the
+            // deepest back face is the solve's answer, with the aimed tops yawed and the subs rolled. Then the whole
+            // scene is compiled again, so the room, the overlap and the floating checks see the truss as well.
+            $backdrop = $this->backdrop;
+            if (null !== $this->deco && null !== $backdrop) {
+                $yaml .= implode("\n", $backdrop->yaml(
+                    $this->deco,
+                    $at[0],
+                    $compiled['backY'],
+                    $this->eventOptions->room->heightM,
+                ))."\n";
+                $cabinets = $compiled['cabinets'];
+                $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
+                if (is_string($compiled)) {
+                    return $compiled;
+                }
+                // A tower is not a cabinet, and the count is what the run reports per rig.
+                $compiled['cabinets'] = $cabinets;
+            }
+
+            return ['yaml' => $yaml, 'bandMiss' => $bandMiss] + $compiled;
+        };
+
+        $bridged = $this->bridged($groups, $pool, $devices, $mode, $shape, $style, $orientation, $lowEnd, $maxWidthM, $input, $best);
+        if (null !== $bridged) {
+            $written = $write(...$bridged);
+            if (!is_string($written)) {
+                return $written;
+            }
         }
 
-        return ['yaml' => $yaml, 'bandMiss' => $bandMiss] + $compiled;
+        return $write(StackSceneWriter::byHeight($blocks, $mode, self::statedOrder($input)), null);
+    }
+
+    /**
+     * The pair's two walls solved from their subs alone, and one tops row standing on both. SYM-3.
+     *
+     * Asked only of **two stacks out of one pool**, because only those can come out level. Two systems' walls are
+     * drawn from two inventories and never match, which is why `tops-shared` shares the pool and not the row. The
+     * walls are dealt evenly and the remainder left out, so they mirror each other, and every top of the pool goes
+     * into the row, which is how a third Tecnare stops being dealt to one side.
+     *
+     * Null when the pair has no tops, places fewer cabinets than the per-wall rig, or carries no row. See
+     * {@see BridgedTops} for the layouts and the bearing rule.
+     *
+     * @param array<string, array{ids: list<string>, index: int, of: int}> $groups
+     * @param array<string, int> $pool the tops `tops-shared` held back, device id => cabinets
+     * @param array<string, DeviceSpec> $devices
+     *
+     * @return array{list<StackBlock>, BridgedTops}|null the walls left to right, and the row
+     */
+    private function bridged(
+        array $groups,
+        array $pool,
+        array $devices,
+        LayoutMode $mode,
+        StackShape $shape,
+        MirrorStyle $style,
+        ?StackOrientation $orientation,
+        LowEndBias $lowEnd,
+        ?float $maxWidthM,
+        InputInterface $input,
+        int $best,
+    ): ?array {
+        $lists = array_values(array_column($groups, 'ids'));
+        if (2 !== count($lists) || $lists[0] !== $lists[1]) {
+            return null;
+        }
+
+        $tops = [];
+        foreach ($lists[0] as $id) {
+            if ('sub' !== $devices[$id]->subtype && $devices[$id]->quantity > 0) {
+                $tops[$id] = $devices[$id]->quantity;
+            }
+        }
+        foreach ($pool as $id => $count) {
+            $tops[$id] = ($tops[$id] ?? 0) + $count;
+        }
+        $subs = array_values(array_filter($lists[0], static fn (string $id): bool => 'sub' === $devices[$id]->subtype));
+        if ([] === $tops || [] === $subs) {
+            return null;
+        }
+
+        $walls = $this->solveEach(
+            array_map(static fn (array $group): array => ['ids' => $subs] + $group, $groups),
+            [],
+            $devices,
+            // No alignment on a wall with no tops of its own, since `stereo` would spread its top sub row apart.
+            LayoutMode::Center,
+            $shape,
+            $style,
+            $orientation,
+            $lowEnd,
+            $maxWidthM,
+            $input,
+            true,
+            false,
+            true,
+        );
+        if (is_string($walls)) {
+            return null;
+        }
+        $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $walls)) + array_sum($tops);
+        if ($placed < $best) {
+            return null;
+        }
+
+        $walls = StackSceneWriter::byHeight($walls, $mode, self::statedOrder($input));
+        $row = StackTops::topRow(
+            array_map(static fn (string $id): array => [$devices[$id], $tops[$id]], array_keys($tops)),
+            $walls[1]->stack,
+            $mode,
+        );
+        if (null === $row) {
+            return null;
+        }
+
+        $bridge = BridgedTops::solve(
+            $walls[0],
+            $walls[1],
+            $row,
+            (float) $input->getOption('clearance'),
+            $this->nearFieldFills($devices, array_keys($tops)),
+        );
+
+        return null === $bridge ? null : [$walls, $bridge];
     }
 
     /**
@@ -945,6 +1070,7 @@ final class SceneStackCommand extends BaseCommand
         InputInterface $input,
         bool $evenSplit,
         bool $placeAll,
+        bool $sharedTops = false,
     ): array|string {
         $blocks = [];
         foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
@@ -968,6 +1094,7 @@ final class SceneStackCommand extends BaseCommand
                 $evenSplit,
                 $placeAll,
                 $deal[$label] ?? [],
+                $sharedTops,
             );
             if (is_string($block)) {
                 return '' === $label ? $block : sprintf('%s: %s', $label, $block);
@@ -1086,6 +1213,7 @@ final class SceneStackCommand extends BaseCommand
         bool $evenSplit = true,
         bool $placeAll = false,
         array $tops = [],
+        bool $sharedTops = false,
     ): StackBlock|string {
         // **The dealt tops join the list after the subs, which is where the fill order wants them.** Appended rather
         // than merged, because `$ids` is a fill order and not a set: {@see \App\Spec\FillOrder::everySpeaker} emits subs low-frequency
@@ -1121,6 +1249,7 @@ final class SceneStackCommand extends BaseCommand
                 $lowEnd,
                 2 * $index < $of - 1,
                 1 === $of,
+                $sharedTops,
             );
             $problems = $stack->problems();
             if ([] !== $problems) {
@@ -1189,6 +1318,7 @@ final class SceneStackCommand extends BaseCommand
         LowEndBias $lowEnd = LowEndBias::Low,
         bool $mirror = false,
         bool $solo = false,
+        bool $sharedTops = false,
     ): Stack {
         // **WHICH CABINETS LIE DOWN, resolved here and nowhere else.** An orientation answers it from the specs — every
         // sub, or only the ones that get wider on their side ({@see StackOrientation}) — and a null orientation means
@@ -1254,6 +1384,7 @@ final class SceneStackCommand extends BaseCommand
             // what stands on the row, and that is the missing piece rather than this line.
             slideSlackM: $solo ? INF : null,
             mouths: MouthMode::from((string) $input->getOption('mouths')),
+            sharedTops: $sharedTops,
         );
     }
 

@@ -90,7 +90,9 @@ final class SceneCompiler
 
         // A `stack` is solved into ordinary placements first, once, so nothing after this point — not the
         // front-face walk, not the placing loop, not the report — has to know stacks exist.
-        $placements = $this->expandStacks($scene, $scene->placements, $add, $warn);
+        /** @var array<string, string> $stackOf expanded placement id => the stack placement it came from */
+        $stackOf = [];
+        $placements = $this->expandStacks($scene, $scene->placements, $add, $warn, $stackOf);
 
         // Where the rig stands, worked out before any orientation exists. Aiming needs the focus
         // point, the focus point needs the rig's front face, and the front face must not depend on
@@ -102,10 +104,22 @@ final class SceneCompiler
         );
 
         $lowest = null;
+        // The front plane of every stack, so a cabinet standing on one from outside stands flush on it as well.
+        $stackFront = [];
+        foreach ($placements as $placement) {
+            $stack = $stackOf[$placement->id] ?? null;
+            if (null !== $stack && null !== $placement->frontYM) {
+                $stackFront[$stack] = $placement->frontYM;
+            }
+        }
+
         foreach ($placements as $placement) {
             if (isset($byId[$placement->id])) {
                 $add("duplicate placement id '{$placement->id}'");
                 continue;
+            }
+            if (null === $placement->frontYM && null !== $placement->on && isset($stackFront[$placement->on])) {
+                $placement = $placement->flushedOn($stackFront[$placement->on]);
             }
 
             $model = $this->devicesById[$placement->deviceId] ?? null;
@@ -270,6 +284,13 @@ final class SceneCompiler
                 if ($copy->isAnchor) {
                     $byId[$placement->id] = $entry;
                 }
+                // **A STACK CAN BE STOOD ON AS A WHOLE**, by its own id, and what carries the cabinet is its highest one.
+                // That is what SYM-3's shared tops row needs, since nothing outside a stack knows the ids its tiers
+                // solve to. A stack has one top height wherever its top tier is level, which the generator checks.
+                $stack = $stackOf[$placement->id] ?? null;
+                if (null !== $stack && (!isset($byId[$stack]) || $entry->topZ() > $byId[$stack]->topZ())) {
+                    $byId[$stack] = $entry;
+                }
             }
 
             // The check that makes `fly` police itself: a hang is the one thing that can legitimately be
@@ -423,10 +444,11 @@ final class SceneCompiler
      * @param list<Placement> $placements
      * @param callable(string):void $add
      * @param callable(string):void $warn
+     * @param array<string, string> $stackOf filled with expanded placement id => the stack placement it came from
      *
      * @return list<Placement>
      */
-    private function expandStacks(SceneSpec $scene, array $placements, callable $add, callable $warn): array
+    private function expandStacks(SceneSpec $scene, array $placements, callable $add, callable $warn, array &$stackOf = []): array
     {
         $expanded = [];
 
@@ -480,6 +502,9 @@ final class SceneCompiler
                         $warn("placement '{$placement->id}': {$warning}");
                     }
                     $own = $placement->stack->expand($placement, $solved['tiers']);
+                    foreach ($own as $tier) {
+                        $stackOf[$tier->id] = $placement->id;
+                    }
                     array_push($expanded, ...$this->withOwnFocus($placement, $own));
                     continue;
                 }

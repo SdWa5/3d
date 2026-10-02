@@ -183,6 +183,46 @@ final class SceneStackMirrorTest extends SceneStackTestCase
     }
 
     /**
+     * **A mirrored pair stands every top in one row across both walls**, which is SYM-3. Three Tecnares used to be
+     * dealt one to one wall and two to the other, so the pair was not symmetric. Now the walls hold subs alone, each
+     * says tops stand on it, and the three tops follow as placements of their own at one pitch, the middle one over
+     * the gap with the walls closed in until it is carried.
+     */
+    public function testAMirroredPairStandsItsTopsInOneRowAcrossBothWalls(): void
+    {
+        $display = $this->invoke([
+            '--from' => ['skram', 'flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '2',
+            '--orientation' => ['turned'], '--align' => ['stereo'], '--shape' => ['free'],
+            '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--dry-run' => true,
+        ])->getDisplay();
+
+        self::assertSame(2, substr_count($display, 'shared_tops: true'));
+        self::assertSame(3, preg_match_all('/^  - id: tops-\d\n    device: tecnare-m2122\n    on: main-[12]$/m', $display));
+        self::assertStringContainsString('at an equal pitch of', $display);
+        // The walls closed in from the default 0.5 m, because the middle Tecnare bears a third only below 0.333 m.
+        self::assertMatchesRegularExpression('/with 0\.3[0-3]\d* m of air between them/', $display);
+        self::assertStringNotContainsString('SPLIT UNEVENLY', $display);
+    }
+
+    /**
+     * **Three stacks keep a tops row each**, because a shared row needs two level walls and the middle of three is
+     * dealt differently from its neighbours.
+     */
+    public function testThreeStacksKeepATopsRowEach(): void
+    {
+        $display = $this->invoke([
+            '--from' => ['skram', 'flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '3',
+            '--orientation' => ['turned'], '--align' => ['stereo'], '--shape' => ['free'],
+            '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--dry-run' => true,
+        ])->getDisplay();
+
+        // A rig was written at all, so the two absences below are about it rather than about an empty run.
+        self::assertStringContainsString('id: stacked-3-', $display);
+        self::assertStringNotContainsString('shared_tops', $display);
+        self::assertStringNotContainsString('- id: tops-', $display);
+    }
+
+    /**
      * A recorded command line names the **mode**, not the cabinets it resolved to.
      *
      * That is what keeps a replay correct across a spec change: `--orientation=turned` means "every sub", so a sub

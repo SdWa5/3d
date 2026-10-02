@@ -434,9 +434,10 @@ final class SceneStackSystemsTest extends SceneStackTestCase
     /**
      * The odd cabinet is placed by default and left out only when asked.
      *
-     * Three Tecnares across two stacks: dealt, they are one and two and all three are in the rig; refused, they
-     * are one each and the third is reported. The whole difference `--no-asymmetry` makes, on the smallest case
-     * that shows it.
+     * Five Flexys and three Tecnares across two stacks. The odd cabinet is a sub, because an odd top no longer is one:
+     * a pair stands its tops in one shared row. Dealt, the Flexys are two and three and every cabinet is in the rig,
+     * which beats the shared row's seven. Refused, the Flexys are two each, the fifth is reported, and the walls are
+     * equal again, so the three tops stand in one row across them rather than being split or cut to two.
      */
     public function testTheOddCabinetIsPlacedByDefaultAndLeftOutOnlyWhenAsked(): void
     {
@@ -444,16 +445,19 @@ final class SceneStackSystemsTest extends SceneStackTestCase
         // twice. The subject is what the split does with the odd cabinet, which no shape changes.
         $shared = [
             '--systems' => ['pooled'], '--from' => ['flexy-folded-horn-hybrid', 'tecnare-m2122'], '--stacks' => '2', '--shape' => ['free'],
+            '--quantity' => ['flexy-folded-horn-hybrid:5'], '--into' => 'odd-sub',
             '--orientation' => ['upright'], '--max-width' => '3.70', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ];
 
         $dealt = $this->invoke($shared)->getDisplay();
-        self::assertStringContainsString('SPLIT UNEVENLY, 1 of 3 over 2 stacks', $dealt);
-        self::assertSame([7, 8], $this->cabinetsPerStack($dealt));
+        self::assertStringContainsString('SPLIT UNEVENLY, 1 of 5 over 2 stacks', $dealt);
+        self::assertSame([3, 5], $this->cabinetsPerStack($dealt));
+        self::assertStringNotContainsString('shared_tops', $dealt);
 
         $refused = $this->invoke($shared + ['--no-asymmetry' => true])->getDisplay();
-        self::assertStringContainsString('LEFT OUT, 1 of 3', $refused);
-        self::assertSame([7, 7], $this->cabinetsPerStack($refused));
+        self::assertStringContainsString('LEFT OUT, 1 of 5', $refused);
+        self::assertSame([2, 2], $this->cabinetsPerStack($refused));
+        self::assertSame(3, substr_count($refused, 'device: tecnare-m2122'));
     }
 
     /**
@@ -463,7 +467,7 @@ final class SceneStackSystemsTest extends SceneStackTestCase
      */
     private function rowsPerStack(string $display): array
     {
-        preg_match_all('/^# main-\S+ — .*?, \d+ cabinets in (\d+) rows:$/m', $display, $matches);
+        preg_match_all('/^# main-\S+ — .*?, \d+ cabinets in (\d+) rows?:$/m', $display, $matches);
 
         return array_map(intval(...), $matches[1]);
     }
@@ -471,7 +475,7 @@ final class SceneStackSystemsTest extends SceneStackTestCase
     /** @return list<int> */
     private function cabinetsPerStack(string $display): array
     {
-        preg_match_all('/^# main-\S+ — .*?, (\d+) cabinets in \d+ rows:$/m', $display, $matches);
+        preg_match_all('/^# main-\S+ — .*?, (\d+) cabinets in \d+ rows?:$/m', $display, $matches);
 
         return array_map(intval(...), $matches[1]);
     }

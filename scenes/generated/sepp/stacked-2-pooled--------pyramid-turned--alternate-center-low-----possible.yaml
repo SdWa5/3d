@@ -10,23 +10,24 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 4 cabinets in 2 rows:
+# main-1 — 1, 3 cabinets in 1 row:
 #
 #   1  2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.84 m wide
-#   2  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 0.6 m against a 2.0 m interface. The stack is 1.436 m of cabinet.
+# Subs reach 0.6 m against a 2.0 m interface. The stack is 0.6 m of cabinet.
 #   * the subs reach 0.600 m against the 2.000 m interface asked for, so the tops sit 1400 mm lower than ideal —
 #     0.600 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 4 cabinets in 2 rows:
+# main-2 — 2, 3 cabinets in 1 row:
 #
 #   1  1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90°               1.84 m wide
-#   2  1× eighteensound-2way-15                                                0.4656 m wide
 #
-# Subs reach 0.6 m against a 2.0 m interface. The stack is 1.436 m of cabinet.
+# Subs reach 0.6 m against a 2.0 m interface. The stack is 0.6 m of cabinet.
 #   * the subs reach 0.600 m against the 2.000 m interface asked for, so the tops sit 1400 mm lower than ideal —
 #     0.600 m is the most they reach while every tier is still carried
+#
+# The tops stand in one row across both walls: eighteensound-2way-15 + eighteensound-2way-15, at an equal pitch of
+#     3.7144 m.
 #
 id: stacked-2-pooled--------pyramid-turned--alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -40,7 +41,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 4 cabinets in 2 rows
+  # 1, 3 cabinets in 1 row
   - id: main-1
     at: [-1.472, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -50,14 +51,13 @@ placements:
       gap_m: 0.02
       shape: pyramid
       mirror: true             # the mirror image of stack 1
+      shared_tops: true        # the tops below stand on this wall
       from:
         - device: achenbach-18
           count: 3
           roll_mirror: 90.0
-        - device: eighteensound-2way-15
-          count: 1
 
-  # 2, 4 cabinets in 2 rows
+  # 2, 3 cabinets in 1 row
   - id: main-2
     at: [0.868, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -66,10 +66,21 @@ placements:
       max_sub_height_m: 3.0
       gap_m: 0.02
       shape: pyramid
+      shared_tops: true        # the tops below stand on this wall
       from:
         - device: achenbach-18
           count: 3
           roll_mirror: 90.0
-        - device: eighteensound-2way-15
-          count: 1
+
+  # The tops, one row standing on both walls at an equal pitch of 3.7144 m.
+  - id: tops-1
+    device: eighteensound-2way-15
+    on: main-1
+    at: [-2.1592, -0.1366]
+    aim: far
+  - id: tops-2
+    device: eighteensound-2way-15
+    on: main-2
+    at: [1.5552, -0.1366]
+    aim: far
 

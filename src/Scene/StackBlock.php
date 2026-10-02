@@ -100,6 +100,10 @@ final class StackBlock
      */
     public function hasTops(): bool
     {
+        // The shared row of a mirrored pair stands on this wall without being one of its tiers.
+        if ($this->stack->sharedTops) {
+            return true;
+        }
         foreach ($this->tiers as $tier) {
             if (!$tier->isSub()) {
                 return true;

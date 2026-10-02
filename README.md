@@ -255,7 +255,9 @@ and a front colour of its own give the ESX and EF 6 their black bodies with whit
 tops their folded horns and port horns. Castors can be drawn too, and the Flexy has four blue ones on its back.
 
 **A generated stack stands flush at the front**, every tier on the front edge of the one below, and a stereo tops row
-packs its near-field fills outward against the long throws ([docs/scenes.md](docs/scenes.md#stack)).
+packs its near-field fills outward against the long throws ([docs/scenes.md](docs/scenes.md#stack)). **A mirrored
+pair stands all its tops in one row across both walls** at an equal pitch, and the walls close in only as far as the
+middle tops need ([docs/scenes.md](docs/scenes.md#a-shared-tops-row-on-a-mirrored-pair)).
 
 All three Tecnare tops share one spec at quantity 3. Two are factory cabinets and the third is a self-built copy, but
 the geometry is identical, so modelling it twice was wasted work; the distinction is recorded in the spec's notes.
