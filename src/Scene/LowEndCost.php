@@ -54,7 +54,7 @@ final class LowEndCost
                 $mass += $weight;
                 $moment += $weight * ($base + $height / 2);
             }
-            $base += $tier->heightStepM();
+            $base += $height;
         }
 
         return $mass <= 0.0 ? 0.0 : $moment / $mass;

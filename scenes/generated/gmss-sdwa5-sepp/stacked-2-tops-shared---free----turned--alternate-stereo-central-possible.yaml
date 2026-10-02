@@ -12,20 +12,17 @@
 #
 # 4 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours-1 — ours-1, 12 cabinets in 6 rows:
+# main-ours-1 — ours-1, 12 cabinets in 5 rows:
 #
-#   1  1× skram rolled 270°                                                    0.914 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   5  2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.84 m wide
-#   6  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
+#   4  1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90°               1.84 m wide
+#   5  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
 #
-# Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 1.546 m on a
-#     0.914 m row, so it overhangs 316 mm each side
-#   * the 2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° row is 1.840 m on a 1.546 m row, so it
+#   * the 1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90° row is 1.840 m on a 1.546 m row, so it
 #     overhangs 147 mm each side
 #
 # main-gmss-2 — gmss-2, 8 cabinets in 4 rows:
@@ -52,20 +49,17 @@
 #   * the 1× iq-sub rolled 270° + 1× nuke rolled 90° row is 1.460 m on a 1.400 m row, so it overhangs 30 mm each
 #     side
 #
-# main-ours-2 — ours-2, 13 cabinets in 6 rows:
+# main-ours-2 — ours-2, 13 cabinets in 5 rows:
 #
-#   1  1× skram rolled 90°                                                     0.914 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   5  1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90°               1.84 m wide
-#   6  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
+#   4  2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.84 m wide
+#   5  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
 #
-# Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 1.546 m on a
-#     0.914 m row, so it overhangs 316 mm each side
-#   * the 1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90° row is 1.840 m on a 1.546 m row, so it
+#   * the 2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° row is 1.840 m on a 1.546 m row, so it
 #     overhangs 147 mm each side
 #
 id: stacked-2-tops-shared---free----turned--alternate-stereo-central-possible
@@ -80,9 +74,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours-1, 12 cabinets in 6 rows
+  # ours-1, 12 cabinets in 5 rows
   - id: main-ours-1
-    at: [-3.662, 0.0]
+    at: [-3.982, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -183,9 +177,9 @@ placements:
         - device: tecnare-m2122
           count: 1
 
-  # ours-2, 13 cabinets in 6 rows
+  # ours-2, 13 cabinets in 5 rows
   - id: main-ours-2
-    at: [3.058, 0.0]
+    at: [3.378, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

@@ -58,6 +58,14 @@ enum LowEndBias: string
     public const LEAD = 4.0;
 
     /**
+     * What a metre of low-end height costs under `low`, in metres of target miss. The owner chose it on 2026-10-02.
+     * Like {@see LEAD} it is a weight, small enough that height decides wherever the low end stays put. Unlike LEAD
+     * it was measured against one alternative. At 0.1 eighteen `low` rigs missed their target by 13.5 m more in total
+     * and two next-event rigs no longer fitted their room, where 0.02 left five rigs 3.3 m worse and thirteen better.
+     */
+    public const LOW_PRICE = 0.02;
+
+    /**
      * The cost of an arrangement under this bias — lower is better.
      *
      * @param float $lowness metres the low-frequency mass sits above the floor
@@ -65,13 +73,13 @@ enum LowEndBias: string
      */
     public function cost(float $lowness, float $centrality): float
     {
-        // **`low` COSTS NOTHING, AND THAT IS NOT A SHORTCUT.** The fill already deals the lowest-reaching type
-        // first and it already lands on the floor — {@see \App\Spec\FillOrder::byFillOrder} is that rule and it
-        // predates this axis by a long way. So "low first" is the arrangement the solver has always produced, and
-        // adding a term for it would re-rank every rig in the repository to express a preference they already
-        // satisfy. Eleven solver tests said so out loud when it did.
+        // **`low` PAYS FOR HEIGHT TOO, BUT LITTLE.** It used to cost nothing, on the grounds that the fill deals the
+        // lowest-reaching type first and it lands on the floor anyway. A pyramid orders for width and breaks that,
+        // and with nothing to pay a rig 9 mm nearer the target stood one SKRAM in the top sub row of five. At
+        // {@see LOW_PRICE} a metre of low-end height costs what 20 mm of target miss does, so height still decides
+        // between rigs that keep the low end where it is.
         //
-        // `central` is the half that is new: it prices distance from the centre line and pays for it in height.
-        return self::Central === $this ? self::LEAD * $centrality + $lowness : 0.0;
+        // `central` prices distance from the centre line and pays for it in height.
+        return self::Central === $this ? self::LEAD * $centrality + $lowness : self::LOW_PRICE * $lowness;
     }
 }

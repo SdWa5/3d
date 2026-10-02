@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.136.1] - 2026-10-02
+
+### Changed
+
+- `low_end: low` pays 0.02 per metre of low-end height instead of nothing, so height no longer beats the low end by
+  any margin. One SKRAM with ten Flexys and seven Achenbachs had gone to the top sub row for 9 mm of height. 0.1 was
+  measured against it and made eighteen `low` rigs miss their target by 13.5 m more in total.
+- Every generated folder is regenerated. Against 0.136.0, `low` rigs miss their target by 3.3 m more in five rigs and
+  4.3 m less in thirteen, and `central` rigs by 15.2 m more in 31 and 30.3 m less in 23. Five `central` rigs with
+  shared tops become impossible and two rigs become possible. 27 of the 32 rigs that miss by more without carrying
+  another cabinet share their tops, which the sub solve cannot see (GEO-11).
+
+### Fixed
+
+- The low end's height measure counts the rows underneath. It advanced by a row's height step, which is zero for an
+  even row, so a SKRAM row on top of two Flexy rows measured as low as one on the floor and `central` priced it
+  wrongly.
+- A pyramid also offers its sub types in the order of the first row each would be dealt at every width the search
+  tries, beside the old order by quantity × width. Six SKRAMs and twelve Flexys stand the SKRAMs on the floor instead
+  of on top.
+
 ## [0.136.0] - 2026-10-01
 
 ### Added

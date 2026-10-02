@@ -15,10 +15,10 @@
 #
 #   1  1× wall-bass                                                              0.66 m wide
 #   2  1× mid-bass                                                                1.2 m wide
-#   3  1× skram                                                                  0.61 m wide
+#   3  1× skram + 1× flexy-folded-horn-hybrid                                  1.221 m wide
 #   4  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   5  2× flexy-folded-horn-hybrid                                              1.202 m wide
-#   6  1× flexy-folded-horn-hybrid + 1× nuke + 1× flexy-folded-horn-hybrid    1.812 m wide
+#   6  1× nuke + 1× flexy-folded-horn-hybrid                                   1.201 m wide
 #   7  3× iq-sub                                                                 1.63 m wide
 #   8  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
 #
@@ -31,9 +31,8 @@
 #   * the subs reach 5.780 m against the 3.000 m ceiling asked for, so they stand 2780 mm too high — 5.780 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 1× mid-bass row is 1.200 m on a 0.660 m row, so it overhangs 270 mm each side
-#   * the 2× flexy-folded-horn-hybrid row is 1.202 m on a 0.610 m row, so it overhangs 296 mm each side
-#   * the 1× flexy-folded-horn-hybrid + 1× nuke + 1× flexy-folded-horn-hybrid row is 1.812 m on a 1.202 m row, so
-#     it overhangs 305 mm each side
+#   * the 1× skram + 1× flexy-folded-horn-hybrid row is 1.221 m on a 1.200 m row, so it overhangs 11 mm each side
+#   * the 3× iq-sub row is 1.630 m on a 1.201 m row, so it overhangs 215 mm each side
 #   * the 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122 row is 1.960 m on a 1.630 m row, so it
 #     overhangs 165 mm each side
 #

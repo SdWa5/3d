@@ -21,40 +21,28 @@
 #   * the subs reach 0.660 m against the 2.000 m interface asked for, so the tops sit 1340 mm lower than ideal —
 #     0.660 m is the most they reach while every tier is still carried
 #
-# main-ours-2 — ours-2, 12 cabinets in 6 rows:
+# main-ours-2 — ours-2, 12 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 42 mm gaps    1.568 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps     1.72 m wide
-#   4  3× achenbach-18                                                           1.84 m wide
-#   5  1× skram rolled 90°                                                     0.914 m wide
-#   6  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   3  3× achenbach-18                                                           1.84 m wide
+#   4  1× skram rolled 270°                                                    0.914 m wide
+#   5  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
 #
-# Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 42 mm gaps row is
-#     1.568 m on a 1.546 m row, so it overhangs 11 mm each side
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps row is
-#     1.720 m on a 1.568 m row, so it overhangs 76 mm each side
-#   * the 3× achenbach-18 row is 1.840 m on a 1.720 m row, so it overhangs 60 mm each side
-#   * the 1× turbo-top + 1× tecnare-m2122 row is 0.970 m on a 0.914 m row, so it overhangs 28 mm each side
-#
-# main-ours-1 — ours-1, 12 cabinets in 6 rows:
-#
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 42 mm gaps    1.568 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps     1.72 m wide
-#   4  3× achenbach-18                                                           1.84 m wide
-#   5  1× skram rolled 270°                                                    0.914 m wide
-#   6  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
-#
-# Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 42 mm gaps row is
-#     1.568 m on a 1.546 m row, so it overhangs 11 mm each side
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 194 mm gaps row is
-#     1.720 m on a 1.568 m row, so it overhangs 76 mm each side
-#   * the 3× achenbach-18 row is 1.840 m on a 1.720 m row, so it overhangs 60 mm each side
-#   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 row is 0.986 m on a 0.914 m row, so it overhangs 36 mm each
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
+#   * the 1× eighteensound-2way-15 + 1× tecnare-m2122 row is 0.986 m on a 0.914 m row, so it overhangs 36 mm each
 #     side
+#
+# main-ours-1 — ours-1, 12 cabinets in 5 rows:
+#
+#   1  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
+#   3  3× achenbach-18                                                           1.84 m wide
+#   4  1× skram rolled 90°                                                     0.914 m wide
+#   5  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
+#
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
+#   * the 1× tecnare-m2122 + 1× turbo-top row is 0.970 m on a 0.914 m row, so it overhangs 28 mm each side
 #
 # main-gmss-1 — gmss-1, 7 cabinets in 3 rows:
 #
@@ -82,7 +70,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 2 rows
   - id: main-gmss-2
-    at: [-3.987, 0.0]
+    at: [-4.476, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -114,9 +102,9 @@ placements:
           count: 1
           aim: near
 
-  # ours-2, 12 cabinets in 6 rows
+  # ours-2, 12 cabinets in 5 rows
   - id: main-ours-2
-    at: [0.173, 0.0]
+    at: [-0.0715, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -142,13 +130,13 @@ placements:
           count: 3
         - device: tecnare-m2122
           count: 1
-        - device: turbo-top
+        - device: eighteensound-2way-15
           count: 1
           aim: near
 
-  # ours-1, 12 cabinets in 6 rows
+  # ours-1, 12 cabinets in 5 rows
   - id: main-ours-1
-    at: [2.513, 0.0]
+    at: [2.7575, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -175,13 +163,13 @@ placements:
           count: 3
         - device: tecnare-m2122
           count: 1
-        - device: eighteensound-2way-15
+        - device: turbo-top
           count: 1
           aim: near
 
   # gmss-1, 7 cabinets in 3 rows
   - id: main-gmss-1
-    at: [5.028, 0.0]
+    at: [5.517, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
