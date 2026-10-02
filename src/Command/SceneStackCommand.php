@@ -103,7 +103,7 @@ final class SceneStackCommand extends BaseCommand
      * **A fuse rather than a cap**: over the limit the command writes *nothing* and says so. Truncating to the first N
      * would read as "that is every possibility" when it is not, which is the same reason every refusal is printed.
      */
-    private const DEFAULT_MAX_SCENES = 1500;
+    private const DEFAULT_MAX_SCENES = 2500;
 
     /**
      * The top of the 2–3 m band a sub/top transition should sit in.
@@ -169,7 +169,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('folders', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Axes to make directory levels instead of name fields: inventory, stacks, systems, shape, orientation, mirror-style, align, feasibility. Default: inventory')
             ->addOption('into', null, InputOption::VALUE_REQUIRED, 'Subdirectory of scenes/generated/ to write into. Default: the inventory being swept')
             ->addOption('align', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'center, block or stereo. Default: all three')
-            ->addOption('shape', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'pyramid (rows narrow going up) or free (as wide as bearing allows). Default: both')
+            ->addOption('shape', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'pyramid, free, v, tower or mixed. Default: all five')
             ->addOption('mirror-style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'What a turned row does with its odd cabinet: alternate (side flips per row), centred (unrolled in the middle) or column (same side every row). Default: all three where something is rolled')
             ->addOption('orientation', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Which cabinets lie on their sides: upright (none), turned (every sub) or mixed (only where it makes them wider). Tops never roll. Default: all three')
             ->addOption('roll-mirror', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Device ids to lay on their sides, mirrored about the centre line. Repeatable')

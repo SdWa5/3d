@@ -253,7 +253,7 @@ final class StackMetrics
     public static function pyramidCeiling(array $tiers, Stack $stack, DeviceSpec $device, float $roll): ?float
     {
         $last = end($tiers);
-        if (StackShape::Pyramid !== $stack->shape || false === $last) {
+        if (!in_array($stack->shape, [StackShape::Pyramid, StackShape::Tower, StackShape::Mixed], true) || false === $last) {
             return null;
         }
 

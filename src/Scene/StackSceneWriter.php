@@ -296,7 +296,7 @@ final class StackSceneWriter
             $lines[] = '';
         }
 
-        return implode("\n", $lines)."\n";
+        return rtrim(implode("\n", $lines), "\n")."\n";
     }
 
     /**

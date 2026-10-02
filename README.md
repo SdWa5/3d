@@ -31,6 +31,12 @@ ceiling the towers are cranked to 3.742 m, and each carries 35.4 kg of its 85 kg
 stretched to the panel's 5:1, whenever its file is in `meshes/psl/`. See [the
 backdrop](docs/scenes.md#a-deco-backdrop-behind-a-generated-rig).
 
+The stack generator offers `pyramid`, `free`, `v`, `tower` and `mixed`. A tower keeps its sub rows flush; mixed
+keeps the lower half flush and tapers above. Both can pack several device types to reach a row width target,
+including when no sub-height ceiling is stated. The default sweep limit is 2500 candidates per invocation.
+Semantic spec validation is divided by assets, baffle layouts, physical parts, shapes and vehicles behind the
+unchanged `SpecValidator::validate()` entry point.
+
 ## Requirements
 
 - [ddev](https://ddev.readthedocs.io/) — Blender and PHP both live in the container

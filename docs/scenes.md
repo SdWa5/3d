@@ -522,8 +522,8 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 | `from` | the devices, **low frequency first**. Each entry is a bare id, or a mapping with `count` / `align` / `mix_with` — see below |
 | `max_width_m` | how wide the stage or the truss lets the rig be. The row count falls out of it. **Optional, and leaving it out means no bound at all** rather than a wide one — see [an unstated width limits nothing](#an-unstated-width-limits-nothing) |
 | `interface_height_m` | how high the sub stack's top face should reach, so the tops fire over a standing crowd. **Defaults to 2.0**, and it is an **optimum rather than a requirement** in a generated scene exactly as in a hand-written one — missing it warns; state `0` to stop aiming for it. See [the sub height band](#the-sub-height-band-which-is-an-aim-rather-than-a-gate) |
-| `shape` | `pyramid` (no row wider than the one below), `free` (as wide as the bearing rule allows) or `v` (no row narrower than the one below). Default `free`, so an existing scene keeps the rig it had. **All three are width rules, in metres** — see [the three shapes](#the-three-shapes) |
-| `max_sub_height_m` | how high the sub stack's top face is *allowed* to reach — the **mirror** of `interface_height_m`. Stating one changes what the solver optimises for and lets a row hold several device types. See [a ceiling on the sub height](#a-ceiling-on-the-sub-height). Missing it warns, in a generated scene as in a hand-written one — see [the sub height band](#the-sub-height-band-which-is-an-aim-rather-than-a-gate). A ceiling below the stack's own `interface_height_m` is an error: the two say opposite things about one number |
+| `shape` | `pyramid` (no row wider than the one below), `free` (as wide as the bearing rule allows), `v` (no row narrower than the one below), `tower` (flush sub rows) or `mixed` (flush lower half and taper above). Default `free`, so an existing scene keeps the rig it had. **All five are width rules, in metres** — see [the five shapes](#the-five-shapes) |
+| `max_sub_height_m` | the preferred upper height of the sub stack's top face — the **mirror** of `interface_height_m`. Stating one changes what the solver optimises for and lets a row hold several device types. See [a ceiling on the sub height](#a-ceiling-on-the-sub-height). Missing it warns, in a generated scene as in a hand-written one — see [the sub height band](#the-sub-height-band-which-is-an-aim-rather-than-a-gate). A ceiling below the stack's own `interface_height_m` is an error: the two say opposite things about one number |
 | `target_sub_height_m` | the sub/top transition to **aim at**, between the floor and the ceiling. **Defaults to 2.5**, the middle of the band, and it is what the solve optimises — where the two bounds are the band the miss is measured against. A preference and never a refusal. Written into a scene only when it is not the default. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `min_width_m` | a floor on the widest tier: how you ask for a wide short wall rather than a tall narrow one out of the same cabinets |
 | `max_height_m` | a ceiling or a rigging limit |
@@ -606,7 +606,7 @@ three M2122s and three turbo tops — the centre holds one of each and the row i
 that block. That is the least imbalance the counts allow: a centimetre in the middle rather than a whole cabinet at
 one end.
 
-### The three shapes
+### The five shapes
 
 The bearing rule permits a row to be **wider** than the one carrying it — two thirds of a cabinet past each end —
 and for a long time nothing said it should not be. That is how a stack ends up widening as it rises: 1.34 m on the
@@ -625,6 +625,8 @@ often than the shape named after widening.
 | `pyramid` | may not sit **more than a tenth of its outboard cabinet proud** on either side |
 | `free` | may be as wide as the bearing rule allows — two thirds of a cabinet per side |
 | `v` | may not be **narrower** at all |
+| `tower` | sub rows stay flush within one tenth of their outboard cabinet per side; tops use the pyramid bound |
+| `mixed` | the lower `ceil(sub rows / 2)` rows stay flush; the rows above use the pyramid bound |
 
 **The pyramid's tenth of a cabinet is derived from the two cases either side of it**, not chosen. It cannot be zero:
 six Achenbachs are 3.700 m on six Flexys' 3.646, 27 mm proud per side out of a 600 mm cabinet, and a rule without an
@@ -646,10 +648,13 @@ floor. The second order is offered beside the first and never replaces it, becau
 nothing that reached its interface on the second order alone. The V keeps the first order only, since offering it the
 second as well cost more target miss across the regenerated scenes than it saved.
 
-The price is stated rather than hidden: a wide-but-shallow type can end up *under* a deeper one, which is the
-inversion the fill order otherwise exists to prevent. That is why **all three shapes are generated** — `free` keeps
-the deepest and heaviest cabinets on the floor and accepts whatever silhouette falls out, where the other two choose
-one and give up the ordering.
+`tower` and `mixed` also try mixed-device packing without a sub-height ceiling. The packer treats the base width
+as a target, separate from the stage and bearing ceilings. If a device runs out before reaching that target, the
+row continues with the next type. Every candidate must pass the same support and seating checks. Gapping is a
+second candidate that makes the flush base equal in both directions; it never bypasses bearing checks.
+
+All five shapes are generated by default. The widest-first shapes can put a shallower type below a deeper type;
+`free` preserves the supplied frequency and weight order.
 
 ### Gapping a row out to its shape
 
@@ -751,39 +756,23 @@ bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschlei
 
 ### A ceiling on the sub height
 
-`interface_height_m` is a **floor** and the solver chases it by narrowing rows — narrower rows mean more of them,
-which is the only way to buy height out of a fixed pile of cabinets. `max_sub_height_m` is the **ceiling**, and
-stating one inverts the search: instead of returning the first arrangement that reaches the interface, the solver
-walks the whole space and keeps the *shortest* arrangement that still stands up.
-
-It also switches on the thing that actually makes a stack of many types short: **a row may hold as many device types
-as it takes.** A row costs the height of its *tallest* cabinet, so two types in one row cost one height rather than
-two. Without that, each type costs at least one row and a stack holding six sub types is six rows tall however wide
-the stage — which is why all 39 speakers in three stacks could not get under 3.146 m before, at any width.
+`interface_height_m` and `max_sub_height_m` define a preferred band around `target_sub_height_m`.
+Neither rejects a buildable stack. A miss is written in the scene header and contributes to the ranking.
+With a maximum stated, the solver compares candidates across the search rather than returning the first
+arrangement reaching the interface. The target miss decides the winner, with extra cost outside the band.
 
 ```yaml
     stack:
       max_width_m: 3.80
-      interface_height_m: 0
-      max_sub_height_m: 3.0     # a row may now hold several device types to get under this
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      target_sub_height_m: 2.5
       gap_m: 0.05
 ```
 
-Two rules keep a packed row honest, and both are worth knowing:
-
-* **Lower frequencies stay in lower rows.** A row may only combine types that are *adjacent* in the fill order, so
-  the rows are contiguous runs of it and a frequency inversion is unreachable rather than merely avoided.
-* **Within a row the tallest cabinet is central**, with the rest stepping down outboard of it. What stands on a mixed
-  row lands on its tall segments, so where those sit decides whether the next row is carried at all: a 1.020 m cabinet
-  either side of a 0.637 m one leaves the row above two pads a metre apart to bridge, and it lands on 14 % of itself.
-
-Packing is offered **alongside** the ordinary one-type-per-row deal and the shortest arrangement that stands up wins.
-Neither is better everywhere — on 2 SKRAMs, 2 wall basses, a mid bass and 2 2-ways the deal finds 1.445 m and the pack
-2.465 m — so `mix_with` keeps working under a ceiling too.
-
-**With no `max_width_m`,** the row count is the widest that still reaches the interface height: narrower
-rows mean more of them, so the sub stack grows as the count falls, and the answer is the largest count that
-still clears.
+A stated maximum also offers mixed-device packing beside the ordinary deal. Towers and mixed shapes offer
+packing even without that maximum. Each row may combine adjacent types in the fill order. The tallest
+segments are centred so the row above has a plateau to bear on. Packing never replaces support checks.
 
 ### What a `from` entry can say
 
@@ -805,7 +794,7 @@ from:
   tiers may spread — only a tier nothing stands on can be spread at all, so in a plain tower that is the top
   one.
 * **`mix_with`** names devices to share the row with, at whatever height that device sits. It still has to pass
-  the height gate, and a mix that cannot be honoured is **refused rather than quietly dropped** — a row that is
+  the bearing and geometry checks, and a mix that cannot be honoured is **refused rather than quietly dropped** — a row that is
   silently not the row you asked for is the worst outcome available, because the rig still builds.
 
 **`from` must list subs before tops.** The fill is bottom-up, so a top listed first would put a Tecnare
@@ -956,23 +945,10 @@ row's width once put two 2-ways 1.84 m out with a 1.54 m Tecnare row under them.
 
 ### scene:stack — writing the scene for you
 
-**The default is a sweep of one inventory, not of every rig the library can name.** `bin/console scene:stack` with no
-options writes every sensible configuration it can stand up **out of our own gear and Sepp's, pooled** — by one, two
-and three stacks, in all three shapes, all three alignments, all seven orientation/mirror pairs and both ends of the
-low-end axis. **166 scenes, every one of them possible**, with every refusal printed and its reason given.
-
-**The separation axis contributes nothing here, and that is the grouping working.** `sdwa5` and `sepp` are one
-system by default, so a rig that separates them has nothing to separate and `pooled` is the only value offered. The
-271 this default used to write were mostly that axis solving our own system against itself.
-
-**THE INVENTORY AXIS USED TO BE A POWERSET AND IS NOW A CHOICE.** Three owners made seven inventories, which read as
-generosity and produced the finding this default rests on: a borrowed rig writes more scenes than any single owner,
-because Sepp's six Achenbachs cannot stand alone and are excellent under somebody else's tops. Five owners make that
-powerset **31** inventories, 26 of them multi-system rigs nobody will ever build, and the sweep trips its own fuse
-before writing anything. Stated by the owner: the sweep is always run against a subset, and the default subset is the
-pair. So the finding became the default and the enumeration went.
-
-Every other inventory is one option away and **writes into its own folder**:
+With no options, `scene:stack` sweeps SdWa5 and Sepp's gear as one system. It tries one, two and three stacks,
+all five shapes, all alignments, the applicable orientation/mirror pairs and both low-end preferences.
+Duplicates are written once. Every skipped arrangement names its reason. `--owner` changes the inventory;
+`--from`, `--stacks` and `--per-owner` select a narrower request. Output goes into its inventory folder.
 
 ```bash
 bin/console scene:stack                                          # scenes/generated/sdwa5-sepp/
@@ -981,82 +957,20 @@ bin/console scene:stack --owner=psl --owner=innschleife \
                         --owner=sdwa5 --owner=sepp               # scenes/generated/innschleife-psl-sdwa5-sepp/
 ```
 
-That is the project's goal expressed as a default, and it is worth stating because the flags read as required and are
-not: **naming `--from`, `--stacks` or `--per-owner` narrows the sweep to that point**, exactly as naming `--align`
-narrows it to one mode. `--owner` is the exception and narrows the inventory without collapsing anything else.
-
-Read the skipped list as well as the scenes. A sweep that writes twenty and silently drops fifteen would look like
-"that is all there is"; the reasons are how you find out which rigs the inventory cannot build.
-
 #### Every axis is in the name
 
-A generated scene is named for **all seven axes**, in the order the sweep nests them. Two of the seven arrived late
-and each renamed every file that existed: `possible`/`impossible` in 0.89.0 and `pooled`/`systems-apart` in 0.91.0.
-The separation axis then gained its third value, `tops-shared`, in 0.96.0 and renamed nothing — 11 characters against
-the 13 `systems-apart` had already set the column to, which is why shipping two of three first cost nothing.
-
-```text
-gmss/ stacked -1     -pooled -pyramid -upright     -alternate   -center   -possible
- ^      id     stacks  systems  shape    orientation  mirror       alignment  feasibility
- inventory             apart?                         style
-```
-
-**The inventory is the directory and is deliberately not in the name as well.** SWP-3's rule is that an axis value
-appears in the path or in the name and never in both, and the system name inside a folder named after the system is
-redundant: it was stated 271 times in `scenes/generated/` where once in a directory name says the same thing. It also
-removes the trap described below — the owner column had to be padded to the widest label the *specs* could produce,
-so speccing a fifth owner would have renamed all 1374 files without changing a single rig.
-
-Three of them used to be left out at one value each — `pyramid`, `upright` and `alternate` — so that the ordinary rig
-kept a short id. The price was a directory nobody could read: a gap in a name does not say *which* value was omitted,
-only that one was, so telling `stacked-gmss-1-center` from its six siblings meant knowing the defaults by heart.
-
-**Every axis has a value, including the one that had none.** A null orientation means
-[`--roll-mirror`](#scenestack--writing-the-scene-for-you) named the cabinets outright rather than naming a mode, and
-that is written as `stated`. It is deliberately not a `StackOrientation` case: an enum case would be offerable as
-`--orientation=stated`, which means nothing without a `--roll-mirror` beside it and would have to be refused everywhere
-it appeared alone. It is a fact about how the rig was *asked for* rather than about which cabinets ended up on their
-sides, so it belongs to the naming.
-
-**Every axis is also a fixed-width column, padded with dashes**, so a listing lines up and one axis can be scanned down
-the page:
-
-```text
-gmss/stacked-1-pooled--------pyramid-upright-alternate-center-possible.yaml
-sdwa5-sepp/stacked-2-systems-apart-free----turned--column----stereo-possible.yaml
-gmss-sdwa5-sepp/stacked-3-pooled--------v-------mixed---centred---block--impossible.yaml
-gmss-sdwa5/stacked-2-pooled--------pyramid-stated--alternate-center-possible.yaml
-```
-
-Each width comes from the axis's own enum cases, so a new value widens its column by existing rather than by a number
-written somewhere. The last field stays ragged, because nothing is lined up behind it and a run of dashes before
-`.yaml` buys the reader nothing.
-
-**A replay has to be told its folder, which is the one cost of the directory.** The recorded `Regenerate it with:`
-line names cabinets with `--from` rather than owners — deliberately, so that measuring a new sub does not change what
-a replay rebuilds — so a replayed command has no inventory to derive and carries `--into=<inventory>` instead. Without
-it the whole set would replay into `scenes/generated/` itself, where identically-named siblings from different
-inventories would overwrite each other.
-
-**The mirror style is written even where it decides nothing**, and that is deliberate rather than an oversight. The
-sweep only ever pairs `upright` with `alternate`, so a style says nothing about an upright rig — but
-`--orientation=upright --mirror-style=centred` is accepted and honoured, and a name that dropped a vacuous style would
-give those two rigs the same file name.
+A scene's path and basename identify its inventory, stack count, systems, shape, orientation, mirror style,
+alignment, low-end preference and feasibility. Enum values determine each column's padding. The inventory is
+always a directory. A recorded command uses explicit devices and `--into` to retain that directory on replay.
+Mirror style remains in the name even when no cabinet is rolled.
 
 #### The sub height band, which is an aim rather than a gate
 
-**Stated by the owner: the sub/top interface height is an optimisation problem, not a hard constraint.** Tops standing
-below or above head height is not a reason to refuse a rig or to call a scene invalid. `interface_height_m` (2.0 m by
-default) and `max_sub_height_m` (3.0 m) bound the sub/top transition, `target_sub_height_m` (2.5 m) aims at it, and all
-three are the same kind of thing: **the target is what the solver optimises, and the two bounds are the band around it
-that a miss is measured against.**
-
-For two releases the band was a gate instead, and a generated scene that missed it was thrown away. That refused 258
-candidates in one family alone — more than every geometry rule in the repository put together — and every one of them
-was a rig that stands up perfectly well and is merely shorter or taller than ideal.
-
-So a rig outside the band **is written**, with the measurement in two places. On the terminal, for whoever ran the
-sweep and is not going to open 396 files:
+The default sub/top target is 2.5 m, with a preferred band from 2.0 to 3.0 m. Missing the band writes a note,
+not a refusal. `--target-sub-height`, `--interface-height` and `--max-sub-height` change these preferences.
+The rank combines distance from the target with twice the miss outside the band. Geometry remains mandatory.
+The search tries both row widths and seat counts as a union, starting unbounded. A candidate that would win
+must also survive actual seating, aiming and collision checks.
 
 ```text
 noted   stacked-gmss-1-center — the stack's subs reach 3.340 m against the 3.000 m ceiling asked for
@@ -1065,159 +979,35 @@ noted   stacked-sepp-2-center — the sepp stack's subs reach only 1.246 m again
   asked for — 754 mm short, so the tops fire below head height
 ```
 
-And in the file's own header, so the next reader does not take a knowingly short wall for a solver bug:
-
 ```text
 # Subs reach 1.246 m against a 2.0 m interface. The stack is 1.85 m of cabinet.
 #   * the subs reach 1.246 m against the 2.000 m interface asked for, so the tops sit 754 mm lower than
 #     ideal — 1.246 m is the most they reach while every tier is still carried
 ```
 
-**What stays a gate is everything about whether the rig stands up**: bearing, support, the pillar rule, the silhouette
-rules and interpenetration. That is the line, and it is a different question from whether the rig sounds right. A
-cabinet hanging off the edge of its support cannot be built at any price; tops a bit low can.
-
-**The bounds still steer, they simply cannot refuse.** The solver prefers an arrangement inside them, and where two
-ways of dealing the same cabinets out place the same number, the one nearer the aim wins — with a doubled price on the
-part of the miss that falls outside the band, so a stated ceiling still has a say. At the default band that penalty
-changes no ranking, because 2.5 m is the midpoint of 2–3 m and every in-band wall is already nearer the aim than every
-out-of-band one. It starts mattering the moment somebody states a target off the midpoint.
-
-**The width ladder went with the gate.** The sweep used to walk a rig up and down a list of real stage widths to land
-its wall inside the band, which needed both halves of a sentence that no longer has either: a band that refuses, and a
-default stage width worth deviating from. See [an unstated width limits nothing](#an-unstated-width-limits-nothing).
-The lever that remains is the solver's own search, which chases `target_sub_height_m` directly rather than through the
-stage width as a proxy.
-
-**That search is a row width in metres, and also a cabinet count, because neither contains the other.** A width is
-divided by each cabinet's own width, so one budget deals as many of each type as that type's size allows — 4.40 m is
-7 Flexys and 3 mid-bass, which no single number of cabinets expresses. A count says "the same number of every type"
-instead, which reaches arrangements no width does: built as a width alone the search lost 49 rigs, every one of them
-refused on bearing rather than on the search running out. So both are walked, as a union rather than a product, and the
-widths come from the row widths the inventory can actually make rather than from a list of round numbers. The unbounded
-step is always tried first, so nothing is ever bounded by the search itself.
-
-**And every candidate that would win is placed for real before it is accepted.** Two cabinets end up inside each other
-because of yaw, taper and chamfer, none of which a row width knows about, so the solver hands the candidate to the
-compiler and asks. A candidate that overlaps loses to the next one rather than the whole rig being thrown away, and the
-question is asked only of a candidate that would win — a loser's geometry changes nothing, and asking it of everything
-is a compile per arrangement.
-
-This is why a generated file's header and its rebuild agree: `scene:stack` and the compiler ask the same question of
-the same arrangement. They did not always, and a file whose header described a rig the compiler would rebuild
-differently is the sort of thing nothing downstream notices.
-
-**Asking the same question is only half of it — both sides also have to be given the same stack.** The compiler
-re-solves from the file, so every input the command solved with has to be a key the file can state. The seating check
-was the first place this went wrong and [`slide_slack_m`](#sliding-a-row-rather-than-losing-the-rig) was the second, in
-the same rig and with the same symptom: a header describing an arrangement the rebuild never reaches.
-
 #### Sliding a row rather than losing the rig
 
-**For a quantity-bound rig the lever is where the row sits, not how wide the stage is.** A row does not have to be
-centred on what carries it: centring is only optimal when the row overhangs a symmetric amount of cabinet at each end,
-and a mixed row is asymmetric by construction. GMSS's one arrangement inside the band packs the nukes and mid-bass into a
-single row — 2.42 m on a 1.89 m support — and centred, the outboard nuke lands on 8 % of its own width and the whole rig
-is refused. Slid along the support, both ends are carried and `stacked-gmss-1-center` writes at 2.84 m.
-
-**Sliding is bounded by what else is in the scene rather than by gravity**, and that bound is the whole of its safety.
-Stacks are spaced on their widest tier and their envelopes deliberately overlap in x — tiers at the same height are each
-centred and narrower — so a row that slides in a multi-stack rig reaches into the stack beside it: unbounded, 180 mm of
-interpenetration across five `all-3` scenes. So only a stack with **nothing beside it** may move a row, and only inside
-the stated stage width. A row that is already carried is never moved, and a slide that does not improve the
-worst-carried cabinet is discarded, so every rig that stood up before stands up unchanged.
-
-**The scene states it as [`slide_slack_m`](#the-stack-block), and for a long time it could not.** `scene:stack` gives a
-solo stack `.inf` and a stack in a rig nothing at all, and the schema had no key for either — so a generated solo scene
-was written by a solve that allowed sliding and rebuilt by one that forbade it. That is not a rounding difference.
-Measured on `stacked-all--------1-free----turned--alternate-center`, the same inventory came out as four rows reaching
-1.860 m of subs with the slack and as two rows reaching 0.660 m without it: a 23.5 m line of cabinet with the tops
-1340 mm below the interface, rendered and committed, whose own header comment described the other rig. Unstated the
-key still means "may not move", so a hand-written scene keeps the arrangement it had.
+Generated solo stacks allow row sliding with `slide_slack_m: .inf`. Multi-stack rigs keep sliding disabled. A hand-written
+stack with no slack keeps its positions. The solver and compiler receive the same slack and aiming rules,
+so the preview and regenerated scene use the same arrangement.
 
 #### An unstated width limits nothing
 
-**Stated by the owner: how wide a generated scene comes out does not matter at all unless a parameter limiting the
-width is explicitly passed.** `--max-width` used to default to 3.70 m, so every generated scene was solved against a
-stage nobody had asked for, and a rig too wide for it was refused for a reason that came from the option's default
-rather than from the request. It now has no default: state it and it is obeyed, leave it out and there is no bound.
-
-The machinery was already there and was simply never reached. [`max_width_m`](#the-stack-block) has always been
-optional, and the solver reads its absence as "no bound at all" — which is not the same as an infinite bound, and the
-difference is a real trap: passing `INF` where `null` belongs casts to `(int)floor(INF)` when the row count is worked
-out, which is undefined in PHP and came out as a row of one, every tier a pillar.
-
-Two consequences worth knowing:
-
-* **The recorded command says nothing about width unless you did.** A replay is unbounded exactly as the original was,
-  and `--max-width` reappears in the line only when it was stated.
-* **The width is now an output rather than an input.** The target sub height decides how the rows are dealt and the
-  width falls out of it. Removing the bound on its own would have gone the other way — with nothing deciding how wide
-  a row wants to be, the bottom row takes every cabinet of its type and the rig collapses to one row per type — which
-  is why this and [the band as an aim](#the-sub-height-band-which-is-an-aim-rather-than-a-gate) landed together. Once
-  the target is what the solve optimises, a one-row wall misses it by nearly two metres and loses on its own merits.
+`--max-width` has no default. Without it, the stage does not bound the rig's width. With it, the finished
+arrangement must fit. Recorded commands include a width only when one was stated. Internally, no bound is
+represented by null rather than infinity. The target height still ranks arrangements when width is unbounded.
 
 #### Aiming the sub wall, rather than settling for the lowest one
 
-**A bound says which arrangements are allowed; a target says which of them is best.** Until `target_sub_height_m`
-existed the solver had no answer to the second question, so it kept the **shortest** arrangement that cleared the
-interface — a defensible tie-break, and not what anybody wants. It parked the transition just over 2.0 m wherever it
-could, when the useful place for it is the middle of the band, where the tops clear a standing crowd with room to spare
-and the wall is still well under a truss.
-
-The target defaults to **2.5 m**, the middle of the 2–3 m band, and `--target-sub-height` moves it. Measured across the
-sweep, the rigs sit noticeably closer to the aim (measured across the 148 the sweep wrote at the time):
-
-| | mean distance from 2.5 m |
-| --- | --- |
-| shortest-wins | 0.222 m |
-| aiming at 2.5 m | **0.189 m** |
-
-Two rules keep an aim from doing damage, both of which cost a measurement to find:
-
-* **The ceiling binds before the target does.** A target is a preference between *legal* arrangements and may never
-  reach past a bound to pick an illegal one. This is inert at the default, since 2.5 m is the band's midpoint and every
-  legal arrangement is therefore nearer the aim than any illegal one — and it stops being inert the moment somebody
-  states an aim off the midpoint, which is exactly when the option gets used.
-* **With nothing legal, the aim falls back to the ceiling.** Five Flexys and three Achenbachs under a 1.0 m ceiling can
-  build 1.363 m or 2.126 m and neither fits. 2.126 m is nearer 2.5 m; 1.363 m is nearer being a rig. A preference must
-  not pick the worse of two failures just because there is no success to choose between.
-
-The scene file records `target_sub_height_m` **only when it is not the default**, unlike the two bounds, which are
-always written. A default written into every file would state a number that says nothing and would have to be
-rewritten in every one of them the day the default moves.
+`target_sub_height_m` defaults to 2.5 m. The solver ranks buildable arrangements by their miss from that target,
+with an additional cost outside the preferred band. A band miss cannot override support or silhouette rules.
+Generated YAML records the target only when it differs from the default.
 
 #### The inventory axis, and why the borrowed rig became the default
 
-The sweep builds from **one subset of owners**: `--owner` names it, and silence means
-`SweepAxes::DEFAULT_OWNERS`, which is `sdwa5` and `sepp` pooled as one rig. Stated by the owner.
-
-**It used to be every non-empty combination**, and that is worth keeping because the finding is what the default now
-encodes. Measured on a 66-candidate sweep, back when there were three owners:
-
-| inventory | scenes written |
-| --- | --- |
-| `sdwa5-sepp` | **50** |
-| `gmss-sdwa5` | 25 |
-| `sdwa5` | 22 |
-| `gmss` | 21 |
-| `all` (three owners) | 17 |
-| `gmss-sepp` | 13 |
-| `sepp` | 0 |
-
-That is the shape of a shared gig rather than a curiosity. `sepp`'s eight cabinets **cannot stand alone** — six
-Achenbachs and two 2-ways cannot fill a 2 m wall however they are stacked, so every `sepp`-only rig was refused — and
-they are excellent *under* somebody else's tops. And the everything rig wrote fewer than the best pair, because 41
-cabinets in one rig is two complete sound systems where 25 is a gig.
-
-**So the powerset had already answered its own question, and then it stopped scaling.** Five owners make it 31
-inventories, 26 of them multi-system rigs — Innschleife subs under PSL tops with our Tecnare on top is arithmetic
-rather than a gig — and the sweep trips `--max-scenes` before writing a file. Worse, the owner column in every file
-name was padded to the widest label the *specs* could produce, so speccing a fifth owner renamed all 1374 committed
-scenes without changing one rig.
-
-**What replaced it is a subset per run and a folder per subset.** Thirteen inventories are committed and each is
-one command:
+`--owner` selects one subset, not a powerset. Silence selects SdWa5 and Sepp. Each selected inventory gets
+its own folder; `--into` can name a folder explicitly. Inventory selection leaves the other sweep axes active.
+Borrowed gear can make arrangements that neither owner's inventory can build alone.
 
 | folder | inventory | scenes |
 | --- | --- | --- |
@@ -1234,28 +1024,15 @@ one command:
 | `innschleife-next-event-light/` | what Innschleife are bringing on its own, two TMS-2 around a TMS-4 on their photo's sub rows. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 25 |
 | `psl-next-event-light/` | what PSL are bringing on its own, nine ESX under two EF 6, in front of their deco panel on our truss | 9 |
 
-**`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
-counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate, so it writes 132 today. See below.
-
-**`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
-which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
-and the day two more were specced the same word meant five systems and 101 units. `gmss-sdwa5-sepp` means the same rig
-whoever gets specced next.
-
-`owner` is still the only discriminator the specs carry, and it is admittedly not quite the right one: "owner" and
-"system" are different questions once gear is lent. It is what exists, it separates the systems in practice, and
-inventing a `system:` field to serve a sweep would be inventing a property to serve a layout. What the default subset
-does is make that gap cheap — a grouping stated at invocation time rather than in the specs, which is what SWP-3's
-second ask was really after.
-
 #### Event rooms and system preferences
 
-`events/next-event-light.yaml` saves the room at 13 m wide and 4 m high, and what each system brings, see
-[What a system brings](#what-a-system-brings-against-what-it-owns). Add `--event=next-event-light` to each
-next-event sweep. `--room-width` and `--room-height` can tighten these limits. They cannot loosen an event's limits.
-The check uses every compiled device's world box, so it includes space between stacks, rotated cabinets and
-flown equipment. A rig outside the room is refused before writing, including a rig otherwise marked impossible.
+`--event` loads an event's room, brought counts, backdrop and per-system preferences. Room limits apply to the
+compiled rig, including gaps, insets, aiming and flown equipment. A stated system orientation overrides the
+orientation sweep for that system; `stand` leaves named devices upright. Fully stated orientations produce
+the `stated` axis value. Low-end preferences follow the systems supplying the subs; disagreement retains the
+sweep choice. `--system-orientation`, `--stand` and `--system-low-end` can state these directly.
+`stack_clearance_m` supplies the event gap unless `--clearance` overrides it. Recorded commands retain resolved
+limits and preferences. Editing a scene by hand does not add the event room check to `scene:build`.
 
 ```bash
 bin/console scene:stack --owner=innschleife --event=next-event-light
@@ -1263,12 +1040,6 @@ bin/console scene:stack --owner=psl --event=next-event-light
 bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light \
   --into=next-event-light --order=ours,psl,innschleife
 ```
-
-The event gives Innschleife sub walls a 1.6 m interface and a 1.75 m target. A wall containing subs from several
-owners keeps the ordinary defaults. Borrowed tops do not change which system owns the sub wall.
-`--system-interface=OWNER:METRES` and `--system-target=OWNER:METRES` can state these preferences directly.
-
-The event also states how each system is set up, stated by Stefan on 2026-10-01:
 
 ```yaml
 systems:
@@ -1278,18 +1049,6 @@ systems:
   innschleife: { orientation: turned, stand: [ kicker-15 ], ... }
 ```
 
-A cabinet follows its own system's orientation, and only cabinets of systems the event does not name follow
-`--orientation`. `stand` keeps a cabinet as measured under any orientation. Innschleife's kickers need it, because
-`turned` rolls every sub and would stand the 0.95 × 0.57 m kicker on its narrow side, while the photo shows it lying
-wide. So Innschleife turned with standing kickers is exactly the photo. When every system of a rig has a stated
-orientation, the sweep has nothing left to vary and writes one candidate named `stated`. When only some do, an
-orientation that rolls the same cabinets as an earlier one is dropped as the same rig.
-`--system-orientation=OWNER:MODE` and `--stand=ID` state the same directly, and the recorded line carries both.
-
-The event states where each system wants its lowest cabinets too, as `low_end`, stated by Stefan on 2026-10-01 against
-two renders. Ours and Sepp's are `central`, which builds two rows of [3 Flexy | SKRAM | 3 Flexy] over the six
-Achenbach. Innschleife's is `low`, which is their photo. PSL states none, because both values build PSL the same rig.
-
 ```yaml
 systems:
   sdwa5: { orientation: upright, low_end: central }
@@ -1297,42 +1056,11 @@ systems:
   innschleife: { orientation: turned, low_end: low, ... }
 ```
 
-A stack follows the low end its subs' systems agree on, so ours follows sdwa5 and Sepp together and a borrowed top
-changes nothing. A pooled wall of two systems that disagree, or that holds a system stating none, follows
-`--low-end` as before, and a stack without subs follows the owners of what it does hold. When every system of a rig
-states the same low end, the axis has nothing left to vary and the one candidate is named `stated`, which is what
-`innschleife-next-event-light` holds. `--system-low-end=OWNER:low|central` states the same directly, and the recorded
-line carries it.
-
-**The combined rig is named `low` although ours sits `central` in it.** PSL states nothing, so the combined sweep
-still varies the low end for PSL. Both values build the same rig, and the deduplication keeps the first one swept,
-which is `low` because `LowEndBias::Low` is declared first. The file is
-`next-event-light/stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible.yaml`, and the `low_end:
-central` on our stack inside it is what the solver used. Stating a low end for PSL would not rename it to `stated`
-either, because a pooled wall of ours and Innschleife's subs would have two answers.
-
-`stack_clearance_m` sets the air between neighbouring stacks for the event's runs, 0.24 m at the next event instead
-of the default 0.5 m. An explicit `--clearance` replaces it, and the recorded line carries the number as
-`--clearance=0.24`. See [Repeating a flanked row](#repeating-a-flanked-row) for why it is 0.24.
-
-The event also names the truss a deco device hangs from, as `backdrop: {truss, segments, towers}`. A run whose systems
-bring a `deco` device gets that truss behind the rig with the panel on its front, see
-[A deco backdrop behind a generated rig](#a-deco-backdrop-behind-a-generated-rig). A run that brings none records no
-backdrop, so the block changes no other folder.
-
-Recorded commands save the resolved room dimensions and system preferences rather than the editable event id.
-Replaying an old scene therefore keeps its limits even when the event file changes. These limits belong to scene
-generation. Editing a scene by hand does not add a room check to `scene:build`.
-
 #### What a system brings, against what it owns
 
-A spec's `quantity` is **how many exist**. It is not how many turn up. Innschleife bring five of the seven cabinet
-types currently documented, a box is in the workshop with a blown driver, a rental company brings twelve of a sub its
-published package lists six of. None of that is a correction to a spec, so none of it is written into one.
-
-**What a system brings is `systems.<owner>.brings` in the event file**, and it overrides the counts it names for the
-runs of `scene:stack` that use the event and nothing else. Until 0.130.0 it was a roster file of its own in
-`rosters/`, one per system and event, and every one of them was about exactly one event, so the counts moved into it.
+Spec quantity records ownership. `systems.<owner>.brings` in an event overrides named counts for that event.
+Unmentioned devices retain their spec quantity; zero means absent. Only selected systems contribute gear.
+The map changes counts rather than selecting owners or layouts. Recorded commands retain the resolved counts.
 
 ```yaml
 systems:
@@ -1347,78 +1075,25 @@ systems:
 bin/console scene:stack --owner=psl --event=next-event-light
 ```
 
-Five things about it are worth knowing before writing one.
-
-**It changes counts and nothing else.** It does not select owners, name a rig or decide a layout. `--owner` still
-says whose gear is in the inventory, and a device the map never mentions keeps the quantity its spec states. **Only
-the swept systems bring anything**, the `--owner`s, the owners of the `--from` cabinets, or every owner when neither
-is stated. So `--owner=innschleife --event=next-event-light` builds Innschleife's rig with Innschleife's counts and leaves
-PSL's ESX and panel out. **A system brings only its own gear**, and an entry naming another owner's device is refused
-for every system in the file, so two systems can never state two counts for one device.
-
-**Zero is how a cabinet stays at home**, and naming it at zero is not the same as leaving it out. Left out means
-"bring whatever the spec says". So a statement like "PSL are bringing the following" is written with a zero for
-every cabinet it excludes, which is why PSL's map has eight of them.
-
-**One system at an event is filed as `<owner>-<event>`.** Without that, `--owner=innschleife --event=next-event-light` would
-land in `innschleife/` under the same file names as the rigs built from everything Innschleife own, and the last run
-would win. It is the name the roster file carried, so no folder moved with the merge. Several systems need `--into`,
-and so does `--quantity`, which carries no name of its own, rather than being allowed to overwrite:
-
 ```bash
 bin/console scene:stack --owner=innschleife --quantity=tms4:2 --into=a-name-for-it
 ```
-
-**Brought cabinets the sweep does not hold are refused.** Counts rewrite specs, and which specs a rig is built from is
-still `--owner`'s and `--from`'s decision, so a `--from` list that names some of a system's cabinets and not the rest
-it brings would change nothing for the rest. The roster files could be named without their owner, and once
-`innschleife-next-event-tms4/` was swept that way and held 146 scenes of sdwa5 and sepp cabinets. The refusal names
-the cabinets and the owner:
 
 ```
 the event has innschleife bring kicker-15, tms2, tms4, which the swept inventory does not hold. Say
 --owner=innschleife, or name them with --from
 ```
 
-**The recorded regenerate line carries the counts, never the event.** It is the same argument the `--from` list is
-written out on: a replay has to rebuild *that* scene, and an event is a file somebody can edit. Recording `--event=`
-would make every replay depend on what the file says on the day it runs, so a count corrected next week would
-silently rewrite last week's rigs under their old names. The event is the human-facing record and the way a folder is
-generated in the first place, and the line inside a scene file pins the numbers.
-
 #### A scene's key is its path, and its `id` is a label
 
-**Two notions where there used to be one, and the reason is a defect that shipped for a release.** When the
-inventory became a directory, 2072 generated scenes came to share 589 basenames — 421 of those names belonging to
-two or more inventories. Everything downstream keyed a scene by its `id`, which is its basename, so eleven
-different rigs wrote one `build/scenes/generated/<id>.blend` and one render: the first inventory in sort order won,
-and the other ten were found to have an artifact newer than their own source and **skipped as up to date**. The
-failure mode of a wrongly-keyed artifact is a skipped rebuild, which looks exactly like a current one.
-
-* **The key** is the path below `scenes/`, without the extension —
-  `generated/sdwa5-sepp/stacked-1-pooled--------free----mixed---alternate-center-possible`. It is unique by
-  construction, it exists for hand-written scenes too, and it is what every derived path and every set comparison
-  uses. `SceneLoader::keyOf()` and `BaseCommand::sceneKey()`.
-* **The `id:` field** is the label: what `scene:build` prints and what reaches Blender's log. Today every scene's
-  id equals its basename; the point is that only the key is guaranteed to be unique.
-
-Every derived artifact mirrors the scene's own directory, so `scenes/generated/gmss/x.yaml` builds to
-`build/scenes/generated/gmss/x.blend`. `scene:build` and `scene:render` accept either form, and a bare basename
-that names more than one scene is refused with the paths rather than resolved by sort order. Both also accept a
-folder, relative to `scenes/` or as a path, and then take every scene below it, so
-`scene:render scenes/generated/innschleife-psl-sdwa5-sepp` renders one event's inventory on its own. A folder with
-no scene in it is refused (`SceneLoader::filesUnder()`).
+The scene's relative path is its unique key. Its `id` is a label and may repeat in separate inventory folders.
+Plans, blends and renders retain the scene's relative directory. Use a path when a basename is ambiguous.
 
 #### Each system aims at its own focus
 
-**A scene's `focus:` is measured from the *rig's* front centre**, which is exactly right for a cluster and the
-near-fills beside it, and wrong the moment two sound systems stand side by side: the outer walls swing back toward
-a point in front of the middle one, so three systems cover one patch of floor between them instead of each
-covering the room it stands in front of. On a two-wall rig that is 23° and 26° of yaw on cabinets that should be
-facing straight ahead.
-
-**A placement may state a `focus:` of its own**, in either of the two forms the scene's own takes, and it means the
-same thing measured from that placement's own front face:
+Systems-apart and tops-shared walls measure their focus from their own front centres. Pooled stacks share the rig focus. It does not aim at the neighbouring system's
+centre. Shared tops use the combined wall they stand on. The resolved focus belongs to the same compiled
+positions used for support checks and camera routes.
 
 ```yaml
   - id: main-innschleife
@@ -1429,68 +1104,33 @@ same thing measured from that placement's own front face:
       near: { distance_m: 2.0, height_m: 1.8 }
 ```
 
-`scene:stack` writes one per wall **when the walls are systems** — `systems-apart` and `tops-shared` — and none at
-all for `pooled`, because a pooled rig split into two or three stacks is one system in several piles and is aimed
-as one cluster. A hand-written scene is untouched unless it adds the block: a fill beside a main cluster belongs to
-that cluster and aims where it aims.
-
-The point is resolved once, at expansion, and written into each cabinet as an ordinary `aim_at`, so nothing
-downstream has to ask which focus a cabinet meant.
-
 #### Systems, which are not owners
 
-**`owner` is what a spec records and it is not quite the right discriminator.** `sdwa5` and `sepp` are two owners
-and one system: they travel together and they are what stands on a stage when this collective plays. Until SWP-3
-nothing could say so, and `--systems=systems-apart` read the owner field — so the rig for the next event came out
-as **four** walls, Sepp's standing apart from ours, in a render nobody could have built.
+Owners identify equipment in the specs; systems determine which equipment shares a rig. SdWa5 and Sepp form
+one system by default. `--group=NAME:owner+owner` replaces the default grouping without changing ownership or quantities.
+Deal strategies and the separation axis operate on these groups.
 
 ```bash
 bin/console scene:stack --group=borrowed:gmss+psl --owner=gmss --owner=psl
 ```
 
-`App\Scene\SystemGrouping` holds it. The default is one line — `ours` is `sdwa5` and `sepp` — and every owner it
-does not name is its own system under its own name. `--group=NAME:owner+owner` replaces the default for a run
-rather than adding to it, so the option states the whole truth about the run it is typed on.
-
-**Stated at invocation time rather than in the specs, and that is the answer CVR-3 held out for.** Who owns a
-cabinet is a fact about the cabinet; who counts as one system is a fact about one gig. This repository deliberately
-supports lending gear between owners, so a `system:` field on a spec would be a layout written onto an object.
-
-It changes exactly two things and the second is easy to miss:
-
-* **How the walls are divided.** `StackDeal::groups()` partitions on the system, so `systems-apart` gives three
-  walls for the next event: `main-ours` at 25 cabinets, `main-psl` at 17, `main-innschleife` at 14.
-* **Whether the separation axis is offered at all.** It is counted in systems now, and a rig drawn from one system
-  gets `pooled` alone — which is why the default inventory lost two thirds of its scenes rather than gaining any.
-
-A stated grouping is recorded into each scene's regenerate line, because the grouping decides how many walls a
-separated rig has and a replay without it would rebuild three systems as four.
-
 #### Every option narrows one axis, and none of them collapses the sweep
 
-`--shape=pyramid` has always narrowed the shape axis and left everything else walking. `--from`, `--stacks` and
-`--per-owner` did not: they were read as *"the caller has one specific rig in mind"* and collapsed the whole cross
-product to a single candidate. So **"sweep everything, but only two stacks" could not be asked for.**
+Repeatable axis options select values on their own axis while leaving the others active. Legacy flags such as
+`--per-owner` and explicit device requests retain their narrower invocation behavior. Recorded commands name
+the exact choices needed to reproduce a scene rather than expanding its sweep on replay.
 
 ```bash
 bin/console scene:stack --owner=gmss --stacks=2    # 48 scenes: one stack count, every other axis still walking
 ```
 
-There is one path now. A caller who wants exactly one scene names one value on every axis — which is what a replay
-does, and why `build:all` still rewrites exactly one file per recorded line. Two consequences worth knowing:
-
-* **The scene id carries the rig fields.** `--id` records the base alone and the stack count and separation are
-  rebuilt from `--stacks` and `--systems`, because a name built without them would give two different rigs the
-  same file name the moment `--from` stopped collapsing the sweep.
-* **`--per-owner` is an alias of `--systems=systems-apart`** and is no longer what a scene records. The flag can
-  only say one of the three separations, and a replay has to name the one it was.
-
 #### Where the low end goes
 
-**The lowest cabinets end up low because the fill deals them first, and central only by accident.**
-`StackMetrics::centred()` puts the *tallest* segment in the middle because that is what carries the row above —
-measured at 14 % bearing when it sits outboard — and nothing anywhere aimed a low-frequency cabinet at the centre
-line. So the SKRAMs came out in the middle of the floor row and it read as luck, because it was.
+`low` and `central` rank arrangements that already pass shape and bearing rules. `low` adds 0.02 per metre of
+low-end height. `central` can prefer a lowest-type cabinet on the centreline in each repeated flanked row.
+The lowest type is ranked by continuous output per front area in the lowest shared octave when both types
+state power and passband. Missing power falls back to the corner frequency; missing passband falls back to
+weight. The optimization never refuses a rig or narrows its allowed stage width.
 
 ```bash
 bin/console scene:stack --low-end=central
@@ -1501,190 +1141,40 @@ bin/console scene:stack --low-end=central
 | `low` | what the solver has always done: both SKRAMs side by side on the floor, straddling the centre line |
 | `central` | one SKRAM on the floor centre and the second directly above it, each flanked to the row's width |
 
-**`low` pays a little for height, 0.02 per metre.** A metre of low-end height costs what 20 mm of target miss does,
-so height still decides between rigs that keep the low end where it is. 0.1 was measured against it. It made eighteen
-`low` rigs miss their target by 13.5 m more in total and pushed two V rigs of the since deleted `next-event` past their 13 m room, where
-0.02 left five rigs 3.3 m worse and thirteen 4.3 m better. It cost nothing until 0.136.1, on the grounds
-that the fill deals the lowest-reaching type first and it lands on the floor anyway. A pyramid orders for width and
-breaks that. Six SKRAMs and twelve Flexys stood the SKRAMs on top, and one SKRAM with ten Flexys and seven
-Achenbachs put it in the top sub row for 9 mm of height. `low` is declared first, so where the two values agree the
-deduplication keeps the `low` name and an unchanged rig is not renamed to claim a preference it merely happens to
-satisfy.
-
-**Two measures, weighted four to one.** How high the low-frequency mass sits above the floor, and how far it sits
-from the centre line. Both are `moment / mass` over the same cabinets, the shape `Stability::tips()` already used
-to decide whether a row topples, with the weight changed from *how heavy* to *how low it reaches* — the passband
-where a cabinet states one, mass where it does not, under the guard `byFillOrder()` states in words: **frequency
-decides only between two cabinets that both state one.**
-
-**Which type is the lowest is decided by output per area, pair by pair.** Each cabinet's level is its continuous
-power (`audio.power_w`) over its whole front, width × height of the box rather than the horn mouth. It is taken as
-flat down to its `low_hz` and falling 24 dB per octave below, and averaged as power over the octave above the deeper
-cabinet's corner, which is where the question "which one plays lower" lives. The SKRAM beats a Flexy by 14.7 dB
-over 15–30 Hz, so a cabinet reaching 38 Hz needs 36 times a 15 Hz cabinet's power per square metre to take the
-floor from it. Between corners a few hertz apart power per area decides nearly alone, so the Flexy, with 1800 W on
-0.451 m², is lower than an Achenbach with 1000 W on 0.360 m² by 1.4 dB although the Achenbach reaches 35 Hz. The
-full ranking is in [the continuous power](spec-format.md#the-continuous-power). The fill order asks the same
-measure, so a stack deals the type this calls the lowest first. A pair where either cabinet lacks a passband or a
-power figure falls back to the passband or mass alone, as the owner chose on 2026-10-02.
-
-Two things it took a measurement to get right, both worth knowing before touching it:
-
-* **The measure is about one type, not about every sub.** A centroid over the whole wall is dominated by whatever
-  there are most of — twelve Flexys against two SKRAMs move it by centimetres however the SKRAMs are placed — so
-  it could not see the arrangement it exists to choose.
-* **And it counts each cabinet, not each run.** `Tier::seats()` reports a run at its own centre, so a pair read as
-  one lump at their midpoint, and an arrangement with the pair shoved up a row and off to one side scored as *more*
-  central than the same pair straddling the middle on the floor.
-
-**Nothing is refused for it and no rig comes out narrower.** The shapes keep priority and the bearing rules keep
-their keys — re-keying `centred()` or `mixedBottomRow()` on frequency would break the reason they exist — and this
-only ranks the arrangements they already accept. The one thing it adds to the search is a candidate that spreads
-the lowest type one to a row, each cabinet flanked into a full-width row, because a bare spread gives it a 0.61 m
-row of its own that cannot carry the row above and is never returned.
-
 #### The mouth pairing
 
-Two horns whose mouths meet act as one larger mouth, and a solved stack turns its horn subs that way wherever it can
-without moving any of them. It is not an axis of the sweep. It runs on every stack after the solve, on the rows as
-they will stand, and `mouths: free` in the `stack:` block or `--mouths=free` on the command line switches it off.
-
-It changes rolls and never positions. A half turn and a swap of the two quarter turns leave every box where it was,
-and the rig is solved on the rolls as dealt. Gravity merges neighbours into one run only when their rolls agree, and
-a run settles as one, so pairing written into the rows would have let every cabinet settle on its own. The first
-regeneration did exactly that, and twelve `v` rigs changed their verdict over a 10 mm step. So the paired rolls are
-handed to the finished runs at the end, and a run of two rolls becomes one placement per roll, lettered `5a`, `5b` and
-so on, each standing where its cabinets stood. What it needs from a spec is
-[`audio.mouth_side`](spec-format.md#the-mouth-side), and a cabinet that states none is never turned. Today that is
-every sub but the Flexy.
-
-* **Side by side, in a turned row.** A run of neighbouring cabinets of one device, all on their sides, pairs from
-  its outer end inwards, so the spare of an odd run is the one nearest the centre line. A run centred on the row
-  pairs from both ends at once, which keeps a symmetric row symmetric. A mirrored Flexy pair beside the SKRAMs
-  comes out 270° and 90° instead of 270° twice, which is the A3 render of 2026-10-02 with columns 2 and 5 turned.
-* **One above the other, in upright rows.** Two stacked rows of the same cabinets in the same order with the same
-  gap pair bottom-up. The lower row's mouths turn up and the upper row's down, which for the Flexy means the lower
-  row is turned over by 180°. A row at the top with no partner stays as it is.
-
-Cabinets of different devices never pair, and a stereo pair stays a mirror image, because every rule reads a row
-from its own ends and its own centre.
+After solving, the generator can turn horn subs to face their mouths toward neighbours without changing any
+cabinet position. `audio.mouth_side` identifies the mouth; an unstated mouth side leaves the cabinet unchanged. The pass changes orientation only,
+keeps mirror relationships and must preserve compiled geometry. It is not a separate sweep axis.
 
 #### Each axis is a directory level or a name field, never both
 
-`--folders=<axis>[,<axis>…]` decides, from `inventory`, `stacks`, `systems`, `shape`, `orientation`,
-`mirror-style`, `align` and `feasibility`. **The default is `inventory` alone, which is exactly the tree above** —
-the mechanism ships without moving a file.
+`--folders` selects directory axes from inventory, stacks, systems, shape, orientation, mirror-style, align
+and feasibility. Inventory is always a directory and is the default alone. Other selected axes leave the
+basename and become raw directory values, in their established order. Filename values stay padded.
 
 ```bash
 bin/console scene:stack --owner=sepp --folders=shape,feasibility
 # scenes/generated/sepp/v/possible/stacked-1-pooled--------upright-alternate-center.yaml
 ```
 
-Four rules make it work rather than merely run.
-
-**A value is in the path or in the name and never in both.** Otherwise every path states the same fact twice and a
-rename has two places to go wrong. The nesting order is the order the name already reads in, so switching a level
-on is a *move*: the field leaves the name and becomes a directory in the same position.
-
-**A directory carries the raw value; the padding stays in the name.** A file name is read in columns so every
-field is padded to its axis's widest value, and `v` becomes `v------`. A directory has no column to line up with,
-and padding it would rename every directory the day an axis gains a longer case.
-
-**The inventory is permanently a folder.** It is the only axis whose value cannot be recovered from a scene's own
-recorded line — that line names cabinets rather than owners, on purpose — so putting it in the name would mean
-inventing a second option to carry the label.
-
-**At most three levels.** The cardinalities are 11 × 3 × 3 × 3 × 4 × 3 × 3 × 2, so switching them all on gives more
-directories than files. A fourth is refused rather than silently produced, the same way `--max-scenes` refuses
-rather than truncating.
-
-A non-default layout is recorded as `--folders=` in each scene's line; the default records nothing. Every
-folder-able value except the inventory is already in the line, so what a replay is missing is not the values but
-which axes are folders — without it the replay lands in the right directory and rebuilds a name still carrying the
-value that moved out of it, writing a second file beside the first with neither reported stale.
-
 #### The orientation axis, and why laying subs down is the biggest lever there is
 
-**A rolled sub is wider and shorter than a standing one, and both halves of that help.** A wider row fills the stage in
-fewer cabinets, and a shorter row keeps the sub/top transition inside the band above. Measured on the same 66-candidate
-sweep, changing nothing but which cabinets were rolled:
-
-| orientation | scenes written |
-| --- | --- |
-| `upright` | 11 |
-| every sub rolled | 24 |
-| every cabinet rolled, tops included | 18 |
-
-Turning the subs **more than doubles the output**, and it does something no other change has managed: three-stack rigs
-appear at all. A turned sub wall is short enough to land in the band, where the upright version of the same rig is
-refused for being too tall.
-
-So `--orientation` is swept, three values, and it is the largest single axis in the sweep:
-
-| mode | what lies down |
-| --- | --- |
-| `upright` | nothing. What every generated scene was before this axis existed |
-| `turned` | every sub, whatever it measures — the literal reading of "all cabinets on their sides" |
-| `mixed` | only the subs that get **wider and shorter** on their side, which is the whole reason to roll one |
-
-**Tops are never rolled, at any setting.** That is the owner's call about the gear rather than a geometric result, and
-the reason is acoustic: a top's horn throws its pattern in one orientation, and rolling the cabinet rolls the pattern
-with it. The measurement agrees — rolling everything writes 18 against 24 — but the numbers are not why. Low frequency
-is near-omnidirectional, which is why the same objection does not reach a sub.
-
-**`mixed` is read off the specs and states no new fact about the gear.** `subtype` and `dimensions_m` are both recorded
-already, so the rule needs nothing measured: roll a sub where its height exceeds its width. Two cabinets are left
-standing by it and for two different reasons. `mid-bass` is 1.200 × 0.500, the one sub already wider than it is
-tall, so rolling it would make the wall *taller* and the row narrower; `achenbach-18` is 0.600 × 0.600, where rolling is
-geometrically nothing at all. This matters beyond tidiness — the repository refuses to invent physical properties to
-serve a layout, which is why `--roll-mirror` names cabinets outright rather than deriving them from a "horn-loaded"
-field nobody has measured.
-
-**The orientation and the mirror style are swept as pairs, not as two axes.** The mirror style only decides what a
-*rolled* row does with the odd cabinet it cannot halve, so it is vacuous wherever nothing is rolled. Multiplied out
-independently, a third of every candidate would be a duplicate of another by construction — measured, before the fold:
-66 `centred` candidates and 0 scenes written from them. Paired, the vacuous combinations cannot be expressed:
-
-| # | pair |
-| --- | --- |
-| 1 | `upright` — nothing rolled, so there is no odd cabinet to place |
-| 2–4 | `turned` × (`alternate`, `centred`, `column`) |
-| 5–7 | `mixed` × (`alternate`, `centred`, `column`) |
-
-A mode that rolls nothing in *this* inventory is dropped the same way, which is a different rule and keeps the file
-names honest: `sepp` owns nothing but Achenbach cubes, so `mixed` has nothing to turn there and the candidate it would
-produce is `upright` under another name. A `-turned-` or `-mixed-` file always has something turned in it.
-
-**`--roll-mirror` switches the axis off**, so every hand invocation that names cabinets keeps working exactly as it did.
-The two options answer the same question at different resolutions, and a line saying `--roll-mirror=skram` means those
-cabinets rather than "sweep three modes and ignore what I said". A recorded command line carries `--orientation=MODE`
-rather than the cabinets it resolved to, so a replay stays correct when a new sub is measured or a wrong dimension is
-corrected.
-
-`stack:` still has to be typed into a file. `scene:stack` is the step before that: give it the gear and the
-bounds and it writes one scene per arrangement that works, with a reason for every one it left out.
-
-```bash
-bin/console scene:stack --max-width=3.70 --interface-height=2.0
-#   wrote      scenes/stacked-center.yaml    23 cabinets — LEFT OUT skram, it cannot be carried in this stack
-#   skipped    stacked-block — the same rig as stacked-center
-#   skipped    stacked-stereo — the same rig as stacked-center
-```
-
-With six Achenbachs the sub row is 3.70 m wide — the same as the stage limit — so there is no width left
-for the two SKRAMs anywhere in the stack, and they are left out rather than forced on with an overhang the
-rig cannot stand on. `--align` no longer changes anything either: the top row already reaches the full width,
-so block and stereo alignment have nothing left to spread it into.
+`upright` rolls nothing; `turned` rolls every sub; `mixed` rolls subs that become wider and shorter.
+Tops remain upright. A mode that rolls nothing for the inventory is skipped. The orientation and mirror style
+form seven applicable pairs: upright/alternate and turned or mixed with each of alternate, centred and column.
+`--roll-mirror` selects explicit devices instead of sweeping orientation. Regeneration records the orientation
+mode so corrected dimensions remain effective. The following table lists the command options.
 
 | Option | Meaning |
 |--------|---------|
 | `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband) and [`audio.power_w`](spec-format.md#the-continuous-power) — most output per area in the pair's lowest octave first where both cabinets state both, lowest corner first where both state a passband, heaviest first where either does not, subs before tops |
-| `--owner=NAME` | repeatable: build from these owners' gear only. Default: **sweep every non-empty combination of them**, so each owner alone, each pair and everything. It narrows one axis rather than collapsing the sweep, so the stack counts, shapes, orientations and mirror styles are still walked |
+| `--owner=NAME` | repeatable: build from these owners' gear only. Default: SdWa5 and Sepp together. It narrows one axis rather than collapsing the sweep, so the stack counts, shapes, orientations and mirror styles are still walked |
 | `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here. **Not the same option as `--owner`**, which picks whose gear is in the rig at all. It collapses the sweep to that point, where `--systems=systems-apart` says the same thing as an axis narrowing |
 | `--systems=VALUE` | repeatable: `pooled`, `systems-apart` or `tops-shared`. How separately the systems stand — see [the seventh axis](#how-separately-the-systems-stand-the-seventh-axis). Narrows the axis rather than collapsing the sweep, and it is the only way to ask for `tops-shared`, which has no flag of its own |
 | `--stacks=N` | split each group into N stacks — how a stereo pair is asked for |
 | `--split=MODE` | `by-count` (default) gives every stack a share of every device; `by-type` gives each stack whole device types, balanced by `quantity × width`. **`by-type` is what makes a rig low** — a by-count stack holds every type and is as many rows tall as there are types, where a by-type stack holds two or three. It needs at least one type per stack and says so otherwise |
-| `--target-sub-height=M` | **defaults to 2.5 m** — the sub/top transition the rig *aims at*, as opposed to the two bounds it has to stay between. A preference and never a refusal: it decides which of the legal arrangements comes back, and the bounds decide which are legal. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
+| `--target-sub-height=M` | **defaults to 2.5 m** — the sub/top transition the rig *aims at*, The band is a preference and never a refusal; bearing and geometry decide which arrangements are legal. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `--max-sub-height=M` | **defaults to 3.0 m**, the top of the band a sub/top transition should sit in — with `--interface-height` as its floor, and **a rig that misses either is written with the miss on it** rather than refused. See [the sub height band](#the-sub-height-band-which-is-an-aim-rather-than-a-gate). Passed straight to the stack's [`max_sub_height_m`](#a-ceiling-on-the-sub-height). Independent of `--split`: either alone is useful, and together is how a low rig out of the whole inventory is generated |
 | `--no-asymmetry` | leave the odd cabinets out rather than giving one stack more than another. **By default every cabinet that can be placed is placed**: three M2122s over two stacks are 1 + 2 with the unevenness named in the scene header, where they used to be 1 + 1 with the third reported as left out |
 | `--clearance=M` | air between neighbouring stacks. Default 0.5 |
@@ -1696,8 +1186,8 @@ so block and stereo alignment have nothing left to spread it into.
 | `--at=X,Y` | where the rig is centred. Default `-0.302,0` |
 | `--orientation=MODE` | repeatable: `upright` (nothing rolled), `turned` (every sub) or `mixed` (only the subs that get wider on their side). **Tops never roll at any setting**, and the reason is acoustic — see [the orientation axis](#the-orientation-axis-and-why-laying-subs-down-is-the-biggest-lever-there-is). Default all three, and it is the largest axis in the sweep: measured on the 66-candidate sweep it landed in, `upright` alone writes 11 scenes where every sub rolled writes 24. Naming `--roll-mirror` switches it off |
 | `--mirror-style=MODE` | repeatable: `alternate`, `centred`, `column`. What a turned row does with the odd cabinet it cannot split in half — `alternate` swaps its side each row so the stack balances, `centred` leaves it standing in the middle so the row is symmetric at the cost of a 172 mm step, `column` sends it to the same side every row so the seam runs straight and the stack is lopsided by one. **Default all three, but only where something is rolled.** With nothing rolled the mirror is a no-op and all three are byte-identical, so the orientation and the style are swept as seven pairs rather than as 3 × 3. Stating the option explicitly always honours it |
-| `--shape=MODE` | repeatable: `pyramid`, `free`, `v`. Default all three — **one scene each**, and every one names its shape in its id. All three are width rules in metres, see [the three shapes](#the-three-shapes) |
-| `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
+| `--shape=MODE` | repeatable: `pyramid`, `free`, `v`, `tower`, `mixed`. Default all five. Distinct geometry is written once, with the selected shape in its id. All five are width rules in metres, see [the five shapes](#the-five-shapes) |
+| `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all five — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
 | `--mouths=MODE` | `paired` (default) or `free`. Whether horn subs are turned so their mouths meet. Not swept, and written into the `stack:` block only when it is `free`. See [the mouth pairing](#the-mouth-pairing) |
 | `--low-end=MODE` | repeatable: `low` or `central`. Where the lowest-reaching cabinets belong. Default both — **one scene each**. `low` puts them on the floor, `central` pulls them onto the centre line even when that costs a row, which is what stacks two SKRAMs one above the other. See [where the low end goes](#where-the-low-end-goes) |
@@ -1710,127 +1200,27 @@ so block and stereo alignment have nothing left to spread it into.
 | `--order=NAME[,NAME]` | repeatable or comma-separated: system labels **left to right**, overriding the tallest-in-the-middle rule. A label the order does not name keeps its place at the end, so naming two of three systems is a partial instruction rather than a filter. **The rank is taken on the system part of the label**, so `--stacks=2`'s `ours-1` and `ours-2` both match `ours` and stay adjacent; and an order naming **none** of a rig's stacks, which is what a system order is to a `pooled` rig, leaves the height rule alone rather than silently putting it in solve order. `next-event-light`, `next-event-light-achenbach` and `innschleife-psl-sdwa5-sepp` are generated with `--order=ours,psl,innschleife` |
 | `--folders=AXIS[,AXIS]` | repeatable or comma-separated: axes to make directory levels instead of name fields — `inventory`, `stacks`, `systems`, `shape`, `orientation`, `mirror-style`, `align`, `low-end`, `feasibility`. Default `inventory`. **At most three**, for the same reason `--max-scenes` refuses rather than truncates |
 
-**A near-field fill goes to the outer stacks, on the inner side, aimed at the near focus.** Three rules that only
-make sense together:
-
-* A device with fewer than one per stack goes to the **middle** if it is a sub — weight belongs low and central,
-  and a sub has to be part of a row that carries something — and to the **outermost stacks, in pairs** if it is a
-  top, because the tops too few to give every stack one are the small boxes. Two 2-ways across three stacks come
-  out one, none, one.
-* The **widest top is the long throw** and every narrower one is fill, which is the same choice `topRow` already
-  makes when it centres the widest and puts the smaller boxes outboard. A fill takes `aim: near`; the long throw
-  keeps the placement's own aim. Before this, one `aim` covered every top a stack carried, so a 2-way beside an
-  M2122 was thrown at the far focus instead of at the front row.
-* A fill is solved `align.clear_of` the nearest long-throw run **on its own side**, with the working gap as the
-  clearance. That is what a nominal gap cannot do: two tops aimed at one focus from different x take different
-  *yaws*, the outer one turns more, and it turns *into* its neighbour. At the far focus that cost 7.9 mm of the
-  stated 20 in a one-stack rig and bit **1.7 mm** in a three-stack rig's right stack; at the near focus, with the
-  fill toed in 36°, it bit **117 mm**.
-* **`clear_of` rather than `outside`, and the fill's height is why.** `outside` measures the span its reference covers,
-  and an aimed cabinet's span runs far wider than its body — a 2-way yawed 29.4° presents 0.8523 m on a 0.5 m cabinet.
-  Down a chain of fills that compounds, and it drove a GMSS turbo top **514 mm** off the run gravity had seated it on,
-  leaving it hanging **228 mm** over a step while the solver still believed it was carried. A fill only has to miss its
-  neighbour, so it is measured on the shells and lands on exactly the stated working gap instead of well past it.
-
-The long throw is therefore emitted **first** within its tier, because the reference can only name a placement that
-already exists. Only the order changes; which segment is which does not. And the long throw may itself land in
-several runs — a stepped tier below splits three M2122s into two — so each fill is solved against whichever is
-nearest on its side, which clears the rest by construction.
-
-A chained run **moves as a body**, and that is what the stated side is for. A run of several cabinets is a segment
-of one row rather than two columns around a centre line, so splitting it would send its inner half through the run
-it was told to clear. See [`side`](#outside--the-room-past-a-placements-outer-faces) for the psl tops row that was
-torn in half that way.
-
-`--stacks=N` deals the inventory out **evenly, and mirrors if it can**. Two strategies are tried — split every
-device evenly, which makes the stacks identical, or keep a device whole in the middle stack when there are too
-few of it to go round — and the one that stands up **more cabinets** wins, with the even split breaking a tie.
-
-Scoring by cabinets rather than by "did it solve" is the point. An even split that cannot be carried does not
-fail: the generator drops the offending device and returns a perfectly good rig without it, so falling back only
-on an error would take a mirrored 20-cabinet rig over a 22-cabinet one every time. Two **upright** SKRAMs cannot
-be split one per stack — a SKRAM is 610 mm and a Flexy 591, so a row above an odd-count row lands on the joints
-and gets 49.9 % of itself on the taller cabinet, cantilevered over a 151 mm drop — and they are kept together.
-The same pair **turned** can be split, because on its side a SKRAM is 914 × 610 and carries a Flexy row squarely,
-so it is: `--stacks=2 --roll-mirror=skram --roll-mirror=flexy-folded-horn-hybrid` gives two identical stacks of
-eleven with one SKRAM centred in each.
-
-Only subs are held back by the second rule. A top does not flank anything and nothing stands on it, so one
-Tecnare per stack is a perfectly good top row; applying the rule to tops made the middle stack hoard every one of
-them. A device with **fewer than one per stack** is always kept whole, since splitting two 2-ways across three
-stacks would otherwise leave every one of them out.
-
-The remainder of an even split is **left out and named** rather than dealt to the earlier stacks, because 2 + 1
-makes a stereo pair that is not a pair. One side would get a wider top row, a different interface height and a
-different rig. For the tops of a two-stack pair that is no longer the end of it, because they go into one shared
-row instead, see below.
-
 #### A shared tops row on a mirrored pair
 
-**Two stacks out of one pool stand all their tops in one row across both walls**, at one pitch. This is SYM-3.
-Three Tecnares used to be dealt one to one wall and two to the other. Now both walls are solved from their subs
-alone, dealt evenly so they mirror each other, and every top of the pool stands in a row from the outer edge of one
-wall's top face to the outer edge of the other's. The rule is the owner's.
+An even mirrored pair with equal sub tiers and equal wall height can carry one shared stereo tops row.
+The row spans the walls' outer edges, using equal pitch where possible and equal-air packing below that pitch.
+Every top must meet the minimum bearing requirement. The current search starts from and caps its upper gap at
+`--clearance`; GEO-19 tracks replacing that cap with the planned bearing bound. A failed bridge or one that
+places fewer cabinets retains the per-wall tops. `shared_tops` marks the walls, and a separate placement names
+both walls as support. An `on` reference to a stack seats a placement on its highest cabinet, front flush.
 
-- **Equal pitch, not equal air.** Our tops are 0.450, 0.4656 and 0.500 m wide, so the two differ. A row too long for
-  its pitch falls back to equal air, which needs only the working gap between neighbours.
-- **The walls close in only as far as the tops need.** A top over the gap still has to bear a third of its width,
-  so an odd row's middle Tecnare caps the gap at 0.333 m. The walls start at `--clearance` and close in by 5 mm
-  steps until every top is carried, so the default 0.5 m becomes 0.33 m. A row too long for the pair moves them
-  apart instead, by what its tightest pitch lacks.
-- **Every top is checked the way a tier is.** It lands on the highest face under it at the walls' top height, on a
-  third of its width, without settling past 5° and with its centre over what it touches. A row that fails keeps the
-  pair's tops on their own walls, which is what happens to the pyramids, whose single-cabinet top faces stand more
-  than a metre apart.
-- **It has to place as many cabinets as the per-wall rig, and on a tie it wins.** A shared rig the compiler refuses
-  falls back to the per-wall one rather than losing the scene.
-
-The file shows it as two walls with `shared_tops: true` and one placement per top after them, `tops-1` to `tops-N`.
-Each top stands `on` the wall it lands on, which puts it on that stack's top and flush with its front, so no height
-or depth is written. Its x is the solve's. Three stacks and two systems keep a tops row each, since only two walls
-out of one pool come out level. See `App\Scene\BridgedTops`.
-
-**One stack of each pair is the mirror image of the other**, and that is correct-by-default rather than an
-option: an unmirrored pair is the same rig built twice, with both SKRAM mouths facing the same way, both tops rows
-in the same left-to-right order, and the two fills therefore on the same side of their stacks instead of both
-facing the middle. It measures identically to a mirrored pair, which is why nothing caught it for so long.
-`stack.mirror: true` says a stack is built reflected; `2 * index < of - 1` picks the earlier stack of each pair,
-so the later one — and the middle stack of an odd-numbered rig — solve exactly as they would without it.
-
-The reflection itself is `Tier::flipped()`: reverse a row's segments and hand every quarter turn the other way.
-Both halves are needed — reversing alone moves the cabinets and leaves them facing as they were, negating alone
-turns them without moving them. It is the sibling of `Tier::mirrored()`, which splits a row at its **own** middle
-so the row is symmetric about itself; the two are one character apart at a call site and a whole rig apart in the
-result. A symmetric row is its own mirror image, so the flip only shows where a row is lopsided — a tops row of
-`M2122 + 2-way`, or an odd-count mixed row whose middle cabinet had to pick a side.
-
-**The interface height decides how the subs are arranged, not just how tall the rig is.** Worth knowing because
-it produces two genuinely different two-stack rigs out of the same 24 cabinets:
-
-* asking for **2.0 m** puts the Achenbachs in a row of their own — `1.832 / 2.424 / 1.840` and the tops at
-  2.277 m, over a standing crowd
-* asking for **1.6 m** lets two Flexys move up beside them instead — `3.054 / 3.062`, a flat wall in two rows, and
-  the tops 600 mm lower at 1.677 m
-
-Both are shipped (`stacked-two-center` and `stacked-two-flat-center`) because neither is strictly better. Six
-Flexys either form a row *under* the Achenbachs or lend two of themselves to flank them; there is no third
-arrangement, and which you want depends on whether the tops have to clear heads.
-
-A generated scene is **re-solved on every build**, so everything the solve decided has to be in the file. A split
-rig therefore writes each stack's share as `count:`, and a turned one writes `roll_mirror:`. Both were once left
-out, and a share left out is the worse of the two: a rig reported as two stacks of eleven was *built* with every
-stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the twelve committed inventories come to 2188 scenes across twelve runs, and the largest committed inventory is `gmss-sdwa5-sepp` at **497** files. The room-limited `next-event-light` folder holds **39** files, 34 possible, 22 pooled, 10 with the systems apart and 7 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse an invocation exceeding 2500 results by default. This limit applies to one invocation rather than the whole generated tree. No files are written when it is exceeded |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
 #### How separately the systems stand, the seventh axis
 
-**Every generated scene pooled the gear until 0.91.0**, and that was verified rather than assumed: not one written
-file carried `--per-owner` in its recorded command, because naming that option collapses the sweep to a single
-point. A rig with each system in its own stack could be asked for by hand and never came out of the sweep.
+`pooled` combines all gear; `systems-apart` separates each system; `tops-shared` separates sub walls while
+pooling the tops across them. A single-system inventory offers pooled alone. `--systems` narrows this axis;
+`--per-owner` requests systems-apart with its established narrower invocation. Grouping can make a multi-owner
+inventory such as SdWa5 and Sepp a single system.
 
 | value | what stands where |
 | --- | --- |
@@ -1838,131 +1228,18 @@ point. A rig with each system in its own stack could be asked for by hand and ne
 | `systems-apart` | each system is its own group, dealt across the stacks in turn |
 | `tops-shared` | each system's **subs** are its own group, and every top in the rig is one pool dealt across those walls |
 
-`--systems=VALUE` narrows the axis the way `--shape` and `--align` do, and it is repeatable. `--per-owner` is the
-older way to ask for one value of it, means `systems-apart`, and collapses the sweep rather than narrowing it — it
-stays exactly as it was, because 433 written scenes record their own regeneration with it.
-
-**None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **137 `systems-apart`, 131
-`tops-shared` and 103 `pooled`**, because a system in its own narrower stack stands up more often than two systems in
-one wide one, and the tops of one system on the other's subs is a third rig again. Across the whole sweep the three
-values come to **653 `systems-apart`, 731 `tops-shared` and 788 `pooled`**, for **2172**. All three values remain represented after the room limits.
-
-**A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
-both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
-Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 224 of the sweep across five folders: `gmss` 114, `sdwa5` 68, `innschleife-next-event-light` 25,
-`psl-next-event-light` 9 and `sepp` 8. **`sdwa5-sepp` is single-owner too**, by grouping rather
-than by ownership, which is why it writes 132 `pooled` scenes and no separated ones.
-
-##### What `tops-shared` shares is the pool and not the row
-
-**The tempting reading is one tops row bridging two sub walls, and it cannot be built.** That was settled by
-measuring rather than by argument: in the `systems-apart` scenes the three walls come out **2.31 / 2.383 / 1.8 m**
-high, and in the upright variant **2.44 / 3.61 / 1.8**. Two walls drawn from two different inventories do not come
-out level, and there is no common module to make them — our cabinet heights are 0.600 / 0.763 / 0.836 / 0.914 /
-0.960 m, no two of them multiples of anything. A row resting on both would hang in the air over the lower one, which
-no solver can fix. A row that really does bridge two walls belongs to a **mirrored pair out of one pool**, whose
-walls are identical by construction, and that is [the shared tops row](#a-shared-tops-row-on-a-mirrored-pair).
-
-**On the gear we own the shared pool is not a subtlety.** There are exactly three top types and one belongs to each
-owner: three Tecnares to `sdwa5`, two 2-ways to `sepp`, three turbo tops to `gmss`. So `pooled` mixes everything
-into one stack, `systems-apart` puts each owner's tops straight back onto that owner's own subs, and only this value
-can stand a Tecnare on GMSS's wall. Borrowing tops across systems is the ordinary shape of a shared gig, and the
-repository supports lending gear on purpose.
-
-**The deal is a second pass over solved walls.** Only a pass that runs after the sub stacks are solved can see how
-much top face each wall offers, because the number of rows a wall comes out with is the solver's decision rather
-than the inventory's. The rule is one sentence: **widest top first, each cabinet to the wall with the most unused top
-face.** Three things follow, all deliberate:
-
-- **The long throw is placed before the fill**, so the biggest boxes get the best walls.
-- **Cabinet by cabinet, so the tops spread rather than pile up.** Three Tecnares across three walls come out one
-  each, because a wall with no tops on it has nothing firing over the crowd.
-- **Every top is dealt somewhere, even where no wall has room left.** The budget goes negative rather than the
-  cabinet being held back, and the solver is the backstop: it reports whatever it cannot carry as `LEFT OUT`.
-
-**The budget does not prove anything fits**, and that boundary matters because it looks like a geometric claim. The
-deal is made on the walls as the first pass solved them, and the second pass re-solves each stack from a different
-inventory — subs plus tops — so the wall it measured may not be the wall it gets. Bearing, height and
-interpenetration are all checked afterwards by the same rules every other rig goes through. What the budget is for is
-spreading the tops sensibly. See `App\Scene\SharedTops`.
-
 #### Possible and impossible, the sixth axis
 
-**A candidate is one or the other, so this doubles the sweep rather than multiplying it.** Five axes are things you
-ask for — the rig, the shape, the orientation, the mirror style, the alignment — and this one is the solver's
-answer, which is why there is no `--feasibility` option: asking for a rig that does not stand up is not a request
-anybody makes.
-
-A rig that floats a top or buries two cabinets in each other **used to be refused with a sentence**. It is now
-written, named `-impossible`, and `scene:build` cages the offending cabinets in red so the failure is something to
-look at. "A `turbo-top` would stand at 0.660 m with nothing under it across x" took a debug dump, two probes
-and a corrected coordinate mapping to understand; the picture takes a second.
-
-Measured across the committed sweep: **2327 possible and 361 impossible**. The default `sdwa5-sepp` inventory has
-none at all, so the examples live in the borrowed rigs, where a wall has cabinets it cannot carry. **The refusal
-and deduplication figures behind that 361 have not been re-measured** since the grouping and low-end axes landed;
-the older sweep collapsed 144 refusals into 60 names because 84 of them produced the same impossible geometry as a
-sibling, and the mechanism is unchanged even though the counts are not.
-
-**Every id says which side it is on**, including the possible ones. A name with a gap in it says a value was left
-out and never which one, which is the same argument that took `pyramid`, `upright` and `alternate` out of hiding.
-The alignment field is padded now that something lines up behind it, and whatever ends up last stays ragged.
-
-**What is still a refusal.** Only the two checks that name a *cabinet* moved. A rig with no workable arrangement at
-all, a scene that will not parse, a compiler violation and a bad request are all still refusals, because there is
-no geometry to look at — painting nothing red helps nobody.
-
-An impossible scene carries the reason in its own header and `ShippedScenesTest` skips it by name, through
-`Feasibility::isImpossibleId` so the writer and the test cannot disagree about which files are which. A second test
-compiles every impossible scene and insists it really does fail a check, so the axis cannot become a way to opt a
-rig out of every geometry rule by naming it.
+Every compiled candidate is labelled possible or impossible from its geometry faults. An impossible file
+states its faults in the header and builds with red cages. Band misses remain notes and do not change feasibility.
+Use `--feasibility` to select which results are written. Duplicates are compared by actual placed geometry.
 
 #### The sweep runs across every core
 
-The candidates share nothing. Each is a solve and a compile over the same inventory, none of them reads what another
-writes, and the file writing happens afterwards on the survivors — so the only thing the loop ever shared was the CPU.
-It is now forked across as many processes as the machine has cores. **Measured on the default sweep as it stood at
-1206 candidates, about 100 minutes of CPU between them: 25 minutes serial against 1m58s across 28 cores**, with
-byte-identical output. The sweep is 2718 candidates since the seventh axis gained its third value and takes just under
-three minutes on the same machine, so the ratio is what this measurement is good for rather than the figure.
-
-Two properties are worth stating, because a fork would break each of them first. **The order out is the order in**:
-results are re-keyed from the candidate list rather than from whichever worker finished first, so the scene list, the
-refusals and the deduplication all come out in the order a serial run produced. And **work is taken rather than
-dealt**: an `all` rig solves in about a minute and a single-owner rig in a second, so workers pull the next candidate
-off a shared cursor instead of being given a slice up front.
-
-`--jobs=1` is the serial path, for a debugger or a platform without `pcntl`. Generated scene files are written to a
-temporary name and renamed into place, so two replays that name the same file cannot interleave inside it.
-
-How many scenes you get is a parameter, not a decision baked in: `--align=block --subs=mixed` is exactly one,
-the default is three. Going over `--max-scenes` is **refused rather than truncated** — a silent cap reads as
-"that is every possibility" when it is not.
-
-**A cabinet that cannot be carried is left out, and the scene says so.** The two SKRAMs are the case: nothing
-shares their height so they cannot be mixed into a row, and a row of the two of them carries nothing above it.
-Refusing the whole twenty-three-cabinet rig over that is far less useful than placing the twenty-one that work
-and naming the omission in the file's own header — which is what the solver's error already advises.
-
-Every candidate is **compiled before it is written**, and arrangements that resolve to the same rig are
-written once. A worked refusal, which is also a real answer about our gear:
-
-```bash
-bin/console scene:stack --max-width=10.0 --interface-height=2.0
-#   skipped stacked-center — stack.interface_height_m (2.000): the subs stack 1.514 m high …
-```
-
-At 10 m wide the bottom row swallows all twelve Flexys, so only two sub tiers are left and the tops would
-fire into the crowd. A wide stage is not automatically a better rig.
-
-The output is a `stack:` block rather than the expanded tiers, so a generated scene **re-solves every build**
-and follows the specs when a cabinet is finally measured, instead of freezing today's answer into a list of
-rows.
-
-`align` on a stack applies to every tier **except the bottom one**, whose edges become the envelope when no
-`across`/`inside`/`width_m` is stated. Only the **topmost** tier is spread: a tier that carries another one
-has to stay tight, because spreading it turns it into gaps and the tier above then stands over air.
+Independent candidates and recipe replays use fork workers. `--jobs=1` runs serially; zero uses available
+cores. Workers claim jobs from a shared locked cursor. Output returns in input order, and serial and parallel
+runs produce the same scene text. A worker exception is reported in the parent; the worker cannot unwind into
+the caller's test runner. Every long run should be checked for completion and named failures.
 
 ### Groups inside groups
 
@@ -2231,90 +1508,24 @@ elements grow *downwards* from their anchor, so anchoring one on the floor puts 
 
 ## All speakers, owner ignored
 
-Four scenes deal both systems' cabinets into stacks without caring whose they are — the comparison the per-owner
-scenes cannot make:
-
-| scene | cabinets | what it is |
-|---|---|---|
-| `all-speakers-one-center` | 41 | one stack, every cabinet. Hand-written — see below |
-| `all-speakers-two-center` | 41 | everything in, asymmetric: two stacks of unequal height |
-| `all-speakers-two-matched-center` | 28 | a true pair, 14 + 14, at the cost of 13 cabinets |
-| `all-speakers-three-center` | 39 | three stacks, the widest of the set |
-| `all-speakers-three-low-center` | 41 | three stacks, **every transition under 3 m** |
-
-**One stack needs a stated `mix_with`, and that is the only reason it is hand-written** — `--from` on the command
-line can only name devices, not say which of them share a row.
-
-Without the mix, three GMSS middle subs pin a 1.825 m tier that no row count widens; the bearing rule then caps
-everything above near 2.5 m, while all eight tops in one row are 3.744 m and cannot be split. `scene:stack --stacks=1`
-refuses it at every width from 3.70 m to 10 m. Mixing one turbo sub either side of the middle subs takes that tier to
-2.885 m and the whole stack widens with it — **nine tiers become seven and every cabinet goes in**.
-
-**The old text below is kept because the arithmetic still explains the shape of the answer:** `scene:stack --stacks=1` refuses this
-inventory at every width from 3.70 m to 10 m, and since the fill was fixed to size rows against their support that
-refusal is arithmetic rather than a limitation: three GMSS middle subs make a 1.825 m tier and there are only three
-of them, so no row count widens it; every tier above is bounded to two thirds of a cabinet's overhang by
-`Gravity::MIN_BEARING`, capping the stack's top near 2.5 m; and eight tops in one row are 3.744 m, with no second
-row available because nothing stands on a top. So the scene **states which five tops go up** and leaves the three
-Tecnares out. It is still solver-solved — a `stack:` block re-dealt on every build — with a human choosing the list.
-
-**Two stacks cannot be symmetric with this inventory, so both answers ship.** Devices with two or three units are
-kept together because a lone cabinet cannot be flanked, which piles them into one stack; forcing a true pair means
-dropping every odd-quantity device — 13 of 41, including all the Tecnares and turbo tops. Neither is better, which
-is why `stacked-two-center` and `stacked-two-flat-center` already coexist for the same reason.
+`scenes/all-speakers-one-center.yaml` demonstrates a pooled wall with a stated `mix_with`.
+`scenes/all-speakers-three-stated-low.yaml` demonstrates a split rig. Prefer generating another arrangement
+with `scene:stack` rather than copying cabinet positions from these examples.
 
 ### The sub/top transition, and what actually moves it
 
-**Widening the stage does not move it at all.** Every width from 3.70 m to 8 m deals the same rows, because what
-forces the row count is the cabinet counts and the support cap — not the stage. The lever is `interface_height_m`:
-it is a height the tops must *clear*, and the solver picks the widest row that still reaches it, so raising it raises
-the transition. All four scenes now state 2.5 m rather than 2.0.
-
-Where that lands, and why not every stack can be in a 2–3 m band:
-
-| scene | sub/top transition | |
-|---|---|---|
-| `all-speakers-two-matched-center` | 2.763 / 2.763 | in band |
-| `all-speakers-two-center` | 2.763 / **4.359** | one stack in band |
-| `all-speakers-three-center` | 3.146 / 3.122 / 3.146 | 122–146 mm over, and this is its floor |
-| `all-speakers-one-center` | **4.163** | 33 subs in one stack cannot be under 3 m |
-
-**A stack that is too tall cannot be brought down by width or by stack count.** More stacks does not help either:
-the devices with two or three units are kept together because a lone cabinet cannot be flanked, so one stack always
-inherits them and goes tall — at four stacks it is 3.722 m and at five, 4.833. The only things that lower a stack are
-fewer cabinets in it, or wider rows; and wider rows are capped by the 1.825 m middle-sub tier. Widening *that* means
-mixing it with a neighbouring device, which `mix_with` now does correctly — it took the one-stack transition from
-6.546 m to 4.163 m and let all 41 cabinets in.
-
-**A transition under 3 m needs the stack CONTENTS stated, which is what `all-speakers-three-low-center.yaml` does**
-— 1.363, 2.037 and 1.445 m across three stacks, with all 41 cabinets. Each device type costs at least one row, so a
-stack holding six sub types is six rows tall however wide the stage; giving each stack two or three types keeps all
-three low. That split is the one thing `scene:stack` decides for itself and `--from` cannot override, which is why the
-scene is hand-written. Its `from` lists are **widest-row-first**, which is load-bearing rather than cosmetic: the fill
-is bottom-up, so a wide row listed after a narrow one lands on top of it and fails the bearing check.
-
-The trade is width. Two or three types per stack means they stand side by side rather than piling up — 10.59 m across
-against the generated version's 6.77 — and ten metres is every truss segment we own, so no goalpost spans outboard of
-it. **A low rig and a truss over it are not both available with this much gear**, which is why `everything.yaml` keeps
-the taller, narrower arrangement.
-
-**The generated scenes do not reach the band, and that part is arithmetic rather than a setting.** Each device type costs at least
-one row, and a mixed row is as tall as its *tallest* member — so merging two types only buys height when it removes a
-row outright, which needs the whole flanking stock to fit in one row and the support cap decides that. A stack holding
-seven device types is about seven rows tall whatever the stage width.
-
-**None of these aims its tops.** Aiming a mixed tops row of more than a couple of device types places two cabinets
-391 mm inside each other — one turbo top's width — and a wider `gap_m` barely moves it, so it is not toe-in. The
-overlap sweep in `ShippedScenesTest` catches it; the aim is removed until the underlying fault is fixed.
+Cabinet counts, orientations, row widths and bearing determine the possible transition heights.
+`target_sub_height_m` ranks them; the preferred band reports a miss without refusing a buildable rig.
+A larger stage only helps when the support and inventory permit wider rows. Mixed-device packing can
+complete a narrow row with another type. Increasing the number of stacks can reduce height but may
+produce unequal walls when quantities do not divide evenly. Inspect each generated header for counts,
+height misses and geometry faults.
 
 ### everything.yaml
 
-`scenes/everything.yaml` is the only place every device in the repository stands in one picture: the three-stack
-speakers, 10 m of truss with all four MACs hung, both Gerüste and all three racks. 55 cabinets, 3237 kg.
-
-It also produced a fact worth having: **our 4 m crank stands cannot clear this rig.** Three stacks of 39 cabinets
-reach 4.085 m, so a truss at 4.000 m hangs its fixtures inside the stacks — the sweep caught a MAC 285 mm inside
-stack 1. The scene stands the goalpost on GMSS's 5.2 m towers instead.
+`scenes/everything.yaml` includes speakers, truss, fixtures, scaffolds and racks in one picture.
+It uses GMSS's taller towers because the combined speakers cannot fit below our 4 m stands.
+Check the compiled equipment report when changing that inventory or the towers.
 
 ## Truss over a rig
 

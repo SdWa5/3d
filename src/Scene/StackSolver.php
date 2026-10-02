@@ -238,7 +238,7 @@ final class StackSolver
             //
             // No flanking search for a packed pass: {@see packedRows} ignores `$pairs` outright, so every pass but
             // the first would re-solve the identical arrangement at the cost of a checker run per candidate pack.
-            foreach (null !== $stack->maxSubHeightM ? [true, false] : [false] as $packed) {
+            foreach (null !== $stack->maxSubHeightM || $stack->shape->flatRows(1) > 0 ? [true, false] : [false] as $packed) {
                 $flanking = $packed ? 0 : StackTops::flankingPairs($dealt, $stack, $budget);
                 for ($pairs = $flanking; $pairs >= 0; --$pairs) {
                     // **THE SPREAD IS A CANDIDATE, OFFERED ONLY WHERE IT COULD WIN.** `central` is the only bias
@@ -408,7 +408,37 @@ final class StackSolver
         $gapped = $tiers;
         $changed = false;
 
-        if (StackShape::Pyramid === $stack->shape) {
+        if ($stack->shape->flatRows(1) > 0) {
+            $subRows = count(array_filter($gapped, static fn (Tier $tier): bool => $tier->isSub()));
+            $flat = $stack->shape->flatRows($subRows);
+            if (0 === $flat) {
+                return null;
+            }
+            // Propagate taper requirements down, then make the base flush in both directions.
+            for ($index = count($gapped) - 1; $index >= $flat && $index > 0; --$index) {
+                $above = $gapped[$index];
+                $need = $above->widthM($stack->gapM) - 2 * StackChecks::PYRAMID_SHOULDER * $above->outerWidthM();
+                $row = self::gappedTo($gapped[$index - 1], $need, $stack);
+                if (false === $row) {
+                    return null;
+                }
+                if (null !== $row) {
+                    $gapped[$index - 1] = $row;
+                    $changed = true;
+                }
+            }
+            $need = max(array_map(static fn (Tier $tier): float => $tier->widthM($stack->gapM), array_slice($gapped, 0, $flat)));
+            for ($index = 0; $index < $flat; ++$index) {
+                $row = self::gappedTo($gapped[$index], $need, $stack);
+                if (false === $row) {
+                    return null;
+                }
+                if (null !== $row) {
+                    $gapped[$index] = $row;
+                    $changed = true;
+                }
+            }
+        } elseif (StackShape::Pyramid === $stack->shape) {
             for ($index = count($gapped) - 1; $index > 0; --$index) {
                 $above = $gapped[$index];
                 $need = $above->widthM($stack->gapM) - 2 * StackChecks::PYRAMID_SHOULDER * $above->outerWidthM();
@@ -778,8 +808,13 @@ final class StackSolver
         $total += max(0, $cabinets - $rows) * $stack->gapM;
 
         $candidates = [$greedy];
+        if ($stack->shape->flatRows(1) > 0) {
+            $candidates[] = self::targetedPack($queue, $stack, $budget, $greedy[0]->widthM($stack->gapM), $rows);
+        }
         for ($divisor = (float) $rows; $divisor > 1.0 - StackMetrics::EPSILON_M; $divisor -= 0.25) {
-            $candidates[] = self::packTo($queue, $stack, $budget, $total / $divisor);
+            $candidates[] = $stack->shape->flatRows(1) > 0
+                ? self::targetedPack($queue, $stack, $budget, $total / $divisor, $rows)
+                : self::packTo($queue, $stack, $budget, $total / $divisor);
         }
 
         // EACH CANDIDATE IS PUT THROUGH THE CHECKER, and that is not belt-and-braces — it is the only way the pack
@@ -821,6 +856,23 @@ final class StackSolver
     }
 
     /**
+     * Repack to a width target, with the mixed shape's transition derived from its sub row count.
+     *
+     * @param list<array{DeviceSpec, int, float}> $queue
+     *
+     * @return list<Tier>
+     */
+    private static function targetedPack(array $queue, Stack $stack, RowBudget $budget, float $targetM, int $rows): array
+    {
+        $pack = self::packTo($queue, $stack, $budget, INF, $targetM, $stack->shape->flatRows($rows));
+        if (StackShape::Mixed === $stack->shape && count($pack) !== $rows) {
+            $pack = self::packTo($queue, $stack, $budget, INF, $targetM, $stack->shape->flatRows(count($pack)));
+        }
+
+        return $pack;
+    }
+
+    /**
      * One pack of the whole sub queue, every row held to `$budgetM` as well as to what carries it.
      *
      * Split out from {@see packedRows} because it is run several times with different budgets, and it has to be
@@ -830,8 +882,14 @@ final class StackSolver
      *
      * @return list<Tier>
      */
-    private static function packTo(array $queue, Stack $stack, RowBudget $budget, float $budgetM): array
-    {
+    private static function packTo(
+        array $queue,
+        Stack $stack,
+        RowBudget $budget,
+        float $budgetM,
+        ?float $targetM = null,
+        int $flatRows = PHP_INT_MAX,
+    ): array {
         $tiers = [];
         $support = INF;
         $cursor = 0;
@@ -848,6 +906,9 @@ final class StackSolver
             // cost the GMSS pyramid its whole arrangement. The support and the pyramid ceilings stay per device, since
             // both are allowances scaled by the cabinet on the end of the row.
             $seats = $budget->seats;
+            $target = null === $targetM || count($tiers) >= $flatRows
+                ? null
+                : ([] === $tiers ? $targetM : $tiers[0]->widthM($stack->gapM));
 
             while ($cursor < count($queue)) {
                 [$device, $stock, $roll] = $queue[$cursor];
@@ -895,6 +956,9 @@ final class StackSolver
                     }
                     $width = $step;
                     ++$take;
+                    if (null !== $target && $width + StackMetrics::EPSILON_M >= $target) {
+                        break;
+                    }
                 }
 
                 // Nothing of this device fits the row as it stands. An empty row has to take one anyway — see
@@ -910,10 +974,16 @@ final class StackSolver
                 $row[] = [$device, $take, $roll];
                 $count += $take;
                 $placed += $take;
-
-                if ($placed >= $stock) {
+                // Advance exhausted stock before finishing a row, including the final row.
+                $exhausted = $placed >= $stock;
+                if ($exhausted) {
                     ++$cursor;
                     $placed = 0;
+                }
+                if (null !== $target && $width + StackMetrics::EPSILON_M >= $target) {
+                    break;
+                }
+                if ($exhausted) {
                     continue;
                 }
                 // This device is not exhausted, so the row is: it stopped on width or on `$budget`, and the rest
@@ -963,7 +1033,7 @@ final class StackSolver
         $steps = [];
         foreach (self::budgetLadder($inventory, $stack) as $budget) {
             $steps[] = [$budget, $linear];
-            if (StackShape::Pyramid !== $stack->shape) {
+            if (!in_array($stack->shape, [StackShape::Pyramid, StackShape::Tower, StackShape::Mixed], true)) {
                 continue;
             }
             $ordered = self::widestFirst($inventory, $stack, $budget, $reversed);
