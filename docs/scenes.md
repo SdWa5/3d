@@ -47,7 +47,7 @@ placements:
 | `placements[].id` | name for this placement, referenced by `on`. Defaults to `placement-<n>` |
 | `placements[].device` | a device `id` from [`specs/`](../specs) |
 | `placements[].at` | ground position `[x, y]` in metres |
-| `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs |
+| `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs. A `stack:` placement counts as a whole, and the cabinet stands on its highest cabinet, flush with its front |
 | `placements[].fly` | `{ height_m, point, id }` — hang from a point in the air instead. `point` names one of the device's `rigging.points`; `id` is what the weight is grouped under. Exclusive with `on`; see below |
 | `placements[].extend_to_m` | the height a `truss`/`tower` device is cranked to, at most its spec's height. See [a tower cranked lower](#a-tower-cranked-lower) |
 | `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses. An `arc` supplies this instead |
@@ -529,6 +529,7 @@ A rig described by what it has to satisfy, instead of by a tier per row somebody
 | `max_height_m` | a ceiling or a rigging limit |
 | `gap_m` | working gap between neighbours in a row. A row the solver gaps out to its shape uses a wider one of its own, see [Gapping a row out to its shape](#gapping-a-row-out-to-its-shape) |
 | `slide_slack_m` | how far sideways a badly-carried row may be moved to get it under something, in metres, or `.inf` for "bounded only by the stage". **Unstated means it may not move at all**, which is the right answer for a stack with a neighbour to slide into. A statement about the rest of the scene rather than about gravity — see [sliding a row rather than losing the rig](#sliding-a-row-rather-than-losing-the-rig) |
+| `shared_tops` | `true` on a wall whose tops stand in a row written outside it, the [shared tops row](#a-shared-tops-row-on-a-mirrored-pair) of a pair. The wall holds subs alone and the interface height still decides its solve |
 
 A `stack` replaces `device` and any group — both are decided by the solve, and stating one as well is
 refused rather than quietly overruled. It expands into one ordinary placement per tier, numbered `main/1`,
@@ -1759,9 +1760,35 @@ Tecnare per stack is a perfectly good top row; applying the rule to tops made th
 them. A device with **fewer than one per stack** is always kept whole, since splitting two 2-ways across three
 stacks would otherwise leave every one of them out.
 
-The remainder of an even split is **left out and named** rather than dealt to the earlier stacks: three M2122s
-over two stacks are 1 + 1 with the third reported, because 2 + 1 makes a stereo pair that is not a pair — one
-side would get a wider top row, a different interface height and a different rig.
+The remainder of an even split is **left out and named** rather than dealt to the earlier stacks, because 2 + 1
+makes a stereo pair that is not a pair. One side would get a wider top row, a different interface height and a
+different rig. For the tops of a two-stack pair that is no longer the end of it, because they go into one shared
+row instead, see below.
+
+#### A shared tops row on a mirrored pair
+
+**Two stacks out of one pool stand all their tops in one row across both walls**, at one pitch. This is SYM-3.
+Three Tecnares used to be dealt one to one wall and two to the other. Now both walls are solved from their subs
+alone, dealt evenly so they mirror each other, and every top of the pool stands in a row from the outer edge of one
+wall's top face to the outer edge of the other's. The rule is the owner's.
+
+- **Equal pitch, not equal air.** Our tops are 0.450, 0.4656 and 0.500 m wide, so the two differ. A row too long for
+  its pitch falls back to equal air, which needs only the working gap between neighbours.
+- **The walls close in only as far as the tops need.** A top over the gap still has to bear a third of its width,
+  so an odd row's middle Tecnare caps the gap at 0.333 m. The walls start at `--clearance` and close in by 5 mm
+  steps until every top is carried, so the default 0.5 m becomes 0.33 m. A row too long for the pair moves them
+  apart instead, by what its tightest pitch lacks.
+- **Every top is checked the way a tier is.** It lands on the highest face under it at the walls' top height, on a
+  third of its width, without settling past 5° and with its centre over what it touches. A row that fails keeps the
+  pair's tops on their own walls, which is what happens to the pyramids, whose single-cabinet top faces stand more
+  than a metre apart.
+- **It has to place as many cabinets as the per-wall rig, and on a tie it wins.** A shared rig the compiler refuses
+  falls back to the per-wall one rather than losing the scene.
+
+The file shows it as two walls with `shared_tops: true` and one placement per top after them, `tops-1` to `tops-N`.
+Each top stands `on` the wall it lands on, which puts it on that stack's top and flush with its front, so no height
+or depth is written. Its x is the solve's. Three stacks and two systems keep a tops row each, since only two walls
+out of one pool come out level. See `App\Scene\BridgedTops`.
 
 **One stack of each pair is the mirror image of the other**, and that is correct-by-default rather than an
 option: an unmirrored pair is the same rig built twice, with both SKRAM mouths facing the same way, both tops rows
@@ -1835,7 +1862,7 @@ high, and in the upright variant **2.44 / 3.61 / 1.8**. Two walls drawn from two
 out level, and there is no common module to make them — our cabinet heights are 0.600 / 0.763 / 0.836 / 0.914 /
 0.960 m, no two of them multiples of anything. A row resting on both would hang in the air over the lower one, which
 no solver can fix. A row that really does bridge two walls belongs to a **mirrored pair out of one pool**, whose
-walls are identical by construction, and that is SYM-3.
+walls are identical by construction, and that is [the shared tops row](#a-shared-tops-row-on-a-mirrored-pair).
 
 **On the gear we own the shared pool is not a subtlety.** There are exactly three top types and one belongs to each
 owner: three Tecnares to `sdwa5`, two 2-ways to `sepp`, three turbo tops to `gmss`. So `pooled` mixes everything
@@ -2367,7 +2394,7 @@ backdrop:
 |---|---|
 | `backdrop-tower-left`, `-right` | under the two ends of the truss, inset by half the tower's width. Their centre lines stand 0.8 m behind the rig's deepest back face, because the legs spread to 1.6 m and no scene check sees them |
 | `backdrop-truss` | five segments flush, 10 m, centred on the rig. It rests at the ceiling less its own 0.258 m, so at 3.742 m under the 4 m room, with the towers cranked to that |
-| `backdrop-deco` | flush on the truss's front face. Its top goes up to the ceiling, but at most half the panel stands above the truss's top. Under the next event's 4 m ceiling the truss already touches it, so the panel's top is the truss's top and its bottom is at 2.2 m. With no ceiling the panel's top is at 4.258 + 0.9 = 5.158 m |
+| `backdrop-deco` | flush on the truss's front face. Its top goes up to the ceiling, but at most half the panel stands above the truss's top. Under the next event's 4 m ceiling the truss already touches it, so the panel's top is the truss's top and its bottom is at 1.974 m. With no ceiling the panel's top is at 4.258 + 1.013 = 5.271 m |
 
 The truss and the panel share `fly.id: backdrop`, so the report adds them up as one bar.
 

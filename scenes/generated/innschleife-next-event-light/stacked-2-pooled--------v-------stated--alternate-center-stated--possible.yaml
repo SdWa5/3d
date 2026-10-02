@@ -16,31 +16,31 @@
 #
 # 2 stacks side by side, with 0.24 m of air between them.
 #
-# main-1 — 1, 7 cabinets in 4 rows:
+# main-1 — 1, 6 cabinets in 3 rows:
 #
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   4  1× tms2                                                                   0.43 m wide
 #
-# Subs reach 1.69 m against a 1.6 m interface. The stack is 2.56 m of cabinet.
+# Subs reach 1.69 m against a 1.6 m interface. The stack is 1.69 m of cabinet.
 #   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° row is 2.220 m on a 1.920 m row, so it overhangs 150 mm
 #     each side
 #   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
 #     each side
 #
-# main-2 — 2, 7 cabinets in 4 rows:
+# main-2 — 2, 6 cabinets in 3 rows:
 #
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90°                           2.22 m wide
 #   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           2.42 m wide
-#   4  1× tms2                                                                   0.43 m wide
 #
-# Subs reach 1.69 m against a 1.6 m interface. The stack is 2.56 m of cabinet.
+# Subs reach 1.69 m against a 1.6 m interface. The stack is 1.69 m of cabinet.
 #   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° row is 2.220 m on a 1.920 m row, so it overhangs 150 mm
 #     each side
 #   * the 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 2.420 m on a 2.220 m row, so it overhangs 100 mm
 #     each side
+#
+# The tops stand in one row across both walls: tms2 + tms4 + tms2, at an equal pitch of 2.325 m.
 #
 id: stacked-2-pooled--------v-------stated--alternate-center-stated--possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -54,7 +54,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 7 cabinets in 4 rows
+  # 1, 6 cabinets in 3 rows
   - id: main-1
     at: [-1.632, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -65,6 +65,7 @@ placements:
       gap_m: 0.02
       shape: v
       mirror: true             # the mirror image of stack 1
+      shared_tops: true        # the tops below stand on this wall
       from:
         - device: wsx-18
           count: 2
@@ -74,11 +75,8 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           count: 2
-        - device: tms2
-          count: 1
-          aim: near
 
-  # 2, 7 cabinets in 4 rows
+  # 2, 6 cabinets in 3 rows
   - id: main-2
     at: [1.028, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -88,6 +86,7 @@ placements:
       target_sub_height_m: 1.75
       gap_m: 0.02
       shape: v
+      shared_tops: true        # the tops below stand on this wall
       from:
         - device: wsx-18
           count: 2
@@ -97,7 +96,21 @@ placements:
           roll_mirror: 90.0
         - device: kicker-15
           count: 2
-        - device: tms2
-          count: 1
-          aim: near
+
+  # The tops, one row standing on both walls at an equal pitch of 2.325 m.
+  - id: tops-1
+    device: tms2
+    on: main-1
+    at: [-2.627, -0.161]
+    aim: near
+  - id: tops-2
+    device: tms4
+    on: main-2
+    at: [-0.302, -0.085]
+    aim: far
+  - id: tops-3
+    device: tms2
+    on: main-2
+    at: [2.023, -0.161]
+    aim: near
 

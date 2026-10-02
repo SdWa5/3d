@@ -100,6 +100,33 @@ final class Placement
     }
 
     /**
+     * The same placement standing flush on a stack's front, for a cabinet that stands `on` a stack from outside it.
+     * SYM-3's shared tops row is that case, and its tops are aimed like any stack's, so they need the same flush.
+     */
+    public function flushedOn(float $frontYM): self
+    {
+        return new self(
+            id: $this->id,
+            deviceId: $this->deviceId,
+            at: $this->at,
+            yawDeg: $this->yawDeg,
+            pitchDeg: $this->pitchDeg,
+            rollDeg: $this->rollDeg,
+            aimAt: $this->aimAt,
+            aimFocus: $this->aimFocus,
+            on: $this->on,
+            fly: $this->fly,
+            group: $this->group,
+            aimLines: $this->aimLines,
+            align: $this->align,
+            stack: $this->stack,
+            focusByName: $this->focusByName,
+            extendToM: $this->extendToM,
+            frontYM: $frontYM,
+        );
+    }
+
+    /**
      * This placement's own `focus:` block, read exactly the way the scene's own is.
      *
      * Absent is the common case and returns nothing, which leaves {@see SceneSpec::$focusByName} in

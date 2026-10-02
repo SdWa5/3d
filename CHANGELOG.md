@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.140.0] - 2026-10-02
+
+### Added
+
+- A mirrored pair of stacks out of one pool stands all its tops in one row across both walls, at an equal pitch from
+  the outer edge of one wall's top face to the outer edge of the other's (SYM-3). Both walls are solved from their
+  subs alone and close in from `--clearance` by 5 mm steps until every top over the gap is carried, and a row too long
+  for the pair moves them apart. A row that cannot be carried, or that places fewer cabinets than the per-wall rig,
+  leaves the pair as it was. `App\Scene\BridgedTops` solves it.
+- `stack.shared_tops`, which marks a wall whose tops stand in a row written outside it.
+- A placement's `on` may name a `stack:` placement. It then stands on the stack's highest cabinet, flush with its
+  front.
+
+### Changed
+
+- 24 two-stack scenes in `gmss/` (13), `sdwa5/` (7), `sepp/` (3) and `innschleife-next-event-light/` (1) write one
+  shared tops row instead of a row per wall, and none of them reports an uneven split any more. No scene was renamed
+  or became impossible.
+- `docs/scenes.md` documents the shared tops row, `shared_tops` and `on` naming a stack.
+- The odd-cabinet test of `SceneStackSystemsTest` takes five Flexys, since an odd top over a pair is no longer split.
+
+### Fixed
+
+- `docs/scenes.md` gave the deco panel's bottom edge as 2.2 m and its unbounded top as 5.158 m, both from the
+  1.8 m panel. The 2.026 m panel hangs from 1.974 m and would reach 5.271 m.
+
+### Removed
+
+- SYM-3 from TODO.md.
+
 ## [0.139.0] - 2026-10-02
 
 ### Added

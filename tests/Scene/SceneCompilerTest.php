@@ -93,6 +93,55 @@ final class SceneCompilerTest extends TestCase
         self::assertSame([9.0, 9.0, 0.6], $placed[2]->position);
     }
 
+    /**
+     * **`on` may name a whole stack, and the cabinet stands on its highest cabinet.** That is how SYM-3's shared tops
+     * row is written, because the ids a stack's tiers solve to belong to the compiler and not to the file.
+     */
+    public function testStandingOnAStackLandsOnItsTop(): void
+    {
+        $placed = $this->compile([
+            [
+                'id' => 'wall',
+                'at' => [0.0, 0.0],
+                'stack' => [
+                    'from' => [['device' => 'sub', 'count' => 4]],
+                    'max_width_m' => 1.25,
+                    'interface_height_m' => 0.0,
+                    'shared_tops' => true,
+                ],
+            ],
+            ['id' => 'shared', 'device' => 'top', 'on' => 'wall', 'at' => [0.0, 0.0]],
+        ]);
+
+        $top = $placed[count($placed) - 1];
+        self::assertSame('shared', $top->placementId);
+        // Two rows of two 0.6 m subs.
+        self::assertEqualsWithDelta(1.2, $top->position[2], 1e-9);
+    }
+
+    /**
+     * **And it stands flush on the stack's front**, the plane every cabinet inside the stack stands on, wherever its
+     * own `at` put it in depth. The subs are 1.0 m deep on y = 0, so the front is at −0.5 and a 0.5 m deep top stated
+     * on the centre line moves forward to −0.25.
+     */
+    public function testStandingOnAStackStandsFlushOnItsFront(): void
+    {
+        $placed = $this->compile([
+            [
+                'id' => 'wall',
+                'at' => [0.0, 0.0],
+                'stack' => [
+                    'from' => [['device' => 'sub', 'count' => 4]],
+                    'max_width_m' => 1.25,
+                    'interface_height_m' => 0.0,
+                ],
+            ],
+            ['id' => 'shared', 'device' => 'top', 'on' => 'wall', 'at' => [0.0, 0.0]],
+        ]);
+
+        self::assertEqualsWithDelta(-0.25, $placed[count($placed) - 1]->position[1], 1e-6);
+    }
+
     public function testRepeatWalksAlongTheStepVector(): void
     {
         $placed = $this->compile([

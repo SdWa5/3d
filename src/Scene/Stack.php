@@ -119,6 +119,12 @@ final class Stack
         public readonly LowEndBias $lowEnd = LowEndBias::Low,
         /** Whether the solved rows are turned so horn mouths meet. See {@see MouthPairing}. */
         public readonly MouthMode $mouths = MouthMode::Paired,
+        /**
+         * Whether tops stand on this wall from a row written outside it, which is SYM-3's shared row across a
+         * mirrored pair. The wall holds subs alone and is still a wall that carries tops, so the interface height
+         * keeps deciding its solve rather than going vacuous. See {@see BridgedTops}.
+         */
+        public readonly bool $sharedTops = false,
     ) {
     }
 
@@ -127,7 +133,7 @@ final class Stack
         $allowed = [
             'from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
             'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m', 'low_end',
-            'mouths',
+            'mouths', 'shared_tops',
         ];
         $unknown = $reader->unknownKeys($allowed);
         if ([] !== $unknown) {
@@ -162,6 +168,7 @@ final class Stack
                 ?? throw new InvalidSpecException(sprintf("stack.mirror_style: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('mirror_style'), implode(', ', array_column(MirrorStyle::cases(), 'value')))),
             mouths: MouthMode::tryFrom($reader->optionalString('mouths') ?? MouthMode::Paired->value)
                 ?? throw new InvalidSpecException(sprintf("stack.mouths: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('mouths'), implode(', ', array_column(MouthMode::cases(), 'value')))),
+            sharedTops: $reader->optionalBool('shared_tops'),
         );
     }
 
