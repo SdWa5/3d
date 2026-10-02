@@ -45,9 +45,9 @@ abstract class SceneStackTestCase extends TestCase
      * systems' gear at once is not something anybody would build. So the gear is named now rather than implied.
      *
      * **The order matters and is not alphabetical.** `--from` is taken as given — "low frequency first" — where
-     * the default sorts subs before tops and each by its driven corner. This list reproduces that sort: SKRAM
-     * (15 Hz) then Flexy (38, up to 200) then Achenbach (driven from 38, up to 1500, so the high corner breaks
-     * the tie), then the tops. Shuffle it and the solver deals a different rig.
+     * the default sorts subs before tops and the subs by power per area in each pair's lowest octave. This list
+     * reproduces that sort: SKRAM (15 Hz) then Flexy (38 Hz, 3991 W/m²) then Achenbach (35 Hz, 2778 W/m², which
+     * loses the 35–70 Hz octave by 1.4 dB), then the tops. Shuffle it and the solver deals a different rig.
      */
     protected const OWN_GEAR = [
         'skram',

@@ -82,6 +82,10 @@ rigging:
 audio:
   # From GMSS's first message, "Middle subs are 18/1600rms", which the elimination in the header ties to this
   # cabinet. No passband: see the header.
+  # GMSS's own figure, "Middle subs are 18/1600rms", stated in a message rather than a datasheet.
+  power_w:
+    rms: 1600
+    provenance: estimated
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

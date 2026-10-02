@@ -41,6 +41,10 @@ audio:
     low_hz: 35
     high_hz: 150
     provenance: datasheet
+  # The box's own rating, 600 W RMS.
+  power_w:
+    rms: 600
+    provenance: datasheet
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

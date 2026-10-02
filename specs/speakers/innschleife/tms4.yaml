@@ -42,7 +42,7 @@
 #
 # `audio` CARRIES ONLY THE BAFFLE LAYOUT, EVEN THOUGH THE DATASHEET HAS MORE. The published TMS-4 states 450 W RMS, 105 dB sensitivity,
 # a 55 Hz to 17 kHz response and an 18"/10"/1" complement. None of it is written here yet, because adopting a
-# passband changes `Passband::orderingLowHz()` and therefore which cabinet goes where in every stack, and that is
+# passband changes the fill order (`FillOrder::byFillOrder()`) and therefore which cabinet goes where in every stack, and that is
 # a rig change rather than a documentation change. It is worth doing deliberately — see docs/requests.md.
 #
 # QUANTITY 2, stated by the owner on 2026-09-02 and drawn twice in the first two revisions of the 06.12.25

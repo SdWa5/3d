@@ -55,27 +55,23 @@ final class FillOrder
      * and it is what {@see \App\Scene\Gravity} and three separate comments in {@see \App\Scene\StackSolver} already
      * appeal to when they say weight belongs low and central.
      *
-     * **This change is inert on the gear we own**, and that was checked rather than assumed:
-     *
-     * * **our measured gear**: SKRAM 15 Hz, Flexy 38-200, Achenbach 38-1500 on the driven corner, against SKRAM
-     *   90 kg, Flexy 85, Achenbach 50. The same order either way. The Achenbach reaches 35 Hz and would sort under
-     *   the Flexy on capability, but it is high-passed at 38 on purpose so that it sits *above* the Flexys, which is
-     *   exactly what {@see Passband::orderingLowHz} exists to express, and the high corner then separates
-     *   the two the same way the mass does
-     * * **GMSS's own rig**: not one of its four cabinets states a passband, so all four fall through to wall bass
-     *   220 kg, mid bass 120, nuke 58, IQ sub 40. That is exactly how the builder stacks them, wall basses on the
-     *   ground with the mid bass across them and a nuke on the ground with the IQ subs on it. It was described to us
-     *   rather than derived, so it is a real check rather than a circular one
-     *
-     * So no generated scene moves today. What changes is which rule wins the day a spec separates them, and the
-     * owner has stated that it is the frequency. See **GEO-14** for the rest of that rule, which is the half about
-     * being central rather than low, and for the power figure that no spec carries yet.
+     * **Where both cabinets state a power figure, {@see LowOctave} decides**, since 0.137.0. Output per square metre
+     * of front in the pair's lowest octave is the owner's answer to "which one plays lower", and a stack that put a
+     * different cabinet on the floor than the low-end axis calls the lowest would contradict itself. On our gear it
+     * orders SKRAM, Flexy, Achenbach, which is the order the driven corner used to force. Any pair where one side has
+     * no power figure, which takes in every top, is ordered on the corner and then on mass as before.
      *
      * @return callable(DeviceSpec, DeviceSpec): int
      */
     public static function byFillOrder(): callable
     {
         return static function (DeviceSpec $a, DeviceSpec $b): int {
+            // Power per area where both state it. A tie falls through to the corners, as an unrated pair does.
+            $octave = LowOctave::compare($a, $b);
+            if (null !== $octave && 0 !== $octave) {
+                return $octave;
+            }
+
             // **BOTH SIDES OR NEITHER, AND THAT GUARD IS THE WHOLE DIFFERENCE BETWEEN THIS AND THE VERSION THAT
             // BROKE.** The earlier frequency-first sort read a missing passband as `INF` and fell back to
             // `quantity × width`, which sorted every cabinet without one *above* every cabinet with one: the 40 kg
@@ -83,7 +79,7 @@ final class FillOrder
             // measurement is not a measurement, so a pair where either side is silent is left for the mass to
             // decide rather than being ranked on a number one of them does not have.
             if (null !== $a->passband && null !== $b->passband) {
-                $low = $a->passband->orderingLowHz() <=> $b->passband->orderingLowHz();
+                $low = $a->passband->lowHz <=> $b->passband->lowHz;
                 if (0 !== $low) {
                     return $low;
                 }

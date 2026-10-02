@@ -43,6 +43,10 @@ audio:
     low_hz: 15
     high_hz: 120
     provenance: estimated
+  # The driver's rating, Eighteensound 21NLW9601 at 1800 W AES.
+  power_w:
+    rms: 1800
+    provenance: datasheet
   drivers:
     - { size_in: 21, type: woofer, count: 1 }
 

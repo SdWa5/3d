@@ -32,7 +32,7 @@
 #
 # NO `audio` BLOCK, EVEN THOUGH THE DATASHEET HAS ONE. Published: 400 W RMS, 104 dB, 65 Hz to 17 kHz, 70 x 70
 # dispersion, 15"/10"/1". None of it is written here yet, because adopting a passband changes
-# `Passband::orderingLowHz()` and therefore which cabinet goes where in every stack, and a coverage figure changes
+# the fill order (`FillOrder::byFillOrder()`) and therefore which cabinet goes where in every stack, and a coverage figure changes
 # what CVR checks. Both are rig changes rather than documentation changes and are worth doing deliberately.
 #
 # THE COUNT IS TWO, STATED BY THE OWNER ON 2026-09-02, and it nearly went the other way. Innschleife said they

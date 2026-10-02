@@ -32,10 +32,10 @@
 #
 # main-psl — psl, 16 cabinets in 7 rows:
 #
-#   1  1× thebox-tp218-1600 rolled 270° + 1× thebox-tp218-1600 rolled 90°     2.42 m wide
+#   1  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
 #   2  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
 #   3  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
-#   4  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90°     2.38 m wide
+#   4  1× thebox-tp218-1600 rolled 270° + 1× thebox-tp218-1600 rolled 90°     2.42 m wide
 #   5  1× concert-audio-esf rolled 270° + 1× concert-audio-esf rolled 90° at 33 mm gaps    1.593 m wide
 #   6  1× thebox-tp118-800 rolled 270° + 1× thebox-tp118-800 rolled 90° at 480 mm gaps    1.716 m wide
 #   7  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m   1.8156 m wide
@@ -44,6 +44,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 3.458 m against the 3.000 m ceiling asked for, so they stand 458 mm too high — 3.458 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× thebox-tp218-1600 rolled 270° + 1× thebox-tp218-1600 rolled 90° row is 2.420 m on a 2.380 m row, so
+#     it overhangs 20 mm each side
 #   * the 1× thebox-tp118-800 rolled 270° + 1× thebox-tp118-800 rolled 90° at 480 mm gaps row is 1.716 m on a
 #     1.593 m row, so it overhangs 62 mm each side
 #   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m row is 1.816 m on a 1.716 m

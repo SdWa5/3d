@@ -1766,23 +1766,10 @@ final class SpecValidator
                     $passband->lowHz,
                 );
             }
-            if (null !== $passband->drivenFromHz && $passband->drivenFromHz < $passband->lowHz) {
-                // High-passing *below* what the cabinet reaches is not a choice, it is a typo — and it would
-                // silently reorder a stack, since the driven corner is what a `stack` sorts on.
-                $messages[] = sprintf(
-                    'audio.passband_hz.driven_from_hz (%s) is below low_hz (%s) — a cabinet cannot be driven '
-                    .'lower than it reaches',
-                    $passband->drivenFromHz,
-                    $passband->lowHz,
-                );
-            }
-            if (null !== $passband->drivenFromHz && $passband->drivenFromHz >= $passband->highHz) {
-                $messages[] = sprintf(
-                    'audio.passband_hz.driven_from_hz (%s) is at or above high_hz (%s), which leaves no band',
-                    $passband->drivenFromHz,
-                    $passband->highHz,
-                );
-            }
+        }
+
+        if (null !== $spec->power && $spec->power->rmsW <= 0.0) {
+            $messages[] = "audio.power_w.rms must be greater than 0, got {$spec->power->rmsW}";
         }
 
         foreach ($spec->drivers as $index => $driver) {

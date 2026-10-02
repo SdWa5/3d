@@ -46,6 +46,10 @@ audio:
     low_hz: 34
     high_hz: 150
     provenance: datasheet
+  # The box's own rating, 1600 W AES.
+  power_w:
+    rms: 1600
+    provenance: datasheet
   drivers:
     - { size_in: 18, type: woofer, count: 2 }
 

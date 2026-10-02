@@ -25,9 +25,8 @@ namespace App\Scene;
  *
  * **The key is frequency and the fallback is mass**, under the guard `byFillOrder()` already uses: frequency
  * decides only between two cabinets that both state a passband. Nine of ten of our speakers state none, so a rule
- * that ranked on absence would rank nearly everything on nothing. **Power is not in the schema at all** — no
- * wattage, sensitivity or SPL on a `DeviceSpec` — so the "most powerful" half of the ask cannot be weighed and is
- * filed as SPEC-13.
+ * that ranked on absence would rank nearly everything on nothing. **Power decides which type is the lowest**, per
+ * square metre of front, where both cabinets of a pair state it. See {@see LowEndCost::lowestType}.
  */
 enum LowEndBias: string
 {

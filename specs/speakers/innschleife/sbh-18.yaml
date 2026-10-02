@@ -68,7 +68,7 @@ rigging:
 
 # `audio` CARRIES ONLY THE BAFFLE LAYOUT. "SBH 18" says a sub bass horn with an 18", which is a driver size and
 # not a passband, and this
-# repository does not write a frequency range it was not given. `Passband::orderingLowHz()` therefore cannot rank
+# repository does not write a frequency range it was not given. `FillOrder::byFillOrder()` therefore cannot rank
 # this cabinet and the fill order falls back to mass — where, at 106 kg, it goes to the floor anyway.
 
 audio:

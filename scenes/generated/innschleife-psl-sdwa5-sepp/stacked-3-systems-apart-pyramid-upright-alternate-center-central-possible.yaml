@@ -55,7 +55,7 @@
 #
 # main-psl-2 — psl-2, 14 cabinets in 3 rows:
 #
-#   1  1× concert-audio-esx + 2× concert-audio-esf + 1× concert-audio-esx at 106 mm gaps    2.674 m wide
+#   1  1× concert-audio-esf + 2× concert-audio-esx + 1× concert-audio-esf at 106 mm gaps    2.674 m wide
 #   2  1× thebox-tp218-1600 + 2× thebox-tp118-800 + 1× thebox-tp218-1600 at 194 mm gaps    2.782 m wide
 #   3  1× thebox-dsp-112 + 1× hk-linear5-112x + 1× thebox-pa302 + 1× thebox-achat-115m + 2× concert-audio-ef6     2.85 m wide
 #

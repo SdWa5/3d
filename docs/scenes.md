@@ -806,8 +806,10 @@ from:
 under a Flexy and still satisfy every height check.
 
 **Tiers are ordered by frequency, not by size.** `scene:stack`'s default `--from` sorts on
-[`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use): lowest driven
-corner first, so the deepest cabinets end up on the floor. Ordering by cabinet width instead got this wrong in
+[`audio.passband_hz`](spec-format.md#the-passband) and, where both cabinets state one, on
+[`audio.power_w`](spec-format.md#the-continuous-power), so the deepest cabinets end up on the floor. Two rated subs
+are ordered by output per area in the pair's lowest octave, the measure described under
+[where the low end goes](#where-the-low-end-goes), and any other pair by `low_hz`. Ordering by cabinet width instead got this wrong in
 a way that looked plausible — the Achenbach is 0.600 m against the Flexy's 0.591, so it sorted first and four
 Achenbachs ended up carrying twelve Flexys.
 
@@ -816,7 +818,7 @@ speakers state no passband at all, so a rule that ranked on its absence would ra
 earlier version did exactly that, reading a missing passband as infinitely high and falling back to `quantity × width`,
 which sorted every silent cabinet above every cabinet with a passband and put the 40 kg IQ subs under the 220 kg wall
 basses. Mass is the fallback because it is stated for every cabinet and because it is what gravity is about anyway.
-Where both rules can speak they agree on the gear we own, so this ordering is the one that has always been built.
+On the gear we own every rule agrees on SKRAM, Flexy, Achenbach, so this ordering is the one that has always been built.
 
 **Tops do not stack — every top goes in one row**, widest in the middle. Nothing stands on a top, so width is
 the only thing it costs, and a 2-way perched on a tilted M2122 is a fill hovering over the middle of the rig.
@@ -1508,8 +1510,18 @@ satisfy.
 from the centre line. Both are `moment / mass` over the same cabinets, the shape `Stability::tips()` already used
 to decide whether a row topples, with the weight changed from *how heavy* to *how low it reaches* — the passband
 where a cabinet states one, mass where it does not, under the guard `byFillOrder()` states in words: **frequency
-decides only between two cabinets that both state one.** Power is not in the schema at all, so the "most powerful"
-half of the ask cannot be weighed and is filed as SPEC-13.
+decides only between two cabinets that both state one.**
+
+**Which type is the lowest is decided by output per area, pair by pair.** Each cabinet's level is its continuous
+power (`audio.power_w`) over its whole front, width × height of the box rather than the horn mouth. It is taken as
+flat down to its `low_hz` and falling 24 dB per octave below, and averaged as power over the octave above the deeper
+cabinet's corner, which is where the question "which one plays lower" lives. The SKRAM beats a Flexy by 14.7 dB
+over 15–30 Hz, so a cabinet reaching 38 Hz needs 36 times a 15 Hz cabinet's power per square metre to take the
+floor from it. Between corners a few hertz apart power per area decides nearly alone, so the Flexy, with 1800 W on
+0.451 m², is lower than an Achenbach with 1000 W on 0.360 m² by 1.4 dB although the Achenbach reaches 35 Hz. The
+full ranking is in [the continuous power](spec-format.md#the-continuous-power). The fill order asks the same
+measure, so a stack deals the type this calls the lowest first. A pair where either cabinet lacks a passband or a
+power figure falls back to the passband or mass alone, as the owner chose on 2026-10-02.
 
 Two things it took a measurement to get right, both worth knowing before touching it:
 
@@ -1635,7 +1647,7 @@ so block and stereo alignment have nothing left to spread it into.
 
 | Option | Meaning |
 |--------|---------|
-| `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband-and-the-difference-between-reach-and-use) — lowest driven corner first where both cabinets state one, heaviest first where either does not, subs before tops |
+| `--from=ID` | repeatable, low frequency first. Default: every speaker ordered by [`audio.passband_hz`](spec-format.md#the-passband) and [`audio.power_w`](spec-format.md#the-continuous-power) — most output per area in the pair's lowest octave first where both cabinets state both, lowest corner first where both state a passband, heaviest first where either does not, subs before tops |
 | `--owner=NAME` | repeatable: build from these owners' gear only. Default: **sweep every non-empty combination of them**, so each owner alone, each pair and everything. It narrows one axis rather than collapsing the sweep, so the stack counts, shapes, orientations and mirror styles are still walked |
 | `--per-owner` | one stack per `owner`, side by side in one scene, instead of one rig out of everything. No new spec field: who owns a cabinet already *is* the split between the rigs here. **Not the same option as `--owner`**, which picks whose gear is in the rig at all. It collapses the sweep to that point, where `--systems=systems-apart` says the same thing as an axis narrowing |
 | `--systems=VALUE` | repeatable: `pooled`, `systems-apart` or `tops-shared`. How separately the systems stand — see [the seventh axis](#how-separately-the-systems-stand-the-seventh-axis). Narrows the axis rather than collapsing the sweep, and it is the only way to ask for `tops-shared`, which has no flag of its own |

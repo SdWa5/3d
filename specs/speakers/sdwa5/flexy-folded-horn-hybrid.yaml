@@ -52,6 +52,10 @@ audio:
     low_hz: 38
     high_hz: 200
     provenance: estimated
+  # The driver's rating, Eighteensound 18NLW9601 and 18NLW9600 at 1800 W each.
+  power_w:
+    rms: 1800
+    provenance: datasheet
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
 

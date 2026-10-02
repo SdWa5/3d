@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.137.0] - 2026-10-02
+
+### Added
+
+- `audio.power_w`, the continuous power of a cabinet with a required provenance. The SKRAM, Flexy, Achenbach, TP218,
+  TP118, ESX, ESF and the GMSS wall bass state one. Concert Audio publish only programme ratings, and the owner chose
+  to read them as continuous.
+- `App\Spec\LowOctave`, which says which of two subs plays lower by its output per square metre of front in the
+  lowest octave of the pair. Each cabinet is flat down to its `low_hz` and falls 24 dB per octave below, and the
+  level is averaged as power over the octave above the deeper corner.
+
+### Changed
+
+- The fill order and the low-end axis's lowest type both use `LowOctave` wherever both cabinets state a passband and
+  a power figure. Any other pair is ordered as before. The subs now deal SKRAM, ESX, Flexy, ESF, Achenbach, TP218,
+  TP118. The SKRAM leads the ESX by 9.8 dB and the Flexy by 14.7 dB.
+- Every generated folder is regenerated. 43 rigs change, all of them `central`: forty in the joint
+  innschleife-psl-sdwa5-sepp folder and three `free` rigs of the two next-event-light folders. Their target miss grows
+  by 10.2 m in nine rigs and shrinks by 4.6 m in ten. Six rigs with shared tops become impossible and nine become
+  possible. No `low` rig changes.
+
+### Removed
+
+- `audio.passband_hz.driven_from_hz` and its two validator rules. It only kept the Achenbach above the Flexy, which
+  the Flexy now wins by 1.4 dB on power per area from the Achenbach's own 35 Hz. The ESX and ESF are ordered on the
+  33 and 37 Hz they reach with PSL's controller.
+
 ## [0.136.1] - 2026-10-02
 
 ### Changed

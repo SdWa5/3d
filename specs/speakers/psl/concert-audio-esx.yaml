@@ -55,11 +55,15 @@ audio:
   # property of one box and there is no honest number to put in it.
   passband_hz:
     # "38 - 220 Hz, -6 dB ohne Controller / 33 Hz, -6 dB mit Systemcontroller". The controller ships with the
-    # system, so 33 Hz is the reach and 38 is what it does unassisted.
+    # system, so 33 Hz is the reach.
     low_hz: 33
     high_hz: 220
-    driven_from_hz: 38
     provenance: datasheet
+  # Concert Audio publish 2800 W programme and no continuous figure. The owner chose on 2026-10-02 to read
+  # their ratings as continuous, rather than halving them by the usual convention, so this is estimated.
+  power_w:
+    rms: 2800
+    provenance: estimated
   drivers:
     - { size_in: 18, type: woofer, count: 2 }
 
@@ -112,9 +116,9 @@ notes: |
   102 dB at 45 Hz, 138 dB peak at 1 m from 40 Hz. Connectors 2x Speakon NL-4, pins 1 and 2. Grille is 2 mm
   plastic-coated mesh at 70 % transmission over black acoustic foam. Four 100 mm castors.
 
-  The lowest-reaching cabinet in the whole library at 33 Hz, ahead of our own SKRAM at 15 Hz nominal but
-  driven from 38. That matters beyond bragging: `Passband::orderingLowHz()` decides which cabinet goes at the
-  bottom of a stack, so in a joint rig this box outranks PSL's own ESF and sits under it.
+  It reaches 33 Hz with the controller and has the most power per square metre of front of any sub here, so it
+  ranks second only to the SKRAM, which reaches 15 Hz. In a joint rig it goes under the Flexy by 0.4 dB in the
+  33–66 Hz octave and under PSL's own ESF.
 
   The baffle layout is read off PSL's own photo, with the grilles the datasheet and the owner describe. The horn path
   behind the slot is internal and is not modelled.

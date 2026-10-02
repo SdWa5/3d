@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Scene;
 
 use App\Spec\DeviceSpec;
+use App\Spec\LowOctave;
 
 /**
  * How low and how central a solved stack puts its lowest-reaching cabinets — the two measures
@@ -15,7 +16,7 @@ use App\Spec\DeviceSpec;
  * the weight changes: what matters is not how heavy a cabinet is but how low it reaches, so the weight is a
  * frequency key. That is the one idea in this class; everything else is arithmetic.
  *
- * **The weight has to fall back to mass and the guard is not optional.** `Passband::orderingLowHz()` exists for
+ * **The weight has to fall back to mass and the guard is not optional.** `Passband::lowHz` exists for
  * nine of our thirty-eight devices, so a weight taken straight from it would read a missing passband as nothing
  * and put the whole rig's centroid on the three cabinets that happen to state one. {@see weightOf} therefore
  * scores a cabinet on its passband where it has one and on mass where it does not, normalised so the two cannot
@@ -24,12 +25,6 @@ use App\Spec\DeviceSpec;
  */
 final class LowEndCost
 {
-    /**
-     * Below this the cabinet counts as low end at all. 120 Hz is where a sub stops being a sub in every crossover
-     * anybody here runs, and the measure is about the low end rather than about the whole rig.
-     */
-    private const LOW_END_HZ = 120.0;
-
     /**
      * How high the low-frequency mass sits above the floor, in metres.
      *
@@ -112,30 +107,43 @@ final class LowEndCost
      * search has one of them above the other. That is the arrangement `central` exists to pick — each cabinet on
      * the centre line rather than the pair straddling it — so it has to be generated before it can be preferred.
      *
-     * Ties keep the earlier entry, which is the fill order's own answer to "which of these is lower".
+     * **Two candidates are compared as a pair, by {@see reachesLower}**, and the inventory is walked once with the
+     * winner so far challenged by each next type. Ties keep the earlier entry, which is the fill order's own answer
+     * to "which of these is lower".
      *
      * @param list<array{DeviceSpec, int}> $inventory
      */
     public static function lowestType(array $inventory): ?string
     {
         $best = null;
-        $score = 0.0;
         foreach ($inventory as [$device, $count]) {
-            $own = self::weightOf($device);
-            if ($count > 1 && $own > $score) {
-                $score = $own;
-                $best = $device->id;
+            if ($count > 1 && self::weightOf($device) > 0.0 && (null === $best || self::reachesLower($device, $best))) {
+                $best = $device;
             }
         }
 
-        return $best;
+        return $best?->id;
+    }
+
+    /**
+     * Whether `$a` is the lower type of the pair, by {@see LowOctave::compare}.
+     *
+     * **Today's measure decides any pair the new one cannot**, which is any pair where either cabinet lacks a
+     * passband under {@see LowOctave::LOW_END_HZ} or a power rating. That is the owner's choice for a sub without a
+     * figure.
+     */
+    private static function reachesLower(DeviceSpec $a, DeviceSpec $b): bool
+    {
+        $order = LowOctave::compare($a, $b);
+
+        return null === $order ? self::weightOf($a) > self::weightOf($b) : $order < 0;
     }
 
     /**
      * How much this cabinet counts as low end, from 0 for a top to 1 for the lowest-reaching sub in the library.
      *
      * **Frequency where it is stated and mass where it is not**, and the two are deliberately kept on one scale
-     * without being mixed: a cabinet with a passband under {@see LOW_END_HZ} scores on how far under it reaches,
+     * without being mixed: a cabinet with a passband under {@see LowOctave::LOW_END_HZ} scores on how far under it reaches,
      * and one without scores on mass alone, which is what `byFillOrder()` falls back to for the same reason. A
      * top scores zero either way and drops out of both measures, which is right — where a top sits is `topRow()`'s
      * question and it answers it on coverage.
@@ -155,11 +163,11 @@ final class LowEndCost
             return $device->id === $onlyId ? 1.0 : 0.0;
         }
 
-        $low = $device->passband?->orderingLowHz();
-        if (null !== $low && $low > 0.0 && $low < self::LOW_END_HZ) {
+        $low = $device->passband?->lowHz;
+        if (null !== $low && $low > 0.0 && $low < LowOctave::LOW_END_HZ) {
             // 20 Hz scores 1.0 and 120 Hz scores 0. Linear, because nothing here needs more resolution than
             // "reaches lower than the other one" and a decibel-shaped curve would be a claim about hearing.
-            return max(0.0, min(1.0, (self::LOW_END_HZ - $low) / (self::LOW_END_HZ - 20.0)));
+            return max(0.0, min(1.0, (LowOctave::LOW_END_HZ - $low) / (LowOctave::LOW_END_HZ - 20.0)));
         }
 
         // No passband: mass, normalised against the heaviest cabinet anybody here owns so the two paths land on
