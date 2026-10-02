@@ -16,7 +16,7 @@
 #
 # main-2 — 2, 32 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 270° + 1× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 1× skram rolled 270° + 1× sub-60x60 rolled 270° + 2× achenbach-18 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 2× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× thebox-tp118-800 rolled 90° + 1× thebox-tp218-1600 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
+#   1  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 270° + 1× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 1× skram rolled 270° + 1× sub-60x60 rolled 270° + 2× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× thebox-tp118-800 rolled 90° + 1× thebox-tp218-1600 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
 #   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms4 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m + 1× tecnare-m2122 + 1× concert-audio-ef6   4.0716 m wide
 #
 # Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.
@@ -28,7 +28,7 @@
 #
 # main-1 — 1, 31 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 2× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 1× sub-60x60 rolled 90° + 1× skram rolled 90° + 2× kicker-15 rolled 90° + 1× sub-60x60 rolled 90° + 1× achenbach-18 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
+#   1  1× sbh-18 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 2× concert-audio-esx rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 1× sub-60x60 rolled 90° + 1× skram rolled 90° + 2× kicker-15 rolled 90° + 1× sub-60x60 rolled 90° + 1× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
 #   2  1× concert-audio-ef6 + 1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   3.5516 m wide
 #
 # Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.

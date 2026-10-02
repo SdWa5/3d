@@ -31,15 +31,16 @@
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
-#   4  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   5  2× turbo-top + 3× tecnare-m2122 + 1× turbo-top                          2.95 m wide
 #
 # Subs reach 3.01 m against a 2.0 m interface. The stack is 3.97 m of cabinet.
 #   * the subs reach 3.010 m against the 3.000 m ceiling asked for, so they stand 10 mm too high — 3.010 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
-#     2.176 m row, so it overhangs 468 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 2.176 m row, so
+#     it overhangs 468 mm each side
 #
 id: stacked-1-tops-shared---v-------turned--centred---center-central-possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

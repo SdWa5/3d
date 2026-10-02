@@ -15,7 +15,7 @@
 #
 #   1  1× wall-bass                                                              0.66 m wide
 #   2  1× skram                                                                  0.61 m wide
-#   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 180°                                 1.202 m wide
 #   4  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   5  1× flexy-folded-horn-hybrid + 1× nuke + 1× flexy-folded-horn-hybrid    1.812 m wide
 #   6  3× iq-sub                                                                 1.63 m wide
@@ -28,7 +28,7 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 5.280 m against the 3.000 m ceiling asked for, so they stand 2280 mm too high — 5.280 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× flexy-folded-horn-hybrid row is 1.202 m on a 0.610 m row, so it overhangs 296 mm each side
+#   * the 2× flexy-folded-horn-hybrid rolled 180° row is 1.202 m on a 0.610 m row, so it overhangs 296 mm each side
 #   * the 1× flexy-folded-horn-hybrid + 1× nuke + 1× flexy-folded-horn-hybrid row is 1.812 m on a 1.202 m row, so
 #     it overhangs 305 mm each side
 #
@@ -37,7 +37,7 @@
 #   1  1× wall-bass                                                              0.66 m wide
 #   2  1× mid-bass                                                                1.2 m wide
 #   3  1× skram + 1× flexy-folded-horn-hybrid                                  1.221 m wide
-#   4  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   4  2× flexy-folded-horn-hybrid rolled 180°                                 1.202 m wide
 #   5  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   6  1× nuke + 1× flexy-folded-horn-hybrid                                   1.201 m wide
 #   7  3× iq-sub                                                                 1.63 m wide

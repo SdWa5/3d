@@ -102,6 +102,8 @@ final class DeviceSpec
         public readonly ?Castors $castors = null,
         /** The continuous power it takes; weighed per square metre of front by the low-end axis. Optional. */
         public readonly ?Power $power = null,
+        /** Which half of the front the horn mouth opens in, for the mouth pairing. Optional. See {@see MouthSide}. */
+        public readonly ?MouthSide $mouthSide = null,
     ) {
     }
 
@@ -181,6 +183,7 @@ final class DeviceSpec
             frontColor: $appearance?->optionalString('front_color'),
             castors: Castors::fromReader($physical->optionalSection('castors')),
             power: Power::fromReader($audio?->optionalSection('power_w')),
+            mouthSide: true === $audio?->has('mouth_side') ? $audio->requireEnum('mouth_side', MouthSide::class) : null,
         );
     }
 
@@ -273,6 +276,7 @@ final class DeviceSpec
             frontColor: $this->frontColor,
             castors: $this->castors,
             power: $this->power,
+            mouthSide: $this->mouthSide,
         );
     }
 

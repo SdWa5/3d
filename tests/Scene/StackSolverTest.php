@@ -6,6 +6,7 @@ namespace App\Tests\Scene;
 
 use App\Scene\Gravity;
 use App\Scene\MirrorStyle;
+use App\Scene\MouthMode;
 use App\Scene\Stack;
 use App\Scene\StackChecks;
 use App\Scene\StackEntry;
@@ -572,6 +573,8 @@ final class StackSolverTest extends TestCase
                 maxWidthM: 3.70,
                 interfaceHeightM: 2.0,
                 gapM: 0.02,
+                // The mirror alone, which the mouth pairing would turn into pairs.
+                mouths: MouthMode::Free,
             ),
         );
 
@@ -1297,7 +1300,8 @@ final class StackSolverTest extends TestCase
 
         self::assertSame([], $result['problems']);
         self::assertSame(
-            ['6× skram', '6× flexy-folded-horn-hybrid at 43 mm gaps', '6× flexy-folded-horn-hybrid at 43 mm gaps'],
+            // The lower Flexy row is turned over so its mouths meet the row above, see MouthPairing.
+            ['6× skram', '6× flexy-folded-horn-hybrid rolled 180° at 43 mm gaps', '6× flexy-folded-horn-hybrid at 43 mm gaps'],
             array_map(static fn (Tier $tier): string => $tier->label(), array_slice($result['tiers'], 0, 3)),
         );
         foreach ([1, 2] as $index) {
@@ -1351,7 +1355,9 @@ final class StackSolverTest extends TestCase
         $result = $this->solvePooled(StackShape::Pyramid, maxSubHeightM: 3.0);
 
         self::assertSame([], $result['problems']);
-        $row = '3× flexy-folded-horn-hybrid rolled 270° + 1× skram + 3× flexy-folded-horn-hybrid rolled 90°';
+        // Paired mouth to mouth from each outer end, so the spare Flexy beside the SKRAM keeps its mirrored roll.
+        $row = '1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270°'
+            .' + 1× skram + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°';
         self::assertSame(
             [$row, $row, '6× achenbach-18', '1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15'],
             array_map(static fn (Tier $tier): string => $tier->label(), $result['tiers']),
@@ -1497,6 +1503,8 @@ final class StackSolverTest extends TestCase
             interfaceHeightM: 0.0,
             gapM: 0.02,
             maxSubHeightM: 3.0,
+            // Unpaired, because the check is asked of candidates as dealt and refuses the answer by its labels.
+            mouths: MouthMode::Free,
         );
 
         $unchecked = StackSolver::solve($inventory, $stack);

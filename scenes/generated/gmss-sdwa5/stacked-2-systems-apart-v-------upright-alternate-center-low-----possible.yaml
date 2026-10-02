@@ -25,7 +25,7 @@
 # main-ours-1 — ours-1, 8 cabinets in 5 rows:
 #
 #   1  1× skram                                                                  0.61 m wide
-#   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 180°                                 1.202 m wide
 #   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   4  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   5  1× tecnare-m2122                                                           0.5 m wide
@@ -35,7 +35,7 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 3.203 m against the 3.000 m ceiling asked for, so they stand 203 mm too high — 3.203 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× flexy-folded-horn-hybrid row is 1.202 m on a 0.610 m row, so it overhangs 296 mm each side
+#   * the 2× flexy-folded-horn-hybrid rolled 180° row is 1.202 m on a 0.610 m row, so it overhangs 296 mm each side
 #
 # main-gmss-2 — gmss-2, 8 cabinets in 5 rows:
 #
@@ -57,7 +57,7 @@
 # main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
 #   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
-#   2  2× flexy-folded-horn-hybrid at 650 mm gaps                               1.832 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 180° at 650 mm gaps                  1.832 m wide
 #   3  2× flexy-folded-horn-hybrid at 650 mm gaps                               1.832 m wide
 #   4  2× tecnare-m2122                                                          1.02 m wide
 #

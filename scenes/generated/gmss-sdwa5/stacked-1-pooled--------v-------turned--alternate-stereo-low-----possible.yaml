@@ -14,8 +14,8 @@
 #   1  1× nuke rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× nuke rolled 90°    3.428 m wide
 #   2  1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°      4.2 m wide
 #   3  2× iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× iq-sub rolled 90°    4.306 m wide
-#   4  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
-#   5  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° at 542 mm gaps    4.678 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 542 mm gaps    4.678 m wide
 #   6  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
 #
 # Subs reach 3.043 m against a 2.0 m interface. The stack is 4.003 m of cabinet.
@@ -29,8 +29,9 @@
 #     row is 4.200 m on a 3.428 m row, so it overhangs 386 mm each side
 #   * the 2× iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled
 #     90° + 2× iq-sub rolled 90° row is 4.306 m on a 4.200 m row, so it overhangs 53 mm each side
-#   * the 3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° row is 4.678 m on a
-#     4.306 m row, so it overhangs 186 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled
+#     270° + 1× flexy-folded-horn-hybrid rolled 90° row is 4.678 m on a 4.306 m row, so it overhangs 186 mm each side
 #
 id: stacked-1-pooled--------v-------turned--alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

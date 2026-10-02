@@ -117,6 +117,8 @@ final class Stack
          * anything rebuilt the scene, and the two variants would be one file. See {@see LowEndBias}.
          */
         public readonly LowEndBias $lowEnd = LowEndBias::Low,
+        /** Whether the solved rows are turned so horn mouths meet. See {@see MouthPairing}. */
+        public readonly MouthMode $mouths = MouthMode::Paired,
     ) {
     }
 
@@ -125,6 +127,7 @@ final class Stack
         $allowed = [
             'from', 'max_width_m', 'min_width_m', 'max_height_m', 'interface_height_m', 'gap_m', 'mirror',
             'max_sub_height_m', 'target_sub_height_m', 'shape', 'mirror_style', 'slide_slack_m', 'low_end',
+            'mouths',
         ];
         $unknown = $reader->unknownKeys($allowed);
         if ([] !== $unknown) {
@@ -157,6 +160,8 @@ final class Stack
                 ?? throw new InvalidSpecException(sprintf("stack.low_end: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('low_end'), implode(', ', array_column(LowEndBias::cases(), 'value')))),
             mirrorStyle: MirrorStyle::tryFrom($reader->optionalString('mirror_style') ?? MirrorStyle::Alternate->value)
                 ?? throw new InvalidSpecException(sprintf("stack.mirror_style: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('mirror_style'), implode(', ', array_column(MirrorStyle::cases(), 'value')))),
+            mouths: MouthMode::tryFrom($reader->optionalString('mouths') ?? MouthMode::Paired->value)
+                ?? throw new InvalidSpecException(sprintf("stack.mouths: unknown value '%s' (allowed: %s)", (string) $reader->optionalString('mouths'), implode(', ', array_column(MouthMode::cases(), 'value')))),
         );
     }
 
@@ -306,6 +311,8 @@ final class Stack
         }
         $frontY = $at[1] - $deepest / 2;
 
+        /** @var array<string, list<array{string, float, float}>> $carriers the runs of the tier below that pairing split */
+        $carriers = [];
         foreach ($resolved as $index => $runs) {
             $tier = $tiers[$index];
             $isTop = $index === count($tiers) - 1;
@@ -338,6 +345,11 @@ final class Stack
             // a placement's geometry does not depend on when it was emitted, only its references do.
             $outward = LayoutMode::Stereo === $this->alignFor($tier, $placement->align)?->mode;
             [$runs, $throw] = $isTop ? self::throwFirst($runs, $outward) : [$runs, null];
+
+            // **THE MOUTH PAIRING, LAST AND ON THE FINISHED RUNS.** Gravity solved this row as dealt, so handing the
+            // paired rolls to its runs now moves nothing. See {@see MouthPairing} for why it cannot happen earlier.
+            $runs = self::restanding($runs, $carriers);
+            [$runs, $carriers] = self::paired($runs, $tier, $tier->gapFor($this->gapM), $placement->id, $index);
 
             foreach ($runs as $run) {
                 $own = $this->entryFor($run['device']->id)?->aim;
@@ -392,6 +404,112 @@ final class Stack
         }
 
         return $placements;
+    }
+
+    /**
+     * The runs of one tier cut where {@see Tier::$mouthRolls} changes roll, with every cut piece standing exactly where
+     * its cabinets stood in the run.
+     *
+     * A run is one placement and a placement has one roll, so a run of two Flexys paired mouth to mouth becomes two
+     * placements. Each piece keeps the run's height, support and bearing, because gravity settled the run as one and
+     * that is the answer the rig was judged on. Where the cabinets cannot be matched to the rolls, because a repair
+     * rearranged the row, the runs are returned as they were and the row stays unpaired.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     *
+     * @return array{
+     *     list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>,
+     *     array<string, list<array{string, float, float}>>
+     * } the runs, and the pieces of every run that was cut, so the tier above can stand on the right one
+     */
+    private static function paired(array $runs, Tier $tier, float $gapM, string $prefix, int $index): array
+    {
+        if (null === $tier->mouthRolls) {
+            return [$runs, []];
+        }
+
+        $byPosition = array_keys($runs);
+        usort($byPosition, static fn (int $a, int $b): int => $runs[$a]['lo'] <=> $runs[$b]['lo']);
+        $first = [];
+        $cabinet = 0;
+        foreach ($byPosition as $slot) {
+            $first[$slot] = $cabinet;
+            $cabinet += $runs[$slot]['count'];
+        }
+
+        $devices = [];
+        foreach ($tier->segments as $segment) {
+            for ($i = 0; $i < $segment[1]; ++$i) {
+                $devices[] = $segment[0]->id;
+            }
+        }
+        if ($cabinet !== count($tier->mouthRolls) || $cabinet !== count($devices)) {
+            return [$runs, []];
+        }
+
+        $pieces = [];
+        foreach ($runs as $slot => $run) {
+            $width = RolledBox::widthOf($run['device'], $run['roll']);
+            $own = [];
+            for ($i = 0; $i < $run['count']; ++$i) {
+                $at = $first[$slot] + $i;
+                if ($devices[$at] !== $run['device']->id) {
+                    return [$runs, []];
+                }
+                $roll = $tier->mouthRolls[$at];
+                $lo = $run['lo'] + $i * ($width + $gapM);
+                $last = array_key_last($own);
+                if (null !== $last && $own[$last]['roll'] === $roll) {
+                    ++$own[$last]['count'];
+                    $own[$last]['hi'] = $lo + $width;
+                    continue;
+                }
+                $own[] = ['count' => 1, 'lo' => $lo, 'hi' => $lo + $width, 'roll' => $roll] + $run;
+            }
+            foreach ($own as $piece) {
+                $pieces[] = [$run['id'], $piece];
+            }
+        }
+
+        if (count($pieces) === count($runs)) {
+            // Turned whole, a row of upright cabinets over on its back: same runs, same ids, new rolls.
+            return [array_map(static fn (array $piece): array => $piece[1], $pieces), []];
+        }
+
+        $split = [];
+        $carriers = [];
+        foreach ($pieces as $slot => [$old, $piece]) {
+            $piece['id'] = sprintf('%s/%d%s', $prefix, $index + 1, chr(ord('a') + $slot));
+            $carriers[$old][] = [$piece['id'], $piece['lo'], $piece['hi']];
+            $split[] = $piece;
+        }
+
+        return [$split, $carriers];
+    }
+
+    /**
+     * This tier's runs standing on the piece of a cut run that carries most of each, where the tier below was cut.
+     *
+     * @param list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}> $runs
+     * @param array<string, list<array{string, float, float}>> $carriers
+     *
+     * @return list<array{id: string, device: DeviceSpec, count: int, lo: float, hi: float, top: float, on: string|null, bearing: float, settle: float, roll: float}>
+     */
+    private static function restanding(array $runs, array $carriers): array
+    {
+        foreach ($runs as $slot => $run) {
+            $pieces = $carriers[$run['on'] ?? ''] ?? [];
+            $best = -INF;
+            foreach ($pieces as [$id, $lo, $hi]) {
+                $overlap = min($hi, $run['hi']) - max($lo, $run['lo']);
+                if ($overlap > $best) {
+                    $best = $overlap;
+                    $runs[$slot]['on'] = $id;
+                }
+            }
+        }
+
+        return $runs;
     }
 
     /**

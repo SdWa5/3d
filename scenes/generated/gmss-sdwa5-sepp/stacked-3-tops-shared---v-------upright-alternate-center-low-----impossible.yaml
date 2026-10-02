@@ -37,7 +37,7 @@
 # main-ours-1 — ours-1, 6 cabinets in 3 rows:
 #
 #   1  2× achenbach-18                                                           1.22 m wide
-#   2  2× flexy-folded-horn-hybrid at 38 mm gaps                                 1.22 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 180° at 38 mm gaps                    1.22 m wide
 #   3  2× flexy-folded-horn-hybrid at 38 mm gaps                                 1.22 m wide
 #
 # Subs reach 2.126 m against a 2.0 m interface. The stack is 2.126 m of cabinet.
@@ -46,7 +46,7 @@
 #
 #   1  2× achenbach-18                                                           1.22 m wide
 #   2  2× skram                                                                  1.24 m wide
-#   3  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
+#   3  2× flexy-folded-horn-hybrid rolled 180° at 58 mm gaps                    1.24 m wide
 #   4  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
 #   5  2× turbo-top                                                              0.92 m wide
 #
@@ -58,7 +58,7 @@
 # main-ours-3 — ours-3, 6 cabinets in 3 rows:
 #
 #   1  2× achenbach-18                                                           1.22 m wide
-#   2  2× flexy-folded-horn-hybrid at 38 mm gaps                                 1.22 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 180° at 38 mm gaps                    1.22 m wide
 #   3  2× flexy-folded-horn-hybrid at 38 mm gaps                                 1.22 m wide
 #
 # Subs reach 2.126 m against a 2.0 m interface. The stack is 2.126 m of cabinet.

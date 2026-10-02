@@ -33,6 +33,18 @@ final class Tier
     public function __construct(
         public readonly array $segments,
         public readonly ?float $gapM = null,
+        /**
+         * One roll per cabinet, left to right, where {@see MouthPairing} turned this row so horn mouths meet, or null.
+         *
+         * **Kept beside the segments rather than written into them**, because the segments are what gravity solves
+         * on. Gravity merges neighbours into one run only when their rolls agree, and a run settles as one. Pairing
+         * written into the segments split every run into single cabinets, each settling on its own, and that stepped
+         * a Flexy row by 10 mm and put two aimed tops into each other in twelve `v` rigs. So the row is solved as dealt
+         * and {@see Stack::expand} hands these rolls to the finished runs, which moves nothing.
+         *
+         * @var list<float>|null
+         */
+        public readonly ?array $mouthRolls = null,
     ) {
     }
 
@@ -60,7 +72,68 @@ final class Tier
     /** This row gapped out to `$gapM` between every neighbouring pair. */
     public function withGap(float $gapM): self
     {
-        return new self($this->segments, $gapM);
+        return new self($this->segments, $gapM, $this->mouthRolls);
+    }
+
+    /**
+     * This row with its cabinets turned to `$rolls`, one per cabinet left to right, by {@see MouthPairing}.
+     *
+     * @param list<float> $rolls
+     */
+    public function withMouthRolls(array $rolls): self
+    {
+        \assert(count($rolls) === $this->count());
+
+        return new self($this->segments, $this->gapM, $rolls);
+    }
+
+    /**
+     * The roll every cabinet stands at, left to right, the paired one where the row was paired.
+     *
+     * @return list<float>
+     */
+    public function cabinetRolls(): array
+    {
+        if (null !== $this->mouthRolls) {
+            return $this->mouthRolls;
+        }
+
+        $rolls = [];
+        foreach ($this->segments as $segment) {
+            for ($i = 0; $i < $segment[1]; ++$i) {
+                $rolls[] = self::rollOf($segment);
+            }
+        }
+
+        return $rolls;
+    }
+
+    /**
+     * The segments as the row will stand, regrouped by the paired rolls. The segments themselves where unpaired.
+     *
+     * @return list<array{DeviceSpec, int}|array{DeviceSpec, int, float}>
+     */
+    public function standingSegments(): array
+    {
+        if (null === $this->mouthRolls) {
+            return $this->segments;
+        }
+
+        $segments = [];
+        $cabinet = 0;
+        foreach ($this->segments as $segment) {
+            for ($i = 0; $i < $segment[1]; ++$i) {
+                $roll = $this->mouthRolls[$cabinet++];
+                $last = array_key_last($segments);
+                if (null !== $last && $segments[$last][0] === $segment[0] && $segments[$last][2] === $roll) {
+                    ++$segments[$last][1];
+                    continue;
+                }
+                $segments[] = [$segment[0], 1, $roll];
+            }
+        }
+
+        return $segments;
     }
 
     /** How wide the cabinets alone are, without any air between them. */
@@ -152,7 +225,8 @@ final class Tier
 
     /**
      * The device ids in this row, left to right, for a message or a scene comment. A gapped row names its gap,
-     * which also keeps {@see StackSolver}'s fingerprint from sharing one verdict between two gaps of one row.
+     * which also keeps {@see StackSolver}'s fingerprint from sharing one verdict between two gaps of one row. The rolls
+     * are the ones the row stands at, so a paired row reads as it is built.
      */
     public function label(): string
     {
@@ -163,7 +237,7 @@ final class Tier
                 $segment[0]->id,
                 0.0 === self::rollOf($segment) ? '' : sprintf(' rolled %d°', (int) self::rollOf($segment)),
             ),
-            $this->segments,
+            $this->standingSegments(),
         ));
 
         return null === $this->gapM ? $label : sprintf('%s at %d mm gaps', $label, (int) round($this->gapM * 1000));
@@ -267,7 +341,10 @@ final class Tier
                 ];
             },
             array_reverse($this->segments),
-        )), $this->gapM);
+        )), $this->gapM, null === $this->mouthRolls ? null : array_map(
+            static fn (float $roll): float => 90.0 === fmod(abs($roll), 180.0) ? fmod(360.0 - $roll, 360.0) : $roll,
+            array_reverse($this->mouthRolls),
+        ));
     }
 
     /**

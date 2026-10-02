@@ -85,7 +85,9 @@ final class SceneStackEventTest extends SceneStackTestCase
 
         $display = $tester->getDisplay();
         self::assertSame(0, $tester->getStatusCode());
-        self::assertSame(2, substr_count($display, '3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid'));
+        // Two such rows, the lower one turned over so its mouths meet the upper one's.
+        self::assertSame(1, substr_count($display, '3× flexy-folded-horn-hybrid rolled 180° + 1× skram rolled 180° + 3× flexy-folded-horn-hybrid rolled 180°'));
+        self::assertSame(1, substr_count($display, '3× flexy-folded-horn-hybrid + 1× skram + 3× flexy-folded-horn-hybrid '));
         self::assertSame(2, substr_count($display, '1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°'));
         self::assertStringContainsString('center-central-possible — the same rig as stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible', $display);
     }

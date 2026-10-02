@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.138.0] - 2026-10-02
+
+### Added
+
+- `audio.mouth_side`, `low` or `high`, the half of an upright front a horn's mouth opens in. The Flexy and the SKRAM
+  state `low`, the SKRAM read off its CAD front, which opens only in its lower 0.38 m.
+- `App\Scene\MouthPairing`, which turns horn subs in a solved stack so their mouths meet, without moving any of them.
+  Neighbouring turned cabinets of one device pair from the outer end of their run, and two identical upright rows
+  pair bottom-up with the lower row turned over. A cabinet without a mouth side is never turned.
+- `stack.mouths` and `scene:stack --mouths`, `paired` by default or `free` to leave every roll as dealt.
+- `docs/scenes.md` states that a new setup is generated first and hand-written last, and that a generator gap is
+  closed by improving an existing feature before adding a new one.
+
+### Changed
+
+- The paired rolls live in `Tier::$mouthRolls` beside the dealt segments, and `Stack::expand` applies them to the
+  runs gravity has finished, cutting a run into one placement per roll. Written into the segments they let every
+  cabinet settle on its own, and twelve `v` rigs changed their verdict over a 10 mm step.
+- Every generated folder is regenerated. 858 scenes change their header comment and nothing else. No id, no verdict
+  and no `stack:` block changes. 453 header lines now name a row turned over by 180°.
+
 ## [0.137.0] - 2026-10-02
 
 ### Added
