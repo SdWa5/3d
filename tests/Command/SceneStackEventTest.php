@@ -10,14 +10,14 @@ final class SceneStackEventTest extends SceneStackTestCase
 {
     private const OPTIONS = [
         '--owner' => ['innschleife'],
-        '--event' => 'next-event', '--orientation' => ['mixed'], '--stacks' => '1',
+        '--event' => 'next-event-light', '--orientation' => ['mixed'], '--stacks' => '1',
         '--align' => ['center'], '--shape' => ['pyramid'], '--mirror-style' => ['alternate'],
         '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
     ];
 
     private const PSL = [
         '--owner' => ['psl'],
-        '--event' => 'next-event', '--orientation' => ['turned'], '--stacks' => '1',
+        '--event' => 'next-event-light', '--orientation' => ['turned'], '--stacks' => '1',
         '--align' => ['center'], '--shape' => ['pyramid'], '--mirror-style' => ['alternate'],
         '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
     ];
@@ -78,7 +78,7 @@ final class SceneStackEventTest extends SceneStackTestCase
     {
         $tester = $this->invoke([
             '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'],
-            '--event' => 'next-event', '--into' => 'next-event', '--order' => ['ours,psl,innschleife'],
+            '--event' => 'next-event-light', '--into' => 'next-event-light', '--order' => ['ours,psl,innschleife'],
             '--systems' => ['systems-apart'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
             '--mirror-style' => ['alternate'], '--dry-run' => true, '--jobs' => '1',
         ]);
@@ -101,7 +101,7 @@ final class SceneStackEventTest extends SceneStackTestCase
     {
         $tester = $this->invoke([
             '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'],
-            '--event' => 'next-event', '--into' => 'next-event', '--order' => ['ours,psl,innschleife'],
+            '--event' => 'next-event-light', '--into' => 'next-event-light', '--order' => ['ours,psl,innschleife'],
             '--systems' => ['systems-apart'], '--stacks' => '1', '--align' => ['center'], '--shape' => ['pyramid'],
             '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
         ]);

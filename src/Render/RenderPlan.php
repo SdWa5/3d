@@ -108,6 +108,7 @@ final class RenderPlan
         bool $ground = true,
         string $aimLines = self::AIM_NONE,
         bool $labels = false,
+        CameraStand $stand = new CameraStand(),
     ): array {
         ['min' => $min, 'max' => $max] = self::bounds($placed);
         $lines = self::aimLines($placed, $aimLines);
@@ -132,7 +133,7 @@ final class RenderPlan
 
         return [
             'plan_version' => 1,
-            'camera' => self::camera($camera, $min, $max, $centre, $radius, $resolution),
+            'camera' => self::camera($camera, $min, $max, $centre, $radius, $resolution, $stand),
             'lighting' => self::lighting($lighting, $centre, $radius),
             'ground' => [
                 'enabled' => $ground,
@@ -415,7 +416,8 @@ final class RenderPlan
 
     /**
      * Camera position and aim. The distance fits the bounding box as projected into the camera's own
-     * frame, so a wide shallow rig fills the frame instead of sitting in the middle of it.
+     * frame, so a wide shallow rig fills the frame instead of sitting in the middle of it. A stated
+     * distance turns that round, see {@see standing()}, and a stated eye height replaces the preset's.
      *
      * @param array{float, float, float} $min
      * @param array{float, float, float} $max
@@ -431,9 +433,13 @@ final class RenderPlan
         array $centre,
         float $radius,
         array $resolution,
+        CameraStand $stand,
     ): array {
         $lens = $preset->lensMm();
         $aspect = $resolution[1] / max(1, $resolution[0]);
+        if (null !== $stand->distanceM) {
+            return self::standing($preset, $stand->distanceM, $stand->eyeHeightM, $min, $max, $centre, $aspect);
+        }
 
         $fovHorizontal = 2 * atan(self::SENSOR_MM / (2 * $lens));
         $fovVertical = 2 * atan((self::SENSOR_MM * $aspect) / (2 * $lens));
@@ -459,8 +465,11 @@ final class RenderPlan
         ];
 
         $target = $centre;
-        $eyeHeight = $preset->eyeHeightM();
-        if (null !== $eyeHeight) {
+        if (null !== $stand->eyeHeightM) {
+            $position[2] = $stand->eyeHeightM;
+        }
+        $eyeHeight = $stand->eyeHeightM ?? $preset->eyeHeightM();
+        if (CameraPreset::Crowd === $preset && null !== $eyeHeight) {
             // Standing on the ground rather than floating: keep the aim slightly low so the rig
             // towers over the viewer the way it does in person.
             $position[2] = $eyeHeight;
@@ -473,6 +482,99 @@ final class RenderPlan
             'lens_mm' => $lens,
             'preset' => $preset->value,
         ];
+    }
+
+    /**
+     * A camera at a stated distance from the rig's nearest face, with the lens zoomed to fit.
+     *
+     * The distance runs on the ground along the preset's direction, from the face of the bounding box nearest the
+     * camera, so "12 m in front" means 12 m from the front row and not from the middle of the rig. Without an eye
+     * height the camera keeps the preset's elevation. It aims at the box centre, or low like the fitted crowd view,
+     * and the lens is the longest whose frame still holds every corner of the box with the preset's margin. A lens
+     * longer than the preset's is a zoom, which is the point, and one the rig would not fit even at the widest is
+     * clamped at 10 mm, so a camera stood inside the rig still renders something.
+     *
+     * @param array{float, float, float} $min
+     * @param array{float, float, float} $max
+     * @param array{float, float, float} $centre
+     *
+     * @return array<string, mixed>
+     */
+    private static function standing(
+        CameraPreset $preset,
+        float $distanceM,
+        ?float $eyeHeightM,
+        array $min,
+        array $max,
+        array $centre,
+        float $aspect,
+    ): array {
+        $direction = $preset->direction();
+        $ground = hypot($direction[0], $direction[1]) ?: 1.0;
+        $across = [$direction[0] / $ground, $direction[1] / $ground, 0.0];
+
+        $front = 0.0;
+        foreach (self::corners($min, $max) as $corner) {
+            $front = max($front, ($corner[0] - $centre[0]) * $across[0] + ($corner[1] - $centre[1]) * $across[1]);
+        }
+        $reach = $front + $distanceM;
+        $position = [
+            $centre[0] + $across[0] * $reach,
+            $centre[1] + $across[1] * $reach,
+            $eyeHeightM ?? $centre[2] + $direction[2] / $ground * $reach,
+        ];
+
+        $eyeHeight = $eyeHeightM ?? $preset->eyeHeightM();
+        $target = CameraPreset::Crowd === $preset && null !== $eyeHeight
+            ? [$centre[0], $centre[1], $centre[2] * 0.75]
+            : $centre;
+
+        $view = self::normalise([$target[0] - $position[0], $target[1] - $position[1], $target[2] - $position[2]]);
+        $back = [-$view[0], -$view[1], -$view[2]];
+        $worldUp = abs($back[2]) > 0.99 ? [0.0, 1.0, 0.0] : [0.0, 0.0, 1.0];
+        $right = self::normalise(self::cross($worldUp, $back));
+        $up = self::normalise(self::cross($back, $right));
+
+        $tanAcross = 0.0;
+        $tanUp = 0.0;
+        foreach (self::corners($min, $max) as $corner) {
+            $offset = [$corner[0] - $position[0], $corner[1] - $position[1], $corner[2] - $position[2]];
+            $depth = max(0.01, self::dot($offset, $view));
+            $tanAcross = max($tanAcross, abs(self::dot($offset, $right)) / $depth);
+            $tanUp = max($tanUp, abs(self::dot($offset, $up)) / $depth);
+        }
+        $margin = $preset->margin();
+        $lens = min(
+            0.0 < $tanAcross ? self::SENSOR_MM / (2 * $tanAcross * $margin) : INF,
+            0.0 < $tanUp ? self::SENSOR_MM * $aspect / (2 * $tanUp * $margin) : INF,
+        );
+
+        return [
+            'location' => $position,
+            'target' => $target,
+            'lens_mm' => is_finite($lens) ? max(10.0, $lens) : $preset->lensMm(),
+            'preset' => $preset->value,
+        ];
+    }
+
+    /**
+     * @param array{float, float, float} $min
+     * @param array{float, float, float} $max
+     *
+     * @return list<array{float, float, float}>
+     */
+    private static function corners(array $min, array $max): array
+    {
+        $corners = [];
+        for ($corner = 0; $corner < 8; ++$corner) {
+            $corners[] = [
+                ($corner & 1) ? $max[0] : $min[0],
+                ($corner & 2) ? $max[1] : $min[1],
+                ($corner & 4) ? $max[2] : $min[2],
+            ];
+        }
+
+        return $corners;
     }
 
     /**
@@ -499,12 +601,7 @@ final class RenderPlan
 
         $extent = ['right' => 0.0, 'up' => 0.0, 'forward' => 0.0];
 
-        for ($corner = 0; $corner < 8; ++$corner) {
-            $point = [
-                ($corner & 1) ? $max[0] : $min[0],
-                ($corner & 2) ? $max[1] : $min[1],
-                ($corner & 4) ? $max[2] : $min[2],
-            ];
+        foreach (self::corners($min, $max) as $point) {
             $offset = [$point[0] - $centre[0], $point[1] - $centre[1], $point[2] - $centre[2]];
 
             $extent['right'] = max($extent['right'], abs(self::dot($offset, $right)));

@@ -1268,7 +1268,7 @@ final class SceneStackCommand extends BaseCommand
      * overridden on the command line is not an argument for refusing to run.
      *
      * **Only the systems this run sweeps bring anything.** They are the `--owner`s, or the owners of the `--from`
-     * cabinets, or every owner when neither is stated. So `--owner=innschleife --event=next-event` builds Innschleife's
+     * cabinets, or every owner when neither is stated. So `--owner=innschleife --event=next-event-light` builds Innschleife's
      * rig with Innschleife's counts and leaves PSL's panel out, exactly as the roster files this replaced did when only
      * Innschleife's was named. A system brings only its own gear, which {@see SceneEventOptions::resolve} enforces, so
      * two systems can never state two counts for one device.

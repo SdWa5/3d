@@ -1,8 +1,8 @@
 id: next-event-light
 name: Next event, light
-# The next event without any Achenbach and with nine rather than twelve ESX, asked for by Stefan on 2026-10-01 as a
-# second version of `next-event`. Everything else is `next-event.yaml` as it stood that day, so its comments below
-# are kept and the two counts that differ say so where they stand. See docs/scenes.md.
+# The next event without any Achenbach, with nine ESX and two EF 6. It began on 2026-10-01 as a second version of a
+# `next-event` that also brought six Achenbach, twelve ESX and four EF 6. Stefan dropped that version on 2026-10-02,
+# so this file is the event now. See docs/scenes.md.
 room:
   width_m: 13.0
   height_m: 4.0
@@ -11,7 +11,7 @@ room:
 # orientation left to vary, and its scenes are named `stated`.
 #
 # Where each system wants its lowest cabinets, stated by Stefan on 2026-10-01 against two renders of the combined rig.
-# Ours and Sepp's `central`, which stacks two [3 Flexy | SKRAM | 3 Flexy] rows over the six Achenbach, and
+# Ours and Sepp's `central`, which stacks two [3 Flexy | SKRAM | 3 Flexy] rows, and
 # Innschleife's `low`, which is their photo layout. PSL states none, because both values build PSL the same rig. So a
 # combined sweep still varies the low end for PSL, the two candidates are the same rig, and the one kept is named
 # `low`, the first value swept, although ours sits `central` in it. See docs/scenes.md.
@@ -50,7 +50,8 @@ systems:
     #   * They are the two halves of PSL's published "Hornsystem Mod" package, so twelve under five is that package
     #     scaled up rather than two cabinets picked off a list.
     #
-    # **LATER ON 2026-10-01 STEFAN CUT THE TOPS TO FOUR**, so only the sub count still exceeds the specs.
+    # **STEFAN CUT THE TOPS TO FOUR ON 2026-10-01 AND TO TWO ON 2026-10-02**, so only the sub count still exceeds the
+    # specs.
     #
     # TWELVE IS MORE THAN THE SPECS SAY EXIST, AND THAT IS NOT AN ERROR IN EITHER PLACE. The specs keep the six and four
     # of the published package, confirmed by our own Kraut drawing, and this records what comes to one event. **What PSL
@@ -65,7 +66,7 @@ systems:
     # them is about 100 mm taller in the yard than in the file.
     brings:
       concert-audio-esx: 9          # nine instead of twelve in this version, stated by Stefan on 2026-10-01
-      concert-audio-ef6: 4          # four instead of the stated five, decided by Stefan on 2026-10-01
+      concert-audio-ef6: 2          # two instead of the stated five, decided by Stefan on 2026-10-02
       concert-audio-esf: 0
       thebox-tp118-800: 0
       thebox-tp218-1600: 0

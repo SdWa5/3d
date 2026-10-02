@@ -705,11 +705,11 @@ it. The mixed bottom row flanks a single row and puts every cabinet of the centr
 The candidate is offered once per row budget and ranked like every other. **It ties on height with the unmixed rows
 it competes with.** The photo's rig stands 1.71 m to the tops and SBH and WSX in rows of their own stand 1.69 m, so
 against the default 2.5 m target and the 2.0 m interface neither reaches the band, and at a 1.70 m target both miss by
-10 mm and the first wins. The `innschleife-next-event` folder is therefore generated against a lower interface and a
-transition aimed just above the photo's, both recorded in every scene's regenerate line:
+10 mm and the first wins. The `innschleife-next-event-light` folder is therefore generated against a lower interface
+and a transition aimed just above the photo's, both recorded in every scene's regenerate line:
 
 ```bash
-bin/console scene:stack --owner=innschleife --event=next-event
+bin/console scene:stack --owner=innschleife --event=next-event-light
 ```
 
 Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` and `v`, `stated`, `alternate`,
@@ -717,35 +717,31 @@ Four of its scenes are the photo row for row, `stacked-1-pooled` in `pyramid` an
 drawing has. The second `stated` is the low end, which the event sets to `low` for Innschleife. The event sets Innschleife up turned with the kickers standing, see
 [Event rooms and system preferences](#event-rooms-and-system-preferences).
 
-**The combined `next-event` run holds the photo rig because the event narrows the air between stacks.** Our stack
-is 4.276 m wide, PSL's 3.58 m and the photo rig 4.66 m. With the default 0.5 m between stacks the rig is 13.516 m
-wide and the 13 m room refuses it, measured on 2026-10-01. The event's `stack_clearance_m: 0.24`, chosen by Stefan
-the same day, makes it 12.996 m. Since 0.131.0 the event also fixes Innschleife's low end at `low`, so every combined
-rig carries the photo layout. The folder holds eight scenes, four `systems-apart` in `pyramid` and four `tops-shared`,
-two in `pyramid` and two in `v`, where it had 26 while Innschleife was still swept `central` as well.
+**The combined `next-event-light` run holds the photo rig because the event narrows the air between stacks.** Our
+stack is 4.276 m wide, PSL's 3.58 m and the photo rig 4.66 m. With the default 0.5 m between stacks the rig is
+13.516 m wide and the 13 m room refuses it, measured on 2026-10-01. The event's `stack_clearance_m: 0.24`, chosen by
+Stefan the same day, makes it 12.996 m. The event also fixes Innschleife's low end at `low`, so every combined rig
+carries the photo layout.
 
-**`next-event-light` is the same event without any Achenbach and with nine ESX**, asked for by Stefan on 2026-10-01
-as a second version. `events/next-event-light.yaml` is a copy of `next-event.yaml` that differs in two counts, Sepp's
-`achenbach-18: 0` and PSL's `concert-audio-esx: 9`, because an event has no way to inherit from another. Both events
-bring four EF 6 since the same day. Ours and Sepp's take Innschleife's 1.6 m interface aimed at 1.75 m in this
-version. At the default 2.0 m our stack chased the interface into three rows of Flexy and stood 3.551 m against PSL's
-2.55 m and Innschleife's 2.85 m. Now it is two rows of [3 Flexy | SKRAM | 3 Flexy] at 2.788 m, and the rig is 13.00 m
-wide like `next-event`'s. It writes 18 scenes, 16 possible, and PSL alone writes 13:
+**The event brings no Achenbach, nine ESX and two EF 6.** It began on 2026-10-01 as the light version of a
+`next-event` with six Achenbach, twelve ESX and four EF 6, and Stefan dropped that version on 2026-10-02 together
+with its three folders. Ours and Sepp's take Innschleife's 1.6 m interface aimed at 1.75 m. At the default 2.0 m our
+stack chased the interface into three rows of Flexy and stood 3.551 m against PSL's 2.55 m and Innschleife's 2.85 m.
+Now it is two rows of [3 Flexy | SKRAM | 3 Flexy] at 2.788 m. The run writes 39 scenes, 34 possible, where four EF 6
+wrote 18. PSL alone writes 9 and Innschleife alone 25:
 
 ```bash
+bin/console scene:stack --owner=innschleife --event=next-event-light
 bin/console scene:stack --owner=psl --event=next-event-light
 bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light \
   --into=next-event-light --order=ours,psl,innschleife
 ```
 
-Innschleife bring the same gear to both, so `innschleife-next-event` serves both and there is no light folder for
-them.
-
 **`next-event-light-achenbach` is the light event with four of Sepp's Achenbach**, asked for by Stefan on 2026-10-01 so
 the outer tops of the stereo setup stand higher. The solver does not do that yet. At the 1.6 m interface both our
-systems state, `center` puts all four Achenbach in one middle row under every top, and the `stereo` rig is 16.03 m wide
-and refused by the 13 m room. The folder holds 16 scenes, 14 possible. A rule that seats a riser under the outer tops
-is TODO GEO-17.
+systems state, `center` puts all four Achenbach in one middle row under every top, and the `stereo` rig with the systems
+apart was 16.03 m wide on 2026-10-01 and is still refused by the 13 m room. A rule that seats a riser under the outer
+tops is TODO GEO-17. The folder holds 18 scenes, 16 possible.
 
 ```bash
 bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light-achenbach \
@@ -1232,15 +1228,14 @@ one command:
 | `sdwa5/` | ours alone | 68 |
 | `sepp/` | Sepp's alone | 8 |
 | `innschleife-psl-sdwa5-sepp/` | the joint rig the two new systems were specced for: everything four systems own | 443 |
-| `next-event/` | **the rig the next event actually stands up** — our gear and Sepp's in full, plus both borrowed systems at the counts the event states for them | 8 |
-| `next-event-light/` | the same event without any Achenbach and with nine ESX, see [Repeating a flanked row](#repeating-a-flanked-row) | 18 |
-| `innschleife-next-event/` | what Innschleife are bringing on its own, two TMS-2 around a TMS-4 on their photo's sub rows. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 25 |
-| `psl-next-event/` | what PSL are bringing on its own: twelve ESX under four EF 6, in front of their deco panel on our truss | 11 |
-| `psl-next-event-light/` | the same with nine ESX | 13 |
+| `next-event-light/` | **the rig the next event actually stands up**, our gear and Sepp's without any Achenbach, plus both borrowed systems at the counts the event states for them, nine ESX and two EF 6 for PSL. See [Repeating a flanked row](#repeating-a-flanked-row) | 39 |
+| `next-event-light-achenbach/` | the same with four of Sepp's Achenbach | 18 |
+| `innschleife-next-event-light/` | what Innschleife are bringing on its own, two TMS-2 around a TMS-4 on their photo's sub rows. Generated at a 1.6 m interface aimed at 1.75 m, see [Repeating a flanked row](#repeating-a-flanked-row) | 25 |
+| `psl-next-event-light/` | what PSL are bringing on its own, nine ESX under two EF 6, in front of their deco panel on our truss | 9 |
 
 **`sdwa5-sepp` is the small one now and that is the grouping's doing.** It held 271 scenes while `sdwa5` and `sepp`
 counted as two owners, and 171 of those were the separation axis solving our own system standing apart from itself.
-One system has nothing to separate, so it writes 132 today against `next-event`'s 8. See below.
+One system has nothing to separate, so it writes 132 today. See below.
 
 **`all` is gone as a label**, and that is the same lesson in one word: a subset covering every owner was called `all`,
 which was shorter and stayed correct exactly as long as the owner list did. `all` meant three systems and 39 cabinets,
@@ -1255,17 +1250,17 @@ second ask was really after.
 
 #### Event rooms and system preferences
 
-`events/next-event.yaml` saves the room at 13 m wide and 4 m high, and what each system brings, see
-[What a system brings](#what-a-system-brings-against-what-it-owns). Add `--event=next-event` to each next-event
-sweep. `--room-width` and `--room-height` can tighten these limits. They cannot loosen an event's limits.
+`events/next-event-light.yaml` saves the room at 13 m wide and 4 m high, and what each system brings, see
+[What a system brings](#what-a-system-brings-against-what-it-owns). Add `--event=next-event-light` to each
+next-event sweep. `--room-width` and `--room-height` can tighten these limits. They cannot loosen an event's limits.
 The check uses every compiled device's world box, so it includes space between stacks, rotated cabinets and
 flown equipment. A rig outside the room is refused before writing, including a rig otherwise marked impossible.
 
 ```bash
-bin/console scene:stack --owner=innschleife --event=next-event
-bin/console scene:stack --owner=psl --event=next-event
-bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event \
-  --into=next-event --order=ours,psl,innschleife
+bin/console scene:stack --owner=innschleife --event=next-event-light
+bin/console scene:stack --owner=psl --event=next-event-light
+bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light \
+  --into=next-event-light --order=ours,psl,innschleife
 ```
 
 The event gives Innschleife sub walls a 1.6 m interface and a 1.75 m target. A wall containing subs from several
@@ -1305,13 +1300,13 @@ A stack follows the low end its subs' systems agree on, so ours follows sdwa5 an
 changes nothing. A pooled wall of two systems that disagree, or that holds a system stating none, follows
 `--low-end` as before, and a stack without subs follows the owners of what it does hold. When every system of a rig
 states the same low end, the axis has nothing left to vary and the one candidate is named `stated`, which is what
-`innschleife-next-event` now holds. `--system-low-end=OWNER:low|central` states the same directly, and the recorded
+`innschleife-next-event-light` holds. `--system-low-end=OWNER:low|central` states the same directly, and the recorded
 line carries it.
 
 **The combined rig is named `low` although ours sits `central` in it.** PSL states nothing, so the combined sweep
 still varies the low end for PSL. Both values build the same rig, and the deduplication keeps the first one swept,
 which is `low` because `LowEndBias::Low` is declared first. The file is
-`next-event/stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible.yaml`, and the `low_end:
+`next-event-light/stacked-1-systems-apart-pyramid-stated--alternate-center-low-----possible.yaml`, and the `low_end:
 central` on our stack inside it is what the solver used. Stating a low end for PSL would not rename it to `stated`
 either, because a pooled wall of ours and Innschleife's subs would have two answers.
 
@@ -1342,13 +1337,13 @@ runs of `scene:stack` that use the event and nothing else. Until 0.130.0 it was 
 systems:
   psl:
     brings:
-      concert-audio-esx: 12
-      concert-audio-ef6: 4
+      concert-audio-esx: 9
+      concert-audio-ef6: 2
       thebox-tp218-1600: 0        # not this time
 ```
 
 ```bash
-bin/console scene:stack --owner=psl --event=next-event
+bin/console scene:stack --owner=psl --event=next-event-light
 ```
 
 Five things about it are worth knowing before writing one.
@@ -1356,7 +1351,7 @@ Five things about it are worth knowing before writing one.
 **It changes counts and nothing else.** It does not select owners, name a rig or decide a layout. `--owner` still
 says whose gear is in the inventory, and a device the map never mentions keeps the quantity its spec states. **Only
 the swept systems bring anything**, the `--owner`s, the owners of the `--from` cabinets, or every owner when neither
-is stated. So `--owner=innschleife --event=next-event` builds Innschleife's rig with Innschleife's counts and leaves
+is stated. So `--owner=innschleife --event=next-event-light` builds Innschleife's rig with Innschleife's counts and leaves
 PSL's ESX and panel out. **A system brings only its own gear**, and an entry naming another owner's device is refused
 for every system in the file, so two systems can never state two counts for one device.
 
@@ -1364,7 +1359,7 @@ for every system in the file, so two systems can never state two counts for one 
 "bring whatever the spec says". So a statement like "PSL are bringing the following" is written with a zero for
 every cabinet it excludes, which is why PSL's map has eight of them.
 
-**One system at an event is filed as `<owner>-<event>`.** Without that, `--owner=innschleife --event=next-event` would
+**One system at an event is filed as `<owner>-<event>`.** Without that, `--owner=innschleife --event=next-event-light` would
 land in `innschleife/` under the same file names as the rigs built from everything Innschleife own, and the last run
 would win. It is the name the roster file carried, so no folder moved with the merge. Several systems need `--into`,
 and so does `--quantity`, which carries no name of its own, rather than being allowed to overwrite:
@@ -1507,7 +1502,7 @@ bin/console scene:stack --low-end=central
 
 **`low` pays a little for height, 0.02 per metre.** A metre of low-end height costs what 20 mm of target miss does,
 so height still decides between rigs that keep the low end where it is. 0.1 was measured against it. It made eighteen
-`low` rigs miss their target by 13.5 m more in total and pushed two next-event V rigs past their 13 m room, where
+`low` rigs miss their target by 13.5 m more in total and pushed two V rigs of the since deleted `next-event` past their 13 m room, where
 0.02 left five rigs 3.3 m worse and thirteen 4.3 m better. It cost nothing until 0.136.1, on the grounds
 that the fill deals the lowest-reaching type first and it lands on the floor anyway. A pyramid orders for width and
 breaks that. Six SKRAMs and twelve Flexys stood the SKRAMs on top, and one SKRAM with ten Flexys and seven
@@ -1711,7 +1706,7 @@ so block and stereo alignment have nothing left to spread it into.
 | `--system-interface=OWNER:M`, `--system-target=OWNER:M` | Repeatable preferences for sub walls belonging to one owner. Pooled walls keep the ordinary defaults |
 | `--quantity=DEVICE:COUNT` | repeatable: build with this many instead of the number the spec states. **Requires `--into=NAME`** — it changes the rig without changing its name, so the folder has to be said out loud |
 | `--group=NAME:owner+owner` | repeatable: which owners are **one sound system**. Default `ours:sdwa5+sepp`, so a separated rig gives us one wall rather than two |
-| `--order=NAME[,NAME]` | repeatable or comma-separated: system labels **left to right**, overriding the tallest-in-the-middle rule. A label the order does not name keeps its place at the end, so naming two of three systems is a partial instruction rather than a filter. **The rank is taken on the system part of the label**, so `--stacks=2`'s `ours-1` and `ours-2` both match `ours` and stay adjacent; and an order naming **none** of a rig's stacks, which is what a system order is to a `pooled` rig, leaves the height rule alone rather than silently putting it in solve order. `next-event` and `innschleife-psl-sdwa5-sepp` are generated with `--order=ours,psl,innschleife` |
+| `--order=NAME[,NAME]` | repeatable or comma-separated: system labels **left to right**, overriding the tallest-in-the-middle rule. A label the order does not name keeps its place at the end, so naming two of three systems is a partial instruction rather than a filter. **The rank is taken on the system part of the label**, so `--stacks=2`'s `ours-1` and `ours-2` both match `ours` and stay adjacent; and an order naming **none** of a rig's stacks, which is what a system order is to a `pooled` rig, leaves the height rule alone rather than silently putting it in solve order. `next-event-light`, `next-event-light-achenbach` and `innschleife-psl-sdwa5-sepp` are generated with `--order=ours,psl,innschleife` |
 | `--folders=AXIS[,AXIS]` | repeatable or comma-separated: axes to make directory levels instead of name fields — `inventory`, `stacks`, `systems`, `shape`, `orientation`, `mirror-style`, `align`, `low-end`, `feasibility`. Default `inventory`. **At most three**, for the same reason `--max-scenes` refuses rather than truncates |
 
 **A near-field fill goes to the outer stacks, on the inner side, aimed at the near focus.** Three rules that only
@@ -1800,7 +1795,7 @@ out, and a share left out is the worse of the two: a rig reported as two stacks 
 stack holding all twenty-three cabinets, two walls 0.5 m apart and 561 mm inside each other.
 | `--subs=WHERE` | `mixed` (default), `beside` (the widest sub stood on the floor next to the rig), or `both` |
 | `--id=PREFIX` | base scene id. Default `stacked` |
-| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the thirteen committed inventories come to 2172 scenes across thirteen runs, and the largest committed inventory is `gmss-sdwa5-sepp` at **497** files. The room-limited `next-event` folder holds **8** files, all possible, none pooled, 4 with the systems apart and 4 with the tops shared. Over the limit nothing is written at all |
+| `--max-scenes=N` | refuse past this many. **Default 1500** — a fuse against an axis added by mistake, not a cap on the sweep. **It counts one invocation, not the tree**: the twelve committed inventories come to 2188 scenes across twelve runs, and the largest committed inventory is `gmss-sdwa5-sepp` at **497** files. The room-limited `next-event-light` folder holds **39** files, 34 possible, 22 pooled, 10 with the systems apart and 7 with the tops shared. Over the limit nothing is written at all |
 | `--dry-run` / `--force` | print instead of writing; overwrite an existing scene |
 | `--jobs=N` / `-j` | processes to solve the sweep in. **Default 0, which is one per core**; `1` is the serial path. See [the sweep runs across every core](#the-sweep-runs-across-every-core) |
 
@@ -1828,8 +1823,8 @@ values come to **653 `systems-apart`, 731 `tops-shared` and 788 `pooled`**, for 
 **A single-owner rig is offered `pooled` alone**, since one system separated from nothing is one system. That retires
 both separated values: one system's subs with its own tops dealt back onto them is the rig `pooled` already wrote.
 Leaving it to the deduplication would mean solving every single-owner rig twice to write one file, and single-owner
-rigs are 239 of the sweep across six folders: `gmss` 114, `sdwa5` 68, `innschleife-next-event` 25,
-`psl-next-event-light` 13, `psl-next-event` 11 and `sepp` 8. **`sdwa5-sepp` is single-owner too**, by grouping rather
+rigs are 224 of the sweep across five folders: `gmss` 114, `sdwa5` 68, `innschleife-next-event-light` 25,
+`psl-next-event-light` 9 and `sepp` 8. **`sdwa5-sepp` is single-owner too**, by grouping rather
 than by ownership, which is why it writes 132 `pooled` scenes and no separated ones.
 
 ##### What `tops-shared` shares is the pool and not the row
@@ -2356,7 +2351,7 @@ height as before.
 PSL bring a deco panel to the next event, cut to the outline of its motif and 8 × 2.03 m across, stated on 2026-10-01 after
 10 × 3.03 m and 9 × 1.8 m. It hangs from the front of our
 F33 truss, and the truss stands on our two wind-up towers behind the systems. `specs/other/psl/deco-panel-8x2-03.yaml`
-is the panel, PSL's `brings` in `events/next-event.yaml` brings it, and `events/next-event.yaml` names the truss:
+is the panel, PSL's `brings` in `events/next-event-light.yaml` brings it, and the same file names the truss:
 
 ```yaml
 backdrop:
@@ -2467,6 +2462,7 @@ ddev exec bin/console scene:render full-rig                       # three-quarte
 ddev exec bin/console scene:render full-rig -c crowd -l stage     # eye height, event lighting
 ddev exec bin/console scene:render full-rig -c top -l daylight    # plan view on grass
 ddev exec bin/console scene:render generated/sepp                 # every scene in a folder
+ddev exec bin/console scene:render full-rig -c front --distance=12 --eye-height=2   # from 12 m away at 2 m
 ddev exec bin/console scene:render --presets                      # list every preset
 ```
 
@@ -2511,6 +2507,14 @@ framing quietly drifts.
 
 `crowd` deliberately frames tighter than the others: standing in front of a 4 m sub wall it fills your
 view, and a shot that politely fits it all in undersells it.
+
+**A stated stand turns the fit round.** `--distance=METRES` stands the camera that far from the rig's nearest face,
+measured on the ground along the preset's direction, and zooms the lens until the rig fits with the preset's margin.
+`--eye-height=METRES` puts it that far above the floor, with or without a distance. Two rigs rendered from the same
+stand are therefore seen from the same place, which is what comparing two events from where the audience stands
+needs, and a fitted distance cannot give. The picture is named after its stand,
+`<scene>-front-12m-2m-high.png`, so it never overwrites the fitted one. Stefan asked for the 12 m and 2 m on
+2026-10-02, and they are flags rather than a preset because the next comparison will want other numbers.
 
 ### Lighting presets (`-l`, `--lighting`)
 
