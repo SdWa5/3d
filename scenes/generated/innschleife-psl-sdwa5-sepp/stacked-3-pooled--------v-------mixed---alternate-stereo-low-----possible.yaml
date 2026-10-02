@@ -19,7 +19,7 @@
 #   1  1× kicker-15 + 1× wsx-18 rolled 270° + 1× sub-60x60                    2.69 m wide
 #   2  1× sbh-18 rolled 270° + 2× achenbach-18 at 145 mm gaps                  2.69 m wide
 #   3  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90° at 330 mm gaps     2.69 m wide
-#   4  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   5  1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   2.9436 m wide
 #
 # Subs reach 2.381 m against a 2.0 m interface. The stack is 3.521 m of cabinet.
@@ -34,12 +34,13 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
-#     2.690 m row, so it overhangs 211 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 2.690 m row, so
+#     it overhangs 211 mm each side
 #
 # main-2 — 2, 31 cabinets in 2 rows:
 #
-#   1  1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid rolled 270° + 1× sub-60x60 + 1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 + 1× sub-60x60 + 2× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× kicker-15 + 1× thebox-tp118-800 rolled 90° + 1× sbh-18 rolled 90° + 1× thebox-tp218-1600 rolled 90°   21.796 m wide
+#   1  1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× sub-60x60 + 1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 + 1× sub-60x60 + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× kicker-15 + 1× thebox-tp118-800 rolled 90° + 1× sbh-18 rolled 90° + 1× thebox-tp218-1600 rolled 90°   21.796 m wide
 #   2  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× thebox-pa302 + 1× hk-linear5-112x + 1× thebox-dsp-112 + 1× concert-audio-ef6     3.37 m wide
 #
 # Subs reach 0.61 m against a 2.0 m interface. The stack is 1.57 m of cabinet.
@@ -62,7 +63,7 @@
 #   1  1× sub-60x60 + 1× wsx-18 rolled 90° + 1× kicker-15                     2.69 m wide
 #   2  2× achenbach-18 + 1× sbh-18 rolled 90° at 145 mm gaps                   2.69 m wide
 #   3  1× concert-audio-esx rolled 270° + 1× concert-audio-esx rolled 90° at 330 mm gaps     2.69 m wide
-#   4  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   5  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m   2.9436 m wide
 #
 # Subs reach 2.381 m against a 2.0 m interface. The stack is 3.521 m of cabinet.
@@ -77,8 +78,9 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * concert-audio-ef6: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so
 #     the stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
-#     2.690 m row, so it overhangs 211 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 2.690 m row, so
+#     it overhangs 211 mm each side
 #
 id: stacked-3-pooled--------v-------mixed---alternate-stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"

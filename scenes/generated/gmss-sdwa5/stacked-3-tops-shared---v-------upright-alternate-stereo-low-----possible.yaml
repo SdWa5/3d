@@ -14,7 +14,7 @@
 # main-ours-2 — ours-2, 6 cabinets in 3 rows:
 #
 #   1  2× skram                                                                  1.24 m wide
-#   2  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 180° at 58 mm gaps                    1.24 m wide
 #   3  2× flexy-folded-horn-hybrid at 58 mm gaps                                 1.24 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 2.44 m of cabinet.
@@ -22,7 +22,7 @@
 #
 # main-ours-3 — ours-3, 4 cabinets in 2 rows:
 #
-#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 180°                                 1.202 m wide
 #   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #
 # Subs reach 1.526 m against a 2.0 m interface. The stack is 1.526 m of cabinet.
@@ -60,7 +60,7 @@
 #
 # main-ours-1 — ours-1, 4 cabinets in 2 rows:
 #
-#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 180°                                 1.202 m wide
 #   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #
 # Subs reach 1.526 m against a 2.0 m interface. The stack is 1.526 m of cabinet.

@@ -131,7 +131,8 @@ final class LowEndBiasTest extends TestCase
         $tiers = StackSolver::solve($inventory, $stack)['tiers'];
         $rows = array_map(static fn (\App\Scene\Tier $tier): string => $tier->label(), array_slice($tiers, 0, 3));
 
-        self::assertSame(['6× skram', '6× flexy-folded-horn-hybrid', '6× flexy-folded-horn-hybrid'], $rows);
+        // The lower Flexy row is turned over so its mouths meet the row above, see MouthPairing.
+        self::assertSame(['6× skram', '6× flexy-folded-horn-hybrid rolled 180°', '6× flexy-folded-horn-hybrid'], $rows);
     }
 
     /** @return list<\App\Scene\Tier> */

@@ -72,7 +72,7 @@ final class RecordedCommand
 
         foreach ([
             'min-width', 'max-height', 'interface-height', 'max-sub-height', 'target-sub-height', 'gap', 'at', 'split',
-            'clearance', 'room-width', 'room-height', 'backdrop',
+            'clearance', 'room-width', 'room-height', 'backdrop', 'mouths',
         ] as $option) {
             $value = $input->getOption($option);
             if (null !== $value && (string) $value !== (string) ($defaults[$option] ?? null)) {

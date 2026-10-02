@@ -58,6 +58,9 @@ audio:
     provenance: datasheet
   drivers:
     - { size_in: 18, type: woofer, count: 1 }
+  # The mouth opens in the lower half of the front, as the CAD and photo-flexy-wall.png show. Two Flexys turned so
+  # their mouths meet act as one larger mouth, which is what the mouth pairing does with this.
+  mouth_side: low
 
   # THE BRACE IN THE HORN MOUTH, which replaces the CAD's cross (see mesh_override.remove below). It is steel
   # and painted green, as photo-flexy-wall.png and photo-full-rig.png in meshes/sdwa5/ show (2026-10-01).

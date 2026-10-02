@@ -22,14 +22,15 @@
 # main-ours — ours, 28 cabinets in 5 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    3.414 m wide
-#   2  3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
 #   4  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
 #   5  1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 3× concert-audio-ef6    4.108 m wide
 #
 # Subs reach 2.392 m against a 2.0 m interface. The stack is 3.532 m of cabinet.
-#   * the 3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.895 m on a
-#     3.414 m row, so it overhangs 241 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.895 m on a 3.414 m row, so
+#     it overhangs 241 mm each side
 #   * the 1× thebox-dsp-112 + 1× thebox-pa302 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× tms4 + 3×
 #     concert-audio-ef6 row is 4.108 m on a 3.700 m row, so it overhangs 204 mm each side
 #

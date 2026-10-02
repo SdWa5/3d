@@ -749,6 +749,63 @@ final class StackTest extends TestCase
     /**
      * @return list<array<string, mixed>>
      */
+    /**
+     * Pairing turns cabinets and moves none of them, measured on the rig whose first pairing broke that promise.
+     *
+     * `sdwa5-sepp`'s turned `v` rig with stereo tops. Pairing written into the segments cut each Flexy run into
+     * single cabinets that gravity settled one by one, which stepped a row by 10 mm and put two aimed tops 14 mm into
+     * each other. Every world box has to come out the same with the mouths paired as without.
+     */
+    public function testPairedMouthsLeaveEveryCabinetWhereItStood(): void
+    {
+        $stack = static fn (array $extra): array => [[
+            'id' => 'main', 'at' => [-0.302, 0.0], 'aim' => 'far', 'align' => ['mode' => 'stereo'],
+            'stack' => $extra + [
+                'interface_height_m' => 2.0,
+                'max_sub_height_m' => 3.0,
+                'gap_m' => 0.02,
+                'slide_slack_m' => INF,
+                'shape' => 'v',
+                'from' => [
+                    ['device' => 'skram', 'roll_mirror' => 90.0],
+                    ['device' => 'flexy-folded-horn-hybrid', 'roll_mirror' => 90.0],
+                    'achenbach-18',
+                    'tecnare-m2122',
+                    ['device' => 'eighteensound-2way-15', 'aim' => 'near'],
+                ],
+            ],
+        ]];
+        $focus = ['far' => ['distance_m' => 10.0, 'height_m' => 1.8], 'near' => ['distance_m' => 2.0, 'height_m' => 1.8]];
+        $compile = function (array $placements) use ($focus): array {
+            $result = (new SceneCompiler($this->devices))->compile(SceneSpec::fromArray(
+                ['id' => 'test', 'name' => 'Test scene', 'focus' => $focus, 'placements' => $placements],
+                '/scenes/test.yaml',
+            ));
+            self::assertSame([], array_map(static fn ($v): string => $v->message, \App\Spec\Violation::errorsIn($result['violations'])));
+
+            return $result['placed'];
+        };
+        $boxes = static function (array $placed): array {
+            $boxes = array_map(static fn (PlacedDevice $entry): string => $entry->device->id.' '.json_encode(array_map(
+                static fn (array $corner): array => array_map(static fn (float $v): float => round($v, 6), $corner),
+                $entry->worldBox(),
+            )), $placed);
+            sort($boxes);
+
+            return $boxes;
+        };
+        $flexyRolls = static fn (array $placed): array => array_values(array_map(
+            static fn (PlacedDevice $entry): float => $entry->orientation->rollDeg,
+            array_filter($placed, static fn (PlacedDevice $entry): bool => 'flexy-folded-horn-hybrid' === $entry->device->id),
+        ));
+
+        $paired = $compile($stack([]));
+        $free = $compile($stack(['mouths' => 'free']));
+
+        self::assertSame($boxes($free), $boxes($paired));
+        self::assertNotSame($flexyRolls($free), $flexyRolls($paired));
+    }
+
     private function rig(): array
     {
         return [

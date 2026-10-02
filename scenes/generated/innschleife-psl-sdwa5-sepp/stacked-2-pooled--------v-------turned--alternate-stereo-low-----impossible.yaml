@@ -3,7 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-2/6a-2 and main-2/7d are 0.0062 m inside each other
+#   * main-2/6b and main-2/7d are 0.0062 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -26,7 +26,7 @@
 #   3  1× wsx-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× wsx-18 rolled 90° at 440 mm gaps     3.68 m wide
 #   4  1× sbh-18 rolled 270° + 1× concert-audio-esx rolled 270° + 1× sbh-18 rolled 90° at 50 mm gaps     3.68 m wide
 #   5  1× concert-audio-esx rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° at 279 mm gaps    3.681 m wide
-#   6  3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
+#   6  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
 #   7  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms4 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m + 1× tecnare-m2122 + 1× concert-audio-ef6   4.0716 m wide
 #
 # Subs reach 3.922 m against a 2.0 m interface. The stack is 5.062 m of cabinet.
@@ -37,15 +37,16 @@
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 1× achenbach-18 rolled 270° + 2× sub-60x60 rolled 270° + 1× achenbach-18 rolled 90° + 1×
 #     thebox-tp218-1600 rolled 90° row is 3.680 m on a 3.532 m row, so it overhangs 74 mm each side
-#   * the 3× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.895 m on a
-#     3.681 m row, so it overhangs 107 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.895 m on a 3.681 m row, so
+#     it overhangs 107 mm each side
 #   * the 1× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms4 + 1× eighteensound-2way-15 + 1× tms2 + 1×
 #     thebox-achat-112m + 1× tecnare-m2122 + 1× concert-audio-ef6 row is 4.072 m on a 3.895 m row, so it overhangs 88 mm
 #     each side
 #
 # main-1 — 1, 31 cabinets in 2 rows:
 #
-#   1  1× sbh-18 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 2× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 1× sub-60x60 rolled 90° + 1× skram rolled 90° + 2× kicker-15 rolled 90° + 1× sub-60x60 rolled 90° + 1× achenbach-18 rolled 90° + 3× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
+#   1  1× sbh-18 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 2× concert-audio-esx rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 270° + 1× sub-60x60 rolled 90° + 1× skram rolled 90° + 2× kicker-15 rolled 90° + 1× sub-60x60 rolled 90° + 1× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°    20.83 m wide
 #   2  1× concert-audio-ef6 + 1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   3.5516 m wide
 #
 # Subs reach 0.95 m against a 2.0 m interface. The stack is 2.09 m of cabinet.

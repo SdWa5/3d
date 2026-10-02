@@ -14,6 +14,7 @@ use App\Scene\Interpenetration;
 use App\Scene\LayoutMode;
 use App\Scene\LowEndBias;
 use App\Scene\MirrorStyle;
+use App\Scene\MouthMode;
 use App\Scene\Placement;
 use App\Scene\RolledBox;
 use App\Scene\SceneCompiler;
@@ -161,6 +162,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('gap', null, InputOption::VALUE_REQUIRED, 'Working gap between neighbours, in metres', '0.02')
             ->addOption('at', null, InputOption::VALUE_REQUIRED, 'Where the rig is centred, as X,Y', '-0.302,0')
             ->addOption('id', null, InputOption::VALUE_REQUIRED, 'Base scene id', 'stacked')
+            ->addOption('mouths', null, InputOption::VALUE_REQUIRED, 'paired (turn horn subs so their mouths meet, positions unchanged) or free (leave every roll as dealt)', MouthMode::Paired->value)
             ->addOption('low-end', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Where the lowest cabinets belong: central (on the centre line) or low (on the floor). Default: both')
             ->addOption('folders', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Axes to make directory levels instead of name fields: inventory, stacks, systems, shape, orientation, mirror-style, align, feasibility. Default: inventory')
             ->addOption('into', null, InputOption::VALUE_REQUIRED, 'Subdirectory of scenes/generated/ to write into. Default: the inventory being swept')
@@ -371,6 +373,12 @@ final class SceneStackCommand extends BaseCommand
         $splits = SweepAxes::systemSplits($input->getOption('systems'));
         if (is_string($splits)) {
             $this->io->error($splits);
+
+            return self::FAILURE;
+        }
+
+        if (null === MouthMode::tryFrom((string) $input->getOption('mouths'))) {
+            $this->io->error(sprintf("--mouths: unknown value '%s' (allowed: %s)", (string) $input->getOption('mouths'), implode(', ', array_column(MouthMode::cases(), 'value'))));
 
             return self::FAILURE;
         }
@@ -1245,6 +1253,7 @@ final class SceneStackCommand extends BaseCommand
             // under the tier it carries, which no bound expressed in stack clearance can see. The bound has to include
             // what stands on the row, and that is the missing piece rather than this line.
             slideSlackM: $solo ? INF : null,
+            mouths: MouthMode::from((string) $input->getOption('mouths')),
         );
     }
 

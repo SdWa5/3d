@@ -29,7 +29,7 @@
 # main-ours-2 — ours-2, 10 cabinets in 4 rows:
 #
 #   1  2× skram                                                                  1.24 m wide
-#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
+#   2  3× flexy-folded-horn-hybrid rolled 180°                                 1.813 m wide
 #   3  3× flexy-folded-horn-hybrid                                              1.813 m wide
 #   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
@@ -37,7 +37,7 @@
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
-#   * the 3× flexy-folded-horn-hybrid row is 1.813 m on a 1.240 m row, so it overhangs 286 mm each side
+#   * the 3× flexy-folded-horn-hybrid rolled 180° row is 1.813 m on a 1.240 m row, so it overhangs 286 mm each side
 #
 # main-gmss-2 — gmss-2, 11 cabinets in 4 rows:
 #
@@ -58,7 +58,7 @@
 #
 # main-ours-1 — ours-1, 6 cabinets in 3 rows:
 #
-#   1  2× flexy-folded-horn-hybrid                                              1.202 m wide
+#   1  2× flexy-folded-horn-hybrid rolled 180°                                 1.202 m wide
 #   2  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #   3  2× flexy-folded-horn-hybrid                                              1.202 m wide
 #

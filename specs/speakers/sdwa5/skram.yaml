@@ -49,6 +49,9 @@ audio:
     provenance: datasheet
   drivers:
     - { size_in: 21, type: woofer, count: 1 }
+  # The CAD's front is closed from 0.38 m up and opens only in the lower 0.38 m of its 0.914 m height, where the
+  # vent array sits. Two SKRAMs turned so those halves meet act as one larger mouth, as with the Flexy.
+  mouth_side: low
 
 # Josh Ricci's own CAD, from the SKRAM DIY Package (STEP Files/SKRAM 3D.step), converted with
 # `ddev mesh-convert`. Native orientation is already ours except for a 180 deg turn: the Fusion files

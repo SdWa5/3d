@@ -68,6 +68,11 @@ final class StackSolver
             // heights and labels, and a mirror image has exactly the ones its original had.
             $tiers = array_map(static fn (Tier $tier): Tier => $tier->flipped(), $tiers);
         }
+        if (MouthMode::Paired === $stack->mouths) {
+            // Last, on the rows as they will stand, so a mirrored stack pairs into the mirror image of its twin. It
+            // changes rolls and never positions, which is why no check below can tell the difference.
+            $tiers = MouthPairing::pair($tiers);
+        }
         if ([] === $tiers) {
             return [
                 'tiers' => [],

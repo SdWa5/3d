@@ -7,6 +7,13 @@ The reason to write a setup down rather than drag cabinets around in Blender: it
 and repeatable. A layout that worked at an event is a commit, next year's variation is a diff, and
 "what if we used four fewer subs" is one edit and a rebuild.
 
+**Generate first, hand-write last.** A new setup comes from the generators wherever it can, which means
+`scene:stack`, an event file and the stack keys, and as little of it as possible is written by hand. A setup
+the generators cannot produce yet is a generator gap, and closing it is part of the work. Improving an
+existing feature that falls short is preferred over adding a new one. A hand-written scene is the fallback for a
+one-off look check, it stays under `scenes/_solo/`, and it names the gap it stands in for, because the next
+regeneration neither keeps nor learns from it.
+
 ## Example
 
 ```yaml
@@ -49,6 +56,7 @@ placements:
 | `placements[].aim` | the name of a focus — `focus` for the single unnamed one, or any key of a named `focus` map. The compiler works out yaw *and* down-tilt |
 | `placements[].aim_at` | `[x, y]` or `[x, y, z]` — aim at a named point instead |
 | `stack.low_end` | `low` or `central` — where the lowest-reaching cabinets belong. See [where the low end goes](#where-the-low-end-goes) |
+| `stack.mouths` | `paired` (the default) or `free`. Whether horn subs are turned so their mouths meet. See [the mouth pairing](#the-mouth-pairing) |
 | `placements[].focus` | this placement's own focus points, in either form the scene's `focus` takes, measured from **its own** front face. Overrides the scene's for everything inside it. See [each system aims at its own focus](#each-system-aims-at-its-own-focus) |
 | `focus` *(scene level)* | one focus, `{ distance_m, height_m, x_m }`, or a map of named ones, `{ near: {…}, far: {…} }`. Defaults: 10 m out, 1.8 m high, rig centre |
 | `placements[].repeat` | `{ count, step: [x, y, z] }` — repeat along a stated vector |
@@ -116,7 +124,8 @@ stacked in mirrored pairs so two mouths meet and behave as one larger mouth:
 `scenes/full-rig-arc.yaml` carries that one line on its bottom row — which is the
 argument for keeping setups as files rather than as Blender scenes.
 
-Which row to flip is not obvious and depends on where the mouth sits on the cabinet's face. A Flexy's
+A solved `stack` does this by itself, see [the mouth pairing](#the-mouth-pairing). Which row to flip is not obvious
+and depends on where the mouth sits on the cabinet's face. A Flexy's
 mouths are in the *lower* part of its front, so the **bottom** row is the one to turn over; flipping the
 top row instead drives the mouths apart. Cheaper to discover in a render than on site.
 
@@ -1538,6 +1547,32 @@ only ranks the arrangements they already accept. The one thing it adds to the se
 the lowest type one to a row, each cabinet flanked into a full-width row, because a bare spread gives it a 0.61 m
 row of its own that cannot carry the row above and is never returned.
 
+#### The mouth pairing
+
+Two horns whose mouths meet act as one larger mouth, and a solved stack turns its horn subs that way wherever it can
+without moving any of them. It is not an axis of the sweep. It runs on every stack after the solve, on the rows as
+they will stand, and `mouths: free` in the `stack:` block or `--mouths=free` on the command line switches it off.
+
+It changes rolls and never positions. A half turn and a swap of the two quarter turns leave every box where it was,
+and the rig is solved on the rolls as dealt. Gravity merges neighbours into one run only when their rolls agree, and
+a run settles as one, so pairing written into the rows would have let every cabinet settle on its own. The first
+regeneration did exactly that, and twelve `v` rigs changed their verdict over a 10 mm step. So the paired rolls are
+handed to the finished runs at the end, and a run of two rolls becomes one placement per roll, lettered `5a`, `5b` and
+so on, each standing where its cabinets stood. What it needs from a spec is
+[`audio.mouth_side`](spec-format.md#the-mouth-side), and a cabinet that states none is never turned. Today that is
+every sub but the Flexy.
+
+* **Side by side, in a turned row.** A run of neighbouring cabinets of one device, all on their sides, pairs from
+  its outer end inwards, so the spare of an odd run is the one nearest the centre line. A run centred on the row
+  pairs from both ends at once, which keeps a symmetric row symmetric. A mirrored Flexy pair beside the SKRAMs
+  comes out 270° and 90° instead of 270° twice, which is the A3 render of 2026-10-02 with columns 2 and 5 turned.
+* **One above the other, in upright rows.** Two stacked rows of the same cabinets in the same order with the same
+  gap pair bottom-up. The lower row's mouths turn up and the upper row's down, which for the Flexy means the lower
+  row is turned over by 180°. A row at the top with no partner stays as it is.
+
+Cabinets of different devices never pair, and a stereo pair stays a mirror image, because every rule reads a row
+from its own ends and its own centre.
+
 #### Each axis is a directory level or a name field, never both
 
 `--folders=<axis>[,<axis>…]` decides, from `inventory`, `stacks`, `systems`, `shape`, `orientation`,
@@ -1668,6 +1703,7 @@ so block and stereo alignment have nothing left to spread it into.
 | `--shape=MODE` | repeatable: `pyramid`, `free`, `v`. Default all three — **one scene each**, and every one names its shape in its id. All three are width rules in metres, see [the three shapes](#the-three-shapes) |
 | `--align=MODE` | repeatable: `center`, `block`, `stereo`. Default all three — **one scene each**. The mode decides the ORDER of the tops row as well as its spacing: see below |
 | `--roll-mirror=ID` | repeatable: lay this device on its side, mirrored about the centre line |
+| `--mouths=MODE` | `paired` (default) or `free`. Whether horn subs are turned so their mouths meet. Not swept, and written into the `stack:` block only when it is `free`. See [the mouth pairing](#the-mouth-pairing) |
 | `--low-end=MODE` | repeatable: `low` or `central`. Where the lowest-reaching cabinets belong. Default both — **one scene each**. `low` puts them on the floor, `central` pulls them onto the centre line even when that costs a row, which is what stacks two SKRAMs one above the other. See [where the low end goes](#where-the-low-end-goes) |
 | `--event=ID` | a file in `events/`: the room, how each system is set up and what each system brings, overriding the specs' quantities for the swept systems. **A count of zero means left at home**, which is a different fact from a device the event never names. One `--owner` with an event is filed as `OWNER-EVENT` |
 | `--system-low-end=OWNER:MODE` | repeatable: where this owner's lowest cabinets go, `low` or `central`, whatever `--low-end` sweeps. A stack follows the value its subs' systems agree on, and a rig whose systems all state one value sweeps one candidate named `stated` |

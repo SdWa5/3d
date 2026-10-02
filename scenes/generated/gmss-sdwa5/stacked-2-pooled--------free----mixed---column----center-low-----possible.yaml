@@ -40,7 +40,7 @@
 #
 #   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
 #   2  1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass             3.068 m wide
-#   3  2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  1× nuke rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90°    3.126 m wide
 #   5  1× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.05 m wide
 #   6  1× turbo-top + 2× tecnare-m2122 + 1× turbo-top                          1.96 m wide
@@ -61,8 +61,9 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass row is 3.068 m on a 2.820 m row, so it
 #     overhangs 124 mm each side
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a
-#     3.068 m row, so it overhangs 22 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.068 m row, so
+#     it overhangs 22 mm each side
 #
 id: stacked-2-pooled--------free----mixed---column----center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

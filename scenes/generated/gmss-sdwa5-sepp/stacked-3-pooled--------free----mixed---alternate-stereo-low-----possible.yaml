@@ -15,7 +15,7 @@
 # main-2 — 2, 17 cabinets in 6 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
-#   2  2× skram rolled 270° + 1× mid-bass                                     3.068 m wide
+#   2  1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass             3.068 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
 #   4  1× nuke rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90°    2.963 m wide
 #   5  1× iq-sub rolled 270° + 1× achenbach-18 + 1× iq-sub rolled 90°        1.98 m wide
@@ -25,7 +25,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 3.061 m against the 3.000 m ceiling asked for, so they stand 61 mm too high — 3.061 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× skram rolled 270° + 1× mid-bass row is 3.068 m on a 2.820 m row, so it overhangs 124 mm each side
+#   * the 1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass row is 3.068 m on a 2.820 m row, so it
+#     overhangs 124 mm each side
 #   * the 1× nuke rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90°
 #     row is 2.963 m on a 2.329 m row, so it overhangs 317 mm each side
 #

@@ -25,14 +25,15 @@
 #
 # main-ours — ours, 17 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram + 2× flexy-folded-horn-hybrid rolled 90°    3.893 m wide
-#   2  3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.893 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
 #   4  1× turbo-top + 2× tecnare-m2122                                          1.49 m wide
 #
 # Subs reach 2.268 m against a 2.0 m interface. The stack is 3.228 m of cabinet.
-#   * the 3× flexy-folded-horn-hybrid rolled 270° + 3× flexy-folded-horn-hybrid rolled 90° row is 4.678 m on a
-#     3.893 m row, so it overhangs 392 mm each side
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled
+#     270° + 1× flexy-folded-horn-hybrid rolled 90° row is 4.678 m on a 3.893 m row, so it overhangs 392 mm each side
 #
 id: stacked-1-tops-shared---free----turned--centred---center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

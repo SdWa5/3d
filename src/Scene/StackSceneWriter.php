@@ -199,6 +199,11 @@ final class StackSceneWriter
                 // where `low` puts both of them on the floor.
                 $lines[] = sprintf('      low_end: %s', $block->stack->lowEnd->value);
             }
+            if (MouthMode::Paired !== $block->stack->mouths) {
+                // Written only when it is not the default, for the reason every key here is: a re-solve of a block
+                // that left it out would pair the mouths the caller asked to leave alone.
+                $lines[] = sprintf('      mouths: %s', $block->stack->mouths->value);
+            }
             if (StackShape::Free !== $block->stack->shape) {
                 // Written only when it is not the default, like every other key here — but written it must be. The
                 // `stack:` block is re-solved on every build, and a shape left out of the file comes back as `free`:

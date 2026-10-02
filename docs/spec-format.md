@@ -88,6 +88,7 @@ audio:                        # optional, but worth filling in from the original
   power_w:                    # optional: continuous power; decides which sub is the lowest type. See below
     rms: 1800
     provenance: datasheet     # required whenever a power figure exists
+  mouth_side: low             # optional: the half of the front a horn mouth opens in. See below
   drivers:                    # the complement, for the catalog and the model's metadata
     - { size_in: 15, type: woofer, count: 1 }
     - { size_in: 1.4, type: horn, count: 1 }
@@ -197,6 +198,19 @@ The wall bass states no passband, so it is ordered on mass like every other GMSS
 
 **The other subs carry none.** GMSS's iq-sub shares one 3000 W figure with the nukes and it cannot be split, the
 mid-bass has no audio block, and Innschleife's cabinets are known from a photograph.
+
+### The mouth side
+
+`audio.mouth_side` says which half of an upright front a horn's mouth opens in, `low` or `high`, read with the
+cabinet standing on its feet. The Flexy's is `low`, and so is the SKRAM's, whose CAD front is closed from 0.38 m up.
+No other spec states one, because no other source shows it.
+
+**What reads it is the mouth pairing.** Two horns turned so their mouths meet act as one larger mouth, and a solved
+`stack` turns its cabinets that way wherever it can without moving any of them. A cabinet whose spec states no
+mouth side is never turned. See [the mouth pairing](scenes.md#the-mouth-pairing).
+
+Two values rather than a position on the baffle, because the pairing only ever asks which side. A third value is
+refused when the spec loads.
 
 ### The coverage cone
 
