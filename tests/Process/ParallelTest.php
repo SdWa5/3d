@@ -17,6 +17,23 @@ use PHPUnit\Framework\TestCase;
  */
 final class ParallelTest extends TestCase
 {
+    public function testAThrowingWorkerReportsItsErrorInTheParent(): void
+    {
+        if (!Parallel::isSupported()) {
+            self::markTestSkipped('this platform cannot fork');
+        }
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('probe failure');
+        Parallel::map([1, 2], static function (int $value): int {
+            if (1 === $value) {
+                throw new \LogicException('probe failure');
+            }
+
+            return $value;
+        }, 2);
+    }
+
     /**
      * **The order out is the order in, even when the work finishes in the opposite order.** The first job is made
      * the slowest on purpose: with results keyed by completion this comes back reversed, and with results keyed by

@@ -92,6 +92,13 @@ final class Parallel
 
         $done = [];
         foreach (array_keys($children) as $worker) {
+            $error = $directory.'/'.$worker.'.error';
+            if (is_file($error)) {
+                $message = (string) file_get_contents($error);
+                self::clean($directory, array_keys($children));
+
+                throw new \RuntimeException(sprintf('worker %d failed: %s', $worker, $message));
+            }
             $file = $directory.'/'.$worker;
             $raw = is_file($file) ? (string) file_get_contents($file) : '';
             if ('' === $raw) {
@@ -141,7 +148,15 @@ final class Parallel
         $mine = [];
         if (false !== $cursor) {
             while (($index = self::next($cursor, count($keys))) !== null) {
-                $mine[$index] = $run($jobs[$keys[$index]], $keys[$index]);
+                try {
+                    $mine[$index] = $run($jobs[$keys[$index]], $keys[$index]);
+                } catch (\Throwable $error) {
+                    // Never unwind a worker through the caller's test runner or shutdown handlers.
+                    file_put_contents($directory.'/'.$worker.'.error', $error::class.': '.$error->getMessage());
+                    fclose($cursor);
+                    posix_kill(posix_getpid(), SIGKILL);
+                    exit(1);
+                }
             }
             fclose($cursor);
         }
@@ -181,6 +196,7 @@ final class Parallel
     {
         foreach ($workers as $worker) {
             @unlink($directory.'/'.$worker);
+            @unlink($directory.'/'.$worker.'.error');
         }
         @unlink($directory.'/cursor');
         @rmdir($directory);

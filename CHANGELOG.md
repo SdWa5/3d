@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.141.0] - 2026-10-02
+
+### Added
+
+- The stack generator accepts `tower` and `mixed`. Towers retain a flush sub wall; mixed keeps the lower half of
+  its sub rows flush and tapers above. Mixed-device packing targets a row width independently of its hard ceiling.
+- Regression tests cover completing a row with the next type, the mixed transition and an unreachable tower target.
+
+### Changed
+
+- The default sweep includes all five shapes and permits up to 2500 candidates per invocation.
+- Semantic spec checks move into asset, layout, physical, shape and vehicle validators behind the unchanged
+  `SpecValidator::validate()` entry point.
+- `docs/scenes.md` is compacted below 2000 lines, with the soft height band described consistently.
+- Generated inventories retain all 2188 existing scenes and add 2177 scenes from the expanded five-shape sweeps.
+
+### Fixed
+
+- A throwing fork worker reports its failure to the parent instead of unwinding into the caller's test runner.
+- Generated scene YAML ends with one newline.
+
+### Removed
+
+- GEO-9 from TODO.md. The scene-level alignment and shared-top work in GEO-11 remains open.
+
 ## [0.140.0] - 2026-10-02
 
 ### Added

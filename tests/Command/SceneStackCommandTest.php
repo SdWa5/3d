@@ -166,20 +166,23 @@ final class SceneStackCommandTest extends SceneStackTestCase
             // 3.5 m, not the 3.0 m default: `free` comes out at 3.240 m here and the band would refuse it, and the
             // subject of this test is the two fill orders rather than which of them meets a ceiling.
             '--max-width' => '3.80', '--interface-height' => '0', '--max-sub-height' => '3.5',
-            // One orientation, so the three scenes below are the three shapes rather than shapes times orientations.
+            // One orientation, so the five scenes below are the five shapes rather than shapes times orientations.
             '--align' => ['center'], '--orientation' => ['upright'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
 
         self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $display);
         self::assertStringContainsString('id: stacked-1-pooled--------free----upright-alternate-center', $display);
         self::assertStringContainsString('id: stacked-1-pooled--------v-------upright-alternate-center', $display);
+        self::assertStringContainsString('id: stacked-1-pooled--------tower---upright-alternate-center', $display);
+        self::assertStringContainsString('skipped stacked-1-pooled--------mixed---upright-alternate-center', $display);
+        self::assertCount(5, SweepAxes::shapes([]));
 
         // The pyramid puts the IQ subs on the floor, which is the widest row they can make; `free` puts the two wall
         // basses there, which is 1.34 m and two rows more of stack; `v` puts the single mid-bass there at 1.20 m,
         // which is the narrowest floor of the three because everything above it has to be wider.
         // The order is {@see StackShape::cases()}, so 0 is the pyramid, 1 is free and 2 is v.
         preg_match_all('/^#\s+1\s+(\S.*?)\s{2,}[\d.]+ m wide$/m', $display, $bottomRows);
-        self::assertCount(3, $bottomRows[1], 'one bottom row per shape');
+        self::assertCount(4, $bottomRows[1], 'mixed duplicates the pyramid on this inventory');
         self::assertStringContainsString('iq-sub', $bottomRows[1][0], 'the pyramid stands on the IQ subs');
         self::assertStringContainsString('wall-bass', $bottomRows[1][1], 'and free on the wall basses');
         self::assertStringContainsString('mid-bass', $bottomRows[1][2], 'and v on the single mid-bass');
@@ -325,7 +328,7 @@ final class SceneStackCommandTest extends SceneStackTestCase
 
         self::assertSame(1, $tester->getStatusCode());
         self::assertStringContainsString("--shape: unknown value 'wedge'", $tester->getDisplay());
-        self::assertStringContainsString('allowed: pyramid, free', $tester->getDisplay());
+        self::assertStringContainsString('allowed: pyramid, free, v, tower, mixed', preg_replace('/\s+/', ' ', $tester->getDisplay()));
     }
 
     public function testDryRunWritesNothing(): void

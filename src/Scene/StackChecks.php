@@ -326,7 +326,8 @@ final class StackChecks
 
             $below = $tiers[$index - 1]->widthM($stack->gapM);
 
-            $problems = [...$problems, ...self::silhouetteProblem($tier, $below, $stack)];
+            $flatRows = $stack->shape->flatRows(count(array_filter($tiers, static fn (Tier $row): bool => $row->isSub())));
+            $problems = [...$problems, ...self::silhouetteProblem($tier, $below, $stack, $index < $flatRows)];
 
             $overhang = ($tier->widthM($stack->gapM) - $below) / 2;
             if ($overhang <= self::OVERHANG_TOLERANCE_M) {
@@ -389,7 +390,7 @@ final class StackChecks
      *
      * @return list<string>
      */
-    private static function silhouetteProblem(Tier $tier, float $below, Stack $stack): array
+    private static function silhouetteProblem(Tier $tier, float $below, Stack $stack, bool $flat = false): array
     {
         $width = $tier->widthM($stack->gapM);
 
@@ -405,8 +406,23 @@ final class StackChecks
                 : [];
         }
 
-        if (StackShape::Pyramid !== $stack->shape) {
+        if (!in_array($stack->shape, [StackShape::Pyramid, StackShape::Tower, StackShape::Mixed], true)) {
             return [];
+        }
+
+        if ($flat && $tier->isSub()) {
+            $allowance = self::PYRAMID_SHOULDER * $tier->outerWidthM();
+
+            return abs($width - $below) / 2 > $allowance + self::EPSILON_M
+                ? [sprintf(
+                    'the %s row is %.3f m on a %.3f m row; shape: %s asks for a flush base within %.0f mm per side',
+                    $tier->label(),
+                    $width,
+                    $below,
+                    $stack->shape->value,
+                    $allowance * 1000,
+                )]
+                : [];
         }
 
         $allowance = self::PYRAMID_SHOULDER * $tier->outerWidthM();
@@ -414,13 +430,14 @@ final class StackChecks
         return ($width - $below) / 2 > $allowance
             ? [sprintf(
                 'the %s row is %.3f m on a %.3f m row, so it steps out %.0f mm each side against the %.0f mm a '
-                .'%.3f m cabinet may sit proud — `shape: pyramid` asks for a wall that does not widen as it rises',
+                .'%.3f m cabinet may sit proud — `shape: %s` asks for a wall that does not widen as it rises',
                 $tier->label(),
                 $width,
                 $below,
                 ($width - $below) / 2 * 1000,
                 $allowance * 1000,
                 $tier->outerWidthM(),
+                $stack->shape->value,
             )]
             : [];
     }

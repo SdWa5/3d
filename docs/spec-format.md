@@ -806,3 +806,9 @@ the origin and licence in [sources.md](sources.md).
   less; a file that cannot be read as an image; and an image whose implied size misses the cabinet's
   front by more than its tolerance. A path that does not exist is a **warning**, not an error, exactly
   as for a mesh override
+
+## Semantic validation
+
+`SpecValidator::validate()` collects violations in the existing order. Asset, layout, physical, shape and vehicle
+checks live in dedicated validators. `ValidationRules` shares identifier, colour and component-fit constants.
+Parsing remains in the spec value objects, and the validator split changes no accepted fields or error messages.
