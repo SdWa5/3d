@@ -1,7 +1,7 @@
 {
   "name": "sdwa5/sdwa5-3d",
   "description": "SdWa5 3D equipment library — spec-driven parametric 3D models of all SdWa5 speakers and stage equipment, for Blender event scene previews and setup planning",
-  "version": "0.145.0",
+  "version": "0.146.0",
   "type": "project",
   "homepage": "https://sdwa5.org",
   "require": {
@@ -12,7 +12,8 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.95",
     "phpstan/phpstan": "^2.2",
-    "phpunit/phpunit": "^11.0"
+    "phpunit/phpunit": "^11.0",
+    "symfony/process": "^7.0"
   },
   "autoload": {
     "psr-4": {

@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.146.0] - 2026-10-03
+
+### Added
+
+- `ReplayBudget` gives each sampled replay in `BuildAllCommandTest` its own process and kills it after 60 s
+  (TOOL-22). The test names the stopped replays and the three slowest, and fails when more than five are stopped.
+  `SDWA5_REPLAY_BUDGET` moves the budget and `SDWA5_FULL_REPLAY=1` switches it off.
+- `symfony/process` as a dev dependency, which was only installed through another package before.
+
+### Changed
+
+- The replay test on seed 1922271135, which drew a rig that solves for 6 min 27 s, takes 1 min 11 s.
+
 ## [0.145.0] - 2026-10-03
 
 ### Added
