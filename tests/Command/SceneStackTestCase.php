@@ -121,6 +121,32 @@ abstract class SceneStackTestCase extends TestCase
     }
 
     /**
+     * Dry runs already made in this process, keyed on their options. Shared by every subclass, because the same
+     * single-owner sweep is asked for by three of them.
+     *
+     * @var array<string, CommandTester>
+     */
+    private static array $dryRuns = [];
+
+    /**
+     * A `--dry-run` of these options, run once per process and handed to every test that asks for the same thing.
+     *
+     * **TOOL-22 measured four tests running the identical sweep**, two of them a combined 178 s on the same
+     * `gmss` + `sepp` rigs. A dry run writes nothing and reads only the options and `specs/`, and neither changes
+     * while the suite runs, so a second run can only repeat the first. Tests that write, or that assert on what a
+     * run does to the disk, keep calling {@see invoke}.
+     *
+     * @param array<string, mixed> $options
+     */
+    protected function dryRun(array $options): CommandTester
+    {
+        $options['--dry-run'] = true;
+        ksort($options);
+
+        return self::$dryRuns[serialize($options)] ??= $this->invoke($options);
+    }
+
+    /**
      * The sub heights of each stack, left to right, off the header the writer prints.
      *
      * @return list<float>

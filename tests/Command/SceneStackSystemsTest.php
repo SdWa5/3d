@@ -32,10 +32,13 @@ final class SceneStackSystemsTest extends SceneStackTestCase
      * **None of the three values is marginal.** On the `gmss` + `sepp` pair the sweep writes **116 `systems-apart`,
      * 105 `tops-shared` and 90 `pooled`**, because a system in its own narrower stack stands up more often than two
      * systems in one wide one, and the tops of one system standing on the other's subs is a third rig again.
+     *
+     * **Asserted on the upright rigs alone**, which keep all three values and the same order between them: 33
+     * `systems-apart`, 27 `tops-shared` and 26 `pooled` of 86, in 5.4 s against 47.5 s for all 504.
      */
     public function testTheSweepOffersSystemsStandingApartAsWellAsPooled(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        $display = $this->dryRun(['--owner' => ['gmss', 'sepp'], '--orientation' => ['upright'], '--low-end' => ['low']])->getDisplay();
 
         preg_match_all('/^id: (\S+)$/m', $display, $matches);
         self::assertNotSame([], $matches[1]);
@@ -78,7 +81,7 @@ final class SceneStackSystemsTest extends SceneStackTestCase
      */
     public function testASeparatedRigRecordsTheSeparationInItsOwnRegenerateLine(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss', 'sepp'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        $display = $this->dryRun(['--owner' => ['gmss', 'sepp'], '--orientation' => ['upright'], '--low-end' => ['low']])->getDisplay();
 
         // Split on the section title the dry run prints before each file, not on the `id:` line inside the YAML —
         // the recorded command sits in the header *above* that line, so splitting there puts the two in different
@@ -112,7 +115,7 @@ final class SceneStackSystemsTest extends SceneStackTestCase
      */
     public function testASingleOwnerRigIsNotOfferedASeparationItCannotHave(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        $display = $this->dryRun(['--owner' => ['gmss'], '--low-end' => ['low']])->getDisplay();
 
         self::assertStringContainsString('-pooled', $display);
         self::assertStringNotContainsString('-systems-apart', $display);

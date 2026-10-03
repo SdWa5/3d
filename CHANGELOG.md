@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.145.0] - 2026-10-03
+
+### Added
+
+- `tools/phpunit-timing.php` ranks the classes and cases of a `--log-junit` file by time (TOOL-22).
+- `SceneStackTestCase::dryRun()` runs a dry run once per process and shares it between tests that ask for the same
+  options.
+
+### Changed
+
+- The slow `scene:stack` tests sweep the smallest set of rigs that still proves their statement. The one-process
+  against twenty-eight comparison runs one pooled upright stack of `gmss`, the systems tests run the upright
+  `gmss` + `sepp` rigs, and the refusal, dry-run, wide-stage, sub-height and matching-count tests run one pooled
+  stack or the upright rigs.
+- The full suite takes 11 min 10 s, down from 23 min 06 s on the same replay seed, and 190 CPU minutes instead of 437.
+
 ## [0.144.0] - 2026-10-03
 
 ### Fixed

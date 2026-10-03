@@ -101,11 +101,14 @@ final class SceneStackBringsTest extends SceneStackTestCase
     /**
      * A count that already matches the spec changes no rig, so it is not recorded. A `--quantity` in a replay line
      * that does nothing is noise, and it would also trip the refusal below for a run that overrode nothing.
+     *
+     * The upright rigs alone, 29 of them, because the rolled ones carry nothing this assertion reads and took the
+     * case from 2 s to 24 s.
      */
     public function testACountThatMatchesTheSpecIsNotRecorded(): void
     {
         $tester = $this->invoke([
-            '--owner' => ['innschleife'],
+            '--owner' => ['innschleife'], '--orientation' => ['upright'],
             '--quantity' => ['kicker-15:4'],
             '--into' => 'zz-test-roster',
             '--low-end' => ['low'], '--dry-run' => true,
