@@ -918,7 +918,8 @@ final class SceneStackCommand extends BaseCommand
             // scene is compiled again, so the room, the overlap and the floating checks see the truss as well.
             $backdrop = $this->backdrop;
             if (null !== $this->deco && null !== $backdrop) {
-                $yaml .= implode("\n", $backdrop->yaml(
+                // A blank line before the block and one newline after it, the way the writer ends a scene.
+                $yaml .= "\n".implode("\n", $backdrop->yaml(
                     $this->deco,
                     $at[0],
                     $compiled['backY'],

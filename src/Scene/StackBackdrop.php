@@ -238,7 +238,6 @@ final class StackBackdrop
         $lines[] = '    fly:';
         $lines[] = sprintf('      height_m: %s', self::number($panelZ));
         $lines[] = sprintf('      id: %s', self::FLY_ID);
-        $lines[] = '';
 
         return $lines;
     }

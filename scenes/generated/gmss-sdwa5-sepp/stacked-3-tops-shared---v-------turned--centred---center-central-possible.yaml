@@ -264,4 +264,3 @@ placements:
           roll_mirror: 90.0
         - device: turbo-top
           count: 1
-

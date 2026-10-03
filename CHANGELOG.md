@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.141.1] - 2026-10-03
+
+### Fixed
+
+- The full suite hung in `BuildAllCommandTest`. 0.141.0 ended generated YAML with one newline but left the 2188 older
+  scenes with two, so the replay test failed, and PHPUnit then diffed the exports of both 4370-scene sets for over
+  half an hour. The comparison now reports the paths that differ, in both replay tests.
+- A backdrop scene ended with a blank line and had none before its backdrop block. The blank line now stands before
+  the block, and the scene ends with one newline.
+
+### Changed
+
+- The 2188 scenes written before 0.141.0 end with one newline, regenerated rather than edited.
+
 ## [0.141.0] - 2026-10-02
 
 ### Added

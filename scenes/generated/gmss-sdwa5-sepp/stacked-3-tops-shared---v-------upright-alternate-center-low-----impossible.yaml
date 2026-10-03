@@ -222,4 +222,3 @@ placements:
       from:
         - device: iq-sub
           count: 2
-

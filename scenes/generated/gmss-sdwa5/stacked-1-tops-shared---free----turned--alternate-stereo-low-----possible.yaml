@@ -110,4 +110,3 @@ placements:
         - device: turbo-top
           count: 2
           aim: near
-
