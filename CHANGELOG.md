@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.147.0] - 2026-10-03
+
+### Added
+
+- `ResultCache` remembers which items passed a check, keyed on a fingerprint over every file under the check's inputs
+  and the PHP version, under `build/test-cache/` (TOOL-22). Only passes are recorded, opening it deletes other
+  fingerprints' entries, and it is off when `CI` is set or `SDWA5_TEST_CACHE=0`.
+- `ShippedScenesTest` reuses it for its standing and impossible-scene checks and prints how many it reused. Warm, the
+  class takes 0.5 s against 3 min 46 s cold, and the full suite 7 min 26 s against 11 min 08 s.
+
 ## [0.146.0] - 2026-10-03
 
 ### Added

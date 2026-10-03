@@ -333,8 +333,15 @@ together with the three slowest replays, and more than five stopped replays fail
 getting slower rather than an unlucky draw. `SDWA5_REPLAY_BUDGET=<seconds>` moves the budget and `SDWA5_FULL_REPLAY=1`
 switches it off together with the sampling.
 
-The largest class is now `ShippedScenesTest` at 4 min 21 s. It checks every shipped scene for a cabinet hanging in
-the air or sitting inside another, and it once walked all 2489 of them down one core for 10 minutes. It now runs one case per inventory and solves the scenes inside each across cores, through
+The largest class is `ShippedScenesTest`, about 4 min cold. It checks every shipped scene for a cabinet hanging in
+the air or sitting inside another, and it once walked all 2489 of them down one core for 10 minutes.
+
+**Locally it remembers which scenes passed**, in `build/test-cache/`, keyed on the scene file and on every file under
+`src/`, `specs/`, `events/`, `composer.lock`, the test itself and `tests/Support/`, plus the PHP version. A run after a
+commit that touches none of those takes 0.5 s for the class and 7 min 26 s for the whole suite, a run after a scene change checks only the changed
+scenes, and any change to `src/` checks everything again. Only passes are remembered, so a failing scene is always
+checked afresh. The class prints how many checks it reused. CI never reads the cache, and `SDWA5_TEST_CACHE=0 ddev exec
+composer test` runs cold locally. It now runs one case per inventory and solves the scenes inside each across cores, through
 the same `Parallel` the sweep uses. **The library is still checked whole and is never sampled** — that is the
 promise the class exists for, and a test asserts that the chunks hold every scene on disk, because a case is now an
 inventory rather than a scene and a dropped one would no longer even shorten the list of test names.
