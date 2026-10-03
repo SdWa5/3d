@@ -315,9 +315,22 @@ scenes, which was 26 minutes of a 135-minute job and is work `composer test` alr
 `ShippedScenesTest`. It is still worth running by hand before a release, and `SDWA5_FULL_REPLAY=1 ddev exec composer
 test` runs it as part of the suite.
 
-`composer test` is **9 min 04 s** on twenty-eight cores. Most of it used to be one test: `ShippedScenesTest` checks
-every shipped scene for a cabinet hanging in the air or sitting inside another, and it walked all 2489 of them down
-one core for 10 minutes. It now runs one case per inventory and solves the scenes inside each across cores, through
+`composer test` is **11 min 10 s** on twenty-eight cores, measured on 2026-10-03 with `SDWA5_REPLAY_SEED=161189769`.
+It was 23 min 06 s on the same seed before TOOL-22 gave each slow `scene:stack` test the smallest sweep that still
+proves its statement, and before the four tests that asked for the identical dry run started sharing one through
+`SceneStackTestCase::dryRun()`. To see where the time goes, log a run and rank it:
+
+```bash
+ddev exec vendor/bin/phpunit --log-junit build/phpunit-junit.xml
+ddev exec php tools/phpunit-timing.php build/phpunit-junit.xml
+```
+
+**The replay sample makes the wall time a draw.** `BuildAllCommandTest` replays 120 random generated scenes, and one
+rig of four systems in a single pooled stack can solve for over ten minutes on its own. A run that is much slower
+than this figure is worth repeating with the seed it printed before anything else is suspected.
+
+The largest class is now `ShippedScenesTest` at 4 min 21 s. It checks every shipped scene for a cabinet hanging in
+the air or sitting inside another, and it once walked all 2489 of them down one core for 10 minutes. It now runs one case per inventory and solves the scenes inside each across cores, through
 the same `Parallel` the sweep uses. **The library is still checked whole and is never sampled** — that is the
 promise the class exists for, and a test asserts that the chunks hold every scene on disk, because a case is now an
 inventory rather than a scene and a dropped one would no longer even shorten the list of test names.

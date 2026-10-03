@@ -37,7 +37,7 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
      */
     public function testEveryWrittenSceneSaysWhetherItStandsUp(): void
     {
-        $display = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        $display = $this->dryRun(['--owner' => ['gmss'], '--low-end' => ['low']])->getDisplay();
 
         preg_match_all('/^id: (\S+)$/m', $display, $matches);
         self::assertNotSame([], $matches[1]);
@@ -121,6 +121,7 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
         $display = $this->invoke([
             // 3.5 m because this gear comes out at 3.040 m, so the ceiling is met rather than missed. A missed one
             // would be written too — see the band tests — and this is about the key reaching the file.
+            '--systems' => ['pooled'], '--stacks' => '1', '--shape' => ['pyramid'],
             '--from' => self::OWN_GEAR, '--max-width' => '3.70', '--max-sub-height' => '3.5',
             '--interface-height' => '0', '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
         ])->getDisplay();
@@ -282,12 +283,15 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
      * A wide stage must not cost the rig its height. `max_width_m` is a maximum, not a target: on a 10 m
      * stage every device fits in one row, which leaves two sub tiers and puts a 2 m interface out of reach
      * forever unless the rows are allowed to narrow.
+     *
+     * One pooled stack, because that is the rig most at risk: all the cabinets in a single stack have the most row
+     * width to spend and the fewest tiers to lose.
      */
     public function testAWideStageStillReachesTheInterface(): void
     {
         foreach ([['--max-width' => '10.0'], []] as $widthOption) {
             $tester = $this->invoke($widthOption + [
-                '--from' => self::STACKABLE, '--interface-height' => '2.0',
+                '--from' => self::STACKABLE, '--interface-height' => '2.0', '--stacks' => '1', '--systems' => ['pooled'],
                 '--align' => ['center'], '--low-end' => ['low'], '--dry-run' => true,
             ]);
 

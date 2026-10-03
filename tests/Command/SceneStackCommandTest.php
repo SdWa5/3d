@@ -127,8 +127,8 @@ final class SceneStackCommandTest extends SceneStackTestCase
         self::assertStringContainsString('id: stacked-1-pooled--------pyramid-upright-alternate-center', $one);
 
         // The stack count alone: every other axis keeps walking, which is the thing that could not be asked for.
-        $narrowed = $this->invoke(['--owner' => ['gmss'], '--stacks' => '2', '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
-        $swept = $this->invoke(['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true])->getDisplay();
+        $narrowed = $this->dryRun(['--owner' => ['gmss'], '--stacks' => '2', '--low-end' => ['low']])->getDisplay();
+        $swept = $this->dryRun(['--owner' => ['gmss'], '--low-end' => ['low']])->getDisplay();
 
         $count = preg_match_all('/^id: /m', $narrowed);
         self::assertGreaterThan(1, $count, 'naming the stack count still collapsed the sweep');
@@ -334,7 +334,7 @@ final class SceneStackCommandTest extends SceneStackTestCase
     public function testDryRunWritesNothing(): void
     {
         $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--stacks' => '1', '--systems' => ['pooled'],
             '--id' => self::THROWAWAY_ID, '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
@@ -344,10 +344,16 @@ final class SceneStackCommandTest extends SceneStackTestCase
     /**
      * Generated files live next to hand-written ones, so clobbering one has to be asked for. This is the
      * test that stops the command eating a scene somebody spent an afternoon commenting.
+     *
+     * One stack, pooled, because the refusal is about a file being there and any written rig proves it. The open
+     * stack count made this three sweeps of 89 rigs and 2 min 10 s, measured in TOOL-22.
      */
     public function testAnExistingSceneIsRefusedWithoutForce(): void
     {
-        $args = ['--max-width' => '3.70', '--from' => self::STACKABLE, '--align' => ['block'], '--id' => self::THROWAWAY_ID];
+        $args = [
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--stacks' => '1', '--systems' => ['pooled'],
+            '--align' => ['block'], '--id' => self::THROWAWAY_ID,
+        ];
         $first = $this->invoke($args);
         self::assertSame(0, $first->getStatusCode());
 
@@ -362,11 +368,14 @@ final class SceneStackCommandTest extends SceneStackTestCase
     /**
      * A silent cap would read as "that is every possibility" when it is not, so going over the limit is a
      * refusal with the count in it.
+     *
+     * The limit is checked only after every candidate is solved, so the sweep is kept to one pooled stack. Any count
+     * above zero proves the refusal.
      */
     public function testExceedingMaxScenesIsRefusedRatherThanTruncated(): void
     {
         $tester = $this->invoke([
-            '--max-width' => '3.70', '--from' => self::STACKABLE,
+            '--max-width' => '3.70', '--from' => self::STACKABLE, '--stacks' => '1', '--systems' => ['pooled'],
             '--max-scenes' => '0', '--low-end' => ['low'], '--dry-run' => true,
         ]);
 
@@ -649,10 +658,18 @@ final class SceneStackCommandTest extends SceneStackTestCase
      *
      * Asserted on a narrow rig rather than the bare sweep, because the bare sweep is two minutes of work to prove a
      * statement about ordering that a rig of one owner makes just as well.
+     *
+     * **And on one pooled upright stack of that owner rather than all of its rigs**, because the serial half is one
+     * core doing the whole sweep. Over every `gmss` rig that was 146 ids and 2 min 50 s, the slowest case in the
+     * suite when TOOL-22 measured it. The narrow sweep still writes 9 rigs in four shapes, collapses 6 duplicates and
+     * notes 3 misses, so the order, the deduplication and the reasons all have something to get wrong.
      */
     public function testTheSweepSaysTheSameThingInOneProcessAsInTwentyEight(): void
     {
-        $shared = ['--owner' => ['gmss'], '--low-end' => ['low'], '--dry-run' => true];
+        $shared = [
+            '--owner' => ['gmss'], '--stacks' => '1', '--systems' => ['pooled'], '--orientation' => ['upright'],
+            '--low-end' => ['low'], '--dry-run' => true,
+        ];
 
         $serial = $this->invoke($shared + ['--jobs' => '1']);
         $parallel = $this->invoke($shared);
