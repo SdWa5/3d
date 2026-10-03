@@ -17,7 +17,7 @@
 # main-ours-1 — ours-1, 12 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid                           1.822 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid    1.822 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
@@ -30,14 +30,14 @@
 # main-ours-2 — ours-2, 13 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
-#   3  1× skram + 1× achenbach-18 at 203 mm gaps                               1.413 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid    1.822 m wide
+#   3  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
 #   4  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× eighteensound-2way-15 + 2× tecnare-m2122 row is 1.506 m on a 1.413 m row, so it overhangs 46 mm each
+#   * the 1× achenbach-18 + 1× skram + 1× achenbach-18 row is 1.850 m on a 1.822 m row, so it overhangs 14 mm each
 #     side
 #
 # main-psl-1 — psl-1, 9 cabinets in 2 rows:
@@ -48,6 +48,9 @@
 # Subs reach 1.2 m against a 2.0 m interface. The stack is 1.98 m of cabinet.
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× thebox-tp118-800 + 1× concert-audio-esf + 2× concert-audio-esx + 1× thebox-tp218-1600 + 1×
+#     concert-audio-esx) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that
+#     stands
 #
 # main-psl-2 — psl-2, 9 cabinets in 2 rows:
 #
@@ -57,12 +60,14 @@
 # Subs reach 1.2 m against a 2.0 m interface. The stack is 1.98 m of cabinet.
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× concert-audio-esx + 1× thebox-tp218-1600 + 2× concert-audio-esx + 1× concert-audio-esf + 1×
+#     thebox-tp118-800) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-1 — innschleife-1, 10 cabinets in 4 rows:
 #
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× sub-60x60 + 1× wsx-18 + 1× sub-60x60                                 1.81 m wide
-#   3  1× wsx-18 + 2× sbh-18                                                    1.71 m wide
+#   3  1× sbh-18 + 1× wsx-18 + 1× sbh-18                                       1.71 m wide
 #   4  1× tms4 + 1× tms2                                                        0.95 m wide
 #
 # Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
@@ -71,7 +76,7 @@
 #
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× sub-60x60 + 1× wsx-18 + 1× sub-60x60                                 1.81 m wide
-#   3  2× sbh-18 + 1× wsx-18                                                    1.71 m wide
+#   3  1× sbh-18 + 1× wsx-18 + 1× sbh-18                                       1.71 m wide
 #   4  1× tms2 + 1× tms4                                                        0.95 m wide
 #
 # Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
@@ -90,7 +95,7 @@ focus:
 placements:
   # ours-1, 12 cabinets in 4 rows
   - id: main-ours-1
-    at: [-8.251, 0.0]
+    at: [-8.242, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -149,7 +154,7 @@ placements:
 
   # psl-1, 9 cabinets in 2 rows
   - id: main-psl-1
-    at: [-1.818, 0.0]
+    at: [-1.827, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -181,7 +186,7 @@ placements:
 
   # psl-2, 9 cabinets in 2 rows
   - id: main-psl-2
-    at: [2.24, 0.0]
+    at: [2.231, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -212,7 +217,7 @@ placements:
 
   # innschleife-1, 10 cabinets in 4 rows
   - id: main-innschleife-1
-    at: [5.479, 0.0]
+    at: [5.47, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -244,7 +249,7 @@ placements:
 
   # innschleife-2, 10 cabinets in 4 rows
   - id: main-innschleife-2
-    at: [7.899, 0.0]
+    at: [7.89, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

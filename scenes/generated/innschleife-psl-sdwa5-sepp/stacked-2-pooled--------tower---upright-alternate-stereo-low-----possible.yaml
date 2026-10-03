@@ -40,6 +40,10 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 3.743 m against the 3.000 m ceiling asked for, so they stand 743 mm too high — 3.743 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 3 (1× sub-60x60 + 1× achenbach-18 + 3× concert-audio-esx at 169 mm gaps) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 4 (1× sub-60x60 + 1× wsx-18 + 2× sbh-18 + 1× wsx-18 at 202 mm gaps) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-2 — 2, 36 cabinets in 2 rows:
 #
@@ -64,6 +68,11 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× kicker-15 + 1× sub-60x60 + 1× achenbach-18 + 1× thebox-tp118-800 + 3× flexy-folded-horn-hybrid +
+#     1× concert-audio-esf + 1× skram + 1× wsx-18 + 1× concert-audio-esx + 1× thebox-tp218-1600 + 2× sbh-18 + 1×
+#     thebox-tp218-1600 + 2× concert-audio-esx + 1× wsx-18 + 1× skram + 1× concert-audio-esf + 3×
+#     flexy-folded-horn-hybrid + 1× thebox-tp118-800 + 2× achenbach-18 + 1× sub-60x60 + 1× kicker-15) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------tower---upright-alternate-stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"

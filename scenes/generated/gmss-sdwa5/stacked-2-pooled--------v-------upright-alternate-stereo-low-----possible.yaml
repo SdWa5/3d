@@ -54,6 +54,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 3.596 m against the 3.000 m ceiling asked for, so they stand 596 mm too high — 3.596 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 1 (1× nuke + 1× skram + 1× wall-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------v-------upright-alternate-stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"

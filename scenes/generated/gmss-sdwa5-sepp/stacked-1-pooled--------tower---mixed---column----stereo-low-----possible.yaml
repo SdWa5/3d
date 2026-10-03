@@ -24,6 +24,10 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 3.582 m against the 3.000 m ceiling asked for, so they stand 582 mm too high — 3.582 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 5 (1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× skram rolled 90° at 482 mm gaps) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
+#   * row 6 (1× nuke rolled 270° + 1× skram rolled 270° + 1× nuke rolled 90° + 1× mid-bass at 342 mm gaps) is
+#     not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------tower---mixed---column----stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

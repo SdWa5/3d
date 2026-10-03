@@ -19,6 +19,8 @@
 # Subs reach 0.77 m against a 2.0 m interface. The stack is 1.73 m of cabinet.
 #   * the subs reach 0.770 m against the 2.000 m interface asked for, so the tops sit 1230 mm lower than ideal —
 #     0.770 m is the most they reach while every tier is still carried
+#   * row 1 (2× iq-sub rolled 270° + 1× nuke + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 7 cabinets in 4 rows:
 #
@@ -51,6 +53,8 @@
 # Subs reach 1.44 m against a 2.0 m interface. The stack is 2.15 m of cabinet.
 #   * the subs reach 1.440 m against the 2.000 m interface asked for, so the tops sit 560 mm lower than ideal —
 #     1.440 m is the most they reach while every tier is still carried
+#   * row 1 (1× wall-bass rolled 270° + 1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-tops-shared---v-------mixed---centred---center-low-----possible
 name: "Solved rig — 4 stacks side by side, tiers centred"

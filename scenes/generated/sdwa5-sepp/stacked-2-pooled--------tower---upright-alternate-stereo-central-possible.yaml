@@ -14,7 +14,7 @@
 # main-1 — 1, 12 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18 at 307 mm gaps            2.424 m wide
 #   4  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
 #
@@ -26,7 +26,7 @@
 # main-2 — 2, 13 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  2× flexy-folded-horn-hybrid + 1× achenbach-18 at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18 at 307 mm gaps            2.424 m wide
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122        1.5056 m wide
 #

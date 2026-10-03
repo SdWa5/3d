@@ -30,21 +30,19 @@
 #   * the subs reach 1.780 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
 #     a sub wing, so the interface decides nothing about it
 #
-# main-gmss-2 — gmss-2, 7 cabinets in 4 rows:
+# main-gmss-2 — gmss-2, 6 cabinets in 4 rows:
 #
 #   1  1× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.05 m wide
-#   2  1× wall-bass rolled 270° + 1× nuke rolled 90°                          2.19 m wide
-#   3  1× mid-bass rolled 90°                                                    0.5 m wide
-#   4  1× turbo-top                                                              0.45 m wide
+#   2  1× wall-bass rolled 90°                                                   1.4 m wide
+#   3  1× nuke rolled 90°                                                       0.77 m wide
+#   4  1× mid-bass rolled 90°                                                    0.5 m wide
 #
-# Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
-#   * the 1× wall-bass rolled 270° + 1× nuke rolled 90° row is 2.190 m on a 2.050 m row, so it overhangs 70 mm
-#     each side
+# Subs reach 2.98 m against a 2.0 m interface. The stack is 2.98 m of cabinet.
 #
-# main-ours-1 — ours-1, 5 cabinets in 2 rows:
+# main-ours-1 — ours-1, 6 cabinets in 2 rows:
 #
 #   1  2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.84 m wide
-#   2  1× eighteensound-2way-15 + 1× turbo-top                                0.9356 m wide
+#   2  1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top                1.4056 m wide
 #
 # Subs reach 0.6 m against a 2.0 m interface. The stack is 1.436 m of cabinet.
 #   * the subs reach 0.600 m against the 2.000 m interface asked for, so the tops sit 1400 mm lower than ideal —
@@ -64,7 +62,7 @@ focus:
 placements:
   # ours-2, 5 cabinets in 2 rows
   - id: main-ours-2
-    at: [-4.092, 0.0]
+    at: [-4.022, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -91,7 +89,7 @@ placements:
 
   # gmss-1, 5 cabinets in 3 rows
   - id: main-gmss-1
-    at: [-1.647, 0.0]
+    at: [-1.577, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -118,7 +116,7 @@ placements:
           count: 3
           roll_mirror: 90.0
 
-  # gmss-2, 7 cabinets in 4 rows
+  # gmss-2, 6 cabinets in 4 rows
   - id: main-gmss-2
     at: [0.973, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -147,12 +145,10 @@ placements:
         - device: iq-sub
           count: 3
           roll_mirror: 90.0
-        - device: turbo-top
-          count: 1
 
-  # ours-1, 5 cabinets in 2 rows
+  # ours-1, 6 cabinets in 2 rows
   - id: main-ours-1
-    at: [3.488, 0.0]
+    at: [3.418, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -175,5 +171,5 @@ placements:
         - device: eighteensound-2way-15
           count: 1
         - device: turbo-top
-          count: 1
+          count: 2
           aim: near

@@ -28,6 +28,10 @@
 #   4  1× turbo-top                                                              0.45 m wide
 #
 # Subs reach 2.32 m against a 2.0 m interface. The stack is 3.03 m of cabinet.
+#   * row 1 (1× mid-bass rolled 270° + 1× wall-bass rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 2 (1× nuke rolled 270° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-gmss-1 — gmss-1, 6 cabinets in 4 rows:
 #
@@ -39,6 +43,8 @@
 # Subs reach 2.52 m against a 2.0 m interface. The stack is 3.48 m of cabinet.
 #   * the 1× iq-sub rolled 270° + 1× nuke rolled 90° row is 1.460 m on a 0.660 m row, so it overhangs 400 mm each
 #     side
+#   * row 2 (1× iq-sub rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 9 cabinets in 4 rows:
 #

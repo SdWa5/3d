@@ -18,7 +18,7 @@
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.895 m wide
 #   4  3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°                3.7 m wide
-#   5  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122   2.9656 m wide
+#   5  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.9812 m wide
 #
 # Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -29,14 +29,14 @@
 # main-gmss — gmss, 13 cabinets in 4 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× mid-bass rolled 90° + 1× wall-bass rolled 90°     3.34 m wide
-#   2  1× iq-sub rolled 270° + 2× nuke rolled 270° + 2× iq-sub rolled 90°     3.63 m wide
+#   2  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× iq-sub rolled 90° + 1× nuke rolled 270° + 1× iq-sub rolled 90°     3.63 m wide
 #   3  1× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.05 m wide
-#   4  1× eighteensound-2way-15 + 1× turbo-top                                0.9356 m wide
+#   4  1× turbo-top + 1× turbo-top                                              0.92 m wide
 #
-# Subs reach 2.32 m against a 2.0 m interface. The stack is 3.156 m of cabinet.
+# Subs reach 2.32 m against a 2.0 m interface. The stack is 3.03 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× iq-sub rolled 270° + 2× nuke rolled 270° + 2× iq-sub rolled 90° row is 3.630 m on a 3.340 m row, so
-#     it overhangs 145 mm each side
+#   * the 1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× iq-sub rolled 90° + 1× nuke rolled 270° + 1×
+#     iq-sub rolled 90° row is 3.630 m on a 3.340 m row, so it overhangs 145 mm each side
 #
 id: stacked-1-tops-shared---free----turned--alternate-stereo-central-possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -78,10 +78,9 @@ placements:
           roll_mirror: 90.0
         - tecnare-m2122
         - device: eighteensound-2way-15
-          count: 1
           aim: near
         - device: turbo-top
-          count: 2
+          count: 1
           aim: near
 
   # gmss, 13 cabinets in 4 rows
@@ -112,8 +111,5 @@ placements:
           roll_mirror: 90.0
         - device: iq-sub
           roll_mirror: 90.0
-        - device: eighteensound-2way-15
-          count: 1
         - device: turbo-top
-          count: 1
-          aim: near
+          count: 2

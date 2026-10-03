@@ -680,9 +680,10 @@ Tecnare over 580 mm of air, and that arrangement is refused for having nothing u
 
 The bearing rules weigh rows, and a row can pass them and still leave a cabinet over air once the stack is placed,
 aligned and mirrored. The seating predicate `SceneCompiler::stackSurvives()` therefore also runs
-`PlacementChecks::floatingFaults()` on every arrangement with a gapped row, so such an arrangement loses to one that
-stands. Measured on `innschleife-psl-sdwa5-sepp` without it, the aimed PSL tops row shifted 0.2 m and left a
-thebox-dsp-112 entirely over air.
+`PlacementChecks::floatingFaults()` on every arrangement, so such an arrangement loses to one that stands. Measured on
+`innschleife-psl-sdwa5-sepp` without it, the aimed PSL tops row shifted 0.2 m and left a thebox-dsp-112 entirely over
+air. Until 0.142.0 only arrangements with a gapped row were asked. A mirrored packed row then outranked a lopsided one
+on `gmss-sdwa5-sepp` and left a turbo-top over air, which turned a possible scene impossible.
 
 The scene records no gap. Like the row budget, the gaps come out of the constraints, so a re-solve reproduces them.
 The writer's row comment names a gapped row, for example `6× achenbach-18 at 262 mm gaps`, and `stack.gap_m` stays the
@@ -745,9 +746,11 @@ bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschlei
 
 **`next-event-light-achenbach` is the light event with four of Sepp's Achenbach**, asked for by Stefan on 2026-10-01 so
 the outer tops of the stereo setup stand higher. The solver does not do that yet. At the 1.6 m interface both our
-systems state, `center` puts all four Achenbach in one middle row under every top, and the `stereo` rig with the systems
-apart was 16.03 m wide on 2026-10-01 and is still refused by the 13 m room. A rule that seats a riser under the outer
-tops is TODO GEO-17. The folder holds 18 scenes, 16 possible.
+systems state, `center` puts all four Achenbach in one middle row under every top. The `stereo` rig with the systems
+apart solved our stack as one row of twelve Flexy and was 16.03 m wide, so the 13 m room refused it. Since 0.142.0 the
+room search narrows our stack to `6 Flexy / 6 Flexy / 2 Achenbach + 2 SKRAM + 2 Achenbach` at 3.72 m and the rig is
+written, see [Event rooms and system preferences](#event-rooms-and-system-preferences). A rule that seats a riser
+under the outer tops is TODO GEO-17. The folder holds 18 scenes, 16 possible.
 
 ```bash
 bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschleife --event=next-event-light-achenbach \
@@ -760,6 +763,17 @@ bin/console scene:stack --owner=sdwa5 --owner=sepp --owner=psl --owner=innschlei
 Neither rejects a buildable stack. A miss is written in the scene header and contributes to the ranking.
 With a maximum stated, the solver compares candidates across the search rather than returning the first
 arrangement reaching the interface. The target miss decides the winner, with extra cost outside the band.
+
+**A mirror-symmetric arrangement outranks a lopsided one, whatever either misses by**, which Stefan decided on
+2026-10-03. A sub row counts as symmetric when it reads the same from both ends, cabinet by cabinet, comparing the
+device and the width each cabinet stands at but not its roll, so a mouth-paired row still counts. A packed row with an
+odd count of one type used to put the spare cabinet on the right and won whenever it tied. Measured on 240 small
+inventories, 80 came back different and every one of those is now symmetric. Only a ceiling outranks symmetry. Where
+no symmetric arrangement stands, the lopsided one is written with a warning naming the row.
+
+**The room outranks the band.** The band is a goal, while an event's room width and height are hard limits, so a
+rig the room refuses is solved again with narrower and therefore taller stacks. See
+[Event rooms and system preferences](#event-rooms-and-system-preferences).
 
 ```yaml
     stack:
@@ -1033,6 +1047,19 @@ the `stated` axis value. Low-end preferences follow the systems supplying the su
 sweep choice. `--system-orientation`, `--stand` and `--system-low-end` can state these directly.
 `stack_clearance_m` supplies the event gap unless `--clearance` overrides it. Recorded commands retain resolved
 limits and preferences. Editing a scene by hand does not add the event room check to `scene:build`.
+
+**A rig too wide for the room is built again with narrower stacks before it is refused**, since 0.142.0. The owner
+ruled on 2026-10-03 that the room width and height are hard limits and the interface and target heights are goals.
+
+* Each stack gets a ladder of narrower widths, each step solved under a cap 1 mm below the last width. The ladder
+  stops when the stack stops narrowing or places fewer cabinets, and after twelve steps.
+* Stacks dealt from one pool share a step, so a mirrored pair stays a mirror image.
+* Combinations are tried in order of the worst stack's height cost, then the sum. A combination whose sub rows cannot
+  narrow the rig by the excess, less 0.1 m, is not compiled. At most 64 are compiled.
+* The first combination that passes the room is written. Each narrowed stack carries its cap as `max_width_m`, so
+  `scene:build` re-solves the file to the same rows. A rig that fits as solved is written unchanged.
+* When nothing fits, the refusal names the narrowest rig reached, for example "the whole rig is 11.215 m wide even
+  with its stacks narrowed, and exceeds the 11.000 m room width" for the Achenbach stereo rig in 11 m.
 
 ```bash
 bin/console scene:stack --owner=innschleife --event=next-event-light

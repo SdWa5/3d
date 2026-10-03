@@ -14,15 +14,18 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 29 cabinets in 3 rows:
+# main-ours — ours, 29 cabinets in 4 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    9.376 m wide
-#   2  3× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18    5.568 m wide
-#   3  1× thebox-achat-112m + 1× hk-linear5-112x + 1× tms2 + 1× tecnare-m2122 + 1× tms4 + 4× concert-audio-ef6    4.672 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    5.289 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    5.135 m wide
+#   3  2× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 2× achenbach-18 at 75 mm gaps    4.603 m wide
+#   4  1× thebox-achat-112m + 1× hk-linear5-112x + 1× tms2 + 1× tecnare-m2122 + 1× tms4 + 4× concert-audio-ef6    4.672 m wide
 #
-# Subs reach 1.201 m against a 2.0 m interface. The stack is 2.341 m of cabinet.
-#   * the subs reach 1.201 m against the 2.000 m interface asked for, so the tops sit 799 mm lower than ideal —
-#     1.201 m is the most they reach while every tier is still carried
+# Subs reach 1.973 m against a 2.0 m interface. The stack is 3.113 m of cabinet.
+#   * the subs reach 1.973 m against the 2.000 m interface asked for, so the tops sit 27 mm lower than ideal — 1.973
+#     m is the most they reach while every tier is still carried
+#   * the 1× thebox-achat-112m + 1× hk-linear5-112x + 1× tms2 + 1× tecnare-m2122 + 1× tms4 + 4×
+#     concert-audio-ef6 row is 4.672 m on a 4.603 m row, so it overhangs 34 mm each side
 #
 # main-psl — psl, 16 cabinets in 7 rows:
 #
@@ -68,7 +71,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 29 cabinets in 3 rows
+  # ours, 29 cabinets in 4 rows
   - id: main-ours
     at: [-4.442, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -110,7 +113,7 @@ placements:
 
   # psl, 16 cabinets in 7 rows
   - id: main-psl
-    at: [1.956, 0.0]
+    at: [-0.0875, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -149,7 +152,7 @@ placements:
 
   # innschleife, 22 cabinets in 5 rows
   - id: main-innschleife
-    at: [6.096, 0.0]
+    at: [4.0525, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

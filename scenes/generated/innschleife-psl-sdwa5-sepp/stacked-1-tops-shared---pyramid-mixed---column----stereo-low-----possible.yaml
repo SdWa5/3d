@@ -20,7 +20,7 @@
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  5× achenbach-18                                                           3.08 m wide
-#   5  1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 at 194 mm gaps    2.816 m wide
+#   5  1× skram rolled 270° + 1× achenbach-18 + 1× skram rolled 90° at 194 mm gaps    2.816 m wide
 #   6  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× thebox-pa302 + 1× thebox-achat-112m   2.9336 m wide
 #
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 4.123 m of cabinet.
@@ -49,12 +49,13 @@
 #   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
 #   2  4× kicker-15                                                              3.86 m wide
 #   3  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
-#   4  4× sub-60x60 + 1× sbh-18 rolled 90°                                     3.68 m wide
+#   4  2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60                     3.68 m wide
 #   5  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× thebox-achat-115m + 1× tms2 + 1× thebox-achat-112m    2.914 m wide
 #
 # Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 4× sub-60x60 + 1× sbh-18 rolled 90° row is 3.680 m on a 3.640 m row, so it overhangs 20 mm each side
+#   * the 2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60 row is 3.680 m on a 3.640 m row, so it overhangs 20
+#     mm each side
 #
 id: stacked-1-tops-shared---pyramid-mixed---column----stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"

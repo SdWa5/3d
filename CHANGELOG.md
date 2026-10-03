@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.142.0] - 2026-10-03
+
+### Added
+
+- `scene:stack` builds a rig refused for the room width again with narrower stacks. It caps each stack at the widths
+  its own narrower solves reach, tries the combinations with the smallest worst height cost first, and writes the caps
+  as `max_width_m`. A rig that fits without caps is written unchanged. A room narrower than the narrowest combination
+  is refused with the width of that narrowest rig.
+- `StackSolver` ranks an arrangement whose sub rows are all mirror-symmetric above any lopsided one, in the ceiling,
+  no-ceiling and fallback rankings. A lopsided result is still returned when nothing symmetric stands, with a warning
+  naming the row.
+- Packed rows are also offered in mirror order, with an odd count's single cabinet in the middle and every other type
+  halved around it (`StackMetrics::symmetrised`).
+- `RoomBounds::widthExcessIn()` reads how far a rig is too wide back from the room refusal.
+- Tests cover the symmetry ranking, the warning, the mirror order and the Achenbach event's stereo rig in its 13 m
+  room, as well as a room too narrow for it.
+
+### Changed
+
+- The Achenbach event's `systems-apart` stereo rig is possible in its 13 m room, with our stack capped to
+  `6F / 6F / 2A·2S·2A`.
+- Generated scenes are regenerated with symmetric sub rows where one stands. 82 scenes went from impossible to
+  possible and 20 from possible to impossible. Ten of those are pooled or tops-shared rigs whose mirrored rows stand on
+  their own and overlap or float once aimed from the rig centre (GEO-11). The other ten are tops-shared rigs where the
+  deal now hands one stack tops it cannot carry (GEO-20).
+- A solo stack that slides a row reaches 2.84 m instead of 2.70 m, because its rows are now symmetric pairs.
+- The stack-local seating check asks every arrangement, packed ones included, whether a cabinet stands over air.
+  Before, only gapped rows were asked, so a mirrored packed row could outrank a lopsided one that stood and then
+  compile with a floating top.
+
 ## [0.141.1] - 2026-10-03
 
 ### Fixed

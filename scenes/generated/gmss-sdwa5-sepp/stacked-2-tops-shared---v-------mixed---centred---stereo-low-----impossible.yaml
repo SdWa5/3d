@@ -28,6 +28,8 @@
 #
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 3.819 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * row 1 (1× achenbach-18 + 1× skram rolled 90°) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-gmss-2 — gmss-2, 7 cabinets in 3 rows:
 #
@@ -39,6 +41,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.440 m against the 2.000 m interface asked for, so the tops sit 560 mm lower than ideal —
 #     1.440 m is the most they reach while every tier is still carried
+#   * row 1 (1× wall-bass rolled 270° + 1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-gmss-1 — gmss-1, 10 cabinets in 2 rows:
 #
@@ -49,6 +53,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 0.770 m against the 2.000 m interface asked for, so the tops sit 1230 mm lower than ideal —
 #     0.770 m is the most they reach while every tier is still carried
+#   * row 1 (2× iq-sub rolled 270° + 1× nuke + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 11 cabinets in 6 rows:
 #
@@ -61,6 +67,8 @@
 #
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 3.693 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * row 1 (1× skram rolled 270° + 1× achenbach-18) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 id: stacked-2-tops-shared---v-------mixed---centred---stereo-low-----impossible
 name: "Solved rig — 4 stacks side by side, tiers split left and right"

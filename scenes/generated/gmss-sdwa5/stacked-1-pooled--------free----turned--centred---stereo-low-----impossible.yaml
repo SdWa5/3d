@@ -35,6 +35,9 @@
 #     row is 5.117 m on a 4.678 m row, so it overhangs 220 mm each side
 #   * the 1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122
 #     row is 2.950 m on a 2.740 m row, so it overhangs 105 mm each side
+#   * row 2 (1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× skram + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------free----turned--centred---stereo-low-----impossible
 name: "Solved rig — one stack, tiers split left and right"

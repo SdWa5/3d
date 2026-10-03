@@ -12,18 +12,21 @@
 #
 # What it deals out today:
 #
-#   1  1× nuke rolled 270° + 2× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× skram rolled 90° + 2× achenbach-18 rolled 90° + 1× nuke rolled 90°    8.748 m wide
-#   2  3× iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° + 3× iq-sub rolled 90° at 223 mm gaps    8.753 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 125 mm gaps    8.755 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122   3.9212 m wide
+#   1  1× nuke rolled 270° + 1× skram rolled 270° + 1× wall-bass rolled 90° + 1× skram rolled 90° + 1× nuke rolled 90°    4.848 m wide
+#   2  2× achenbach-18 rolled 270° + 1× wall-bass rolled 270° + 2× achenbach-18 rolled 90° at 262 mm gaps    4.848 m wide
+#   3  1× iq-sub rolled 270° + 1× achenbach-18 rolled 270° + 1× iq-sub rolled 90° + 1× achenbach-18 rolled 90° + 1× iq-sub rolled 90° at 410 mm gaps     4.85 m wide
+#   4  1× iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× iq-sub rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× iq-sub rolled 90° at 329 mm gaps    4.852 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 260 mm gaps    4.855 m wide
+#   6  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 260 mm gaps    4.855 m wide
+#   7  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122   3.9212 m wide
 #
-# Subs reach 1.851 m against a 2.0 m interface. The stack is 2.811 m of cabinet.
+# Subs reach 3.693 m against a 2.0 m interface. The stack is 4.653 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 1× flexy-folded-horn-hybrid rolled 270° row is
 #     0.763 m on a 4.678 m row, so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of
 #     its arrangements
-#   * the subs reach 1.851 m against the 2.000 m interface asked for, so the tops sit 149 mm lower than ideal —
-#     1.851 m is the most they reach while every tier is still carried
+#   * the subs reach 3.693 m against the 3.000 m ceiling asked for, so they stand 693 mm too high — 3.693 m is the
+#     nearest the 2.500 m target that every tier is still carried at
 #
 id: stacked-1-pooled--------v-------turned--alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

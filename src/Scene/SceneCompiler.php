@@ -598,8 +598,8 @@ final class SceneCompiler
      * every placement, and every placement needs the solve. What is reconciled here is everything the stack decides
      * on its own, which is where all four of GEO-11's measured symptoms live.
      *
-     * A candidate that will not compile at all is refused the same as one that overlaps. Either way the search should
-     * go on looking rather than hand this arrangement to whoever asked.
+     * A candidate that will not compile at all is refused the same as one that overlaps or leaves a cabinet over air.
+     * Either way the search should go on looking rather than hand this arrangement to whoever asked.
      *
      * @param list<Tier> $tiers
      */
@@ -633,18 +633,15 @@ final class SceneCompiler
             return false;
         }
 
-        // **A gapped row is also asked whether everything stands on something once placed.** The bearing rules judge
-        // it on nominal widths, and the placement then aims and spaces the tops row, which can walk an end cabinet off
-        // a row whose cabinets stand apart. Measured on `innschleife-psl-sdwa5-sepp`: the psl tops row shifted 0.2 m
-        // and left a thebox-dsp-112 entirely over air. Only for gapped arrangements, so every packed rig is judged
-        // exactly as it was before GEO-13.
-        foreach ($tiers as $tier) {
-            if (null !== $tier->gapM) {
-                return [] === PlacementChecks::floatingFaults($result['placed']);
-            }
-        }
-
-        return true;
+        // **Every arrangement is also asked whether everything stands on something once placed.** The bearing rules
+        // judge it on nominal widths, and the placement then aims and spaces the tops row, which can walk an end
+        // cabinet off a row whose cabinets stand apart. Measured on `innschleife-psl-sdwa5-sepp`: the psl tops row
+        // shifted 0.2 m and left a thebox-dsp-112 entirely over air. This used to be asked of gapped rows only, so
+        // that packed rigs kept their pre-GEO-13 verdicts. The mirrored rows of 0.142.0 showed why that was not enough.
+        // On `gmss-sdwa5-sepp`, the symmetric row `1S·1wall·1mid·1wall·1S` outranked a lopsided one that stood, and its
+        // turbo-top then compiled over air. A packed rig that floats compiles to an impossible scene anyway, so asking
+        // it here can only steer the search toward one that stands.
+        return [] === PlacementChecks::floatingFaults($result['placed']);
     }
 
     /**

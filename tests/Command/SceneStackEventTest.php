@@ -22,6 +22,13 @@ final class SceneStackEventTest extends SceneStackTestCase
         '--systems' => ['pooled'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
     ];
 
+    private const ACHENBACH_STEREO = [
+        '--owner' => ['sdwa5', 'sepp', 'psl', 'innschleife'],
+        '--event' => 'next-event-light-achenbach', '--into' => 'next-event-light-achenbach', '--order' => ['ours,psl,innschleife'],
+        '--systems' => ['systems-apart'], '--stacks' => '1', '--align' => ['stereo'], '--shape' => ['pyramid'],
+        '--mirror-style' => ['alternate'], '--low-end' => ['low'], '--dry-run' => true, '--jobs' => '1',
+    ];
+
     public function testTheEventRecordsResolvedNumbersAndBuildsThePhotoRig(): void
     {
         $tester = $this->invoke(self::OPTIONS);
@@ -113,6 +120,37 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertSame(2, substr_count($display, '1× wsx-18 rolled 270° + 1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90°'));
         self::assertStringContainsString('4× kicker-15', $display);
         self::assertStringContainsString('1× tms2 + 1× tms4 + 1× tms2', $display);
+        // It fits as solved, so no stack is narrowed for the room.
+        self::assertStringNotContainsString('max_width_m', $display);
+    }
+
+    /**
+     * **The room is a hard limit and the height band gives way to it.** The Achenbach event's stereo rig solved our
+     * stack as one row of twelve Flexys, 16.03 m in all, and the 13 m room refused it. Narrowed, ours is three sub rows
+     * at 3.72 m and the rig fits.
+     */
+    public function testARigTooWideForTheRoomIsBuiltAgainWithNarrowerStacks(): void
+    {
+        $tester = $this->invoke(self::ACHENBACH_STEREO);
+
+        self::assertSame(0, $tester->getStatusCode());
+        $display = $tester->getDisplay();
+        self::assertStringContainsString('stacked-1-systems-apart-pyramid-stated--alternate-stereo-low-----possible', $display);
+        self::assertSame(1, substr_count($display, 'max_width_m:'));
+        self::assertStringContainsString('6× flexy-folded-horn-hybrid rolled 180°', $display);
+        self::assertStringContainsString('2× achenbach-18 + 2× skram + 2× achenbach-18', $display);
+    }
+
+    /** A room even the narrowest stacks cannot fit is refused, and the refusal names that narrowest rig. */
+    public function testARoomTooNarrowForTheNarrowestStacksNamesTheNarrowestRig(): void
+    {
+        $tester = $this->invoke(self::ACHENBACH_STEREO + ['--room-width' => '11']);
+
+        self::assertSame(SceneStackCommand::NOTHING_TO_WRITE, $tester->getStatusCode());
+        self::assertStringContainsString(
+            'the whole rig is 11.215 m wide even with its stacks narrowed, and exceeds the 11.000 m room width',
+            $tester->getDisplay(),
+        );
     }
 
     public function testAnExplicitClearanceReplacesTheEvents(): void

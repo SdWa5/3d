@@ -28,6 +28,8 @@
 #
 # Subs reach 2.07 m against a 2.0 m interface. The stack is 2.78 m of cabinet.
 #   * the 3× iq-sub row is 1.630 m on a 1.270 m row, so it overhangs 180 mm each side
+#   * row 1 (1× nuke + 1× wall-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-gmss-2 — gmss-2, 7 cabinets in 5 rows:
 #

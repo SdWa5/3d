@@ -29,39 +29,33 @@
 #     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.090 m row, so
 #     it overhangs 11 mm each side
 #
-# main-psl — psl, 22 cabinets in 4 rows:
+# main-psl — psl, 22 cabinets in 3 rows:
 #
-#   1  1× thebox-tp118-800 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esf rolled 90° + 1× thebox-tp118-800 rolled 90° + 1× thebox-tp218-1600 rolled 90°    4.076 m wide
-#   2  2× concert-audio-esx rolled 270° + 1× thebox-tp218-1600 rolled 90° at 258 mm gaps    4.076 m wide
-#   3  2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90°     4.78 m wide
-#   4  2× concert-audio-ef6 + 1× thebox-achat-112m + 1× thebox-achat-115m + 1× thebox-pa302 + 1× hk-linear5-112x + 1× thebox-dsp-112 + 1× thebox-achat-112m + 2× concert-audio-ef6    4.826 m wide
+#   1  1× thebox-tp218-1600 rolled 270° + 1× thebox-tp118-800 rolled 270° + 1× concert-audio-esf rolled 270° + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× thebox-tp118-800 rolled 90° + 1× thebox-tp218-1600 rolled 90°    6.496 m wide
+#   2  3× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90° at 149 mm gaps    6.496 m wide
+#   3  2× concert-audio-ef6 + 1× thebox-achat-112m + 1× thebox-achat-115m + 1× thebox-pa302 + 1× hk-linear5-112x + 1× thebox-dsp-112 + 1× thebox-achat-112m + 2× concert-audio-ef6    4.826 m wide
 #
-# Subs reach 1.768 m against a 2.0 m interface. The stack is 2.548 m of cabinet.
+# Subs reach 1.18 m against a 2.0 m interface. The stack is 1.96 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.768 m against the 2.000 m interface asked for, so the tops sit 232 mm lower than ideal —
-#     1.768 m is the most they reach while every tier is still carried
-#   * the 2× concert-audio-esx rolled 270° + 2× concert-audio-esx rolled 90° row is 4.780 m on a 4.076 m row, so
-#     it overhangs 352 mm each side
-#   * the 2× concert-audio-ef6 + 1× thebox-achat-112m + 1× thebox-achat-115m + 1× thebox-pa302 + 1×
-#     hk-linear5-112x + 1× thebox-dsp-112 + 1× thebox-achat-112m + 2× concert-audio-ef6 row is 4.826 m on a 4.780 m row,
-#     so it overhangs 23 mm each side
+#   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
+#     1.180 m is the most they reach while every tier is still carried
 #
 # main-innschleife — innschleife, 20 cabinets in 6 rows:
 #
 #   1  4× sub-60x60                                                              2.46 m wide
 #   2  3× kicker-15                                                              2.89 m wide
-#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× kicker-15           3.19 m wide
-#   4  2× wsx-18 rolled 270° + 1× sbh-18 rolled 90°                           3.44 m wide
+#   3  1× wsx-18 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 90°           3.19 m wide
+#   4  1× wsx-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 270°     3.44 m wide
 #   5  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
 #   6  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
 #
 # Subs reach 2.86 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the 3× kicker-15 row is 2.890 m on a 2.460 m row, so it overhangs 215 mm each side
-#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× kicker-15 row is 3.190 m on a 2.890 m row, so it
+#   * the 1× wsx-18 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 90° row is 3.190 m on a 2.890 m row, so it
 #     overhangs 150 mm each side
-#   * the 2× wsx-18 rolled 270° + 1× sbh-18 rolled 90° row is 3.440 m on a 3.190 m row, so it overhangs 125 mm
-#     each side
+#   * the 1× wsx-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 270° row is 3.440 m on a 3.190 m row,
+#     so it overhangs 125 mm each side
 #   * the 1× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 3.640 m on a 3.440 m row, so it overhangs 100 mm
 #     each side
 #
@@ -79,7 +73,7 @@ focus:
 placements:
   # ours, 25 cabinets in 6 rows
   - id: main-ours
-    at: [-5.035, 0.0]
+    at: [-5.87, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -106,7 +100,7 @@ placements:
         - device: eighteensound-2way-15
           aim: near
 
-  # psl, 22 cabinets in 4 rows
+  # psl, 22 cabinets in 3 rows
   - id: main-psl
     at: [-0.566, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -148,7 +142,7 @@ placements:
 
   # innschleife, 20 cabinets in 6 rows
   - id: main-innschleife
-    at: [4.167, 0.0]
+    at: [5.002, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

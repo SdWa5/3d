@@ -31,7 +31,7 @@
 # main-psl — psl, 15 cabinets in 4 rows:
 #
 #   1  5× concert-audio-esx                                                      3.03 m wide
-#   2  1× concert-audio-esf + 2× thebox-tp218-1600 + 1× concert-audio-esx + 1× concert-audio-esf at 41 mm gaps     3.03 m wide
+#   2  1× concert-audio-esf + 1× thebox-tp218-1600 + 1× concert-audio-esx + 1× thebox-tp218-1600 + 1× concert-audio-esf at 41 mm gaps     3.03 m wide
 #   3  2× thebox-tp118-800 at 103 mm gaps                                       1.203 m wide
 #   4  1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m             1.2956 m wide
 #

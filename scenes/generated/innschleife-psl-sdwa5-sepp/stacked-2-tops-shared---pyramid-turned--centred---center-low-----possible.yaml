@@ -24,6 +24,8 @@
 # Subs reach 1.801 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
 #   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
 #     1.801 m is the most they reach while every tier is still carried
+#   * row 3 (1× achenbach-18 rolled 270° + 1× skram rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 12 cabinets in 4 rows:
 #
@@ -35,6 +37,8 @@
 # Subs reach 1.801 m against a 2.0 m interface. The stack is 2.567 m of cabinet.
 #   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
 #     1.801 m is the most they reach while every tier is still carried
+#   * row 3 (1× skram rolled 270° + 1× achenbach-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-psl-1 — psl-1, 11 cabinets in 3 rows:
 #
@@ -45,6 +49,8 @@
 # Subs reach 2.38 m against a 2.0 m interface. The stack is 3.34 m of cabinet.
 #   * the 2× concert-audio-ef6 + 1× tecnare-m2122 + 1× tms2 + 1× thebox-dsp-112 row is 2.534 m on a 2.466 m row,
 #     so it overhangs 34 mm each side
+#   * row 2 (1× thebox-tp118-800 rolled 270° + 1× thebox-tp218-1600 + 1× concert-audio-esf rolled 90° at 259 mm
+#     gaps) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl-2 — psl-2, 10 cabinets in 2 rows:
 #
@@ -54,6 +60,9 @@
 # Subs reach 0.59 m against a 2.0 m interface. The stack is 1.55 m of cabinet.
 #   * the subs reach 0.590 m against the 2.000 m interface asked for, so the tops sit 1410 mm lower than ideal —
 #     0.590 m is the most they reach while every tier is still carried
+#   * row 1 (3× concert-audio-esx rolled 270° + 1× concert-audio-esf rolled 90° + 1× thebox-tp218-1600 rolled
+#     90° + 1× thebox-tp118-800 rolled 90°) is not mirror-symmetric, and the search found no symmetric arrangement of
+#     these cabinets that stands
 #
 # main-innschleife-1 — innschleife-1, 11 cabinets in 5 rows:
 #

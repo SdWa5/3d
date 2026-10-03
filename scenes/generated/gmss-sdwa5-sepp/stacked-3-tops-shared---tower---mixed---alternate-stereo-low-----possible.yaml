@@ -26,7 +26,7 @@
 # main-ours-1 — ours-1, 7 cabinets in 3 rows:
 #
 #   1  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 at 183 mm gaps    2.329 m wide
+#   2  1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 at 183 mm gaps    2.329 m wide
 #   3  1× turbo-top                                                              0.45 m wide
 #
 # Subs reach 1.191 m against a 2.0 m interface. The stack is 1.901 m of cabinet.
@@ -54,7 +54,7 @@
 #
 # main-gmss-2 — gmss-2, 13 cabinets in 2 rows:
 #
-#   1  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90° + 1× mid-bass      7.0 m wide
+#   1  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°      7.0 m wide
 #   2  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.9812 m wide
 #
 # Subs reach 0.66 m against a 2.0 m interface. The stack is 1.62 m of cabinet.

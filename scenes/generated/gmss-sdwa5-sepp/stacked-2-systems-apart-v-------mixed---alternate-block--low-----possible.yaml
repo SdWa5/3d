@@ -55,6 +55,8 @@
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× skram rolled 270° + 1× achenbach-18) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-gmss-2 — gmss-2, 8 cabinets in 5 rows:
 #

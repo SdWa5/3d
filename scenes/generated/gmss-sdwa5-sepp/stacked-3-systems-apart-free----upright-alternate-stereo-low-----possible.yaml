@@ -22,6 +22,8 @@
 # Subs reach 2.94 m against a 2.0 m interface. The stack is 3.65 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× nuke + 1× mid-bass row is 1.810 m on a 1.340 m row, so it overhangs 235 mm each side
+#   * row 2 (1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-ours-1 — ours-1, 8 cabinets in 4 rows:
 #
@@ -65,7 +67,7 @@
 #
 # main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
-#   1  2× skram + 1× flexy-folded-horn-hybrid                                  1.851 m wide
+#   1  1× skram + 1× flexy-folded-horn-hybrid + 1× skram                      1.851 m wide
 #   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
 #   4  1× tecnare-m2122                                                           0.5 m wide

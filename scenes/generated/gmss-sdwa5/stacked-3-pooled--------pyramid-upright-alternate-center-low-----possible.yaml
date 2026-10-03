@@ -32,7 +32,7 @@
 # main-2 — 2, 15 cabinets in 3 rows:
 #
 #   1  2× flexy-folded-horn-hybrid + 1× skram + 2× wall-bass + 1× skram + 2× flexy-folded-horn-hybrid    5.044 m wide
-#   2  1× iq-sub + 2× nuke + 1× iq-sub + 1× mid-bass                          3.52 m wide
+#   2  1× iq-sub + 1× nuke + 1× mid-bass + 1× nuke + 1× iq-sub               3.52 m wide
 #   3  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
 # Subs reach 2.17 m against a 2.0 m interface. The stack is 3.13 m of cabinet.

@@ -12,9 +12,9 @@
 # What it deals out today:
 #
 #   1  5× achenbach-18                                                           3.08 m wide
-#   2  4× iq-sub + 1× achenbach-18 at 90 mm gaps                                3.08 m wide
+#   2  2× iq-sub + 1× achenbach-18 + 2× iq-sub at 90 mm gaps                   3.08 m wide
 #   3  1× iq-sub + 2× wall-bass + 1× iq-sub at 234 mm gaps                    3.082 m wide
-#   4  2× nuke + 1× mid-bass at 350 mm gaps                                     3.08 m wide
+#   4  1× nuke + 1× mid-bass + 1× nuke at 350 mm gaps                          3.08 m wide
 #   5  1× eighteensound-2way-15 + 1× turbo-top + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15   2.3612 m wide
 #
 # Subs reach 3.44 m against a 2.0 m interface. The stack is 4.276 m of cabinet.

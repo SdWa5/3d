@@ -19,6 +19,10 @@
 # Subs reach 1.93 m against a 2.0 m interface. The stack is 2.766 m of cabinet.
 #   * the subs reach 1.930 m against the 2.000 m interface asked for, so the tops sit 70 mm lower than ideal — 1.930
 #     m is the most they reach while every tier is still carried
+#   * row 1 (1× nuke rolled 270° + 2× wall-bass rolled 270° + 1× achenbach-18 + 1× nuke rolled 90° + 1×
+#     mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
+#   * row 2 (5× achenbach-18 + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------free----mixed---centred---center-low-----possible
 name: "Solved rig — one stack, tiers centred"

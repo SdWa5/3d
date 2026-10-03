@@ -341,7 +341,9 @@ final class SceneStackFeasibilityTest extends SceneStackTestCase
         self::assertStringContainsString('mid-bass: LEFT OUT', $display);
         self::assertStringNotContainsString('iq-sub: LEFT OUT', $display, 'the subs are all carried');
 
-        self::assertSame([2.7], $this->heights($display));
+        // **2.84 m since 0.142.0, in six symmetric rows of pairs.** The 2.70 m rig put a spare IQ sub beside each pair of
+        // wall basses and nukes, and a lopsided row no longer wins while a symmetric one stands.
+        self::assertSame([2.84], $this->heights($display));
     }
 
     /**

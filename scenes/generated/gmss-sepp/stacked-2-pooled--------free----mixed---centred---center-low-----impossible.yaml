@@ -3,7 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-1/3b and main-1/4a are 0.0317 m inside each other
+#   * main-1/4b and main-1/5a are 0.0160 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -16,46 +16,48 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 8 cabinets in 4 rows:
+# main-1 — 1, 10 cabinets in 5 rows:
 #
-#   1  2× achenbach-18                                                           1.22 m wide
-#   2  1× iq-sub rolled 270° + 1× achenbach-18                                 1.29 m wide
-#   3  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
-#   4  1× eighteensound-2way-15 + 1× turbo-top                                0.9356 m wide
+#   1  1× nuke rolled 270° + 1× wall-bass rolled 90°                          2.19 m wide
+#   2  2× achenbach-18                                                           1.22 m wide
+#   3  1× iq-sub rolled 270° + 1× achenbach-18                                 1.29 m wide
+#   4  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
+#   5  1× eighteensound-2way-15 + 1× turbo-top                                0.9356 m wide
 #
-# Subs reach 1.73 m against a 2.0 m interface. The stack is 2.566 m of cabinet.
-#   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
+# Subs reach 2.39 m against a 2.0 m interface. The stack is 3.226 m of cabinet.
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.730 m against the 2.000 m interface asked for, so the tops sit 270 mm lower than ideal —
-#     1.730 m is the most they reach while every tier is still carried
 #   * the 1× iq-sub rolled 270° + 1× achenbach-18 row is 1.290 m on a 1.220 m row, so it overhangs 35 mm each side
 #   * the 1× iq-sub rolled 270° + 1× iq-sub rolled 90° row is 1.360 m on a 1.290 m row, so it overhangs 35 mm each
 #     side
+#   * row 1 (1× nuke rolled 270° + 1× wall-bass rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 3 (1× iq-sub rolled 270° + 1× achenbach-18) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
-# main-2 — 2, 14 cabinets in 4 rows:
+# main-2 — 2, 12 cabinets in 6 rows:
 #
-#   1  1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90°      4.04 m wide
-#   2  1× nuke rolled 270° + 3× achenbach-18 + 1× nuke rolled 90°            3.42 m wide
-#   3  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
-#   4  1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top                1.4056 m wide
+#   1  1× wall-bass                                                              0.66 m wide
+#   2  1× mid-bass                                                                1.2 m wide
+#   3  1× achenbach-18 + 1× nuke rolled 90°                                    1.39 m wide
+#   4  2× achenbach-18 + 1× iq-sub rolled 90°                                  1.91 m wide
+#   5  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
+#   6  1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top                1.4056 m wide
 #
-# Subs reach 1.93 m against a 2.0 m interface. The stack is 2.766 m of cabinet.
-#   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
-#     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
-#     work, which is what the -turned rig does
-#   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
-#     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
-#     which is what the -turned rig does
+# Subs reach 3.63 m against a 2.0 m interface. The stack is 4.466 m of cabinet.
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.930 m against the 2.000 m interface asked for, so the tops sit 70 mm lower than ideal — 1.930
-#     m is the most they reach while every tier is still carried
+#   * the subs reach 3.630 m against the 3.000 m ceiling asked for, so they stand 630 mm too high — 3.630 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 1× mid-bass row is 1.200 m on a 0.660 m row, so it overhangs 270 mm each side
+#   * the 1× achenbach-18 + 1× nuke rolled 90° row is 1.390 m on a 1.200 m row, so it overhangs 95 mm each side
+#   * the 2× achenbach-18 + 1× iq-sub rolled 90° row is 1.910 m on a 1.390 m row, so it overhangs 260 mm each side
+#   * the 1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top row is 1.406 m on a 1.360 m row, so it overhangs
+#     23 mm each side
+#   * row 3 (1× achenbach-18 + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 4 (2× achenbach-18 + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------free----mixed---centred---center-low-----impossible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -69,9 +71,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 8 cabinets in 4 rows
+  # 1, 10 cabinets in 5 rows
   - id: main-1
-    at: [-2.572, 0.0]
+    at: [-1.507, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -80,6 +82,12 @@ placements:
       mirror_style: centred
       mirror: true             # the mirror image of stack 1
       from:
+        - device: wall-bass
+          count: 1
+          roll_mirror: 90.0
+        - device: nuke
+          count: 1
+          roll_mirror: 90.0
         - device: achenbach-18
           count: 3
         - device: iq-sub
@@ -91,9 +99,9 @@ placements:
           count: 1
           aim: near
 
-  # 2, 14 cabinets in 4 rows
+  # 2, 12 cabinets in 6 rows
   - id: main-2
-    at: [0.628, 0.0]
+    at: [1.043, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -102,9 +110,11 @@ placements:
       mirror_style: centred
       from:
         - device: wall-bass
+          count: 1
           roll_mirror: 90.0
         - mid-bass
         - device: nuke
+          count: 1
           roll_mirror: 90.0
         - device: achenbach-18
           count: 3

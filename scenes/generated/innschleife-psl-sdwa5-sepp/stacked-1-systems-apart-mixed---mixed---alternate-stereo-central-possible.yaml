@@ -28,6 +28,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1×
 #     tecnare-m2122 row is 2.511 m on a 2.468 m row, so it overhangs 22 mm each side
+#   * row 5 (1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -40,17 +42,18 @@
 #   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
 #     1.178 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 6 rows:
+# main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
-#   2  2× wsx-18 rolled 270° + 1× sbh-18 rolled 90° at 120 mm gaps            3.64 m wide
-#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× kicker-15 at 245 mm gaps     3.64 m wide
-#   4  3× kicker-15                                                              2.89 m wide
-#   5  4× sub-60x60                                                              2.46 m wide
-#   6  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
+#   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
+#   2  4× kicker-15 at 220 mm gaps                                               4.46 m wide
+#   3  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
+#   4  2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60                     3.68 m wide
+#   5  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
 #
-# Subs reach 2.86 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
+# Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the 2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60 row is 3.680 m on a 3.640 m row, so it overhangs 20
+#     mm each side
 #
 id: stacked-1-systems-apart-mixed---mixed---alternate-stereo-central-possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"
@@ -66,7 +69,7 @@ focus:
 placements:
   # ours, 25 cabinets in 6 rows
   - id: main-ours
-    at: [-6.212, 0.0]
+    at: [-6.622, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -96,7 +99,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-0.566, 0.0]
+    at: [-0.976, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -135,7 +138,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 6 rows
+  # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
     at: [5.344, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

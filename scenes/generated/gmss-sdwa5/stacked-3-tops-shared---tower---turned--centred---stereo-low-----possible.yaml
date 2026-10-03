@@ -11,27 +11,26 @@
 #
 # 6 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours-2 — ours-2, 8 cabinets in 3 rows:
+# main-ours-2 — ours-2, 7 cabinets in 3 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
-#   3  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
+#   3  1× turbo-top                                                              0.45 m wide
 #
-# Subs reach 1.828 m against a 2.0 m interface. The stack is 2.788 m of cabinet.
+# Subs reach 1.828 m against a 2.0 m interface. The stack is 2.538 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.828 m against the 2.000 m interface asked for, so the tops sit 172 mm lower than ideal —
 #     1.828 m is the most they reach while every tier is still carried
 #
-# main-ours-1 — ours-1, 5 cabinets in 3 rows:
+# main-ours-3 — ours-3, 4 cabinets in 2 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   3  1× turbo-top                                                              0.45 m wide
 #
-# Subs reach 1.182 m against a 2.0 m interface. The stack is 1.892 m of cabinet.
+# Subs reach 1.182 m against a 2.0 m interface. The stack is 1.182 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.182 m against the 2.000 m interface asked for, so the tops sit 818 mm lower than ideal —
-#     1.182 m is the most they reach while every tier is still carried
+#   * the subs reach 1.182 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
+#     a sub wing, so the interface decides nothing about it
 #
 # main-gmss-1 — gmss-1, 2 cabinets in 1 row:
 #
@@ -51,7 +50,17 @@
 #   * the subs reach 0.530 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
 #     a sub wing, so the interface decides nothing about it
 #
-# main-ours-3 — ours-3, 4 cabinets in 2 rows:
+# main-gmss-2 — gmss-2, 12 cabinets in 2 rows:
+#
+#   1  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°      7.0 m wide
+#   2  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122     2.48 m wide
+#
+# Subs reach 0.66 m against a 2.0 m interface. The stack is 1.62 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the subs reach 0.660 m against the 2.000 m interface asked for, so the tops sit 1340 mm lower than ideal —
+#     0.660 m is the most they reach while every tier is still carried
+#
+# main-ours-1 — ours-1, 4 cabinets in 2 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
@@ -60,17 +69,6 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.182 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
 #     a sub wing, so the interface decides nothing about it
-#
-# main-gmss-2 — gmss-2, 10 cabinets in 3 rows:
-#
-#   1  1× wall-bass rolled 270° + 1× nuke rolled 270° + 1× nuke rolled 90° + 1× wall-bass rolled 90°      4.4 m wide
-#   2  1× iq-sub rolled 270° + 1× mid-bass + 1× iq-sub rolled 90° at 930 mm gaps      4.4 m wide
-#   3  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
-#
-# Subs reach 1.19 m against a 2.0 m interface. The stack is 2.15 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.190 m against the 2.000 m interface asked for, so the tops sit 810 mm lower than ideal —
-#     1.190 m is the most they reach while every tier is still carried
 #
 id: stacked-3-tops-shared---tower---turned--centred---stereo-low-----possible
 name: "Solved rig — 6 stacks side by side, tiers split left and right"
@@ -84,9 +82,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours-2, 8 cabinets in 3 rows
+  # ours-2, 7 cabinets in 3 rows
   - id: main-ours-2
-    at: [-6.658, 0.0]
+    at: [-7.958, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -109,15 +107,12 @@ placements:
         - device: flexy-folded-horn-hybrid
           count: 4
           roll_mirror: 90.0
-        - device: tecnare-m2122
-          count: 1
         - device: turbo-top
           count: 1
-          aim: near
 
-  # ours-1, 5 cabinets in 3 rows
-  - id: main-ours-1
-    at: [-4.297, 0.0]
+  # ours-3, 4 cabinets in 2 rows
+  - id: main-ours-3
+    at: [-5.597, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -134,17 +129,14 @@ placements:
       gap_m: 0.02
       mirror_style: centred
       shape: tower
-      mirror: true             # the mirror image of stack ours-1
       from:
         - device: flexy-folded-horn-hybrid
           count: 4
           roll_mirror: 90.0
-        - device: turbo-top
-          count: 1
 
   # gmss-1, 2 cabinets in 1 row
   - id: main-gmss-1
-    at: [-2.344, 0.0]
+    at: [-3.644, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -169,7 +161,7 @@ placements:
 
   # gmss-3, 2 cabinets in 1 row
   - id: main-gmss-3
-    at: [-0.484, 0.0]
+    at: [-1.784, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -191,33 +183,9 @@ placements:
           count: 2
           roll_mirror: 90.0
 
-  # ours-3, 4 cabinets in 2 rows
-  - id: main-ours-3
-    at: [1.469, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      mirror_style: centred
-      shape: tower
-      from:
-        - device: flexy-folded-horn-hybrid
-          count: 4
-          roll_mirror: 90.0
-
-  # gmss-2, 10 cabinets in 3 rows
+  # gmss-2, 12 cabinets in 2 rows
   - id: main-gmss-2
-    at: [4.942, 0.0]
+    at: [2.896, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -244,8 +212,32 @@ placements:
         - device: iq-sub
           count: 2
           roll_mirror: 90.0
-        - device: tecnare-m2122
-          count: 2
+        - tecnare-m2122
         - device: turbo-top
-          count: 1
+          count: 2
           aim: near
+
+  # ours-1, 4 cabinets in 2 rows
+  - id: main-ours-1
+    at: [7.669, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      mirror_style: centred
+      shape: tower
+      mirror: true             # the mirror image of stack ours-1
+      from:
+        - device: flexy-folded-horn-hybrid
+          count: 4
+          roll_mirror: 90.0

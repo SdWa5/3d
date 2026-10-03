@@ -30,14 +30,13 @@
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #
-# main-1 — 1, 8 cabinets in 4 rows:
+# main-1 — 1, 8 cabinets in 3 rows:
 #
-#   1  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
-#   2  1× iq-sub rolled 270° + 1× achenbach-18 rolled 90°                     1.29 m wide
-#   3  1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90°               1.22 m wide
-#   4  1× turbo-top + 1× eighteensound-2way-15                                0.9356 m wide
+#   1  2× iq-sub rolled 270° + 1× iq-sub rolled 90°                           2.05 m wide
+#   2  1× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90° at 125 mm gaps     2.05 m wide
+#   3  1× turbo-top + 1× eighteensound-2way-15                                0.9356 m wide
 #
-# Subs reach 1.73 m against a 2.0 m interface. The stack is 2.566 m of cabinet.
+# Subs reach 1.13 m against a 2.0 m interface. The stack is 1.966 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
@@ -47,8 +46,8 @@
 #     which is what the -turned rig does
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.730 m against the 2.000 m interface asked for, so the tops sit 270 mm lower than ideal —
-#     1.730 m is the most they reach while every tier is still carried
+#   * the subs reach 1.130 m against the 2.000 m interface asked for, so the tops sit 870 mm lower than ideal —
+#     1.130 m is the most they reach while every tier is still carried
 #
 id: stacked-2-pooled--------tower---turned--alternate-stereo-central-possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -64,7 +63,7 @@ focus:
 placements:
   # 2, 14 cabinets in 5 rows
   - id: main-2
-    at: [-1.232, 0.0]
+    at: [-1.577, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -93,7 +92,7 @@ placements:
           count: 2
           aim: near
 
-  # 1, 8 cabinets in 4 rows
+  # 1, 8 cabinets in 3 rows
   - id: main-1
     at: [1.358, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

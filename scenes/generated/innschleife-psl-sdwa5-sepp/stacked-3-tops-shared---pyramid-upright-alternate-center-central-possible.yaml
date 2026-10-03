@@ -85,12 +85,14 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× kicker-15 + 1× sub-60x60 + 1× wsx-18 + 1× sbh-18) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 10 cabinets in 4 rows:
 #
 #   1  2× kicker-15                                                              1.92 m wide
 #   2  1× sub-60x60 + 1× wsx-18 + 1× sub-60x60                                 1.81 m wide
-#   3  2× sbh-18 + 1× wsx-18                                                    1.71 m wide
+#   3  1× sbh-18 + 1× wsx-18 + 1× sbh-18                                       1.71 m wide
 #   4  1× tms2 + 1× tms4                                                        0.95 m wide
 #
 # Subs reach 2.87 m against a 2.0 m interface. The stack is 4.01 m of cabinet.
@@ -119,6 +121,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× sbh-18 + 1× wsx-18 + 1× sub-60x60 + 1× kicker-15) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-3-tops-shared---pyramid-upright-alternate-center-central-possible
 name: "Solved rig — 9 stacks side by side, tiers centred"

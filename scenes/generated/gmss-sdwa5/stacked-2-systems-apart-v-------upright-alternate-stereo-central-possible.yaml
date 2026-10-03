@@ -31,16 +31,15 @@
 #
 # main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
-#   1  1× skram + 1× flexy-folded-horn-hybrid                                  1.221 m wide
-#   2  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   3  2× flexy-folded-horn-hybrid at 631 mm gaps                               1.813 m wide
+#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
+#   2  2× flexy-folded-horn-hybrid rolled 180° at 650 mm gaps                  1.832 m wide
+#   3  2× flexy-folded-horn-hybrid at 650 mm gaps                               1.832 m wide
 #   4  1× tecnare-m2122 + 1× tecnare-m2122                                      1.02 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 3× flexy-folded-horn-hybrid row is 1.813 m on a 1.221 m row, so it overhangs 296 mm each side
 #
 # main-gmss-1 — gmss-1, 6 cabinets in 3 rows:
 #
@@ -53,6 +52,8 @@
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 3× iq-sub row is 1.630 m on a 1.270 m row, so it overhangs 180 mm each side
+#   * row 1 (1× nuke + 1× wall-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-ours-1 — ours-1, 8 cabinets in 5 rows:
 #
@@ -84,7 +85,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 5 rows
   - id: main-gmss-2
-    at: [-3.3745, 0.0]
+    at: [-3.384, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -141,7 +142,7 @@ placements:
 
   # gmss-1, 6 cabinets in 3 rows
   - id: main-gmss-1
-    at: [1.0685, 0.0]
+    at: [1.078, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -171,7 +172,7 @@ placements:
 
   # ours-1, 8 cabinets in 5 rows
   - id: main-ours-1
-    at: [2.9845, 0.0]
+    at: [2.994, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

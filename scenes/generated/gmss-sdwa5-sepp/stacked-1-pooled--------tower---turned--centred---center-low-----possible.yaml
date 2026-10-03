@@ -12,14 +12,12 @@
 #
 # What it deals out today:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    9.376 m wide
-#   2  3× iq-sub rolled 270° + 3× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90° + 3× iq-sub rolled 90° at 160 mm gaps     9.38 m wide
-#   3  1× nuke rolled 270° + 1× skram rolled 270° + 1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90° + 1× skram rolled 90° + 1× nuke rolled 90° at 335 mm gaps    9.378 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 41 mm gaps    8.631 m wide
+#   2  3× iq-sub rolled 270° + 3× achenbach-18 rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× achenbach-18 + 2× achenbach-18 rolled 90° + 3× iq-sub rolled 90°    8.623 m wide
+#   3  1× nuke rolled 270° + 1× skram rolled 270° + 1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90° + 1× skram rolled 90° + 1× nuke rolled 90° at 210 mm gaps    8.628 m wide
 #   4  2× turbo-top + 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top   3.9212 m wide
 #
-# Subs reach 1.851 m against a 2.0 m interface. The stack is 2.811 m of cabinet.
-#   * the subs reach 1.851 m against the 2.000 m interface asked for, so the tops sit 149 mm lower than ideal —
-#     1.851 m is the most they reach while every tier is still carried
+# Subs reach 2.023 m against a 2.0 m interface. The stack is 2.983 m of cabinet.
 #
 id: stacked-1-pooled--------tower---turned--centred---center-low-----possible
 name: "Solved rig — one stack, tiers centred"

@@ -18,6 +18,7 @@ use App\Scene\MirrorStyle;
 use App\Scene\MouthMode;
 use App\Scene\Placement;
 use App\Scene\RolledBox;
+use App\Scene\RoomBounds;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneLayout;
 use App\Scene\SceneLoader;
@@ -176,7 +177,7 @@ final class SceneStackCommand extends BaseCommand
             ->addOption('mix', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Share a row: DEVICE:OTHER[,OTHER]. Repeatable. Lowers a stack by merging tiers')
             ->addOption('owner', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Build from these owners\' gear only. Default: sweep every combination of them')
             ->addOption('event', null, InputOption::VALUE_REQUIRED, 'Event id from events/. Applies its hard room limits, how each system is set up and what each system brings')
-            ->addOption('room-width', null, InputOption::VALUE_REQUIRED, 'Hard width limit for the whole compiled rig, in metres')
+            ->addOption('room-width', null, InputOption::VALUE_REQUIRED, 'Hard width limit for the whole compiled rig, in metres. A rig too wide is built again with narrower stacks first')
             ->addOption('room-height', null, InputOption::VALUE_REQUIRED, 'Hard ceiling for the whole compiled rig, in metres')
             ->addOption('system-interface', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Interface for walls of this owner\'s subs')
             ->addOption('system-target', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'OWNER:METRES. Sub-height target for walls of this owner\'s subs')
@@ -759,44 +760,34 @@ final class SceneStackCommand extends BaseCommand
             ? [[true, false], [false, false]]
             : [[true, true], [false, true], [true, false], [false, false]];
 
-        $blocks = [];
-        $best = -1;
-        $bestMiss = INF;
         $target = $this->readFloat($input, 'target-sub-height') ?? Stack::DEFAULT_TARGET_SUB_HEIGHT_M;
-        $firstProblem = null;
 
-        foreach ($strategies as [$evenSplit, $placeAll]) {
-            $attempt = $this->solveEach(
-                $groups,
-                [],
-                $devices,
-                $mode,
-                $shape,
-                $style,
-                $orientation,
-                $lowEnd,
-                $maxWidthM,
-                $input,
-                $evenSplit,
-                $placeAll,
-            );
-            if (is_string($attempt)) {
-                $firstProblem ??= $attempt;
-                continue;
-            }
+        // **The strategy loop at one set of width caps**, so the room search below can ask it again with narrower
+        // stacks. With no caps it is the loop as it always was.
+        $solveAt = function (array $caps) use (
+            $strategies,
+            $groups,
+            $pool,
+            $devices,
+            $mode,
+            $shape,
+            $style,
+            $orientation,
+            $lowEnd,
+            $maxWidthM,
+            $input,
+            $target,
+        ): array {
+            $blocks = [];
+            $best = -1;
+            $bestMiss = INF;
+            $flags = [true, true];
+            $firstProblem = null;
 
-            // **SWP-2's SECOND PASS, and it is a second pass rather than a second list because of what it reads.**
-            // A pool of tops is only non-empty under `tops-shared`, and it is dealt against the walls **as they came
-            // out** — how much top face a wall offers is the solver's answer rather than the inventory's, so nothing
-            // before this point could have known it. See {@see SharedTops} for the rule.
-            //
-            // Then every stack is solved again, from its subs plus its dealt share. The first solve is thrown away
-            // apart from its geometry, which is the honest cost of dealing against a solved wall instead of a
-            // guessed one: the sweep forks, so it is CPU rather than anybody's time.
-            if ([] !== $pool) {
+            foreach ($strategies as [$evenSplit, $placeAll]) {
                 $attempt = $this->solveEach(
                     $groups,
-                    SharedTops::deal($attempt, $pool, $devices),
+                    [],
                     $devices,
                     $mode,
                     $shape,
@@ -807,50 +798,82 @@ final class SceneStackCommand extends BaseCommand
                     $input,
                     $evenSplit,
                     $placeAll,
+                    false,
+                    $caps,
                 );
                 if (is_string($attempt)) {
                     $firstProblem ??= $attempt;
                     continue;
                 }
+
+                // **SWP-2's SECOND PASS, and it is a second pass rather than a second list because of what it reads.**
+                // A pool of tops is only non-empty under `tops-shared`, and it is dealt against the walls **as they came
+                // out** — how much top face a wall offers is the solver's answer rather than the inventory's, so nothing
+                // before this point could have known it. See {@see SharedTops} for the rule.
+                //
+                // Then every stack is solved again, from its subs plus its dealt share. The first solve is thrown away
+                // apart from its geometry, which is the honest cost of dealing against a solved wall instead of a
+                // guessed one: the sweep forks, so it is CPU rather than anybody's time.
+                if ([] !== $pool) {
+                    $attempt = $this->solveEach(
+                        $groups,
+                        SharedTops::deal($attempt, $pool, $devices),
+                        $devices,
+                        $mode,
+                        $shape,
+                        $style,
+                        $orientation,
+                        $lowEnd,
+                        $maxWidthM,
+                        $input,
+                        $evenSplit,
+                        $placeAll,
+                        false,
+                        $caps,
+                    );
+                    if (is_string($attempt)) {
+                        $firstProblem ??= $attempt;
+                        continue;
+                    }
+                }
+
+                // **CABINETS FIRST, THEN THE TARGET.** More cabinets always wins, because a cabinet in no rig at all is the
+                // worse failure and that ordering is what the four strategies exist to exploit. But between two attempts
+                // that place the *same* number there was nothing to choose, and the first one tried simply won — which is
+                // how stating a `max_sub_height_m` could make a rig come out taller than not stating one. The extra height
+                // was never the solve; it was this tie, resolved by strategy order rather than by the thing the ceiling was
+                // asked about.
+                //
+                // **The tie was then broken by "shorter wins", and that is now `target_sub_height_m`.** Shorter was a
+                // stand-in for a preference nobody had stated, and it is the wrong one: between a rig at 2.05 m and one at
+                // 2.48 m out of the same cabinets, the second is the rig to build. Closest to the target wins in either
+                // direction.
+                //
+                // **THE WORST STACK'S MISS, NOT THE TALLEST STACK'S HEIGHT**, and the difference is not academic. Scoring
+                // the tallest stack alone is what "too high" means about a rig, so it was right while the tie-break was
+                // "shorter wins" — but a target is a distance. Ranking on the tallest let an attempt win because its tall
+                // stack sat at 2.48 m while its other stack dropped to 1.773 m: measured, it cost
+                // `stacked-sdwa5-2-free-turned-centred-center` the whole scene, back when a stack outside the band was a
+                // refusal. Taking the worst miss keeps every stack near the aim, which is what the aim is for.
+                //
+                // The cost is {@see heightCost} rather than plain distance, because the band no longer refuses anything
+                // and a bound that cannot refuse and cannot rank would mean nothing whatsoever.
+                $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $attempt));
+                $miss = max(array_map(
+                    static fn (StackBlock $b): float => StackChecks::heightCost($b, $target),
+                    $attempt,
+                ));
+
+                if ($placed > $best || ($placed === $best && $miss < $bestMiss - 1e-9)) {
+                    $best = $placed;
+                    $bestMiss = $miss;
+                    $blocks = $attempt;
+                    $flags = [$evenSplit, $placeAll];
+                }
             }
 
-            // **CABINETS FIRST, THEN THE TARGET.** More cabinets always wins, because a cabinet in no rig at all is the
-            // worse failure and that ordering is what the four strategies exist to exploit. But between two attempts
-            // that place the *same* number there was nothing to choose, and the first one tried simply won — which is
-            // how stating a `max_sub_height_m` could make a rig come out taller than not stating one. The extra height
-            // was never the solve; it was this tie, resolved by strategy order rather than by the thing the ceiling was
-            // asked about.
-            //
-            // **The tie was then broken by "shorter wins", and that is now `target_sub_height_m`.** Shorter was a
-            // stand-in for a preference nobody had stated, and it is the wrong one: between a rig at 2.05 m and one at
-            // 2.48 m out of the same cabinets, the second is the rig to build. Closest to the target wins in either
-            // direction.
-            //
-            // **THE WORST STACK'S MISS, NOT THE TALLEST STACK'S HEIGHT**, and the difference is not academic. Scoring
-            // the tallest stack alone is what "too high" means about a rig, so it was right while the tie-break was
-            // "shorter wins" — but a target is a distance. Ranking on the tallest let an attempt win because its tall
-            // stack sat at 2.48 m while its other stack dropped to 1.773 m: measured, it cost
-            // `stacked-sdwa5-2-free-turned-centred-center` the whole scene, back when a stack outside the band was a
-            // refusal. Taking the worst miss keeps every stack near the aim, which is what the aim is for.
-            //
-            // The cost is {@see heightCost} rather than plain distance, because the band no longer refuses anything
-            // and a bound that cannot refuse and cannot rank would mean nothing whatsoever.
-            $placed = array_sum(array_map(static fn (StackBlock $b): int => $b->cabinets(), $attempt));
-            $miss = max(array_map(
-                static fn (StackBlock $b): float => StackChecks::heightCost($b, $target),
-                $attempt,
-            ));
-
-            if ($placed > $best || ($placed === $best && $miss < $bestMiss - 1e-9)) {
-                $best = $placed;
-                $bestMiss = $miss;
-                $blocks = $attempt;
-            }
-        }
-
-        if ([] === $blocks) {
-            return $firstProblem ?? 'no workable arrangement';
-        }
+            return ['blocks' => $blocks, 'best' => $best, 'flags' => $flags, 'problem' => $firstProblem];
+        };
 
         // **SYM-3, ONE TOPS ROW ACROSS A MIRRORED PAIR**, tried after the per-wall rigs because it is judged against
         // them: it has to place at least as many cabinets as the best of them, and on a tie it wins, since symmetry
@@ -937,15 +960,216 @@ final class SceneStackCommand extends BaseCommand
             return ['yaml' => $yaml, 'bandMiss' => $bandMiss] + $compiled;
         };
 
-        $bridged = $this->bridged($groups, $pool, $devices, $mode, $shape, $style, $orientation, $lowEnd, $maxWidthM, $input, $best);
-        if (null !== $bridged) {
-            $written = $write(...$bridged);
+        $writeAt = function (array $caps) use (
+            $solveAt,
+            $write,
+            $groups,
+            $pool,
+            $devices,
+            $mode,
+            $shape,
+            $style,
+            $orientation,
+            $lowEnd,
+            $maxWidthM,
+            $input,
+        ): array|string {
+            ['blocks' => $blocks, 'best' => $best, 'problem' => $problem] = $solveAt($caps);
+            if ([] === $blocks) {
+                return $problem ?? 'no workable arrangement';
+            }
+
+            $bridged = $this->bridged($groups, $pool, $devices, $mode, $shape, $style, $orientation, $lowEnd, $maxWidthM, $input, $best, $caps);
+            if (null !== $bridged) {
+                $written = $write(...$bridged);
+                if (!is_string($written)) {
+                    return $written;
+                }
+            }
+
+            return $write(StackSceneWriter::byHeight($blocks, $mode, self::statedOrder($input)), null);
+        };
+
+        $written = $writeAt([]);
+        if (!is_string($written) || null === RoomBounds::widthExcessIn($written)) {
+            return $written;
+        }
+
+        // One group solved on its own at one cap, with the dealing the uncapped rig settled on. The room search sizes
+        // its ladders with it, see {@see fittedToRoom}.
+        [$evenSplit, $placeAll] = $solveAt([])['flags'];
+        $solveOne = function (string $label, ?float $cap) use (
+            $groups,
+            $devices,
+            $mode,
+            $shape,
+            $style,
+            $orientation,
+            $lowEnd,
+            $maxWidthM,
+            $input,
+            $evenSplit,
+            $placeAll,
+        ): ?StackBlock {
+            $solved = $this->solveEach(
+                [$label => $groups[$label]],
+                [],
+                $devices,
+                $mode,
+                $shape,
+                $style,
+                $orientation,
+                $lowEnd,
+                $maxWidthM,
+                $input,
+                $evenSplit,
+                $placeAll,
+                false,
+                null === $cap ? [] : [$label => $cap],
+            );
+
+            return is_string($solved) ? null : $solved[0];
+        };
+
+        return $this->fittedToRoom($written, $groups, $solveOne, $writeAt);
+    }
+
+    /**
+     * How many narrower widths one stack is offered when its rig is too wide for the room. Twelve takes our pooled
+     * stack from one row of twelve Flexys down past three rows, which is further than any room so far has asked.
+     */
+    private const ROOM_LADDER_STEPS = 12;
+
+    /** How many combinations of narrowed stacks are compiled before a rig is given up on. */
+    private const ROOM_ATTEMPTS = 64;
+
+    /**
+     * How much the compiled rig may narrow by less than its stacks' sub rows do, before a combination is not worth
+     * compiling. Aimed tops and the backdrop reach past the subs, so the two widths are not the same number.
+     */
+    private const ROOM_SLACK_M = 0.1;
+
+    /**
+     * The rig built again with narrower stacks until it fits the room, or the reason it cannot.
+     *
+     * **The room is a hard limit and the height band is not**, which the owner settled on 2026-10-03. A rig used to be
+     * solved stack by stack with no idea of the room, and the room only refused the finished compile, so the
+     * Achenbach event's stereo rig at 16.03 m was lost in a 13 m room although every stack in it could stand narrower.
+     *
+     * * **A ladder per stack.** Each stack is solved again under a cap 1 mm below its last width until it stops
+     *   narrowing or places fewer cabinets. A narrower stack is a taller one, so every step costs height.
+     * * **Stacks of one pool share a step**, so a mirrored pair stays a mirror image and its bridged tops still fit.
+     * * **The combinations are ordered by what they cost**, the worst stack's {@see StackChecks::heightCost} first and
+     *   the sum second, which is how {@see build} already ranks a rig. One that cannot narrow the sub rows by the
+     *   excess is not compiled at all.
+     * * **Each is written as the rig would be**, the caps going into the scene as `max_width_m`, so the compiler
+     *   re-solves the file to the same rows. The first that passes the room is the answer.
+     *
+     * @param string $refusal the uncapped rig's room-width refusal
+     * @param array<string, array{ids: list<string>, index: int, of: int}> $groups
+     * @param callable(string, ?float): ?StackBlock $solveOne one group alone at one cap
+     * @param callable(array<string, float>): (array<string, mixed>|string) $writeAt the whole rig at a set of caps
+     *
+     * @return array{yaml: string, cabinets: int, fingerprint: string, bandMiss: ?string, faults: list<Fault>}|string
+     */
+    private function fittedToRoom(string $refusal, array $groups, callable $solveOne, callable $writeAt): array|string
+    {
+        $excess = (float) RoomBounds::widthExcessIn($refusal);
+
+        $pools = [];
+        foreach ($groups as $key => $group) {
+            $pools[implode(',', $group['ids'])][] = (string) $key;
+        }
+
+        $combinations = [[[], 0.0, 0.0, 0.0]];
+        foreach ($pools as $labels) {
+            $steps = $this->widthLadder($labels[0], $solveOne);
+            $next = [];
+            foreach ($combinations as [$caps, $narrowed, $worst, $total]) {
+                foreach ($steps as [$cap, $width, $cost]) {
+                    foreach ($labels as $label) {
+                        if (null !== $cap) {
+                            $caps[$label] = $cap;
+                        } else {
+                            unset($caps[$label]);
+                        }
+                    }
+                    $next[] = [
+                        $caps,
+                        $narrowed + count($labels) * ($steps[0][1] - $width),
+                        max($worst, $cost),
+                        $total + count($labels) * $cost,
+                    ];
+                }
+            }
+            $combinations = $next;
+        }
+
+        $mostNarrowed = max(array_column($combinations, 1));
+        $combinations = array_filter(
+            $combinations,
+            static fn (array $c): bool => [] !== $c[0] && $c[1] >= $excess - self::ROOM_SLACK_M,
+        );
+        usort($combinations, static fn (array $a, array $b): int => [$a[2], $a[3]] <=> [$b[2], $b[3]]);
+
+        $leastExcess = null;
+        $otherRefusal = null;
+        foreach (array_slice($combinations, 0, self::ROOM_ATTEMPTS) as [$caps]) {
+            $written = $writeAt($caps);
             if (!is_string($written)) {
                 return $written;
             }
+            $over = RoomBounds::widthExcessIn($written);
+            if (null === $over) {
+                $otherRefusal ??= $written;
+            } else {
+                $leastExcess = min($leastExcess ?? INF, $over);
+            }
         }
 
-        return $write(StackSceneWriter::byHeight($blocks, $mode, self::statedOrder($input)), null);
+        $room = (float) $this->eventOptions->room->widthM;
+        if (null !== $leastExcess) {
+            return sprintf(
+                'the whole rig is %.3f m wide even with its stacks narrowed, and exceeds the %.3f m room width',
+                $room + $leastExcess,
+                $room,
+            );
+        }
+
+        return $otherRefusal ?? sprintf(
+            '%s, and narrowing its stacks saves at most %.3f m of sub rows',
+            $refusal,
+            $mostNarrowed,
+        );
+    }
+
+    /**
+     * One stack's narrower widths, widest first, as `[cap, width, height cost]`. The first step is the stack uncapped.
+     *
+     * @param callable(string, ?float): ?StackBlock $solveOne
+     *
+     * @return non-empty-list<array{?float, float, float}>
+     */
+    private function widthLadder(string $label, callable $solveOne): array
+    {
+        $first = $solveOne($label, null);
+        if (null === $first) {
+            return [[null, 0.0, 0.0]];
+        }
+
+        $steps = [[null, $first->widthM(), StackChecks::heightCost($first, $first->stack->targetSubHeightM)]];
+        $width = $first->widthM();
+        while (count($steps) < self::ROOM_LADDER_STEPS) {
+            $cap = $width - 0.001;
+            $block = $solveOne($label, $cap);
+            if (null === $block || $block->cabinets() < $first->cabinets() || $block->widthM() > $cap + 1e-9) {
+                break;
+            }
+            $width = $block->widthM();
+            $steps[] = [$cap, $width, StackChecks::heightCost($block, $block->stack->targetSubHeightM)];
+        }
+
+        return $steps;
     }
 
     /**
@@ -962,6 +1186,7 @@ final class SceneStackCommand extends BaseCommand
      * @param array<string, array{ids: list<string>, index: int, of: int}> $groups
      * @param array<string, int> $pool the tops `tops-shared` held back, device id => cabinets
      * @param array<string, DeviceSpec> $devices
+     * @param array<string, float> $caps group label => width cap, see {@see solveEach}
      *
      * @return array{list<StackBlock>, BridgedTops}|null the walls left to right, and the row
      */
@@ -977,6 +1202,7 @@ final class SceneStackCommand extends BaseCommand
         ?float $maxWidthM,
         InputInterface $input,
         int $best,
+        array $caps = [],
     ): ?array {
         $lists = array_values(array_column($groups, 'ids'));
         if (2 !== count($lists) || $lists[0] !== $lists[1]) {
@@ -1012,6 +1238,7 @@ final class SceneStackCommand extends BaseCommand
             true,
             false,
             true,
+            $caps,
         );
         if (is_string($walls)) {
             return null;
@@ -1055,6 +1282,8 @@ final class SceneStackCommand extends BaseCommand
      * @param array<string, array{ids: list<string>, index: int, of: int}> $groups
      * @param array<string, array<string, int>> $deal group label => device id => cabinets dealt to it
      * @param array<string, DeviceSpec> $devices
+     * @param array<string, float> $caps group label => the width that group's stack is held to, on top of the stage
+     *                                   width, where {@see build} narrowed it to fit the room
      *
      * @return list<StackBlock>|string
      */
@@ -1072,12 +1301,14 @@ final class SceneStackCommand extends BaseCommand
         bool $evenSplit,
         bool $placeAll,
         bool $sharedTops = false,
+        array $caps = [],
     ): array|string {
         $blocks = [];
         foreach ($groups as $key => ['ids' => $ids, 'index' => $index, 'of' => $of]) {
             // Cast, because PHP turns an array key that looks like a number into one — `--stacks=2` without
             // `--per-owner` labels the groups "1" and "2", which arrive here as ints.
             $label = (string) $key;
+            $cap = $caps[$label] ?? null;
             $block = $this->solveGroup(
                 $devices,
                 $ids,
@@ -1087,7 +1318,7 @@ final class SceneStackCommand extends BaseCommand
                 $style,
                 $orientation,
                 $lowEnd,
-                $maxWidthM,
+                null === $cap ? $maxWidthM : min($cap, $maxWidthM ?? INF),
                 $input,
                 count($groups) > 1,
                 $index,

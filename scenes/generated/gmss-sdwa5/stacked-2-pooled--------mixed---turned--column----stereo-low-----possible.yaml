@@ -37,6 +37,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 3.721 m against the 3.000 m ceiling asked for, so they stand 721 mm too high — 3.721 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 4 (1× skram rolled 270° + 1× skram rolled 90° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-1 — 1, 11 cabinets in 5 rows:
 #

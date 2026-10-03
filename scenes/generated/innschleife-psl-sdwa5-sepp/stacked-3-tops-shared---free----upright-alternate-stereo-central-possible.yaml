@@ -95,6 +95,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× wsx-18 + 1× sbh-18) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 10 cabinets in 4 rows:
 #
@@ -131,6 +133,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× sbh-18 + 1× wsx-18) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 id: stacked-3-tops-shared---free----upright-alternate-stereo-central-possible
 name: "Solved rig — 9 stacks side by side, tiers split left and right"

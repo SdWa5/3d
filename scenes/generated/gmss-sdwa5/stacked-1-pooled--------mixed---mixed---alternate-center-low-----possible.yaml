@@ -11,13 +11,16 @@
 #
 # What it deals out today:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    6.244 m wide
-#   2  2× iq-sub rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× iq-sub rolled 90° at 74 mm gaps     6.25 m wide
-#   3  1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× skram rolled 90° + 1× iq-sub rolled 90°    5.134 m wide
-#   4  1× nuke rolled 270° + 1× skram rolled 270° + 1× nuke rolled 90° + 1× mid-bass    3.714 m wide
-#   5  2× turbo-top + 3× tecnare-m2122 + 1× turbo-top                          2.95 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    4.678 m wide
+#   3  3× iq-sub rolled 270° + 3× iq-sub rolled 90° at 132 mm gaps            4.68 m wide
+#   4  1× wall-bass rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× wall-bass rolled 90°    4.688 m wide
+#   5  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° at 60 mm gaps     2.86 m wide
+#   6  2× turbo-top + 3× tecnare-m2122 + 1× turbo-top                          2.95 m wide
 #
-# Subs reach 2.452 m against a 2.0 m interface. The stack is 3.412 m of cabinet.
+# Subs reach 2.962 m against a 2.0 m interface. The stack is 3.922 m of cabinet.
+#   * the 2× turbo-top + 3× tecnare-m2122 + 1× turbo-top row is 2.950 m on a 2.860 m row, so it overhangs 45 mm
+#     each side
 #
 id: stacked-1-pooled--------mixed---mixed---alternate-center-low-----possible
 name: "Solved rig — one stack, tiers centred"

@@ -18,7 +18,7 @@
 # main-ours-1 — ours-1, 7 cabinets in 3 rows:
 #
 #   1  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× achenbach-18 rolled 90° at 183 mm gaps    2.329 m wide
+#   2  1× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 rolled 90° at 183 mm gaps    2.329 m wide
 #   3  1× thebox-pa302                                                           0.42 m wide
 #
 # Subs reach 1.191 m against a 2.0 m interface. The stack is 1.806 m of cabinet.
@@ -38,7 +38,7 @@
 # main-ours-3 — ours-3, 7 cabinets in 3 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   2  2× achenbach-18 rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 183 mm gaps    2.329 m wide
+#   2  1× achenbach-18 rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× achenbach-18 rolled 270° at 183 mm gaps    2.329 m wide
 #   3  1× hk-linear5-112x                                                        0.37 m wide
 #
 # Subs reach 1.191 m against a 2.0 m interface. The stack is 1.859 m of cabinet.
@@ -91,6 +91,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× sub-60x60 rolled 270° + 1× kicker-15 rolled 90° row is 1.190 m on a 1.100 m row, so it overhangs 45
 #     mm each side
+#   * row 3 (1× sub-60x60 rolled 270° + 1× kicker-15 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 13 cabinets in 4 rows:
 #
@@ -130,6 +132,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× kicker-15 rolled 270° + 1× sub-60x60 rolled 90° row is 1.190 m on a 1.100 m row, so it overhangs 45
 #     mm each side
+#   * row 3 (1× kicker-15 rolled 270° + 1× sub-60x60 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-3-tops-shared---tower---turned--alternate-center-central-possible
 name: "Solved rig — 9 stacks side by side, tiers centred"

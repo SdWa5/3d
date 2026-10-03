@@ -59,6 +59,8 @@
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× wall-bass + 1× nuke row is 1.270 m on a 1.200 m row, so it overhangs 35 mm each side
+#   * row 3 (1× wall-bass + 1× nuke) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 id: stacked-2-systems-apart-pyramid-upright-alternate-stereo-central-possible
 name: "Solved rig — 4 stacks side by side, tiers split left and right"

@@ -99,6 +99,8 @@
 #     1.100 m is the most they reach while every tier is still carried
 #   * the 1× concert-audio-ef6 + 1× tms2 + 1× thebox-achat-115m + 1× tecnare-m2122 + 1× concert-audio-ef6 row is
 #     2.622 m on a 2.506 m row, so it overhangs 58 mm each side
+#   * row 1 (1× sbh-18 rolled 270° + 1× wsx-18 + 1× sub-60x60 rolled 90° at 68 mm gaps) is not mirror-symmetric,
+#     and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 8 cabinets in 4 rows:
 #
@@ -139,6 +141,8 @@
 #     1.100 m is the most they reach while every tier is still carried
 #   * the 1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× thebox-pa302 + 1×
 #     concert-audio-ef6 row is 2.642 m on a 2.524 m row, so it overhangs 59 mm each side
+#   * row 1 (1× sub-60x60 rolled 270° + 1× wsx-18 + 1× sbh-18 rolled 90° at 77 mm gaps) is not mirror-symmetric,
+#     and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-3-tops-shared---pyramid-turned--centred---stereo-central-possible
 name: "Solved rig — 9 stacks side by side, tiers split left and right"

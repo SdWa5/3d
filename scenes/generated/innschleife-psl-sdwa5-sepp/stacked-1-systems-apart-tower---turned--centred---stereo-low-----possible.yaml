@@ -27,6 +27,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 3.287 m against the 3.000 m ceiling asked for, so they stand 287 mm too high — 3.287 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 5 (1× skram rolled 270° + 1× skram + 1× achenbach-18 rolled 90° at 494 mm gaps) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -39,18 +41,19 @@
 #   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
 #     1.178 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 6 rows:
+# main-innschleife — innschleife, 20 cabinets in 7 rows:
 #
-#   1  1× wsx-18 rolled 270° + 1× wsx-18 + 1× wsx-18 rolled 90° at 310 mm gaps     3.39 m wide
-#   2  2× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90° + 1× wsx-18 rolled 90° at 164 mm gaps    3.392 m wide
-#   3  1× sbh-18 rolled 270° + 1× sub-60x60 + 1× sbh-18 rolled 90° at 195 mm gaps     3.39 m wide
-#   4  1× sbh-18 rolled 270° + 1× kicker-15 + 1× sbh-18 rolled 90°           3.39 m wide
-#   5  1× kicker-15 rolled 270° + 1× kicker-15 + 1× kicker-15 rolled 90° at 650 mm gaps     3.39 m wide
-#   6  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
+#   1  2× sub-60x60 rolled 270° + 2× sub-60x60 rolled 90°                     2.46 m wide
+#   2  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° at 60 mm gaps             2.46 m wide
+#   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° at 60 mm gaps             2.46 m wide
+#   4  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° at 60 mm gaps       2.46 m wide
+#   5  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 260 mm gaps            2.46 m wide
+#   6  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 260 mm gaps            2.46 m wide
+#   7  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
 #
-# Subs reach 3.82 m against a 2.0 m interface. The stack is 4.96 m of cabinet.
+# Subs reach 3.79 m against a 2.0 m interface. The stack is 4.93 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 3.820 m against the 3.000 m ceiling asked for, so they stand 820 mm too high — 3.820 m is the
+#   * the subs reach 3.790 m against the 3.000 m ceiling asked for, so they stand 790 mm too high — 3.790 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #
 id: stacked-1-systems-apart-tower---turned--centred---stereo-low-----possible
@@ -67,7 +70,7 @@ focus:
 placements:
   # ours, 25 cabinets in 6 rows
   - id: main-ours
-    at: [-6.0885, 0.0]
+    at: [-5.6225, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -98,7 +101,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-0.442, 0.0]
+    at: [0.024, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -137,7 +140,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 6 rows
+  # innschleife, 20 cabinets in 7 rows
   - id: main-innschleife
     at: [5.3445, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

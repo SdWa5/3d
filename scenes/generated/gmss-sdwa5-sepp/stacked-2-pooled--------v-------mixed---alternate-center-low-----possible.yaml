@@ -60,6 +60,12 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.660 m against the 2.000 m interface asked for, so the tops sit 1340 mm lower than ideal —
 #     0.660 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× flexy-folded-horn-hybrid rolled 270° + 1×
+#     flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× skram rolled
+#     270° + 2× wall-bass rolled 270° + 1× skram rolled 90° + 2× achenbach-18 + 1× flexy-folded-horn-hybrid rolled
+#     90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° +
+#     2× iq-sub rolled 90° + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 id: stacked-2-pooled--------v-------mixed---alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

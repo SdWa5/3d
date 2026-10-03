@@ -23,6 +23,10 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× nuke rolled 270° + 1× wall-bass rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 3 (1× iq-sub rolled 270° + 1× achenbach-18 at 920 mm gaps) is not mirror-symmetric, and the search found
+#     no symmetric arrangement of these cabinets that stands
 #
 # main-2 — 2, 12 cabinets in 4 rows:
 #
@@ -35,6 +39,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× wall-bass rolled 270° + 1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------v-------mixed---centred---stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"

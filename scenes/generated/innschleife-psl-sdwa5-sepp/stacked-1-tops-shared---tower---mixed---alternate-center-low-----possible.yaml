@@ -45,6 +45,8 @@
 #   5  1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 2× concert-audio-ef6   3.5516 m wide
 #
 # Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.
+#   * row 4 (4× sub-60x60 + 1× sbh-18 rolled 90° at 215 mm gaps) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-tops-shared---tower---mixed---alternate-center-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers centred"

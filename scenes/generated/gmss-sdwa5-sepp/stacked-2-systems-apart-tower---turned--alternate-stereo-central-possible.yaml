@@ -36,6 +36,9 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub rolled 270° + 1× mid-bass rolled 270° + 1× wall-bass rolled 270° + 1× nuke rolled 90° +
+#     2× iq-sub rolled 90°) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that
+#     stands
 #
 # main-gmss-1 — gmss-1, 6 cabinets in 3 rows:
 #
@@ -51,6 +54,8 @@
 #     1.190 m is the most they reach while every tier is still carried
 #   * the 1× nuke rolled 270° + 1× wall-bass rolled 90° row is 2.190 m on a 2.050 m row, so it overhangs 70 mm
 #     each side
+#   * row 2 (1× nuke rolled 270° + 1× wall-bass rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 12 cabinets in 3 rows:
 #
@@ -64,6 +69,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.201 m against the 2.000 m interface asked for, so the tops sit 799 mm lower than ideal —
 #     1.201 m is the most they reach while every tier is still carried
+#   * row 2 (2× achenbach-18 rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90° at 655 mm gaps) is
+#     not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-systems-apart-tower---turned--alternate-stereo-central-possible
 name: "Solved rig — 4 stacks side by side, tiers split left and right"

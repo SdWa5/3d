@@ -20,6 +20,9 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass + 1× nuke
+#     rolled 90° + 1× iq-sub rolled 90° + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 2 cabinets in 1 row:
 #

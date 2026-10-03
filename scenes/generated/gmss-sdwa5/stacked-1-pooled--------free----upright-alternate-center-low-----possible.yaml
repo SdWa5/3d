@@ -28,6 +28,10 @@
 #   * the 5× flexy-folded-horn-hybrid row is 3.035 m on a 2.443 m row, so it overhangs 296 mm each side
 #   * the 2× flexy-folded-horn-hybrid + 2× nuke + 2× flexy-folded-horn-hybrid row is 3.644 m on a 3.035 m row, so
 #     it overhangs 304 mm each side
+#   * row 2 (1× skram + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
+#   * row 3 (1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------free----upright-alternate-center-low-----possible
 name: "Solved rig — one stack, tiers centred"

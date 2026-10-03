@@ -24,6 +24,8 @@
 #     1.190 m is the most they reach while every tier is still carried
 #   * the 1× nuke rolled 270° + 1× wall-bass rolled 90° row is 2.190 m on a 2.050 m row, so it overhangs 70 mm
 #     each side
+#   * row 2 (1× nuke rolled 270° + 1× wall-bass rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 12 cabinets in 5 rows:
 #
@@ -59,6 +61,8 @@
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× wall-bass rolled 270° + 1× nuke rolled 90° row is 2.190 m on a 2.050 m row, so it overhangs 70 mm
 #     each side
+#   * row 2 (1× wall-bass rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-tops-shared---mixed---turned--alternate-block--central-possible
 name: "Solved rig — 4 stacks side by side, tiers justified"

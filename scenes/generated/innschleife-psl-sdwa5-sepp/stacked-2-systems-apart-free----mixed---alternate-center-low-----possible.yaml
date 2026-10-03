@@ -52,6 +52,10 @@
 #     1.768 m is the most they reach while every tier is still carried
 #   * the 2× concert-audio-ef6 + 1× thebox-achat-112m row is 1.576 m on a 1.418 m row, so it overhangs 79 mm each
 #     side
+#   * row 1 (1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esx rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (1× thebox-tp118-800 rolled 270° + 1× concert-audio-esf rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl-2 — psl-2, 9 cabinets in 4 rows:
 #
@@ -65,6 +69,10 @@
 #     1.768 m is the most they reach while every tier is still carried
 #   * the 1× thebox-achat-112m + 2× concert-audio-ef6 row is 1.576 m on a 1.418 m row, so it overhangs 79 mm each
 #     side
+#   * row 1 (1× concert-audio-esx rolled 270° + 1× thebox-tp218-1600 rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (1× concert-audio-esf rolled 270° + 1× thebox-tp118-800 rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-1 — innschleife-1, 10 cabinets in 5 rows:
 #

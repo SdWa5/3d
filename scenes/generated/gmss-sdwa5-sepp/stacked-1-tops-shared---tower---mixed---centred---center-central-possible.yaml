@@ -23,13 +23,13 @@
 #
 # main-ours — ours, 28 cabinets in 3 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    8.421 m wide
-#   2  3× achenbach-18 + 1× skram rolled 270° + 1× skram + 3× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° at 317 mm gaps    8.423 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    9.376 m wide
+#   2  3× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 at 564 mm gaps    9.376 m wide
 #   3  2× turbo-top + 1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top   3.9212 m wide
 #
-# Subs reach 1.677 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
-#   * the subs reach 1.677 m against the 2.000 m interface asked for, so the tops sit 323 mm lower than ideal —
-#     1.677 m is the most they reach while every tier is still carried
+# Subs reach 1.201 m against a 2.0 m interface. The stack is 2.161 m of cabinet.
+#   * the subs reach 1.201 m against the 2.000 m interface asked for, so the tops sit 799 mm lower than ideal —
+#     1.201 m is the most they reach while every tier is still carried
 #
 id: stacked-1-tops-shared---tower---mixed---centred---center-central-possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -45,7 +45,7 @@ focus:
 placements:
   # gmss, 11 cabinets in 4 rows
   - id: main-gmss
-    at: [-4.7635, 0.0]
+    at: [-5.24, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

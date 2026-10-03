@@ -28,6 +28,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1×
 #     tecnare-m2122 row is 2.511 m on a 2.468 m row, so it overhangs 22 mm each side
+#   * row 5 (1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90°) is not mirror-symmetric,
+#     and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -44,13 +46,13 @@
 #
 #   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
 #   2  2× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           3.64 m wide
-#   3  2× sub-60x60 rolled 270° + 2× sub-60x60 rolled 90° + 1× sbh-18 rolled 90°     3.68 m wide
+#   3  2× sub-60x60 rolled 270° + 1× sbh-18 rolled 90° + 2× sub-60x60 rolled 90°     3.68 m wide
 #   4  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90°                     2.34 m wide
 #   5  1× tms4 + 1× tms2 + 1× tms2 + 1× tms4                                  1.92 m wide
 #
 # Subs reach 2.67 m against a 2.0 m interface. The stack is 3.81 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× sub-60x60 rolled 270° + 2× sub-60x60 rolled 90° + 1× sbh-18 rolled 90° row is 3.680 m on a 3.640 m
+#   * the 2× sub-60x60 rolled 270° + 1× sbh-18 rolled 90° + 2× sub-60x60 rolled 90° row is 3.680 m on a 3.640 m
 #     row, so it overhangs 20 mm each side
 #
 id: stacked-1-systems-apart-pyramid-turned--alternate-stereo-central-possible

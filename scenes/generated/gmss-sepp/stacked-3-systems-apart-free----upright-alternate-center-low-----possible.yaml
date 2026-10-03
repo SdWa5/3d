@@ -47,6 +47,8 @@
 #
 # Subs reach 2.94 m against a 2.0 m interface. The stack is 3.65 m of cabinet.
 #   * the 1× nuke + 1× mid-bass row is 1.810 m on a 1.340 m row, so it overhangs 235 mm each side
+#   * row 2 (1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-gmss-3 — gmss-3, 3 cabinets in 2 rows:
 #

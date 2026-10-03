@@ -44,11 +44,12 @@
 #   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
 #   2  4× kicker-15                                                              3.86 m wide
 #   3  1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90° at 305 mm gaps     3.56 m wide
-#   4  4× sub-60x60 + 1× sbh-18 rolled 90°                                     3.68 m wide
+#   4  2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60                     3.68 m wide
 #   5  1× thebox-achat-112m + 1× tms2 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× tms4 + 1× concert-audio-ef6   2.9436 m wide
 #
 # Subs reach 2.94 m against a 2.0 m interface. The stack is 4.08 m of cabinet.
-#   * the 4× sub-60x60 + 1× sbh-18 rolled 90° row is 3.680 m on a 3.560 m row, so it overhangs 60 mm each side
+#   * the 2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60 row is 3.680 m on a 3.560 m row, so it overhangs 60
+#     mm each side
 #
 id: stacked-1-tops-shared---pyramid-mixed---centred---center-central-possible
 name: "Solved rig — 3 stacks side by side, tiers centred"

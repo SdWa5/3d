@@ -20,6 +20,8 @@
 # Subs reach 3.26 m against a 2.0 m interface. The stack is 4.096 m of cabinet.
 #   * the subs reach 3.260 m against the 3.000 m ceiling asked for, so they stand 260 mm too high — 3.260 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 3 (1× wall-bass rolled 270° + 1× wall-bass + 1× iq-sub rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------mixed---turned--centred---center-low-----possible
 name: "Solved rig — one stack, tiers centred"

@@ -41,10 +41,14 @@
 # main-gmss-2 — gmss-2, 7 cabinets in 3 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
-#   2  1× nuke rolled 270° + 1× nuke + 1× iq-sub rolled 90° at 395 mm gaps     2.82 m wide
-#   3  1× mid-bass rolled 270° + 1× iq-sub rolled 90°                         1.19 m wide
+#   2  1× nuke rolled 270° + 1× iq-sub rolled 270° + 1× iq-sub rolled 90° + 1× nuke rolled 90°     2.94 m wide
+#   3  1× mid-bass                                                                1.2 m wide
 #
-# Subs reach 2.63 m against a 2.0 m interface. The stack is 2.63 m of cabinet.
+# Subs reach 1.75 m against a 2.0 m interface. The stack is 1.75 m of cabinet.
+#   * the subs reach 1.750 m against the 2.000 m interface asked for and **nothing stands on them** — this stack is
+#     a sub wing, so the interface decides nothing about it
+#   * the 1× nuke rolled 270° + 1× iq-sub rolled 270° + 1× iq-sub rolled 90° + 1× nuke rolled 90° row is 2.940
+#     m on a 2.820 m row, so it overhangs 60 mm each side
 #
 # main-ours-2 — ours-2, 3 cabinets in 2 rows:
 #
@@ -78,7 +82,7 @@ focus:
 placements:
   # gmss-3, 3 cabinets in 2 rows
   - id: main-gmss-3
-    at: [-5.472, 0.0]
+    at: [-5.532, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -102,7 +106,7 @@ placements:
 
   # ours-3, 3 cabinets in 2 rows
   - id: main-ours-3
-    at: [-3.682, 0.0]
+    at: [-3.742, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -126,7 +130,7 @@ placements:
 
   # ours-1, 3 cabinets in 2 rows
   - id: main-ours-1
-    at: [-1.962, 0.0]
+    at: [-2.022, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -179,7 +183,7 @@ placements:
 
   # ours-2, 3 cabinets in 2 rows
   - id: main-ours-2
-    at: [3.078, 0.0]
+    at: [3.138, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -203,7 +207,7 @@ placements:
 
   # gmss-1, 3 cabinets in 2 rows
   - id: main-gmss-1
-    at: [4.868, 0.0]
+    at: [4.928, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

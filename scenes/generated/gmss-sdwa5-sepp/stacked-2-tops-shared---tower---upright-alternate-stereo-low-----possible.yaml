@@ -15,7 +15,7 @@
 # main-ours-1 — ours-1, 11 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18 at 307 mm gaps            2.424 m wide
 #   4  1× eighteensound-2way-15                                                0.4656 m wide
 #
@@ -29,6 +29,8 @@
 #
 # Subs reach 2.07 m against a 2.0 m interface. The stack is 2.07 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * row 2 (1× nuke + 1× wall-bass at 380 mm gaps) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-gmss-2 — gmss-2, 11 cabinets in 2 rows:
 #
@@ -39,11 +41,13 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub + 1× wall-bass + 1× nuke + 2× iq-sub + 1× mid-bass) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 12 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  2× flexy-folded-horn-hybrid + 1× achenbach-18 at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18 at 307 mm gaps            2.424 m wide
 #   4  1× turbo-top + 1× turbo-top                                              0.92 m wide
 #

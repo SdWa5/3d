@@ -17,7 +17,7 @@
 #   2  1× iq-sub rolled 270° + 2× iq-sub rolled 90° at 405 mm gaps            2.82 m wide
 #   3  1× iq-sub rolled 270° + 2× iq-sub rolled 90° at 405 mm gaps            2.82 m wide
 #   4  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° at 40 mm gaps     2.82 m wide
-#   5  1× turbo-top + 2× tecnare-m2122                                          1.49 m wide
+#   5  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
 #
 # Subs reach 2.31 m against a 2.0 m interface. The stack is 3.27 m of cabinet.
 #
@@ -30,7 +30,7 @@
 #   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
 #   6  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
 #   7  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
-#   8  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
+#   8  1× turbo-top + 2× tecnare-m2122                                          1.49 m wide
 #
 # Subs reach 4.156 m against a 2.0 m interface. The stack is 5.116 m of cabinet.
 #   * the subs reach 4.156 m against the 3.000 m ceiling asked for, so they stand 1156 mm too high — 4.156 m is the
@@ -75,9 +75,9 @@ placements:
         - device: iq-sub
           roll_mirror: 90.0
         - device: tecnare-m2122
-          count: 2
-        - device: turbo-top
           count: 1
+        - device: turbo-top
+          count: 2
           aim: near
 
   # ours, 17 cabinets in 8 rows
@@ -104,7 +104,7 @@ placements:
         - device: flexy-folded-horn-hybrid
           roll_mirror: 90.0
         - device: tecnare-m2122
-          count: 1
-        - device: turbo-top
           count: 2
+        - device: turbo-top
+          count: 1
           aim: near

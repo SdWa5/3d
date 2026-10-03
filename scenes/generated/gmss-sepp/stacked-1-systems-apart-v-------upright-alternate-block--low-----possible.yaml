@@ -21,6 +21,8 @@
 # Subs reach 2.84 m against a 2.0 m interface. The stack is 3.55 m of cabinet.
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× iq-sub + 2× wall-bass + 1× iq-sub row is 2.440 m on a 2.420 m row, so it overhangs 10 mm each side
+#   * row 1 (2× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-ours — ours, 8 cabinets in 4 rows:
 #

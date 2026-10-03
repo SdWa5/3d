@@ -32,6 +32,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub + 1× wall-bass + 1× nuke + 2× iq-sub + 1× mid-bass) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-gmss-1 — gmss-1, 6 cabinets in 4 rows:
 #

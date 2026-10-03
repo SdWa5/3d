@@ -26,6 +26,8 @@
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 1× achenbach-18 + 1× nuke row is 1.210 m on a 0.660 m row, so it overhangs 275 mm each side
 #   * the 3× iq-sub row is 1.630 m on a 1.220 m row, so it overhangs 205 mm each side
+#   * row 2 (1× achenbach-18 + 1× nuke) is not mirror-symmetric, and the search found no symmetric arrangement of
+#     these cabinets that stands
 #
 # main-2 — 2, 12 cabinets in 5 rows:
 #
@@ -44,6 +46,8 @@
 #   * the 1× achenbach-18 + 1× nuke + 1× achenbach-18 row is 1.830 m on a 1.200 m row, so it overhangs 315 mm each
 #     side
 #   * the 3× iq-sub + 1× achenbach-18 row is 2.250 m on a 1.830 m row, so it overhangs 210 mm each side
+#   * row 4 (3× iq-sub + 1× achenbach-18) is not mirror-symmetric, and the search found no symmetric arrangement of
+#     these cabinets that stands
 #
 id: stacked-2-pooled--------free----upright-alternate-center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

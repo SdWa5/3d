@@ -55,11 +55,15 @@
 #     which is what the -turned rig does
 #   * the 1× nuke + 1× mid-bass row is 1.810 m on a 1.340 m row, so it overhangs 235 mm each side
 #   * the 1× iq-sub + 1× nuke + 2× iq-sub row is 2.240 m on a 1.810 m row, so it overhangs 215 mm each side
+#   * row 2 (1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
+#   * row 3 (1× iq-sub + 1× nuke + 2× iq-sub) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 10 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid                           1.822 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid    1.822 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
 #   4  1× turbo-top                                                              0.45 m wide
 #

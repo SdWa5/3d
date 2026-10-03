@@ -11,15 +11,13 @@
 #
 # 4 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss-2 — gmss-2, 10 cabinets in 5 rows:
+# main-gmss-2 — gmss-2, 10 cabinets in 3 rows:
 #
-#   1  3× iq-sub                                                                 1.63 m wide
-#   2  2× wall-bass at 310 mm gaps                                               1.63 m wide
-#   3  1× mid-bass                                                                1.2 m wide
-#   4  2× nuke                                                                    1.2 m wide
-#   5  1× turbo-top + 1× turbo-top                                              0.92 m wide
+#   1  1× iq-sub + 1× wall-bass + 1× iq-sub + 1× wall-bass + 1× iq-sub       2.99 m wide
+#   2  1× nuke + 1× mid-bass + 1× nuke                                         2.42 m wide
+#   3  1× turbo-top + 1× turbo-top                                              0.92 m wide
 #
-# Subs reach 3.34 m against a 2.0 m interface. The stack is 4.05 m of cabinet.
+# Subs reach 2.17 m against a 2.0 m interface. The stack is 2.88 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
@@ -29,8 +27,6 @@
 #     which is what the -turned rig does
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 3.340 m against the 3.000 m ceiling asked for, so they stand 340 mm too high — 3.340 m is the
-#     nearest the 2.500 m target that every tier is still carried at
 #
 # main-ours-1 — ours-1, 4 cabinets in 2 rows:
 #
@@ -82,7 +78,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss-2, 10 cabinets in 5 rows
+  # gmss-2, 10 cabinets in 3 rows
   - id: main-gmss-2
     at: [-3.707, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -111,7 +107,7 @@ placements:
 
   # ours-1, 4 cabinets in 2 rows
   - id: main-ours-1
-    at: [-1.472, 0.0]
+    at: [-0.792, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -136,7 +132,7 @@ placements:
 
   # ours-2, 4 cabinets in 2 rows
   - id: main-ours-2
-    at: [0.868, 0.0]
+    at: [1.548, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -160,7 +156,7 @@ placements:
 
   # gmss-1, 4 cabinets in 2 rows
   - id: main-gmss-1
-    at: [3.103, 0.0]
+    at: [3.783, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

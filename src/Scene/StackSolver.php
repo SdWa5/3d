@@ -87,8 +87,33 @@ final class StackSolver
         return [
             'tiers' => $tiers,
             'problems' => [...$bounds, ...$unsupported, ...StackMix::mixProblems($inventory, $stack)],
-            'warnings' => [...$missedInterface, ...$support],
+            'warnings' => [...$missedInterface, ...$support, ...self::lopsided($tiers)],
         ];
+    }
+
+    /**
+     * One warning per sub row that is not mirror-symmetric. {@see fill} returns such a row only where none of the
+     * arrangements it built is symmetric and stands. That is what the search measured, not a proof that no symmetric
+     * arrangement exists, and the warning says no more than that.
+     *
+     * @param list<Tier> $tiers
+     *
+     * @return list<string>
+     */
+    private static function lopsided(array $tiers): array
+    {
+        $warnings = [];
+        foreach ($tiers as $row => $tier) {
+            if ($tier->isSub() && !StackMetrics::isSymmetric($tier)) {
+                $warnings[] = sprintf(
+                    'row %d (%s) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands',
+                    $row + 1,
+                    $tier->label(),
+                );
+            }
+        }
+
+        return $warnings;
     }
 
     /**
@@ -211,9 +236,11 @@ final class StackSolver
 
         $tallestCarried = [];
         $tallestCarriedSubs = -INF;
+        $tallestCarriedSymmetric = false;
         $closestCarried = [];
         $closestCarriedMiss = INF;
         $closestCarriedLegal = false;
+        $closestCarriedSymmetric = false;
         $widestAttempt = [];
         // Placement answers already worked out this solve, see {@see survives}.
         $seated = [];
@@ -270,7 +297,14 @@ final class StackSolver
                         // **A ROW GAPPED OUT TO THE SHAPE IS A SECOND CANDIDATE, NEVER A REPLACEMENT.** It exists only
                         // where the packed arrangement breaks the width rule of its shape, so a rig that packs keeps
                         // its packed rows. See {@see gappedToShape}.
-                        foreach (array_filter([$tiers, self::gappedToShape($tiers, $stack)]) as $tiers) {
+                        // **AND A MIRRORED COPY OF EACH IS A THIRD**, where one of its sub rows is lopsided and can be
+                        // mirrored. Packing centres the tallest type and puts an odd count's spare on the right, so the
+                        // symmetric order of the same cabinets is often never dealt at all. See {@see symmetrisedRows}.
+                        $variants = array_values(array_filter([$tiers, self::gappedToShape($tiers, $stack)]));
+                        foreach (array_filter(array_map(self::symmetrisedRows(...), $variants)) as $mirrored) {
+                            $variants[] = $mirrored;
+                        }
+                        foreach ($variants as $tiers) {
                             $widestAttempt = [] === $widestAttempt ? $tiers : $widestAttempt;
 
                             if ([] !== StackChecks::supportChecks($tiers, $stack)['problems']) {
@@ -278,6 +312,12 @@ final class StackSolver
                             }
 
                             $subs = StackMetrics::subHeight($tiers);
+                            // **A MIRROR-SYMMETRIC ARRANGEMENT OUTRANKS EVERY LOPSIDED ONE, WHATEVER IT MISSES BY**, which
+                            // the owner decided on 2026-10-03. A row packed by {@see StackMetrics::centred} splits an odd
+                            // count one left and two right, and a tie on height kept it whenever it came first. Ranked like
+                            // `$legal` beats an illegal arrangement, so a lopsided one is returned only where no symmetric
+                            // one stands, and {@see solve} warns about it then.
+                            $symmetric = StackMetrics::subsSymmetric($tiers);
 
                             // UNDER A CEILING THE PREFERENCE INVERTS, and that is the whole reason the key exists. Without
                             // one the answer is the widest row that still gets the tops up, so the search returns on its
@@ -319,9 +359,11 @@ final class StackSolver
                                     LowEndCost::lowness($tiers, $stack, $lowest),
                                     LowEndCost::centrality($tiers, $stack, $lowest),
                                 );
-                                $better = $legal === $closestCarriedLegal
-                                    ? $miss < $closestCarriedMiss
-                                    : $legal;
+                                $better = match (true) {
+                                    $legal !== $closestCarriedLegal => $legal,
+                                    $symmetric !== $closestCarriedSymmetric => $symmetric,
+                                    default => $miss < $closestCarriedMiss,
+                                };
 
                                 // **ASKED LAST, AND ONLY OF A CANDIDATE THAT WOULD WIN.** Whether an arrangement survives
                                 // being placed is the one question here that costs a whole compile, and it is the one no
@@ -332,10 +374,11 @@ final class StackSolver
                                 // built. See GEO-11.
                                 if (StackTops::reachesInterface($tiers, $stack) && $better && self::survives($survives, $tiers, $seated)) {
                                     $closestCarriedLegal = $legal;
+                                    $closestCarriedSymmetric = $symmetric;
                                     $closestCarriedMiss = $miss;
                                     $closestCarried = $tiers;
                                 }
-                            } elseif (StackTops::reachesInterface($tiers, $stack) && self::survives($survives, $tiers, $seated)) {
+                            } elseif (StackTops::reachesInterface($tiers, $stack)) {
                                 // **NO CEILING USED TO MEAN NO RANKING AT ALL, AND THAT MADE THE LOW-END AXIS INERT.** This
                                 // branch returned the first arrangement that stood up, so on a rig with no
                                 // `max_sub_height_m` nothing was ever compared against anything and both values of the axis
@@ -346,7 +389,11 @@ final class StackSolver
                                     LowEndCost::lowness($tiers, $stack, $lowest),
                                     LowEndCost::centrality($tiers, $stack, $lowest),
                                 );
-                                if ($lowEnd < $closestCarriedMiss) {
+                                $better = $symmetric !== $closestCarriedSymmetric
+                                    ? $symmetric
+                                    : $lowEnd < $closestCarriedMiss;
+                                if ($better && self::survives($survives, $tiers, $seated)) {
+                                    $closestCarriedSymmetric = $symmetric;
                                     $closestCarriedMiss = $lowEnd;
                                     $closestCarried = $tiers;
                                 }
@@ -355,7 +402,11 @@ final class StackSolver
                             // The fallback is held to the same bar. It is what gets returned when nothing reached the
                             // interface, and returning an arrangement that overlaps would hand the caller a rig no render
                             // could show — the failure this whole seam exists to stop.
-                            if ($subs > $tallestCarriedSubs && self::survives($survives, $tiers, $seated)) {
+                            $taller = $symmetric !== $tallestCarriedSymmetric
+                                ? $symmetric
+                                : $subs > $tallestCarriedSubs;
+                            if ($taller && self::survives($survives, $tiers, $seated)) {
+                                $tallestCarriedSymmetric = $symmetric;
                                 $tallestCarriedSubs = $subs;
                                 $tallestCarried = $tiers;
                             }
@@ -378,6 +429,28 @@ final class StackSolver
         // error names the most favourable case there was: "even at its widest it overhangs 610 mm" tells you
         // the rig is impossible, where the narrowest attempt's 956 mm would just look like a bad guess.
         return $widestAttempt;
+    }
+
+    /**
+     * This arrangement with every lopsided sub row mirrored by {@see StackMetrics::symmetrised}, or null when none
+     * could be. The same cabinets in every row at the same widths, so only bearing and seating can tell the two apart.
+     *
+     * @param list<Tier> $tiers
+     *
+     * @return list<Tier>|null
+     */
+    private static function symmetrisedRows(array $tiers): ?array
+    {
+        $changed = false;
+        foreach ($tiers as $index => $tier) {
+            $mirrored = $tier->isSub() ? StackMetrics::symmetrised($tier) : null;
+            if (null !== $mirrored) {
+                $tiers[$index] = $mirrored;
+                $changed = true;
+            }
+        }
+
+        return $changed ? $tiers : null;
     }
 
     /**

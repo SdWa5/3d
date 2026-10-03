@@ -22,6 +22,8 @@
 #     segments up with what carries them
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub + 1× wall-bass + 1× nuke + 2× iq-sub) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 8 cabinets in 3 rows:
 #
@@ -39,6 +41,8 @@
 #   2  1× nuke + 1× wall-bass at 380 mm gaps                                    1.63 m wide
 #
 # Subs reach 2.07 m against a 2.0 m interface. The stack is 2.07 m of cabinet.
+#   * row 2 (1× nuke + 1× wall-bass at 380 mm gaps) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 8 cabinets in 3 rows:
 #

@@ -12,18 +12,6 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 13 cabinets in 4 rows:
-#
-#   1  3× iq-sub at 485 mm gaps                                                  2.56 m wide
-#   2  3× iq-sub at 485 mm gaps                                                  2.56 m wide
-#   3  1× wall-bass + 2× nuke + 1× wall-bass                                   2.56 m wide
-#   4  1× turbo-top + 1× turbo-top + 1× turbo-top                              1.39 m wide
-#
-# Subs reach 2.74 m against a 2.0 m interface. The stack is 3.45 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 2× nuke + 1× mid-bass row is 2.420 m on a 4.640
-#     m row; shape: tower asks for a flush base within 59 mm per side
-#
 # main-ours — ours, 25 cabinets in 4 rows:
 #
 #   1  7× flexy-folded-horn-hybrid at 23 mm gaps                                4.275 m wide
@@ -32,6 +20,15 @@
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122   2.5112 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#
+# main-gmss — gmss, 14 cabinets in 3 rows:
+#
+#   1  3× iq-sub + 2× wall-bass + 3× iq-sub                                    4.64 m wide
+#   2  1× nuke + 1× mid-bass + 1× nuke at 1130 mm gaps                         4.64 m wide
+#   3  1× turbo-top + 1× turbo-top + 1× turbo-top                              1.39 m wide
+#
+# Subs reach 2.17 m against a 2.0 m interface. The stack is 2.88 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 id: stacked-1-systems-apart-tower---upright-alternate-stereo-low-----possible
@@ -46,34 +43,9 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 13 cabinets in 4 rows
-  - id: main-gmss
-    at: [-2.6895, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      shape: tower
-      from:
-        - wall-bass
-        - nuke
-        - iq-sub
-        - turbo-top
-
   # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [1.228, 0.0]
+    at: [-2.872, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -97,3 +69,29 @@ placements:
         - tecnare-m2122
         - device: eighteensound-2way-15
           aim: near
+
+  # gmss, 14 cabinets in 3 rows
+  - id: main-gmss
+    at: [2.0855, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: tower
+      from:
+        - wall-bass
+        - mid-bass
+        - nuke
+        - iq-sub
+        - turbo-top

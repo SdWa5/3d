@@ -33,12 +33,13 @@
 # main-ours-2 — ours-2, 9 cabinets in 4 rows:
 #
 #   1  3× flexy-folded-horn-hybrid                                              1.813 m wide
-#   2  2× skram + 1× flexy-folded-horn-hybrid                                  1.851 m wide
+#   2  1× skram + 1× flexy-folded-horn-hybrid + 1× skram                      1.851 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
 #   4  1× tecnare-m2122                                                           0.5 m wide
 #
 # Subs reach 2.277 m against a 2.0 m interface. The stack is 3.237 m of cabinet.
-#   * the 2× skram + 1× flexy-folded-horn-hybrid row is 1.851 m on a 1.813 m row, so it overhangs 19 mm each side
+#   * the 1× skram + 1× flexy-folded-horn-hybrid + 1× skram row is 1.851 m on a 1.813 m row, so it overhangs 19 mm
+#     each side
 #
 # main-gmss-2 — gmss-2, 8 cabinets in 5 rows:
 #

@@ -29,6 +29,10 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× kicker-15 + 1× sub-60x60 + 2× achenbach-18 + 1× thebox-tp118-800 + 3× flexy-folded-horn-hybrid +
+#     1× concert-audio-esf + 1× skram + 1× wsx-18 + 2× concert-audio-esx + 1× thebox-tp218-1600 + 2× sbh-18 + 1×
+#     concert-audio-esx + 1× wsx-18 + 3× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× sub-60x60 + 1× kicker-15) is
+#     not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-2 — 2, 31 cabinets in 2 rows:
 #
@@ -44,6 +48,10 @@
 #     with what carries them
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× kicker-15 + 1× sub-60x60 + 1× achenbach-18 + 3× flexy-folded-horn-hybrid + 1× wsx-18 + 1×
+#     concert-audio-esx + 2× sbh-18 + 1× thebox-tp218-1600 + 2× concert-audio-esx + 1× wsx-18 + 1× concert-audio-esf +
+#     3× flexy-folded-horn-hybrid + 1× thebox-tp118-800 + 2× achenbach-18 + 1× sub-60x60 + 1× kicker-15) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------pyramid-upright-alternate-center-low-----impossible
 name: "Solved rig — 2 stacks side by side, tiers centred"
