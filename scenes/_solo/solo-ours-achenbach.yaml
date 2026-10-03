@@ -1,0 +1,73 @@
+id: solo-ours-achenbach
+name: "sdwa5 and Sepp alone, outer tops on two Achenbach each"
+# Hand-written variant of solo-ours-sdwa5-sepp. One row of two Achenbach under each outer top pair, on the Flexy columns 1 and 2, fronts flush.
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  - id: flexy-l1
+    device: flexy-folded-horn-hybrid
+    at: [-5.8935, 0.0000]
+    row: { count: 3, gap_m: 0.02 }
+  - id: skram-1
+    device: skram
+    at: [-4.6620, -0.0755]
+  - id: flexy-r1
+    device: flexy-folded-horn-hybrid
+    at: [-3.4305, 0.0000]
+    row: { count: 3, gap_m: 0.02 }
+  - id: flexy-l2
+    device: flexy-folded-horn-hybrid
+    at: [-5.8935, 0.0000]
+    on: flexy-l1
+    row: { count: 3, gap_m: 0.02 }
+  - id: skram-2
+    device: skram
+    at: [-4.6620, -0.0755]
+    on: skram-1
+  - id: flexy-r2
+    device: flexy-folded-horn-hybrid
+    at: [-3.4305, 0.0000]
+    on: flexy-r1
+    row: { count: 3, gap_m: 0.02 }
+  - id: ach-l
+    device: achenbach-18
+    at: [-6.1990, -0.1320]
+    on: flexy-l2
+    row: { count: 2, gap_m: 0.011 }
+  - id: ach-r
+    device: achenbach-18
+    at: [-3.1250, -0.1320]
+    on: flexy-r2
+    row: { count: 2, gap_m: 0.011 }
+  - id: top-c
+    device: tecnare-m2122
+    at: [-4.6620, -0.2223]
+    on: skram-2
+    aim: far
+  - id: top-la
+    device: tecnare-m2122
+    at: [-6.5500, -0.1812]
+    on: ach-l
+    aim: far
+  - id: top-lb
+    device: eighteensound-2way-15
+    at: [-6.0219, -0.1801]
+    on: ach-l
+    aim: near
+  - id: top-rb
+    device: eighteensound-2way-15
+    at: [-3.3021, -0.1801]
+    on: ach-r
+    aim: near
+  - id: top-ra
+    device: tecnare-m2122
+    at: [-2.7740, -0.1812]
+    on: ach-r
+    aim: far

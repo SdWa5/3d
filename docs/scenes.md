@@ -14,6 +14,12 @@ existing feature that falls short is preferred over adding a new one. A hand-wri
 one-off look check, it stays under `scenes/_solo/`, and it names the gap it stands in for, because the next
 regeneration neither keeps nor learns from it.
 
+A mock-up that comes in variants is written by a script under `tools/` rather than by hand, so the next variant
+is one more entry in it. `tools/two-row-variants.py` writes the `ach-stereo-two-rows-*` scenes from their rows
+listed left to right, and `tools/combined-variants.py` puts a `solo-ours-*` stack into the favourite
+`next-event-light` rig as `fav-ours-*`. Both take the variant names as arguments and say in their header
+how to run them.
+
 ## Example
 
 ```yaml

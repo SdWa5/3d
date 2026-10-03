@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.143.0] - 2026-10-03
+
+### Added
+
+- `scenes/_solo/` holds the hand-placed and hand-written mock-ups of the Achenbach event, among them the examples of
+  Achenbach used as top raisers that GEO-17 is to generate (`fav-ours-flipped-turned`,
+  `ach-stereo-two-rows-low-raised-ours`, `a3-skram-turned-mouths-achenbach`).
+- `tools/two-row-variants.py` writes the `ach-stereo-two-rows-*` mock-ups from their rows, with `--into` to compare a
+  rerun against the committed files.
+- `tools/combined-variants.py` writes `fav-ours-*`, the favourite `next-event-light` rig with our stack replaced by a
+  `solo-ours-*` variant.
+
 ## [0.142.0] - 2026-10-03
 
 ### Added

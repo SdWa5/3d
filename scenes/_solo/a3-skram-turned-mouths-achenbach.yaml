@@ -1,0 +1,148 @@
+id: a3-skram-turned-mouths-achenbach
+name: "Turned SKRAM rig, mouths paired by the generator, one Achenbach per Flexy column on top"
+# Hand-placed example. Every sub is copied from the paired solve of scratch-skram-turned
+# (pyramid-turned centred stereo low). Hand-placed only: the Achenbach row and the tops on it, which the
+# generator cannot build yet (GEO-17).
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  - id: s1a
+    device: skram
+    at: [-2.1800, -0.0755]
+    roll_deg: 270
+  - id: s1b
+    device: skram
+    at: [-2.1600, -0.0755]
+    roll_deg: 90
+  - id: s1c
+    device: skram
+    at: [-0.3120, -0.0755]
+    roll_deg: 270
+  - id: s1d
+    device: skram
+    at: [-0.2920, -0.0755]
+    roll_deg: 90
+  - id: s1e
+    device: skram
+    at: [1.5560, -0.0755]
+    roll_deg: 270
+  - id: s1f
+    device: skram
+    at: [1.5760, -0.0755]
+    roll_deg: 90
+  - id: f2a
+    device: flexy-folded-horn-hybrid
+    at: [-1.8780, 0.0000]
+    on: s1a
+    roll_deg: 270
+  - id: f2b
+    device: flexy-folded-horn-hybrid
+    at: [-1.8580, 0.0000]
+    on: s1a
+    roll_deg: 90
+  - id: f2c
+    device: flexy-folded-horn-hybrid
+    at: [-0.3120, 0.0000]
+    on: s1a
+    roll_deg: 270
+  - id: f2d
+    device: flexy-folded-horn-hybrid
+    at: [-0.2920, 0.0000]
+    on: s1a
+    roll_deg: 90
+  - id: f2e
+    device: flexy-folded-horn-hybrid
+    at: [1.2540, 0.0000]
+    on: s1a
+    roll_deg: 270
+  - id: f2f
+    device: flexy-folded-horn-hybrid
+    at: [1.2740, 0.0000]
+    on: s1a
+    roll_deg: 90
+  - id: f3a
+    device: flexy-folded-horn-hybrid
+    at: [-1.8780, 0.0000]
+    on: f2a
+    roll_deg: 270
+  - id: f3b
+    device: flexy-folded-horn-hybrid
+    at: [-1.8580, 0.0000]
+    on: f2a
+    roll_deg: 90
+  - id: f3c
+    device: flexy-folded-horn-hybrid
+    at: [-0.3120, 0.0000]
+    on: f2a
+    roll_deg: 270
+  - id: f3d
+    device: flexy-folded-horn-hybrid
+    at: [-0.2920, 0.0000]
+    on: f2a
+    roll_deg: 90
+  - id: f3e
+    device: flexy-folded-horn-hybrid
+    at: [1.2540, 0.0000]
+    on: f2a
+    roll_deg: 270
+  - id: f3f
+    device: flexy-folded-horn-hybrid
+    at: [1.2740, 0.0000]
+    on: f2a
+    roll_deg: 90
+  - id: ach-1
+    device: achenbach-18
+    at: [-2.3410, -0.1320]
+    on: f3a
+  - id: ach-2
+    device: achenbach-18
+    at: [-1.5254, -0.1320]
+    on: f3a
+  - id: ach-3
+    device: achenbach-18
+    at: [-0.7098, -0.1320]
+    on: f3a
+  - id: ach-4
+    device: achenbach-18
+    at: [0.1058, -0.1320]
+    on: f3a
+  - id: ach-5
+    device: achenbach-18
+    at: [0.9214, -0.1320]
+    on: f3a
+  - id: ach-6
+    device: achenbach-18
+    at: [1.7370, -0.1320]
+    on: f3a
+  - id: t4c
+    device: tecnare-m2122
+    at: [-0.3020, -0.2223]
+    on: ach-1
+    aim: far
+  - id: t4a
+    device: tecnare-m2122
+    at: [-2.3910, -0.1778]
+    on: ach-1
+    aim: far
+  - id: t4b
+    device: eighteensound-2way-15
+    at: [-1.8535, -0.1769]
+    on: ach-1
+    aim: near
+  - id: t4e
+    device: tecnare-m2122
+    at: [1.7870, -0.1778]
+    on: ach-1
+    aim: far
+  - id: t4d
+    device: eighteensound-2way-15
+    at: [1.2495, -0.1769]
+    on: ach-1
+    aim: near

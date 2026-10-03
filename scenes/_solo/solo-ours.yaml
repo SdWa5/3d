@@ -1,0 +1,40 @@
+id: solo-ours-sdwa5-sepp
+name: "sdwa5 and Sepp alone, from the light next event"
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  # ours, 19 cabinets in 3 rows
+  - id: main-ours
+    at: [-4.662, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 1.6
+      max_sub_height_m: 3.0
+      target_sub_height_m: 1.75
+      gap_m: 0.02
+      slide_slack_m: .inf
+      low_end: central
+      shape: pyramid
+      from:
+        - skram
+        - flexy-folded-horn-hybrid
+        - tecnare-m2122
+        - device: eighteensound-2way-15
+          aim: near
+

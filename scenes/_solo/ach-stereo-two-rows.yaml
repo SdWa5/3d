@@ -1,0 +1,166 @@
+# Hand-written mock-up. The Achenbach event's systems-apart pyramid alternate-stereo rig with our
+# stack in two symmetric rows instead of the solver's single 7.312 m Flexy row:
+#
+#   2  Flexy | 2 Achenbach | SKRAM | Flexy | SKRAM | 2 Achenbach | Flexy    5.553 m
+#   1  9 Flexy                                                               5.479 m
+#
+# PSL and Innschleife are the generated constraints of
+# scenes/generated/scratch-achenbach-stereo-failing/, unchanged. Our stack keeps the 0.24 m gap to PSL, and the
+# backdrop is re-centred on the narrower rig, which is about 14.27 m wide.
+id: ach-stereo-two-rows
+name: "Achenbach event, stereo, ours in two symmetric rows"
+
+# Our tops aim at our own centre, the way a generated systems-apart stack aims at its own front centre.
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+    x_m: -3.7825
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+    x_m: -3.7825
+
+placements:
+  # Ours, row 1.
+  - id: ours-r1
+    device: flexy-folded-horn-hybrid
+    at: [-3.7825, 0.0]
+    row: { count: 9, gap_m: 0.02 }
+
+  # Ours, row 2, mirrored about the centre Flexy.
+  - id: ours-flexy-l
+    device: flexy-folded-horn-hybrid
+    at: [-6.2635, 0.0]
+    on: ours-r1
+  - id: ours-ach-l
+    device: achenbach-18
+    at: [-5.338, -0.132]
+    on: ours-r1
+    row: { count: 2, gap_m: 0.02 }
+  - id: ours-skram-l
+    device: skram
+    at: [-4.403, -0.0755]
+    on: ours-r1
+  - id: ours-flexy-c
+    device: flexy-folded-horn-hybrid
+    at: [-3.7825, 0.0]
+    on: ours-r1
+  - id: ours-skram-r
+    device: skram
+    at: [-3.162, -0.0755]
+    on: ours-r1
+  - id: ours-ach-r
+    device: achenbach-18
+    at: [-2.227, -0.132]
+    on: ours-r1
+    row: { count: 2, gap_m: 0.02 }
+  - id: ours-flexy-r
+    device: flexy-folded-horn-hybrid
+    at: [-1.3015, 0.0]
+    on: ours-r1
+
+  # Ours, tops. Each stands on one cabinet, so they sit at that cabinet's height.
+  - id: ours-top-l
+    device: tecnare-m2122
+    at: [-6.2635, -0.2223]
+    on: ours-flexy-l
+    aim: far
+  - id: ours-top-lb
+    device: eighteensound-2way-15
+    at: [-4.403, -0.1801]
+    on: ours-skram-l
+    aim: near
+  - id: ours-top-c
+    device: tecnare-m2122
+    at: [-3.7825, -0.2223]
+    on: ours-flexy-c
+    aim: far
+  - id: ours-top-rb
+    device: eighteensound-2way-15
+    at: [-3.162, -0.1801]
+    on: ours-skram-r
+    aim: near
+  - id: ours-top-r
+    device: tecnare-m2122
+    at: [-1.3015, -0.2223]
+    on: ours-flexy-r
+    aim: far
+
+  - id: main-psl
+    at: [1.024, 0.0]
+    aim: far
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: pyramid
+      from:
+        - device: concert-audio-esx
+          count: 9
+          roll_mirror: 90.0
+        - device: concert-audio-ef6
+          count: 2
+  - id: main-innschleife
+    at: [5.384, 0.0]
+    aim: far
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 1.6
+      max_sub_height_m: 3.0
+      target_sub_height_m: 1.75
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: pyramid
+      from:
+        - device: wsx-18
+          roll_mirror: 90.0
+        - device: sbh-18
+          roll_mirror: 90.0
+        - kicker-15
+        - device: tms4
+          count: 1
+        - device: tms2
+          aim: near
+
+  - id: backdrop-tower-left
+    device: truss-tower-4m
+    at: [-4.32, 1.282]
+    extend_to_m: 3.742
+  - id: backdrop-tower-right
+    device: truss-tower-4m
+    at: [5.477, 1.282]
+    extend_to_m: 3.742
+  - id: backdrop-truss
+    device: truss-f33-2m
+    at: [0.578, 1.282]
+    fly:
+      height_m: 3.742
+      id: backdrop
+    row:
+      count: 5
+      gap_m: 0.0
+  - id: backdrop-deco
+    device: deco-panel-8x2-03
+    at: [0.578, 1.112]
+    fly:
+      height_m: 1.974
+      id: backdrop

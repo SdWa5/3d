@@ -215,7 +215,7 @@ src/Scene/      the solver and the scene compiler — five layered classes, see 
 blender/        bpy build scripts, invoked headless by the PHP CLI
 src/            PHP: spec loading, validation, catalog, build orchestration
 tests/          PHPUnit, mirroring src/
-tools/          check-glb.py, freecad-export.py
+tools/          check-glb.py, freecad-export.py, and the scripts writing the scenes/_solo/ mock-ups
 scenes/         setups as YAML — one file per event layout
 scenes/generated/  the sweep's output, one folder per inventory — committed so it can be read on the web
 events/         one file per event: the room, how each system is set up and what each system brings

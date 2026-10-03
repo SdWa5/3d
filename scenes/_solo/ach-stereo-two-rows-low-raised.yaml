@@ -1,0 +1,193 @@
+# Mock-up. Stands in for a generator gap: StackSolver builds no LF-ordered symmetric
+# two-row candidate. Written by tools/two-row-variants.py, the low variant with its Achenbach one row up, on the outer Flexys, as in fav-ours-achenbach-flipped.
+#
+#   2  F F F F F F F    4.257 m
+#   1  F F S F S F F    4.295 m
+id: ach-stereo-two-rows-low-raised
+name: "Achenbach event, stereo, ours in two rows, LF low-raised"
+
+# Our tops aim at our own centre, the way a generated systems-apart stack aims at its own front centre.
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+    x_m: -3.1535
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+    x_m: -3.1535
+
+placements:
+  - id: ours-r1-1
+    device: flexy-folded-horn-hybrid
+    at: [-5.0055, 0.0]
+    roll_deg: 180
+  - id: ours-r1-2
+    device: flexy-folded-horn-hybrid
+    at: [-4.3945, 0.0]
+    roll_deg: 180
+  - id: ours-r1-3
+    device: skram
+    at: [-3.774, -0.0755]
+  - id: ours-r1-4
+    device: flexy-folded-horn-hybrid
+    at: [-3.1535, 0.0]
+    roll_deg: 180
+  - id: ours-r1-5
+    device: skram
+    at: [-2.533, -0.0755]
+  - id: ours-r1-6
+    device: flexy-folded-horn-hybrid
+    at: [-1.9125, 0.0]
+    roll_deg: 180
+  - id: ours-r1-7
+    device: flexy-folded-horn-hybrid
+    at: [-1.3015, 0.0]
+    roll_deg: 180
+  - id: ours-r2-1
+    device: flexy-folded-horn-hybrid
+    at: [-4.9865, 0.0]
+    on: ours-r1-1
+  - id: ours-r2-2
+    device: flexy-folded-horn-hybrid
+    at: [-4.3755, 0.0]
+    on: ours-r1-2
+  - id: ours-r2-3
+    device: flexy-folded-horn-hybrid
+    at: [-3.7645, 0.0]
+    on: ours-r1-3
+  - id: ours-r2-4
+    device: flexy-folded-horn-hybrid
+    at: [-3.1535, 0.0]
+    on: ours-r1-4
+  - id: ours-r2-5
+    device: flexy-folded-horn-hybrid
+    at: [-2.5425, 0.0]
+    on: ours-r1-5
+  - id: ours-r2-6
+    device: flexy-folded-horn-hybrid
+    at: [-1.9315, 0.0]
+    on: ours-r1-6
+  - id: ours-r2-7
+    device: flexy-folded-horn-hybrid
+    at: [-1.3205, 0.0]
+    on: ours-r1-7
+  - id: ours-r3-1
+    device: achenbach-18
+    at: [-4.982, -0.132]
+    on: ours-r2-1
+  - id: ours-r3-2
+    device: achenbach-18
+    at: [-4.38, -0.132]
+    on: ours-r2-2
+  - id: ours-r3-3
+    device: achenbach-18
+    at: [-1.927, -0.132]
+    on: ours-r2-6
+  - id: ours-r3-4
+    device: achenbach-18
+    at: [-1.325, -0.132]
+    on: ours-r2-7
+  - id: ours-top-1
+    device: tecnare-m2122
+    at: [-4.982, -0.2223]
+    on: ours-r3-1
+    aim: far
+  - id: ours-top-2
+    device: eighteensound-2way-15
+    at: [-4.38, -0.1801]
+    on: ours-r3-2
+    aim: near
+  - id: ours-top-3
+    device: tecnare-m2122
+    at: [-3.1535, -0.2223]
+    on: ours-r2-4
+    aim: far
+  - id: ours-top-4
+    device: eighteensound-2way-15
+    at: [-1.927, -0.1801]
+    on: ours-r3-3
+    aim: near
+  - id: ours-top-5
+    device: tecnare-m2122
+    at: [-1.325, -0.2223]
+    on: ours-r3-4
+    aim: far
+
+  - id: main-psl
+    at: [1.024, 0.0]
+    aim: far
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: pyramid
+      from:
+        - device: concert-audio-esx
+          count: 9
+          roll_mirror: 90.0
+        - device: concert-audio-ef6
+          count: 2
+  - id: main-innschleife
+    at: [5.384, 0.0]
+    aim: far
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 1.6
+      max_sub_height_m: 3.0
+      target_sub_height_m: 1.75
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: pyramid
+      from:
+        - device: wsx-18
+          roll_mirror: 90.0
+        - device: sbh-18
+          roll_mirror: 90.0
+        - kicker-15
+        - device: tms4
+          count: 1
+        - device: tms2
+          aim: near
+
+  - id: backdrop-tower-left
+    device: truss-tower-4m
+    at: [-4.32, 1.282]
+    extend_to_m: 3.742
+  - id: backdrop-tower-right
+    device: truss-tower-4m
+    at: [5.477, 1.282]
+    extend_to_m: 3.742
+  - id: backdrop-truss
+    device: truss-f33-2m
+    at: [0.578, 1.282]
+    fly:
+      height_m: 3.742
+      id: backdrop
+    row:
+      count: 5
+      gap_m: 0.0
+  - id: backdrop-deco
+    device: deco-panel-8x2-03
+    at: [0.578, 1.112]
+    fly:
+      height_m: 1.974
+      id: backdrop

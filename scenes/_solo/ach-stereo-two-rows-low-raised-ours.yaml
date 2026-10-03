@@ -1,0 +1,120 @@
+# Mock-up. Stands in for a generator gap: StackSolver builds no LF-ordered symmetric
+# two-row candidate. Written by tools/two-row-variants.py, the low-raised variant with our stack alone, a fifth Achenbach under the centre Tecnare.
+#
+#   2  F F F F F F F    4.257 m
+#   1  F F S F S F F    4.295 m
+id: ach-stereo-two-rows-low-raised-ours
+name: "Achenbach event, stereo, ours in two rows, LF low-raised-ours"
+
+# Our tops aim at our own centre, the way a generated systems-apart stack aims at its own front centre.
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+    x_m: 0.0
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+    x_m: 0.0
+
+placements:
+  - id: ours-r1-1
+    device: flexy-folded-horn-hybrid
+    at: [-1.852, 0.0]
+    roll_deg: 180
+  - id: ours-r1-2
+    device: flexy-folded-horn-hybrid
+    at: [-1.241, 0.0]
+    roll_deg: 180
+  - id: ours-r1-3
+    device: skram
+    at: [-0.6205, -0.0755]
+  - id: ours-r1-4
+    device: flexy-folded-horn-hybrid
+    at: [0.0, 0.0]
+    roll_deg: 180
+  - id: ours-r1-5
+    device: skram
+    at: [0.6205, -0.0755]
+  - id: ours-r1-6
+    device: flexy-folded-horn-hybrid
+    at: [1.241, 0.0]
+    roll_deg: 180
+  - id: ours-r1-7
+    device: flexy-folded-horn-hybrid
+    at: [1.852, 0.0]
+    roll_deg: 180
+  - id: ours-r2-1
+    device: flexy-folded-horn-hybrid
+    at: [-1.833, 0.0]
+    on: ours-r1-1
+  - id: ours-r2-2
+    device: flexy-folded-horn-hybrid
+    at: [-1.222, 0.0]
+    on: ours-r1-2
+  - id: ours-r2-3
+    device: flexy-folded-horn-hybrid
+    at: [-0.611, 0.0]
+    on: ours-r1-3
+  - id: ours-r2-4
+    device: flexy-folded-horn-hybrid
+    at: [0.0, 0.0]
+    on: ours-r1-4
+  - id: ours-r2-5
+    device: flexy-folded-horn-hybrid
+    at: [0.611, 0.0]
+    on: ours-r1-5
+  - id: ours-r2-6
+    device: flexy-folded-horn-hybrid
+    at: [1.222, 0.0]
+    on: ours-r1-6
+  - id: ours-r2-7
+    device: flexy-folded-horn-hybrid
+    at: [1.833, 0.0]
+    on: ours-r1-7
+  - id: ours-r3-1
+    device: achenbach-18
+    at: [-1.8285, -0.132]
+    on: ours-r2-1
+  - id: ours-r3-2
+    device: achenbach-18
+    at: [-1.2265, -0.132]
+    on: ours-r2-2
+  - id: ours-r3-3
+    device: achenbach-18
+    at: [0.0, -0.132]
+    on: ours-r2-4
+  - id: ours-r3-4
+    device: achenbach-18
+    at: [1.2265, -0.132]
+    on: ours-r2-6
+  - id: ours-r3-5
+    device: achenbach-18
+    at: [1.8285, -0.132]
+    on: ours-r2-7
+  - id: ours-top-1
+    device: tecnare-m2122
+    at: [-1.8285, -0.2223]
+    on: ours-r3-1
+    aim: far
+  - id: ours-top-2
+    device: eighteensound-2way-15
+    at: [-1.2265, -0.1801]
+    on: ours-r3-2
+    aim: near
+  - id: ours-top-3
+    device: tecnare-m2122
+    at: [0.0, -0.2223]
+    on: ours-r3-3
+    aim: far
+  - id: ours-top-4
+    device: eighteensound-2way-15
+    at: [1.2265, -0.1801]
+    on: ours-r3-4
+    aim: near
+  - id: ours-top-5
+    device: tecnare-m2122
+    at: [1.8285, -0.2223]
+    on: ours-r3-5
+    aim: far
+
