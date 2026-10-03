@@ -325,9 +325,13 @@ ddev exec vendor/bin/phpunit --log-junit build/phpunit-junit.xml
 ddev exec php tools/phpunit-timing.php build/phpunit-junit.xml
 ```
 
-**The replay sample makes the wall time a draw.** `BuildAllCommandTest` replays 120 random generated scenes, and one
-rig of four systems in a single pooled stack can solve for over ten minutes on its own. A run that is much slower
-than this figure is worth repeating with the seed it printed before anything else is suspected.
+**Each sampled replay has 60 s.** `BuildAllCommandTest` replays 120 random generated scenes, each in its own
+process, and kills one that runs past the budget. Without that the draw decided the wall time: one rig of four systems
+in a single pooled stack takes 6 min 27 s alone, and drawn into the suite it held the run for over ten minutes. The
+slowest replay that finished in two measured draws took 26.8 s. A stopped scene keeps its file, the test names it
+together with the three slowest replays, and more than five stopped replays fail the test, because that is the solver
+getting slower rather than an unlucky draw. `SDWA5_REPLAY_BUDGET=<seconds>` moves the budget and `SDWA5_FULL_REPLAY=1`
+switches it off together with the sampling.
 
 The largest class is now `ShippedScenesTest` at 4 min 21 s. It checks every shipped scene for a cabinet hanging in
 the air or sitting inside another, and it once walked all 2489 of them down one core for 10 minutes. It now runs one case per inventory and solves the scenes inside each across cores, through

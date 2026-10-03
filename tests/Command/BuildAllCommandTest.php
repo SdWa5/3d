@@ -12,6 +12,7 @@ use App\Command\SceneBuildCommand;
 use App\Command\SceneRenderCommand;
 use App\Command\SpecsValidateCommand;
 use App\Process\Parallel;
+use App\Tests\Support\ReplayBudget;
 use App\Tests\Support\ReplaySample;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -462,37 +463,53 @@ final class BuildAllCommandTest extends TestCase
         $before = self::generatedScenes($directory);
         self::assertNotSame([], $before);
 
-        $application = new Application();
-        $application->add(new \App\Command\SceneStackCommand());
+        $budget = ReplayBudget::seconds();
+        $project = dirname(__DIR__, 2);
 
         try {
             // Across processes, the same way the stage itself replays — 483 commands that share nothing but the
             // inventory. **Nothing is asserted inside the closure**, because an assertion that fails in a forked
             // child dies with the child and comes back as "a worker produced nothing" rather than as the message it
             // was written to give. The exit codes come home and are judged here.
-            $exits = Parallel::map(
+            //
+            // **Each replay is its own process with a time limit** (TOOL-22). One drawn rig once solved for over ten
+            // minutes while the other 119 were long done, so a single draw decided the length of the suite.
+            // {@see ReplayBudget} explains why a killed process rather than an alarm, and what a stopped replay still
+            // proves.
+            $runs = Parallel::map(
                 // **SAMPLED, AND THE COMPARISON BELOW IS NOT.** One solve per scene over 2688 scenes is most of
                 // an hour, and a property that costs the output of the thing it tests will always end up there.
                 // What is sampled is what gets *replayed*; `$before` against `$after` still walks the whole set,
                 // because a stale check against a sample would call the rest of the repository stale.
                 ReplaySample::of($before),
-                static function (string $yaml) use ($application): ?int {
+                static function (string $yaml) use ($project, $budget): ?array {
                     $command = self::recordedCommandIn($yaml);
-                    if (null === $command) {
-                        return null;
-                    }
 
-                    return $application->find('scene:stack')->run(
-                        new \Symfony\Component\Console\Input\StringInput($command.' --force'),
-                        new \Symfony\Component\Console\Output\NullOutput(),
-                    );
+                    return null === $command ? null : ReplayBudget::run(ReplayBudget::replayLine($command), $project, $budget);
                 },
             );
 
-            foreach ($exits as $name => $exit) {
-                self::assertNotNull($exit, $name.' records no command, so it cannot be replayed');
-                self::assertSame(0, $exit, 'replaying '.$name.' failed');
+            $over = [];
+            foreach ($runs as $name => $run) {
+                self::assertNotNull($run, $name.' records no command, so it cannot be replayed');
+                if (null === $run['exit']) {
+                    $over[] = $name;
+                    continue;
+                }
+                self::assertSame(0, $run['exit'], 'replaying '.$name.' failed: '.$run['error']);
             }
+
+            self::reportReplayTimes($runs, $over, $budget);
+            self::assertLessThanOrEqual(
+                ReplayBudget::TOLERATED,
+                count($over),
+                sprintf(
+                    "%d replays ran past %d s, which is the solver getting slower rather than an unlucky draw:\n%s",
+                    count($over),
+                    $budget,
+                    implode("\n", $over),
+                ),
+            );
 
             $after = self::generatedScenes($directory);
 
@@ -507,7 +524,34 @@ final class BuildAllCommandTest extends TestCase
                 }
                 file_put_contents($directory.'/'.$relative, $before[$relative]);
             }
+            // A replay killed between writing its temporary file and renaming it leaves that file behind.
+            foreach (glob($directory.'/{,*/}*.yaml.*.tmp', GLOB_BRACE) ?: [] as $temporary) {
+                unlink($temporary);
+            }
         }
+    }
+
+    /**
+     * Prints the replays that ran over and the three slowest that did not, the way {@see ReplaySample} prints its
+     * seed. The slowest are what the budget has to be measured against when it is next moved.
+     *
+     * @param array<string, array{exit: ?int, seconds: float, error: string}|null> $runs
+     * @param list<string> $over
+     */
+    private static function reportReplayTimes(array $runs, array $over, ?int $budget): void
+    {
+        $finished = array_filter($runs, static fn (?array $run): bool => null !== $run && null !== $run['exit']);
+        uasort($finished, static fn (array $a, array $b): int => $b['seconds'] <=> $a['seconds']);
+
+        $lines = [];
+        foreach (array_slice($finished, 0, 3, true) as $name => $run) {
+            $lines[] = sprintf('    %6.1f s  %s', $run['seconds'], $name);
+        }
+        foreach ($over as $name) {
+            $lines[] = sprintf('    over %d s, stopped and not rewritten  %s', $budget, $name);
+        }
+
+        fwrite(STDERR, "\n  [replay] slowest of the sample\n".implode("\n", $lines)."\n");
     }
 
     /** The `scene:stack` arguments a generated scene records, unwrapped from its comment block. */
