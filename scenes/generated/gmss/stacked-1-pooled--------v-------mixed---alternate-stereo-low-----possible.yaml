@@ -57,4 +57,3 @@ placements:
         - device: iq-sub
           roll_mirror: 90.0
         - turbo-top
-

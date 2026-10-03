@@ -136,6 +136,37 @@ final class BuildAllCommandTest extends TestCase
     }
 
     /**
+     * Fails with the paths that differ, never with the two scene sets.
+     *
+     * **Handed both arrays, PHPUnit renders a failure as a line diff of their exports**, which at 4370 scenes is about
+     * 280,000 lines a side. On 2026-10-03 that diff ran for over half an hour without finishing, and the suite looked
+     * hung rather than failed. A list of paths fails in seconds and names what to look at.
+     *
+     * @param array<string, string> $before
+     * @param array<string, string> $after
+     */
+    private static function assertSameScenes(array $before, array $after, string $what): void
+    {
+        self::assertSame(
+            [],
+            array_merge(
+                array_map(static fn (string $path): string => 'gone: '.$path, array_keys(array_diff_key($before, $after))),
+                array_map(static fn (string $path): string => 'new: '.$path, array_keys(array_diff_key($after, $before))),
+            ),
+            $what.' changed which scenes exist',
+        );
+        self::assertSame(
+            [],
+            array_keys(array_filter(
+                $before,
+                static fn (string $yaml, string $path): bool => $yaml !== $after[$path],
+                ARRAY_FILTER_USE_BOTH,
+            )),
+            $what.' rebuilt these scenes differently from the way they were written',
+        );
+    }
+
+    /**
      * Every generated scene under `$directory`, keyed by its path **relative to that directory**.
      *
      * Relative rather than by basename, because the generated set gained a directory level per inventory and two
@@ -314,8 +345,7 @@ final class BuildAllCommandTest extends TestCase
             $after = self::generatedScenes($directory);
 
             // The two halves the stray-scene defect broke: which files exist, and what is in them.
-            self::assertSame(array_keys($before), array_keys($after), 'the stage changed which scenes exist');
-            self::assertSame($before, $after, 'the stage rebuilt a scene differently from the way it was written');
+            self::assertSameScenes($before, $after, 'the stage');
 
             // And it reports what it wrote, which is what the stale deletion is a set difference against. A stage that
             // reported nothing would silently make that deletion a no-op rather than an error.
@@ -466,8 +496,7 @@ final class BuildAllCommandTest extends TestCase
 
             $after = self::generatedScenes($directory);
 
-            self::assertSame(array_keys($before), array_keys($after), 'the replay changed which scenes exist');
-            self::assertSame($before, $after, 'the replay rebuilt a scene differently from the way it was written');
+            self::assertSameScenes($before, $after, 'the replay');
         } finally {
             // Whatever happened, put the tree back: a failing assertion must not leave 141 stray files behind for the
             // next test — or the next person — to trip over.

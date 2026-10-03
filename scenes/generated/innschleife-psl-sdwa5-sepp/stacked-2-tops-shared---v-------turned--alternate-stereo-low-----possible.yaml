@@ -326,4 +326,3 @@ placements:
         - device: sub-60x60
           count: 2
           roll_mirror: 90.0
-

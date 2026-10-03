@@ -182,4 +182,3 @@ placements:
         - device: iq-sub
           count: 3
           roll_mirror: 90.0
-

@@ -170,4 +170,3 @@ placements:
         - device: achenbach-18
           count: 3
           roll_mirror: 90.0
-

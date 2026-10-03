@@ -160,6 +160,9 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringContainsString('device: deco-panel-8x2-03', $display);
         self::assertStringContainsString('extend_to_m: 3.742', $display);
         self::assertStringNotContainsString('-impossible', $display);
+        // Set off by a blank line like every other block, and not followed by one, so the scene ends on one newline.
+        self::assertMatchesRegularExpression('/\S\n\n  # Backdrop: deco-panel-8x2-03/', $display);
+        self::assertMatchesRegularExpression('/      id: backdrop\n(?!\n)/', $display);
     }
 
     public function testADecoPanelWithNoTrussIsRefused(): void

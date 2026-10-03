@@ -194,4 +194,3 @@ placements:
         - device: flexy-folded-horn-hybrid
           count: 6
           roll_mirror: 90.0
-

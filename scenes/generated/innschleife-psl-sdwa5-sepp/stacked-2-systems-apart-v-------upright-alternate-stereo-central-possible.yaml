@@ -294,4 +294,3 @@ placements:
         - device: tms2
           count: 1
           aim: near
-
