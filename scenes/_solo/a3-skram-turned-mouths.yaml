@@ -1,0 +1,122 @@
+id: a3-skram-turned-mouths
+name: "Turned SKRAM rig, Flexy columns 2 and 5 turned 180 degrees"
+# Hand-placed example from a `scene:stack` run into scratch-skram-turned (pyramid-turned centred stereo low). Flexy columns 2 and 5 turned 180 degrees in their own slots so the horn mouths meet in pairs.
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  - id: s1a-1
+    device: skram
+    at: [-2.1800, -0.0755]
+    roll_deg: 270
+  - id: s1a-2
+    device: skram
+    at: [-1.2460, -0.0755]
+    roll_deg: 270
+  - id: s1a-3
+    device: skram
+    at: [-0.3120, -0.0755]
+    roll_deg: 270
+  - id: s1b-1
+    device: skram
+    at: [-0.2920, -0.0755]
+    roll_deg: 90
+  - id: s1b-2
+    device: skram
+    at: [0.6420, -0.0755]
+    roll_deg: 90
+  - id: s1b-3
+    device: skram
+    at: [1.5760, -0.0755]
+    roll_deg: 90
+  - id: f2a-1
+    device: flexy-folded-horn-hybrid
+    at: [-1.8780, 0.0000]
+    on: s1a-1
+    roll_deg: 270
+  - id: f2a-2
+    device: flexy-folded-horn-hybrid
+    at: [-1.8580, 0.0000]
+    on: s1a-1
+    roll_deg: 90
+  - id: f2a-3
+    device: flexy-folded-horn-hybrid
+    at: [-0.3120, 0.0000]
+    on: s1a-1
+    roll_deg: 270
+  - id: f2b-1
+    device: flexy-folded-horn-hybrid
+    at: [-0.2920, 0.0000]
+    on: s1a-1
+    roll_deg: 90
+  - id: f2b-2
+    device: flexy-folded-horn-hybrid
+    at: [1.2540, 0.0000]
+    on: s1a-1
+    roll_deg: 270
+  - id: f2b-3
+    device: flexy-folded-horn-hybrid
+    at: [1.2740, 0.0000]
+    on: s1a-1
+    roll_deg: 90
+  - id: f3a-1
+    device: flexy-folded-horn-hybrid
+    at: [-1.8780, 0.0000]
+    on: f2a-1
+    roll_deg: 270
+  - id: f3a-2
+    device: flexy-folded-horn-hybrid
+    at: [-1.8580, 0.0000]
+    on: f2a-1
+    roll_deg: 90
+  - id: f3a-3
+    device: flexy-folded-horn-hybrid
+    at: [-0.3120, 0.0000]
+    on: f2a-1
+    roll_deg: 270
+  - id: f3b-1
+    device: flexy-folded-horn-hybrid
+    at: [-0.2920, 0.0000]
+    on: f2a-1
+    roll_deg: 90
+  - id: f3b-2
+    device: flexy-folded-horn-hybrid
+    at: [1.2540, 0.0000]
+    on: f2a-1
+    roll_deg: 270
+  - id: f3b-3
+    device: flexy-folded-horn-hybrid
+    at: [1.2740, 0.0000]
+    on: f2a-1
+    roll_deg: 90
+  - id: t4a
+    device: tecnare-m2122
+    at: [-2.3910, -0.1778]
+    on: f3a-1
+    aim: far
+  - id: t4b
+    device: eighteensound-2way-15
+    at: [-1.8535, -0.1769]
+    on: f3a-1
+    aim: near
+  - id: t4c
+    device: tecnare-m2122
+    at: [-0.3020, -0.2223]
+    on: f3a-1
+    aim: far
+  - id: t4d
+    device: eighteensound-2way-15
+    at: [1.2495, -0.1769]
+    on: f3a-1
+    aim: near
+  - id: t4e
+    device: tecnare-m2122
+    at: [1.7870, -0.1778]
+    on: f3a-1
+    aim: far

@@ -1,0 +1,53 @@
+id: solo-ours-skram-base
+name: "sdwa5 and Sepp alone, six SKRAM under twelve Flexy"
+# Hand-written variant of solo-ours-sdwa5-sepp. Six SKRAM in the bottom row, twelve Flexy as two rows of six above, the lower Flexy row turned over.
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  - id: skram-row
+    device: skram
+    at: [-4.6620, -0.0755]
+    row: { count: 6, gap_m: 0.02 }
+  - id: flexy-1
+    device: flexy-folded-horn-hybrid
+    at: [-4.6620, 0.0000]
+    on: skram-row
+    roll_deg: 180
+    row: { count: 6, gap_m: 0.02 }
+  - id: flexy-2
+    device: flexy-folded-horn-hybrid
+    at: [-4.6620, 0.0000]
+    on: flexy-1
+    row: { count: 6, gap_m: 0.02 }
+  - id: top-c
+    device: tecnare-m2122
+    at: [-4.6620, -0.2223]
+    on: flexy-2
+    aim: far
+  - id: top-la
+    device: tecnare-m2122
+    at: [-6.1950, -0.1812]
+    on: flexy-2
+    aim: far
+  - id: top-lb
+    device: eighteensound-2way-15
+    at: [-5.6670, -0.1801]
+    on: flexy-2
+    aim: near
+  - id: top-rb
+    device: eighteensound-2way-15
+    at: [-3.6570, -0.1801]
+    on: flexy-2
+    aim: near
+  - id: top-ra
+    device: tecnare-m2122
+    at: [-3.1290, -0.1812]
+    on: flexy-2
+    aim: far

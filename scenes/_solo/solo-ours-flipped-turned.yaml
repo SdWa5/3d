@@ -1,0 +1,65 @@
+id: solo-ours-flipped-turned
+name: "sdwa5 and Sepp alone, flipped Flexy blocks turned a quarter"
+# Hand-written variant of solo-ours-sdwa5-sepp. Each flipped 6-Flexy block turned 90 degrees as a whole, 0.02 m beside the SKRAM, left and right mirrored.
+
+focus:
+  far:
+    distance_m: 10.0
+    height_m: 1.8
+  near:
+    distance_m: 2.0
+    height_m: 1.8
+
+placements:
+  - id: col-l-out
+    device: flexy-folded-horn-hybrid
+    at: [-5.7500, 0.0000]
+    roll_deg: 270
+    row: { count: 3, axis: z }
+  - id: col-l-in
+    device: flexy-folded-horn-hybrid
+    at: [-5.7500, 0.0000]
+    roll_deg: 90
+    row: { count: 3, axis: z }
+  - id: skram-1
+    device: skram
+    at: [-4.6620, -0.0755]
+  - id: skram-2
+    device: skram
+    at: [-4.6620, -0.0755]
+    on: skram-1
+  - id: col-r-in
+    device: flexy-folded-horn-hybrid
+    at: [-3.5740, 0.0000]
+    roll_deg: 270
+    row: { count: 3, axis: z }
+  - id: col-r-out
+    device: flexy-folded-horn-hybrid
+    at: [-3.5740, 0.0000]
+    roll_deg: 90
+    row: { count: 3, axis: z }
+  - id: top-c
+    device: tecnare-m2122
+    at: [-4.6620, -0.2223]
+    on: skram-2
+    aim: far
+  - id: top-la
+    device: tecnare-m2122
+    at: [-6.2630, -0.1812]
+    on: col-l-out
+    aim: far
+  - id: top-lb
+    device: eighteensound-2way-15
+    at: [-5.7349, -0.1801]
+    on: col-l-out
+    aim: near
+  - id: top-rb
+    device: eighteensound-2way-15
+    at: [-3.5891, -0.1801]
+    on: col-r-out
+    aim: near
+  - id: top-ra
+    device: tecnare-m2122
+    at: [-3.0610, -0.1812]
+    on: col-r-out
+    aim: far
