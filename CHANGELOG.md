@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.144.0] - 2026-10-03
+
+### Fixed
+
+- A pooled stack's seating check aims its tops from the rig's front centre, the way the finished scene aims them,
+  rather than from the stack's own (GEO-11). The compiler solves every stack once, reads the rig's centre off the
+  result and re-solves each pooled stack standing off it, for at most three rounds. A stack whose re-solve seats
+  nothing keeps its first arrangement.
+- `scene:stack` re-solves its blocks the same way once they are laid out (`RigAim::reaimed()`), so a generated file's
+  header rows are the rows its build produces.
+- Regenerated. 28 pooled rigs go from impossible to possible, the 9 that 0.142.0 lost among them, and none goes the
+  other way. The 11 tops-shared rigs 0.142.0 lost stay impossible under GEO-20, which 0.142.0 had counted as 10.
+  18 possible scenes keep their verdict with corrected header rows and stack positions.
+
+### Changed
+
+- `SceneStackCommand::probePlacement()` moved to `RigAim::probePlacement()`.
+- The full suite takes 32 min 40 s, 10 min longer than before, which TOOL-22 is to win back.
+
 ## [0.143.0] - 2026-10-03
 
 ### Added

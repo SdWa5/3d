@@ -691,6 +691,15 @@ aligned and mirrored. The seating predicate `SceneCompiler::stackSurvives()` the
 air. Until 0.142.0 only arrangements with a gapped row were asked. A mirrored packed row then outranked a lopsided one
 on `gmss-sdwa5-sepp` and left a turbo-top over air, which turned a possible scene impossible.
 
+The predicate compiles each candidate alone, so it has to be told where the scene will aim the stack's tops from. A
+stack with a `focus:` of its own aims from its own front centre in the scene as well. A pooled stack aims from the
+rig's front centre, which in a rig of two or three stacks lies off to one side of each. Since 0.144.0 the compiler
+solves every stack once, reads the rig's front centre off the result and solves each pooled stack again with its
+predicate aimed from there, for at most three rounds while a re-solve still moves that centre. `scene:stack` does the
+same with `RigAim::reaimed()` once the blocks are laid out, so a file's header rows are the rows its build produces.
+Before that, nine pooled `sdwa5-sepp` and `gmss-sdwa5` rigs won arrangements in 0.142.0 that stood alone and overlapped
+by up to 44 mm once aimed for real.
+
 The scene records no gap. Like the row budget, the gaps come out of the constraints, so a re-solve reproduces them.
 The writer's row comment names a gapped row, for example `6× achenbach-18 at 262 mm gaps`, and `stack.gap_m` stays the
 packed gap. Alignment still never spreads a load-bearing tier (ALN-4). A gapped row is chosen by the fill and

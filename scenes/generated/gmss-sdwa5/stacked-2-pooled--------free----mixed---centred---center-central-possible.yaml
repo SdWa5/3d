@@ -11,24 +11,24 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 14 cabinets in 5 rows:
+# main-1 — 1, 14 cabinets in 4 rows:
 #
-#   1  1× skram rolled 270° + 1× wall-bass rolled 90°                        2.334 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   4  2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°     2.84 m wide
-#   5  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× wall-bass rolled 90°    2.813 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.723 m wide
+#   3  2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°     2.84 m wide
+#   4  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
 #
-# Subs reach 2.776 m against a 2.0 m interface. The stack is 3.736 m of cabinet.
+# Subs reach 2.267 m against a 2.0 m interface. The stack is 3.227 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90° row is 2.840 m on a 2.157 m row, so
-#     it overhangs 342 mm each side
-#   * row 1 (1× skram rolled 270° + 1× wall-bass rolled 90°) is not mirror-symmetric, and the search found no
-#     symmetric arrangement of these cabinets that stands
-#   * row 4 (2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
+#     flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is
+#     3.723 m on a 2.813 m row, so it overhangs 455 mm each side
+#   * row 1 (1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× wall-bass rolled 90°) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (2× iq-sub rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the
 #     search found no symmetric arrangement of these cabinets that stands
 #
 # main-2 — 2, 17 cabinets in 4 rows:
@@ -63,7 +63,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 14 cabinets in 5 rows
+  # 1, 14 cabinets in 4 rows
   - id: main-1
     at: [-2.4135, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -98,7 +98,7 @@ placements:
 
   # 2, 17 cabinets in 4 rows
   - id: main-2
-    at: [1.368, 0.0]
+    at: [1.8095, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
