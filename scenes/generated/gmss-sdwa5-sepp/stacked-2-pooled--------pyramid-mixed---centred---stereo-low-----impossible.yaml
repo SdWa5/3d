@@ -3,7 +3,7 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-2/1i and main-2/2c are 0.0221 m inside each other
+#   * main-2/1i and main-2/2c are 0.0176 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -17,15 +17,16 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-1 — 1, 15 cabinets in 5 rows:
+# main-1 — 1, 15 cabinets in 6 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90°    2.157 m wide
-#   3  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
-#   4  3× achenbach-18                                                           1.84 m wide
-#   5  1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122            1.4556 m wide
+#   1  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90°              1.91 m wide
+#   2  3× achenbach-18                                                           1.84 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   6  1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122            1.4556 m wide
 #
-# Subs reach 2.796 m against a 2.0 m interface. The stack is 3.756 m of cabinet.
+# Subs reach 3.043 m against a 2.0 m interface. The stack is 4.003 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
@@ -40,6 +41,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * the subs reach 3.043 m against the 3.000 m ceiling asked for, so they stand 43 mm too high — 3.043 m is the
+#     nearest the 2.500 m target that every tier is still carried at
 #
 # main-2 — 2, 24 cabinets in 2 rows:
 #
@@ -82,7 +85,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # 1, 15 cabinets in 5 rows
+  # 1, 15 cabinets in 6 rows
   - id: main-1
     at: [-8.458, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -115,7 +118,7 @@ placements:
 
   # 2, 24 cabinets in 2 rows
   - id: main-2
-    at: [1.0265, 0.0]
+    at: [0.903, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

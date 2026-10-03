@@ -23,6 +23,12 @@ final class SceneCompiler
     /** How far a copy's front may stand off the stack's front plane and count as on it. */
     private const FLUSH_TOLERANCE_M = 1e-6;
 
+    /** How often {@see expandStacksAimedAtTheRig} re-solves a pooled stack at most to follow a moving rig centre. */
+    private const AIM_ROUNDS = 3;
+
+    /** How far a stack's aim may stand from the rig's centre and count as aimed from it. */
+    private const SAME_CENTRE_M = 1e-3;
+
     /**
      * @param array<string, DeviceSpec> $devicesById
      */
@@ -92,7 +98,7 @@ final class SceneCompiler
         // front-face walk, not the placing loop, not the report — has to know stacks exist.
         /** @var array<string, string> $stackOf expanded placement id => the stack placement it came from */
         $stackOf = [];
-        $placements = $this->expandStacks($scene, $scene->placements, $add, $warn, $stackOf);
+        $placements = $this->expandStacksAimedAtTheRig($scene, $add, $warn, $stackOf);
 
         // Where the rig stands, worked out before any orientation exists. Aiming needs the focus
         // point, the focus point needs the rig's front face, and the front face must not depend on
@@ -434,6 +440,116 @@ final class SceneCompiler
     }
 
     /**
+     * Every `stack` expanded, with each pooled stack's seating check aimed where the finished scene will aim it.
+     *
+     * **GEO-11's scene-level half, as far as a second pass reaches.** A stack's seating check compiles each candidate
+     * on its own, so it aims the tops row from that stack's own front centre. The finished scene aims a stack with
+     * no `focus:` of its own from the **rig's** front centre, which in a two-stack rig lies off to one side. The tops
+     * then turn further in the scene than in the probe, and 0.142.0 measured what that costs. Mirrored sub rows won
+     * arrangements that stood alone and overlapped once aimed for real, on ten `sdwa5-sepp` and `gmss` rigs.
+     *
+     * So every stack is solved once, the rig's front centre is read off the result, and each pooled stack whose own
+     * centre is somewhere else is solved again with its probe aimed at the rig's. A re-solve can change a stack's
+     * width and so move the rig's centre, which is the circular part. It is followed for at most
+     * {@see self::AIM_ROUNDS} rounds, and a rig that has not settled by then keeps the last answer.
+     *
+     * A stack whose re-solve finds nothing that seats keeps its first arrangement, the same as {@see RigAim} in
+     * `scene:stack`, so a rig the aim cannot improve is judged as it was rather than dropped.
+     *
+     * A stack with a `focus:` of its own aims from its own front centre in the scene as well (see
+     * {@see withOwnFocus}), and a single centred stack's own centre is the rig's, so neither is solved twice.
+     *
+     * @param callable(string):void $add
+     * @param callable(string):void $warn
+     * @param array<string, string> $stackOf filled with expanded placement id => the stack placement it came from
+     *
+     * @return list<Placement>
+     */
+    private function expandStacksAimedAtTheRig(SceneSpec $scene, callable $add, callable $warn, array &$stackOf): array
+    {
+        // Per placement, so a re-solve replaces one stack's tiers and its messages and leaves the rest alone.
+        $expand = function (Placement $placement, ?float $rigCentreX) use ($scene): array {
+            /** @var list<array{bool, string}> $messages whether it is a warning, and what it says */
+            $messages = [];
+            $own = [];
+            $expanded = $this->expandStacks(
+                $scene,
+                [$placement],
+                static function (string $message) use (&$messages): void { $messages[] = [false, $message]; },
+                static function (string $message) use (&$messages): void { $messages[] = [true, $message]; },
+                $own,
+                $rigCentreX,
+            );
+
+            return ['expanded' => $expanded, 'messages' => $messages, 'stackOf' => $own, 'aimedFromX' => $rigCentreX];
+        };
+
+        $passes = [];
+        foreach ($scene->placements as $placement) {
+            $passes[] = $expand($placement, null);
+        }
+
+        for ($round = 0; !$this->probing && $round < self::AIM_ROUNDS; ++$round) {
+            $rigCentreX = $this->frontCentre(array_merge(...array_column($passes, 'expanded')))[0];
+            $moved = false;
+            foreach ($scene->placements as $i => $placement) {
+                $expanded = $passes[$i]['expanded'];
+                if (null === $placement->stack || [] !== $placement->focusByName || [] === $expanded) {
+                    continue;
+                }
+                $aimedFromX = $passes[$i]['aimedFromX'] ?? $this->frontCentre($expanded)[0];
+                if (abs($aimedFromX - $rigCentreX) <= self::SAME_CENTRE_M) {
+                    continue;
+                }
+                $reaimed = $expand($placement, $rigCentreX);
+                if ([] === $reaimed['expanded']) {
+                    // **Nothing seats when aimed from the rig, so the first answer stands.** The solver would hand
+                    // back an arrangement it never checked, and on `innschleife-psl-sdwa5-sepp` that one broke its own
+                    // `shape: v` and dropped the scene. The first pass's arrangement still compiles, and the
+                    // interpenetration check on the finished rig decides the verdict as it always did.
+                    $passes[$i]['aimedFromX'] = $rigCentreX;
+                    continue;
+                }
+                $passes[$i] = $reaimed;
+                $moved = true;
+            }
+            if (!$moved) {
+                break;
+            }
+        }
+
+        $placements = [];
+        foreach ($passes as $pass) {
+            array_push($placements, ...$pass['expanded']);
+            foreach ($pass['messages'] as [$isWarning, $message]) {
+                $isWarning ? $warn($message) : $add($message);
+            }
+            $stackOf += $pass['stackOf'];
+        }
+
+        return $placements;
+    }
+
+    /**
+     * A scene's foci with every one that has no x of its own aimed at the given x instead.
+     *
+     * @param array<string, Focus> $focusByName
+     *
+     * @return array<string, Focus>
+     */
+    private static function aimedFrom(array $focusByName, ?float $x): array
+    {
+        if (null === $x) {
+            return $focusByName;
+        }
+
+        return array_map(
+            static fn (Focus $focus): Focus => null !== $focus->xM ? $focus : new Focus($focus->distanceM, $focus->heightM, $x),
+            $focusByName,
+        );
+    }
+
+    /**
      * A scene's placements with every `stack` replaced by the tiers it solves to.
      *
      * Done in one pass up front rather than lazily, because a stack's tiers are ordinary placements that
@@ -445,11 +561,19 @@ final class SceneCompiler
      * @param callable(string):void $add
      * @param callable(string):void $warn
      * @param array<string, string> $stackOf filled with expanded placement id => the stack placement it came from
+     * @param float|null $rigCentreX where the finished rig's front centre stands, for a stack's seating check to aim
+     *                               from when the stack has no `focus:` of its own. Null aims from the stack's own.
      *
      * @return list<Placement>
      */
-    private function expandStacks(SceneSpec $scene, array $placements, callable $add, callable $warn, array &$stackOf = []): array
-    {
+    private function expandStacks(
+        SceneSpec $scene,
+        array $placements,
+        callable $add,
+        callable $warn,
+        array &$stackOf = [],
+        ?float $rigCentreX = null,
+    ): array {
         $expanded = [];
 
         foreach ($placements as $placement) {
@@ -492,7 +616,13 @@ final class SceneCompiler
                     $placement->align?->mode,
                     $this->probing
                         ? null
-                        : self::seatingCheck($this->devicesById, $placement, $scene->focusByName),
+                        : self::seatingCheck(
+                            $this->devicesById,
+                            $placement,
+                            [] === $placement->focusByName
+                                ? self::aimedFrom($scene->focusByName, $rigCentreX)
+                                : $scene->focusByName,
+                        ),
                 );
                 $problems = $solved['problems'];
                 if ([] === $problems) {
