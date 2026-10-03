@@ -14,6 +14,7 @@ use App\Scene\SceneLoader;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
 use App\Spec\Violation;
+use App\Tests\Support\ResultCache;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -64,6 +65,23 @@ final class ShippedScenesTest extends TestCase
 
     /** @var array<string, list<string>>|null */
     private static ?array $chunks = null;
+
+    /**
+     * What a scene's answer depends on, for {@see ResultCache}. The fault checks live in this file, so it is an input
+     * like `src/`, and `events/` is in although no compile reads it, because leaving out something that turns out to
+     * matter is the one mistake a cache must not make.
+     */
+    private const CACHE_INPUTS = [
+        'src', 'specs', 'events', 'composer.lock', 'tests/Scene/ShippedScenesTest.php', 'tests/Support',
+    ];
+
+    private static ?ResultCache $cache = null;
+
+    private static bool $cacheOpened = false;
+
+    private static int $reused = 0;
+
+    private static int $checked = 0;
 
     /**
      * @return array<string, DeviceSpec>
@@ -258,10 +276,24 @@ final class ShippedScenesTest extends TestCase
 
         self::assertNotSame([], $impossible, 'the sweep writes impossible rigs, so some should be on disk');
 
-        $standing = array_filter(Parallel::map(
+        $cache = self::cache();
+        $results = Parallel::map(
             $impossible,
-            static fn (string $relative): ?string => self::impossibleSceneThatStands($relative),
-        ));
+            static function (string $relative) use ($cache): array {
+                $item = "impossible\0{$relative}\0".file_get_contents(self::project().'/'.$relative);
+                if (null !== $cache && $cache->passed($item)) {
+                    return ['standing' => null, 'reused' => true];
+                }
+                $standing = self::impossibleSceneThatStands($relative);
+                if (null === $standing) {
+                    $cache?->recordPass($item);
+                }
+
+                return ['standing' => $standing, 'reused' => false];
+            },
+        );
+        self::tally($results);
+        $standing = array_filter(array_column($results, 'standing'));
 
         self::assertSame(
             [],
@@ -393,16 +425,77 @@ final class ShippedScenesTest extends TestCase
         // **EVERY FAULT IN THE INVENTORY, NOT THE FIRST ONE.** A forked run costs the same whether one scene is
         // broken or forty, so there is no reason to stop at the first — and a list of forty names is what tells
         // somebody whether they broke a rig or broke the solver.
-        $faults = array_merge(...array_values(Parallel::map(
+        // Opened here, in the parent, so the fingerprint is hashed once rather than once per child.
+        $cache = self::cache();
+        $results = Parallel::map(
             $scenes,
-            static fn (string $relative): array => self::faultsIn($relative),
-        )));
+            static fn (string $relative): array => self::cachedFaultsIn($relative, $cache),
+        );
+        self::tally($results);
+        $faults = array_merge(...array_column($results, 'faults'));
 
         self::assertSame(
             [],
             $faults,
             sprintf('%d of the %d scenes under %s do not stand up', count($faults), count($scenes), $where),
         );
+    }
+
+    /**
+     * {@see faultsIn}, skipped when the same scene passed under the same fingerprint before.
+     *
+     * Only a clean result is recorded, so a scene with faults is compiled again on every run and its report is
+     * always fresh.
+     *
+     * @return array{faults: list<string>, reused: bool}
+     */
+    private static function cachedFaultsIn(string $relative, ?ResultCache $cache): array
+    {
+        $item = "stands\0{$relative}\0".file_get_contents(self::project().'/'.$relative);
+        if (null !== $cache && $cache->passed($item)) {
+            return ['faults' => [], 'reused' => true];
+        }
+
+        $faults = self::faultsIn($relative);
+        if ([] === $faults) {
+            $cache?->recordPass($item);
+        }
+
+        return ['faults' => $faults, 'reused' => false];
+    }
+
+    private static function cache(): ?ResultCache
+    {
+        if (!self::$cacheOpened) {
+            self::$cacheOpened = true;
+            self::$cache = ResultCache::open(self::project(), 'shipped-scenes', self::CACHE_INPUTS);
+        }
+
+        return self::$cache;
+    }
+
+    /**
+     * @param array<array-key, array{reused: bool}> $results
+     */
+    private static function tally(array $results): void
+    {
+        self::$checked += count($results);
+        self::$reused += count(array_filter(array_column($results, 'reused')));
+    }
+
+    /**
+     * Says how much of the library was taken from the cache, the way {@see \App\Tests\Support\ReplaySample} says
+     * which seed it drew, so a fast run is never mistaken for a cold one.
+     */
+    public static function tearDownAfterClass(): void
+    {
+        if (null !== self::$cache && self::$checked > 0) {
+            fwrite(STDERR, sprintf(
+                "\n  [cache] %d of %d scene checks reused from build/test-cache — SDWA5_TEST_CACHE=0 runs them all\n",
+                self::$reused,
+                self::$checked,
+            ));
+        }
     }
 
     /**
