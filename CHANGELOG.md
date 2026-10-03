@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.147.2] - 2026-10-04
+
+### Changed
+
+- The pick-up order in `TODO.md` is SPEC-15, LOAD-6, GEO-11 and TOOL-11, settled with the owner.
+- TOOL-11 is P2, so the SPEC section now sits above TOOL.
+
 ## [0.147.1] - 2026-10-04
 
 ### Changed
