@@ -38,15 +38,16 @@
 #   * the subs reach 1.180 m against the 2.000 m interface asked for, so the tops sit 820 mm lower than ideal —
 #     1.180 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 4 rows:
+# main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  2× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° + 2× sub-60x60 rolled 90°     4.82 m wide
-#   2  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90° at 140 mm gaps            4.82 m wide
-#   3  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
-#   4  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
+#   1  1× sub-60x60 rolled 270° + 2× kicker-15 rolled 270° + 2× kicker-15 rolled 90° + 1× sub-60x60 rolled 90°     3.58 m wide
+#   2  1× wsx-18 rolled 270° + 1× sub-60x60 rolled 270° + 1× sub-60x60 rolled 90° + 1× wsx-18 rolled 90° at 60 mm gaps     3.58 m wide
+#   3  1× wsx-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 90° at 90 mm gaps     3.58 m wide
+#   4  2× sbh-18 rolled 270° + 1× sbh-18 rolled 90°                           3.64 m wide
+#   5  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #
-# Subs reach 2.07 m against a 2.0 m interface. The stack is 3.21 m of cabinet.
-#   * the 2× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 4.860 m on a 4.820 m row, so it overhangs 20 mm each
+# Subs reach 2.67 m against a 2.0 m interface. The stack is 3.81 m of cabinet.
+#   * the 2× sbh-18 rolled 270° + 1× sbh-18 rolled 90° row is 3.640 m on a 3.580 m row, so it overhangs 30 mm each
 #     side
 #
 id: stacked-1-systems-apart-v-------turned--alternate-center-low-----possible
@@ -63,7 +64,7 @@ focus:
 placements:
   # ours, 25 cabinets in 6 rows
   - id: main-ours
-    at: [-6.48, 0.0]
+    at: [-5.87, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -91,7 +92,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-1.176, 0.0]
+    at: [-0.566, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -127,7 +128,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 4 rows
+  # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
     at: [5.002, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

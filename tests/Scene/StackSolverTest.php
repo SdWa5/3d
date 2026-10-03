@@ -7,9 +7,13 @@ namespace App\Tests\Scene;
 use App\Scene\Gravity;
 use App\Scene\MirrorStyle;
 use App\Scene\MouthMode;
+use App\Scene\PlacementChecks;
+use App\Scene\SceneCompiler;
+use App\Scene\SceneLoader;
 use App\Scene\Stack;
 use App\Scene\StackChecks;
 use App\Scene\StackEntry;
+use App\Scene\StackMetrics;
 use App\Scene\StackShape;
 use App\Scene\StackSolver;
 use App\Scene\Tier;
@@ -1379,6 +1383,114 @@ final class StackSolverTest extends TestCase
                 self::assertNull($tier->gapM, sprintf('%s: %s', $shape->value, $tier->label()));
             }
         }
+    }
+
+    /**
+     * **A mirror-symmetric arrangement outranks a lopsided one at any height.** One SKRAM and five Flexys used to come
+     * back as `1F·1S·2F / 2F`, because packing an odd count puts the spare cabinet on the right and the two
+     * arrangements tie on everything else. Now it is `1F·1S·1F / 3F`, which a crew builds from either end.
+     */
+    public function testASymmetricArrangementOutranksALopsidedOne(): void
+    {
+        $result = $this->solveCounted(
+            ['skram' => 1, 'flexy-folded-horn-hybrid' => 5, 'tecnare-m2122' => 3],
+            maxSubHeightM: 3.0,
+        );
+
+        self::assertSame([], $result['problems']);
+        self::assertSame(
+            ['1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid', '3× flexy-folded-horn-hybrid', '3× tecnare-m2122'],
+            array_map(static fn (Tier $tier): string => $tier->label(), $result['tiers']),
+        );
+        self::assertSame([], array_filter($result['warnings'], static fn (string $w): bool => str_contains($w, 'mirror-symmetric')));
+    }
+
+    /**
+     * Where no symmetric arrangement stands the lopsided one is still returned, and said so. Under a 1 m ceiling one
+     * SKRAM and one Flexy can only stand side by side.
+     */
+    public function testALopsidedRowIsReturnedWithAWarningWhenNothingSymmetricStands(): void
+    {
+        $result = $this->solveCounted(['skram' => 1, 'flexy-folded-horn-hybrid' => 1], maxSubHeightM: 1.0, interfaceHeightM: 0.0);
+
+        self::assertSame([], $result['problems']);
+        self::assertSame(['1× skram + 1× flexy-folded-horn-hybrid'], array_map(static fn (Tier $tier): string => $tier->label(), $result['tiers']));
+        self::assertContains(
+            'row 1 (1× skram + 1× flexy-folded-horn-hybrid) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands',
+            $result['warnings'],
+        );
+    }
+
+    /** A row is compared by device and standing width, so opposite rolls of one cabinet are still a mirror image. */
+    public function testOppositeRollsAreStillSymmetric(): void
+    {
+        $flexy = $this->devices['flexy-folded-horn-hybrid'];
+        $skram = $this->devices['skram'];
+
+        self::assertTrue(StackMetrics::isSymmetric(new Tier([[$flexy, 1, 90.0], [$skram, 1], [$flexy, 1, -90.0]])));
+        self::assertFalse(StackMetrics::isSymmetric(new Tier([[$flexy, 1, 90.0], [$skram, 1], [$flexy, 1]])));
+        self::assertFalse(StackMetrics::isSymmetric(new Tier([[$flexy, 1], [$skram, 1], [$flexy, 2]])));
+    }
+
+    /**
+     * A symmetric row never trades a rig that stands for one that floats. The pooled `gmss-sdwa5-sepp` stack below
+     * mirrors its first row to `1S·1wall·1mid·1wall·1S`, and that arrangement leaves a turbo-top over air once the tops
+     * row is aimed. The seating check used to ask about floating cabinets for gapped rows only, so this packed one got
+     * through and turned a possible scene impossible.
+     */
+    public function testASymmetricRowThatLeavesATopOverAirLosesToALopsidedOneThatStands(): void
+    {
+        $root = sys_get_temp_dir().'/sdwa5-floating-'.bin2hex(random_bytes(4));
+        mkdir($root);
+        $from = [
+            ['wall-bass', 90.0], ['mid-bass', null], ['skram', 90.0], ['flexy-folded-horn-hybrid', 90.0],
+            ['nuke', 90.0], ['achenbach-18', null], ['iq-sub', 90.0], ['tecnare-m2122', null],
+            ['eighteensound-2way-15', 'near'], ['turbo-top', 'near'],
+        ];
+        $yaml = "id: floating\nname: floating\nfocus:\n  far: { distance_m: 10.0, height_m: 1.8 }\n"
+            ."  near: { distance_m: 2.0, height_m: 1.8 }\nplacements:\n  - id: main\n    at: [0.0, 0.0]\n    aim: far\n"
+            ."    stack:\n      interface_height_m: 2.0\n      max_sub_height_m: 3.0\n      gap_m: 0.02\n"
+            ."      slide_slack_m: .inf\n      from:\n";
+        foreach ($from as [$device, $option]) {
+            $yaml .= match (true) {
+                null === $option => "        - {$device}\n",
+                is_float($option) => "        - { device: {$device}, roll_mirror: {$option} }\n",
+                default => "        - { device: {$device}, aim: {$option} }\n",
+            };
+        }
+        file_put_contents($root.'/floating.yaml', $yaml);
+
+        try {
+            $scene = (new SceneLoader($root))->load($root.'/floating.yaml');
+            $result = (new SceneCompiler($this->devices))->compile($scene);
+        } finally {
+            unlink($root.'/floating.yaml');
+            rmdir($root);
+        }
+
+        self::assertSame([], PlacementChecks::floatingFaults($result['placed']));
+    }
+
+    /**
+     * One solve of exactly these counts in a free stack, for the scenarios that name their cabinets one by one.
+     *
+     * @param array<string, int> $counts
+     *
+     * @return array{tiers: list<Tier>, problems: list<string>, warnings: list<string>}
+     */
+    private function solveCounted(array $counts, ?float $maxSubHeightM, float $interfaceHeightM = 1.6): array
+    {
+        return StackSolver::solve(
+            array_map(fn (string $id): array => [$this->devices[$id], $counts[$id]], array_keys($counts)),
+            new Stack(
+                from: array_map(static fn (string $id): StackEntry => new StackEntry($id), array_keys($counts)),
+                maxWidthM: null,
+                interfaceHeightM: $interfaceHeightM,
+                gapM: 0.02,
+                maxSubHeightM: $maxSubHeightM,
+                targetSubHeightM: 1.75,
+            ),
+        );
     }
 
     /**

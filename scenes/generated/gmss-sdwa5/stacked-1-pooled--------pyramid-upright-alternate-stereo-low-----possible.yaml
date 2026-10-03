@@ -13,7 +13,7 @@
 #
 #   1  10× flexy-folded-horn-hybrid                                              6.09 m wide
 #   2  3× iq-sub + 1× flexy-folded-horn-hybrid + 2× wall-bass + 1× flexy-folded-horn-hybrid + 3× iq-sub    5.862 m wide
-#   3  1× nuke + 2× skram + 1× nuke + 1× mid-bass                             3.68 m wide
+#   3  1× nuke + 1× skram + 1× mid-bass + 1× skram + 1× nuke                 3.68 m wide
 #   4  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122     2.95 m wide
 #
 # Subs reach 3.077 m against a 2.0 m interface. The stack is 4.037 m of cabinet.

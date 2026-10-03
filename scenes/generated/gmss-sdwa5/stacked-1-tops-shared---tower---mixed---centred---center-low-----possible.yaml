@@ -11,18 +11,17 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 15 cabinets in 6 rows:
+# main-gmss — gmss, 14 cabinets in 5 rows:
 #
-#   1  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1480 mm gaps           2.82 m wide
-#   2  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1480 mm gaps           2.82 m wide
-#   3  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1480 mm gaps           2.82 m wide
-#   4  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
-#   5  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° at 40 mm gaps     2.82 m wide
-#   6  1× turbo-top + 3× tecnare-m2122                                          2.01 m wide
+#   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
+#   2  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90° at 475 mm gaps     2.82 m wide
+#   3  1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90° at 475 mm gaps     2.82 m wide
+#   4  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° at 40 mm gaps     2.82 m wide
+#   5  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
 #
-# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.8 m of cabinet.
+# Subs reach 2.59 m against a 2.0 m interface. The stack is 3.55 m of cabinet.
 #
-# main-ours — ours, 16 cabinets in 8 rows:
+# main-ours — ours, 17 cabinets in 8 rows:
 #
 #   1  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
@@ -31,9 +30,9 @@
 #   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
 #   6  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
 #   7  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
-#   8  2× turbo-top                                                              0.92 m wide
+#   8  1× turbo-top + 2× tecnare-m2122                                          1.49 m wide
 #
-# Subs reach 4.156 m against a 2.0 m interface. The stack is 4.866 m of cabinet.
+# Subs reach 4.156 m against a 2.0 m interface. The stack is 5.116 m of cabinet.
 #   * the subs reach 4.156 m against the 3.000 m ceiling asked for, so they stand 1156 mm too high — 4.156 m is the
 #     nearest the 2.500 m target that every tier is still carried at
 #
@@ -49,7 +48,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 15 cabinets in 6 rows
+  # gmss, 14 cabinets in 5 rows
   - id: main-gmss
     at: [-1.476, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -75,12 +74,13 @@ placements:
           roll_mirror: 90.0
         - device: iq-sub
           roll_mirror: 90.0
-        - tecnare-m2122
-        - device: turbo-top
+        - device: tecnare-m2122
           count: 1
+        - device: turbo-top
+          count: 2
           aim: near
 
-  # ours, 16 cabinets in 8 rows
+  # ours, 17 cabinets in 8 rows
   - id: main-ours
     at: [1.358, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -103,5 +103,8 @@ placements:
           roll_mirror: 90.0
         - device: flexy-folded-horn-hybrid
           roll_mirror: 90.0
-        - device: turbo-top
+        - device: tecnare-m2122
           count: 2
+        - device: turbo-top
+          count: 1
+          aim: near

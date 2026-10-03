@@ -27,18 +27,19 @@
 #   * the 2× iq-sub rolled 270° + 2× iq-sub rolled 90° row is 2.740 m on a 2.240 m row, so it overhangs 250 mm
 #     each side
 #
-# main-ours — ours, 25 cabinets in 4 rows:
+# main-ours — ours, 25 cabinets in 6 rows:
 #
-#   1  2× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram + 3× achenbach-18 rolled 90°    4.644 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    5.298 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 144 mm gaps    5.298 m wide
-#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   1  1× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90°    3.088 m wide
+#   2  2× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90° at 230 mm gaps     3.09 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   6  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.105 m against a 2.0 m interface. The stack is 3.065 m of cabinet.
+# Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
 #   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
-#     flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1×
-#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 5.298 m on a 4.644 m row, so
-#     it overhangs 327 mm each side
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.090 m row, so
+#     it overhangs 11 mm each side
 #
 id: stacked-1-systems-apart-v-------turned--centred---center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -54,7 +55,7 @@ focus:
 placements:
   # gmss, 13 cabinets in 4 rows
   - id: main-gmss
-    at: [-3.201, 0.0]
+    at: [-2.108, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -79,7 +80,7 @@ placements:
           roll_mirror: 90.0
         - turbo-top
 
-  # ours, 25 cabinets in 4 rows
+  # ours, 25 cabinets in 6 rows
   - id: main-ours
     at: [1.318, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

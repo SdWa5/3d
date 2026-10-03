@@ -45,12 +45,16 @@
 #   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
+#   * row 1 (1× iq-sub + 2× wall-bass + 2× iq-sub) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 2 (2× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-ours-2 — ours-2, 13 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
 #   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
-#   3  2× skram + 1× achenbach-18                                               1.86 m wide
+#   3  1× skram + 1× achenbach-18 + 1× skram                                   1.86 m wide
 #   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
@@ -61,7 +65,7 @@
 # main-ours-1 — ours-1, 10 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  2× achenbach-18                                                           1.22 m wide
 #   4  1× turbo-top                                                              0.45 m wide
 #

@@ -21,16 +21,14 @@
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-gmss — gmss, 13 cabinets in 3 rows:
+# main-gmss — gmss, 14 cabinets in 3 rows:
 #
-#   1  6× iq-sub                                                                 3.28 m wide
-#   2  1× nuke + 2× wall-bass + 1× nuke at 260 mm gaps                         3.28 m wide
+#   1  3× iq-sub + 2× wall-bass + 3× iq-sub                                    4.64 m wide
+#   2  1× nuke + 1× mid-bass + 1× nuke at 1130 mm gaps                         4.64 m wide
 #   3  1× turbo-top + 1× turbo-top + 1× turbo-top                              1.39 m wide
 #
-# Subs reach 2.07 m against a 2.0 m interface. The stack is 2.78 m of cabinet.
+# Subs reach 2.17 m against a 2.0 m interface. The stack is 2.88 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 2× nuke + 1× mid-bass row is 2.420 m on a 4.640
-#     m row; shape: tower asks for a flush base within 59 mm per side
 #
 id: stacked-1-systems-apart-tower---upright-alternate-stereo-central-possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -46,7 +44,7 @@ focus:
 placements:
   # ours, 17 cabinets in 4 rows
   - id: main-ours
-    at: [-2.192, 0.0]
+    at: [-2.872, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -69,7 +67,7 @@ placements:
         - flexy-folded-horn-hybrid
         - tecnare-m2122
 
-  # gmss, 13 cabinets in 3 rows
+  # gmss, 14 cabinets in 3 rows
   - id: main-gmss
     at: [1.79, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -91,6 +89,7 @@ placements:
       shape: tower
       from:
         - wall-bass
+        - mid-bass
         - nuke
         - iq-sub
         - turbo-top

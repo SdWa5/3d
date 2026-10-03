@@ -21,6 +21,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub + 1× wall-bass + 1× nuke + 2× iq-sub + 1× mid-bass) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 8 cabinets in 3 rows:
 #
@@ -55,6 +57,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (2× iq-sub + 1× nuke + 1× wall-bass + 1× iq-sub) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-systems-apart-tower---upright-alternate-center-central-possible
 name: "Solved rig — 4 stacks side by side, tiers centred"

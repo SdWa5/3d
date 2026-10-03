@@ -12,17 +12,14 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 13 cabinets in 4 rows:
+# main-gmss — gmss, 14 cabinets in 3 rows:
 #
-#   1  3× iq-sub at 485 mm gaps                                                  2.56 m wide
-#   2  3× iq-sub at 485 mm gaps                                                  2.56 m wide
-#   3  1× wall-bass + 2× nuke + 1× wall-bass                                   2.56 m wide
-#   4  1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top                1.4056 m wide
+#   1  3× iq-sub + 2× wall-bass + 3× iq-sub                                    4.64 m wide
+#   2  1× nuke + 1× mid-bass + 1× nuke at 1130 mm gaps                         4.64 m wide
+#   3  1× turbo-top + 1× eighteensound-2way-15 + 1× turbo-top                1.4056 m wide
 #
-# Subs reach 2.74 m against a 2.0 m interface. The stack is 3.576 m of cabinet.
+# Subs reach 2.17 m against a 2.0 m interface. The stack is 3.006 m of cabinet.
 # `align: block` spreads the top tier onto the edges of the row carrying it.
-#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 2× nuke + 1× mid-bass row is 2.420 m on a 4.640
-#     m row; shape: tower asks for a flush base within 59 mm per side
 #
 # main-ours — ours, 25 cabinets in 4 rows:
 #
@@ -46,7 +43,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 13 cabinets in 4 rows
+  # gmss, 14 cabinets in 3 rows
   - id: main-gmss
     at: [-2.6895, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -67,6 +64,7 @@ placements:
       shape: tower
       from:
         - wall-bass
+        - mid-bass
         - nuke
         - iq-sub
         - device: eighteensound-2way-15
@@ -77,7 +75,7 @@ placements:
 
   # ours, 25 cabinets in 4 rows
   - id: main-ours
-    at: [1.228, 0.0]
+    at: [2.268, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

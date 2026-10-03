@@ -19,6 +19,11 @@
 #
 # Subs reach 2.452 m against a 2.0 m interface. The stack is 3.412 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * row 3 (1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× skram rolled 90°
+#     + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets
+#     that stands
+#   * row 4 (1× nuke rolled 270° + 1× skram rolled 270° + 1× nuke rolled 90° + 1× mid-bass) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------mixed---mixed---alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

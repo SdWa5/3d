@@ -18,23 +18,28 @@
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
 #   4  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
 #   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   6  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
+#   6  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
 #
 # Subs reach 2.993 m against a 2.0 m interface. The stack is 3.953 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
-# main-gmss — gmss, 14 cabinets in 5 rows:
+# main-gmss — gmss, 14 cabinets in 6 rows:
 #
-#   1  2× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.74 m wide
-#   2  1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× iq-sub rolled 90°     2.78 m wide
-#   3  1× wall-bass rolled 270° + 1× nuke rolled 90°                          2.19 m wide
-#   4  1× nuke rolled 270° + 1× mid-bass                                       1.99 m wide
-#   5  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
+#   1  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 932 mm gaps           2.272 m wide
+#   2  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1066 mm gaps          2.406 m wide
+#   3  1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1200 mm gaps           2.54 m wide
+#   4  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
+#   5  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90°                2.78 m wide
+#   6  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
+# Subs reach 2.84 m against a 2.0 m interface. The stack is 3.8 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× iq-sub rolled 90° row is 2.780 m on a 2.740 m
-#     row, so it overhangs 20 mm each side
+#   * the 1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1066 mm gaps row is 2.406 m on a 2.272 m row, so it
+#     overhangs 67 mm each side
+#   * the 1× iq-sub rolled 270° + 1× iq-sub rolled 90° at 1200 mm gaps row is 2.540 m on a 2.406 m row, so it
+#     overhangs 67 mm each side
+#   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° row is 2.820 m on a 2.540 m row, so it overhangs 140
+#     mm each side
 #
 id: stacked-1-tops-shared---pyramid-mixed---alternate-stereo-central-possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -50,7 +55,7 @@ focus:
 placements:
   # ours, 17 cabinets in 6 rows
   - id: main-ours
-    at: [-1.942, 0.0]
+    at: [-1.962, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -74,12 +79,12 @@ placements:
         - device: flexy-folded-horn-hybrid
           roll_mirror: 90.0
         - device: tecnare-m2122
-          count: 1
-        - device: turbo-top
           count: 2
+        - device: turbo-top
+          count: 1
           aim: near
 
-  # gmss, 14 cabinets in 5 rows
+  # gmss, 14 cabinets in 6 rows
   - id: main-gmss
     at: [1.188, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -108,7 +113,7 @@ placements:
         - device: iq-sub
           roll_mirror: 90.0
         - device: tecnare-m2122
-          count: 2
-        - device: turbo-top
           count: 1
+        - device: turbo-top
+          count: 2
           aim: near

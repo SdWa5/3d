@@ -14,8 +14,8 @@
 # main-1 — 1, 12 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid + 1× achenbach-18        2.442 m wide
-#   3  1× achenbach-18 + 1× skram                                               1.23 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
+#   3  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
 #   4  1× eighteensound-2way-15 + 1× tecnare-m2122                            0.9856 m wide
 #
 # Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
@@ -26,7 +26,7 @@
 # main-2 — 2, 13 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  2× flexy-folded-horn-hybrid + 1× achenbach-18 at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
 #   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tecnare-m2122        1.5056 m wide
 #
@@ -74,7 +74,7 @@ placements:
 
   # 2, 13 cabinets in 4 rows
   - id: main-2
-    at: [1.169, 0.0]
+    at: [1.16, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

@@ -68,6 +68,10 @@
 #   * nuke: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
+#   * row 1 (1× iq-sub + 2× wall-bass + 2× iq-sub) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 2 (2× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 id: stacked-2-tops-shared---mixed---upright-alternate-center-low-----impossible
 name: "Solved rig — 4 stacks side by side, tiers centred"

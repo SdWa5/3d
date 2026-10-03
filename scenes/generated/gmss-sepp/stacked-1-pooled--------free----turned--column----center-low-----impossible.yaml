@@ -29,6 +29,8 @@
 #     90° row is 3.910 m on a 3.420 m row, so it overhangs 245 mm each side
 #   * the 2× turbo-top + 2× eighteensound-2way-15 + 1× turbo-top row is 2.361 m on a 2.050 m row, so it overhangs
 #     156 mm each side
+#   * row 3 (1× iq-sub rolled 270° + 2× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 2× iq-sub
+#     rolled 90°) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------free----turned--column----center-low-----impossible
 name: "Solved rig — one stack, tiers centred"

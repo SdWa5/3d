@@ -25,6 +25,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1×
 #     tecnare-m2122 row is 2.966 m on a 2.866 m row, so it overhangs 50 mm each side
+#   * row 5 (1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90° at 219 mm gaps) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-gmss — gmss, 13 cabinets in 4 rows:
 #

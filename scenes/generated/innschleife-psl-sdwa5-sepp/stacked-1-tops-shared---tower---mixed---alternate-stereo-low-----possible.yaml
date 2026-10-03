@@ -17,7 +17,7 @@
 # main-ours — ours, 27 cabinets in 4 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    5.461 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 2× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 75 mm gaps    5.465 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 75 mm gaps    5.465 m wide
 #   3  2× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 2× achenbach-18 at 247 mm gaps    5.463 m wide
 #   4  1× concert-audio-ef6 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× hk-linear5-112x + 1× thebox-achat-112m + 1× concert-audio-ef6   3.4216 m wide
 #
@@ -43,7 +43,7 @@
 #   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
 #   2  4× kicker-15 at 220 mm gaps                                               4.46 m wide
 #   3  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90° at 430 mm gaps            4.46 m wide
-#   4  4× sub-60x60 + 1× sbh-18 rolled 90° at 215 mm gaps                      4.46 m wide
+#   4  2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60 at 215 mm gaps      4.46 m wide
 #   5  1× concert-audio-ef6 + 1× tms4 + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× tms2 + 1× thebox-achat-112m + 1× concert-audio-ef6   3.5516 m wide
 #
 # Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.

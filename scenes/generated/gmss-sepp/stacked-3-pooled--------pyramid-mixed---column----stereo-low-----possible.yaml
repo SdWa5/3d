@@ -14,12 +14,12 @@
 # main-2 — 2, 10 cabinets in 5 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
-#   2  1× nuke rolled 270° + 1× nuke rolled 90° + 1× iq-sub rolled 90°      2.25 m wide
-#   3  1× iq-sub rolled 270° + 1× mid-bass                                     1.89 m wide
-#   4  2× achenbach-18                                                           1.22 m wide
+#   2  1× nuke rolled 270° + 1× iq-sub rolled 90° + 1× nuke rolled 90°      2.25 m wide
+#   3  1× achenbach-18 + 1× iq-sub rolled 90° + 1× achenbach-18               1.91 m wide
+#   4  1× mid-bass                                                                1.2 m wide
 #   5  1× turbo-top                                                              0.45 m wide
 #
-# Subs reach 2.38 m against a 2.0 m interface. The stack is 3.09 m of cabinet.
+# Subs reach 2.35 m against a 2.0 m interface. The stack is 3.06 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 # main-3 — 3, 6 cabinets in 3 rows:

@@ -26,8 +26,8 @@
 #
 # main-gmss-2 — gmss-2, 11 cabinets in 3 rows:
 #
-#   1  1× iq-sub + 2× wall-bass + 2× iq-sub                                    2.99 m wide
-#   2  2× nuke + 1× mid-bass                                                    2.42 m wide
+#   1  1× iq-sub + 1× wall-bass + 1× iq-sub + 1× wall-bass + 1× iq-sub       2.99 m wide
+#   2  1× nuke + 1× mid-bass + 1× nuke                                         2.42 m wide
 #   3  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
 #
 # Subs reach 2.17 m against a 2.0 m interface. The stack is 3.13 m of cabinet.

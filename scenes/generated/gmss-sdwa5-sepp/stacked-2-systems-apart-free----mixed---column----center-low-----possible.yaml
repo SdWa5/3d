@@ -24,36 +24,36 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.780 m against the 2.000 m interface asked for, so the tops sit 220 mm lower than ideal —
 #     1.780 m is the most they reach while every tier is still carried
+#   * row 1 (1× wall-bass rolled 270° + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 2 (1× nuke rolled 270° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 13 cabinets in 5 rows:
 #
-#   1  1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°         1.697 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   4  2× achenbach-18                                                           1.22 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  3× achenbach-18                                                           1.84 m wide
 #   5  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
 #
-# Subs reach 2.401 m against a 2.0 m interface. The stack is 3.361 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× flexy-folded-horn-hybrid rolled 270° + 2× flexy-folded-horn-hybrid rolled 90° row is 2.329 m on a
-#     1.697 m row, so it overhangs 316 mm each side
-#   * the 1× eighteensound-2way-15 + 2× tecnare-m2122 row is 1.506 m on a 1.220 m row, so it overhangs 143 mm each
-#     side
+#   * the 3× achenbach-18 row is 1.840 m on a 1.546 m row, so it overhangs 147 mm each side
 #
 # main-ours-1 — ours-1, 12 cabinets in 5 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 90°         1.697 m wide
-#   2  2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    2.329 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°    2.166 m wide
-#   4  2× achenbach-18                                                           1.22 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°     2.48 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  3× achenbach-18                                                           1.84 m wide
 #   5  1× tecnare-m2122 + 1× eighteensound-2way-15                            0.9856 m wide
 #
-# Subs reach 2.401 m against a 2.0 m interface. The stack is 3.361 m of cabinet.
+# Subs reach 2.392 m against a 2.0 m interface. The stack is 3.352 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 2× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 2.329 m on a
-#     1.697 m row, so it overhangs 316 mm each side
+#   * the 3× achenbach-18 row is 1.840 m on a 1.546 m row, so it overhangs 147 mm each side
 #
 # main-gmss-1 — gmss-1, 6 cabinets in 4 rows:
 #
@@ -69,6 +69,8 @@
 #     1.780 m is the most they reach while every tier is still carried
 #   * the 1× iq-sub rolled 270° + 1× nuke rolled 90° row is 1.460 m on a 1.400 m row, so it overhangs 30 mm each
 #     side
+#   * row 2 (1× iq-sub rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-systems-apart-free----mixed---column----center-low-----possible
 name: "Solved rig — 4 stacks side by side, tiers centred"
@@ -84,7 +86,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 4 rows
   - id: main-gmss-2
-    at: [-4.111, 0.0]
+    at: [-4.262, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -114,7 +116,7 @@ placements:
 
   # ours-2, 13 cabinets in 5 rows
   - id: main-ours-2
-    at: [-1.1365, 0.0]
+    at: [-1.212, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -145,7 +147,7 @@ placements:
 
   # ours-1, 12 cabinets in 5 rows
   - id: main-ours-1
-    at: [1.6925, 0.0]
+    at: [1.768, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -177,7 +179,7 @@ placements:
 
   # gmss-1, 6 cabinets in 4 rows
   - id: main-gmss-1
-    at: [4.087, 0.0]
+    at: [4.238, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

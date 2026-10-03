@@ -21,6 +21,8 @@
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 3× iq-sub row is 1.630 m on a 1.270 m row, so it overhangs 180 mm each side
+#   * row 1 (1× nuke + 1× wall-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-ours-1 — ours-1, 8 cabinets in 5 rows:
 #

@@ -64,6 +64,8 @@
 #   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
 #     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.068 m row, so
 #     it overhangs 22 mm each side
+#   * row 2 (1× skram rolled 270° + 1× skram rolled 90° + 1× mid-bass) is not mirror-symmetric, and the search
+#     found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------free----mixed---column----center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

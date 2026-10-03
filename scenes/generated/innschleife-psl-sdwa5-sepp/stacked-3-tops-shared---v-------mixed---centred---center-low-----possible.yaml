@@ -103,6 +103,10 @@
 #     each side
 #   * the 2× concert-audio-ef6 + 1× tms4 + 1× thebox-achat-115m + 1× thebox-achat-112m row is 2.552 m on a 2.320 m
 #     row, so it overhangs 116 mm each side
+#   * row 1 (1× kicker-15 + 1× sub-60x60) is not mirror-symmetric, and the search found no symmetric arrangement of
+#     these cabinets that stands
+#   * row 2 (1× sbh-18 rolled 270° + 1× wsx-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 10 cabinets in 5 rows:
 #
@@ -148,6 +152,10 @@
 #     each side
 #   * the 1× thebox-dsp-112 + 1× eighteensound-2way-15 + 1× tms4 + 2× concert-audio-ef6 row is 2.570 m on a 2.320
 #     m row, so it overhangs 125 mm each side
+#   * row 1 (1× sub-60x60 + 1× kicker-15) is not mirror-symmetric, and the search found no symmetric arrangement of
+#     these cabinets that stands
+#   * row 2 (1× wsx-18 rolled 270° + 1× sbh-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-3-tops-shared---v-------mixed---centred---center-low-----possible
 name: "Solved rig — 9 stacks side by side, tiers centred"

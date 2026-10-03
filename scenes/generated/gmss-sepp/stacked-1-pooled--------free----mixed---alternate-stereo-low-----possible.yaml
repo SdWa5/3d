@@ -23,6 +23,10 @@
 #   * the 5× achenbach-18 row is 3.080 m on a 2.780 m row, so it overhangs 150 mm each side
 #   * the 1× eighteensound-2way-15 + 1× turbo-top + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15 row is
 #     2.361 m on a 2.050 m row, so it overhangs 156 mm each side
+#   * row 2 (2× nuke rolled 270° + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 4 (1× iq-sub rolled 270° + 1× achenbach-18 + 2× iq-sub rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------free----mixed---alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

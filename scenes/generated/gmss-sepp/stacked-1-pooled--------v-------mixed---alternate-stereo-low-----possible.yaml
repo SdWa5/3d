@@ -11,17 +11,17 @@
 #
 # What it deals out today:
 #
-#   1  1× nuke rolled 270° + 1× nuke rolled 90° + 1× mid-bass                2.78 m wide
-#   2  2× wall-bass rolled 270° + 1× achenbach-18                              3.44 m wide
-#   3  5× achenbach-18 + 1× iq-sub rolled 90°                                  3.77 m wide
-#   4  3× iq-sub rolled 270° + 2× iq-sub rolled 90° at 105 mm gaps            3.77 m wide
-#   5  1× eighteensound-2way-15 + 1× turbo-top + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15   2.3612 m wide
+#   1  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90°                2.78 m wide
+#   2  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
+#   3  4× achenbach-18 at 140 mm gaps                                            2.82 m wide
+#   4  1× iq-sub rolled 270° + 2× achenbach-18 + 1× iq-sub rolled 90° at 94 mm gaps    2.822 m wide
+#   5  2× iq-sub rolled 270° + 2× iq-sub rolled 90° at 48 mm gaps            2.824 m wide
+#   6  1× eighteensound-2way-15 + 1× turbo-top + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15   2.3612 m wide
 #
-# Subs reach 2.38 m against a 2.0 m interface. The stack is 3.216 m of cabinet.
+# Subs reach 2.98 m against a 2.0 m interface. The stack is 3.816 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 2× wall-bass rolled 270° + 1× achenbach-18 row is 3.440 m on a 2.780 m row, so it overhangs 330 mm each
-#     side
-#   * the 5× achenbach-18 + 1× iq-sub rolled 90° row is 3.770 m on a 3.440 m row, so it overhangs 165 mm each side
+#   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° row is 2.820 m on a 2.780 m row, so it overhangs 20
+#     mm each side
 #
 id: stacked-1-pooled--------v-------mixed---alternate-stereo-low-----possible
 name: "Solved rig — one stack, tiers split left and right"

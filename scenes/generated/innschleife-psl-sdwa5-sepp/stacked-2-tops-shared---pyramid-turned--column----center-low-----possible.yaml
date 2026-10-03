@@ -24,6 +24,8 @@
 # Subs reach 1.801 m against a 2.0 m interface. The stack is 2.761 m of cabinet.
 #   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
 #     1.801 m is the most they reach while every tier is still carried
+#   * row 3 (1× achenbach-18 rolled 270° + 1× skram rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 13 cabinets in 4 rows:
 #
@@ -35,6 +37,8 @@
 # Subs reach 1.801 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
 #   * the subs reach 1.801 m against the 2.000 m interface asked for, so the tops sit 199 mm lower than ideal —
 #     1.801 m is the most they reach while every tier is still carried
+#   * row 3 (1× skram rolled 270° + 1× achenbach-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-psl-1 — psl-1, 9 cabinets in 4 rows:
 #
@@ -48,6 +52,10 @@
 #     1.768 m is the most they reach while every tier is still carried
 #   * the 1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esx rolled 90° row is 2.400 m on a 2.380 m row, so
 #     it overhangs 10 mm each side
+#   * row 2 (1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esx rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (1× thebox-tp118-800 rolled 270° + 1× concert-audio-esf rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl-2 — psl-2, 9 cabinets in 4 rows:
 #
@@ -61,6 +69,10 @@
 #     1.768 m is the most they reach while every tier is still carried
 #   * the 1× concert-audio-esx rolled 270° + 1× thebox-tp218-1600 rolled 90° row is 2.400 m on a 2.380 m row, so
 #     it overhangs 10 mm each side
+#   * row 2 (1× concert-audio-esx rolled 270° + 1× thebox-tp218-1600 rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (1× concert-audio-esf rolled 270° + 1× thebox-tp118-800 rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-1 — innschleife-1, 12 cabinets in 3 rows:
 #

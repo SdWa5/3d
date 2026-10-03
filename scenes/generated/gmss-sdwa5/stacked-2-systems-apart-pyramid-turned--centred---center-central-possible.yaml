@@ -25,6 +25,8 @@
 #     1.830 m is the most they reach while every tier is still carried
 #   * the 1× wall-bass rolled 270° + 1× nuke rolled 90° row is 2.190 m on a 1.910 m row, so it overhangs 140 mm
 #     each side
+#   * row 2 (1× wall-bass rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 8 cabinets in 5 rows:
 #

@@ -26,6 +26,8 @@
 # Subs reach 3.287 m against a 2.0 m interface. The stack is 4.247 m of cabinet.
 #   * the subs reach 3.287 m against the 3.000 m ceiling asked for, so they stand 287 mm too high — 3.287 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 5 (1× skram rolled 270° + 1× skram + 1× achenbach-18 at 494 mm gaps) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl — psl, 22 cabinets in 2 rows:
 #
@@ -36,20 +38,15 @@
 #   * the subs reach 0.590 m against the 2.000 m interface asked for, so the tops sit 1410 mm lower than ideal —
 #     0.590 m is the most they reach while every tier is still carried
 #
-# main-innschleife — innschleife, 20 cabinets in 8 rows:
+# main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  4× sub-60x60                                                              2.46 m wide
-#   2  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° at 60 mm gaps             2.46 m wide
-#   3  1× sbh-18 rolled 270° + 1× sbh-18 rolled 90° at 60 mm gaps             2.46 m wide
-#   4  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 260 mm gaps            2.46 m wide
-#   5  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° at 260 mm gaps            2.46 m wide
-#   6  2× kicker-15 at 560 mm gaps                                               2.46 m wide
-#   7  2× kicker-15 at 560 mm gaps                                               2.46 m wide
-#   8  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
+#   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
+#   2  4× kicker-15 at 220 mm gaps                                               4.46 m wide
+#   3  1× sbh-18 rolled 270° + 1× sbh-18 + 1× sbh-18 rolled 90° at 755 mm gaps     4.46 m wide
+#   4  2× sub-60x60 + 1× sbh-18 rolled 90° + 2× sub-60x60 at 215 mm gaps      4.46 m wide
+#   5  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #
-# Subs reach 3.98 m against a 2.0 m interface. The stack is 5.12 m of cabinet.
-#   * the subs reach 3.980 m against the 3.000 m ceiling asked for, so they stand 980 mm too high — 3.980 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+# Subs reach 2.94 m against a 2.0 m interface. The stack is 4.08 m of cabinet.
 #
 id: stacked-1-systems-apart-tower---mixed---centred---center-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -65,7 +62,7 @@ focus:
 placements:
   # ours, 25 cabinets in 6 rows
   - id: main-ours
-    at: [-8.28, 0.0]
+    at: [-9.28, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -93,7 +90,7 @@ placements:
 
   # psl, 22 cabinets in 2 rows
   - id: main-psl
-    at: [0.024, 0.0]
+    at: [-0.976, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -130,7 +127,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 8 rows
+  # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
     at: [8.002, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

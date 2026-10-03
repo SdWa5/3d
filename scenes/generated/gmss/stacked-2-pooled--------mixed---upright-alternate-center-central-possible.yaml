@@ -28,15 +28,13 @@
 #   * the subs reach 0.670 m against the 2.000 m interface asked for, so the tops sit 1330 mm lower than ideal —
 #     0.670 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 10 cabinets in 5 rows:
+# main-2 — 2, 10 cabinets in 3 rows:
 #
-#   1  3× iq-sub                                                                 1.63 m wide
-#   2  2× wall-bass at 310 mm gaps                                               1.63 m wide
-#   3  1× mid-bass                                                                1.2 m wide
-#   4  2× nuke                                                                    1.2 m wide
-#   5  2× turbo-top                                                              0.92 m wide
+#   1  1× iq-sub + 1× wall-bass + 1× iq-sub + 1× wall-bass + 1× iq-sub       2.99 m wide
+#   2  1× nuke + 1× mid-bass + 1× nuke                                         2.42 m wide
+#   3  2× turbo-top                                                              0.92 m wide
 #
-# Subs reach 3.34 m against a 2.0 m interface. The stack is 4.05 m of cabinet.
+# Subs reach 2.17 m against a 2.0 m interface. The stack is 2.88 m of cabinet.
 #   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
@@ -45,8 +43,6 @@
 #     which is what the -turned rig does
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 3.340 m against the 3.000 m ceiling asked for, so they stand 340 mm too high — 3.340 m is the
-#     nearest the 2.500 m target that every tier is still carried at
 #
 id: stacked-2-pooled--------mixed---upright-alternate-center-central-possible
 name: "Solved rig — 2 stacks side by side, tiers centred"
@@ -62,7 +58,7 @@ focus:
 placements:
   # 1, 4 cabinets in 2 rows
   - id: main-1
-    at: [-1.367, 0.0]
+    at: [-2.047, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -77,7 +73,7 @@ placements:
         - device: turbo-top
           count: 1
 
-  # 2, 10 cabinets in 5 rows
+  # 2, 10 cabinets in 3 rows
   - id: main-2
     at: [0.763, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

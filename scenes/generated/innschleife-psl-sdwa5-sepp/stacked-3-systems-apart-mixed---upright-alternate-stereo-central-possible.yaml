@@ -102,12 +102,14 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× kicker-15 + 1× sub-60x60 + 1× wsx-18 + 1× sbh-18) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 8 cabinets in 3 rows:
 #
-#   1  2× kicker-15 at 500 mm gaps                                                2.4 m wide
-#   2  1× sub-60x60 + 2× wsx-18 + 1× sub-60x60                                  2.4 m wide
-#   3  2× sbh-18                                                                 1.12 m wide
+#   1  2× kicker-15                                                              1.92 m wide
+#   2  1× sub-60x60 + 1× wsx-18 + 1× sub-60x60                                 1.81 m wide
+#   3  1× sbh-18 + 1× wsx-18 + 1× sbh-18                                       1.71 m wide
 #
 # Subs reach 2.87 m against a 2.0 m interface. The stack is 2.87 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -137,6 +139,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.200 m against the 2.000 m interface asked for, so the tops sit 800 mm lower than ideal —
 #     1.200 m is the most they reach while every tier is still carried
+#   * row 1 (1× sbh-18 + 1× wsx-18 + 1× sub-60x60 + 1× kicker-15) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-3-systems-apart-mixed---upright-alternate-stereo-central-possible
 name: "Solved rig — 9 stacks side by side, tiers split left and right"
@@ -152,7 +156,7 @@ focus:
 placements:
   # ours-1, 8 cabinets in 4 rows
   - id: main-ours-1
-    at: [-11.306, 0.0]
+    at: [-11.066, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -183,7 +187,7 @@ placements:
 
   # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
-    at: [-9.28, 0.0]
+    at: [-9.04, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -211,7 +215,7 @@ placements:
 
   # ours-3, 8 cabinets in 4 rows
   - id: main-ours-3
-    at: [-7.254, 0.0]
+    at: [-7.014, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -241,7 +245,7 @@ placements:
 
   # psl-1, 4 cabinets in 2 rows
   - id: main-psl-1
-    at: [-5.544, 0.0]
+    at: [-5.304, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -270,7 +274,7 @@ placements:
 
   # psl-2, 13 cabinets in 2 rows
   - id: main-psl-2
-    at: [-2.096, 0.0]
+    at: [-1.856, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -304,7 +308,7 @@ placements:
 
   # psl-3, 4 cabinets in 2 rows
   - id: main-psl-3
-    at: [1.352, 0.0]
+    at: [1.592, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -332,7 +336,7 @@ placements:
 
   # innschleife-1, 6 cabinets in 2 rows
   - id: main-innschleife-1
-    at: [3.817, 0.0]
+    at: [4.057, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -396,7 +400,7 @@ placements:
 
   # innschleife-3, 6 cabinets in 2 rows
   - id: main-innschleife-3
-    at: [9.947, 0.0]
+    at: [9.707, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

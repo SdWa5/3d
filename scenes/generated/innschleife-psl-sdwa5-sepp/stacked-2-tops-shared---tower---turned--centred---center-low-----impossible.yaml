@@ -45,6 +45,8 @@
 #     which is what the -turned rig does
 #   * the subs reach 1.505 m against the 2.000 m interface asked for, so the tops sit 495 mm lower than ideal —
 #     1.505 m is the most they reach while every tier is still carried
+#   * row 2 (1× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram + 2× achenbach-18 rolled 90° at 339
+#     mm gaps) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl-1 — psl-1, 6 cabinets in 2 rows:
 #

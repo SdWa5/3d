@@ -22,17 +22,13 @@
 #   * the subs reach 1.433 m against the 2.000 m interface asked for, so the tops sit 567 mm lower than ideal —
 #     1.433 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 17 cabinets in 5 rows:
+# main-2 — 2, 17 cabinets in 3 rows:
 #
-#   1  4× flexy-folded-horn-hybrid at 79 mm gaps                                2.601 m wide
-#   2  1× wall-bass + 2× skram + 1× wall-bass                                   2.6 m wide
-#   3  1× achenbach-18 + 1× mid-bass + 1× achenbach-18                         2.44 m wide
-#   4  1× nuke + 2× iq-sub + 1× nuke                                            2.3 m wide
-#   5  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
+#   1  2× flexy-folded-horn-hybrid + 1× skram + 2× wall-bass + 1× skram + 2× flexy-folded-horn-hybrid    5.044 m wide
+#   2  1× achenbach-18 + 1× iq-sub + 1× nuke + 1× mid-bass + 1× nuke + 1× iq-sub + 1× achenbach-18     4.76 m wide
+#   3  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
-# Subs reach 3.533 m against a 2.0 m interface. The stack is 4.493 m of cabinet.
-#   * the subs reach 3.533 m against the 3.000 m ceiling asked for, so they stand 533 mm too high — 3.533 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+# Subs reach 2.17 m against a 2.0 m interface. The stack is 3.13 m of cabinet.
 #
 # main-3 — 3, 11 cabinets in 3 rows:
 #
@@ -58,7 +54,7 @@ focus:
 placements:
   # 1, 11 cabinets in 3 rows
   - id: main-1
-    at: [-3.3145, 0.0]
+    at: [-4.536, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -82,7 +78,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 17 cabinets in 5 rows
+  # 2, 17 cabinets in 3 rows
   - id: main-2
     at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -110,7 +106,7 @@ placements:
 
   # 3, 11 cabinets in 3 rows
   - id: main-3
-    at: [2.7105, 0.0]
+    at: [3.932, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0

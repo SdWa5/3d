@@ -40,6 +40,12 @@
 #     it overhangs 30 mm each side
 #   * the 2× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90° row is 2.402 m on a 2.380 m row, so it
 #     overhangs 11 mm each side
+#   * row 1 (1× wsx-18 rolled 270° + 1× sbh-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 3 (2× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90°) is not mirror-symmetric, and the search
+#     found no symmetric arrangement of these cabinets that stands
+#   * row 4 (2× flexy-folded-horn-hybrid + 1× kicker-15) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-2 — 2, 17 cabinets in 5 rows:
 #
@@ -78,6 +84,12 @@
 #     it overhangs 30 mm each side
 #   * the 1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid row is 2.402 m on a 2.380 m row, so it
 #     overhangs 11 mm each side
+#   * row 1 (1× sbh-18 rolled 270° + 1× wsx-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 3 (1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 4 (1× kicker-15 + 2× flexy-folded-horn-hybrid) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 id: stacked-3-pooled--------free----stated--alternate-center-central-possible
 name: "Solved rig — 3 stacks side by side, tiers centred"

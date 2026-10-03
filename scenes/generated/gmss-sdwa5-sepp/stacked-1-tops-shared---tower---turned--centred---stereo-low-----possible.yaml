@@ -25,14 +25,14 @@
 #
 # main-ours — ours, 26 cabinets in 3 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    8.421 m wide
-#   2  3× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram + 3× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° at 317 mm gaps    8.423 m wide
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°     7.81 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 3× achenbach-18 rolled 270° + 1× skram rolled 270° + 1× skram rolled 90° + 3× achenbach-18 rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° at 96 mm gaps    7.818 m wide
 #   3  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122   2.9656 m wide
 #
-# Subs reach 1.677 m against a 2.0 m interface. The stack is 2.637 m of cabinet.
+# Subs reach 1.201 m against a 2.0 m interface. The stack is 2.161 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the subs reach 1.677 m against the 2.000 m interface asked for, so the tops sit 323 mm lower than ideal —
-#     1.677 m is the most they reach while every tier is still carried
+#   * the subs reach 1.201 m against the 2.000 m interface asked for, so the tops sit 799 mm lower than ideal —
+#     1.201 m is the most they reach while every tier is still carried
 #
 id: stacked-1-tops-shared---tower---turned--centred---stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -48,7 +48,7 @@ focus:
 placements:
   # gmss, 13 cabinets in 5 rows
   - id: main-gmss
-    at: [-4.7635, 0.0]
+    at: [-4.461, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

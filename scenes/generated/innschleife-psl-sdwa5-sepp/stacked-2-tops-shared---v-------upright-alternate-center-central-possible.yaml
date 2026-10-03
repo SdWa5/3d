@@ -16,23 +16,23 @@
 #
 # main-ours-1 — ours-1, 13 cabinets in 4 rows:
 #
-#   1  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid at 34 mm gaps              1.85 m wide
+#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
+#   2  3× achenbach-18                                                           1.84 m wide
 #   3  4× flexy-folded-horn-hybrid                                              2.424 m wide
 #   4  1× concert-audio-ef6 + 1× tms4 + 1× eighteensound-2way-15             1.5936 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.58 m of cabinet.
-#   * the 4× flexy-folded-horn-hybrid row is 2.424 m on a 1.850 m row, so it overhangs 287 mm each side
+# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.417 m of cabinet.
+#   * the 4× flexy-folded-horn-hybrid row is 2.424 m on a 1.840 m row, so it overhangs 292 mm each side
 #
 # main-ours-2 — ours-2, 14 cabinets in 4 rows:
 #
-#   1  1× achenbach-18 + 1× skram + 1× achenbach-18                            1.85 m wide
-#   2  2× flexy-folded-horn-hybrid + 1× achenbach-18 at 34 mm gaps              1.85 m wide
+#   1  1× flexy-folded-horn-hybrid + 1× skram + 1× flexy-folded-horn-hybrid    1.832 m wide
+#   2  3× achenbach-18                                                           1.84 m wide
 #   3  4× flexy-folded-horn-hybrid                                              2.424 m wide
 #   4  1× thebox-achat-112m + 1× thebox-achat-115m + 1× tms4 + 1× concert-audio-ef6    1.944 m wide
 #
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.58 m of cabinet.
-#   * the 4× flexy-folded-horn-hybrid row is 2.424 m on a 1.850 m row, so it overhangs 287 mm each side
+# Subs reach 2.277 m against a 2.0 m interface. The stack is 3.417 m of cabinet.
+#   * the 4× flexy-folded-horn-hybrid row is 2.424 m on a 1.840 m row, so it overhangs 292 mm each side
 #
 # main-psl-1 — psl-1, 9 cabinets in 3 rows:
 #
@@ -42,6 +42,8 @@
 #
 # Subs reach 2.38 m against a 2.0 m interface. The stack is 3.34 m of cabinet.
 #   * the 3× concert-audio-esx row is 1.810 m on a 1.728 m row, so it overhangs 41 mm each side
+#   * row 1 (1× thebox-tp118-800 + 1× concert-audio-esf + 1× thebox-tp218-1600) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-psl-2 — psl-2, 9 cabinets in 3 rows:
 #
@@ -51,6 +53,8 @@
 #
 # Subs reach 2.38 m against a 2.0 m interface. The stack is 3.34 m of cabinet.
 #   * the 3× concert-audio-esx row is 1.810 m on a 1.728 m row, so it overhangs 41 mm each side
+#   * row 1 (1× thebox-tp218-1600 + 1× concert-audio-esf + 1× thebox-tp118-800) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-1 — innschleife-1, 11 cabinets in 5 rows:
 #

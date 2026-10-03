@@ -37,6 +37,8 @@
 #     1.780 m is the most they reach while every tier is still carried
 #   * the 1× iq-sub rolled 270° + 1× nuke rolled 90° row is 1.460 m on a 1.400 m row, so it overhangs 30 mm each
 #     side
+#   * row 2 (1× iq-sub rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-gmss-2 — gmss-2, 7 cabinets in 4 rows:
 #
@@ -49,6 +51,10 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.780 m against the 2.000 m interface asked for, so the tops sit 220 mm lower than ideal —
 #     1.780 m is the most they reach while every tier is still carried
+#   * row 1 (1× wall-bass rolled 270° + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 2 (1× nuke rolled 270° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 9 cabinets in 5 rows:
 #

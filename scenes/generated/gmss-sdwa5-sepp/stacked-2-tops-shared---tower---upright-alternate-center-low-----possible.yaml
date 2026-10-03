@@ -23,11 +23,13 @@
 #     it rather than sitting on it. Line the segments up with what carries them
 #   * the subs reach 0.770 m against the 2.000 m interface asked for, so the tops sit 1230 mm lower than ideal —
 #     0.770 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub + 1× nuke + 2× iq-sub + 1× mid-bass) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-2 — ours-2, 12 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  2× flexy-folded-horn-hybrid + 1× achenbach-18 at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18 at 307 mm gaps            2.424 m wide
 #   4  2× turbo-top                                                              0.92 m wide
 #
@@ -36,7 +38,7 @@
 # main-ours-1 — ours-1, 11 cabinets in 4 rows:
 #
 #   1  4× flexy-folded-horn-hybrid                                              2.424 m wide
-#   2  1× achenbach-18 + 2× flexy-folded-horn-hybrid at 321 mm gaps            2.424 m wide
+#   2  1× flexy-folded-horn-hybrid + 1× achenbach-18 + 1× flexy-folded-horn-hybrid at 321 mm gaps    2.424 m wide
 #   3  1× achenbach-18 + 1× skram + 1× achenbach-18 at 307 mm gaps            2.424 m wide
 #   4  1× eighteensound-2way-15                                                0.4656 m wide
 #
@@ -48,6 +50,8 @@
 #   2  1× nuke + 1× wall-bass at 380 mm gaps                                    1.63 m wide
 #
 # Subs reach 2.07 m against a 2.0 m interface. The stack is 2.07 m of cabinet.
+#   * row 2 (1× nuke + 1× wall-bass at 380 mm gaps) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 id: stacked-2-tops-shared---tower---upright-alternate-center-low-----possible
 name: "Solved rig — 4 stacks side by side, tiers centred"

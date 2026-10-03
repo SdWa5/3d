@@ -63,14 +63,13 @@
 #   * the 1× achenbach-18 rolled 270° + 1× achenbach-18 + 1× achenbach-18 rolled 90° row is 1.840 m on a 1.546 m
 #     row, so it overhangs 147 mm each side
 #
-# main-gmss-2 — gmss-2, 10 cabinets in 4 rows:
+# main-gmss-2 — gmss-2, 10 cabinets in 3 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× mid-bass + 1× wall-bass rolled 90°      4.04 m wide
-#   2  1× nuke rolled 270° + 1× nuke + 1× iq-sub rolled 90°                  2.07 m wide
-#   3  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
-#   4  2× turbo-top                                                              0.92 m wide
+#   2  1× nuke rolled 270° + 1× iq-sub rolled 270° + 1× iq-sub + 1× iq-sub rolled 90° + 1× nuke rolled 90°     3.49 m wide
+#   3  2× turbo-top                                                              0.92 m wide
 #
-# Subs reach 1.96 m against a 2.0 m interface. The stack is 2.67 m of cabinet.
+# Subs reach 1.33 m against a 2.0 m interface. The stack is 2.04 m of cabinet.
 #   * wall-bass: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be
 #     flanked into a row that carries anything: the row above it ends up half off its support. Turning them makes the split
 #     work, which is what the -turned rig does
@@ -79,8 +78,8 @@
 #     which is what the -turned rig does
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the subs reach 1.960 m against the 2.000 m interface asked for, so the tops sit 40 mm lower than ideal — 1.960
-#     m is the most they reach while every tier is still carried
+#   * the subs reach 1.330 m against the 2.000 m interface asked for, so the tops sit 670 mm lower than ideal —
+#     1.330 m is the most they reach while every tier is still carried
 #
 id: stacked-2-systems-apart-free----turned--centred---center-low-----possible
 name: "Solved rig — 4 stacks side by side, tiers centred"
@@ -179,7 +178,7 @@ placements:
           count: 1
           aim: near
 
-  # gmss-2, 10 cabinets in 4 rows
+  # gmss-2, 10 cabinets in 3 rows
   - id: main-gmss-2
     at: [4.03, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

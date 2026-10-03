@@ -34,6 +34,11 @@
 #     the stacks are not identical. --no-asymmetry leaves them out instead
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 1× skram + 1×
+#     wsx-18 rolled 90° + 1× sbh-18 rolled 90°) is not mirror-symmetric, and the search found no symmetric arrangement of
+#     these cabinets that stands
+#   * row 2 (2× concert-audio-esx rolled 270° + 3× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90°) is
+#     not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-2 — 2, 23 cabinets in 4 rows:
 #

@@ -24,6 +24,23 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.780 m against the 2.000 m interface asked for, so the tops sit 220 mm lower than ideal —
 #     1.780 m is the most they reach while every tier is still carried
+#   * row 1 (1× wall-bass rolled 270° + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
+#   * row 2 (1× nuke rolled 270° + 1× iq-sub rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#
+# main-ours-2 — ours-2, 13 cabinets in 5 rows:
+#
+#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× skram + 1× flexy-folded-horn-hybrid rolled 90°    2.176 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
+#   4  3× achenbach-18                                                           1.84 m wide
+#   5  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
+#
+# Subs reach 2.696 m against a 2.0 m interface. The stack is 3.656 m of cabinet.
+#   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
+#     stacks are not identical. --no-asymmetry leaves them out instead
+#   * the 3× achenbach-18 row is 1.840 m on a 1.546 m row, so it overhangs 147 mm each side
 #
 # main-ours-1 — ours-1, 12 cabinets in 5 rows:
 #
@@ -38,21 +55,6 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 3× achenbach-18 row is 1.840 m on a 1.546 m row, so it overhangs 147 mm each side
 #
-# main-ours-2 — ours-2, 13 cabinets in 6 rows:
-#
-#   1  1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°         1.697 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90°               1.383 m wide
-#   5  2× achenbach-18                                                           1.22 m wide
-#   6  1× eighteensound-2way-15 + 2× tecnare-m2122                            1.5056 m wide
-#
-# Subs reach 2.992 m against a 2.0 m interface. The stack is 3.952 m of cabinet.
-#   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
-#     stacks are not identical. --no-asymmetry leaves them out instead
-#   * the 1× eighteensound-2way-15 + 2× tecnare-m2122 row is 1.506 m on a 1.220 m row, so it overhangs 143 mm each
-#     side
-#
 # main-gmss-1 — gmss-1, 6 cabinets in 4 rows:
 #
 #   1  1× wall-bass                                                              0.66 m wide
@@ -65,6 +67,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× iq-sub rolled 270° + 1× nuke rolled 90° row is 1.460 m on a 0.660 m row, so it overhangs 400 mm each
 #     side
+#   * row 2 (1× iq-sub rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-systems-apart-free----mixed---centred---center-central-possible
 name: "Solved rig — 4 stacks side by side, tiers centred"
@@ -80,7 +84,7 @@ focus:
 placements:
   # gmss-2, 8 cabinets in 4 rows
   - id: main-gmss-2
-    at: [-3.7185, 0.0]
+    at: [-3.958, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -109,9 +113,41 @@ placements:
         - device: turbo-top
           count: 2
 
+  # ours-2, 13 cabinets in 5 rows
+  - id: main-ours-2
+    at: [-1.06, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      mirror_style: centred
+      low_end: central
+      from:
+        - device: skram
+          count: 1
+          roll_mirror: 90.0
+        - device: flexy-folded-horn-hybrid
+          count: 6
+          roll_mirror: 90.0
+        - device: achenbach-18
+          count: 3
+        - device: tecnare-m2122
+          count: 2
+        - device: eighteensound-2way-15
+          count: 1
+          aim: near
+
   # ours-1, 12 cabinets in 5 rows
   - id: main-ours-1
-    at: [-0.8205, 0.0]
+    at: [1.616, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -142,41 +178,9 @@ placements:
           count: 1
           aim: near
 
-  # ours-2, 13 cabinets in 6 rows
-  - id: main-ours-2
-    at: [1.616, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      mirror_style: centred
-      low_end: central
-      from:
-        - device: skram
-          count: 1
-          roll_mirror: 90.0
-        - device: flexy-folded-horn-hybrid
-          count: 6
-          roll_mirror: 90.0
-        - device: achenbach-18
-          count: 3
-        - device: tecnare-m2122
-          count: 2
-        - device: eighteensound-2way-15
-          count: 1
-          aim: near
-
   # gmss-1, 6 cabinets in 4 rows
   - id: main-gmss-1
-    at: [3.6945, 0.0]
+    at: [3.934, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

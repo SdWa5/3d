@@ -14,18 +14,19 @@
 #
 # 3 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours — ours, 25 cabinets in 4 rows:
+# main-ours — ours, 25 cabinets in 6 rows:
 #
-#   1  2× achenbach-18 + 1× skram rolled 270° + 1× skram + 3× achenbach-18    4.644 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    5.298 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 144 mm gaps    5.298 m wide
-#   4  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
+#   1  1× achenbach-18 + 1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18    3.088 m wide
+#   2  4× achenbach-18 at 230 mm gaps                                            3.09 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
+#   6  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
-# Subs reach 2.105 m against a 2.0 m interface. The stack is 3.065 m of cabinet.
+# Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
 #   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1×
-#     flexy-folded-horn-hybrid rolled 270° + 1× achenbach-18 + 1× flexy-folded-horn-hybrid rolled 90° + 1×
-#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 5.298 m on a 4.644 m row, so
-#     it overhangs 327 mm each side
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° row is 3.112 m on a 3.090 m row, so
+#     it overhangs 11 mm each side
 #
 # main-psl — psl, 22 cabinets in 3 rows:
 #
@@ -62,7 +63,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours, 25 cabinets in 4 rows
+  # ours, 25 cabinets in 6 rows
   - id: main-ours
     at: [-4.985, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -92,7 +93,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [1.117, 0.0]
+    at: [0.024, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -131,7 +132,7 @@ placements:
 
   # innschleife, 20 cabinets in 8 rows
   - id: main-innschleife
-    at: [5.8, 0.0]
+    at: [4.707, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

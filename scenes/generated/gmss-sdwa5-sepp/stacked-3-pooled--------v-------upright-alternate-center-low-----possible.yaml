@@ -28,7 +28,7 @@
 # main-2 — 2, 17 cabinets in 5 rows:
 #
 #   1  1× iq-sub + 2× nuke + 1× iq-sub                                          2.3 m wide
-#   2  2× achenbach-18 + 1× mid-bass                                            2.44 m wide
+#   2  1× achenbach-18 + 1× mid-bass + 1× achenbach-18                         2.44 m wide
 #   3  1× skram + 2× wall-bass + 1× skram                                       2.6 m wide
 #   4  4× flexy-folded-horn-hybrid at 79 mm gaps                                2.601 m wide
 #   5  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
@@ -36,7 +36,8 @@
 # Subs reach 3.533 m against a 2.0 m interface. The stack is 4.493 m of cabinet.
 #   * the subs reach 3.533 m against the 3.000 m ceiling asked for, so they stand 533 mm too high — 3.533 m is the
 #     nearest the 2.500 m target that every tier is still carried at
-#   * the 2× achenbach-18 + 1× mid-bass row is 2.440 m on a 2.300 m row, so it overhangs 70 mm each side
+#   * the 1× achenbach-18 + 1× mid-bass + 1× achenbach-18 row is 2.440 m on a 2.300 m row, so it overhangs 70 mm
+#     each side
 #   * the 1× skram + 2× wall-bass + 1× skram row is 2.600 m on a 2.440 m row, so it overhangs 80 mm each side
 #
 # main-3 — 3, 11 cabinets in 5 rows:

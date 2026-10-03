@@ -102,6 +102,8 @@
 #   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× tms2 + 1× tms4 row is 0.950 m on a 0.600 m row, so it overhangs 175 mm each side
+#   * row 1 (1× wsx-18 + 1× sbh-18) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-innschleife-2 — innschleife-2, 8 cabinets in 3 rows:
 #
@@ -138,6 +140,8 @@
 #   * sub-60x60: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the 1× tms4 + 1× tms2 row is 0.950 m on a 0.600 m row, so it overhangs 175 mm each side
+#   * row 1 (1× sbh-18 + 1× wsx-18) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 id: stacked-3-systems-apart-free----upright-alternate-stereo-central-possible
 name: "Solved rig — 9 stacks side by side, tiers split left and right"

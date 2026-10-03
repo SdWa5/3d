@@ -40,6 +40,10 @@
 #     overhangs 85 mm each side
 #   * the 2× iq-sub rolled 270° + 1× iq-sub + 2× iq-sub rolled 90° row is 3.290 m on a 2.770 m row, so it
 #     overhangs 260 mm each side
+#   * row 1 (1× nuke rolled 270° + 1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 2 (1× wall-bass rolled 270° + 1× wall-bass + 1× iq-sub rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-tops-shared---v-------mixed---centred---stereo-central-possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"

@@ -15,7 +15,9 @@ See [the generation command](docs/scenes.md#repeating-a-flanked-row).
 Next-event generations use [events/next-event-light.yaml](events/next-event-light.yaml), and
 [events/next-event-light-achenbach.yaml](events/next-event-light-achenbach.yaml) is the same event with four
 Achenbach. `scene:stack --event=next-event-light` refuses a compiled rig wider than 13 m or higher than 4 m. Insets, gaps, aiming and flown equipment count towards
-those limits. The event lowers the interface only for walls built from Innschleife's subs. It also states what each
+those limits. A rig too wide for the room is first built again with narrower, taller stacks, because the room is a
+hard limit and the interface and target heights are goals. Every sub row is kept mirror-symmetric wherever a symmetric
+arrangement stands. The event lowers the interface only for walls built from Innschleife's subs. It also states what each
 system brings and how each system is set up. Ours and Sepp's gear stands upright and PSL's and Innschleife's is
 turned, with Innschleife's kickers standing as measured. A next-event sweep therefore does not vary orientation, and
 its scenes are named `stated`. The event puts ours and Sepp's low end central and Innschleife's low, so the combined

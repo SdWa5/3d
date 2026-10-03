@@ -12,27 +12,29 @@
 #
 # 4 stacks side by side, with 0.5 m of air between them.
 #
-# main-ours-2 — ours-2, 14 cabinets in 6 rows:
+# main-ours-2 — ours-2, 15 cabinets in 6 rows:
 #
-#   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
-#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 322 mm gaps    1.848 m wide
-#   4  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   5  3× achenbach-18 at 24 mm gaps                                            1.848 m wide
-#   6  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top            1.4556 m wide
+#   1  1× skram rolled 270° + 1× skram rolled 90° at 48 mm gaps              1.876 m wide
+#   2  3× achenbach-18 at 38 mm gaps                                            1.876 m wide
+#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 350 mm gaps    1.876 m wide
+#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 350 mm gaps    1.876 m wide
+#   5  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° at 350 mm gaps    1.876 m wide
+#   6  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122   1.9756 m wide
 #
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * skram: KEPT TOGETHER, all 2 in one stack — 2 stacks would take one each, and one on its own cannot be flanked
 #     into a row that carries anything: the row above it ends up half off its support. Turning them makes the split work,
 #     which is what the -turned rig does
+#   * the 1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122 row is 1.976 m on a 1.876
+#     m row, so it overhangs 50 mm each side
 #
-# main-gmss-2 — gmss-2, 12 cabinets in 4 rows:
+# main-gmss-2 — gmss-2, 11 cabinets in 4 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
 #   2  1× iq-sub rolled 270° + 2× iq-sub rolled 90° at 405 mm gaps            2.82 m wide
 #   3  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° at 40 mm gaps     2.82 m wide
-#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122   1.9756 m wide
+#   4  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top            1.4556 m wide
 #
 # Subs reach 1.78 m against a 2.0 m interface. The stack is 2.74 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
@@ -86,7 +88,7 @@ focus:
     height_m: 1.8
 
 placements:
-  # ours-2, 14 cabinets in 6 rows
+  # ours-2, 15 cabinets in 6 rows
   - id: main-ours-2
     at: [-4.407, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -115,7 +117,7 @@ placements:
         - device: achenbach-18
           count: 3
         - device: tecnare-m2122
-          count: 1
+          count: 2
         - device: eighteensound-2way-15
           count: 1
           aim: near
@@ -123,9 +125,9 @@ placements:
           count: 1
           aim: near
 
-  # gmss-2, 12 cabinets in 4 rows
+  # gmss-2, 11 cabinets in 4 rows
   - id: main-gmss-2
-    at: [-1.573, 0.0]
+    at: [-1.5092, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -153,7 +155,7 @@ placements:
           count: 3
           roll_mirror: 90.0
         - device: tecnare-m2122
-          count: 2
+          count: 1
         - device: eighteensound-2way-15
           count: 1
           aim: near
@@ -163,7 +165,7 @@ placements:
 
   # gmss-1, 4 cabinets in 2 rows
   - id: main-gmss-1
-    at: [1.362, 0.0]
+    at: [1.4258, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -191,7 +193,7 @@ placements:
 
   # ours-1, 9 cabinets in 4 rows
   - id: main-ours-1
-    at: [3.807, 0.0]
+    at: [3.8708, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

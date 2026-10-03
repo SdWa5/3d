@@ -25,6 +25,14 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
 #     0.950 m is the most they reach while every tier is still carried
+#   * row 1 (1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× concert-audio-esx rolled 270° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled
+#     270° + 1× sub-60x60 rolled 270° + 1× achenbach-18 rolled 270° + 2× kicker-15 rolled 270° + 1× skram rolled
+#     270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× sub-60x60 rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled
+#     90° + 2× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18
+#     rolled 90° + 1× thebox-tp218-1600 rolled 90° + 1× thebox-tp118-800 rolled 90°) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-1 — 1, 31 cabinets in 2 rows:
 #
@@ -37,6 +45,14 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.950 m against the 2.000 m interface asked for, so the tops sit 1050 mm lower than ideal —
 #     0.950 m is the most they reach while every tier is still carried
+#   * row 1 (1× thebox-tp118-800 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× sbh-18 rolled 270° + 1×
+#     wsx-18 rolled 270° + 1× concert-audio-esf rolled 270° + 2× concert-audio-esx rolled 270° + 1×
+#     flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled
+#     270° + 1× sub-60x60 rolled 270° + 1× achenbach-18 rolled 270° + 1× achenbach-18 rolled 90° + 1× skram rolled
+#     90° + 2× kicker-15 rolled 90° + 1× achenbach-18 rolled 90° + 1× sub-60x60 rolled 90° + 1×
+#     flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled
+#     90° + 1× concert-audio-esx rolled 90° + 1× wsx-18 rolled 90° + 1× sbh-18 rolled 90°) is not mirror-symmetric,
+#     and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------pyramid-turned--column----stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"

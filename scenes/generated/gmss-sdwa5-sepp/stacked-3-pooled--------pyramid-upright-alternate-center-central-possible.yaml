@@ -30,6 +30,10 @@
 #   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
 # Subs reach 2.984 m against a 2.0 m interface. The stack is 3.944 m of cabinet.
+#   * row 1 (2× flexy-folded-horn-hybrid + 2× wall-bass + 1× skram + 2× flexy-folded-horn-hybrid) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
+#   * row 2 (1× achenbach-18 + 1× nuke + 1× skram + 1× nuke + 1× achenbach-18 + 1× mid-bass) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-3 — 3, 11 cabinets in 3 rows:
 #

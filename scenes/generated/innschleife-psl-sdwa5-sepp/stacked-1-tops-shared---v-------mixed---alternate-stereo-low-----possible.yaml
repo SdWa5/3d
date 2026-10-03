@@ -64,6 +64,10 @@
 #     each side
 #   * the 1× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 3.640 m on a 3.440 m row, so it overhangs 100 mm
 #     each side
+#   * row 3 (1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× kicker-15) is not mirror-symmetric, and the search
+#     found no symmetric arrangement of these cabinets that stands
+#   * row 4 (2× wsx-18 rolled 270° + 1× sbh-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-tops-shared---v-------mixed---alternate-stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"

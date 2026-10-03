@@ -21,7 +21,7 @@
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  3× achenbach-18 rolled 270° + 2× achenbach-18 rolled 90°               3.08 m wide
-#   5  1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90°    2.468 m wide
+#   5  1× skram rolled 270° + 1× achenbach-18 rolled 90° + 1× skram rolled 90°    2.468 m wide
 #   6  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
@@ -42,7 +42,7 @@
 #
 #   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
 #   2  2× sbh-18 rolled 270° + 1× sbh-18 rolled 90° at 430 mm gaps            4.46 m wide
-#   3  2× sub-60x60 rolled 270° + 2× sub-60x60 rolled 90° + 1× sbh-18 rolled 90°     3.68 m wide
+#   3  2× sub-60x60 rolled 270° + 1× sbh-18 rolled 90° + 2× sub-60x60 rolled 90°     3.68 m wide
 #   4  2× kicker-15 rolled 270° + 2× kicker-15 rolled 90°                     2.34 m wide
 #   5  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #

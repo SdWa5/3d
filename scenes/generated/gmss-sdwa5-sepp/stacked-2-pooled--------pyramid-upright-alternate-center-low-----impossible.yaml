@@ -29,6 +29,10 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 2 (2× achenbach-18 + 3× iq-sub + 1× achenbach-18) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 3 (1× nuke + 1× skram + 1× wall-bass) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-2 — 2, 21 cabinets in 2 rows:
 #
@@ -42,6 +46,9 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 1.400 m against the 2.000 m interface asked for, so the tops sit 600 mm lower than ideal —
 #     1.400 m is the most they reach while every tier is still carried
+#   * row 1 (1× achenbach-18 + 1× iq-sub + 3× flexy-folded-horn-hybrid + 1× wall-bass + 1× skram + 1× nuke + 3×
+#     flexy-folded-horn-hybrid + 2× iq-sub + 2× achenbach-18 + 1× mid-bass) is not mirror-symmetric, and the search found
+#     no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------pyramid-upright-alternate-center-low-----impossible
 name: "Solved rig — 2 stacks side by side, tiers centred"

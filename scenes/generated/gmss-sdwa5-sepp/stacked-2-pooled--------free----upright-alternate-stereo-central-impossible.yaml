@@ -50,6 +50,14 @@
 #     it overhangs 295 mm each side
 #   * the 1× achenbach-18 + 3× iq-sub + 2× achenbach-18 row is 3.490 m on a 3.033 m row, so it overhangs 228 mm
 #     each side
+#   * row 2 (1× skram + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
+#   * row 3 (1× flexy-folded-horn-hybrid + 1× skram + 2× flexy-folded-horn-hybrid) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 4 (1× flexy-folded-horn-hybrid + 2× nuke + 2× flexy-folded-horn-hybrid) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
+#   * row 5 (1× achenbach-18 + 3× iq-sub + 2× achenbach-18) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-1 — 1, 15 cabinets in 5 rows:
 #

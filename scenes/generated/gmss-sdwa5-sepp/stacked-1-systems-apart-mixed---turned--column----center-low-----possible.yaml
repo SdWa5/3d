@@ -15,12 +15,12 @@
 # main-gmss — gmss, 14 cabinets in 4 rows:
 #
 #   1  2× iq-sub rolled 270° + 3× iq-sub rolled 90°                           3.43 m wide
-#   2  1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°     3.51 m wide
+#   2  1× wall-bass rolled 270° + 1× iq-sub rolled 90° + 1× wall-bass rolled 90°     3.51 m wide
 #   3  1× nuke rolled 270° + 1× mid-bass rolled 90° + 1× nuke rolled 90°     2.08 m wide
 #   4  3× turbo-top                                                              1.39 m wide
 #
 # Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
-#   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90° row is 3.510 m on a 3.430 m
+#   * the 1× wall-bass rolled 270° + 1× iq-sub rolled 90° + 1× wall-bass rolled 90° row is 3.510 m on a 3.430 m
 #     row, so it overhangs 40 mm each side
 #
 # main-ours — ours, 25 cabinets in 6 rows:
@@ -29,7 +29,7 @@
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  2× achenbach-18 rolled 270° + 3× achenbach-18 rolled 90°               3.08 m wide
-#   5  1× skram rolled 270° + 1× skram rolled 90° + 1× achenbach-18 rolled 90°    2.468 m wide
+#   5  1× skram rolled 270° + 1× achenbach-18 rolled 90° + 1× skram rolled 90°    2.468 m wide
 #   6  1× eighteensound-2way-15 + 3× tecnare-m2122 + 1× eighteensound-2way-15   2.5112 m wide
 #
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.

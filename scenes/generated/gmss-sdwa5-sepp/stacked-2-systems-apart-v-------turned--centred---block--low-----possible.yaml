@@ -25,6 +25,8 @@
 #     wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its arrangements
 #   * the subs reach 0.770 m against the 2.000 m interface asked for, so the tops sit 1230 mm lower than ideal —
 #     0.770 m is the most they reach while every tier is still carried
+#   * row 1 (1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× nuke + 2× iq-sub rolled 90°) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 12 cabinets in 5 rows:
 #
@@ -52,6 +54,8 @@
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× skram rolled 270° + 1× achenbach-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-gmss-1 — gmss-1, 6 cabinets in 2 rows:
 #
@@ -64,6 +68,8 @@
 #     stacks are not identical. --no-asymmetry leaves them out instead
 #   * the subs reach 0.770 m against the 2.000 m interface asked for, so the tops sit 1230 mm lower than ideal —
 #     0.770 m is the most they reach while every tier is still carried
+#   * row 1 (2× iq-sub rolled 270° + 1× nuke + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°) is not
+#     mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-systems-apart-v-------turned--centred---block--low-----possible
 name: "Solved rig — 4 stacks side by side, tiers justified"

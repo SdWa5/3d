@@ -11,15 +11,19 @@
 #
 # What it deals out today:
 #
-#   1  9× flexy-folded-horn-hybrid                                              5.479 m wide
-#   2  3× iq-sub + 3× flexy-folded-horn-hybrid + 3× iq-sub                    5.113 m wide
-#   3  1× nuke + 1× skram + 2× wall-bass + 1× skram + 1× nuke                3.82 m wide
-#   4  2× turbo-top + 3× tecnare-m2122 + 1× turbo-top                          2.95 m wide
+#   1  7× flexy-folded-horn-hybrid                                              4.257 m wide
+#   2  1× iq-sub + 5× flexy-folded-horn-hybrid + 1× iq-sub                    4.135 m wide
+#   3  2× iq-sub + 1× wall-bass + 1× skram + 1× wall-bass + 2× iq-sub        4.17 m wide
+#   4  1× nuke + 1× skram + 1× nuke + 1× mid-bass                             3.05 m wide
+#   5  2× turbo-top + 3× tecnare-m2122 + 1× turbo-top                          2.95 m wide
 #
-# Subs reach 2.926 m against a 2.0 m interface. The stack is 3.886 m of cabinet.
-#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 2× turbo-top + 3× tecnare-m2122 + 1× turbo-top
-#     row is 2.950 m on a 2.420 m row, so it steps out 265 mm each side against the 45 mm a 0.450 m cabinet may sit proud
-#     — `shape: pyramid` asks for a wall that does not widen as it rises
+# Subs reach 3.84 m against a 2.0 m interface. The stack is 4.8 m of cabinet.
+#   * the subs reach 3.840 m against the 3.000 m ceiling asked for, so they stand 840 mm too high — 3.840 m is the
+#     nearest the 2.500 m target that every tier is still carried at
+#   * the 2× iq-sub + 1× wall-bass + 1× skram + 1× wall-bass + 2× iq-sub row is 4.170 m on a 4.135 m row, so it
+#     overhangs 18 mm each side
+#   * row 4 (1× nuke + 1× skram + 1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------pyramid-upright-alternate-center-low-----possible
 name: "Solved rig — one stack, tiers centred"
@@ -44,6 +48,7 @@ placements:
       shape: pyramid
       from:
         - wall-bass
+        - mid-bass
         - skram
         - flexy-folded-horn-hybrid
         - nuke

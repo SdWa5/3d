@@ -11,29 +11,29 @@
 #
 # 2 stacks side by side, with 0.5 m of air between them.
 #
-# main-gmss — gmss, 14 cabinets in 5 rows:
-#
-#   1  2× iq-sub rolled 270° + 2× iq-sub rolled 90°                           2.74 m wide
-#   2  1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× iq-sub rolled 90°     2.78 m wide
-#   3  1× wall-bass rolled 270° + 1× nuke rolled 90°                          2.19 m wide
-#   4  1× nuke rolled 270° + 1× mid-bass                                       1.99 m wide
-#   5  1× tecnare-m2122 + 1× turbo-top + 1× tecnare-m2122                      1.49 m wide
-#
-# Subs reach 2.44 m against a 2.0 m interface. The stack is 3.4 m of cabinet.
-# `align: stereo` spreads the top tier onto the edges of the row carrying it.
-#   * the 1× iq-sub rolled 270° + 1× wall-bass rolled 270° + 1× iq-sub rolled 90° row is 2.780 m on a 2.740 m
-#     row, so it overhangs 20 mm each side
-#
-# main-ours — ours, 17 cabinets in 5 rows:
+# main-ours — ours, 16 cabinets in 5 rows:
 #
 #   1  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   2  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    3.112 m wide
 #   4  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   5  1× turbo-top + 1× tecnare-m2122 + 1× turbo-top                          1.44 m wide
+#   5  1× tecnare-m2122 + 1× turbo-top                                          0.97 m wide
 #
 # Subs reach 2.383 m against a 2.0 m interface. The stack is 3.343 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#
+# main-gmss — gmss, 15 cabinets in 5 rows:
+#
+#   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
+#   2  2× iq-sub rolled 270° + 1× iq-sub rolled 90° at 405 mm gaps            2.82 m wide
+#   3  1× iq-sub rolled 270° + 2× iq-sub rolled 90° at 308 mm gaps           2.626 m wide
+#   4  1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90°                2.78 m wide
+#   5  1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× tecnare-m2122      1.96 m wide
+#
+# Subs reach 2.31 m against a 2.0 m interface. The stack is 3.27 m of cabinet.
+# `align: stereo` spreads the top tier onto the edges of the row carrying it.
+#   * the 1× nuke rolled 270° + 1× mid-bass + 1× nuke rolled 90° row is 2.780 m on a 2.626 m row, so it overhangs
+#     77 mm each side
 #
 id: stacked-1-tops-shared---mixed---mixed---alternate-stereo-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers split left and right"
@@ -47,9 +47,39 @@ focus:
     height_m: 1.8
 
 placements:
-  # gmss, 14 cabinets in 5 rows
+  # ours, 16 cabinets in 5 rows
+  - id: main-ours
+    at: [-1.962, 0.0]
+    aim: far                 # the TOP tiers only; subs fire straight ahead
+    focus:
+      far:
+        distance_m: 10.0
+        height_m: 1.8
+      near:
+        distance_m: 2.0
+        height_m: 1.8
+    align:
+      mode: stereo
+    stack:
+      interface_height_m: 2.0
+      max_sub_height_m: 3.0
+      gap_m: 0.02
+      slide_slack_m: .inf
+      shape: mixed
+      from:
+        - device: skram
+          roll_mirror: 90.0
+        - device: flexy-folded-horn-hybrid
+          roll_mirror: 90.0
+        - device: tecnare-m2122
+          count: 1
+        - device: turbo-top
+          count: 1
+          aim: near
+
+  # gmss, 15 cabinets in 5 rows
   - id: main-gmss
-    at: [-2.108, 0.0]
+    at: [1.504, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -76,36 +106,6 @@ placements:
           roll_mirror: 90.0
         - device: tecnare-m2122
           count: 2
-        - device: turbo-top
-          count: 1
-          aim: near
-
-  # ours, 17 cabinets in 5 rows
-  - id: main-ours
-    at: [1.338, 0.0]
-    aim: far                 # the TOP tiers only; subs fire straight ahead
-    focus:
-      far:
-        distance_m: 10.0
-        height_m: 1.8
-      near:
-        distance_m: 2.0
-        height_m: 1.8
-    align:
-      mode: stereo
-    stack:
-      interface_height_m: 2.0
-      max_sub_height_m: 3.0
-      gap_m: 0.02
-      slide_slack_m: .inf
-      shape: mixed
-      from:
-        - device: skram
-          roll_mirror: 90.0
-        - device: flexy-folded-horn-hybrid
-          roll_mirror: 90.0
-        - device: tecnare-m2122
-          count: 1
         - device: turbo-top
           count: 2
           aim: near

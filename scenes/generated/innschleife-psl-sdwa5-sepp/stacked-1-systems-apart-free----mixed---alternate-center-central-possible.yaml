@@ -41,21 +41,17 @@
 #     + 1× concert-audio-esx rolled 90° + 1× concert-audio-esf rolled 90° + 1× thebox-tp118-800 rolled 90° row is
 #     6.456 m on a 6.020 m row, so it overhangs 218 mm each side
 #
-# main-innschleife — innschleife, 20 cabinets in 6 rows:
+# main-innschleife — innschleife, 20 cabinets in 5 rows:
 #
-#   1  1× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           3.34 m wide
-#   2  1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× sbh-18 rolled 90°     3.54 m wide
-#   3  1× sbh-18 rolled 270° + 1× kicker-15 + 1× sbh-18 rolled 90°           3.39 m wide
-#   4  1× kicker-15 + 1× sub-60x60 + 2× kicker-15                              3.51 m wide
-#   5  3× sub-60x60                                                              1.84 m wide
-#   6  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
+#   1  2× wsx-18 rolled 270° + 2× wsx-18 rolled 90°                           4.46 m wide
+#   2  2× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           4.86 m wide
+#   3  4× kicker-15                                                              3.86 m wide
+#   4  4× sub-60x60                                                              2.46 m wide
+#   5  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #
-# Subs reach 2.91 m against a 2.0 m interface. The stack is 4.05 m of cabinet.
-#   * the 1× sbh-18 rolled 270° + 1× wsx-18 rolled 270° + 1× sbh-18 rolled 90° row is 3.540 m on a 3.340 m row,
-#     so it overhangs 100 mm each side
-#   * the 1× kicker-15 + 1× sub-60x60 + 2× kicker-15 row is 3.510 m on a 3.390 m row, so it overhangs 60 mm each
-#     side
-#   * the 1× tms2 + 2× tms4 + 1× tms2 row is 1.920 m on a 1.840 m row, so it overhangs 40 mm each side
+# Subs reach 2.29 m against a 2.0 m interface. The stack is 3.43 m of cabinet.
+#   * the 2× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 4.860 m on a 4.460 m row, so it overhangs 200 mm
+#     each side
 #
 id: stacked-1-systems-apart-free----mixed---alternate-center-central-possible
 name: "Solved rig — 3 stacks side by side, tiers centred"
@@ -71,7 +67,7 @@ focus:
 placements:
   # ours, 25 cabinets in 5 rows
   - id: main-ours
-    at: [-5.8, 0.0]
+    at: [-6.46, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -98,7 +94,7 @@ placements:
 
   # psl, 22 cabinets in 3 rows
   - id: main-psl
-    at: [-0.1245, 0.0]
+    at: [-0.7845, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -134,7 +130,7 @@ placements:
         - device: thebox-dsp-112
           aim: near
 
-  # innschleife, 20 cabinets in 6 rows
+  # innschleife, 20 cabinets in 5 rows
   - id: main-innschleife
     at: [5.3735, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead

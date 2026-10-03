@@ -12,12 +12,12 @@
 # What it deals out today:
 #
 #   1  2× iq-sub rolled 270° + 3× iq-sub rolled 90°                           3.43 m wide
-#   2  1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90°     3.51 m wide
+#   2  1× wall-bass rolled 270° + 1× iq-sub rolled 90° + 1× wall-bass rolled 90°     3.51 m wide
 #   3  1× nuke rolled 270° + 1× mid-bass rolled 90° + 1× nuke rolled 90°     2.08 m wide
 #   4  3× turbo-top                                                              1.39 m wide
 #
 # Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
-#   * the 1× wall-bass rolled 270° + 1× wall-bass rolled 90° + 1× iq-sub rolled 90° row is 3.510 m on a 3.430 m
+#   * the 1× wall-bass rolled 270° + 1× iq-sub rolled 90° + 1× wall-bass rolled 90° row is 3.510 m on a 3.430 m
 #     row, so it overhangs 40 mm each side
 #
 id: stacked-1-pooled--------mixed---turned--column----center-low-----possible

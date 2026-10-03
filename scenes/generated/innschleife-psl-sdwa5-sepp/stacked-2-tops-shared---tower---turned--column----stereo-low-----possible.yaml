@@ -46,6 +46,9 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
 #     1.178 m is the most they reach while every tier is still carried
+#   * row 2 (1× thebox-tp118-800 rolled 270° + 1× thebox-tp218-1600 rolled 270° + 1× concert-audio-esf rolled
+#     90° at 491 mm gaps) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that
+#     stands
 #
 # main-psl-2 — psl-2, 9 cabinets in 3 rows:
 #
@@ -57,6 +60,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 1.178 m against the 2.000 m interface asked for, so the tops sit 822 mm lower than ideal —
 #     1.178 m is the most they reach while every tier is still carried
+#   * row 2 (1× concert-audio-esf rolled 270° + 1× thebox-tp218-1600 rolled 90° + 1× thebox-tp118-800 rolled 90°
+#     at 491 mm gaps) is not mirror-symmetric, and the search found no symmetric arrangement of these cabinets that stands
 #
 # main-innschleife-1 — innschleife-1, 11 cabinets in 4 rows:
 #

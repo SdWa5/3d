@@ -306,4 +306,119 @@ final class StackMetrics
 
         return new Tier([...array_reverse($left), $row[0], ...$right]);
     }
+
+    /**
+     * Whether this row reads the same from both ends, cabinet by cabinet.
+     *
+     * **A row is compared by device and by the width each cabinet stands at, never by its roll.** A turned pair is
+     * mirrored by {@see Tier::mirrored} and {@see MouthPairing} into opposite rolls, so a roll of 90° on the left and
+     * -90° on the right is the mirror image a crew builds, and comparing rolls would call it lopsided. The width is
+     * still compared, because a cabinet on its side and one standing up make two different outlines.
+     *
+     * The owner asked on 2026-10-03 for every stack to stay mirror-symmetric where it can, see {@see subsSymmetric}.
+     */
+    public static function isSymmetric(Tier $tier): bool
+    {
+        $cabinets = [];
+        foreach ($tier->segments as $segment) {
+            $key = sprintf('%s@%.4f', $segment[0]->id, RolledBox::widthOf($segment[0], Tier::rollOf($segment)));
+            for ($i = 0; $i < $segment[1]; ++$i) {
+                $cabinets[] = $key;
+            }
+        }
+
+        return $cabinets === array_reverse($cabinets);
+    }
+
+    /**
+     * This row rearranged to read the same from both ends, or null where it already does or cannot.
+     *
+     * **The same cabinets at the same width, only in another order**, so the row above stands on a row exactly as wide
+     * and only the bearing can come out differently, which {@see StackChecks::supportChecks} asks again. Cabinets are
+     * grouped as {@see isSymmetric} compares them, by device and by the width they stand at. A row can be mirrored when
+     * at most one group has an odd count. That group stands in the middle and every other group is halved either side
+     * of it, tallest nearest the middle, which keeps as much of {@see centred}'s plateau as the mirror allows.
+     * `2 wall-bass + 1 mid-bass` becomes `1 wall-bass + 1 mid-bass + 1 wall-bass`.
+     *
+     * **A group standing at two rolls gives its larger rolls to the left half and its smaller ones to the right**, so a
+     * turned pair comes out 270° on the left and 90° on the right, the convention {@see Tier::mirrored} builds.
+     */
+    public static function symmetrised(Tier $tier): ?Tier
+    {
+        if (self::isSymmetric($tier)) {
+            return null;
+        }
+
+        /** @var array<string, array{DeviceSpec, list<float>}> $groups */
+        $groups = [];
+        foreach ($tier->segments as $segment) {
+            $roll = Tier::rollOf($segment);
+            $key = sprintf('%s@%.4f', $segment[0]->id, RolledBox::widthOf($segment[0], $roll));
+            $groups[$key] ??= [$segment[0], []];
+            for ($i = 0; $i < $segment[1]; ++$i) {
+                $groups[$key][1][] = $roll;
+            }
+        }
+
+        $odd = array_values(array_filter($groups, static fn (array $group): bool => 1 === count($group[1]) % 2));
+        if (count($odd) > 1) {
+            return null;
+        }
+
+        $groups = array_values($groups);
+        usort(
+            $groups,
+            static fn (array $a, array $b): int => RolledBox::heightOf($b[0], $b[1][0])
+                <=> RolledBox::heightOf($a[0], $a[1][0]),
+        );
+
+        // Cabinets as [device, roll], the left half from the middle outwards and the right half likewise.
+        $left = [];
+        $middle = [];
+        $right = [];
+        foreach ($groups as [$device, $rolls]) {
+            rsort($rolls);
+            $half = intdiv(count($rolls), 2);
+            foreach (array_slice($rolls, 0, $half) as $roll) {
+                $left[] = [$device, $roll];
+            }
+            foreach (array_reverse(array_slice($rolls, count($rolls) - $half)) as $roll) {
+                $right[] = [$device, $roll];
+            }
+            if (1 === count($rolls) % 2) {
+                $middle[] = [$device, $rolls[$half]];
+            }
+        }
+
+        $segments = [];
+        foreach ([...array_reverse($left), ...$middle, ...$right] as [$device, $roll]) {
+            $last = array_key_last($segments);
+            if (null !== $last && $segments[$last][0] === $device && $segments[$last][2] === $roll) {
+                ++$segments[$last][1];
+            } else {
+                $segments[] = [$device, 1, $roll];
+            }
+        }
+
+        return new Tier($segments, $tier->gapM);
+    }
+
+    /**
+     * Whether every sub row of this arrangement is mirror-symmetric, see {@see isSymmetric}.
+     *
+     * **Subs only**, because the tops row is ordered by {@see StackTops::topRow} for the alignment the placement asks
+     * for, and an alternating stereo pair is asymmetric on purpose.
+     *
+     * @param list<Tier> $tiers
+     */
+    public static function subsSymmetric(array $tiers): bool
+    {
+        foreach ($tiers as $tier) {
+            if ($tier->isSub() && !self::isSymmetric($tier)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

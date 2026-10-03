@@ -19,6 +19,8 @@
 #   3  1× turbo-top + 1× eighteensound-2way-15 + 2× tecnare-m2122            1.9756 m wide
 #
 # Subs reach 2.17 m against a 2.0 m interface. The stack is 3.13 m of cabinet.
+#   * row 2 (2× nuke + 1× mid-bass at 1130 mm gaps) is not mirror-symmetric, and the search found no symmetric
+#     arrangement of these cabinets that stands
 #
 # main-ours — ours, 24 cabinets in 4 rows:
 #

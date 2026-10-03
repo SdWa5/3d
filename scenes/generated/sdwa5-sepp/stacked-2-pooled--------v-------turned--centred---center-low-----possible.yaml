@@ -35,6 +35,8 @@
 # Subs reach 2.983 m against a 2.0 m interface. The stack is 3.943 m of cabinet.
 #   * tecnare-m2122: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 1 (1× skram rolled 270° + 1× achenbach-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-2-pooled--------v-------turned--centred---center-low-----possible
 name: "Solved rig — 2 stacks side by side, tiers centred"

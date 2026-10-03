@@ -6,6 +6,7 @@ namespace App\Tests\Scene;
 
 use App\Scene\MirrorStyle;
 use App\Scene\RolledBox;
+use App\Scene\StackMetrics;
 use App\Scene\Tier;
 use App\Spec\DeviceSpec;
 use App\Spec\SpecLoader;
@@ -235,5 +236,73 @@ final class TierTest extends TestCase
         self::assertSame(0.125, $tier->flipped()->gapM);
         self::assertSame('2× flexy-folded-horn-hybrid rolled 90° at 125 mm gaps', $tier->label());
         self::assertSame('2× flexy-folded-horn-hybrid rolled 90°', (new Tier($tier->segments))->label());
+    }
+
+    /**
+     * A lopsided row is offered again in mirror order, the odd type in the middle and the others halved around it.
+     *
+     * The same cabinets at the same width, so the row above it stands on exactly as much as before.
+     */
+    public function testSymmetrisedPutsTheOddTypeInTheMiddle(): void
+    {
+        $wall = $this->devices['wall-bass'];
+        $mid = $this->devices['mid-bass'];
+        $tier = new Tier([[$wall, 2], [$mid, 1]]);
+
+        $mirrored = StackMetrics::symmetrised($tier);
+
+        self::assertNotNull($mirrored);
+        self::assertSame('1× wall-bass + 1× mid-bass + 1× wall-bass', $mirrored->label());
+        self::assertTrue(StackMetrics::isSymmetric($mirrored));
+        self::assertEqualsWithDelta($tier->widthM(0.02), $mirrored->widthM(0.02), 1e-9);
+    }
+
+    /** The tallest type of an even row stands nearest the middle, which keeps what is left of the plateau. */
+    public function testSymmetrisedStandsTheTallestTypeNearestTheMiddle(): void
+    {
+        $iq = $this->devices['iq-sub'];
+        $wall = $this->devices['wall-bass'];
+        $tallest = RolledBox::heightOf($iq, 0.0) >= RolledBox::heightOf($wall, 0.0) ? 'iq-sub' : 'wall-bass';
+        $other = 'iq-sub' === $tallest ? 'wall-bass' : 'iq-sub';
+
+        $mirrored = StackMetrics::symmetrised(new Tier([[$iq, 2], [$wall, 2]]));
+
+        self::assertNotNull($mirrored);
+        self::assertSame(
+            sprintf('1× %s + 2× %s + 1× %s', $other, $tallest, $other),
+            $mirrored->label(),
+        );
+    }
+
+    /**
+     * A turned row with one upright cabinet tacked on the end, as the solver dealt it for `gmss-sepp` mixed. The
+     * mirror puts the upright cabinet in the middle and keeps each turned pair 270° left and 90° right.
+     */
+    public function testSymmetrisedMirrorsATurnedRowAndCentresItsOddCabinet(): void
+    {
+        $iq = $this->devices['iq-sub'];
+        $wall = $this->devices['wall-bass'];
+        $mid = $this->devices['mid-bass'];
+        $tier = new Tier([[$iq, 1, 270.0], [$wall, 1, 270.0], [$wall, 1, 90.0], [$iq, 1, 90.0], [$mid, 1]]);
+
+        $mirrored = StackMetrics::symmetrised($tier);
+
+        self::assertNotNull($mirrored);
+        self::assertTrue(StackMetrics::isSymmetric($mirrored));
+        self::assertEqualsWithDelta($tier->widthM(0.02), $mirrored->widthM(0.02), 1e-9);
+        self::assertSame('mid-bass', $mirrored->segments[2][0]->id);
+        self::assertSame(270.0, Tier::rollOf($mirrored->segments[0]));
+        self::assertSame(90.0, Tier::rollOf($mirrored->segments[4]));
+    }
+
+    /** A row already symmetric, or one with two odd types, has no mirror order to offer. */
+    public function testSymmetrisedLeavesWhatItCannotOrNeedNotMirror(): void
+    {
+        $wall = $this->devices['wall-bass'];
+        $mid = $this->devices['mid-bass'];
+
+        self::assertNull(StackMetrics::symmetrised(new Tier([[$wall, 1], [$mid, 1], [$wall, 1]])));
+        self::assertNull(StackMetrics::symmetrised(new Tier([[$wall, 1], [$mid, 1]])));
+        self::assertNull(StackMetrics::symmetrised(new Tier([[$wall, 3], [$mid, 1], [$this->devices['iq-sub'], 2]])));
     }
 }

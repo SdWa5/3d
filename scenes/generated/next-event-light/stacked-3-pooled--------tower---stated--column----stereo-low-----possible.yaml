@@ -56,6 +56,12 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 2 (1× concert-audio-esx rolled 270° + 2× flexy-folded-horn-hybrid at 30 mm gaps) is not mirror-symmetric,
+#     and the search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (1× sbh-18 rolled 270° + 2× flexy-folded-horn-hybrid) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 4 (1× kicker-15 + 1× wsx-18 rolled 90° at 372 mm gaps) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-3 — 3, 14 cabinets in 5 rows:
 #
@@ -73,6 +79,12 @@
 #     are not identical. --no-asymmetry leaves them out instead
 #   * kicker-15: SPLIT UNEVENLY, 1 of 4 over 3 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 2 (2× flexy-folded-horn-hybrid + 1× concert-audio-esx rolled 90° at 30 mm gaps) is not mirror-symmetric,
+#     and the search found no symmetric arrangement of these cabinets that stands
+#   * row 3 (2× flexy-folded-horn-hybrid + 1× sbh-18 rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 4 (1× wsx-18 rolled 270° + 1× kicker-15 at 372 mm gaps) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-3-pooled--------tower---stated--column----stereo-low-----possible
 name: "Solved rig — 3 stacks side by side, tiers split left and right"

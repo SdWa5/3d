@@ -11,13 +11,12 @@
 #
 # What it deals out today:
 #
-#   1  1× wall-bass rolled 270° + 1× wall-bass rolled 90°                     2.82 m wide
-#   2  1× iq-sub rolled 270° + 2× iq-sub rolled 90° at 405 mm gaps            2.82 m wide
-#   3  1× iq-sub rolled 270° + 2× iq-sub rolled 90° at 405 mm gaps            2.82 m wide
-#   4  1× nuke rolled 270° + 1× mid-bass rolled 90° + 1× nuke rolled 90° at 390 mm gaps     2.82 m wide
-#   5  1× turbo-top + 1× turbo-top + 1× turbo-top                              1.39 m wide
+#   1  2× iq-sub rolled 270° + 3× iq-sub rolled 90° at 40 mm gaps             3.51 m wide
+#   2  1× wall-bass rolled 270° + 1× iq-sub rolled 90° + 1× wall-bass rolled 90°     3.51 m wide
+#   3  1× nuke rolled 270° + 1× mid-bass rolled 90° + 1× nuke rolled 90° at 735 mm gaps     3.51 m wide
+#   4  1× turbo-top + 1× turbo-top + 1× turbo-top                              1.39 m wide
 #
-# Subs reach 2.92 m against a 2.0 m interface. The stack is 3.63 m of cabinet.
+# Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #
 id: stacked-1-pooled--------tower---turned--column----stereo-low-----possible

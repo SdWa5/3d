@@ -22,19 +22,17 @@
 #   * the subs reach 1.712 m against the 2.000 m interface asked for, so the tops sit 288 mm lower than ideal —
 #     1.712 m is the most they reach while every tier is still carried
 #
-# main-2 — 2, 15 cabinets in 7 rows:
+# main-2 — 2, 15 cabinets in 4 rows:
 #
 #   1  1× wall-bass rolled 270° + 1× mid-bass rolled 90° + 1× wall-bass rolled 90°     3.34 m wide
-#   2  1× skram rolled 270° + 1× skram rolled 90°                            1.848 m wide
-#   3  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   4  1× flexy-folded-horn-hybrid rolled 270° + 1× flexy-folded-horn-hybrid rolled 90°    1.546 m wide
-#   5  1× nuke rolled 270° + 1× nuke rolled 90°                               1.56 m wide
-#   6  1× iq-sub rolled 270° + 1× iq-sub rolled 90°                           1.36 m wide
-#   7  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
+#   2  1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90°    4.197 m wide
+#   3  1× iq-sub rolled 270° + 1× nuke rolled 270° + 1× flexy-folded-horn-hybrid rolled 90° + 1× nuke rolled 90° + 1× iq-sub rolled 90°    3.723 m wide
+#   4  1× turbo-top + 1× tecnare-m2122                                          0.97 m wide
 #
-# Subs reach 4.112 m against a 2.0 m interface. The stack is 5.072 m of cabinet.
-#   * the subs reach 4.112 m against the 3.000 m ceiling asked for, so they stand 1112 mm too high — 4.112 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+# Subs reach 2.401 m against a 2.0 m interface. The stack is 3.361 m of cabinet.
+#   * the 1× flexy-folded-horn-hybrid rolled 270° + 1× skram rolled 270° + 1× flexy-folded-horn-hybrid rolled
+#     90° + 1× skram rolled 90° + 1× flexy-folded-horn-hybrid rolled 90° row is 4.197 m on a 3.340 m row, so it
+#     overhangs 429 mm each side
 #
 # main-3 — 3, 8 cabinets in 4 rows:
 #
@@ -61,7 +59,7 @@ focus:
 placements:
   # 1, 8 cabinets in 4 rows
   - id: main-1
-    at: [-3.245, 0.0]
+    at: [-3.6735, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -82,7 +80,7 @@ placements:
           count: 1
           aim: near
 
-  # 2, 15 cabinets in 7 rows
+  # 2, 15 cabinets in 4 rows
   - id: main-2
     at: [-0.302, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
@@ -114,7 +112,7 @@ placements:
 
   # 3, 8 cabinets in 4 rows
   - id: main-3
-    at: [2.641, 0.0]
+    at: [3.0695, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0

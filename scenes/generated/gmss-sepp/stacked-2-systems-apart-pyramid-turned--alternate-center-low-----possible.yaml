@@ -43,6 +43,8 @@
 # Subs reach 2.39 m against a 2.0 m interface. The stack is 3.1 m of cabinet.
 #   * turbo-top: SPLIT UNEVENLY, 1 of 3 over 2 stacks — 1 each and the remaining 1 dealt outermost first, so the
 #     stacks are not identical. --no-asymmetry leaves them out instead
+#   * row 3 (1× mid-bass rolled 270° + 1× nuke rolled 90°) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 # main-ours-1 — ours-1, 4 cabinets in 2 rows:
 #

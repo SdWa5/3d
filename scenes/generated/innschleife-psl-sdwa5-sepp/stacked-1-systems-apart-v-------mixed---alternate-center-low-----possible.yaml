@@ -42,17 +42,17 @@
 #
 #   1  4× sub-60x60                                                              2.46 m wide
 #   2  3× kicker-15                                                              2.89 m wide
-#   3  1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× kicker-15           3.19 m wide
-#   4  2× wsx-18 rolled 270° + 1× sbh-18 rolled 90°                           3.44 m wide
+#   3  1× wsx-18 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 90°           3.19 m wide
+#   4  1× wsx-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 270°     3.44 m wide
 #   5  1× sbh-18 rolled 270° + 2× sbh-18 rolled 90°                           3.64 m wide
 #   6  1× tms2 + 2× tms4 + 1× tms2                                             1.92 m wide
 #
 # Subs reach 2.86 m against a 2.0 m interface. The stack is 4.0 m of cabinet.
 #   * the 3× kicker-15 row is 2.890 m on a 2.460 m row, so it overhangs 215 mm each side
-#   * the 1× wsx-18 rolled 270° + 1× wsx-18 rolled 90° + 1× kicker-15 row is 3.190 m on a 2.890 m row, so it
+#   * the 1× wsx-18 rolled 270° + 1× kicker-15 + 1× wsx-18 rolled 90° row is 3.190 m on a 2.890 m row, so it
 #     overhangs 150 mm each side
-#   * the 2× wsx-18 rolled 270° + 1× sbh-18 rolled 90° row is 3.440 m on a 3.190 m row, so it overhangs 125 mm
-#     each side
+#   * the 1× wsx-18 rolled 270° + 1× sbh-18 rolled 90° + 1× wsx-18 rolled 270° row is 3.440 m on a 3.190 m row,
+#     so it overhangs 125 mm each side
 #   * the 1× sbh-18 rolled 270° + 2× sbh-18 rolled 90° row is 3.640 m on a 3.440 m row, so it overhangs 100 mm
 #     each side
 #

@@ -25,6 +25,8 @@
 # `align: stereo` spreads the top tier onto the edges of the row carrying it.
 #   * the subs reach 3.287 m against the 3.000 m ceiling asked for, so they stand 287 mm too high — 3.287 m is the
 #     nearest the 2.500 m target that every tier is still carried at
+#   * row 5 (1× skram rolled 270° + 1× skram + 1× achenbach-18 at 494 mm gaps) is not mirror-symmetric, and the
+#     search found no symmetric arrangement of these cabinets that stands
 #
 # main-gmss — gmss, 14 cabinets in 5 rows:
 #

@@ -15,7 +15,7 @@
 #   1  1× skram + 2× wall-bass + 1× skram                                       2.6 m wide
 #   2  5× flexy-folded-horn-hybrid                                              3.035 m wide
 #   3  6× flexy-folded-horn-hybrid                                              3.646 m wide
-#   4  2× achenbach-18 + 2× nuke + 1× flexy-folded-horn-hybrid + 2× achenbach-18    4.291 m wide
+#   4  2× achenbach-18 + 1× nuke + 1× flexy-folded-horn-hybrid + 1× nuke + 2× achenbach-18    4.291 m wide
 #   5  1× achenbach-18 + 6× iq-sub + 1× achenbach-18                           4.52 m wide
 #   6  1× tecnare-m2122 + 1× eighteensound-2way-15 + 1× turbo-top + 1× tecnare-m2122 + 1× turbo-top + 1× turbo-top + 1× eighteensound-2way-15 + 1× tecnare-m2122   3.9212 m wide
 #
@@ -29,8 +29,8 @@
 #     nearest the 2.500 m target that every tier is still carried at
 #   * the 5× flexy-folded-horn-hybrid row is 3.035 m on a 2.600 m row, so it overhangs 218 mm each side
 #   * the 6× flexy-folded-horn-hybrid row is 3.646 m on a 3.035 m row, so it overhangs 305 mm each side
-#   * the 2× achenbach-18 + 2× nuke + 1× flexy-folded-horn-hybrid + 2× achenbach-18 row is 4.291 m on a 3.646 m
-#     row, so it overhangs 323 mm each side
+#   * the 2× achenbach-18 + 1× nuke + 1× flexy-folded-horn-hybrid + 1× nuke + 2× achenbach-18 row is 4.291 m on a
+#     3.646 m row, so it overhangs 323 mm each side
 #   * the 1× achenbach-18 + 6× iq-sub + 1× achenbach-18 row is 4.520 m on a 4.291 m row, so it overhangs 114 mm
 #     each side
 #

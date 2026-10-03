@@ -33,6 +33,12 @@
 #     each side
 #   * the 2× turbo-top + 2× eighteensound-2way-15 + 1× turbo-top row is 2.361 m on a 2.180 m row, so it overhangs
 #     91 mm each side
+#   * row 2 (1× nuke + 1× mid-bass) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
+#   * row 3 (1× achenbach-18 + 1× nuke + 2× achenbach-18) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
+#   * row 4 (1× achenbach-18 + 2× iq-sub + 2× achenbach-18) is not mirror-symmetric, and the search found no
+#     symmetric arrangement of these cabinets that stands
 #
 id: stacked-1-pooled--------free----upright-alternate-center-low-----impossible
 name: "Solved rig — one stack, tiers centred"

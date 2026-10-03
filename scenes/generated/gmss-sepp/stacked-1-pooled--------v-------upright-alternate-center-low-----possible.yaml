@@ -11,17 +11,12 @@
 #
 # What it deals out today:
 #
-#   1  1× nuke + 2× wall-bass + 1× nuke                                        2.56 m wide
-#   2  4× iq-sub at 147 mm gaps                                                 2.561 m wide
-#   3  1× achenbach-18 + 2× iq-sub + 1× achenbach-18 at 101 mm gaps           2.563 m wide
-#   4  4× achenbach-18 at 55 mm gaps                                            2.565 m wide
-#   5  2× turbo-top + 2× eighteensound-2way-15 + 1× turbo-top                2.3612 m wide
+#   1  1× nuke + 1× wall-bass + 1× mid-bass + 1× wall-bass + 1× nuke         3.78 m wide
+#   2  6× iq-sub at 120 mm gaps                                                  3.78 m wide
+#   3  6× achenbach-18 at 36 mm gaps                                             3.78 m wide
+#   4  2× turbo-top + 2× eighteensound-2way-15 + 1× turbo-top                2.3612 m wide
 #
-# Subs reach 3.34 m against a 2.0 m interface. The stack is 4.176 m of cabinet.
-#   * mid-bass: LEFT OUT, it cannot be carried in this stack — the 4× achenbach-18 row is 2.460 m on a 4.520 m row,
-#     so the wall narrows as it rises — `shape: v` asks for the opposite and this is not one of its arrangements
-#   * the subs reach 3.340 m against the 3.000 m ceiling asked for, so they stand 340 mm too high — 3.340 m is the
-#     nearest the 2.500 m target that every tier is still carried at
+# Subs reach 2.67 m against a 2.0 m interface. The stack is 3.506 m of cabinet.
 #
 id: stacked-1-pooled--------v-------upright-alternate-center-low-----possible
 name: "Solved rig — one stack, tiers centred"
@@ -46,6 +41,7 @@ placements:
       shape: v
       from:
         - wall-bass
+        - mid-bass
         - nuke
         - achenbach-18
         - iq-sub

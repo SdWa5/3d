@@ -31,6 +31,8 @@
 # Subs reach 2.57 m against a 2.0 m interface. The stack is 3.28 m of cabinet.
 # `align: block` spreads the top tier onto the edges of the row carrying it.
 #   * the 1× wall-bass + 1× nuke row is 1.270 m on a 1.200 m row, so it overhangs 35 mm each side
+#   * row 3 (1× wall-bass + 1× nuke) is not mirror-symmetric, and the search found no symmetric arrangement of these
+#     cabinets that stands
 #
 # main-gmss-1 — gmss-1, 5 cabinets in 3 rows:
 #
