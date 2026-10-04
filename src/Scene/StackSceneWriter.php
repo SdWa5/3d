@@ -155,12 +155,14 @@ final class StackSceneWriter
         $lines[] = 'placements:';
 
         $centres = self::centres($blocks, $at[0], $clearanceM);
+        // A bridged pair keeps one `at` y, because its tops row is seated from the walls' shared centre line.
+        $depths = null === $bridge ? self::depths($blocks, $at[1]) : array_fill(0, count($blocks), $at[1]);
         foreach ($blocks as $index => $block) {
             if (count($blocks) > 1) {
                 $lines[] = sprintf('  # %s', $block->describe());
             }
             $lines[] = sprintf('  - id: %s', $block->placementId);
-            $lines[] = sprintf('    at: [%s, %s]', self::number($centres[$index]), self::number($at[1]));
+            $lines[] = sprintf('    at: [%s, %s]', self::number($centres[$index]), self::number($depths[$index]));
             $lines[] = sprintf('    aim: %s                 # the TOP tiers only; subs fire straight ahead', self::AIM);
 
             if ($perSystemFocus) {
@@ -300,18 +302,6 @@ final class StackSceneWriter
     }
 
     /**
-     * Where each block's centre line sits: laid left to right on their solved widths, with the whole
-     * arrangement centred on `$centreX`.
-     *
-     * Widths come from each block's **widest tier**, which is the one thing a neighbour has to clear. Using
-     * the bottom row instead would be wrong for any rig whose widest row is not its lowest — an over-booked
-     * Achenbach row is 3.700 m against a 3.646 m sub wall.
-     *
-     * @param list<StackBlock> $blocks
-     *
-     * @return list<float>
-     */
-    /**
      * The name a generated scene's top tiers aim at.
      */
     public const AIM = 'far';
@@ -334,19 +324,56 @@ final class StackSceneWriter
         ];
     }
 
+    /**
+     * Where each block's `at` sits: laid left to right with `$clearanceM` of air between the edges of neighbours,
+     * and the whole arrangement centred on `$centreX`.
+     *
+     * The edges are {@see StackBlock::extentM}, so **the clearance is the real gap once a compile has measured the
+     * blocks** and the gap between their widest tiers until then (GEO-11). Measured, a block's `at` need not sit in
+     * the middle of what it covers, because a cluster pushed out on one side widens that side only. Using the bottom
+     * row instead of the widest would be wrong for any rig whose widest row is not its lowest, as an over-booked
+     * Achenbach row is 3.700 m against a 3.646 m sub wall.
+     *
+     * @param list<StackBlock> $blocks
+     *
+     * @return list<float>
+     */
     public static function centres(array $blocks, float $centreX, float $clearanceM): array
     {
-        $widths = array_map(static fn (StackBlock $block): float => $block->widthM(), $blocks);
-        $total = array_sum($widths) + max(0, count($blocks) - 1) * $clearanceM;
+        $extents = array_map(static fn (StackBlock $block): array => $block->extentM(), $blocks);
+        $total = max(0, count($blocks) - 1) * $clearanceM;
+        foreach ($extents as [$left, $right]) {
+            $total += $right - $left;
+        }
 
         $centres = [];
         $x = $centreX - $total / 2;
-        foreach ($widths as $width) {
-            $centres[] = $x + $width / 2;
-            $x += $width + $clearanceM;
+        foreach ($extents as [$left, $right]) {
+            $centres[] = $x - $left;
+            $x += $right - $left + $clearanceM;
         }
 
         return $centres;
+    }
+
+    /**
+     * Where each block's `at` sits in depth, so every stack's front face stands on one line (ALN-1).
+     *
+     * A stack stands flush at its own deepest cabinet's front, half that depth in front of its `at`. Writing every
+     * block on the same `at` y therefore lined up their centres and left a shallow stack's front up to 220 mm behind a
+     * deep one's, in 3142 of 3669 multi-stack rigs measured on 2026-10-04. The deepest block keeps `$atY`, so the
+     * rig's front face stays where it was and only the shallower blocks step forward to it.
+     *
+     * @param list<StackBlock> $blocks
+     *
+     * @return list<float>
+     */
+    public static function depths(array $blocks, float $atY): array
+    {
+        $setbacks = array_map(RigAim::frontSetbackM(...), $blocks);
+        $front = $atY - max([0.0, ...$setbacks]);
+
+        return array_map(static fn (float $setback): float => $front + $setback, $setbacks);
     }
 
     /**

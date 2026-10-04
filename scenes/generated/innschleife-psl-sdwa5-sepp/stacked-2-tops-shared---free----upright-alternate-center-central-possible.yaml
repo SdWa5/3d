@@ -93,7 +93,7 @@ focus:
 placements:
   # ours-1, 13 cabinets in 4 rows
   - id: main-ours-1
-    at: [-6.9438, 0.0]
+    at: [-7.1488, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -126,7 +126,7 @@ placements:
 
   # ours-2, 14 cabinets in 4 rows
   - id: main-ours-2
-    at: [-4.0198, 0.0]
+    at: [-4.2122, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -160,7 +160,7 @@ placements:
 
   # psl-1, 10 cabinets in 3 rows
   - id: main-psl-1
-    at: [-1.367, 0.0]
+    at: [-1.5679, -0.0245]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -196,7 +196,7 @@ placements:
 
   # psl-2, 10 cabinets in 3 rows
   - id: main-psl-2
-    at: [1.0128, 0.0]
+    at: [1.2311, -0.0245]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -232,7 +232,7 @@ placements:
 
   # innschleife-1, 10 cabinets in 4 rows
   - id: main-innschleife-1
-    at: [3.6018, 0.0]
+    at: [3.8068, -0.032]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -264,7 +264,7 @@ placements:
 
   # innschleife-2, 10 cabinets in 4 rows
   - id: main-innschleife-2
-    at: [6.4018, 0.0]
+    at: [6.6068, -0.032]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

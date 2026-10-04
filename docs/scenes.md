@@ -1153,6 +1153,26 @@ positions used for support checks and camera routes.
       near: { distance_m: 2.0, height_m: 1.8 }
 ```
 
+#### Stacks side by side
+
+**Every stack's front stands on one line** (ALN-1). A stack stands flush at its own deepest cabinet's front, so
+writing every stack on one `at` y lined up their centres and left a shallow stack's front up to 220 mm behind a deep
+one's. The writer now gives each stack the y that puts its front on the deepest stack's front, which keeps the rig's
+front face where it was and steps the shallower stacks forward to it. A hand-written scene keeps `at` as the centre.
+
+**`--clearance` is the gap between where the cabinets stand** (GEO-11). Each stack used to be spaced on its widest
+tier, centred on its `at`, but aimed tops turn their corners out, `clear_of` pushes a cluster past the subs and a row
+may stand off centre. Measured on 2026-10-04 over the 3669 multi-stack rigs then generated, 1441 stood closer than
+their clearance, by up to 664 mm, and 39 stood further apart, by up to 7.85 m. So `scene:stack` writes the rig,
+compiles it, measures how far each stack reaches to either side of its `at`, and writes it again on those edges. The
+gap is taken on each stack's whole x extent as seen from the front, so a top that leans over a lower neighbour still
+counts.
+
+**A stack can change its rows when it moves**, because the compiler aims a pooled stack's tops from the rig's centre.
+After the first measurement an edge therefore only widens, and the rig is done once every stack fits the edges it
+was spaced on, within six rounds. The gap is then at least the clearance, and more where a stack came out narrower
+than the room it was given. A bridged pair is spaced by the tops row it shares and keeps one `at` y.
+
 #### Systems, which are not owners
 
 Owners identify equipment in the specs; systems determine which equipment shares a rig. SdWa5 and Sepp form
@@ -1226,7 +1246,7 @@ mode so corrected dimensions remain effective. The following table lists the com
 | `--target-sub-height=M` | **defaults to 2.5 m** — the sub/top transition the rig *aims at*, The band is a preference and never a refusal; bearing and geometry decide which arrangements are legal. See [aiming the sub wall](#aiming-the-sub-wall-rather-than-settling-for-the-lowest-one) |
 | `--max-sub-height=M` | **defaults to 3.0 m**, the top of the band a sub/top transition should sit in — with `--interface-height` as its floor, and **a rig that misses either is written with the miss on it** rather than refused. See [the sub height band](#the-sub-height-band-which-is-an-aim-rather-than-a-gate). Passed straight to the stack's [`max_sub_height_m`](#a-ceiling-on-the-sub-height). Independent of `--split`: either alone is useful, and together is how a low rig out of the whole inventory is generated |
 | `--no-asymmetry` | leave the odd cabinets out rather than giving one stack more than another. **By default every cabinet that can be placed is placed**: three M2122s over two stacks are 1 + 2 with the unevenness named in the scene header, where they used to be 1 + 1 with the third reported as left out |
-| `--clearance=M` | air between neighbouring stacks. Default 0.5 |
+| `--clearance=M` | air between neighbouring stacks, measured between where their cabinets stand once compiled, aimed tops included. Default 0.5. See [stacks side by side](#stacks-side-by-side) |
 | `--max-width` / `--min-width` / `--max-height` / `--interface-height` / `--gap` | the `stack:` constraints. **`--max-width` has no default**: state it and it is obeyed, leave it out and the rig is bounded by nothing but what carries it — see [an unstated width limits nothing](#an-unstated-width-limits-nothing) |
 | — | **`build:all` replays these commands** as its first stage, so a generated scene follows the specs the way the models and renders already do. It is the only stage that writes outside `build/`; `build:all --dry-run` says how many files it would rewrite |
 | — | **Scenes are written to `scenes/generated/`**, and everything derived from one follows it: `build/scenes/generated/`, `build/plans/generated/`, `build/renders/generated/`. Nothing has to know — `SceneLoader` reads `scenes/` recursively and an id is still the file's basename, so `scene:build stacked-center` resolves as before. Each file also carries the **command that made it**, so regenerating it needs no archaeology |

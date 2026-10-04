@@ -3,8 +3,8 @@
 # THIS RIG DOES NOT STAND UP. It is written anyway so the failure can be looked at rather
 # than read about — `scene:build` cages the offending cabinets in red. Do not build it for a gig.
 #
-#   * main-2/1d and main-2/2b are 0.0887 m inside each other
-#   * main-1/1e and main-1/2b are 0.0162 m inside each other
+#   * main-2/1d and main-2/2b are 0.0886 m inside each other
+#   * main-1/1e and main-1/2b are 0.0161 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -66,7 +66,7 @@ focus:
 placements:
   # 1, 18 cabinets in 2 rows
   - id: main-1
-    at: [-5.7, 0.0]
+    at: [-5.7243, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -100,7 +100,7 @@ placements:
 
   # 2, 21 cabinets in 2 rows
   - id: main-2
-    at: [4.486, 0.0]
+    at: [4.488, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

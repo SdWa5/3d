@@ -34,7 +34,11 @@ final class CandidateCheck
      *
      * @param array<string, DeviceSpec> $devices
      *
-     * @return array{cabinets: int, fingerprint: string, faults: list<Fault>, backY: float}|string
+     * The spans are each top-level placement's world x extent, keyed by its id, with every cabinet a `stack:` placement
+     * expands into counted under that placement. {@see \App\Command\SceneStackCommand} spaces neighbouring stacks on
+     * them (GEO-11).
+     *
+     * @return array{cabinets: int, fingerprint: string, faults: list<Fault>, backY: float, spans: array<string, array{float, float}>}|string
      */
     public static function compileYaml(string $yaml, array $devices, ?RoomBounds $room = null): array|string
     {
@@ -86,8 +90,16 @@ final class CandidateCheck
         sort($marks);
 
         $backY = -INF;
+        $spans = [];
         foreach ($result['placed'] as $entry) {
-            $backY = max($backY, $entry->worldBox()['max'][1]);
+            $box = $entry->worldBox();
+            $backY = max($backY, $box['max'][1]);
+            // A stack's cabinets are named `<placement>/<row><slot>`, so the part before the slash is the placement.
+            $owner = explode('/', $entry->placementId, 2)[0];
+            $spans[$owner] = [
+                min($spans[$owner][0] ?? INF, $box['min'][0]),
+                max($spans[$owner][1] ?? -INF, $box['max'][0]),
+            ];
         }
 
         return [
@@ -96,6 +108,7 @@ final class CandidateCheck
             'faults' => $faults,
             // The deepest back face, which a backdrop stands behind. See {@see StackBackdrop}.
             'backY' => [] === $result['placed'] ? 0.0 : $backY,
+            'spans' => $spans,
         ];
     }
 

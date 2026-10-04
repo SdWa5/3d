@@ -6,7 +6,7 @@
 #   * a concert-audio-ef6 stands at 2.543 m with nothing under it across x
 #   * a tecnare-m2122 stands at 7.271 m with nothing under it across x
 #   * a tms2 stands at 6.474 m with nothing under it across x
-#   * main-2/8b-2 and main-2/9f are 0.0065 m inside each other
+#   * main-2/8b-2 and main-2/9f are 0.0293 m inside each other
 #
 # Nothing here says which cabinet goes in which row. The constraints below do, and the compiler
 # re-solves them every build, so the rig follows the specs when a cabinet is finally measured.
@@ -105,7 +105,7 @@ focus:
 placements:
   # 1, 25 cabinets in 4 rows
   - id: main-1
-    at: [-2.3978, 0.0]
+    at: [-3.0212, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0
@@ -147,7 +147,7 @@ placements:
 
   # 2, 35 cabinets in 9 rows
   - id: main-2
-    at: [2.066, 0.0]
+    at: [2.2382, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0

@@ -163,7 +163,7 @@ focus:
 placements:
   # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [-12.039, 0.0]
+    at: [-12.2939, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -191,7 +191,7 @@ placements:
 
   # ours-2, 8 cabinets in 3 rows
   - id: main-ours-2
-    at: [-9.678, 0.0]
+    at: [-9.9329, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -219,7 +219,7 @@ placements:
 
   # ours-3, 6 cabinets in 3 rows
   - id: main-ours-3
-    at: [-7.317, 0.0]
+    at: [-7.5719, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -245,7 +245,7 @@ placements:
 
   # psl-1, 5 cabinets in 2 rows
   - id: main-psl-1
-    at: [-4.854, 0.0]
+    at: [-4.9681, -0.0245]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -276,7 +276,7 @@ placements:
 
   # psl-2, 9 cabinets in 5 rows
   - id: main-psl-2
-    at: [-1.954, 0.0]
+    at: [-2.03, -0.0245]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -307,7 +307,7 @@ placements:
 
   # psl-3, 5 cabinets in 2 rows
   - id: main-psl-3
-    at: [0.946, 0.0]
+    at: [0.9081, -0.0245]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -337,7 +337,7 @@ placements:
 
   # innschleife-1, 8 cabinets in 2 rows
   - id: main-innschleife-1
-    at: [3.947, 0.0]
+    at: [4.0312, -0.032]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -377,7 +377,7 @@ placements:
 
   # innschleife-2, 9 cabinets in 5 rows
   - id: main-innschleife-2
-    at: [6.968, 0.0]
+    at: [7.0515, -0.032]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -411,7 +411,7 @@ placements:
 
   # innschleife-3, 7 cabinets in 2 rows
   - id: main-innschleife-3
-    at: [10.443, 0.0]
+    at: [10.5265, -0.032]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

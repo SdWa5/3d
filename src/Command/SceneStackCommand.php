@@ -146,6 +146,16 @@ final class SceneStackCommand extends BaseCommand
      */
     private const NEAR_FOCUS = 'near';
 
+    /**
+     * How often a multi-stack rig is compiled again at most to space its stacks on their measured edges (GEO-11).
+     * Each round can re-aim a pooled stack, which can change its rows and so its edges, so the loop is bounded. Edges
+     * only widen after the first round ({@see measured}), so it settles within a few rounds.
+     */
+    private const SPACING_ROUNDS = 6;
+
+    /** How far a measured stack edge may move and count as standing still. */
+    private const SPACING_TOLERANCE_M = 1e-3;
+
     protected function configure(): void
     {
         $this
@@ -896,47 +906,69 @@ final class SceneStackCommand extends BaseCommand
             // sweep used to treat a wall outside the band as a rig for a different stage and a named rig as a warning,
             // which was two answers to one question; now both are the warning, and there is no stage to move it to.
             $clearance = null === $bridge ? (float) $input->getOption('clearance') : $bridge->clearanceM;
-            if (null === $bridge && !$split->isPerOwner()) {
-                // Each block was solved alone, aimed from its own centre. The compiler aims a pooled stack from the
-                // rig's, so the blocks are re-solved for where they now stand. A bridged pair carries no tops of its
-                // own, and a stack per system aims at its own focus in the scene as well. See GEO-11.
-                $blocks = RigAim::reaimed($blocks, $at[0], $clearance, $devices);
-            }
-            $bandMiss = StackChecks::bandMiss($blocks);
-            $yaml = StackSceneWriter::yaml(
-                id: 'placeholder',
-                name: $this->describe($mode, count($blocks)),
-                blocks: $blocks,
-                at: $at,
-                clearanceM: $clearance,
-                command: RecordedCommand::line(
-                    $input,
-                    $mode,
-                    $shape,
-                    $style,
-                    $orientation,
-                    $lowEnd,
-                    $stacks,
-                    $baseId,
-                    $maxWidthM,
-                    $from,
-                    $split,
-                    $into,
-                    $this->counts,
-                    $this->defaults,
-                ),
-                stated: $this->counts,
-                // Each block is a system exactly when the separation says so, which is what decides whether they
-                // share a focus. See {@see StackSceneWriter::yaml}.
-                perSystemFocus: $split->isPerOwner(),
-                bridge: $bridge,
-            );
+            // **SPACED ON WHERE THE STACKS STAND, NOT ON THEIR WIDEST TIERS** (GEO-11). A compile is the only thing
+            // that knows how far aimed tops, `clear_of` and an off-centre row reach, so the rig is written, compiled,
+            // measured and written again until every stack fits the edges it was spaced on. A bridged pair is spaced by
+            // the tops it shares, and a single stack has no neighbour to clear.
+            $measured = null === $bridge && count($blocks) > 1;
+            for ($round = 0;; ++$round) {
+                if (null === $bridge && !$split->isPerOwner()) {
+                    // Each block was solved alone, aimed from its own centre. The compiler aims a pooled stack from
+                    // the rig's, so the blocks are re-solved for where they now stand. A bridged pair carries no tops
+                    // of its own, and a stack per system aims at its own focus in the scene as well. See GEO-11.
+                    $blocks = RigAim::reaimed($blocks, $at[0], $clearance, $devices);
+                }
+                $bandMiss = StackChecks::bandMiss($blocks);
+                $yaml = StackSceneWriter::yaml(
+                    id: 'placeholder',
+                    name: $this->describe($mode, count($blocks)),
+                    blocks: $blocks,
+                    at: $at,
+                    clearanceM: $clearance,
+                    command: RecordedCommand::line(
+                        $input,
+                        $mode,
+                        $shape,
+                        $style,
+                        $orientation,
+                        $lowEnd,
+                        $stacks,
+                        $baseId,
+                        $maxWidthM,
+                        $from,
+                        $split,
+                        $into,
+                        $this->counts,
+                        $this->defaults,
+                    ),
+                    stated: $this->counts,
+                    // Each block is a system exactly when the separation says so, which is what decides whether they
+                    // share a focus. See {@see StackSceneWriter::yaml}.
+                    perSystemFocus: $split->isPerOwner(),
+                    bridge: $bridge,
+                );
 
-            // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
-            // one of the possibilities, whatever the solver thought of the tiers.
-            $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
-            if (is_string($compiled)) {
-                return $compiled;
+                // Compiled before it is written. Anything the compiler calls an error means this arrangement is not
+                // one of the possibilities, whatever the solver thought of the tiers.
+                // A rig still being spaced is not held to the room yet, because the nominal spacing it starts from
+                // can be metres wider than the rig it turns into.
+                $compiled = CandidateCheck::compileYaml($yaml, $devices, $measured ? null : $this->eventOptions->room);
+                if (is_string($compiled)) {
+                    return $compiled;
+                }
+                $respaced = !$measured || $round >= self::SPACING_ROUNDS
+                    ? null
+                    : self::measured($blocks, $compiled['spans'], $at[0], $clearance, 0 === $round);
+                if (null === $respaced) {
+                    break;
+                }
+                $blocks = $respaced;
+            }
+            if ($measured) {
+                $compiled = CandidateCheck::compileYaml($yaml, $devices, $this->eventOptions->room);
+                if (is_string($compiled)) {
+                    return $compiled;
+                }
             }
 
             // **THE BACKDROP GOES BEHIND THE RIG AS IT CAME OUT**, which is why it is added after the first compile: the
@@ -1716,6 +1748,55 @@ final class SceneStackCommand extends BaseCommand
                 || ($count > 0 && StackBackdrop::isDeco($devices[$id])),
             ARRAY_FILTER_USE_BOTH,
         );
+    }
+
+    /**
+     * The blocks with their compiled edges measured, or null once every stack stands inside the edges it was spaced on.
+     *
+     * The spans are world x, so each is taken relative to the `at` the writer gave its block, which
+     * {@see StackSceneWriter::centres} recomputes from the same blocks. A block the compile placed nothing for keeps
+     * what it had.
+     *
+     * **The first measurement is taken as it is, and after that an edge only ever widens.** The compiler re-solves a
+     * pooled stack for where the rig's centre lies, so moving a stack can change its rows. Measured on 2026-10-04 on
+     * `next-event-light-achenbach`, one stack came out 4.78 m wide where it stood and 7.06 m wide once spaced for
+     * that, and equal spacing flipped between the two for every round. Widening until the stack fits settles that,
+     * and the gap then holds at least the clearance and more where the stack is narrower than the room it was given.
+     * A stack that was re-solved since it was measured has no measurement left and starts afresh.
+     *
+     * @param list<StackBlock> $blocks
+     * @param array<string, array{float, float}> $spans placement id => world x of its left and right edge
+     *
+     * @return list<StackBlock>|null
+     */
+    private static function measured(array $blocks, array $spans, float $centreX, float $clearanceM, bool $first): ?array
+    {
+        $centres = StackSceneWriter::centres($blocks, $centreX, $clearanceM);
+        $moved = false;
+        foreach ($blocks as $index => $block) {
+            $span = $spans[$block->placementId] ?? null;
+            if (null === $span) {
+                continue;
+            }
+            $left = $span[0] - $centres[$index];
+            $right = $span[1] - $centres[$index];
+            [$wasLeft, $wasRight] = $block->extentM();
+            $tolerance = self::SPACING_TOLERANCE_M;
+            if ($first || null === $block->spanM) {
+                if (abs($left - $wasLeft) <= $tolerance && abs($right - $wasRight) <= $tolerance) {
+                    continue;
+                }
+            } elseif ($left >= $wasLeft - $tolerance && $right <= $wasRight + $tolerance) {
+                continue;
+            } else {
+                $left = min($left, $wasLeft);
+                $right = max($right, $wasRight);
+            }
+            $blocks[$index] = $block->withSpan($left, $right);
+            $moved = true;
+        }
+
+        return $moved ? $blocks : null;
     }
 
     /**

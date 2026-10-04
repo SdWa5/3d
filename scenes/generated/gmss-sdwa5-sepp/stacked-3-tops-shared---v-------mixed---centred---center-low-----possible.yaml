@@ -94,7 +94,7 @@ focus:
 placements:
   # gmss-3, 2 cabinets in 1 row
   - id: main-gmss-3
-    at: [-6.276, 0.0]
+    at: [-6.276, -0.22]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -116,7 +116,7 @@ placements:
 
   # ours-3, 7 cabinets in 4 rows
   - id: main-ours-3
-    at: [-4.323, 0.0]
+    at: [-4.323, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -174,7 +174,7 @@ placements:
 
   # ours-2, 10 cabinets in 4 rows
   - id: main-ours-2
-    at: [1.358, 0.0]
+    at: [1.358, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -205,7 +205,7 @@ placements:
 
   # ours-1, 7 cabinets in 4 rows
   - id: main-ours-1
-    at: [3.719, 0.0]
+    at: [3.719, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -232,7 +232,7 @@ placements:
 
   # gmss-1, 3 cabinets in 2 rows
   - id: main-gmss-1
-    at: [5.672, 0.0]
+    at: [5.672, -0.22]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

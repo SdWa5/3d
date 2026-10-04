@@ -68,7 +68,7 @@ focus:
 placements:
   # 1, 11 cabinets in 4 rows
   - id: main-1
-    at: [-4.51, 0.0]
+    at: [-4.51, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     stack:
       interface_height_m: 2.0

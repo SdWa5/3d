@@ -98,7 +98,7 @@ placements:
 
   # psl, 20 cabinets in 2 rows
   - id: main-psl
-    at: [0.22, 0.0]
+    at: [0.22, -0.0245]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -139,7 +139,7 @@ placements:
 
   # innschleife, 19 cabinets in 4 rows
   - id: main-innschleife
-    at: [6.838, 0.0]
+    at: [6.838, -0.032]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

@@ -62,7 +62,7 @@ focus:
 placements:
   # 1, 4 cabinets in 2 rows
   - id: main-1
-    at: [-2.572, 0.0]
+    at: [-2.572, -0.22]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: block

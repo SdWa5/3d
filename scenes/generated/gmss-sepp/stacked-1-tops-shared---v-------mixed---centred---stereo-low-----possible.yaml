@@ -86,7 +86,7 @@ placements:
 
   # ours, 6 cabinets in 3 rows
   - id: main-ours
-    at: [1.593, 0.0]
+    at: [1.6199, -0.15]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

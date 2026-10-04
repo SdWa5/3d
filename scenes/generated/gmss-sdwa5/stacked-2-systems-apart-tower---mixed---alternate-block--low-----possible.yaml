@@ -114,7 +114,7 @@ placements:
 
   # ours-2, 9 cabinets in 3 rows
   - id: main-ours-2
-    at: [-0.463, 0.0]
+    at: [-0.463, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -142,7 +142,7 @@ placements:
 
   # ours-1, 8 cabinets in 3 rows
   - id: main-ours-1
-    at: [3.149, 0.0]
+    at: [3.149, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

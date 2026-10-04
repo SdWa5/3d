@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.153.0] - 2026-10-04
+
+### Changed
+
+- `scene:stack` spaces neighbouring stacks on their compiled edges, so `--clearance` is the real gap between cabinets
+  (GEO-11). It compiles a multi-stack rig, measures each stack's x span and rewrites it for at most six rounds. Of
+  9914 gaps, 9683 now hit the clearance within 1 mm, where 1441 of 3669 rigs stood up to 664 mm tight before.
+- Every stack of a generated rig stands with its front on the deepest stack's front (ALN-1). The front spread was up
+  to 220 mm on 3142 rigs and is now 0.
+- Regenerated against 0.152.3, 8 rigs turned possible and 2 turned impossible, and `LEFT OUT` stays at 296. The two
+  losses are `gmss-sdwa5` stereo rigs whose pushed-out top cluster has no support check, recorded in GEO-11.
+- GEO-4 was re-measured on the new spacing, lost 4 possible rigs net and was not shipped. The numbers are in `TODO.md`.
+
 ## [0.152.3] - 2026-10-04
 
 ### Changed
