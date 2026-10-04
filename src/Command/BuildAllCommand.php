@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Build\CompiledScene;
 use App\Process\Parallel;
 use App\Render\LightingPreset;
 use App\Render\RenderPlan;
@@ -639,7 +640,7 @@ final class BuildAllCommand extends BaseCommand
     /**
      * The scene **key** a derived file belongs to, or null when its name says nothing.
      *
-     * Fly-through plans and MP4s carry a recognised fly-through suffix. The other shapes are `<name>.blend`, `_scene-<name>.json` and `<name>-<camera>.png`. A camera
+     * Fly-through plans and MP4s carry a recognised fly-through suffix. The other shapes are `<name>.blend`, `_scene-<name>.json`, `_compiled-<name>.json` and `<name>-<camera>.png`. A camera
      * suffix is stripped from a known list rather than by taking everything before the last dash, because scene
      * names contain dashes themselves — `stacked-sdwa5-2-center-three-quarter.png` would otherwise resolve to a
      * scene called `stacked-sdwa5-2-center-three`.
@@ -662,8 +663,10 @@ final class BuildAllCommand extends BaseCommand
                 }
             }
         }
-        if (str_starts_with($name, '_scene-')) {
-            return $relative.substr($name, strlen('_scene-'));
+        foreach (['_scene-', CompiledScene::PREFIX] as $prefix) {
+            if (str_starts_with($name, $prefix)) {
+                return $relative.substr($name, strlen($prefix));
+            }
         }
         if (str_ends_with($file, '.png')) {
             foreach (['three-quarter', 'front', 'side', 'top', 'iso'] as $camera) {

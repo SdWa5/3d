@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Build\BlenderRunner;
+use App\Build\CompiledScene;
 use App\Build\ModelBuilder;
 use App\Build\Staleness;
 use App\Render\CameraPreset;
 use App\Render\CameraStand;
 use App\Render\LightingPreset;
+use App\Render\RenderPlacement;
 use App\Render\RenderPlan;
 use App\Scene\SceneCompiler;
+use App\Scene\SceneSpec;
 use App\Spec\Violation;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -140,13 +143,11 @@ final class SceneRenderCommand extends BaseCommand
 
         $builder = new ModelBuilder($this->projectDir(), new BlenderRunner($this->runner));
         $exit = self::SUCCESS;
+        $sharedInputs = CompiledScene::sharedInputs($this->projectDir());
 
         foreach ($scenes as $scene) {
-            ['placed' => $placed, 'violations' => $violations] = (new SceneCompiler($devicesById))->compile($scene);
-            $this->reportViolations($violations);
-            // Errors only, as in `scene:build`: a warning is something to know about a buildable rig, not a
-            // reason to refuse to render it.
-            if ([] !== Violation::errorsIn($violations)) {
+            $placed = $this->solved($scene, $devicesById, $builder, $sharedInputs);
+            if (null === $placed) {
                 $exit = self::FAILURE;
                 continue;
             }
@@ -281,6 +282,51 @@ final class SceneRenderCommand extends BaseCommand
         }
 
         return $exit;
+    }
+
+    /**
+     * The scene's placements, read from what `scene:build` left when that is still current, or solved here.
+     *
+     * **One solve per scene per build rather than one per pass** (TOOL-11). `scene:build` has just solved the same
+     * file from the same specs, and `build:all` renders up to eight variants after it, so reading the stored record
+     * saves every one of those solves. Anything that makes the record doubtful, from a moved input to a file this
+     * version cannot read, falls through to the solve this command always did, and that solve is then stored so the
+     * next pass reuses it. See {@see CompiledScene}.
+     *
+     * @param array<string, \App\Spec\DeviceSpec> $devicesById
+     * @param list<string> $sharedInputs
+     *
+     * @return list<RenderPlacement>|null null when the checks refuse the scene
+     */
+    private function solved(SceneSpec $scene, array $devicesById, ModelBuilder $builder, array $sharedInputs): ?array
+    {
+        $file = CompiledScene::fileIn($this->derivedDir($builder->buildDir().'/plans', $scene), $scene->id);
+        $compiled = CompiledScene::read($file, $scene->id, [$scene->sourcePath, ...$sharedInputs]);
+        if (null !== $compiled) {
+            $this->reportViolations($compiled['warnings']);
+            if ($this->io->isVerbose()) {
+                $this->io->text(sprintf('<comment>reusing</comment> %s', $this->relative($file)));
+            }
+
+            return $compiled['placements'];
+        }
+
+        ['placed' => $placed, 'violations' => $violations] = (new SceneCompiler($devicesById))->compile($scene);
+        $this->reportViolations($violations);
+        // Errors only, as in `scene:build`: a warning is something to know about a buildable rig, not a
+        // reason to refuse to render it.
+        if ([] !== Violation::errorsIn($violations)) {
+            return null;
+        }
+        if ([] !== $placed) {
+            try {
+                CompiledScene::write($file, $scene->id, $placed, Violation::warningsIn($violations));
+            } catch (\RuntimeException $e) {
+                $this->io->warning($e->getMessage().' — the next pass will solve this scene again');
+            }
+        }
+
+        return RenderPlacement::listOf($placed);
     }
 
     /**

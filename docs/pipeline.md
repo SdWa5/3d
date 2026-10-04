@@ -25,6 +25,7 @@ scenes/full-rig.yaml               a setup written down: which devices, where, s
         │  bin/console scene:build         blender --background --python blender/build_scene.py
         ▼
 build/scenes/full-rig.blend        cabinets placed at true scale, geometry instanced once per device
+build/plans/_compiled-full-rig.json  the solve itself, kept so scene:render does not solve the file again
         │
         │  bin/console scene:render        blender --background --python blender/render_scene.py
         ▼
@@ -68,11 +69,33 @@ output is stale when it is missing, or older than any of its inputs.
 |-------|--------|-------------------|
 | `models:build` | `build/glb/<id>.glb` + `build/blend/<id>.blend` | the spec, `blender/build_model.py`, all of `blender/lib`, any mesh override |
 | `scene:build` | `build/scenes/<id>.blend` | the scene file, `blender/build_scene.py`, `blender/lib`, **and the model of every cabinet the scene places** |
+| `scene:build` | `build/plans/_compiled-<id>.json` | the scene file, every file under `specs/`, `events/` and `src/`, and `composer.lock` |
 | `scene:render` | the PNG | the scene's `.blend`, `blender/render_scene.py`, `blender/lib`, **and the settings it was drawn with** |
 
 Mtimes rather than hashes, and that choice is what makes the *chain* work with no bookkeeping: a spec is newer
 than its model, so the model rebuilds; the model is then newer than the scene, so the scene reassembles; the
 scene is then newer than the render, so the render redraws. Each stage only ever compares its own neighbours.
+
+### One solve per scene per build
+
+`scene:build` solves every scene it is given, and since 0.152.0 it keeps the result as
+`build/plans/<dir>/_compiled-<id>.json` (`App\Build\CompiledScene`). `scene:render` reads that record instead of
+solving the same file again, and so does every further pass of `build:all --every-variant`. Before, a build solved
+each scene once for `scene:build` and once more for every render pass, including passes whose picture turned out to
+be up to date. Measured on 2026-10-04 on the largest assembled `next-event-light` rig, a render that found its PNG
+current took 0.51 s with the solve and 0.11 s with the record.
+
+The record holds what a render reads of each placement and nothing more, `App\Render\RenderPlacement`. That is
+its world box, front face centre, front direction, category, subtype and aim-line choice. It also keeps the solve's
+warnings, so the render prints them as it always did. It is written only for a solve without errors, so a scene the
+checks refuse is solved and refused by the render every time.
+
+Its inputs are deliberately wide. They are the scene file, every spec, every event, all of `src/` and
+`composer.lock`, because narrowing them would mean guessing which classes the solver reaches. A record that is
+missing, stale or unreadable is ignored, and the render then solves the scene itself and writes the record for the
+next pass. `scene:render -v` names every record it reuses. `RenderPlanFromCompiledSceneTest` guards the record,
+because it compares the whole render plan from a fresh solve with the plan from the stored one, for every camera
+and aim mode.
 
 ### Measuring a regeneration
 
@@ -187,7 +210,10 @@ modifier rather than `display_type = "WIRE"`, which is a viewport setting Cycles
 **The marking is derived and never stored.** It is not a scene field and will not become one: a scene records the
 constraints a rig has to satisfy and is re-solved on every build, so the checks fire again on the same arrangement
 and name the same cabinets. A colour written into the schema would put a rendering concern in the file format and
-freeze one build's opinion into a file whose whole contract is that it carries no answers.
+freeze one build's opinion into a file whose whole contract is that it carries no answers. The
+`_compiled-<id>.json` record that `scene:render` reuses does not break that contract. It is build output under
+`build/`, valid only as long as nothing it was solved from has moved, and the next `scene:build` solves the scene
+from its file again.
 
 **The prose refusal is now built from the marking**, rather than derived alongside it, so the sentence a terminal
 prints and the cabinet a render cages can never be about different cabinets.

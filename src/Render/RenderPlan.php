@@ -94,7 +94,9 @@ final class RenderPlan
     private const SENSOR_MM = 36.0;
 
     /**
-     * @param list<PlacedDevice> $placed
+     * Takes a fresh solve's placed devices or the render placements `scene:build` stored, see {@see RenderPlacement}.
+     *
+     * @param list<PlacedDevice|RenderPlacement> $placed
      * @param array{int, int} $resolution
      *
      * @return array<string, mixed>
@@ -110,6 +112,7 @@ final class RenderPlan
         bool $labels = false,
         CameraStand $stand = new CameraStand(),
     ): array {
+        $placed = RenderPlacement::listOf($placed);
         ['min' => $min, 'max' => $max] = self::bounds($placed);
         $lines = self::aimLines($placed, $aimLines);
 
@@ -167,7 +170,7 @@ final class RenderPlan
      * **The legend is the thing that makes a cage picture readable at all.** It names what the colours mean, which
      * is knowledge that otherwise lives only in `blender/lib/materials.py`.
      *
-     * @param list<PlacedDevice> $placed
+     * @param list<RenderPlacement> $placed
      * @param array{float, float, float} $min
      * @param array{float, float, float} $max
      *
@@ -177,7 +180,7 @@ final class RenderPlan
     {
         $vehicles = [];
         foreach ($placed as $entry) {
-            if (Category::Vehicle === $entry->device->category) {
+            if (Category::Vehicle === $entry->category) {
                 $vehicles[$entry->placementId] = $entry;
             }
         }
@@ -185,14 +188,14 @@ final class RenderPlan
         // Group the cargo: which vehicle it is standing in, then which device it is.
         $groups = [];
         foreach ($placed as $entry) {
-            if (Category::Vehicle === $entry->device->category) {
+            if (Category::Vehicle === $entry->category) {
                 continue;
             }
             $inside = self::vehicleAround($entry, $vehicles);
-            $key = $inside.'/'.$entry->device->id;
-            $box = $entry->worldBox();
+            $key = $inside.'/'.$entry->deviceId;
+            $box = $entry->worldBox;
             if (!isset($groups[$key])) {
-                $groups[$key] = ['device' => $entry->device->id, 'count' => 0, 'at' => $box['max'], 'x' => $box['min'][0], 'x2' => $box['max'][0]];
+                $groups[$key] = ['device' => $entry->deviceId, 'count' => 0, 'at' => $box['max'], 'x' => $box['min'][0], 'x2' => $box['max'][0]];
             }
             ++$groups[$key]['count'];
             // Anchored over the tallest of the group, centred across all of them.
@@ -210,9 +213,9 @@ final class RenderPlan
         $labels = [];
 
         foreach ($vehicles as $entry) {
-            $box = $entry->worldBox();
+            $box = $entry->worldBox;
             $labels[] = [
-                'text' => $entry->device->id,
+                'text' => $entry->deviceId,
                 'at' => [
                     ($box['min'][0] + $box['max'][0]) / 2,
                     ($box['min'][1] + $box['max'][1]) / 2,
@@ -243,16 +246,16 @@ final class RenderPlan
      * Footprint rather than full box, because a cabinet inside a van is inside it in plan and may stick out of the
      * top of a trailer — see the packed convoy, where a 4 m mast does exactly that.
      *
-     * @param array<string, PlacedDevice> $vehicles
+     * @param array<string, RenderPlacement> $vehicles
      */
-    private static function vehicleAround(PlacedDevice $entry, array $vehicles): string
+    private static function vehicleAround(RenderPlacement $entry, array $vehicles): string
     {
-        $box = $entry->worldBox();
+        $box = $entry->worldBox;
         $x = ($box['min'][0] + $box['max'][0]) / 2;
         $y = ($box['min'][1] + $box['max'][1]) / 2;
 
         foreach ($vehicles as $id => $vehicle) {
-            $outer = $vehicle->worldBox();
+            $outer = $vehicle->worldBox;
             if ($x >= $outer['min'][0] && $x <= $outer['max'][0] && $y >= $outer['min'][1] && $y <= $outer['max'][1]) {
                 return $id;
             }
@@ -315,7 +318,7 @@ final class RenderPlan
      * A line stops where it meets the floor, which turns "these all aim at one point" from a claim
      * into something visible: the rays either converge on that spot or they do not.
      *
-     * @param list<PlacedDevice> $placed
+     * @param list<RenderPlacement> $placed
      *
      * @return list<array{placement_id: string, device: string, start: array{float, float, float}, end: array{float, float, float}, hits_floor: bool}>
      */
@@ -331,14 +334,14 @@ final class RenderPlan
             // one thing a placement cannot overrule is `none`, which stays the way to get a clean render
             // of a scene that normally draws them.
             $wanted = $entry->aimLines
-                ?? (self::AIM_ALL === $mode || in_array($entry->device->subtype, self::AIMED_SUBTYPES, true));
+                ?? (self::AIM_ALL === $mode || in_array($entry->subtype, self::AIMED_SUBTYPES, true));
 
             if (!$wanted) {
                 continue;
             }
 
-            $start = $entry->frontFaceCentre();
-            $direction = $entry->frontDirection();
+            $start = $entry->frontFaceCentre;
+            $direction = $entry->frontDirection;
 
             // A nearly level ray meets the floor a very long way out — 1° of tilt from 2 m up needs
             // over 100 m. Past the cap the ray is simply truncated and must NOT claim to have landed,
@@ -352,7 +355,7 @@ final class RenderPlan
 
             $lines[] = [
                 'placement_id' => $entry->placementId,
-                'device' => $entry->device->id,
+                'device' => $entry->deviceId,
                 'start' => $start,
                 'end' => [
                     $start[0] + $direction[0] * $length,
@@ -371,7 +374,7 @@ final class RenderPlan
      *
      * Every rotation is accounted for exactly, since PlacedDevice already rotates the eight corners.
      *
-     * @param list<PlacedDevice> $placed
+     * @param list<PlacedDevice|RenderPlacement> $placed
      *
      * @return array{min: array{float, float, float}, max: array{float, float, float}}
      */
@@ -384,10 +387,10 @@ final class RenderPlan
         $min = [INF, INF, INF];
         $max = [-INF, -INF, -INF];
 
-        foreach ($placed as $entry) {
+        foreach (RenderPlacement::listOf($placed) as $entry) {
             // The cabinet's exact rotated box, so an angled or turned-over one is bounded correctly
             // rather than approximated.
-            $box = $entry->worldBox();
+            $box = $entry->worldBox;
             for ($axis = 0; $axis < 3; ++$axis) {
                 $min[$axis] = min($min[$axis], $box['min'][$axis]);
                 $max[$axis] = max($max[$axis], $box['max'][$axis]);

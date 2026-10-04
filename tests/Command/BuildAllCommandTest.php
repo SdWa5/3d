@@ -109,6 +109,9 @@ final class BuildAllCommandTest extends TestCase
                 'generated/stacked-sdwa5-----2-free----turned--centred---center'],
             ['build/plans/generated/_scene-stacked-sdwa5-----2-free----turned--centred---center.json', 'build/plans',
                 'generated/stacked-sdwa5-----2-free----turned--centred---center'],
+            // The solve `scene:build` leaves for `scene:render`, TOOL-11.
+            ['build/plans/generated/gmss/_compiled-stacked-2-pooled--------free----turned--centred---center.json',
+                'build/plans', 'generated/gmss/stacked-2-pooled--------free----turned--centred---center'],
             ['build/renders/generated/stacked-sdwa5-----2-free----turned--centred---center-three-quarter.png',
                 'build/renders', 'generated/stacked-sdwa5-----2-free----turned--centred---center'],
             ['build/renders/studio/generated/stacked-gmss------1-free----upright-alternate-center-front.png',
