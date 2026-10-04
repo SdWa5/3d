@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.152.3] - 2026-10-04
+
+### Changed
+
+- GEO-17 in `TODO.md` is confirmed and open. The riser is stated per system in the event file and reaches the
+  generator as `--system-riser=<system>:<device>`. The decision is removed from the pickup order.
+
 ## [0.152.2] - 2026-10-04
 
 ### Changed
