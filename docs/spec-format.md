@@ -624,10 +624,11 @@ geometry:
   mast:
     sections_m: [0.060, 0.050, 0.040]   # tube diameters, the sleeve first, strictly decreasing
     transport_length_m: 1.750     # folded length, adapter included
-    hub_height_m: 0.950           # where the legs hinge; the sleeve starts at half of it
+    min_height_m: 2.050           # the lowest it cranks to, as published; the sleeve's foot follows from it
+    hub_height_m: 0.850           # where the legs hinge
     spigot_diameter_m: 0.035
     legs: 3
-    base_spread_m: 1.600
+    base_spread_m: 1.500
     leg_width_m: 0.030
     leg_yaw_deg: 90               # one leg straight back, +Y
     winch: true
@@ -646,8 +647,14 @@ so the Blender side derives nothing.
 
 **Cranking slides the stages.** An `extend_to_m` below full height moves stage k of N down by k/N of the loss, so
 every joint keeps the same overlap and the base keeps its size. A tower still drawn as a box stretches as before.
-The collapsed height, the transport length on the sleeve's bottom, is the lowest a stand goes. Ours is 2.225 m, and
-a scene or a backdrop that needs less is refused. The folded stand is a different thing, stated in
+**`min_height_m` is the published minimum, and the sleeve's foot is worked out from it.** Fully cranked down the stand
+is its folded length standing on the sleeve's foot, so the foot sits `min_height_m − transport_length_m` off the
+floor. Ours is the manual's 2.05 m, which puts the foot at 0.30 m. A scene or a backdrop that needs less is refused.
+Before 0.150.0 the foot sat at half the hub height, and the minimum that followed was 2.225 m, which no document gave.
+
+**The hub has to leave room for the legs to fold.** Folded, each leg swings up from the hub along the sleeve, so the
+hub less the foot plus a leg must stay inside the folded length. `models:build` fails a packed drawing that leaves
+its transport box. The folded stand is a different thing, stated in
 [`transport:`](#transport) and drawn as `<id>@packed`.
 
 ## Mesh overrides
@@ -796,7 +803,8 @@ the origin and licence in [sources.md](sources.md).
   tapers from
 * in `mast`: a non-positive value; an origin other than `bottom-center`; fewer than two sections, sections that
   do not strictly decrease, or a sleeve wider than the column; a spigot that does not fit the top stage; a
-  collapsed height not below the full height; a hub above the sleeve's top; stages that overlap by less than
+  `min_height_m` not below the full height or not above the transport length; a hub at or below the sleeve's foot,
+  or above the sleeve's top; stages that overlap by less than
   0.20 m at full extension; legs outside 3 to 8; a spread narrower than the column; an adapter longer than the
   spread, with its clamps off its bar, or too low to leave a spigot
 * in `transport`: an unknown key; a box without `provenance`; a box axis that is zero or negative; a box that

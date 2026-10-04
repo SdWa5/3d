@@ -18,9 +18,14 @@ namespace App\Spec;
  * rests on the adapter.
  *
  * **The sleeve does not stand on the floor.** The legs hinge from a hub collar at `hub_height_m` and the struts
- * brace them from a lower collar at half that height, where the outer sleeve ends. The sleeve and every stage are
- * one tube length long, because a stand folds to the length of its longest tube, so the published transport length
- * gives the tube length once the head above the top stage is taken off.
+ * brace them from a lower collar where the outer sleeve ends. The sleeve and every stage are one tube length long,
+ * because a stand folds to the length of its longest tube, so the published transport length gives the tube length
+ * once the head above the top stage is taken off.
+ *
+ * **Where the sleeve ends follows from two published figures**, the minimum height and the transport length. Fully
+ * cranked down the stand is its folded length standing on the sleeve's foot, so the foot is the difference. The first
+ * version put it at half the hub height, which was estimated off a photograph, and so stated a minimum height that no
+ * document gave.
  */
 final class Mast
 {
@@ -33,6 +38,8 @@ final class Mast
     public function __construct(
         public readonly array $sections,
         public readonly float $transportLength,
+        /** The lowest the stand cranks to, as published. */
+        public readonly float $minHeight,
         public readonly float $hubHeight,
         public readonly float $spigotDiameter,
         public readonly int $legs,
@@ -51,6 +58,7 @@ final class Mast
         return new self(
             $reader->numberList('sections_m'),
             $reader->requireFloat('transport_length_m'),
+            $reader->requireFloat('min_height_m'),
             $reader->requireFloat('hub_height_m'),
             $reader->requireFloat('spigot_diameter_m'),
             $reader->requireInt('legs'),
@@ -68,10 +76,10 @@ final class Mast
         return max(0, count($this->sections) - 1);
     }
 
-    /** Where the outer sleeve ends, on the strut collar at half the hub's height. */
+    /** Where the outer sleeve ends, on the strut collar: the minimum height less the folded length standing on it. */
     public function sleeveBottomM(): float
     {
-        return $this->hubHeight / 2.0;
+        return $this->minHeight - $this->transportLength;
     }
 
     /** What stands above the top stage: the adapter, or nothing for a bare receiver. */
@@ -89,7 +97,7 @@ final class Mast
     /** The lowest the stand cranks to: every stage inside the sleeve, the head on top. */
     public function collapsedHeightM(): float
     {
-        return $this->sleeveBottomM() + $this->transportLength;
+        return $this->minHeight;
     }
 
     /** How far each stage stands out of the one below it at the given height. */
@@ -107,13 +115,14 @@ final class Mast
     }
 
     /**
-     * @return array{sections_m: list<float>, transport_length_m: float, hub_height_m: float, spigot_diameter_m: float, legs: int, base_spread_m: float, leg_width_m: float, leg_yaw_deg: float, winch: bool, adapter: array{length_m: float, bar_m: float, height_m: float, clamp_spacing_m: float}|null}
+     * @return array{sections_m: list<float>, transport_length_m: float, min_height_m: float, hub_height_m: float, spigot_diameter_m: float, legs: int, base_spread_m: float, leg_width_m: float, leg_yaw_deg: float, winch: bool, adapter: array{length_m: float, bar_m: float, height_m: float, clamp_spacing_m: float}|null}
      */
     public function toArray(): array
     {
         return [
             'sections_m' => $this->sections,
             'transport_length_m' => $this->transportLength,
+            'min_height_m' => $this->minHeight,
             'hub_height_m' => $this->hubHeight,
             'spigot_diameter_m' => $this->spigotDiameter,
             'legs' => $this->legs,

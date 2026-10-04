@@ -24,7 +24,7 @@ use App\Spec\DeviceSpec;
  *     half the panel may stand above the truss, see {@see panelTopM}. Under a ceiling the truss already touches, that
  *     puts the panel's top at the truss's top.
  *   * The towers stand {@see OUTRIGGER_CLEARANCE_M} behind the deepest back face of the rig, because their legs
- *     spread to 1.6 m and the outer stacks of a wide rig stand right in front of them.
+ *     spread to 1.50 m and the outer stacks of a wide rig stand right in front of them.
  *
  * Symmetric about the rig's own centre, so it moves neither the front centre the focus is measured from nor the
  * rig's x extent in a way that changes which side is wider.
@@ -34,11 +34,11 @@ final class StackBackdrop
     /**
      * How far behind the rig's deepest back face the towers' centre lines stand.
      *
-     * Half the 1.6 m base spread a Varytec Wind Up reaches, see `truss-tower-4m.yaml`. The legs are drawn since
+     * Half the 1.50 m footprint the Varytec Wind Up's manual gives, see `truss-tower-4m.yaml`. The legs are drawn since
      * 0.134.0, but no scene check sees them, because they lie outside the mast column the checks read. So nothing
      * would report a foot under a cabinet, and the distance is what keeps that from being true.
      */
-    public const OUTRIGGER_CLEARANCE_M = 0.8;
+    public const OUTRIGGER_CLEARANCE_M = 0.75;
 
     /** The `fly.id` the truss and the panel share, so the scene report adds them up as one bar. */
     public const FLY_ID = 'backdrop';

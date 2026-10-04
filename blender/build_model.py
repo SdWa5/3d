@@ -65,6 +65,37 @@ def _build_packed(plan, material_set):
     for part in parts:
         collection.objects.link(part)
         part.parent = body
+    _check_inside_transport_box(plan, [body, *parts])
+
+
+# How far a packed drawing may reach past its transport box, to absorb float noise and nothing more.
+PACKED_TOLERANCE_M = 0.001
+
+
+def _check_inside_transport_box(plan, objects):
+    """Fail the build when the packed drawing leaves the transport box it is drawn for.
+
+    The box is in the device's own axes about its bottom-centre origin. A folded drawing has outgrown it before:
+    lowering the Wind Up's sleeve foot to the manual's figure swung its folded legs 70 mm past the 1.75 m.
+    """
+    box = plan["geometry"]["transport_m"]
+    limits = (
+        (-box["width"] / 2.0, box["width"] / 2.0),
+        (-box["depth"] / 2.0, box["depth"] / 2.0),
+        (0.0, box["height"]),
+    )
+    bpy.context.view_layer.update()
+    for obj in objects:
+        if obj.type != "MESH":
+            continue
+        for vertex in obj.data.vertices:
+            point = obj.matrix_world @ vertex.co
+            for axis, (low, high) in enumerate(limits):
+                if point[axis] < low - PACKED_TOLERANCE_M or point[axis] > high + PACKED_TOLERANCE_M:
+                    raise RuntimeError(
+                        "sdwa5-3d: %s@packed reaches %.3f m on axis %s, outside its transport box %.3f to %.3f m"
+                        % (plan["id"], point[axis], "xyz"[axis], low, high)
+                    )
 
 
 def build(plan):

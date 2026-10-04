@@ -79,7 +79,7 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | — | What the identification moved | Depth **0.520 → 0.730 m** and weight **59 → 74.8 kg**. The spec's own header had predicted the weight would come out light, on the grounds that a big three-way runs nearer 272 kg/m³ than 200 |
 | `truss-f33-2m` | — (factory truss) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, Thomann article 267121, supplied by the owner 2026-08-17 | **Global Truss F33200 identified outright.** 2.0 m, tube spacing 290 mm outer, chord Ø 50 × 2 mm, AlMgSi F31, TÜV Nord, **9.3 kg**. Three came in the bundle and two were bought afterwards |
 | | | | The owner | That we have **5 segments at 2 m, three-point**. The class is an inference from that |
-| `truss-tower-4m` | — (factory stand) | `datasheet` | **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)**, supplied by the owner 2026-08-17 | **Varytec Wind Up 85 kg identified**, replacing an assumed Global Truss ST-132. 25 kg, max height 4.0 m, **transport 1.75 m**, **max load 85 kg**, min load 25 kg, 1 3/8″ receiver, crossbar 1300 × 35 × 35 mm, base spread 1.6 m, TÜV |
+| `truss-tower-4m` | — (factory stand) | `datasheet` | **Thomann's user manual for the Varytec Wind Up 85 kg TÜV**, technical data on page 15 ([manualslib](https://www.manualslib.com/manual/3360414/Thomann-Varytec-Wind-Up-85-Kg-Tuv.html?page=15)), and the **[Stairville Wind Up DJ Bundle III](https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm)** page, supplied by the owner 2026-08-17 | **Varytec Wind Up 85 kg identified**, replacing an assumed Global Truss ST-132. Manual: height 2.05 to 4.00 m, **footprint at most 1.50 m**, **transport 1.75 m**, 25 kg, **max load 85 kg** centric, 1 3/8″ receiver with a 35 mm flange, crossbar 1300 × 35 × 35 mm. Bundle page only: min load 25 kg, TÜV. Where the two differ the manual holds |
 | | | | The owner | That we have **2 telescopic stands at 4 m** |
 | `truss-9m` | — (GMSS) | — | A message from GMSS | A **9 m span**, and nothing else. Cross-section, brand, chord count and segmentation all unstated |
 | `tower-5m` | — (GMSS) | — | A message from GMSS | **2 towers, max 5.2 m**. Nothing else — the weight is inferred from our Varytec Wind Up |
@@ -175,9 +175,13 @@ it as a `transport:` box**, 0.240 × 1.750 × 0.300 m and `estimated`. The 1.75 
 the folded cross-section, so it is half of Thon's case for two of these stands, 1810 × 507 × 363 mm outside
 (thomann.de, *Thon Case Varytec Wind Up 85kg*), less its walls.
 
-**Thomann's manual for the stand disagrees with two figures this spec carries.** It gives a minimum height of 2.05 m
-and a footprint of at most 1.50 m, where the spec has a derived 2.225 m collapsed height and a 1.6 m spread marked
-`datasheet`. Neither is changed yet, because the owner has to say which source holds.
+**Thomann's manual for the stand disagreed with two figures this spec carried, and the manual holds** since 0.150.0,
+as the owner decided on 2026-10-04. It gives a minimum height of 2.05 m and a footprint of at most 1.50 m. The spec
+had a 2.225 m minimum, which was derived from a hub height estimated off a photograph and so came from no document,
+and the bundle page's 1.6 m spread. The sleeve's foot now follows from the two published lengths, 2.05 less 1.75. The
+hub height is still estimated, and since the folded legs have to fit inside the 1.75 m it came down from 0.95 to
+0.85 m. The manual does not say whether its heights include a truss adapter, so the spec keeps taking them at the
+adapter's top face.
 
 **AND THE TRUSS WEIGHT WAS DERIVED, CONVINCINGLY, AND WRONG.** 10.3 kg came from fitting a line through three
 published F33 weights — 6.4 kg at 1.0 m, 8.2 at 1.5, 14.1 at 3.0 — giving 2.55 kg + 3.85 kg/m, which reproduces all

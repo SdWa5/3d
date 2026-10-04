@@ -215,6 +215,7 @@ final class ShapeValidator
 
         foreach ([
             'transport_length_m' => $mast->transportLength,
+            'min_height_m' => $mast->minHeight,
             'hub_height_m' => $mast->hubHeight,
             'spigot_diameter_m' => $mast->spigotDiameter,
             'base_spread_m' => $mast->baseSpread,
@@ -281,6 +282,19 @@ final class ShapeValidator
                 'geometry.mast collapses to %.3f m, which is not below its %s m full extension',
                 $mast->collapsedHeightM(),
                 $height,
+            );
+        }
+        if ($mast->sleeveBottomM() <= 0.0) {
+            $messages[] = sprintf(
+                'geometry.mast.min_height_m (%s) is not above the %s m the stand folds to, so the sleeve would stand in the floor',
+                $mast->minHeight,
+                $mast->transportLength,
+            );
+        } elseif ($mast->hubHeight <= $mast->sleeveBottomM()) {
+            $messages[] = sprintf(
+                "geometry.mast.hub_height_m (%s) is not above the sleeve's foot at %.3f m, where the struts start",
+                $mast->hubHeight,
+                $mast->sleeveBottomM(),
             );
         }
         if ($mast->hubHeight >= $mast->sleeveBottomM() + $mast->tubeLengthM()) {

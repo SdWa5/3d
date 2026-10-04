@@ -168,6 +168,7 @@ final class BuildPlanTest extends TestCase
                 'mast' => [
                     'sections_m' => [0.060, 0.050, 0.040],
                     'transport_length_m' => 1.750,
+                    'min_height_m' => 2.050,
                     'hub_height_m' => 0.950,
                     'spigot_diameter_m' => 0.035,
                     'legs' => 3,
@@ -184,9 +185,9 @@ final class BuildPlanTest extends TestCase
         self::assertSame('mast', $plan['geometry']['shape']);
         self::assertNull($plan['geometry']['transport_m']);
         self::assertSame(2, $mast['moving_stages']);
-        self::assertEqualsWithDelta(0.475, $mast['sleeve_bottom_m'], 1e-9);
+        self::assertEqualsWithDelta(0.30, $mast['sleeve_bottom_m'], 1e-9);
         self::assertEqualsWithDelta(1.63, $mast['tube_length_m'], 1e-9);
-        self::assertEqualsWithDelta(0.8875, $mast['travel_m'], 1e-9);
+        self::assertEqualsWithDelta(0.975, $mast['travel_m'], 1e-9);
         self::assertSame(0.24, $mast['adapter']['clamp_spacing_m']);
         self::assertFalse($mast['winch'], 'a winch is stated, never assumed');
         self::assertNull($plan['geometry']['truss'], 'one shape, one block');
