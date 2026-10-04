@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.149.0] - 2026-10-04
+
+### Added
+
+- `PackLayout` turns a unit that does not fit as it stands (LOAD-6). It tries the spec orientation on the floor and on a
+  column first, then the other five axis-aligned turns, lowest first. An upright unit only turns about the vertical.
+- A stacked unit may overhang its column by half the 20 mm gap on each side, and the floor keeps that half gap off the
+  bay walls.
+- `scene:pack` writes `pitch_deg`, `roll_deg` and `yaw_deg`, and moves `at` so a turned box lands where the layout put
+  it.
+- `PackSceneWriterTest` compiles the written scene and checks every unit's box against the layout.
+
+### Changed
+
+- The open bed checks the bed's width and lays each unit as low as it goes.
+- `scene:pack`'s notes no longer call a unit too tall for a bay, which the layout no longer produces.
+- `scenes/packs/packed-convoy.yaml` is regenerated. 31 of 32 units find a place, against 26 on 0.148.0.
+
+### Fixed
+
+- A unit that overflowed moved the row cursor and gave the rest of its row away.
+- A unit wider than the floor was placed reaching through the wheel arches instead of overflowing.
+
+### Removed
+
+- LOAD-6 from `TODO.md`. GEO-11 heads the pick-up order.
+
 ## [0.148.0] - 2026-10-04
 
 ### Added

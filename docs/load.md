@@ -210,13 +210,29 @@ Movano that is 1.380 m of usable width against a 1.765 m bay.
 box and written with `packed: true`, so the picture shows the Wind Up at 1.75 m and the scaffold as two bundles
 standing in the Movano rather than two 5 m towers.
 
-**What the rule cannot do, and the scene's own notes list it**: nothing is rotated, nothing is interleaved, and a
-trapezoid is packed as its bounding box. A real pack is tighter. Anything the rule cannot place is reported as
-overflow rather than squeezed in. **6 of 32 assigned units overflow on the current pack**, down from 7 before the
-transport sizes. They are two Achenbach subs and the power rack in the Movano, an Achenbach and an F33 segment in the
-Ducato, and an F33 segment on the trailer.
-Most of that is a cursor that gives up on a row after one unit overflows, which LOAD-6 fixes together with turning
-units over.
+**A unit is turned only when it does not fit as it stands** (LOAD-6). Each unit tries its spec orientation on the
+floor and then on a column, and only after that the other five axis-aligned turns, lowest first and then shallowest
+along the bay. A 2 m F33 segment therefore lies along the bay while a Flexy stays on its feet. A unit whose spec says
+`transport: { upright: true }`, which is both racks and the generator, only turns about the vertical. The scene gets
+`pitch_deg`, `roll_deg` and `yaw_deg`, and `at` is moved so the turned box lands where the layout put it, because a
+turn of 90° about the bottom-centre origin moves the box off the origin.
+
+**Nothing moves until a place is found.** The first rule advanced the row cursor before it knew whether a unit fitted,
+so one unit that overflowed gave the rest of its row away. That cursor was most of the loss, more than the missing
+turns.
+
+**A stacked unit may overhang its column by 10 mm on each side**, half the gap between columns, so two neighbours
+still never touch. The floor keeps the same 10 mm off every wall. An 0.600 m Achenbach on an 0.591 m Flexy is the case
+that needed it, since the Movano lost two subs and its power rack to those 9 mm.
+
+**An open bed lays everything as low as it goes**, checked against the bed's width, because nothing stacks there.
+
+**What the rule cannot do, and the scene's own notes list it**: nothing is interleaved, a trapezoid is packed as its
+bounding box, nothing bridges two columns, and the trailer is one row. A real pack is tighter. Anything the rule cannot
+place is reported as overflow rather than squeezed in. **1 of 32 assigned units overflows on the current pack**,
+down from 7 before SPEC-15 and LOAD-6. It is an F33 segment in the Ducato, which needs a column 2 m long or two columns
+to bridge. On the trailer the generator takes 1.70 m of the 3.0 m bed, so the folded stand and an F33 segment are left
+standing on end, and the notes name both.
 
 **Render it with `--labels` or it is a picture of anonymous boxes.** Three cages and twenty-five cabinets say nowhere
 which is which without them:
@@ -268,8 +284,8 @@ The constraints a bounding-box assignment cannot see, and which decide whether a
   arithmetic. The Movano's bay is 1.765 m wide and 1.380 m between the arches, so each one reaches in 192.5 mm —
   derived from those two figures — and the width a cabinet gets depends on how high it sits. Their length, height and
   position along the bay are estimates; the axle position is in no document we hold.
-* **Nothing turns.** A 2 m truss segment across a 1.38 m floor does not fit and would lie along the bay without
-  difficulty. LOAD-6.
+* **Nothing bridges.** A 2 m truss segment can lie on top of two columns in a real van and here it cannot, so it
+  overflows when the floor is full.
 * **Labels overlap.** `--labels` names everything and a legend explains the colours, but eighteen labels at
   960 × 540 have several sitting on each other. CVR-9.
 * **Racks roll and cabinets do not.**
