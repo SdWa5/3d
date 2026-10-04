@@ -39,7 +39,7 @@ final class PackSceneWriter
             '#',
             '# Regenerate it with:',
             '#',
-            '#   bin/console scene:pack --write',
+            '#   bin/console scene:pack --owner=sdwa5 --owner=sepp --write',
             '#',
         ];
 
@@ -73,6 +73,10 @@ final class PackSceneWriter
                 );
                 if (null !== $entry['on']) {
                     $block .= sprintf("\n    on: %s", $entry['on']);
+                }
+                // The device in its packed form, so the scene compiles and draws the transport box.
+                if ($entry['device']->folded) {
+                    $block .= "\n    packed: true";
                 }
                 $placements[] = $block;
             }

@@ -136,7 +136,9 @@ def build(plan):
     cranked = {}
 
     for placement in plan["placements"]:
-        collection = _append_collection(placement["blend"], placement["device"], cache)
+        # A packed placement instances the device as it travels, built beside the erected one in the same .blend.
+        name = placement["device"] + ("@packed" if placement.get("folded") else "")
+        collection = _append_collection(placement["blend"], name, cache)
         collection, scale_z = _cranked(collection, placement.get("scale_z", 1.0), cranked)
 
         instance = bpy.data.objects.new(placement["placement_id"], None)

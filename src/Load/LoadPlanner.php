@@ -109,7 +109,7 @@ final class LoadPlanner
         $leftovers = [];
         foreach ($cargo as $spec) {
             $remaining = $spec->quantity;
-            $unitVolume = $spec->dimensions->volumeM3();
+            $unitVolume = $spec->transportDimensions()->volumeM3();
 
             if (null !== $spec->carriedOn) {
                 $target = null;

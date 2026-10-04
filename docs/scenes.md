@@ -56,6 +56,7 @@ placements:
 | `placements[].on` | sit on top of an **earlier** placement; z is worked out from the specs. A `stack:` placement counts as a whole, and the cabinet stands on its highest cabinet, flush with its front |
 | `placements[].fly` | `{ height_m, point, id }` — hang from a point in the air instead. `point` names one of the device's `rigging.points`; `id` is what the weight is grouped under. Exclusive with `on`; see below |
 | `placements[].extend_to_m` | the height a `truss`/`tower` device is cranked to, at most its spec's height. See [a tower cranked lower](#a-tower-cranked-lower) |
+| `placements[].packed` | `true` shows the device at its transport box, folded where it folds. See [a device packed for the road](#a-device-packed-for-the-road) |
 | `placements[].yaw_deg` | rotation about Z — aiming. 0 faces −Y, the convention every model uses. An `arc` supplies this instead |
 | `placements[].pitch_deg` | down-tilt. Positive is nose-down, for aiming into an audience rather than over it |
 | `placements[].roll_deg` | rotation about the front-to-back axis — 180 turns a cabinet upside down, 90 lays it on its side, and either way it keeps facing forward |
@@ -1625,6 +1626,14 @@ In Blender a mast slides its stages. Each height gets a copy of the model in whi
 of the loss, so the legs, the winch and the adapter keep their size. The copies share their meshes with the model.
 A tower still drawn as a box, such as GMSS's, is instanced from the full-extension model and scaled along its own
 height as before.
+
+### A device packed for the road
+
+`packed: true` on a placement shows a device the way it travels, at its [`transport:`](spec-format.md#transport)
+box. The compiler places a copy of the spec at the packed size, and Blender instances the model's `<id>@packed`
+collection, which is the Wind Up folded to 1.75 m or the scaffold bundled into frames and decks. `scene:pack` writes
+it for every unit that folds. A device without a packed box is unchanged by it, and `packed` together with
+`extend_to_m` is refused, since a stand is either folded or cranked.
 
 ### A deco backdrop behind a generated rig
 

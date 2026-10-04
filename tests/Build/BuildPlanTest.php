@@ -62,7 +62,8 @@ final class BuildPlanTest extends TestCase
     {
         $plan = BuildPlan::forSpec(SpecFactory::spec(), '/build/glb/top-a.glb', '/build/blend/top-a.blend');
 
-        self::assertSame(8, $plan['plan_version']);
+        self::assertSame(9, $plan['plan_version']);
+        self::assertNull($plan['geometry']['transport_m'], 'a device that packs as it stands builds no packed collection');
         self::assertSame('top-a', $plan['id']);
         self::assertSame('box', $plan['geometry']['shape']);
         self::assertSame(['width' => 0.8, 'height' => 0.6, 'depth' => 0.45], $plan['geometry']['dimensions_m']);
@@ -181,6 +182,7 @@ final class BuildPlanTest extends TestCase
 
         $mast = $plan['geometry']['mast'];
         self::assertSame('mast', $plan['geometry']['shape']);
+        self::assertNull($plan['geometry']['transport_m']);
         self::assertSame(2, $mast['moving_stages']);
         self::assertEqualsWithDelta(0.475, $mast['sleeve_bottom_m'], 1e-9);
         self::assertEqualsWithDelta(1.63, $mast['tube_length_m'], 1e-9);
@@ -308,5 +310,17 @@ final class BuildPlanTest extends TestCase
 
         self::assertNull($features[0]['join']);
         self::assertSame(['with' => 'lf-up', 'depth_m' => 0.045], $features[1]['join']);
+    }
+
+    /** A packed box reaches the plan, and with it the bpy side builds the `<id>@packed` collection a pack instances. */
+    public function testAPackedBoxReachesThePlan(): void
+    {
+        $plan = BuildPlan::forSpec(
+            SpecFactory::spec(['transport' => ['dimensions_m' => ['width' => 0.2, 'height' => 0.5, 'depth' => 0.3], 'provenance' => 'estimated']]),
+            '/glb',
+            '/blend',
+        );
+
+        self::assertSame(['width' => 0.2, 'height' => 0.5, 'depth' => 0.3], $plan['geometry']['transport_m']);
     }
 }

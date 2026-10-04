@@ -43,6 +43,29 @@ OPEN_FRAME_BUILDERS = {
     "load-bay": bay.build,
 }
 
+# The same device as it travels, for the shapes that fold or come apart. Built only when the plan carries a
+# `transport_m` box, into a second collection `<id>@packed` that a packed placement in a scene instances. Mirrors
+# `App\Spec\ShapeValidator::FOLDING_SHAPES`.
+PACKED_BUILDERS = {
+    "mast": mast.build_folded,
+    "scaffold": scaffold.build_packed,
+}
+
+
+def _build_packed(plan, material_set):
+    """The `<id>@packed` collection, after the .glb is written so the export carries only the erected model."""
+    builder = PACKED_BUILDERS.get(plan["geometry"]["shape"])
+    if builder is None or not plan["geometry"].get("transport_m"):
+        return
+
+    collection = export.collection_for("%s@packed" % plan["id"])
+    built = builder(plan, material_set)
+    body, parts = built if isinstance(built, tuple) else (built, [])
+    collection.objects.link(body)
+    for part in parts:
+        collection.objects.link(part)
+        part.parent = body
+
 
 def build(plan):
     export.reset_scene()
@@ -135,6 +158,7 @@ def build(plan):
     export.attach_metadata(body, plan["metadata"])
 
     export.export_glb(plan["outputs"]["glb"])
+    _build_packed(plan, material_set)
     export.save_blend(plan["outputs"]["blend"])
 
     print("sdwa5-3d: built %s (%d objects)" % (plan["id"], 1 + len(extras)))

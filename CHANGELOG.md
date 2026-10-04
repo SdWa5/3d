@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.148.0] - 2026-10-04
+
+### Added
+
+- An optional `transport:` block on a spec with the packed box in the device's own axes, its provenance and an
+  `upright` flag (SPEC-15). `DeviceSpec` gains `transportDimensions()`, `isUpright()` and `packed()`.
+- `truss-tower-4m` packs at 0.240 × 1.750 × 0.300 m and `geruest-krause-ah7` at 0.650 × 2.000 × 0.500 m, both
+  `estimated` from the datasheet length, Thon's case and Krause's ClimTec AH 7 parts list.
+- `rack-amp-12u`, `rack-power-12u` and `generator-25kva` state `upright: true`.
+- `packed: true` on a scene placement shows a device at its transport box, and the build plan marks it `folded`.
+- A second Blender collection `<id>@packed` for a folding device. The Wind Up is drawn with its legs folded up along
+  the sleeve and the scaffold as frames and decks bundled on edge.
+- The build plan carries `geometry.transport_m` at `plan_version` 9.
+- `docs/spec-format.md` describes the block, and `docs/scenes.md` the packed placement.
+- SPEC-17 in `TODO.md`, where Thomann's manual for the Wind Up disagrees with the spec's minimum height and spread.
+
+### Changed
+
+- `load:plan`'s volume, the catalog's shipping volume and `scene:pack` read the transport box. The Movano's space falls
+  from 89 % to 36 %, and the pack places 26 of 32 units instead of 25.
+- `scene:pack` writes `packed: true` for every unit that folds, and its header names the real regenerate command.
+- `scenes/packs/packed-convoy.yaml` is regenerated.
+
+### Removed
+
+- SPEC-15 from `TODO.md`. LOAD-6 heads the pick-up order.
+
 ## [0.147.2] - 2026-10-04
 
 ### Changed

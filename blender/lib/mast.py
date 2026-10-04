@@ -15,6 +15,12 @@ THE STAGES ARE SEPARATE OBJECTS so a scene can crank the stand down without squa
 cranked placement in `build_scene.py` moves stage k down by k/N of the height it loses, which leaves every joint
 with the same overlap, as on the real stand.
 
+FOLDED, FOR A PACK. `build_folded()` draws the stand as it travels, to the plan's `transport_m` box: every stage inside
+the sleeve, the sleeve's foot at the floor, the legs swung up about the hub collar until they lie along the sleeve, and
+the strut collar slid up the sleeve so each strut keeps its length. The truss adapter is not drawn, because its 0.4 m
+bar fits no cross-section a folded stand has and it travels on its own. The crank's handle is turned down along its
+arm. `build_model.py` puts it in a second collection, `<id>@packed`, which a packed placement instances.
+
 Every length the stages need arrives worked out in the plan (`tube_length_m`, `travel_m`, `sleeve_bottom_m`,
 `head_m`), from `App\\Spec\\Mast::planArray()`, so nothing here derives one figure from another.
 """
@@ -154,5 +160,82 @@ def build(plan, material_set):
         part = tubes.mesh_object("%s-stage-%d" % (plan["id"], stage), verts, faces, chrome)
         part["sdwa5_stage"] = stage
         parts.append(part)
+
+    return body, parts
+
+
+def _leg_length(mast):
+    """Hub collar to foot, which is what a leg swings through when it folds."""
+    collar_radius = mast["sections_m"][0] / 2.0 + COLLAR_PROUD_M
+    reach = mast["base_spread_m"] / 2.0 - FOOT_M[0] / 2.0
+    return math.hypot(reach - collar_radius, mast["hub_height_m"] - FOOT_M[2])
+
+
+def build_folded(plan, material_set):
+    """The stand folded to its transport box: body with legs, struts, collars and winch, and one tube per stage.
+
+    Everything is in the erected stand's own frame moved down by `sleeve_bottom_m`, so the sleeve's foot is the floor.
+    The hub collar stays where it is on the sleeve, and each leg turns about it until it points straight up.
+    """
+    mast = plan["geometry"]["mast"]
+    sleeve = mast["sections_m"][0]
+    low = mast["sleeve_bottom_m"]
+    hub = mast["hub_height_m"] - low
+    length = mast["tube_length_m"]
+    collar_radius = sleeve / 2.0 + COLLAR_PROUD_M
+    leg_radius = collar_radius + mast["leg_width_m"] / 2.0
+    leg = _leg_length(mast)
+    chrome = material_set[materials.RIGGING]
+
+    # The strut keeps its erected length, from the strut collar to the middle of its leg, so the collar slides up to
+    # wherever that length reaches the folded leg's middle.
+    reach = mast["base_spread_m"] / 2.0 - FOOT_M[0] / 2.0
+    middle_radius = (collar_radius + reach) / 2.0
+    middle_z = (mast["hub_height_m"] + FOOT_M[2]) / 2.0
+    strut = math.hypot(middle_radius - collar_radius, middle_z - mast["sleeve_bottom_m"])
+    folded_middle = hub + leg / 2.0
+    strut_collar = folded_middle - math.sqrt(max(0.0, strut ** 2 - (leg_radius - collar_radius) ** 2))
+
+    verts, faces = [], []
+    _collar(verts, faces, sleeve, hub)
+    _collar(verts, faces, sleeve, strut_collar)
+    for index in range(mast["legs"]):
+        angle = math.radians(mast["leg_yaw_deg"] + index * 360.0 / mast["legs"])
+        direction = (math.cos(angle), math.sin(angle))
+
+        def at(radius, z, direction=direction):
+            return (radius * direction[0], radius * direction[1], z)
+
+        tubes.add_tube(
+            verts, faces, at(leg_radius, hub), at(leg_radius, hub + leg), mast["leg_width_m"], sides=LEG_SIDES,
+        )
+        tubes.add_tube(
+            verts, faces, at(collar_radius, strut_collar), at(leg_radius, folded_middle), mast["leg_width_m"] * 0.8,
+            sides=LEG_SIDES,
+        )
+        tubes.add_box(verts, faces, at(leg_radius, hub + leg + FOOT_M[2] / 2.0), (FOOT_M[0], FOOT_M[1], FOOT_M[2]))
+
+    if mast["winch"]:
+        z = WINCH_AT * length
+        y = sleeve / 2.0 + WINCH_M[1] / 2.0
+        tubes.add_box(verts, faces, (0.0, y, z), WINCH_M)
+        axle_start = (WINCH_M[0] / 2.0, y, z)
+        axle_end = (WINCH_M[0] / 2.0 + 0.04, y, z)
+        arm_end = (axle_end[0], y, z - CRANK_ARM_M)
+        tubes.add_tube(verts, faces, axle_start, axle_end, CRANK_DIAMETER_M)
+        tubes.add_tube(verts, faces, axle_end, arm_end, CRANK_DIAMETER_M)
+        tubes.add_tube(verts, faces, arm_end, (arm_end[0], y, arm_end[2] - HANDLE_LENGTH_M), HANDLE_DIAMETER_M)
+
+    body = tubes.mesh_object("%s@packed" % plan["id"], verts, faces, material_set[materials.HARDWARE])
+
+    parts = []
+    for stage, diameter in enumerate(mast["sections_m"]):
+        verts, faces = [], []
+        tubes.add_tube(verts, faces, (0.0, 0.0, 0.0), (0.0, 0.0, length), diameter, sides=MAST_SIDES)
+        if stage == len(mast["sections_m"]) - 1:
+            # The spigot the adapter sits on stays with the stand.
+            spigot_top = (0.0, 0.0, length + mast["head_m"] / 2.0)
+            tubes.add_tube(verts, faces, (0.0, 0.0, length), spigot_top, mast["spigot_diameter_m"])
+        parts.append(tubes.mesh_object("%s@packed-tube-%d" % (plan["id"], stage), verts, faces, chrome))
 
     return body, parts

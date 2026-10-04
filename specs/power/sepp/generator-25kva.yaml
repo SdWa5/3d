@@ -59,6 +59,10 @@ physical:
   weight_kg: 465.0
   handles: [ ]
 
+transport:
+  # The generator travels standing, stated by the owner on 2026-10-04. It holds fuel and oil.
+  upright: true
+
 rigging:
   flyable: false
   points: [ ]

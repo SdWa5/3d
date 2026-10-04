@@ -69,6 +69,38 @@ final class ExtendToTest extends TestCase
     }
 
     /**
+     * A packed stand is its transport box everywhere the scene reads it, and the plan asks Blender for the folded model
+     * rather than a stretched one.
+     */
+    public function testAPackedStandIsItsTransportBox(): void
+    {
+        $result = $this->compile(['id' => 'tower', 'device' => 'truss-tower-4m', 'at' => [0, 0], 'packed' => true]);
+
+        self::assertSame([], $result['violations']);
+        $tower = $result['placed'][0];
+        self::assertSame(1.75, $tower->device->dimensions->height);
+        self::assertEqualsWithDelta(1.75, $tower->topZ(), 1e-9);
+        self::assertTrue($tower->toArray()['folded']);
+        self::assertArrayNotHasKey('scale_z', $tower->toArray());
+    }
+
+    public function testAStandIsNotPackedAndCrankedAtOnce(): void
+    {
+        $result = $this->compile(['id' => 'tower', 'device' => 'truss-tower-4m', 'at' => [0, 0], 'packed' => true, 'extend_to_m' => 3.0]);
+
+        self::assertStringContainsString('packed and extend_to_m are two states of truss-tower-4m', $result['violations'][0]->message);
+    }
+
+    /** A device with no transport box packs as it stands, so `packed` changes nothing about it. */
+    public function testPackingADeviceThatDoesNotFoldChangesNothing(): void
+    {
+        $result = $this->compile(['id' => 'sub', 'device' => 'wsx-18', 'at' => [0, 0], 'packed' => true]);
+
+        self::assertSame([], $result['violations']);
+        self::assertArrayNotHasKey('folded', $result['placed'][0]->toArray());
+    }
+
+    /**
      * @param array<string, mixed> $placement
      *
      * @return array{placed: list<\App\Scene\PlacedDevice>, violations: list<\App\Spec\Violation>}

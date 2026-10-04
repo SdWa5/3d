@@ -170,7 +170,14 @@ that shows up once.
 
 It also missed two figures the class standard does not carry at all: a **minimum** load of 25 kg, because a wind-up
 needs weight on it to crank safely, and a **transport length of 1.75 m** against the 4 m this spec models. That
-second one is why the packed convoy render showed a mast standing out of a trailer, and it is filed as SPEC-15.
+second one is why the packed convoy render showed a mast standing out of a trailer. **Since 0.148.0 the spec states
+it as a `transport:` box**, 0.240 × 1.750 × 0.300 m and `estimated`. The 1.75 m is the datasheet's. Nobody publishes
+the folded cross-section, so it is half of Thon's case for two of these stands, 1810 × 507 × 363 mm outside
+(thomann.de, *Thon Case Varytec Wind Up 85kg*), less its walls.
+
+**Thomann's manual for the stand disagrees with two figures this spec carries.** It gives a minimum height of 2.05 m
+and a footprint of at most 1.50 m, where the spec has a derived 2.225 m collapsed height and a 1.6 m spread marked
+`datasheet`. Neither is changed yet, because the owner has to say which source holds.
 
 **AND THE TRUSS WEIGHT WAS DERIVED, CONVINCINGLY, AND WRONG.** 10.3 kg came from fitting a line through three
 published F33 weights — 6.4 kg at 1.0 m, 8.2 at 1.5, 14.1 at 3.0 — giving 2.55 kg + 3.85 kg/m, which reproduces all
@@ -217,6 +224,11 @@ and like a truss's bay pitch they change the picture and nothing else.
 the platform stands at **5 m** and that is what `dimensions_m.height` carries. A spec that put 7 in the box would
 clear a truss it does not clear, which is why `SpecValidator` refuses a platform above the frame. Guardrails and rungs
 are not modelled, so the box stops at the deck and understates the standing structure by roughly a guardrail.
+
+**Its packed size is worked out, since Krause publishes none.** The longest part in the ClimTec AH 7 parts list
+(hawego.de, *Krause Monto ClimTec 0,65x1,50m AH 7,00m*) is the 2.00 × 0.65 m vertical frame, next to 1.75 m base
+frames and 1.89 m diagonals. One tower therefore bundles into 0.650 × 2.000 × 0.500 m, the 0.50 m being that list's
+seven frames and three decks side by side at this spec's 50 mm sections. The `transport:` block says `estimated`.
 
 ### The amp racks: derived weights, estimated cases
 

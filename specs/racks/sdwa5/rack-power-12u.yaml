@@ -47,6 +47,10 @@ physical:
   weight_kg: 45.0
   handles: [ left, right ]
 
+transport:
+  # Racks travel standing, stated by the owner on 2026-10-04.
+  upright: true
+
 rigging:
   flyable: false
   points: [ ]

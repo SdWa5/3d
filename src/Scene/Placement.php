@@ -96,6 +96,13 @@ final class Placement
          * compiler moves it back after aiming, see {@see SceneCompiler::flushFront}. Not read from a scene file.
          */
         public readonly ?float $frontYM = null,
+        /**
+         * Whether the device stands here as it travels, folded or taken apart, rather than erected.
+         *
+         * `scene:pack` writes it for a device whose spec states a transport box, so the overlap checks and the render
+         * read the packed box and draw the packed model. See {@see SceneCompiler::extended}.
+         */
+        public readonly bool $packed = false,
     ) {
     }
 
@@ -123,6 +130,7 @@ final class Placement
             focusByName: $this->focusByName,
             extendToM: $this->extendToM,
             frontYM: $frontYM,
+            packed: $this->packed,
         );
     }
 
@@ -165,7 +173,7 @@ final class Placement
     /** Everything a placement may say that is not a group. {@see GroupReader::keys} supplies the rest. */
     private const KEYS = [
         'id', 'device', 'at', 'yaw_deg', 'pitch_deg', 'roll_deg',
-        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack', 'focus', 'extend_to_m',
+        'aim_at', 'aim', 'on', 'fly', 'aim_lines', 'align', 'stack', 'focus', 'extend_to_m', 'packed',
     ];
 
     public static function fromReader(ArrayReader $reader, int $index): self
@@ -207,6 +215,7 @@ final class Placement
             align: ($align = $reader->optionalSection('align')) === null ? null : Alignment::fromReader($align),
             stack: null === $stack ? null : Stack::fromReader($stack),
             extendToM: $reader->optionalFloat('extend_to_m'),
+            packed: $reader->optionalBool('packed'),
         );
     }
 

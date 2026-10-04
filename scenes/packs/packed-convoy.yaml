@@ -6,7 +6,7 @@
 #
 # Regenerate it with:
 #
-#   bin/console scene:pack --write
+#   bin/console scene:pack --owner=sdwa5 --owner=sepp --write
 #
 # opel-movano-l4h3 — 1018.0 kg of 1024.0 kg payload, 14 units
 # fiat-ducato-250-l3h2 — 996.3 kg of 1000.0 kg payload, 14 units
@@ -48,12 +48,22 @@ placements:
     device: flexy-folded-horn-hybrid
     at: [ -0.3945, 5.748 ]
 
-  - id: opel-movano-l4h3-achenbach-18-8
+  - id: opel-movano-l4h3-geruest-krause-ah7-8
+    device: geruest-krause-ah7
+    at: [ 0.246, 5.516 ]
+    packed: true
+
+  - id: opel-movano-l4h3-geruest-krause-ah7-9
+    device: geruest-krause-ah7
+    at: [ -0.365, 6.5 ]
+    packed: true
+
+  - id: opel-movano-l4h3-achenbach-18-10
     device: achenbach-18
     at: [ -0.385, 2.8715 ]
     on: opel-movano-l4h3-skram-1
 
-  - id: opel-movano-l4h3-achenbach-18-9
+  - id: opel-movano-l4h3-achenbach-18-11
     device: achenbach-18
     at: [ 0.245, 2.8715 ]
     on: opel-movano-l4h3-skram-2
@@ -128,11 +138,8 @@ placements:
 
   - id: trailer-750kg-truss-tower-4m-3
     device: truss-tower-4m
-    at: [ 0, 18.3875 ]
-
-  - id: trailer-750kg-truss-f33-2m-4
-    device: truss-f33-2m
-    at: [ 0, 18.654 ]
+    at: [ 0, 18.436 ]
+    packed: true
 
 notes: |
   NOT CARRIED AT ALL — the fleet has no legal room for these:
@@ -142,12 +149,11 @@ notes: |
   
   WHAT THE LAYOUT RULE CANNOT DO, which is a statement about the rule rather than about the
   vans — a tighter pack, or one that turned things over, would handle these:
-    geruest-krause-ah7 has no room left in opel-movano-l4h3
-    geruest-krause-ah7 has no room left in opel-movano-l4h3
     achenbach-18 has no room left in opel-movano-l4h3
     achenbach-18 has no room left in opel-movano-l4h3
     rack-power-12u has no room left in opel-movano-l4h3
     achenbach-18 has no room left in fiat-ducato-250-l3h2
     truss-f33-2m has no room left in fiat-ducato-250-l3h2
+    truss-f33-2m has no room left in trailer-750kg
     generator-25kva stands 1.200 m proud on trailer-750kg, an open bed with no roof to check it against
-    truss-tower-4m stands 4.000 m proud on trailer-750kg, an open bed with no roof to check it against
+    truss-tower-4m stands 1.750 m proud on trailer-750kg, an open bed with no roof to check it against

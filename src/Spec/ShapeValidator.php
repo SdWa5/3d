@@ -7,6 +7,9 @@ namespace App\Spec;
 /** Checks shape-specific geometry and component bounds. */
 final class ShapeValidator
 {
+    /** The shapes `blender/lib` can draw in their packed form, see {@see validateTransport()}. */
+    private const FOLDING_SHAPES = [Shape::Mast, Shape::Scaffold];
+
     /**
      * A tapered shape needs its taper stated outright. Deriving it from a ratio would invent a
      * measurement, and an invented measurement is exactly what the provenance rules exist to stop.
@@ -45,6 +48,7 @@ final class ShapeValidator
             ...$this->validateMovingHead($spec),
             ...$this->validateScaffold($spec),
             ...$this->validateMast($spec),
+            ...$this->validateTransport($spec),
         ];
     }
 
@@ -384,6 +388,53 @@ final class ShapeValidator
 
         if ($truss->bayLength <= 0.0) {
             $messages[] = "geometry.truss.bay_length_m must be greater than 0, got {$truss->bayLength}";
+        }
+
+        return $messages;
+    }
+
+    /**
+     * The packed box, which only a device that can be drawn folded may state.
+     *
+     * **A box that differs from the erected one needs a packed drawing**, because the pack renders the real model.
+     * A mast folds its legs and collapses its stages, and a scaffold comes apart into a bundle of frames, and
+     * `blender/lib` draws both. Any other shape would render erected inside a box that claims otherwise, so it is
+     * refused until it has a drawing. `upright` alone needs nothing drawn and is allowed on every shape.
+     *
+     * **A mast's packed height is its transport length**, which the `mast` block already states. Two fields for one
+     * figure drift, so they must agree.
+     *
+     * @return list<string>
+     */
+    private function validateTransport(DeviceSpec $spec): array
+    {
+        $box = $spec->transport?->dimensions;
+        if (null === $box) {
+            return [];
+        }
+
+        $messages = [];
+        foreach ($box->toArray() as $axis => $value) {
+            if ($value <= 0) {
+                $messages[] = "transport.dimensions_m.{$axis} must be greater than 0, got {$value}";
+            }
+        }
+
+        if ($box->toArray() !== $spec->dimensions->toArray() && !in_array($spec->shape, self::FOLDING_SHAPES, true)) {
+            $messages[] = sprintf(
+                "transport.dimensions_m differs from the erected box, which only a shape drawn folded may do (%s), not '%s'",
+                implode(', ', array_map(static fn (Shape $shape): string => $shape->value, self::FOLDING_SHAPES)),
+                $spec->shape->value,
+            );
+        }
+
+        $length = $spec->mast?->transportLength;
+        if (null !== $length && abs($box->height - $length) > 1e-9) {
+            $messages[] = sprintf(
+                'transport.dimensions_m.height (%s) must equal geometry.mast.transport_length_m (%s)',
+                $box->height,
+                $length,
+            );
         }
 
         return $messages;

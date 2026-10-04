@@ -236,6 +236,9 @@ final class PlacedDevice
                 $this->position[1],
                 $this->position[2] + $this->zLift(),
             ],
-        ] + (1.0 === $this->scaleZ ? [] : ['scale_z' => $this->scaleZ]) + $this->orientation->toArray();
+        ] + (1.0 === $this->scaleZ ? [] : ['scale_z' => $this->scaleZ])
+            // The packed model, `<id>@packed` in the device's .blend, rather than the erected one.
+            + ($this->device->folded ? ['folded' => true] : [])
+            + $this->orientation->toArray();
     }
 }

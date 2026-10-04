@@ -40,12 +40,12 @@ arrive in their own vans, so the number is arithmetic about a convoy that does n
 
 ## The answer, today
 
-Re-measured on 2026-09-02, with the generator on the load:
+Re-measured on 2026-10-04, with the generator on the load and the folding gear at its transport size:
 
 ```
 opel-movano-l4h3 (sdwa5) — 14 units
   weight    1018.0 kg of 1024.0 kg payload  (6.0 kg spare)
-  space     14.153 m³ of 15.843 m³ bay  (89 % by bounding box)
+  space      5.703 m³ of 15.843 m³ bay  (36 % by bounding box)
 
 fiat-ducato-250-l3h2 (sepp) — 14 units
   weight     996.3 kg of 1000.0 kg payload  (3.7 kg spare)
@@ -59,8 +59,12 @@ trailer-750kg (sepp) — 4 units
 NOT CARRIED — short by 134.9 kg
      2 × eighteensound-2way-15               82.0 kg
      1 × truss-tower-4m                      25.0 kg
-     1 × geruest-krause-ah7                  84.0 kg
+     3 × truss-f33-2m                        27.9 kg
 ```
+
+**The Movano's space fell from 89 % to 36 % with SPEC-15**, because the two scaffold towers used to count as two
+5 m boxes and now count as two bundles of 0.65 m³. Weight did not move, since a folded stand weighs what an erected
+one does.
 
 **Three bins, all three within six kilogrammes of their limit, and 134.9 kg still at home.** Every one of them
 reports `UNDECIDED` for that reason: a margin that small, off masses good to tens of kilogrammes, is not a decision.
@@ -202,10 +206,17 @@ from the planner and puts the mass low without a rule of its own. No z is writte
 **The floor row stays between the wheel arches**, which is the one piece of real geometry the rule knows. On the
 Movano that is 1.380 m of usable width against a 1.765 m bay.
 
+**Folding gear is packed folded.** Every unit with a [`transport:`](spec-format.md#transport) box is placed at that
+box and written with `packed: true`, so the picture shows the Wind Up at 1.75 m and the scaffold as two bundles
+standing in the Movano rather than two 5 m towers.
+
 **What the rule cannot do, and the scene's own notes list it**: nothing is rotated, nothing is interleaved, and a
 trapezoid is packed as its bounding box. A real pack is tighter. Anything the rule cannot place is reported as
-overflow rather than squeezed in — **7 of 32 assigned units on the current pack**, mostly truss segments and
-scaffold towers, all of which would lie down without difficulty. That is LOAD-6.
+overflow rather than squeezed in. **6 of 32 assigned units overflow on the current pack**, down from 7 before the
+transport sizes. They are two Achenbach subs and the power rack in the Movano, an Achenbach and an F33 segment in the
+Ducato, and an F33 segment on the trailer.
+Most of that is a cursor that gives up on a row after one unit overflows, which LOAD-6 fixes together with turning
+units over.
 
 **Render it with `--labels` or it is a picture of anonymous boxes.** Three cages and twenty-five cabinets say nowhere
 which is which without them:
@@ -259,8 +270,6 @@ The constraints a bounding-box assignment cannot see, and which decide whether a
   position along the bay are estimates; the axle position is in no document we hold.
 * **Nothing turns.** A 2 m truss segment across a 1.38 m floor does not fit and would lie along the bay without
   difficulty. LOAD-6.
-* **A folding device is modelled erected.** The truss lift transports at 1.75 m and is modelled at its working 4 m,
-  because `dimensions_m` is one field answering two questions. SPEC-15.
 * **Labels overlap.** `--labels` names everything and a legend explains the colours, but eighteen labels at
   960 × 540 have several sitting on each other. CVR-9.
 * **Racks roll and cabinets do not.**

@@ -39,7 +39,7 @@ final class LoadPlan
     }
 
     /**
-     * **A lower bound on the space needed, never the space used.** It is the sum of bounding-box volumes, so it
+     * **A lower bound on the space needed, never the space used.** It is the sum of transport-box volumes, so it
      * counts the air around every wedge and inside every horn flare, and counts no aisle, no strapping and no
      * stacking rule. See {@see fitsTheBay}.
      */
@@ -47,7 +47,7 @@ final class LoadPlan
     {
         $volume = 0.0;
         foreach ($this->items as ['spec' => $spec, 'count' => $count]) {
-            $volume += $spec->dimensions->volumeM3() * $count;
+            $volume += $spec->transportDimensions()->volumeM3() * $count;
         }
 
         return $volume;

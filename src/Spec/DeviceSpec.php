@@ -104,6 +104,13 @@ final class DeviceSpec
         public readonly ?Power $power = null,
         /** Which half of the front the horn mouth opens in, for the mouth pairing. Optional. See {@see MouthSide}. */
         public readonly ?MouthSide $mouthSide = null,
+        /** The box it packs into and whether it may be laid down. Optional. See {@see Transport}. */
+        public readonly ?Transport $transport = null,
+        /**
+         * Whether this copy is the device in its packed form, made by {@see packed()}. Never true for a spec read
+         * from disk.
+         */
+        public readonly bool $folded = false,
     ) {
     }
 
@@ -184,6 +191,7 @@ final class DeviceSpec
             castors: Castors::fromReader($physical->optionalSection('castors')),
             power: Power::fromReader($audio?->optionalSection('power_w')),
             mouthSide: true === $audio?->has('mouth_side') ? $audio->requireEnum('mouth_side', MouthSide::class) : null,
+            transport: Transport::fromReader($reader->optionalSection('transport')),
         );
     }
 
@@ -231,8 +239,39 @@ final class DeviceSpec
         );
     }
 
-    /** Every field carried over except the two the `with…` methods change. */
-    private function copy(int $quantity, Dimensions $dimensions): self
+    /**
+     * This device as it travels: its box the transport box, and marked as folded where that box differs.
+     *
+     * The same copy {@see withHeight} makes. A scene that says `packed: true` places this, so the overlap checks, the
+     * support it rests on and the render all read the packed box. A device with no transport box packs as it stands
+     * and comes back unchanged.
+     */
+    public function packed(): self
+    {
+        $box = $this->transport?->dimensions;
+        if (null === $box || $this->folded) {
+            return $this;
+        }
+
+        return $this->copy($this->quantity, $box, true);
+    }
+
+    /**
+     * The box the load side packs, which is the transport box when the spec states one and the erected box otherwise.
+     */
+    public function transportDimensions(): Dimensions
+    {
+        return $this->transport->dimensions ?? $this->dimensions;
+    }
+
+    /** Whether the owner has said this device travels standing, so a pack may only turn it about the vertical. */
+    public function isUpright(): bool
+    {
+        return $this->transport->upright ?? false;
+    }
+
+    /** Every field carried over except the ones the `with…` methods and {@see packed()} change. */
+    private function copy(int $quantity, Dimensions $dimensions, ?bool $folded = null): self
     {
         return new self(
             sourcePath: $this->sourcePath,
@@ -277,6 +316,8 @@ final class DeviceSpec
             castors: $this->castors,
             power: $this->power,
             mouthSide: $this->mouthSide,
+            transport: $this->transport,
+            folded: $folded ?? $this->folded,
         );
     }
 
