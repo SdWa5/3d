@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The wind-up stand's mast block, against our own Varytec specs, because the case is about their numbers: 4.0 m at
- * full extension, a 1.75 m transport length, a 0.12 m adapter and a hub at 0.95 m.
+ * full extension, a 2.05 m minimum height, a 1.75 m transport length, a 0.12 m adapter and a hub at 0.85 m.
  */
 final class MastTest extends TestCase
 {
@@ -36,23 +36,26 @@ final class MastTest extends TestCase
         self::assertSame(2, $this->tower->mast->movingStages());
     }
 
-    /** The 1.75 m it folds to, less the 0.12 m adapter, is one tube, and the strut collar lifts it 0.475 m. */
-    public function testTheLengthsFollowFromTheTransportLength(): void
+    /**
+     * The 1.75 m it folds to, less the 0.12 m adapter, is one tube. The manual's 2.05 m minimum less the folded length
+     * puts the sleeve's foot 0.30 m off the floor.
+     */
+    public function testTheLengthsFollowFromTheManualsFigures(): void
     {
         $mast = $this->mast();
 
-        self::assertEqualsWithDelta(0.475, $mast->sleeveBottomM(), 1e-9);
+        self::assertEqualsWithDelta(0.30, $mast->sleeveBottomM(), 1e-9);
         self::assertEqualsWithDelta(1.63, $mast->tubeLengthM(), 1e-9);
-        self::assertEqualsWithDelta(2.225, $mast->collapsedHeightM(), 1e-9);
+        self::assertEqualsWithDelta(2.05, $mast->collapsedHeightM(), 1e-9);
     }
 
-    /** Two stages share the 1.775 m between collapsed and full, and each keeps 0.7425 m inside the one below. */
+    /** Two stages share the 1.95 m between collapsed and full, and each keeps 0.655 m inside the one below. */
     public function testEachStageOverlapsAtFullExtension(): void
     {
         $mast = $this->mast();
 
-        self::assertEqualsWithDelta(0.8875, $mast->travelM(4.0), 1e-9);
-        self::assertEqualsWithDelta(0.7425, $mast->overlapM(4.0), 1e-9);
+        self::assertEqualsWithDelta(0.975, $mast->travelM(4.0), 1e-9);
+        self::assertEqualsWithDelta(0.655, $mast->overlapM(4.0), 1e-9);
         self::assertGreaterThan(Mast::MIN_OVERLAP_M, $mast->overlapM(4.0));
     }
 
@@ -67,7 +70,7 @@ final class MastTest extends TestCase
         $plan = $this->mast()->planArray($this->tower->dimensions);
 
         self::assertEqualsWithDelta(1.63, $plan['tube_length_m'], 1e-9);
-        self::assertEqualsWithDelta(0.8875, $plan['travel_m'], 1e-9);
+        self::assertEqualsWithDelta(0.975, $plan['travel_m'], 1e-9);
         self::assertEqualsWithDelta(0.12, $plan['head_m'], 1e-9);
         self::assertSame(2, $plan['moving_stages']);
         self::assertSame($this->mast()->toArray()['sections_m'], $plan['sections_m']);

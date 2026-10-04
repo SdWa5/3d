@@ -6,19 +6,26 @@
 # standardised — and that reasoning got the height and the weight exactly right while naming the wrong machine and
 # overstating what it may carry by 15 kg.
 #
-# PUBLISHED VARYTEC WIND UP 85 kg FIGURES:
+# PUBLISHED VARYTEC WIND UP 85 kg FIGURES, and which document gives each:
 #
-#   max height          4.0 m
-#   transport length    1.75 m          <- NOT the same as the modelled height. See below.
-#   weight              25 kg
-#   max load            85 kg
-#   min load            25 kg           <- a wind-up needs load on it to be safe
-#   receiver            1 3/8", takes a 35 mm speaker flange
-#   crossbar (T-bar)    130 x 3.5 x 3.5 cm
-#   max base spread     1.6 m
+#   max height          4.00 m          manual and bundle page
+#   min height          2.05 m          manual
+#   transport length    1.75 m          manual and bundle page  <- NOT the same as the modelled height. See below.
+#   weight              25 kg           manual and bundle page
+#   max load            85 kg           manual and bundle page, with a centric load
+#   min load            25 kg           bundle page             <- a wind-up needs load on it to be safe
+#   receiver            1 3/8", 35 mm   manual and bundle page
+#   crossbar (T-bar)    1300 x 35 x 35 mm  manual and bundle page
+#   footprint, max      1.50 m          manual
 #   TÜV tested
 #
-# Thomann article 267121, the bundle: https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm
+# The manual is Thomann's user manual for the Varytec Wind Up 85 kg TÜV, technical data on page 15
+# (manualslib.com/manual/3360414). The bundle page is Thomann article 267121,
+# https://www.thomann.de/de/stairville_wind_up_dj_bundle_iii.htm, supplied by the owner on 2026-08-17.
+#
+# WHERE THE TWO DISAGREE, THE MANUAL HOLDS, as the owner decided on 2026-10-04. The bundle page gives a base spread
+# of 1.6 m where the manual gives a footprint of at most 1.50 m. Until 0.150.0 this spec carried the 1.6 m, and a
+# minimum height of 2.225 m that no document gave at all. It came from a hub height estimated off a photograph.
 #
 # WHAT THE GUESS GOT WRONG, and it is worth keeping: **max load 100 kg against a real 85**. Height and weight
 # matched to the kilogramme, which is exactly what makes a plausible substitution dangerous — the two figures easy
@@ -36,19 +43,22 @@
 # black winch with a crank on its back, and the truss adapter on top. See docs/spec-format.md#mast.
 #
 # **WHAT THE BOUNDING BOX IS.** The mast column at its full 4 m extension, as before, so placement and the overlap
-# sweep read the same box they always did. The legs reach outside it to the published 1.6 m spread, and no scene
-# check sees them. A backdrop stands its towers 0.8 m behind the rig for that reason, see src/Scene/StackBackdrop.php.
+# sweep read the same box they always did. The legs reach outside it to the manual's 1.50 m footprint, and no scene
+# check sees them. A backdrop stands its towers 0.75 m behind the rig for that reason, see src/Scene/StackBackdrop.php.
 # A pack reads the `transport` box instead, the stand folded to its 1.75 m.
 #
 # WHERE EACH FIGURE COMES FROM:
 #
-#   height 4.0 m, spread 1.6 m, transport 1.75 m, 35 mm receiver   datasheet
+#   height 4.00 m, min height 2.05 m, footprint 1.50 m             manual
+#   transport 1.75 m, 35 mm receiver, weight, max load              manual
+#   the sleeve's foot at 0.30 m                                     derived, min height less transport length
 #   three legs, a round mast of three tubes, the winch at the back   photographs
 #   every diameter, the hub height, the adapter's sizes              estimated off the photographs
 #
-# The 4.0 m is taken at the adapter's top face, where the truss rests, because the datasheet does not say whether it
-# includes one. The stand cranks down to 2.225 m, the 1.75 m transport length on the 0.475 m strut collar, and no
-# lower. A scene that asks for less is refused.
+# The 4.00 m and the 2.05 m are taken at the adapter's top face, where the truss rests, because the manual does not
+# say whether they include one. The manual covers the stand alone, so the truss may in truth rest one adapter higher.
+# Fully cranked down the stand is its 1.75 m folded length standing on the sleeve's foot, which therefore sits 0.30 m
+# off the floor. A scene that asks for less than 2.05 m is refused.
 id: truss-tower-4m
 name: "Varytec Wind Up 85 kg — 4 m truss lift"
 category: truss
@@ -74,12 +84,17 @@ geometry:
   mast:
     sections_m: [ 0.060, 0.050, 0.040 ]
     transport_length_m: 1.750
-    hub_height_m: 0.950
+    # Manual: "Height, min. 2.05 m". The sleeve's foot follows from it, 2.05 less 1.75.
+    min_height_m: 2.050
+    # Estimated off the photographs, and bounded by the manual: folded, each leg swings up from the hub along the
+    # sleeve, and the 1.75 m folded length leaves room for that only with the hub at about 0.88 m or below.
+    hub_height_m: 0.850
     spigot_diameter_m: 0.035
     legs: 3
-    base_spread_m: 1.600
+    # Manual: "Stand footprint, max. 1.50 m". The bundle page's 1.6 m is not used, see the header.
+    base_spread_m: 1.500
     leg_width_m: 0.030
-    # One leg straight back, +Y, away from the rig. The other two then reach 0.4 m towards it, half the 0.8 m a
+    # One leg straight back, +Y, away from the rig. The other two then reach 0.375 m towards it, half the 0.75 m a
     # backdrop leaves.
     leg_yaw_deg: 90
     winch: true
@@ -124,11 +139,12 @@ notes: |
   why the packed convoy render showed a mast standing out of a trailer. The `transport` block now carries the folded
   box, and a pack draws the stand folded.
 
-  THE LEGS SPREAD TO 1.6 m. That is the footprint to keep clear on a stage, eight times the 0.203 m column this spec
-  reports, and since 0.134.0 the model draws it. Three legs, one straight back, as the photographs show.
+  THE LEGS SPREAD TO 1.50 m, the manual's maximum footprint. That is the footprint to keep clear on a stage, seven
+  times the 0.203 m column this spec reports, and since 0.134.0 the model draws it. Three legs, one straight back, as
+  the photographs show. The bundle page says 1.6 m, and the manual holds.
 
   CRANKED DOWN, THE STAGES SLIDE. A scene that sets `extend_to_m` keeps the base, the legs and the winch as they are,
-  and each stage drops by its share. 2.225 m is the lowest it goes.
+  and each stage drops by its share. 2.05 m is the lowest it goes, from the manual.
 
   THE RECEIVER IS 1 3/8" and takes a 35 mm speaker flange directly. Two Varytec 35 mm truss adapters came with the
   bundle for mounting truss instead. They are drawn on top of the stands, and their mass is unpublished.

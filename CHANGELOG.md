@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.150.0] - 2026-10-04
+
+### Added
+
+- `min_height_m` in a mast block, the published minimum height. The sleeve's foot is worked out from it and the
+  transport length, and the validator refuses a minimum not above the folded length or a hub at the sleeve's foot.
+- `models:build` fails a packed drawing that reaches outside its transport box.
+
+### Changed
+
+- `truss-tower-4m` follows Thomann's manual for the Varytec Wind Up 85 kg, as the owner decided. It cranks down to
+  2.05 m instead of 2.225 m and spreads to 1.50 m instead of 1.6 m. The header names the document behind every
+  figure.
+- The Wind Up's hub height is 0.85 m instead of 0.95 m, so its folded legs fit inside the 1.75 m transport length.
+- `StackBackdrop` stands the towers 0.75 m behind the rig, half the manual's footprint, and the 79 committed scenes
+  with a backdrop are regenerated.
+
+### Removed
+
+- The sleeve's foot at half the hub height, which stated a minimum height no document gave.
+- SPEC-17 from `TODO.md`.
+
 ## [0.149.0] - 2026-10-04
 
 ### Added

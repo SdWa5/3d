@@ -116,12 +116,12 @@ final class StackBackdropTest extends TestCase
         self::assertStringContainsString('spans 10.000 m', (string) $this->ours()->problem($wide, 4.0));
     }
 
-    /** A 2.4 m room would need the truss at 2.142 m, and our stands crank no lower than 2.225 m. */
+    /** A 2.3 m room would need the truss at 2.042 m, and our stands crank no lower than the manual's 2.05 m. */
     public function testACeilingBelowTheCollapsedStandIsRefused(): void
     {
         self::assertStringContainsString(
-            'below the 2.225 m it cranks down to',
-            (string) $this->ours()->problem($this->devices['deco-panel-8x2-03'], 2.4),
+            'below the 2.050 m it cranks down to',
+            (string) $this->ours()->problem($this->devices['deco-panel-8x2-03'], 2.3),
         );
     }
 
@@ -174,10 +174,10 @@ final class StackBackdropTest extends TestCase
         $truss = $this->extentOf(array_filter($result['placed'], static fn (PlacedDevice $p): bool => str_starts_with($p->placementId, 'backdrop-truss')));
         self::assertEqualsWithDelta(-5.3, $truss['min'][0], 1e-6);
         self::assertEqualsWithDelta(4.7, $truss['max'][0], 1e-6);
-        // Flush on the front face, and the front face 0.605 m behind the rig: 0.8 m to the towers, less half the
+        // Flush on the front face, and the front face 0.555 m behind the rig: 0.75 m to the towers, less half the
         // truss and the whole panel.
         self::assertEqualsWithDelta($truss['min'][1], $byId['backdrop-deco']->worldBox()['max'][1], 1e-6);
-        self::assertEqualsWithDelta(0.5 + 0.8 - 0.145 - 0.05, $byId['backdrop-deco']->worldBox()['min'][1], 1e-6);
+        self::assertEqualsWithDelta(0.5 + 0.75 - 0.145 - 0.05, $byId['backdrop-deco']->worldBox()['min'][1], 1e-6);
 
         self::assertSame([], PlacementChecks::floatingFaults($result['placed']));
         self::assertSame([], Interpenetration::faults($result['placed'], PlacementChecks::CONTACT_TOLERANCE_M));

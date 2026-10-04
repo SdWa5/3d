@@ -384,14 +384,22 @@ final class SpecValidatorTest extends TestCase
             self::mastGeometry(['spigot_diameter_m' => 0.045]),
             'does not fit the top stage',
         ];
-        // Two tubes of 1.63 m cannot reach 4 m from a 2.225 m collapse with any overlap left.
+        // Two tubes of 1.63 m cannot reach 4 m from a 2.05 m collapse with any overlap left.
         yield 'stages that barely overlap' => [
             self::mastGeometry(['sections_m' => [0.060, 0.050]]),
             'under the 0.20 m a stage needs',
         ];
         yield 'a stand that collapses no lower than it extends' => [
-            self::mastGeometry(['transport_length_m' => 3.9]),
+            self::mastGeometry(['min_height_m' => 4.0]),
             'which is not below its 4 m full extension',
+        ];
+        yield 'a minimum height no taller than the folded stand' => [
+            self::mastGeometry(['min_height_m' => 1.7]),
+            'is not above the 1.75 m the stand folds to',
+        ];
+        yield "a hub below the sleeve's foot" => [
+            self::mastGeometry(['hub_height_m' => 0.25]),
+            "is not above the sleeve's foot at 0.300 m",
         ];
         yield 'two legs' => [
             self::mastGeometry(['legs' => 2]),
@@ -744,6 +752,7 @@ final class SpecValidatorTest extends TestCase
         return [
             'sections_m' => [0.060, 0.050, 0.040],
             'transport_length_m' => 1.750,
+            'min_height_m' => 2.050,
             'hub_height_m' => 0.950,
             'spigot_diameter_m' => 0.035,
             'legs' => 3,
