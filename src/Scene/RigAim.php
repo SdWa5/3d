@@ -17,6 +17,10 @@ use App\Spec\DeviceSpec;
  * {@see SceneCompiler::expandStacksAimedAtTheRig} re-solves those in the compiler. This re-solves them in the
  * command, so the rows a generated file states in its header are the rows its build produces.
  *
+ * **The rig's front face counts as well as its centre.** Every block stands on the same `at` y, flush at its own
+ * deepest cabinet's front, so the rig's front is the deepest block's. The compiler measures a focus's distance from
+ * there, and a shallower block's probe has to as well, or its tops are judged against a focus up to 220 mm nearer.
+ *
  * **Re-solved from what the file will say rather than from the deal.** The compiler reads each stack's inventory
  * off the written `from:` list, which holds the counts the block placed, so this solves the same counts in the same
  * order. Anything else would be a third opinion about the inventory.
@@ -26,7 +30,7 @@ final class RigAim
     /** How often a block is re-solved at most to follow a rig centre its own new width moved. */
     private const ROUNDS = 3;
 
-    /** How far a block's aim may stand from the rig's centre and count as aimed from it. */
+    /** How far a block's aim may stand from the rig's front centre, along either axis, and count as aimed from it. */
     private const SAME_CENTRE_M = 1e-3;
 
     /**
@@ -46,18 +50,21 @@ final class RigAim
             return $blocks;
         }
 
-        $aimedFrom = array_fill(0, count($blocks), 0.0);
+        // Each block's probe first aims from its own front centre, standing at the origin.
+        $aimedFrom = array_map(static fn (StackBlock $block): array => [0.0, -self::frontSetbackM($block)], $blocks);
         for ($round = 0; $round < self::ROUNDS; ++$round) {
             $centres = StackSceneWriter::centres($blocks, $centreX, $clearanceM);
+            $rigFrontY = -max(array_map(self::frontSetbackM(...), $blocks));
             $moved = false;
             foreach ($blocks as $index => $block) {
-                // The rig's centre as the block's own probe sees it, standing at the origin.
-                $rigX = $centreX - $centres[$index];
-                if (abs($rigX - $aimedFrom[$index]) <= self::SAME_CENTRE_M) {
+                // The rig's front centre as the block's own probe sees it, standing at the origin.
+                $rigFront = [$centreX - $centres[$index], $rigFrontY];
+                if (abs($rigFront[0] - $aimedFrom[$index][0]) <= self::SAME_CENTRE_M
+                    && abs($rigFront[1] - $aimedFrom[$index][1]) <= self::SAME_CENTRE_M) {
                     continue;
                 }
-                $aimedFrom[$index] = $rigX;
-                $solved = self::solved($block, $rigX, $devices);
+                $aimedFrom[$index] = $rigFront;
+                $solved = self::solved($block, $rigFront, $devices);
                 if (null === $solved || $solved->tiers == $block->tiers) {
                     continue;
                 }
@@ -114,20 +121,36 @@ final class RigAim
     /**
      * The scene's two foci with their x stated, so a probe at the origin aims at a rig centre somewhere else.
      *
+     * @param float|null $frontY the y of the rig's front face relative to the probe's `at`, null for the probe's own
+     *
      * @return array<string, Focus>
      */
-    public static function focusPointsAt(float $x): array
+    public static function focusPointsAt(float $x, ?float $frontY = null): array
     {
         return array_map(
-            static fn (Focus $focus): Focus => new Focus($focus->distanceM, $focus->heightM, $x),
+            static fn (Focus $focus): Focus => new Focus($focus->distanceM, $focus->heightM, $x, $frontY),
             StackSceneWriter::focusPoints(),
         );
     }
 
+    /** How far in front of its `at` the block's front face will stand once expanded. */
+    public static function frontSetbackM(StackBlock $block): float
+    {
+        $devices = [];
+        foreach ($block->tiers as $tier) {
+            foreach ($tier->segments as $segment) {
+                $devices[] = $segment[0];
+            }
+        }
+
+        return Stack::frontSetbackM($devices);
+    }
+
     /**
+     * @param array{float, float} $rigFront the rig's front centre relative to the block's `at`
      * @param array<string, DeviceSpec> $devices
      */
-    private static function solved(StackBlock $block, float $rigX, array $devices): ?StackBlock
+    private static function solved(StackBlock $block, array $rigFront, array $devices): ?StackBlock
     {
         $counts = $block->counts();
         $inventory = [];
@@ -144,7 +167,7 @@ final class RigAim
             SceneCompiler::seatingCheck(
                 $devices,
                 self::probePlacement($block->placementId, $block->stack, $block->align),
-                self::focusPointsAt($rigX),
+                self::focusPointsAt(...$rigFront),
             ),
         );
         if ([] !== $solved['problems']) {

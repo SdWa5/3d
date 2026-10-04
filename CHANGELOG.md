@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.151.0] - 2026-10-04
+
+### Added
+
+- `scene:diff`, which counts what a regeneration changed in `scenes/generated/` against a git revision. Per folder it
+  gives the verdicts, the rigs that changed verdict, appeared or vanished, the rigs whose rows changed, and the summed
+  and worst distance of the subs from their target height. `--list` names the rigs and `--all` prints a baseline.
+- SPEC-18 in `TODO.md`, whether the Wind Up manual's 2.05 m includes the truss adapter.
+
+### Changed
+
+- A pooled stack's seating check measures its focus from the rig's front face, which is the deepest stack's, rather
+  than its own. Both the compiler and `RigAim::reaimed()` now re-solve a stack when either the rig's x or its front
+  differs, so a stack already on the rig's x is solved again as well. 504 pooled `gmss` rigs stand on fronts 18 to
+  220 mm apart. All 1033 pooled `gmss` rigs were regenerated and none changed, because that much on a 10 m focus
+  decides nothing.
+- `Stack::frontSetbackM()` holds the rule that a stack's front stands half its deepest cabinet in front of its `at`,
+  for `Stack::expand()` and `RigAim` alike.
+- GEO-11 in `TODO.md` is reduced to cross-placement alignment.
+
 ## [0.150.0] - 2026-10-04
 
 ### Added

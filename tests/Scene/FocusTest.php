@@ -70,4 +70,16 @@ final class FocusTest extends TestCase
         self::assertSame(['focus'], array_keys($scene->focusByName));
         self::assertSame(Focus::DEFAULT_DISTANCE_M, $scene->focusByName['focus']->distanceM);
     }
+
+    /**
+     * A stated front face replaces the one the placements give, so a stack judged alone can aim from the rig's front.
+     * It is internal, so the plan JSON does not carry it.
+     */
+    public function testAStatedFrontFaceReplacesTheOneGiven(): void
+    {
+        $focus = new Focus(10.0, 1.8, null, -0.482);
+
+        self::assertEqualsWithDelta([0.3, -10.482, 1.8], $focus->point([0.3, -0.35]), 1e-12);
+        self::assertSame(['distance_m', 'height_m', 'x_m'], array_keys($focus->toArray()));
+    }
 }
