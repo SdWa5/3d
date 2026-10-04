@@ -322,8 +322,8 @@ entered on the device has to change instead. The next section has both cases.
 ### On the bench, 2026-09-29
 
 **The 8x8 was measured ten days after the event**, with its outputs looped back into a Behringer UMC1820 and
-every amplifier off. trackdsp, the software that drives the 8x8 over USB, records the runs and their raw figures
-in [`docs/measurements.md`](https://github.com/GitiGlitzer/dsp_linux_8x8/blob/main/docs/measurements.md). Four
+every amplifier off. sdwa5-dsp (formerly trackdsp), the software that drives the 8x8 over USB, records the runs and
+their raw figures in [`docs/measurements.md`](https://github.com/SdWa5/dsp/blob/main/docs/measurements.md). Four
 of its findings bear on this rig.
 
 **The 8x8 clips at about +12.5 on the scale its thresholds use, not at 18.** That holds for a 100 Hz signal. For
