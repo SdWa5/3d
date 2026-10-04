@@ -106,7 +106,8 @@ final class CatalogRenderer
             } else {
                 $units += $spec->quantity;
                 $weight += $spec->totalWeightKg();
-                $volume += $spec->dimensions->volumeM3() * $spec->quantity;
+                // Shipping volume, so the packed box where the spec states one.
+                $volume += $spec->transportDimensions()->volumeM3() * $spec->quantity;
 
                 $owner = $byOwner[$spec->owner] ?? ['units' => 0, 'weight_kg' => 0.0];
                 $byOwner[$spec->owner] = [

@@ -72,6 +72,11 @@ physical:
   castors: null               # optional: { face: back | left | right, diameter_m, color, locking } — four
                               # wheels near the corners, drawn outside the declared box. See below
 
+transport:                    # optional: how it travels, for the load side. See below
+  dimensions_m: null          # the packed box in the device's own axes; mast and scaffold only
+  provenance: null            # required with a box
+  upright: false              # true: a pack never lays it on a side or an end
+
 rigging:
   flyable: false              # true requires at least one point
   points:                     # positions in the measuring frame (see docs/conventions.md)
@@ -400,6 +405,39 @@ and a datasheet states a cabinet "ohne Rollen" for the same reason. The metadata
 so two cabinets back to back can show their wheels touching. Only the back and the sides can carry wheels,
 because wheels under the bottom would change the height every stack is built from.
 
+## Transport
+
+**A device has an erected size and a transport size, and `dimensions_m` is the erected one.** A scene needs the Wind
+Up stand at its working 4 m, and a van needs it at the 1.75 m it folds to. Until 0.148.0 one field carried both, so
+the packed convoy showed a mast standing out of the trailer. The optional `transport:` block holds the second size.
+
+```yaml
+transport:
+  dimensions_m: { width: 0.240, height: 1.750, depth: 0.300 }
+  provenance: estimated
+  upright: false
+```
+
+**The box is in the device's own axes**, so the folded stand is still 1.75 m along its own height. Laying it down is
+the pack's decision and not a fact about the stand. Everything on the load side reads the transport box when there is
+one, which means `load:plan`'s volume, `scene:pack` and the catalog's shipping volume. Scenes keep the erected box.
+
+**Only a shape that can draw itself packed may state a box that differs from the erected one**, which today means
+`mast` and `scaffold`. The model then carries a second collection, `<id>@packed`, beside the erected one. The mast folds
+its legs up along the sleeve and the scaffold is drawn as its frames and decks bundled on edge. A scene placement shows
+it with `packed: true`, which cannot be combined with `extend_to_m` because the two are different states of one stand.
+A box stated on any other shape is refused rather than drawn wrong.
+
+**On a mast the packed height must equal `mast.transport_length_m`**, so the two figures cannot drift apart.
+
+**A packed box names its provenance**, the way the erected one does. Neither of ours was published as a package size.
+The Wind Up's 1.75 m is the datasheet's and its cross-section is half of a case for two stands. The scaffold bundle is
+worked out from Krause's parts list for the ClimTec AH 7. Both therefore say `estimated`, see
+[sources.md](sources.md).
+
+**`upright: true` is a statement by the owner**, and it needs no box. The two racks and the generator carry it, so a
+pack turns them about the vertical only. Every other device may be turned onto a side or an end.
+
 ## Categories and subtypes
 
 | `category` | allowed `subtype` |
@@ -609,7 +647,8 @@ so the Blender side derives nothing.
 **Cranking slides the stages.** An `extend_to_m` below full height moves stage k of N down by k/N of the loss, so
 every joint keeps the same overlap and the base keeps its size. A tower still drawn as a box stretches as before.
 The collapsed height, the transport length on the sleeve's bottom, is the lowest a stand goes. Ours is 2.225 m, and
-a scene or a backdrop that needs less is refused.
+a scene or a backdrop that needs less is refused. The folded stand is a different thing, stated in
+[`transport:`](#transport) and drawn as `<id>@packed`.
 
 ## Mesh overrides
 
@@ -760,6 +799,9 @@ the origin and licence in [sources.md](sources.md).
   collapsed height not below the full height; a hub above the sleeve's top; stages that overlap by less than
   0.20 m at full extension; legs outside 3 to 8; a spread narrower than the column; an adapter longer than the
   spread, with its clamps off its bar, or too low to leave a spigot
+* in `transport`: an unknown key; a box without `provenance`; a box axis that is zero or negative; a box that
+  differs from `dimensions_m` on a shape other than `mast` or `scaffold`; and on a mast, a box height other than
+  `mast.transport_length_m`
 * coverage angles outside 0–360; drivers with no size or a count below 1
 * in `audio.layout`: a negative `inset_m`; a duplicate feature id; an unknown `kind`; a horn with no
   `throat_in` or a cone with no `diameter_in`; a `depth_m` that is zero or deeper than the cabinet; a

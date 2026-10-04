@@ -279,7 +279,8 @@ final class SceneCompiler
                     $copy->seated && null === $placement->fly,
                     $placement->aimLines,
                     $placement->fly?->label($placement->id),
-                    $device->dimensions->height / $model->dimensions->height,
+                    // A packed device is a different model, not a shorter one, so it is never stretched.
+                    $device->folded ? 1.0 : $device->dimensions->height / $model->dimensions->height,
                 );
 
                 $placed[] = $entry;
@@ -704,6 +705,7 @@ final class SceneCompiler
                 focusByName: $copy->focusByName,
                 extendToM: $copy->extendToM,
                 frontYM: $copy->frontYM,
+                packed: $copy->packed,
             );
         }
 
@@ -1369,9 +1371,18 @@ final class SceneCompiler
      * **Only a truss tower telescopes**, so a speaker or a truss segment given a height is a typo or a wish and is
      * refused rather than stretched. A tower can be cranked down and never above its spec, whose height is its
      * full extension. A tower drawn as a mast also stops at the height it collapses to.
+     *
+     * **A packed placement is the device as it travels**, {@see DeviceSpec::packed()}, which only a pack writes. A
+     * stand cannot be folded and cranked at once, so the two together are refused.
      */
     public static function extended(Placement $placement, DeviceSpec $device): DeviceSpec|string
     {
+        if ($placement->packed) {
+            return null === $placement->extendToM
+                ? $device->packed()
+                : sprintf('packed and extend_to_m are two states of %s, so state one', $device->id);
+        }
+
         $height = $placement->extendToM;
         if (null === $height) {
             return $device;

@@ -13,6 +13,7 @@ build/plans/top-a.json             flattened build plan (PHP → Python hand-off
         ▼
 build/glb/top-a.glb                canonical interchange model, metadata in glTF extras
 build/blend/top-a.blend            editable model, collection named `top-a`
+                                   plus `top-a@packed` when the spec states a folded transport box
         │
         │  bin/console library:build       blender --background --python blender/build_library.py
         ▼

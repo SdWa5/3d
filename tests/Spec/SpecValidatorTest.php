@@ -409,6 +409,20 @@ final class SpecValidatorTest extends TestCase
             self::mastGeometry(['adapter' => [...self::MAST_ADAPTER, 'height_m' => 0.08]]),
             'leaves no spigot',
         ];
+        // The packed box. Only a shape `blender/lib` can draw packed may differ from its erected box, and a mast's
+        // packed height is the transport length its own block states.
+        yield 'a packed box on a shape nobody draws packed' => [
+            ['transport' => ['dimensions_m' => ['width' => 0.8, 'height' => 0.3, 'depth' => 0.45], 'provenance' => 'estimated']],
+            "which only a shape drawn folded may do (mast, scaffold), not 'box'",
+        ];
+        yield 'a packed box with no length' => [
+            [...self::mastGeometry(), 'transport' => ['dimensions_m' => ['width' => 0.24, 'height' => 0.0, 'depth' => 0.3], 'provenance' => 'estimated']],
+            'transport.dimensions_m.height must be greater than 0',
+        ];
+        yield 'a folded mast longer than its transport length' => [
+            [...self::mastGeometry(), 'transport' => ['dimensions_m' => ['width' => 0.24, 'height' => 1.9, 'depth' => 0.3], 'provenance' => 'estimated']],
+            'transport.dimensions_m.height (1.9) must equal geometry.mast.transport_length_m (1.75)',
+        ];
         yield 'a mast that does not stand on the floor' => [
             ['geometry' => [...self::mastGeometry()['geometry'], 'origin' => 'geometric-center']],
             "needs origin 'bottom-center'",

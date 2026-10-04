@@ -64,6 +64,10 @@ physical:
   # A rack this heavy is carried by its case handles, and on castors more often than carried at all.
   handles: [ left, right ]
 
+transport:
+  # Racks travel standing, stated by the owner on 2026-10-04. The amplifiers hang from the front rails.
+  upright: true
+
 rigging:
   flyable: false
   points: [ ]

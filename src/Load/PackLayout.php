@@ -192,6 +192,9 @@ final class PackLayout
     /**
      * A plan's items as individual units, in the order the planner ranked them — heaviest first.
      *
+     * **Each unit is the device as it travels**, {@see DeviceSpec::packed()}, so every size read below is the
+     * transport box. A folding stand packs at the 1.75 m it folds to rather than the 4 m it stands.
+     *
      * @return list<DeviceSpec>
      */
     private static function units(LoadPlan $plan): array
@@ -199,7 +202,7 @@ final class PackLayout
         $units = [];
         foreach ($plan->items as ['spec' => $spec, 'count' => $count]) {
             for ($i = 0; $i < $count; ++$i) {
-                $units[] = $spec;
+                $units[] = $spec->packed();
             }
         }
 

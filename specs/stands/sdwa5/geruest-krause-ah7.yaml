@@ -67,6 +67,15 @@ physical:
   weight_kg: 84.0
   handles: [ ]
 
+transport:
+  # Taken apart: one bundle of frames, decks and braces per tower. Krause publishes no packed size. The longest part in
+  # its ClimTec AH 7 parts list is the 2.00 x 0.65 m vertical frame (hawego.de, Krause Monto ClimTec 0,65x1,50m AH
+  # 7,00m), next to 1.75 m base frames and 1.89 m diagonals, so the bundle is 2.00 m long and 0.65 m wide. Its 0.50 m
+  # is that list's seven frames and three decks side by side at this spec's 50 mm posts and deck, with the braces
+  # tucked between them. blender/lib/scaffold.py draws exactly that.
+  dimensions_m: { width: 0.650, height: 2.000, depth: 0.500 }
+  provenance: estimated
+
 rigging:
   # A scaffold stands on the ground. Nothing hangs from it and it hangs from nothing.
   flyable: false

@@ -40,8 +40,9 @@ final class BuildPlan
             // `front_image`, which puts a photograph on a plain cabinet's front face; 6 added `mast`, a wind-up
             // stand whose stages are separate objects so a scene can slide them; 7 added the `cell` and `fin` baffle
             // features, a `color` on every feature and a dome and a rim on a round grille, which the bpy side carves,
-            // draws and paints; 8 added `front_image.cutout`, which cuts the whole panel along the image's alpha.
-            'plan_version' => 8,
+            // draws and paints; 8 added `front_image.cutout`, which cuts the whole panel along the image's alpha; 9 added
+            // `transport_m`, for which the bpy side builds a second collection `<id>@packed` that a pack instances.
+            'plan_version' => 9,
             'id' => $spec->id,
             'name' => $spec->name,
             'category' => $spec->category->value,
@@ -61,6 +62,9 @@ final class BuildPlan
                 // The inside of a transporter, for `shape: load-bay`. Null for everything else, like the three
                 // above it — a vehicle is the fourth open-frame shape and needs no new mechanism.
                 'load_bay' => $spec->vehicle?->loadBayPlan(),
+                // The packed box, for a device that folds or comes apart. Null when it packs as it stands, and then
+                // no packed collection is built.
+                'transport_m' => $spec->transport?->dimensions?->toArray(),
                 'origin' => $spec->origin->value,
                 'chamfer_m' => $spec->chamfer,
             ],

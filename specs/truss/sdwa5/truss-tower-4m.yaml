@@ -38,7 +38,7 @@
 # **WHAT THE BOUNDING BOX IS.** The mast column at its full 4 m extension, as before, so placement and the overlap
 # sweep read the same box they always did. The legs reach outside it to the published 1.6 m spread, and no scene
 # check sees them. A backdrop stands its towers 0.8 m behind the rig for that reason, see src/Scene/StackBackdrop.php.
-# The box is still wrong for packing, because the stand transports at 1.75 m. Filed as SPEC-15.
+# A pack reads the `transport` box instead, the stand folded to its 1.75 m.
 #
 # WHERE EACH FIGURE COMES FROM:
 #
@@ -97,6 +97,13 @@ physical:
   max_load_kg: 85.0
   handles: [ ]
 
+transport:
+  # Folded: every stage inside the sleeve and the legs up against it. The 1.75 m is the datasheet's transport length
+  # and must equal `mast.transport_length_m`. Nobody publishes the folded cross-section, so it is half of Thon's case
+  # for two of these stands, 1810 x 507 x 363 mm outside (thomann.de, Thon Case Varytec Wind Up 85kg), less its walls.
+  dimensions_m: { width: 0.240, height: 1.750, depth: 0.300 }
+  provenance: estimated
+
 rigging:
   # A stand is what gets stood on the floor, not flown.
   flyable: false
@@ -113,8 +120,9 @@ notes: |
   MINIMUM LOAD 25 kg, which has no field anywhere. A wind-up needs weight on it to be safe to crank, so an empty
   stand is not a lightly loaded stand. Nothing in the schema expresses a lower bound on a load.
 
-  IT TRANSPORTS AT 1.75 m and is modelled at its erected 4 m, because one field carries both. That is why the packed
-  convoy render showed a mast standing out of a trailer. See SPEC-15.
+  IT TRANSPORTS AT 1.75 m, folded, and is modelled at its erected 4 m. Until 0.148.0 one field carried both, which is
+  why the packed convoy render showed a mast standing out of a trailer. The `transport` block now carries the folded
+  box, and a pack draws the stand folded.
 
   THE LEGS SPREAD TO 1.6 m. That is the footprint to keep clear on a stage, eight times the 0.203 m column this spec
   reports, and since 0.134.0 the model draws it. Three legs, one straight back, as the photographs show.
