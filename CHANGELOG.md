@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.152.1] - 2026-10-04
+
+### Changed
+
+- LOAD-2 in `TODO.md`, the Movano on a scale, is postponed by the owner, lowered from P1 to P4 and taken out of the
+  pickup order.
+
 ## [0.152.0] - 2026-10-04
 
 ### Added
