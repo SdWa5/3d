@@ -47,7 +47,8 @@ final class FlyThroughPlanTest extends TestCase
         $points = (new SceneCompiler($devices))->stackFocusPoints($scene);
         self::assertCount(3, $points);
         self::assertEqualsWithDelta(-0.494, $points['main-psl'][0], 1e-6);
-        self::assertEqualsWithDelta(-10.4575, $points['main-psl'][1], 1e-6);
+        // Since ALN-1 the PSL stack stands with its front on the deepest stack's, 24.5 mm ahead of its old centre line.
+        self::assertEqualsWithDelta(-10.482, $points['main-psl'][1], 1e-6);
         self::assertSame(1.8, $points['main-psl'][2]);
         $route = FlyThroughPlan::between($points, [0.0, 0.0, 2.0]);
         self::assertSame('main-ours', $route['start_stack']);

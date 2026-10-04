@@ -22,7 +22,8 @@ system brings and how each system is set up. Ours and Sepp's gear stands upright
 turned, with Innschleife's kickers standing as measured. A next-event sweep therefore does not vary orientation, and
 its scenes are named `stated`. The event puts ours and Sepp's low end central and Innschleife's low, so the combined
 rig carries both wanted layouts at once, two rows of [3 Flexy | SKRAM | 3 Flexy] for ours and the photo rows for
-Innschleife. PSL bring nine ESX and two EF 6, and nobody brings an Achenbach. The event leaves 0.24 m between stacks, which is what fits that combined rig into the 13 m room.
+Innschleife. PSL bring nine ESX and two EF 6, and nobody brings an Achenbach. The event leaves 0.24 m between stacks, which is what fits that combined rig into the 13 m room. That gap is measured
+between the compiled cabinets of neighbouring stacks, and every stack's front stands on one line.
 [events/next-event-light.yaml](events/next-event-light.yaml) is the same event without any Achenbach and with nine
 ESX instead of twelve, generated into `next-event-light` and `psl-next-event-light`. Both bring four EF 6. In the
 light version ours and Sepp's take a 1.6 m interface, so our stack stands as low as the other two.
