@@ -27,7 +27,7 @@ final class PlacedDevice
         public readonly bool $seated = true,
         /**
          * Whether this cabinet's placement asked for an aim line either way, or left it to the mode.
-         * Carried here so {@see \App\Render\RenderPlan} still reads nothing but placed devices.
+         * Carried here so {@see \App\Render\RenderPlacement} can take it along to the render.
          */
         public readonly ?bool $aimLines = null,
         /**

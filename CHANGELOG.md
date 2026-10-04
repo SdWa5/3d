@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.152.0] - 2026-10-04
+
+### Added
+
+- `App\Build\CompiledScene`, the solve `scene:build` keeps as `build/plans/<dir>/_compiled-<id>.json`. It is stale
+  when the scene file, a spec, an event, anything under `src/` or `composer.lock` is newer, and it is only written for
+  a solve without errors.
+- `App\Render\RenderPlacement`, a placed cabinet reduced to what `RenderPlan` reads of it, with a lossless JSON
+  round trip.
+- `RenderPlanFromCompiledSceneTest`, which compares the render plan from a fresh solve with the plan from the stored
+  record for eight shipped scenes, every camera and every aim mode.
+- TOOL-23 and TOOL-24 in `TODO.md` as proposals, the fly-through's own solve and the flat `_render-*.json` path.
+
+### Changed
+
+- `scene:render` reads the record `scene:build` kept instead of solving the scene again, and solves and stores it
+  only when the record is missing, stale or unreadable. `-v` names each record it reuses. A render that finds its
+  PNG current took 0.51 s before and 0.11 s after on the largest assembled `next-event-light` rig (TOOL-11).
+- `RenderPlan::forScene()` and `RenderPlan::bounds()` take placed devices and render placements alike.
+- `build:all`'s prune removes a `_compiled-<id>.json` whose scene is gone.
+- TOOL-11 is removed from `TODO.md` and from its pickup order.
+
 ## [0.151.0] - 2026-10-04
 
 ### Added

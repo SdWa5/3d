@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Build\BlenderRunner;
+use App\Build\CompiledScene;
 use App\Build\ModelBuilder;
 use App\Build\Staleness;
 use App\Scene\Fault;
@@ -13,6 +14,7 @@ use App\Scene\PlacedDevice;
 use App\Scene\PlacementChecks;
 use App\Scene\SceneCompiler;
 use App\Scene\SceneReport;
+use App\Scene\SceneSpec;
 use App\Spec\DeviceSpec;
 use App\Spec\Violation;
 use Symfony\Component\Console\Input\InputArgument;
@@ -78,6 +80,7 @@ final class SceneBuildCommand extends BaseCommand
         $dryRun = (bool) $input->getOption('dry-run');
         $force = (bool) $input->getOption('force');
         $exit = self::SUCCESS;
+        $sharedInputs = CompiledScene::sharedInputs($this->projectDir());
 
         foreach ($scenes as $scene) {
             $this->io->section($scene->name.' ('.$scene->id.')');
@@ -102,6 +105,7 @@ final class SceneBuildCommand extends BaseCommand
             if ($dryRun) {
                 continue;
             }
+            $this->keepCompiled($scene, $placed, $sceneViolations, $builder, $sharedInputs);
             if (!$this->modelsReady($specs, $builder, $placed)) {
                 $exit = self::FAILURE;
                 continue;
@@ -126,6 +130,36 @@ final class SceneBuildCommand extends BaseCommand
     }
 
     /**
+     * Leave this solve for `scene:render`, so the render passes after it do not solve the same file again (TOOL-11).
+     *
+     * Written on every solve that passed, also when the `.blend` turns out to be up to date, because the record is
+     * keyed to the solve's own inputs rather than to the assembly's. Only rewritten when it is stale, so a build where
+     * nothing moved writes nothing. A record that cannot be written costs the render one solve and is a warning.
+     *
+     * @param list<PlacedDevice> $placed
+     * @param list<Violation> $violations
+     * @param list<string> $sharedInputs
+     */
+    private function keepCompiled(
+        SceneSpec $scene,
+        array $placed,
+        array $violations,
+        ModelBuilder $builder,
+        array $sharedInputs,
+    ): void {
+        $file = CompiledScene::fileIn($this->derivedDir($builder->buildDir().'/plans', $scene), $scene->id);
+        if (!Staleness::outOfDate([$file], [$scene->sourcePath, ...$sharedInputs])) {
+            return;
+        }
+
+        try {
+            CompiledScene::write($file, $scene->id, $placed, Violation::warningsIn($violations));
+        } catch (\RuntimeException $e) {
+            $this->io->warning($e->getMessage().' — scene:render will solve this scene again');
+        }
+    }
+
+    /**
      * Whether this scene's `.blend` is older than anything it is built from.
      *
      * The inputs are the scene file, the assembly script, and **the model of every cabinet the scene places** —
@@ -134,7 +168,7 @@ final class SceneBuildCommand extends BaseCommand
      *
      * @param list<PlacedDevice> $placed
      */
-    private function needsAssembling(\App\Scene\SceneSpec $scene, array $placed, ModelBuilder $builder): bool
+    private function needsAssembling(SceneSpec $scene, array $placed, ModelBuilder $builder): bool
     {
         $inputs = Staleness::blenderInputs($this->projectDir(), 'blender/build_scene.py');
         $inputs[] = $scene->sourcePath;
@@ -147,7 +181,7 @@ final class SceneBuildCommand extends BaseCommand
         return Staleness::outOfDate([$this->blendFor($scene, $builder)], [...$inputs, ...array_values($seen)]);
     }
 
-    private function blendFor(\App\Scene\SceneSpec $scene, ModelBuilder $builder): string
+    private function blendFor(SceneSpec $scene, ModelBuilder $builder): string
     {
         return $this->derivedDir($builder->buildDir().'/scenes', $scene).'/'.$scene->id.'.blend';
     }
@@ -217,7 +251,7 @@ final class SceneBuildCommand extends BaseCommand
      * @param list<PlacedDevice> $placed
      */
     private function assemble(
-        \App\Scene\SceneSpec $scene,
+        SceneSpec $scene,
         array $placed,
         ModelBuilder $builder,
         OutputInterface $output,
