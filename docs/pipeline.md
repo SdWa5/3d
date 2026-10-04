@@ -74,6 +74,23 @@ Mtimes rather than hashes, and that choice is what makes the *chain* work with n
 than its model, so the model rebuilds; the model is then newer than the scene, so the scene reassembles; the
 scene is then newer than the render, so the render redraws. Each stage only ever compares its own neighbours.
 
+### Measuring a regeneration
+
+A solver change ends with a regeneration and a count of what it changed. `scene:diff` does the counting.
+
+```
+ddev exec bin/console scene:diff          # the working tree against HEAD
+ddev exec bin/console scene:diff main     # ...against another revision
+ddev exec bin/console scene:diff --list   # ...and name every rig that changed verdict
+ddev exec bin/console scene:diff --all    # ...every folder, unchanged ones too, as a baseline
+```
+
+A rig is matched across a rename by its path with `-possible` or `-impossible` cut off, because a changed verdict
+renames the file. The miss is how far each stack's subs stand from its `target_sub_height_m`, or from the 2.5 m default
+where none is stated, read off the header's "Subs reach" line. It is plain distance and not `heightCost`, so it reads
+in metres. Until 0.151.0 each release counted this by hand off the git diff, and 0.136.1, 0.142.0 and 0.144.0 report
+three differently shaped numbers for that reason.
+
 ### What mtimes cannot see
 
 An input moving is one question. **Whether an output was made with the settings now being asked for** is another,

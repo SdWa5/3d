@@ -26,7 +26,7 @@ final class SceneCompiler
     /** How often {@see expandStacksAimedAtTheRig} re-solves a pooled stack at most to follow a moving rig centre. */
     private const AIM_ROUNDS = 3;
 
-    /** How far a stack's aim may stand from the rig's centre and count as aimed from it. */
+    /** How far a stack's aim may stand from the rig's front centre, along either axis, and count as aimed from it. */
     private const SAME_CENTRE_M = 1e-3;
 
     /**
@@ -454,6 +454,12 @@ final class SceneCompiler
      * width and so move the rig's centre, which is the circular part. It is followed for at most
      * {@see self::AIM_ROUNDS} rounds, and a rig that has not settled by then keeps the last answer.
      *
+     * **The centre is a point in plan, not an x.** The finished scene measures a focus's distance from the rig's
+     * front face, which is the deepest stack's front, because every stack stands flush at its own deepest cabinet's
+     * front around one shared `at`. Until 0.151.0 the probe took the rig's x and its own front, so a shallower stack's
+     * tops were judged against a focus up to 220 mm nearer than the one they are aimed at, and a stack already on the
+     * rig's x was never re-solved at all. 504 pooled `gmss` rigs stand on fronts of different depth.
+     *
      * A stack whose re-solve finds nothing that seats keeps its first arrangement, the same as {@see RigAim} in
      * `scene:stack`, so a rig the aim cannot improve is judged as it was rather than dropped.
      *
@@ -469,7 +475,7 @@ final class SceneCompiler
     private function expandStacksAimedAtTheRig(SceneSpec $scene, callable $add, callable $warn, array &$stackOf): array
     {
         // Per placement, so a re-solve replaces one stack's tiers and its messages and leaves the rest alone.
-        $expand = function (Placement $placement, ?float $rigCentreX) use ($scene): array {
+        $expand = function (Placement $placement, ?array $rigFront) use ($scene): array {
             /** @var list<array{bool, string}> $messages whether it is a warning, and what it says */
             $messages = [];
             $own = [];
@@ -479,10 +485,10 @@ final class SceneCompiler
                 static function (string $message) use (&$messages): void { $messages[] = [false, $message]; },
                 static function (string $message) use (&$messages): void { $messages[] = [true, $message]; },
                 $own,
-                $rigCentreX,
+                $rigFront,
             );
 
-            return ['expanded' => $expanded, 'messages' => $messages, 'stackOf' => $own, 'aimedFromX' => $rigCentreX];
+            return ['expanded' => $expanded, 'messages' => $messages, 'stackOf' => $own, 'aimedFrom' => $rigFront];
         };
 
         $passes = [];
@@ -491,24 +497,25 @@ final class SceneCompiler
         }
 
         for ($round = 0; !$this->probing && $round < self::AIM_ROUNDS; ++$round) {
-            $rigCentreX = $this->frontCentre(array_merge(...array_column($passes, 'expanded')))[0];
+            $rigFront = $this->frontCentre(array_merge(...array_column($passes, 'expanded')));
             $moved = false;
             foreach ($scene->placements as $i => $placement) {
                 $expanded = $passes[$i]['expanded'];
                 if (null === $placement->stack || [] !== $placement->focusByName || [] === $expanded) {
                     continue;
                 }
-                $aimedFromX = $passes[$i]['aimedFromX'] ?? $this->frontCentre($expanded)[0];
-                if (abs($aimedFromX - $rigCentreX) <= self::SAME_CENTRE_M) {
+                $aimedFrom = $passes[$i]['aimedFrom'] ?? $this->frontCentre($expanded);
+                if (abs($aimedFrom[0] - $rigFront[0]) <= self::SAME_CENTRE_M
+                    && abs($aimedFrom[1] - $rigFront[1]) <= self::SAME_CENTRE_M) {
                     continue;
                 }
-                $reaimed = $expand($placement, $rigCentreX);
+                $reaimed = $expand($placement, $rigFront);
                 if ([] === $reaimed['expanded']) {
                     // **Nothing seats when aimed from the rig, so the first answer stands.** The solver would hand
                     // back an arrangement it never checked, and on `innschleife-psl-sdwa5-sepp` that one broke its own
                     // `shape: v` and dropped the scene. The first pass's arrangement still compiles, and the
                     // interpenetration check on the finished rig decides the verdict as it always did.
-                    $passes[$i]['aimedFromX'] = $rigCentreX;
+                    $passes[$i]['aimedFrom'] = $rigFront;
                     continue;
                 }
                 $passes[$i] = $reaimed;
@@ -532,20 +539,24 @@ final class SceneCompiler
     }
 
     /**
-     * A scene's foci with every one that has no x of its own aimed at the given x instead.
+     * A scene's foci measured from the given front centre instead of the probe's own.
+     *
+     * Every focus is measured from the given front face. One with an x of its own keeps it, and the rest take the
+     * given x.
      *
      * @param array<string, Focus> $focusByName
+     * @param array{float, float}|null $front the rig's front centre: its x, and the y of its front face
      *
      * @return array<string, Focus>
      */
-    private static function aimedFrom(array $focusByName, ?float $x): array
+    private static function aimedFrom(array $focusByName, ?array $front): array
     {
-        if (null === $x) {
+        if (null === $front) {
             return $focusByName;
         }
 
         return array_map(
-            static fn (Focus $focus): Focus => null !== $focus->xM ? $focus : new Focus($focus->distanceM, $focus->heightM, $x),
+            static fn (Focus $focus): Focus => new Focus($focus->distanceM, $focus->heightM, $focus->xM ?? $front[0], $front[1]),
             $focusByName,
         );
     }
@@ -562,8 +573,9 @@ final class SceneCompiler
      * @param callable(string):void $add
      * @param callable(string):void $warn
      * @param array<string, string> $stackOf filled with expanded placement id => the stack placement it came from
-     * @param float|null $rigCentreX where the finished rig's front centre stands, for a stack's seating check to aim
-     *                               from when the stack has no `focus:` of its own. Null aims from the stack's own.
+     * @param array{float, float}|null $rigFront where the finished rig's front centre stands, its x and the y of its
+     *                                           front face, for a stack's seating check to aim from when the stack has no
+     *                                           `focus:` of its own. Null aims from the stack's own.
      *
      * @return list<Placement>
      */
@@ -573,7 +585,7 @@ final class SceneCompiler
         callable $add,
         callable $warn,
         array &$stackOf = [],
-        ?float $rigCentreX = null,
+        ?array $rigFront = null,
     ): array {
         $expanded = [];
 
@@ -621,7 +633,7 @@ final class SceneCompiler
                             $this->devicesById,
                             $placement,
                             [] === $placement->focusByName
-                                ? self::aimedFrom($scene->focusByName, $rigCentreX)
+                                ? self::aimedFrom($scene->focusByName, $rigFront)
                                 : $scene->focusByName,
                         ),
                 );
@@ -725,10 +737,10 @@ final class SceneCompiler
      * `expandStacks()` finds nothing to solve, and `$probing` stops it asking the question again in any case.
      *
      * **What it deliberately does not see** is the rest of the scene. The inner compile works out its own front face
-     * from this stack alone, so a tops row aimed at a focus is aimed from a centre the finished scene may move. That
-     * is the genuinely circular half of GEO-11 and it is left open: aiming needs the front face, the front face needs
-     * every placement, and every placement needs the solve. What is reconciled here is everything the stack decides
-     * on its own, which is where all four of GEO-11's measured symptoms live.
+     * from this stack alone, so a tops row aimed at a focus is aimed from a centre the finished scene may move. The
+     * caller closes that gap from outside by stating the rig's front centre in `$focusByName` (see
+     * {@see expandStacksAimedAtTheRig} and {@see Focus::$frontYM}), because aiming needs the front face, the front
+     * face needs every placement, and every placement needs the solve.
      *
      * A candidate that will not compile at all is refused the same as one that overlaps or leaves a cabinet over air.
      * Either way the search should go on looking rather than hand this arrangement to whoever asked.

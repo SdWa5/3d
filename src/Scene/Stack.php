@@ -288,6 +288,24 @@ final class Stack
     }
 
     /**
+     * How far in front of its `at` a stack's front face stands, which is half its deepest cabinet's depth.
+     *
+     * {@see expand} stands every cabinet flush with that plane. {@see RigAim} reads the same figure to know where the
+     * front of a rig of several stacks will be before any of them is expanded, so the rule lives here once.
+     *
+     * @param iterable<DeviceSpec> $devices
+     */
+    public static function frontSetbackM(iterable $devices): float
+    {
+        $deepest = 0.0;
+        foreach ($devices as $device) {
+            $deepest = max($deepest, $device->dimensions->depth);
+        }
+
+        return $deepest / 2;
+    }
+
+    /**
      * The solved tiers as ordinary placements, which is the whole trick: nothing downstream — the compiler,
      * the report, the render, the build plan — ever learns that a stack was involved.
      *
@@ -310,13 +328,13 @@ final class Stack
 
         // Flush at the front, on the plane the deepest cabinet's front stands on when centred on `at`. So the rig's
         // front face does not move, and every shallower cabinet stands back by half of what it lacks in depth.
-        $deepest = 0.0;
+        $devices = [];
         foreach ($resolved as $runs) {
             foreach ($runs as $run) {
-                $deepest = max($deepest, $run['device']->dimensions->depth);
+                $devices[] = $run['device'];
             }
         }
-        $frontY = $at[1] - $deepest / 2;
+        $frontY = $at[1] - self::frontSetbackM($devices);
 
         /** @var array<string, list<array{string, float, float}>> $carriers the runs of the tier below that pairing split */
         $carriers = [];

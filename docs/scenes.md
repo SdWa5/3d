@@ -701,6 +701,12 @@ same with `RigAim::reaimed()` once the blocks are laid out, so a file's header r
 Before that, nine pooled `sdwa5-sepp` and `gmss-sdwa5` rigs won arrangements in 0.142.0 that stood alone and overlapped
 by up to 44 mm once aimed for real.
 
+The rig's front centre is a point in plan and not just an x. Every stack stands flush at the front of its own deepest
+cabinet around one shared `at`, so a pooled rig's front face is its deepest stack's, and a focus's distance is measured
+from there. Since 0.151.0 the predicate is told that front face as well (`Focus::$frontYM`). Before, a shallower
+stack's tops were judged against a focus up to 220 mm nearer than the one the scene aims them at, and a stack already
+on the rig's x was never solved again. Both the compiler and `RigAim::reaimed()` now compare x and front y.
+
 The scene records no gap. Like the row budget, the gaps come out of the constraints, so a re-solve reproduces them.
 The writer's row comment names a gapped row, for example `6× achenbach-18 at 262 mm gaps`, and `stack.gap_m` stays the
 packed gap. Alignment still never spreads a load-bearing tier (ALN-4). A gapped row is chosen by the fill and

@@ -25,6 +25,12 @@ final class Focus
         public readonly float $distanceM = self::DEFAULT_DISTANCE_M,
         public readonly float $heightM = self::DEFAULT_HEIGHT_M,
         public readonly ?float $xM = null,
+        /**
+         * The y of the front face the distance is measured from, where something other than the placements being
+         * compiled decides it. Only {@see SceneCompiler}'s seating check states it, so that a stack judged on its own
+         * aims from the rig's front face rather than its own (GEO-11). A scene file cannot say it.
+         */
+        public readonly ?float $frontYM = null,
     ) {
     }
 
@@ -45,7 +51,8 @@ final class Focus
      * The absolute point, given where the rig stands.
      *
      * Distance is measured from the rig's **front face**, not from the world origin, so a deeper rig
-     * does not quietly pull the focus closer. Cabinets face −Y, so "in front" is decreasing y.
+     * does not quietly pull the focus closer. Cabinets face −Y, so "in front" is decreasing y. A stated
+     * {@see $frontYM} takes the place of the front face given here.
      *
      * @param array{float, float} $frontCentre the x centre of the rig and the y of its front face
      *
@@ -55,7 +62,7 @@ final class Focus
     {
         return [
             $this->xM ?? $frontCentre[0],
-            $frontCentre[1] - $this->distanceM,
+            ($this->frontYM ?? $frontCentre[1]) - $this->distanceM,
             $this->heightM,
         ];
     }
