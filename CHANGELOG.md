@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.152.2] - 2026-10-04
+
+### Changed
+
+- The pickup order in `TODO.md` lists the next 13 steps, with each open owner decision placed before the work it
+  unblocks.
+
 ## [0.152.1] - 2026-10-04
 
 ### Changed
