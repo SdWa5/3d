@@ -68,7 +68,7 @@ focus:
 placements:
   # 1, 18 cabinets in 5 rows
   - id: main-1
-    at: [-6.428, 0.0]
+    at: [-6.5267, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
@@ -110,7 +110,7 @@ placements:
 
   # 2, 20 cabinets in 2 rows
   - id: main-2
-    at: [1.8225, 0.0]
+    at: [1.8621, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

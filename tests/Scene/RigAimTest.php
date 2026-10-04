@@ -120,11 +120,12 @@ final class RigAimTest extends TestCase
     }
 
     /**
-     * **A block's probe is told the rig's front face, which is the deepest block's.** Every block stands on one `at`,
-     * flush at its own deepest cabinet, so a block of Achenbachs alone stands 0.132 m behind one that holds a Flexy.
-     * Its tops are aimed at a focus 10 m in front of the Flexy's front, and the probe has to measure from there too.
+     * **A block's probe measures the focus from the rig's front face, which since ALN-1 is every block's own.** A
+     * block of Achenbachs alone is 0.264 m shallower than one that holds a Flexy, and the writer stands it 0.132 m
+     * further forward so both fronts are one line ({@see \App\Scene\StackSceneWriter::depths}). Its tops are aimed
+     * at a focus 10 m in front of that line, and the probe measures from there too.
      */
-    public function testTheProbeAimsFromTheDeepestBlocksFront(): void
+    public function testTheProbeAimsFromTheRigsFrontWhichIsEveryBlocksOwn(): void
     {
         $flexy = $this->block('main-1', 1);
         $achenbachs = new StackBlock(
@@ -139,8 +140,12 @@ final class RigAimTest extends TestCase
         self::assertEqualsWithDelta(0.964 / 2, RigAim::frontSetbackM($flexy), 1e-9);
         self::assertEqualsWithDelta(0.700 / 2, RigAim::frontSetbackM($achenbachs), 1e-9);
 
-        $far = RigAim::focusPointsAt(1.2, -RigAim::frontSetbackM($flexy))['far'];
-        self::assertEqualsWithDelta([1.2, -0.482 - 10.0, 1.8], $far->point([0.0, -0.35]), 1e-9);
+        // The rig's front, the Flexy block's, seen from where the Achenbach block stands.
+        [$flexyY, $achenbachY] = \App\Scene\StackSceneWriter::depths([$flexy, $achenbachs], 0.0);
+        self::assertEqualsWithDelta(-RigAim::frontSetbackM($achenbachs), $flexyY - 0.482 - $achenbachY, 1e-9);
+
+        $far = RigAim::focusPointsAt(1.2, -RigAim::frontSetbackM($achenbachs))['far'];
+        self::assertEqualsWithDelta([1.2, -0.35 - 10.0, 1.8], $far->point([0.0, -0.35]), 1e-9);
     }
 
     /**

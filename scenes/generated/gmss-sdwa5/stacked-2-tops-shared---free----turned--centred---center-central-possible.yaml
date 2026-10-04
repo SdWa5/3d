@@ -69,7 +69,7 @@ focus:
 placements:
   # ours-2, 9 cabinets in 4 rows
   - id: main-ours-2
-    at: [-3.83, 0.0]
+    at: [-3.83, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -162,7 +162,7 @@ placements:
 
   # ours-1, 9 cabinets in 4 rows
   - id: main-ours-1
-    at: [3.226, 0.0]
+    at: [3.226, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

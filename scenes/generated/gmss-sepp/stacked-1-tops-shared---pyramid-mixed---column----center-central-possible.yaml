@@ -50,7 +50,7 @@ focus:
 placements:
   # gmss, 13 cabinets in 6 rows
   - id: main-gmss
-    at: [-1.2548, 0.0]
+    at: [-1.356, 0.0]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:
@@ -83,7 +83,7 @@ placements:
 
   # ours, 9 cabinets in 4 rows
   - id: main-ours
-    at: [1.358, 0.0]
+    at: [1.358, -0.15]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     focus:
       far:

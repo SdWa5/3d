@@ -455,10 +455,14 @@ final class SceneCompiler
      * {@see self::AIM_ROUNDS} rounds, and a rig that has not settled by then keeps the last answer.
      *
      * **The centre is a point in plan, not an x.** The finished scene measures a focus's distance from the rig's
-     * front face, which is the deepest stack's front, because every stack stands flush at its own deepest cabinet's
-     * front around one shared `at`. Until 0.151.0 the probe took the rig's x and its own front, so a shallower stack's
-     * tops were judged against a focus up to 220 mm nearer than the one they are aimed at, and a stack already on the
-     * rig's x was never re-solved at all. 504 pooled `gmss` rigs stand on fronts of different depth.
+     * front face, which is the frontmost stack's front. Until 0.151.0 the probe took the rig's x and its own front, so
+     * a shallower stack's tops were judged against a focus up to 220 mm nearer than the one they are aimed at, and a
+     * stack already on the rig's x was never re-solved at all. Since ALN-1 `scene:stack` writes every stack with its
+     * front on one line ({@see StackSceneWriter::depths}), so in a generated rig the two fronts coincide, and a hand-
+     * written scene that stands its stacks on different fronts is still measured from the frontmost.
+     *
+     * **Where the stacks stand across is not decided here.** Each stack's x is the `at` its file states, and
+     * `scene:stack` spaces those on the edges this compile measured (GEO-11, {@see StackSceneWriter::centres}).
      *
      * A stack whose re-solve finds nothing that seats keeps its first arrangement, the same as {@see RigAim} in
      * `scene:stack`, so a rig the aim cannot improve is judged as it was rather than dropped.

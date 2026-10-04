@@ -141,14 +141,65 @@ final class SceneStackEventTest extends SceneStackTestCase
         self::assertStringContainsString('2× achenbach-18 + 2× skram + 2× achenbach-18', $display);
     }
 
-    /** A room even the narrowest stacks cannot fit is refused, and the refusal names that narrowest rig. */
+    /**
+     * **GEO-11 and ALN-1 on the event they were measured on.** Every pair of neighbouring stacks stands at least the
+     * event's 0.24 m apart where their cabinets actually are, aimed tops included, and every stack's foot stands on
+     * one front line. Spaced on their widest tiers, the `tops-shared` rig's stacks stood 35 mm closer than that on
+     * each side, and the stacks' fronts of both rigs stood 32 mm apart.
+     */
+    #[\PHPUnit\Framework\Attributes\TestWith(['systems-apart'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['tops-shared'])]
+    public function testTheStacksStandTheClearanceApartAndFlushAtTheFront(string $systems): void
+    {
+        $options = ['--systems' => [$systems], '--id' => self::THROWAWAY_ID] + self::ACHENBACH_STEREO;
+        unset($options['--dry-run']);
+        self::assertSame(0, $this->invoke($options)->getStatusCode());
+        $files = self::throwaway();
+        self::assertNotEmpty($files);
+
+        $devices = [];
+        foreach ((new \App\Spec\SpecLoader(dirname(__DIR__, 2).'/specs'))->loadAll()['specs'] as $spec) {
+            $devices[$spec->id] = $spec;
+        }
+        foreach ($files as $file) {
+            $data = \Symfony\Component\Yaml\Yaml::parseFile($file);
+            $stacks = array_column(array_filter($data['placements'], static fn (array $p): bool => isset($p['stack'])), 'id');
+            $placed = (new \App\Scene\SceneCompiler($devices))->compile(\App\Scene\SceneSpec::fromArray($data, 'test'))['placed'];
+
+            $spans = [];
+            $fronts = [];
+            foreach ($placed as $cabinet) {
+                $owner = explode('/', $cabinet->placementId, 2)[0];
+                if (!in_array($owner, $stacks, true)) {
+                    continue;
+                }
+                $box = $cabinet->worldBox();
+                $spans[$owner] = [min($spans[$owner][0] ?? INF, $box['min'][0]), max($spans[$owner][1] ?? -INF, $box['max'][0])];
+                $fronts[$owner] = min($fronts[$owner] ?? INF, $cabinet->footFrontY());
+            }
+            self::assertGreaterThan(1, count($spans), basename($file));
+            usort($spans, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+            for ($i = 1; $i < count($spans); ++$i) {
+                self::assertGreaterThanOrEqual(0.24 - 1e-3, $spans[$i][0] - $spans[$i - 1][1], basename($file));
+            }
+            self::assertEqualsWithDelta(0.0, max($fronts) - min($fronts), 1e-3, basename($file));
+        }
+    }
+
+    /**
+     * A room even the narrowest stacks cannot fit is refused, and the refusal names that narrowest rig.
+     *
+     * 11.457 m since GEO-11 spaces the stacks on where their cabinets stand. The narrowest rig's aimed tops reach up to
+     * 135 mm past their stacks' widest tiers, so spaced on those tiers its two gaps held 242 mm less than the clearance
+     * between them, and the same rows measured 11.215 m.
+     */
     public function testARoomTooNarrowForTheNarrowestStacksNamesTheNarrowestRig(): void
     {
         $tester = $this->invoke(self::ACHENBACH_STEREO + ['--room-width' => '11']);
 
         self::assertSame(SceneStackCommand::NOTHING_TO_WRITE, $tester->getStatusCode());
         self::assertStringContainsString(
-            'the whole rig is 11.215 m wide even with its stacks narrowed, and exceeds the 11.000 m room width',
+            'the whole rig is 11.457 m wide even with its stacks narrowed, and exceeds the 11.000 m room width',
             $tester->getDisplay(),
         );
     }

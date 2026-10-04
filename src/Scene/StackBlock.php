@@ -19,6 +19,8 @@ final class StackBlock
      * @param list<string> $from device ids in this stack, low frequency first
      * @param list<string> $warnings what the solver had to say about it
      * @param array<string, string> $omitted device id => why it is not in this stack
+     * @param array{float, float}|null $spanM the compiled stack's left and right edge relative to its `at`, null until
+     *                                        a compile has measured it. See {@see extentM}
      */
     public function __construct(
         public readonly string $placementId,
@@ -29,7 +31,50 @@ final class StackBlock
         public readonly array $warnings,
         public readonly array $omitted = [],
         public readonly ?LayoutMode $align = null,
+        public readonly ?array $spanM = null,
     ) {
+    }
+
+    /**
+     * The same block with its compiled extent measured, so the writer spaces it on where its cabinets stand.
+     *
+     * A re-solve builds a new block without one, because new tiers stand somewhere else and the old measurement no
+     * longer describes them.
+     */
+    public function withSpan(float $leftM, float $rightM): self
+    {
+        return new self(
+            $this->placementId,
+            $this->label,
+            $this->stack,
+            $this->tiers,
+            $this->from,
+            $this->warnings,
+            $this->omitted,
+            $this->align,
+            [$leftM, $rightM],
+        );
+    }
+
+    /**
+     * How far this stack reaches to the left and to the right of its `at`, which is what a neighbour has to clear.
+     *
+     * **Measured where a compile has measured it, nominal until then** (GEO-11). The nominal figure is the widest tier
+     * centred on `at`, and it is wrong in both directions once the stack is built. Aimed tops turn their corners out,
+     * `clear_of` pushes a cluster past the subs and a row may stand off centre, so on 2026-10-04 1441 of 3669
+     * multi-stack rigs stood up to 664 mm closer than `--clearance` and 39 up to 7.85 m further apart.
+     *
+     * @return array{float, float} left edge (negative) and right edge, relative to `at`
+     */
+    public function extentM(): array
+    {
+        if (null !== $this->spanM) {
+            return $this->spanM;
+        }
+
+        $half = $this->widthM() / 2;
+
+        return [-$half, $half];
     }
 
     /**

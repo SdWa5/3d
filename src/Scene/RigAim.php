@@ -17,9 +17,12 @@ use App\Spec\DeviceSpec;
  * {@see SceneCompiler::expandStacksAimedAtTheRig} re-solves those in the compiler. This re-solves them in the
  * command, so the rows a generated file states in its header are the rows its build produces.
  *
- * **The rig's front face counts as well as its centre.** Every block stands on the same `at` y, flush at its own
- * deepest cabinet's front, so the rig's front is the deepest block's. The compiler measures a focus's distance from
- * there, and a shallower block's probe has to as well, or its tops are judged against a focus up to 220 mm nearer.
+ * **The rig's front face counts as well as its centre.** The compiler measures a focus's distance from the rig's
+ * front, and a block's probe has to as well, or its tops are judged against a focus up to 220 mm nearer. Since ALN-1
+ * every block stands with its front on the rig's ({@see StackSceneWriter::depths}), so that front is each block's own.
+ *
+ * **The centres are the writer's, measured spans included** (GEO-11). A block that a compile has measured carries its
+ * real extent, {@see StackSceneWriter::centres} spaces on it, and the aim follows the block to where it will stand.
  *
  * **Re-solved from what the file will say rather than from the deal.** The compiler reads each stack's inventory
  * off the written `from:` list, which holds the counts the block placed, so this solves the same counts in the same
@@ -54,11 +57,11 @@ final class RigAim
         $aimedFrom = array_map(static fn (StackBlock $block): array => [0.0, -self::frontSetbackM($block)], $blocks);
         for ($round = 0; $round < self::ROUNDS; ++$round) {
             $centres = StackSceneWriter::centres($blocks, $centreX, $clearanceM);
-            $rigFrontY = -max(array_map(self::frontSetbackM(...), $blocks));
             $moved = false;
             foreach ($blocks as $index => $block) {
-                // The rig's front centre as the block's own probe sees it, standing at the origin.
-                $rigFront = [$centreX - $centres[$index], $rigFrontY];
+                // The rig's front centre as the block's own probe sees it, standing at the origin. Its front is the
+                // block's own, because every block stands flush with the rig's front.
+                $rigFront = [$centreX - $centres[$index], -self::frontSetbackM($block)];
                 if (abs($rigFront[0] - $aimedFrom[$index][0]) <= self::SAME_CENTRE_M
                     && abs($rigFront[1] - $aimedFrom[$index][1]) <= self::SAME_CENTRE_M) {
                     continue;

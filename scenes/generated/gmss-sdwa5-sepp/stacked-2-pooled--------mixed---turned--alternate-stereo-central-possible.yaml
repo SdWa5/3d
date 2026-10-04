@@ -120,7 +120,7 @@ placements:
 
   # 1, 15 cabinets in 5 rows
   - id: main-1
-    at: [2.288, 0.0]
+    at: [2.288, -0.018]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo

@@ -80,7 +80,7 @@ placements:
 
   # 1, 4 cabinets in 2 rows
   - id: main-1
-    at: [1.443, 0.0]
+    at: [1.443, -0.22]
     aim: far                 # the TOP tiers only; subs fire straight ahead
     align:
       mode: stereo
