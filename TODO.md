@@ -57,8 +57,8 @@ pairs beat every single owner.
 
 Settled with the owner on 2026-10-04, so a new session can act on it without re-deriving it.
 
-**Before the list, one errand off the keyboard. Put the Movano on a scale (LOAD-2).** Sepp's van weighed 365 kg more
-than its registration document says, and the Movano's 1024 kg payload is the same class of paper figure.
+**LOAD-2, the Movano on a scale, is out of this order.** The owner postponed it on 2026-10-04, because it takes real
+effort and several things it needs are not set yet, and lowered it to P4.
 
 1. **GEO-11's scene-level half**, now only cross-placement alignment, since 0.144.0 settled the aiming of pooled
    stacks and 0.151.0 the depth of their focus. It starts with the plan its block asks for, not with code, and the
@@ -198,15 +198,16 @@ rows, and `Gravity` splits a wall of many thin rows into runs inside each other.
 
 **Raised to P1 across the group by the owner.** It is the only group whose output somebody needs on the day, a rig that
 cannot be transported is not a rig, and a payload overrun is a legal problem rather than a bad-looking render. **GMSS
-gear does not travel in these two vans**, also stated by the owner.
+gear does not travel in these two vans**, also stated by the owner. **LOAD-2 is the exception since 2026-10-04**, which
+the owner postponed to P4.
 
 **The code half is done.** LOAD-1 landed in 0.86.0 and both vans are specced in `specs/vehicles/`. What is left is a
 scale, a tape measure, the trailer's own plate, and letting a pack turn things over.
 
 | ID     | Item                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Prio | Effort | Buys                                                                          | Needs                   | State           |
 |--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------|--------|-------------------------------------------------------------------------------|-------------------------|-----------------|
-| LOAD-2 | Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed** at 2500 kg with a full tank and driver, so 1000 kg of payload, which is **365 kg less than its own Zulassungsschein implies**. **Stefan's Movano has not been weighed**, and its 1024 kg is the same class of paper figure. What is left is the Movano on a scale, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3                                                                                                                                                                                                        | P1   | 45m    | the difference between a load plan and a fine                                 | —                       | needs the owner |
 | LOAD-5 | **The trailer is specced and is a third bin.** 750 kg gross and ca. 200 kg unladen, so 550 kg of payload, of which the generator takes 465. Re-measured on 2026-09-02, the plan is **134.9 kg short** of one journey with the generator aboard and leaves three devices behind. Without the generator it fits everything with 340.5 kg spare, so what the fleet cannot carry is the generator rather than the gear. What is left is the schema's side of towing, see the section                                                                                                                                                   | P2   | 2h     | a towing check, which nothing performs                                        | the trailer's own plate | partial         |
+| LOAD-2 | **Postponed by the owner on 2026-10-04**, because it takes real effort and several things it needs are not set yet. Specs for the **two transporters**. Sepp's Fiat Ducato is **weighed** at 2500 kg with a full tank and driver, so 1000 kg of payload, which is **365 kg less than its own Zulassungsschein implies**. **Stefan's Movano has not been weighed**, and its 1024 kg is the same class of paper figure. What is left is the Movano on a scale, a tape measure inside both bays, and one look at Sepp's roof for L3H2 against L3H3                                                                                                                                                                                                        | P4   | 45m    | the difference between a load plan and a fine                                 | —                       | needs the owner |
 
 #### LOAD-2 — both vans documented, neither measured inside
 
