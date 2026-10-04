@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.153.1] - 2026-10-05
+
+### Changed
+
+- `docs/signal-chain.md` and SCN-14 name `sdwa5-dsp`, the new name of trackdsp, and link its measurements in the
+  public `SdWa5/dsp` repository instead of the old private one.
+
 ## [0.153.0] - 2026-10-04
 
 ### Changed
