@@ -55,20 +55,33 @@ pairs beat every single owner.
 
 ### The order to pick things up in
 
-Settled with the owner on 2026-10-04, so a new session can act on it without re-deriving it.
+Settled with the owner on 2026-10-04, so a new session can act on it without re-deriving it. Each open decision stands
+right before the work it unblocks, because a decision costs the owner minutes and the work behind it costs hours.
 
-**LOAD-2, the Movano on a scale, is out of this order.** The owner postponed it on 2026-10-04, because it takes real
-effort and several things it needs are not set yet, and lowered it to P4.
-
-1. **GEO-11's scene-level half**, now only cross-placement alignment, since 0.144.0 settled the aiming of pooled
-   stacks and 0.151.0 the depth of their focus. It starts with the plan its block asks for, not with code, and the
-   plan starts from `scene:diff --all` as its baseline.
+1. **Decide GEO-17's riser naming** (owner, minutes), `--riser=achenbach-18` or a `riser` key on the stack entry.
+   GEO-17 is still a proposal, so the answer also confirms it.
+2. **GEO-11's scene-level half** (ca. 4h), now only cross-placement alignment, since 0.144.0 settled the aiming of
+   pooled stacks and 0.151.0 the depth of their focus. It starts with the plan its block asks for, not with code, and
+   the plan starts from `scene:diff --all` as its baseline.
+3. **ALN-1, align at front faces** (ca. 1h 30m). It is one placement problem with GEO-11 and fits into the same change.
+4. **GEO-17, a riser under the outer tops** (ca. 6h), checked against the three `_solo/` examples.
+5. **Decide ALN-4** (owner, minutes), whether per-tier `align` stays limited to the top tier.
+6. **Decide where GEO-14's weights live** (owner, minutes), then **GEO-14's quarter 4**, the deepest cabinets in the
+   inner stacks.
+7. **Agree or reject GEO-20** (owner, minutes), then build it (ca. 6h).
+8. **Decide SIG-3** (owner, minutes), whether an amp channel lives on the amp or on the speaker. It unblocks SIG-1.
+9. **SCN-2, SCN-8 and SCN-1** (ca. 30m, 45m and 1h 15m), the scene fixes in renders the owner named.
+10. **TOOL-12** (ca. 1h 30m), `scene:stack` compiling each candidate twice, the sibling of TOOL-11.
+11. **Decide CVR-2** (owner, ca. 15m), whether the sweep keeps offering `free` where the pyramid solves.
+12. **Decide TOOL-20, then TOOL-21** (owner, minutes each). TOOL-21's path filter waits on TOOL-20.
+13. **Decide TOOL-19 and GEO-15** (owner, minutes each).
 
 **TOOL-11 went ahead of GEO-11 in 0.152.0 by the owner's call.** Its record in `build/plans/` stores only what a render
 reads of each placement (`RenderPlacement`), so GEO-11 changes that format only if it changes what a picture shows.
 
-**GEO-14 was never placed in this order.** Its last quarter waits on one sub-question, which is where the weights live.
-**CVR-1 is parked on the owner rather than on code** and is P4 for that reason.
+**Parked at P4 and outside this order** are CVR-1 (deferred by the owner), SIG-8, SCN-14 and LOAD-2. The owner
+postponed LOAD-2, the Movano on a scale, on 2026-10-04, because it takes real effort and several things it needs are
+not set yet.
 
 ## GEO · placement geometry
 
