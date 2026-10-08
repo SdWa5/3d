@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.154.0] - 2026-10-08
+
+### Added
+
+- `standalone/` holds single loudspeakers modelled by hand, with their `.blend`, `.glb` and previews committed. The
+  first two are the THA 15″ Fighter horn, from its plan, and the Community RS660, from its 1995 data sheet.
+- `blender/standalone/` builds them, one script per model plus `common.py`. `--ref <dir>` packs the third-party
+  drawings into the `.blend` and renders ortho views for an overlay check, and the committed files are built without it.
+- `StandaloneModelsTest` reads each committed `.glb` and checks its declared size, floor, centring, node transforms and
+  that it carries no image.
+
+### Changed
+
+- The README's no-binaries rule names `standalone/` as its one exception, and its models fall under CC BY-SA 4.0.
+
 ## [0.153.1] - 2026-10-05
 
 ### Changed
