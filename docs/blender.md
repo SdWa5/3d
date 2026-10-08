@@ -68,6 +68,7 @@ your own lighting and render normally. Two things are already taken care of:
 | [`blender/lib/geometry.py`](../blender/lib/geometry.py) | the hexahedron shell, grille, handle recesses, markers, chamfer |
 | [`blender/lib/materials.py`](../blender/lib/materials.py) | the shared material set, sRGB → linear |
 | [`blender/lib/export.py`](../blender/lib/export.py) | scene reset, unit setup, custom properties, glTF/blend output |
+| [`blender/standalone/`](../blender/standalone/) | one script per hand-modelled loudspeaker in [`standalone/`](../standalone/README.md), run directly rather than through the CLI, plus `common.py` for what they share |
 
 They are always invoked through the PHP CLI (see [pipeline.md](pipeline.md)) and read a JSON build
 plan — never a YAML spec directly. Running them by hand is possible but only useful for debugging:

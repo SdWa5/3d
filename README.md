@@ -224,12 +224,14 @@ scenes/         setups as YAML — one file per event layout
 scenes/generated/  the sweep's output, one folder per inventory — committed so it can be read on the web
 events/         one file per event: the room, how each system is set up and what each system brings
 meshes/         override meshes — third-party CAD, gitignored
+standalone/     hand-modelled single loudspeakers — .blend, .glb and previews, committed
 build/          generated models, asset library, renders — gitignored
 docs/
 ```
 
-No *binary* artefact is committed. `build/` and `meshes/` are reproducible or third-party, so the repository stays
-text-only and diffable. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
+No *binary* artefact is committed, with one exception. `build/` and `meshes/` are reproducible or third-party, so the
+repository stays text-only and diffable. The exception is [`standalone/`](standalone/README.md), single loudspeakers
+modelled by hand for people who asked for a Blender file, where the `.blend` and `.glb` are the deliverable itself. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
 them can be read on the web without a checkout and a solve — see [docs/scenes.md](docs/scenes.md).
 
 ## Current state
@@ -296,6 +298,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Scenes](docs/scenes.md) — writing a PA setup as a file, stacking and repetition
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 - [Signal chain](docs/signal-chain.md) — limiter thresholds, amplifier gain and DSP routing, per event
+- [Standalone models](standalone/README.md) — single loudspeakers modelled by hand, their sources and estimates
 
 Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository.
 
@@ -309,7 +312,7 @@ pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and
 ddev exec bin/console specs:validate             # same check CI runs
 ddev exec bin/console models:build                # every model, with front photographs where their file exists
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed — not a CI step, see below
-python3 tools/check-glb.py 'build/glb/*.glb'     # exported models match their own metadata
+python3 tools/check-glb.py 'build/glb/*.glb' 'standalone/*/*.glb'   # exported models match their own metadata
 gitleaks dir . --redact --config .gitleaks.toml   # no secret in the working tree
 gitleaks git . --redact --config .gitleaks.toml   # nor anywhere in the history
 ```
@@ -384,7 +387,7 @@ Two licences, because this repository is part tooling and part writing.
 
 - **MIT** ([LICENSE](LICENSE)) for the code and configuration: `src/`, `tests/`, `bin/`, `blender/`, `.github/`, `.ddev/` and the build configuration
   (`composer.json`, `phpstan.neon`, `phpunit.xml`, `pyproject.toml`, `.php-cs-fixer.dist.php`).
-- **CC BY-SA 4.0** ([LICENSE-docs](LICENSE-docs)) for the prose and data: `docs/`, `README.md`, `CHANGELOG.md`, `TODO.md`, `specs/`, `events/` and `scenes/`.
+- **CC BY-SA 4.0** ([LICENSE-docs](LICENSE-docs)) for the prose and data: `docs/`, `README.md`, `CHANGELOG.md`, `TODO.md`, `specs/`, `events/`, `scenes/` and the models under `standalone/`.
 
 Attribute as "Musikverein Schmeiß die Wand an 5 (SdWa5)" with a link to the repository. Share-alike applies to the prose, so a
 derivative of the documentation stays under the same licence. The code carries no such condition.
