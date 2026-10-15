@@ -1,0 +1,9 @@
+# One SKRAM alone, as the shop's product image for the SKRAM print model. Stands in for a photo of a single
+# printed model, which does not exist yet: the only photo shows five subs touching.
+id: product-skram
+name: "Product shot — one SKRAM"
+
+placements:
+  - id: skram
+    device: skram
+    at: [ 0.0, 0.0 ]
