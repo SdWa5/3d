@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.154.1] - 2026-10-15
+
+### Added
+
+- `TODO.md`: SPEC-19, the licence question for Josh Ricci's SKRAM CAD in `meshes/skram.stl` and the shop's SKRAM print model.
+- `TODO.md`: TOOL-25, a path for print models back into the repository.
+
 ## [0.154.0] - 2026-10-08
 
 ### Added
