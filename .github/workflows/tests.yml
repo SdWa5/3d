@@ -30,6 +30,16 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  ci-tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Test CI tool download verification
+        run: python3 -B -m unittest discover -s .github/tests -v
+
   # **THE SHARD NAMES COME FROM ONE FILE, SO THE MATRIX AND THE PARTITION GUARD CANNOT DISAGREE.**
   # `.github/phpunit-shards.json` maps each shard to a `--filter`. This job only reads the keys, and `phpunit`
   # builds its matrix from them, so a shard added to the file runs without touching this workflow, and a shard
@@ -40,7 +50,9 @@ jobs:
     outputs:
       names: ${{ steps.read.outputs.names }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - id: read
         run: echo "names=$(jq -c 'keys_unsorted' .github/phpunit-shards.json)" >> "$GITHUB_OUTPUT"
@@ -69,9 +81,11 @@ jobs:
     # apply per shard, which is more than twice what the slowest one is expected to take.
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.3'
           coverage: none
@@ -161,9 +175,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.3'
           coverage: none
@@ -245,9 +261,11 @@ jobs:
     # one. That is the whole difference between TOOL-20 having three data points and having none.
     timeout-minutes: 330
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.3'
           coverage: none
@@ -292,21 +310,23 @@ jobs:
     timeout-minutes: 15
     env:
       GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           # The history scan needs the history.
           fetch-depth: 0
 
-      - name: Install gitleaks
+      - name: Install checksum-verified gitleaks
         run: |
-          curl -sSfL -o /tmp/gitleaks.tar.gz \
-            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
-          /tmp/gitleaks version
+          bash .github/scripts/install-ci-tool.sh \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            "$GITLEAKS_SHA256" gitleaks "$RUNNER_TEMP/gitleaks"
+          "$RUNNER_TEMP/gitleaks" version
 
       - name: Scan the working tree
-        run: /tmp/gitleaks dir . --redact --no-banner --config .gitleaks.toml
+        run: '"$RUNNER_TEMP/gitleaks" dir . --redact --no-banner --config .gitleaks.toml'
 
       - name: Scan the full history
-        run: /tmp/gitleaks git . --redact --no-banner --config .gitleaks.toml
+        run: '"$RUNNER_TEMP/gitleaks" git . --redact --no-banner --config .gitleaks.toml'

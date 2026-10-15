@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- A checksum-verified CI tool installer and five regression cases for valid and nested archives,
+  corruption, failed downloads and preservation of an existing installation after failed verification.
+
+### Changed
+
+- GitHub Actions pins checkout v5 and PHP setup v2 to upstream commits and does not persist checkout credentials.
+- gitleaks 8.30.1 is verified against its committed SHA-256 before extraction or installation.
+- Ruff includes the CI installer tests, and README and pipeline documentation describe dependency maintenance.
+
 ## [0.155.1] - 2026-10-15
 
 ### Changed
