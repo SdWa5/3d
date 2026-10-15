@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - GitHub Actions pins checkout v5 and PHP setup v2 to upstream commits and does not persist checkout credentials.
 - gitleaks 8.30.1 is verified against its committed SHA-256 before extraction or installation.
 - Ruff includes the CI installer tests, and README and pipeline documentation describe dependency maintenance.
+- `.gitignore` keeps local working material out of git: `.handoff/`, `reference-files/`, root-level images and
+  `scenes/generated/scratch-*/`. README and `docs/scenes.md` name the `scratch-` convention.
 
 ## [0.155.1] - 2026-10-15
 

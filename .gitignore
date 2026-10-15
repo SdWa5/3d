@@ -13,3 +13,11 @@ __pycache__/
 
 # Override meshes referenced by mesh_override — third-party CAD, kept out of git
 /meshes/
+
+# Local working material — reference images, screenshots, handoff notes and scratch sweeps stay on this machine
+/.handoff/
+/reference-files/
+/*.png
+/*.jpg
+/*.jpeg
+/scenes/generated/scratch-*/
