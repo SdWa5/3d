@@ -305,10 +305,11 @@ Org-level documentation lives in the association's [`docs`](https://github.com/S
 ## Development
 
 ```bash
+python3 -B -m unittest discover -s .github/tests -v  # CI installer regression tests
 ddev exec composer test                          # PHPUnit
 ddev exec composer static                        # PHPStan level 5 + Symfony coding standards
 ddev exec composer cs-fix                        # apply the coding standards
-pipx run 'ruff==0.16.6' check .                  # the Python side, blender/ and tools/
+pipx run 'ruff==0.16.6' check .                  # Python code and CI installer tests
 ddev exec bin/console specs:validate             # same check CI runs
 ddev exec bin/console models:build                # every model, with front photographs where their file exists
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed — not a CI step, see below
@@ -371,6 +372,12 @@ together list every test exactly once. A single shard runs locally the same way:
 ```bash
 ddev exec composer test -- --filter "$(jq -r '.["other-commands"]' .github/phpunit-shards.json)"
 ```
+
+The workflow grants `contents: read`, pins checkout and PHP setup to upstream commits and does not
+persist checkout credentials. Its gitleaks 8.30.1 archive must match a committed SHA-256 before
+extraction or installation. Five installer regression tests run in their own job, and Ruff includes
+their Python source. See [CI dependency maintenance](docs/pipeline.md#ci-dependencies). The existing
+PHP 8.3 setup, JIT guards, shard filters and manually triggered exhaustive job keep their behavior.
 
 The two `gitleaks` runs are the same ones [`.github/workflows/tests.yml`](.github/workflows/tests.yml) performs, and
 the same check runs in the other two SdWa5 repositories. All three went public on 2026-09-30, and a public repository

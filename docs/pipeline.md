@@ -2,6 +2,25 @@
 
 How a spec file becomes a model you can drag into a scene.
 
+## CI dependencies
+
+The GitHub workflow grants read-only contents access and pins checkout v5 and PHP setup v2 to
+reviewed commits from their upstream repositories. Checkouts do not retain credentials. An action
+update requires reviewing its upstream release and replacing its commit SHA while retaining the
+version-family comment.
+
+gitleaks 8.30.1 is installed through `.github/scripts/install-ci-tool.sh`. The installer compares the
+downloaded archive with a committed SHA-256 before extracting its requested member or installing
+it. A release update requires reviewing the version and changing its version and checksum together.
+The regression suite covers valid and nested archives, corruption, failed downloads and preservation
+of an existing installation after failed verification. Run it with
+`python3 -B -m unittest discover -s .github/tests -v`; Ruff covers the test file too.
+
+The normal push workflow keeps PHP 8.3, its JIT checks and the existing three sampled PHPUnit shards.
+The exhaustive `full` job remains restricted to non-push events. Validate routine CI hardening with a
+push rather than dispatching the exhaustive job. Pinning dependencies does not expand test coverage
+beyond those selected jobs and samples.
+
 ```
 specs/speakers/sdwa5/top-a.yaml    hand-written, the source of truth
         │
