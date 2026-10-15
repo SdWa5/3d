@@ -225,14 +225,16 @@ scenes/generated/  the sweep's output, one folder per inventory — committed so
 events/         one file per event: the room, how each system is set up and what each system brings
 meshes/         override meshes — third-party CAD, gitignored
 standalone/     hand-modelled single loudspeakers — .blend, .glb and previews, committed
+published/      spec builds that printed plans link to — .glb, preview and plan PDFs, committed
 build/          generated models, asset library, renders — gitignored
 .handoff/, reference-files/, root-level images, scenes/generated/scratch-*/  local working material — gitignored
 docs/
 ```
 
-No *binary* artefact is committed, with one exception. `build/` and `meshes/` are reproducible or third-party, so the
+No *binary* artefact is committed, with two exceptions. `build/` and `meshes/` are reproducible or third-party, so the
 repository stays text-only and diffable. The exception is [`standalone/`](standalone/README.md), single loudspeakers
-modelled by hand for people who asked for a Blender file, where the `.blend` and `.glb` are the deliverable itself. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
+modelled by hand for people who asked for a Blender file, where the `.blend` and `.glb` are the deliverable itself. The other is [`published/`](published/README.md), spec
+builds that a printed build plan links to by QR code and that therefore need a stable URL. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
 them can be read on the web without a checkout and a solve — see [docs/scenes.md](docs/scenes.md).
 
 ## Current state
@@ -300,6 +302,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 - [Signal chain](docs/signal-chain.md) — limiter thresholds, amplifier gain and DSP routing, per event
 - [Standalone models](standalone/README.md) — single loudspeakers modelled by hand, their sources and estimates
+- [Published models](published/README.md) — committed spec builds and build plans that printed QR codes point at
 
 Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository.
 
@@ -314,7 +317,7 @@ pipx run 'ruff==0.16.6' check .                  # Python code and CI installer 
 ddev exec bin/console specs:validate             # same check CI runs
 ddev exec bin/console models:build                # every model, with front photographs where their file exists
 ddev exec bin/console scene:build --dry-run      # scenes compile, no Blender needed — not a CI step, see below
-python3 tools/check-glb.py 'build/glb/*.glb' 'standalone/*/*.glb'   # exported models match their own metadata
+python3 tools/check-glb.py 'build/glb/*.glb' 'standalone/*/*.glb' 'published/*/*.glb'   # exported models match their own metadata
 gitleaks dir . --redact --config .gitleaks.toml   # no secret in the working tree
 gitleaks git . --redact --config .gitleaks.toml   # nor anywhere in the history
 ```
@@ -395,7 +398,7 @@ Two licences, because this repository is part tooling and part writing.
 
 - **MIT** ([LICENSE](LICENSE)) for the code and configuration: `src/`, `tests/`, `bin/`, `blender/`, `.github/`, `.ddev/` and the build configuration
   (`composer.json`, `phpstan.neon`, `phpunit.xml`, `pyproject.toml`, `.php-cs-fixer.dist.php`).
-- **CC BY-SA 4.0** ([LICENSE-docs](LICENSE-docs)) for the prose and data: `docs/`, `README.md`, `CHANGELOG.md`, `TODO.md`, `specs/`, `events/`, `scenes/` and the models under `standalone/`.
+- **CC BY-SA 4.0** ([LICENSE-docs](LICENSE-docs)) for the prose and data: `docs/`, `README.md`, `CHANGELOG.md`, `TODO.md`, `specs/`, `events/`, `scenes/` and the models under `standalone/` and `published/`.
 
 Attribute as "Musikverein Schmeiß die Wand an 5 (SdWa5)" with a link to the repository. Share-alike applies to the prose, so a
 derivative of the documentation stays under the same licence. The code carries no such condition.
