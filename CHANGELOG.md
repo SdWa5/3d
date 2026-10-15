@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `published/` for committed spec builds that printed plans link to, with the Flexy Folded Horn Hybrid `.glb`,
+  a preview and its build plan revision B in English and German, plus `PublishedModelsTest`.
+- `docs/sources.md` records the rights to the Flexy mesh `flexy-1to10.stl`.
+
 - A checksum-verified CI tool installer and five regression cases for valid and nested archives,
   corruption, failed downloads and preservation of an existing installation after failed verification.
 

@@ -627,7 +627,13 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
   here. They are fine as a *dimension reference* either way.
 * Nothing binary is committed to this repository — `build/` is ignored — so a `mesh_override` mesh
   lives outside it and is referenced by path. A third-party licence question can therefore never
-  become a question about this repo's history.
+  become a question about this repo's history. The exceptions are `standalone/` and `published/`,
+  and a model built with a `mesh_override` goes into `published/` only once its licence is recorded
+  here.
+
+| Mesh | Rights | Recorded |
+|------|--------|----------|
+| `flexy-1to10.stl` (Flexy Folded Horn Hybrid) | The CAD and the build plan are by Oliver Ripper. SdWa5 bought them with the full rights (60 EUR, 23.05.2022). The design is MrFlexySMP's. | 16.10.2026 |
 
 ## 3D geometry, per device
 
