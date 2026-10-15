@@ -226,6 +226,7 @@ events/         one file per event: the room, how each system is set up and what
 meshes/         override meshes — third-party CAD, gitignored
 standalone/     hand-modelled single loudspeakers — .blend, .glb and previews, committed
 build/          generated models, asset library, renders — gitignored
+.handoff/, reference-files/, root-level images, scenes/generated/scratch-*/  local working material — gitignored
 docs/
 ```
 

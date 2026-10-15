@@ -1043,6 +1043,7 @@ Generated YAML records the target only when it differs from the default.
 
 `--owner` selects one subset, not a powerset. Silence selects SdWa5 and Sepp. Each selected inventory gets
 its own folder; `--into` can name a folder explicitly. Inventory selection leaves the other sweep axes active.
+A folder named `scratch-<name>` is gitignored, so `--into=scratch-<name>` keeps an experiment local.
 Borrowed gear can make arrangements that neither owner's inventory can build alone.
 
 | folder | inventory | scenes |
