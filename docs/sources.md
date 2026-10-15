@@ -21,7 +21,8 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | | | | `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx` | Weight 90 kg (56 empty + 34 driver), 1800 W |
 | | | | `Josh Ricci (…)/SKRAM Driver.xlsx` | 21″ driver shortlist ranked by efficiency per euro |
 | `tecnare-m2122` | — (factory cabinet) | `datasheet` | [Tecnare L2122LT datasheet](https://www.tecnare.co/wp-content/uploads/2020/01/l2122lt.pdf) | 96 × 50 front / 34.5 rear × 52 cm, 68 kg, 60° × 40°, 150 Hz–20 kHz, crossover, impedance. Same cabinet geometry as the M2122 |
-| | | | `Hardware/Hardware Overview.xlsx` | The re-fitted driver complement (Celestion 12″, RCF ND650, B&C DE25). Its quantity of 2 counts only the factory pair |
+| | | | The owner, 2026-10-15 | The re-fitted driver complement: 2× 18Sound 12NMB1000, 1× PRV D4400Ti-Nd, 2× PRV D280Ti-B. `Hardware/Hardware Overview.xlsx` listed an older one (Celestion 12″, RCF ND650, B&C DE25), and its quantity of 2 counts only the factory pair |
+| | | | [PRV D4400Ti-Nd datasheet](https://prvaudio.com/wp-content/uploads/2025/09/PRV-Audio-D4400Ti-Nd-Datasheet-1.pdf) | 2″ exit, 200 W nominal |
 | `tecnare-m2122-clone` | Tecnare M2122 | `datasheet` | Same L2122LT datasheet, via its own originals | Geometry, assumed copied exactly. Weight is the factory figure used as a placeholder — a self-built cabinet rarely matches it |
 | | | | The owner | That three M2122-shaped tops exist: two factory, one self-built |
 | `eighteensound-2way-15` | Eighteen Sound 15″ 2 Ways Kit | `plans` | `18sound/18sound_15 2ways.pdf` — FRONT VIEW (p10) and SIDE VIEW (p12) | Dimensions read off the drawings: 420 × 800 × 335 mm; 15 mm Baltic birch; 96 mm vents |
@@ -597,7 +598,7 @@ tape-measure job. Two figures agree exactly and are worth stating for that reaso
 |--------|----------------|----------------|--------|
 | `achenbach-18` driver | B&C 18TBW100, from `Hardware/Hardware Overview.xlsx` | RCF L18P300 | **Unresolved.** Two different 18″ drivers in the same cabinet. One of the two records is stale, and only opening the box settles it |
 | `achenbach-18` passband | 35–1000 Hz, from `Hardware/Hardware Overview.xlsx` | 35–1500 Hz | **Unresolved**, and it matters: the upper bound decides what the cabinet is asked to reproduce |
-| `tecnare-m2122` drivers | Celestion 12″, RCF ND650, B&C DE25 — the re-fitted complement | 2× 12NMB1000 LF, plus 2× D280Ti-B and 1× D4400Ti-Nd HF | **Unresolved.** The sheet also splits the cabinet into an LF and an HF channel at ~6.5 kHz, which this file does not record at all |
+| `tecnare-m2122` drivers | Celestion 12″, RCF ND650, B&C DE25 — the re-fitted complement | 2× 12NMB1000 LF, plus 2× D280Ti-B and 1× D4400Ti-Nd HF | **Resolved 2026-10-15 for the sheet.** The owner confirmed its drivers, and the spec notes now record the passive MF/HF split at 6.5 kHz |
 | `tip10000q` and `mm14k` gain | not recorded here | The sheet's live `Amp_GainSelector` has all four amps at 32 or 34 dB. `Amp_GainSelector.csv`, in the same Drive folder, recommends **41 dB** for the TIP10000q and **44 dB** for the MM14K, and says in its own notes that a lower setting "cannot reach BR RMS limit" | **The sheet disagrees with the CSV beside it** about the one thing the CSV exists to decide. A gain setting is a DIP switch, so this is readable off the amplifier |
 
 **What the sheet adds rather than contradicts** is the electrical half that no spec here carries. RMS

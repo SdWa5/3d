@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.154.2] - 2026-10-15
+
+### Changed
+
+- `tecnare-m2122`: the driver complement as stated by the owner, with power handling and the passive MF/HF split.
+- `docs/sources.md`: the owner's driver statement and the PRV D4400Ti-Nd datasheet as sources.
+- `TODO.md`: SPEC-19 notes the drafted mail to Josh Ricci.
+
+### Fixed
+
+- `tecnare-m2122`: the Celestion, RCF ND650 and B&C DE25 drivers were stale, and the mid-driver conflict is settled by the 2″ D4400Ti-Nd.
+
 ## [0.154.1] - 2026-10-15
 
 ### Added

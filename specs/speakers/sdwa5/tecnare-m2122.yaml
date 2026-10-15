@@ -10,13 +10,14 @@ build: original
 
 provenance: datasheet
 deviations: |
-  The 2x 12" are Celestion and the 2x 1" are B&C DE25 rather than Tecnare's own. Power handling in the
-  Hardware Overview (1200 W mid + 250 W high) reflects these drivers, not Tecnare's 1000 W + 300 W.
+  The drivers are not Tecnare's own. The owner stated the complement on 2026-10-15: 2x 18Sound 12NMB1000
+  (LF, 600 W RMS each), 1x PRV D4400Ti-Nd (MF, 200 W) and 2x PRV D280Ti-B (HF, 80 W each), so 1200 W LF and
+  360 W MF+HF against Tecnare's 1000 W + 300 W. The nameplate reads 1200/350 W. The D4400Ti-Nd has a 2"
+  exit (PRV datasheet, Rev. 09/25), which matches the mid horn's 2" throat.
 
-  The mid driver is contradictory in the sources: the Hardware Overview lists an RCF ND650, which is a
-  1.4" unit, while the horn's throat is 2" as the owner describes and as the factory L2122LT specifies.
-  The driver list here follows the 2" throat. Either the Overview entry is wrong or an adapter is
-  fitted — worth checking against the cabinet.
+  The D4400Ti-Nd replaced the RCF ND 650 in both factory cabinets, which settles the old conflict between
+  a 1.4" RCF and the 2" throat. The two factory cabinets still wait for their D280Ti-B, and the self-built
+  one still lacks its HF horns (sdwa5-inventur B-86, B-88, B-101), so this is the target complement.
 
 geometry:
   # Tapered cabinet: 500 mm across the front, 345 mm across the back.
@@ -131,8 +132,9 @@ audio:
 mesh_override: null
 
 notes: |
-  3-way mid-high top (two active sections plus one passive). 150 Hz - 20 kHz +/-4 dB.
-  Impedance: mid 4 Ohm, high 8 Ohm. Crossover: active 185 Hz / 2.5 kHz, passive 6.5 kHz.
+  3-way mid-high top with 5 drivers. MF and HF share a passive crossover at 6.5 kHz, so it takes 2 amp
+  channels: LF 185 Hz - 2.5 kHz and MF+HF above 2.5 kHz. 150 Hz - 20 kHz +/-4 dB.
+  Impedance: mid 4 Ohm, high 8 Ohm. The model name comes from the nameplates (M2122, Serial 816 and 915).
 
   Three of these exist: two genuine Tecnare cabinets and one self-built copy. They were separate specs
   (tecnare-m2122 and tecnare-m2122-clone) until 0.14.0, when they were merged at quantity 3 because the
