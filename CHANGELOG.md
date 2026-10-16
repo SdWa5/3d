@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - The Flexy build plan's cover URLs and QR codes are clickable links.
+- Sheet 19 of the Flexy build plan opens in landscape like the other sheets.
 - GitHub Actions pins checkout v5 and PHP setup v2 to upstream commits and does not persist checkout credentials.
 - gitleaks 8.30.1 is verified against its committed SHA-256 before extraction or installation.
 - Ruff includes the CI installer tests, and README and pipeline documentation describe dependency maintenance.
