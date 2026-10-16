@@ -11,12 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `published/` for committed spec builds that printed plans link to, with the Flexy Folded Horn Hybrid `.glb`,
   a preview and its build plan revision B in English and German, plus `PublishedModelsTest`.
 - `docs/sources.md` records the rights to the Flexy mesh `flexy-1to10.stl`.
-
 - A checksum-verified CI tool installer and five regression cases for valid and nested archives,
   corruption, failed downloads and preservation of an existing installation after failed verification.
 
 ### Changed
 
+- The Flexy build plan's cover URLs and QR codes are clickable links.
 - GitHub Actions pins checkout v5 and PHP setup v2 to upstream commits and does not persist checkout credentials.
 - gitleaks 8.30.1 is verified against its committed SHA-256 before extraction or installation.
 - Ruff includes the CI installer tests, and README and pipeline documentation describe dependency maintenance.
