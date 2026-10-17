@@ -31,6 +31,8 @@ VIEWER = 'https://3dviewer.net/#model=' + MODEL
 REPO = 'https://github.com/SdWa5/3d/tree/main/published/flexy-folded-horn-hybrid'
 CSV_URL = 'https://github.com/SdWa5/3d/blob/main/published/flexy-folded-horn-hybrid/flexy-cutlist.csv'
 OLD = 'https://3dviewer.net/#model=https://github.com/Oletarier/bassw-rfel-folded-horn/blob/main/subwoofer%20v28.obj'
+# MrFlexySMP's video the design comes from, credited on the cover and in the PDF metadata
+VIDEO = 'https://www.youtube.com/watch?v=tzwWSL8TyKI'
 
 TEXT = {
     'en': {'dept': 'Dept.', 'created': 'Created by', 'tref': 'Technical reference', 'approved': 'Approved by',
@@ -43,6 +45,8 @@ TEXT = {
                'print': 'Print on A3 at 100 % (no fit to page). All dimensions in mm.',
                'cover_material': 'Material: 18 mm multiplex plywood throughout',
                'cover_parts': 'Parts list and cut list: sheet 26',
+               'design': 'Design: MrFlexySMP, YouTube:',
+               'subject': "Based on MrFlexySMP's Folded Horn Hybrid, {}",
                'model': '3D model (3dviewer.net):', 'repo': 'Model files (GitHub):', 'old': 'Original CAD (v28):',
                'parts_title': 'Parts list', 'parts_cols': ('Sheet', 'Part', 'L × W', 'Qty', 'Note'),
                'parts_foot': 'All parts 18 mm multiplex plywood. L × W are the outer sizes of the sheets, bevels '
@@ -69,6 +73,8 @@ TEXT = {
                'print': 'Auf A3 in 100 % drucken (nicht „an Seite anpassen“). Alle Maße in mm.',
                'cover_material': 'Material: durchgehend 18 mm Multiplex',
                'cover_parts': 'Teileliste und Zuschnittliste: Blatt 26',
+               'design': 'Entwurf: MrFlexySMP, YouTube:',
+               'subject': 'Nach dem Folded Horn Hybrid von MrFlexySMP, {}',
                'model': '3D-Modell (3dviewer.net):', 'repo': 'Modelldateien (GitHub):', 'old': 'Original-CAD (v28):',
                'parts_title': 'Teileliste', 'parts_cols': ('Blatt', 'Teil', 'L × B', 'Stk.', 'Hinweis'),
                'parts_foot': 'Alle Teile aus 18 mm Multiplex. L × B sind die Außenmaße der Blätter, Winkel '
@@ -216,6 +222,7 @@ class Plan:
         text(c, 60, 556, t['print'], 14, color=RED, maxw=620)
         text(c, 60, 592, t['cover_material'], 20, font='SB', maxw=620)
         text(c, 60, 620, t['cover_parts'], 14, maxw=620)
+        self.link(c, 60, 648, t['design'], VIDEO, 60 + pdfmetrics.stringWidth(t['design'] + ' ', 'S', 14), size=14)
         for i, (lab, url) in enumerate([(t['model'], VIEWER), (t['repo'], REPO)]):
             x = 700 + i * 250
             text(c, x, 480, lab, 11, font='SB')
@@ -224,9 +231,9 @@ class Plan:
         for i, (lab, url) in enumerate([(t['model'], VIEWER), (t['repo'], REPO), (t['old'], OLD)]):
             self.link(c, 60, 700 + i * 16, lab, url, 185)
 
-    def link(self, c, x, t, lab, url, ux, maxw=990):
-        text(c, x, t, lab, 8, font='SB')
-        size = text(c, ux, t, url, 8, maxw=maxw)
+    def link(self, c, x, t, lab, url, ux, maxw=990, size=8):
+        text(c, x, t, lab, size, font='SB' if size == 8 else 'S')
+        size = text(c, ux, t, url, size, maxw=maxw)
         w = pdfmetrics.stringWidth(url, 'S', size)
         c.linkURL(url, (ux, y(t) - 2, ux + w, y(t) + size), relative=0, thickness=0)
 
@@ -321,7 +328,8 @@ class Plan:
                 p.rotate(270)
             wr.add_page(p)
         wr.add_metadata({'/Title': f"MrFlexySMPs Folded Horn Hybrid – {self.t['doctype']} Rev. {self.rev}",
-                         '/Author': f'Oliver Ripper; Rev. {self.rev} Stefan Ripper'})
+                         '/Author': f'Oliver Ripper; Rev. {self.rev} Stefan Ripper',
+                         '/Subject': self.t['subject'].format(VIDEO)})
         wr.compress_identical_objects(remove_identicals=True, remove_orphans=True)
         with open(out, 'wb') as f:
             wr.write(f)
@@ -332,7 +340,7 @@ def main():
     ap.add_argument('src')
     ap.add_argument('out')
     ap.add_argument('lang', choices=sorted(TEXT))
-    ap.add_argument('--rev', default='C')
+    ap.add_argument('--rev', default='D')
     ap.add_argument('--date', default='2026-10-17')
     args = ap.parse_args()
     Plan(args.lang, args.rev, args.date).build(args.src, args.out)

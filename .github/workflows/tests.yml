@@ -39,6 +39,8 @@ jobs:
           persist-credentials: false
       - name: Test CI tool download verification
         run: python3 -B -m unittest discover -s .github/tests -v
+      - name: Test the Flexy plan's parts data and cut list
+        run: python3 -B -m unittest discover -s tools/flexy-plan -v
 
   # **THE SHARD NAMES COME FROM ONE FILE, SO THE MATRIX AND THE PARTITION GUARD CANNOT DISAGREE.**
   # `.github/phpunit-shards.json` maps each shard to a `--filter`. This job only reads the keys, and `phpunit`

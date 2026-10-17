@@ -2,7 +2,7 @@
 
 Standard library only, so CI can test it without the PDF dependencies of build.py. `parts.json` is the one source.
 Every part's blank is the drawing's size, which equals the oriented bounding box of its body in
-`meshes/flexy-subwoofer-v28.obj` (named in `body`, measured on 2026-10-17).
+`published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj` (named in `body`, measured on 2026-10-17).
 """
 
 import csv

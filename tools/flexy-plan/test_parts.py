@@ -1,14 +1,12 @@
 """The Flexy parts data agrees with the published cut list, which cutlistoptimizer.com can import."""
 
 import csv
-import importlib.util
 import unittest
 from pathlib import Path
 
+import parts
+
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("parts", ROOT / "tools/flexy-plan/parts.py")
-parts = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(parts)
 PUBLISHED = ROOT / "published/flexy-folded-horn-hybrid/flexy-cutlist.csv"
 
 

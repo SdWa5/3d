@@ -1,4 +1,4 @@
-# Dimensions from the design's own CAD mesh (3d models/subwoofer v28.obj in the Drive folder).
+# Dimensions from the design's own CAD mesh, published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj.
 # See docs/sources.md.
 id: flexy-folded-horn-hybrid
 name: "Flexy Folded Horn Hybrid"
@@ -10,9 +10,9 @@ build: self-built
 
 clone_of:
   manufacturer: MrFlexySMP
-  model: "Folded Horn Hybrid" # Single version of https://www.youtube.com/watch?v=tzwWSL8TyKI which is similar to https://www.sbaudience.com/index.php/application/dual-18inch-horn-subwoofer/
+  model: "Folded Horn Hybrid" # Single version of the design in MrFlexySMP's video (url), which is similar to https://www.sbaudience.com/index.php/application/dual-18inch-horn-subwoofer/
   reference: cad
-  url: null
+  url: https://www.youtube.com/watch?v=tzwWSL8TyKI
 
 provenance: plans
 deviations: |
@@ -47,7 +47,8 @@ rigging:
   points: [ ]
 
 audio:
-  # Stated by the owner from how the rig is actually driven, not read off a datasheet — hence `estimated`.
+  # Stated by the owner from how the rig is actually driven, not read off a datasheet — hence `estimated`. The design's
+  # own one-line sheet in the Drive folder claimed the same band: "145dB Frequency Response: 38Hz ~ 200Hz".
   passband_hz:
     low_hz: 38
     high_hz: 200
@@ -107,7 +108,7 @@ audio:
 # The design's CAD mesh, the 1:10 STL in centimetres. It measures 0.588 m across against this cabinet's
 # 0.591 m, which is inside the builder's tolerance, so it is imported rather than the box.
 mesh_override:
-  path: meshes/flexy-1to10.stl
+  path: published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl
   units: cm
   rotate_deg: [ 90, 0, 90 ]
   # THE CAD'S CROSS IS NOT THE REAL BRACE, so it is cut away. The CAD welds a plywood cross into the horn
@@ -141,6 +142,7 @@ notes: |
   The backbone of the PA — 14 cabinets, 1190 kg of sub on its own.
   Drivers across the 14: 6x Eighteensound 18NLW9601 and 8x 18NLW9600 (both 18", 1800 W, 8 Ohm).
   38-200 Hz, 1800 W continuous per cabinet.
-  A CAD mesh exists in Drive. It imports cleanly with `units: mm` and `rotate_deg: [90, 0, 90]`,
-  and its depth and height match this spec exactly — but it is 18 mm narrower, so the builder
-  rejects it. That is two independent confirmations that the mesh omits something.
+  The full-scale CAD is published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj. It imports cleanly with
+  `units: mm` and `rotate_deg: [90, 0, 90]`, and its depth and height match this spec exactly — but it is
+  18 mm narrower, so the builder rejects it. It models only one side wall. The FreeCAD re-export
+  cad/subwoofer-v28-both-side-walls.obj adds the second and is 588 mm wide.
