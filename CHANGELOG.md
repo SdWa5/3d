@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.158.1] - 2026-10-17
+
+### Changed
+
+- `meshes/README.md` has fetch lines for every local photo, now that Sepp's, PSL's and Innschleife's photos and PSL's
+  print files are in the SdWa5 Shared Drive.
+- `docs/sources.md` and the deco panel spec say where the photographs are kept, and the rights rows of the Achenbach
+  18 and Eighteen Sound 2-way record their Drive pointer files.
+
 ## [0.158.0] - 2026-10-17
 
 ### Added

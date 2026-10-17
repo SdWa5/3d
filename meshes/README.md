@@ -28,14 +28,28 @@ Needs the read-only `SdWa5` rclone remote — see
 [`../docs/inventory.md`](../docs/inventory.md#drive-access).
 
 ```bash
+E="SdWa5:Hardware/Speaker Enclosures _ Lautsprecher-Gehäuse"
+
 # Our own photographs of the Flexy wall and the full rig, which the Flexy and Tecnare specs cite
-D="SdWa5:Hardware/Speaker Enclosures _ Lautsprecher-Gehäuse/MrFlexySMPs Folded Horn Hybrid"
-rclone copy "$D/photo-flexy-wall.png" meshes/sdwa5/
-rclone copy "$D/photo-full-rig.png" meshes/sdwa5/
+rclone copy "$E/MrFlexySMPs Folded Horn Hybrid/photo-flexy-wall.png" meshes/sdwa5/
+rclone copy "$E/MrFlexySMPs Folded Horn Hybrid/photo-full-rig.png" meshes/sdwa5/
+
+# Sepp's tops and subs, which the Eighteen Sound 2-way spec cites for its green port lining
+rclone copy "$E/18sound/photo-sepp-tops-subs.png" meshes/sdwa5/
+
+# PSL's photo of its ESX and EF 6, which both specs cite
+rclone copy "$E/setups/PSL/photo-2026-10-01.jpeg" meshes/psl/
+# PSL's print file "Krampus Gesamt.png", the front_image of deco-panel-8x2-03
+rclone copy "$E/setups/PSL/deco-panel-front.png" meshes/psl/
+# PSL's earlier print file, 1978 x 600 px, which the PNG replaced in 0.136.0 and nothing uses
+rclone copy "$E/setups/PSL/deco-panel-front.jpg" meshes/psl/
+
+# Innschleife's photo, which the wsx-18, sbh-18, kicker-15, tms2 and tms4 specs cite
+rclone copyto "$E/setups/innschleife-photo-2026-09-19.jpeg" meshes/innschleife/photo-2026-09-19.jpeg
 ```
 
-The photographs are evidence for the specs and are not built into any model. After fetching a mesh or a front image,
-rebuild the model it belongs to:
+The photographs are evidence for the specs. Only `deco-panel-front.png` is built into a model, as a front image.
+After fetching a mesh or a front image, rebuild the model it belongs to:
 
 ```bash
 ddev exec bin/console models:build --id=<id> -f
