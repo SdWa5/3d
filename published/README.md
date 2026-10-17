@@ -1,10 +1,10 @@
 # Published models
 
-The public package of a device, committed so that a link printed on paper keeps working. A folder here holds what
-the outside link expects to find, which is the model, its build plan and cut list, and the CAD the model and plan
-come from. Everything else the builder writes goes to `build/` and is regenerated on demand. A device belongs here
-only when something outside this repository points at it, for example a QR code on a build plan, and that link needs
-a stable URL.
+The public package of a device, committed so that a link to it keeps working. A folder here holds the model, its
+preview, the CAD the model is built from and, where one exists, its build plan and cut list. Everything else the
+builder writes goes to `build/` and is regenerated on demand. A device belongs here when something outside this
+repository points at it, for example a QR code on a build plan, or when its source CAD may be published, because it
+is SdWa5's own drawing or its rights are recorded.
 
 Unlike [`standalone/`](../standalone/README.md), these models are not modelled by hand. Each `.glb` is the plain
 output of `models:build` for the spec of the same id. Source CAD sits in a `cad/` subfolder, and only CAD whose
@@ -13,6 +13,8 @@ licence is recorded in [`docs/sources.md`](../docs/sources.md#licensing) is comm
 | Model | Spec | W × H × D (m) | Files |
 |-------|------|---------------|-------|
 | [Flexy Folded Horn Hybrid](flexy-folded-horn-hybrid/) | [`flexy-folded-horn-hybrid.yaml`](../specs/speakers/sdwa5/flexy-folded-horn-hybrid.yaml) | 0.591 × 0.763 × 0.964 | `.glb`, preview, build plan EN and DE, cut list CSV, CAD |
+| [Achenbach 18](achenbach-18/) | [`achenbach-18.yaml`](../specs/speakers/sepp/achenbach-18.yaml) | 0.600 × 0.600 × 0.700 | `.glb`, preview, CAD |
+| [Eighteen Sound 2-Way 15″](eighteensound-2way-15/) | [`eighteensound-2way-15.yaml`](../specs/speakers/sepp/eighteensound-2way-15.yaml) | 0.466 × 0.836 × 0.427 | `.glb`, preview, CAD |
 
 ## Flexy Folded Horn Hybrid
 
@@ -64,19 +66,66 @@ the other opens this folder. So the file name and the folder name are fixed for 
 | Cabinet comparison and efficiency sheet (SdWa5 members) | https://docs.google.com/spreadsheets/d/15yo5IYkhrUXI_YFDnhXNwVoykogJKv4TkT4kepfMjbA |
 | 1:10 print variants for the merch case (SdWa5 members) | Drive `Medien/Bildbearbeitung/Merch/CAD/3D Print Smoking paper rolls case - 3381901/files/` |
 
+## Achenbach 18
+
+![The Achenbach 18](achenbach-18/preview-closed.png)
+
+An 18″ subwoofer of the Achenbach design, 600 × 600 × 700 mm, of which Sepp owns six. SdWa5 drew the FreeCAD model,
+whose panel geometry matches the panel sizes Achenbach publishes on lsv-achenbach.de.
+
+- `achenbach-18.glb` is the SdWa5 build of the cabinet, with the driver behind a grille across the whole front.
+
+| File in `cad/` | What it is | By |
+|------|------------|----|
+| `achenbach-18.FCStd` | The FreeCAD model, 600 × 700 × 600 mm with the driver cut-out and corner braces | SdWa5 |
+| `achenbach-18.stl` | Its solids meshed with `ddev mesh-convert`, in millimetres. The spec's `mesh_override` | SdWa5 |
+
+## Eighteen Sound 2-Way 15″
+
+![The Eighteen Sound 2-way](eighteensound-2way-15/preview-closed.png)
+
+A 15″ two-way top built from Eighteen Sound's published 15″ 2 Ways Kit, of which Sepp owns two. SdWa5 drew the FreeCAD
+model. Its outer box of 465.6 × 836 × 426.8 mm is the authority for the spec, because the drawings' 420, 800 and 335 mm
+are measured inside the overhanging top and bottom panels.
+
+- `eighteensound-2way-15.glb` is the SdWa5 build of the cabinet, with the horn, the woofer and the two ports.
+
+| File in `cad/` | What it is | By |
+|------|------------|----|
+| `eighteensound-2way-15.FCStd` | The FreeCAD model with the octagonal horn cut-out, the Ø353 mm driver hole and two Ø100 mm ports | SdWa5 |
+| `eighteensound-2way-15.stl` | Its solids meshed with `ddev mesh-convert`, in millimetres. The spec's `mesh_override` | SdWa5 |
+
 ## Rebuilding
 
+Every package builds from its own `cad/`, because each spec's `mesh_override` points there. Any checkout therefore
+builds the real cabinet rather than the generated block.
+
 ```bash
-ddev exec bin/console models:build --id=flexy-folded-horn-hybrid -f
-cp build/glb/flexy-folded-horn-hybrid.glb published/flexy-folded-horn-hybrid/
+ddev exec bin/console models:build --id=<id> -f
+cp build/glb/<id>.glb published/<id>/
 python3 tools/check-glb.py 'published/*/*.glb'
 ```
 
-The spec's `mesh_override` is `cad/flexy-1to10.stl` in this folder, so every checkout builds the real cabinet rather
-than the generated block.
+The preview is a one-cabinet scene rendered at 1200 × 900 with the default camera and lighting. The scene file is
+only needed for the render and is deleted afterwards.
 
-The build plan is written by `tools/flexy-plan/` over the original plan `tools/flexy-plan/original.pdf`. The parts
-data lives in `tools/flexy-plan/parts.json` alone, and the CSV and sheet 26 are both generated from it. The script
+```bash
+printf 'id: preview-%s\nname: "Preview"\n\nplacements:\n  - id: one\n    device: %s\n    at: [ 0.0, 0.0 ]\n' <id> <id> \
+  > scenes/preview-<id>.yaml
+ddev exec bin/console scene:build preview-<id>
+ddev exec bin/console scene:render preview-<id> -r 1200x900 --samples 128 -o published/<id>/preview-closed.png
+rm scenes/preview-<id>.yaml
+```
+
+A FreeCAD model is meshed into its STL as [`meshes/README.md`](../meshes/README.md#converting-cad--ddev-mesh-convert)
+describes.
+
+```bash
+ddev mesh-convert published/<id>/cad/<id>.FCStd published/<id>/cad/<id>.stl
+```
+
+The Flexy's build plan is written by `tools/flexy-plan/` over the original plan `tools/flexy-plan/original.pdf`. The
+parts data lives in `tools/flexy-plan/parts.json` alone, and the CSV and sheet 26 are both generated from it. The script
 needs the Liberation Sans fonts and is byte-reproducible for a given `--date`.
 
 ```bash
@@ -89,6 +138,9 @@ python3 parts.py > ../../published/flexy-folded-horn-hybrid/flexy-cutlist.csv
 ```
 
 ## Licence
+
+The Achenbach 18 and Eighteen Sound 2-way designs are Achenbach's and Eighteen Sound's. Their FreeCAD models and the
+meshes derived from them are SdWa5's own drawings, published under CC BY-SA 4.0.
 
 The Flexy design is MrFlexySMP's, from the video [Folded Horn Hybrid](https://www.youtube.com/watch?v=tzwWSL8TyKI).
 The CAD model and the build plan are by Oliver Ripper, and SdWa5 bought them together with the full rights. The horn

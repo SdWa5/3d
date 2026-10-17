@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.158.0] - 2026-10-17
+
+### Added
+
+- `published/achenbach-18/` and `published/eighteensound-2way-15/`, each with SdWa5's own FreeCAD model and its STL
+  in `cad/`, the `.glb` and a preview.
+- `published/README.md`: a section per package, the licence of both drawings, and the rebuild, preview and
+  `mesh-convert` recipes for any package.
+- `TODO.md`: TOOL-28, a `scene:render --device` option so a published preview needs no throwaway scene.
+
+### Changed
+
+- The Achenbach 18 and Eighteen Sound 2-way specs build from their committed `cad/` STL, so every checkout builds
+  the real cabinet.
+- `docs/sources.md` records the rights to both drawings and points the device rows at `published/`.
+- `meshes/README.md` and `README.md` list the two cabinets as committed.
+
+### Fixed
+
+- `meshes/README.md` said no 3D exists for the SKRAM. It now links Josh Ricci's public download, whose
+  `SKRAM 3D.step` is our `meshes/skram.step` byte for byte.
+- SPEC-19 no longer says the SKRAM mesh is in a public repository.
+- The Eighteen Sound 2-way spec cited a photo by a scratch file name.
+
 ## [0.157.1] - 2026-10-17
 
 ### Added

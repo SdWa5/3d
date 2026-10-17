@@ -234,7 +234,7 @@ docs/
 No *binary* artefact is committed, with two exceptions. `build/` and `meshes/` are reproducible or third-party, so the
 repository stays text-only and diffable. The exception is [`standalone/`](standalone/README.md), single loudspeakers
 modelled by hand for people who asked for a Blender file, where the `.blend` and `.glb` are the deliverable itself. The other is [`published/`](published/README.md), the public package of a device
-that a printed build plan links to by QR code, with the CAD it comes from, which therefore needs a stable URL. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
+whose source CAD may be published or that a printed build plan links to by QR code, with the CAD it comes from. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
 them can be read on the web without a checkout and a solve — see [docs/scenes.md](docs/scenes.md).
 
 ## Current state
@@ -255,8 +255,8 @@ GMSS, PSL and Innschleife and arrives in their own vans — see the four borrowe
 [docs/inventory.md](docs/inventory.md) for the system-by-system state.
 
 **Four of the five cabinets we own carry their own CAD** via `mesh_override`, so the models show the openings you actually see on a
-cabinet rather than a black box. The Flexy's mesh is committed under [`published/`](published/README.md). The others are third-party files and are not committed —
-[`meshes/README.md`](meshes/README.md) has the one-line `rclone` command for each, and `ddev mesh-convert` turns
+cabinet rather than a black box. The meshes of the Flexy, the Achenbach 18 and the Eighteen Sound 2-way are committed under [`published/`](published/README.md). The SKRAM's is third-party and is not committed —
+[`meshes/README.md`](meshes/README.md) links its public download, and `ddev mesh-convert` turns
 FreeCAD or STEP into something Blender can read.
 
 Behind those openings there are now **drivers and horns**, from each spec's `audio.layout`: cones with a surround and
@@ -302,7 +302,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 - [Signal chain](docs/signal-chain.md) — limiter thresholds, amplifier gain and DSP routing, per event
 - [Standalone models](standalone/README.md) — single loudspeakers modelled by hand, their sources and estimates
-- [Published models](published/README.md) — committed spec builds, build plans and source CAD that printed QR codes point at
+- [Published models](published/README.md) — committed spec builds with their source CAD, and the build plans that printed QR codes point at
 
 Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository.
 
