@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Flexy build plan revision C. It states 18 mm multiplex on the cover and every sheet, and sheet 26 holds the parts
   list, the cut list and the recommended stock sizes with a minimum sheet count.
 - `published/flexy-folded-horn-hybrid/flexy-cutlist.csv` for import into cutlistoptimizer.com.
-- `TODO.md`: SPEC-21, the cutlistoptimizer import check and the Drive upload of revision C.
+- `TODO.md`: SPEC-21, the cutlistoptimizer import check. Revision C and the CSV are in the Drive's Flexy folder.
 - `TODO.md`: SPEC-20, the author names in the metadata of the published Flexy build plans.
 - `published/` for committed spec builds that printed plans link to, with the Flexy Folded Horn Hybrid `.glb`,
   a preview and its build plan revision B in English and German, plus `PublishedModelsTest`.
