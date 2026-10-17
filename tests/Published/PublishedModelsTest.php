@@ -64,9 +64,17 @@ final class PublishedModelsTest extends TestCase
 
     public function testTheFlexyPlansTheQrCodesPointAtExist(): void
     {
-        foreach (['build-plan-rev-b-en.pdf', 'bauplan-rev-b-de.pdf'] as $file) {
+        foreach (['build-plan-rev-c-en.pdf', 'bauplan-rev-c-de.pdf'] as $file) {
             self::assertStringStartsWith('%PDF-', (string) file_get_contents(self::root()."/flexy-folded-horn-hybrid/$file", length: 5));
         }
+    }
+
+    public function testTheFlexyCutListShipsWithThePlans(): void
+    {
+        $lines = file(self::root().'/flexy-folded-horn-hybrid/flexy-cutlist.csv', \FILE_IGNORE_NEW_LINES);
+        self::assertIsArray($lines);
+        self::assertSame('Length,Width,Qty,Material,Label,Enabled', $lines[0]);
+        self::assertGreaterThan(1, \count($lines));
     }
 
     private static function root(): string

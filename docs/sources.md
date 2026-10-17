@@ -634,6 +634,7 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
 | Mesh | Rights | Recorded |
 |------|--------|----------|
 | `flexy-1to10.stl` (Flexy Folded Horn Hybrid) | The CAD and the build plan are by Oliver Ripper. SdWa5 bought them with the full rights (60 EUR, 23.05.2022). The design is MrFlexySMP's. | 16.10.2026 |
+| `tools/flexy-plan/original.pdf` (Flexy build plan as bought, the base of revisions B and C) | Same purchase as the row above. The same file is in the Drive's Flexy folder. | 17.10.2026 |
 
 ## 3D geometry, per device
 
