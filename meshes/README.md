@@ -3,7 +3,8 @@
 Two spec keys point at files in here, and **nothing in this directory is committed** except this README. Override
 meshes are third-party CAD and front images are as often as not somebody else's photograph (see
 [`../docs/sources.md`](../docs/sources.md#licensing)), so the repository references both by path
-instead of carrying them.
+instead of carrying them. CAD that may be published, because SdWa5 drew it or holds its rights, is committed in
+[`../published/<id>/cad/`](../published/README.md) instead, and its spec points there.
 
 | Key | What it is | What happens without the file |
 |---|---|---|
@@ -46,9 +47,9 @@ ddev exec bin/console scene:build && ddev exec bin/console scene:render full-rig
 | Device | Source in Drive | Usable? |
 |--------|-----------------|---------|
 | `flexy-folded-horn-hybrid` | **Committed**, in [`published/flexy-folded-horn-hybrid/cad/`](../published/flexy-folded-horn-hybrid/cad/), because SdWa5 owns the rights. Nothing to fetch | `flexy-1to10.stl` (1:10, watertight, 2824 faces) is the `mesh_override`: `units: cm`, `rotate_deg: [90, 0, 90]`, 3 mm narrower than spec. `subwoofer-v28.obj` has the horn but is a non-watertight shell with one side wall |
-| `achenbach-18` | `…/Achenbach 18/Achenbach 18.FCStd` | Needs a FreeCAD export first — Blender cannot read `.FCStd` |
-| `eighteensound-2way-15` | `…/18sound/Eighteensound 2 Way Point Source 15.FCStd` | Same: export from FreeCAD |
-| `skram` | — | No 3D anywhere; only the cut list |
+| `achenbach-18` | **Committed**, in [`published/achenbach-18/cad/`](../published/achenbach-18/cad/), because SdWa5 drew it. Nothing to fetch | `achenbach-18.stl` is the `mesh_override`, meshed from `achenbach-18.FCStd` |
+| `eighteensound-2way-15` | **Committed**, in [`published/eighteensound-2way-15/cad/`](../published/eighteensound-2way-15/cad/), because SdWa5 drew it. Nothing to fetch | `eighteensound-2way-15.stl` is the `mesh_override`, meshed from `eighteensound-2way-15.FCStd` |
+| `skram` | Josh Ricci's [SKRAM DIY Package](https://www.jwsound.live/designs/riccis-skram-subwoofer) is a public [zip download](https://drive.google.com/file/d/1FEIZzg-jLDTtxQ3lSJsaEyAMDtmdip2P/view) | Its `STEP Files/SKRAM 3D.step` is our `meshes/skram.step`, byte for byte. Saved as that name and meshed as below, it gives the `mesh_override` `meshes/skram.stl`. Not committed until Josh Ricci agrees, see SPEC-19 in [`../TODO.md`](../TODO.md) |
 | `tecnare-m2122`, `tecnare-m2122-clone` | — | No 3D anywhere; datasheet line drawings only |
 
 ## Converting CAD — `ddev mesh-convert`
@@ -57,7 +58,7 @@ Blender reads none of `.FCStd`, `.step`, `.f3d` or `.SLDPRT`, so CAD has to be m
 
 ```bash
 ddev mesh-convert meshes/skram.step                 # → meshes/skram.stl
-ddev mesh-convert "src/Achenbach 18.FCStd" meshes/achenbach-18.stl
+ddev mesh-convert published/achenbach-18/cad/achenbach-18.FCStd published/achenbach-18/cad/achenbach-18.stl
 ```
 
 It prints the bounding box in millimetres, which is what you need to choose `units` and
@@ -87,5 +88,5 @@ Two things learned the hard way, both handled by the script:
 It also exports **solids only**. A FreeCAD document is full of datum planes and axes, and meshing
 those inflates the bounding box — which then fails the dimension check for no real reason.
 
-A large `.FCStd` can be slow: `Achenbach 18.FCStd` (3.8 MB of BREP) did not finish inside ten
+A large `.FCStd` can be slow: `achenbach-18.FCStd` (3.8 MB of BREP) did not finish inside ten
 minutes, while the 18sound file took about two. Give it time, or export from a FreeCAD GUI instead.

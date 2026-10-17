@@ -1,5 +1,5 @@
-# Dimensions derived from the panel geometry in the FreeCAD model in Drive
-# (Achenbach 18.FCStd): 600x700x18 top/bottom, 18x700x564 sides, so height = 564 + 2x18.
+# Dimensions derived from the panel geometry in SdWa5's FreeCAD model
+# published/achenbach-18/cad/achenbach-18.FCStd: 600x700x18 top/bottom, 18x700x564 sides, so height = 564 + 2x18.
 # See docs/sources.md.
 id: achenbach-18
 name: "Achenbach 18"
@@ -81,7 +81,7 @@ mesh_override:
   # Converted from the FreeCAD model with `ddev mesh-convert`; its 600 x 700 x 600 mm matches this
   # spec exactly, which is a third confirmation of the dimensions after the panel geometry and
   # lsv-achenbach.de's own published panel sizes.
-  path: meshes/achenbach-18.stl
+  path: published/achenbach-18/cad/achenbach-18.stl
   units: mm
   rotate_deg: [ 0, 0, 0 ]
   # The grille's recess, see audio.layout. It reaches 0.5 mm into each side wall rather than stopping on its

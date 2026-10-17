@@ -1,6 +1,7 @@
-# Built from Eighteen Sound's published "15 inch 2 Ways Kit". Outer dimensions come from the FreeCAD
-# model in Drive, converted with `ddev mesh-convert` — NOT from the drawings' 420/800/335, which are
-# partial dimensions measured inside the overhanging top and bottom panels. See docs/sources.md.
+# Built from Eighteen Sound's published "15 inch 2 Ways Kit". Outer dimensions come from SdWa5's FreeCAD model
+# published/eighteensound-2way-15/cad/eighteensound-2way-15.FCStd, converted with `ddev mesh-convert` — NOT from
+# the drawings' 420/800/335, which are partial dimensions measured inside the overhanging top and bottom panels.
+# See docs/sources.md.
 id: eighteensound-2way-15
 name: "Eighteensound 2-Way 15\""
 category: speaker
@@ -89,10 +90,10 @@ audio:
       - { id: woofer, kind: cone, at_m: [ 0.0, -0.125 ], diameter_in: 13.9, depth_m: 0.10 }
 
 mesh_override:
-  path: meshes/eighteensound-2way-15.stl
+  path: published/eighteensound-2way-15/cad/eighteensound-2way-15.stl
   units: mm
   rotate_deg: [ 0, 0, 0 ]
-  # The two ports are lined green on the cabinet, as reference-files/pasted file 3.png shows (2026-10-01).
+  # The two ports are lined green on the cabinet, as meshes/sdwa5/photo-sepp-tops-subs.png shows (2026-10-01).
   # In the CAD a port is only its 100 mm hole through the 18 mm baffle, so the hole's wall is what gets
   # painted. The holes were ray-cast out of the mesh on 2026-10-01 and run x 0.092 to 0.192 and z 0.030 to
   # 0.126 from the floor. The box starts 0.5 mm behind the baffle's front face, so the face itself stays black.

@@ -29,7 +29,7 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 | `eighteensound-2way-15` | Eighteen Sound 15″ 2 Ways Kit | `plans` | `18sound/18sound_15 2ways.pdf` — FRONT VIEW (p10) and SIDE VIEW (p12) | Dimensions read off the drawings: 420 × 800 × 335 mm; 15 mm Baltic birch; 96 mm vents |
 | | | | Same PDF, driver pages | 15W700 (8.6 kg) + ND1460 (1 kg) + XT1464 horn, crossover ≈ 1.5 kHz |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 2, owner, 60–20000 Hz, 550 W |
-| `achenbach-18` | Achenbach 18 | `cad` | `Achenbach 18/Achenbach 18.FCStd` | Panel geometry: 600 × 700 × 18 top/bottom, 18 × 700 × 564 sides → 0.600 × 0.600 × 0.700 m |
+| `achenbach-18` | Achenbach 18 | `cad` | [`published/achenbach-18/cad/achenbach-18.FCStd`](../published/achenbach-18/cad/achenbach-18.FCStd), SdWa5's own model | Panel geometry: 600 × 700 × 18 top/bottom, 18 × 700 × 564 sides → 0.600 × 0.600 × 0.700 m |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 4, owner, driver B&C 18TBW100, 35–1000 Hz, 1000 W |
 | `iq-sub` | — (GMSS self-build) | — | **The owner of GMSS**, answering questions about `GMSS.jpeg` | "6 IQ subs: 53w, 56d, 67h, 40kg each" — count, all three dimensions and the weight |
 | | | | An earlier message from GMSS | "8 turbo subs 3000rms" — now known to cover **two** cabinets, 6 IQ subs + 2 nukes, so the power rating cannot be attributed to either |
@@ -623,9 +623,10 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
 
 * Everything the builder produces is our own geometry, generated from measurements or published
   dimensions. Dimensions are facts about an object, not a creative work.
-* The CAD files in Drive (`subwoofer v28.obj`, `Achenbach 18.FCStd`, the 18sound `.FCStd`) are other
-  people's work. Using them as a `mesh_override` means checking their licence first and recording it
-  here. They are fine as a *dimension reference* either way.
+* Third-party CAD, such as Josh Ricci's SKRAM STEP, is other people's work. Using it as a `mesh_override` means
+  checking its licence first and recording it here. It is fine as a *dimension reference* either way. The FreeCAD
+  models of the Achenbach 18 and the Eighteen Sound 2-way are SdWa5's own drawings, and the Flexy CAD was bought
+  with its rights, so all three are committed under `published/`.
 * Nothing binary is committed to this repository — `build/` is ignored — so a `mesh_override` mesh
   lives outside it and is referenced by path. A third-party licence question can therefore never
   become a question about this repo's history. The exceptions are `standalone/` and `published/`,
@@ -638,6 +639,8 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
 | `published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj` and `subwoofer-v28.x` | Oliver Ripper's CAD, same purchase as the row above. The OBJ is also in his public repository [Oletarier/bassw-rfel-folded-horn](https://github.com/Oletarier/bassw-rfel-folded-horn). | 17.10.2026 |
 | `published/flexy-folded-horn-hybrid/cad/subwoofer-v28-both-side-walls.obj` | A FreeCAD re-export by SdWa5 of the row above, with the second side wall added. Same rights. | 17.10.2026 |
 | `published/flexy-folded-horn-hybrid/cad/horn-extension.FCStd` and `horn-extension.xlsx` | SdWa5's own design of 2023, published under CC BY-SA 4.0 as confirmed by the owner. | 17.10.2026 |
+| `published/achenbach-18/cad/achenbach-18.FCStd` and `achenbach-18.stl` | SdWa5's own drawing of the Achenbach 18, published under CC BY-SA 4.0 as confirmed by the owner. The design is Achenbach's. | 17.10.2026 |
+| `published/eighteensound-2way-15/cad/eighteensound-2way-15.FCStd` and `eighteensound-2way-15.stl` | SdWa5's own drawing of Eighteen Sound's 15″ 2 Ways Kit, published under CC BY-SA 4.0 as confirmed by the owner. The design is Eighteen Sound's. | 17.10.2026 |
 | `tools/flexy-plan/original.pdf` (Flexy build plan as bought, the base of revisions B to D) | Same purchase as the first row. Its Drive copy `pdf24_zusammengefügt.pdf` was replaced by a pointer file on 17.10.2026. | 17.10.2026 |
 
 ## 3D geometry, per device
@@ -650,8 +653,8 @@ everything, and what it is good for.
 |--------|--------------------|--------|
 | `flexy-folded-horn-hybrid` | **yes** — four folded-horn mouths | [`published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl`](../published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl), formerly `Merch/CAD/3D Print Smoking paper rolls case - 3381901/files/flexy.stl`: 1:10, watertight, 2817 faces. `units: cm`, `rotate_deg: [90, 0, 90]`, 3 mm narrower than the spec |
 | | (rejected alternative) | [`published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj`](../published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj): has the horn but is a non-watertight shell and 18 mm narrow |
-| `achenbach-18` | **yes** — driver cut-out and corner braces | `Achenbach 18.FCStd`, converted with `ddev mesh-convert`. Its 600 × 700 × 600 mm matches the spec exactly — a third confirmation after the panel geometry and lsv-achenbach.de's published panel sizes |
-| `eighteensound-2way-15` | **yes** — octagonal horn cut-out, Ø353 driver hole, 2× Ø100 ports | `Eighteensound 2 Way Point Source 15.FCStd`, converted with `ddev mesh-convert`. **Its outer box is the authority, not the drawings** — see below |
+| `achenbach-18` | **yes** — driver cut-out and corner braces | [`published/achenbach-18/cad/achenbach-18.stl`](../published/achenbach-18/cad/achenbach-18.stl), converted from `achenbach-18.FCStd` with `ddev mesh-convert`. Its 600 × 700 × 600 mm matches the spec exactly — a third confirmation after the panel geometry and lsv-achenbach.de's published panel sizes |
+| `eighteensound-2way-15` | **yes** — octagonal horn cut-out, Ø353 driver hole, 2× Ø100 ports | [`published/eighteensound-2way-15/cad/eighteensound-2way-15.stl`](../published/eighteensound-2way-15/cad/eighteensound-2way-15.stl), converted from `eighteensound-2way-15.FCStd` with `ddev mesh-convert`. **Its outer box is the authority, not the drawings** — see below |
 | `skram` | **yes** — Josh Ricci's own CAD | The [SKRAM DIY Package](https://www.jwsound.live/designs/riccis-skram-subwoofer) contains `STEP Files/SKRAM 3D.step` (full assembly, 52 solids) plus individual panel STEPs, 29 DXFs, Fusion `.f3d`, SolidWorks parts and a cut sheet. Converted with `ddev mesh-convert`; measures 619.6 × 812.8 × 924.4 mm — height exactly 32″, width and depth each 10 mm over the published 24″/36″ |
 | `tecnare-m2122` | **no source anywhere** | Two photos and the L2122LT datasheet's line drawings. Nothing modellable — its baffle is generated from estimates, see below |
 
