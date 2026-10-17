@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.157.1] - 2026-10-17
+
+### Added
+
+- `TODO.md`: TOOL-26, splitting the six files past 1000 lines, and TOOL-27, our own merch case for the Flexy print
+  in place of esy's CC BY-NC-ND one. Both are parked at P4.
+
 ## [0.157.0] - 2026-10-17
 
 ### Added
