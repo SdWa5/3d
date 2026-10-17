@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.157.0] - 2026-10-17
+
+### Added
+
+- `published/flexy-folded-horn-hybrid/cad/` with the Flexy's source CAD, each file md5-checked against its Drive
+  original: Oliver Ripper's `subwoofer-v28.obj` and `.x`, the both-side-walls re-export, the 1:10 `flexy-1to10.stl`
+  and SdWa5's horn extension (`.FCStd` and `.xlsx`).
+- Flexy build plan revision D. It credits MrFlexySMP's video on the cover and in the PDF subject.
+- The published Flexy `.glb` carries MrFlexySMP's video as `clone_of.url` in its metadata. The geometry is unchanged.
+- `published/README.md`: the `cad/` table with each file's origin and an index of every other Flexy resource.
+- `.gitattributes` marks binaries as `binary` and `scenes/generated/` as generated.
+- `meshes/README.md` is now committed, so the links to it resolve.
+- CI step for the Flexy parts tests.
+
+### Changed
+
+- The Flexy spec's `mesh_override` points at `published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl`, so every
+  checkout builds the real cabinet. Its `clone_of.url` is MrFlexySMP's video.
+- `published/` is the public package per device, which includes its source CAD.
+- `docs/sources.md` records the rights to every `cad/` file and the design's 38–200 Hz claim.
+- The Flexy parts test moved to `tools/flexy-plan/test_parts.py`.
+- `docs/catalog.md` regenerated. Its total volume was stale.
+
+### Removed
+
+- `.gitlab-ci.yml`. The repository is on GitHub, and `tests.yml` runs the same checks.
+- Flexy build plan revision C, superseded by revision D.
+
 ## [0.156.1] - 2026-10-17
 
 ### Removed

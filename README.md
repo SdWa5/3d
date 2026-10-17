@@ -223,9 +223,9 @@ tools/          check-glb.py, freecad-export.py, flexy-plan/ (the Flexy build pl
 scenes/         setups as YAML — one file per event layout
 scenes/generated/  the sweep's output, one folder per inventory — committed so it can be read on the web
 events/         one file per event: the room, how each system is set up and what each system brings
-meshes/         override meshes — third-party CAD, gitignored
+meshes/         override meshes — third-party CAD, gitignored except its README
 standalone/     hand-modelled single loudspeakers — .blend, .glb and previews, committed
-published/      spec builds that printed plans link to — .glb, preview and plan PDFs, committed
+published/      the public package per device — .glb, preview, plan PDFs, cut list and source CAD, committed
 build/          generated models, asset library, renders — gitignored
 .handoff/, reference-files/, root-level images, scenes/generated/scratch-*/  local working material — gitignored
 docs/
@@ -233,8 +233,8 @@ docs/
 
 No *binary* artefact is committed, with two exceptions. `build/` and `meshes/` are reproducible or third-party, so the
 repository stays text-only and diffable. The exception is [`standalone/`](standalone/README.md), single loudspeakers
-modelled by hand for people who asked for a Blender file, where the `.blend` and `.glb` are the deliverable itself. The other is [`published/`](published/README.md), spec
-builds that a printed build plan links to by QR code and that therefore need a stable URL. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
+modelled by hand for people who asked for a Blender file, where the `.blend` and `.glb` are the deliverable itself. The other is [`published/`](published/README.md), the public package of a device
+that a printed build plan links to by QR code, with the CAD it comes from, which therefore needs a stable URL. The generated scenes under `scenes/generated/` **are** committed, on purpose, so that any of
 them can be read on the web without a checkout and a solve — see [docs/scenes.md](docs/scenes.md).
 
 ## Current state
@@ -255,7 +255,7 @@ GMSS, PSL and Innschleife and arrives in their own vans — see the four borrowe
 [docs/inventory.md](docs/inventory.md) for the system-by-system state.
 
 **Four of the five cabinets we own carry their own CAD** via `mesh_override`, so the models show the openings you actually see on a
-cabinet rather than a black box. The meshes themselves are third-party files and are not committed —
+cabinet rather than a black box. The Flexy's mesh is committed under [`published/`](published/README.md). The others are third-party files and are not committed —
 [`meshes/README.md`](meshes/README.md) has the one-line `rclone` command for each, and `ddev mesh-convert` turns
 FreeCAD or STEP into something Blender can read.
 
@@ -302,7 +302,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
 - [Signal chain](docs/signal-chain.md) — limiter thresholds, amplifier gain and DSP routing, per event
 - [Standalone models](standalone/README.md) — single loudspeakers modelled by hand, their sources and estimates
-- [Published models](published/README.md) — committed spec builds and build plans that printed QR codes point at
+- [Published models](published/README.md) — committed spec builds, build plans and source CAD that printed QR codes point at
 
 Org-level documentation lives in the association's [`docs`](https://github.com/SdWa5/docs) repository.
 
@@ -310,6 +310,7 @@ Org-level documentation lives in the association's [`docs`](https://github.com/S
 
 ```bash
 python3 -B -m unittest discover -s .github/tests -v  # CI installer regression tests
+python3 -B -m unittest discover -s tools/flexy-plan -v  # Flexy parts data and cut list
 ddev exec composer test                          # PHPUnit
 ddev exec composer static                        # PHPStan level 5 + Symfony coding standards
 ddev exec composer cs-fix                        # apply the coding standards

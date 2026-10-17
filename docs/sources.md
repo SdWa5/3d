@@ -13,9 +13,10 @@ Drive paths are relative to the **SdWa5** Shared Drive, folder
 
 | Device | Clones | Reference | Source | What came from it |
 |--------|--------|-----------|--------|-------------------|
-| `flexy-folded-horn-hybrid` | MrFlexySMP Folded Horn Hybrid | `cad` | `MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj` | Height and depth off the mesh bounding box: 0.763 × 0.964 m. Its width reads 0.573 m and is **wrong** — see `deviations` |
+| `flexy-folded-horn-hybrid` | MrFlexySMP Folded Horn Hybrid ([video](https://www.youtube.com/watch?v=tzwWSL8TyKI)) | `cad` | [`published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj`](../published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj), formerly `MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj` in Drive | Height and depth off the mesh bounding box: 0.763 × 0.964 m. Its width reads 0.573 m and is **wrong** — see `deviations` |
 | | | | `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx`, confirmed by the owner | Width 0.59 m; weight 85 kg (70 empty + 15 driver) |
 | | | | `Hardware/Hardware Overview.xlsx` | Quantity 14, 38–200 Hz, 1800 W, driver models |
+| | | | `145dB Frequency Response_ 38Hz ~ 200Hz.docx`, a one-line note in the Drive's Flexy folder, removed on 17.10.2026 after this transcription | The claim "145dB Frequency Response: 38Hz ~ 200Hz". Unmeasured, recorded as a claim only |
 | `skram` | Josh Ricci SKRAM | `plans` | `Josh Ricci (SKRAM, OTHORN, GHORN, SKHORN)/Skram Panel List.csv` | Cut list: largest panel 914 × 813 mm at 18 mm, and 813 × 574 giving 574 + 2×18 = 610 mm width |
 | | | | Josh Ricci's published SKRAM design (24″ × 32″ × 36″) | Independent confirmation of the same 0.610 × 0.813 × 0.914 m |
 | | | | `PA-Gehaeuse_Vergleich_und_Effizienzberechnung.xlsx` | Weight 90 kg (56 empty + 34 driver), 1800 W |
@@ -633,8 +634,11 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
 
 | Mesh | Rights | Recorded |
 |------|--------|----------|
-| `flexy-1to10.stl` (Flexy Folded Horn Hybrid) | The CAD and the build plan are by Oliver Ripper. SdWa5 bought them with the full rights (60 EUR, 23.05.2022). The design is MrFlexySMP's. | 16.10.2026 |
-| `tools/flexy-plan/original.pdf` (Flexy build plan as bought, the base of revisions B and C) | Same purchase as the row above. The same file is in the Drive's Flexy folder. | 17.10.2026 |
+| `published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl` (Flexy Folded Horn Hybrid, 1:10) | Derived by SdWa5 from Oliver Ripper's CAD. The CAD and the build plan are by Oliver Ripper, and SdWa5 bought them with the full rights (60 EUR, 23.05.2022). The design is MrFlexySMP's, from the video [Folded Horn Hybrid](https://www.youtube.com/watch?v=tzwWSL8TyKI). Its former Drive copy `Merch/…/files/flexy.stl` was replaced by a pointer file on 17.10.2026. | 16.10.2026 |
+| `published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj` and `subwoofer-v28.x` | Oliver Ripper's CAD, same purchase as the row above. The OBJ is also in his public repository [Oletarier/bassw-rfel-folded-horn](https://github.com/Oletarier/bassw-rfel-folded-horn). | 17.10.2026 |
+| `published/flexy-folded-horn-hybrid/cad/subwoofer-v28-both-side-walls.obj` | A FreeCAD re-export by SdWa5 of the row above, with the second side wall added. Same rights. | 17.10.2026 |
+| `published/flexy-folded-horn-hybrid/cad/horn-extension.FCStd` and `horn-extension.xlsx` | SdWa5's own design of 2023, published under CC BY-SA 4.0 as confirmed by the owner. | 17.10.2026 |
+| `tools/flexy-plan/original.pdf` (Flexy build plan as bought, the base of revisions B to D) | Same purchase as the first row. Its Drive copy `pdf24_zusammengefügt.pdf` was replaced by a pointer file on 17.10.2026. | 17.10.2026 |
 
 ## 3D geometry, per device
 
@@ -644,8 +648,8 @@ everything, and what it is good for.
 
 | Device | Detailed geometry? | Source |
 |--------|--------------------|--------|
-| `flexy-folded-horn-hybrid` | **yes** — four folded-horn mouths | `Merch/CAD/3D Print Smoking paper rolls case - 3381901/files/flexy.stl`: 1:10, watertight, 2817 faces. `units: cm`, `rotate_deg: [90, 0, 90]`, 3 mm narrower than the spec |
-| | (rejected alternative) | `…/MrFlexySMPs Folded Horn Hybrid/3d models/subwoofer v28.obj`: has the horn but is a non-watertight shell and 18 mm narrow |
+| `flexy-folded-horn-hybrid` | **yes** — four folded-horn mouths | [`published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl`](../published/flexy-folded-horn-hybrid/cad/flexy-1to10.stl), formerly `Merch/CAD/3D Print Smoking paper rolls case - 3381901/files/flexy.stl`: 1:10, watertight, 2817 faces. `units: cm`, `rotate_deg: [90, 0, 90]`, 3 mm narrower than the spec |
+| | (rejected alternative) | [`published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj`](../published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj): has the horn but is a non-watertight shell and 18 mm narrow |
 | `achenbach-18` | **yes** — driver cut-out and corner braces | `Achenbach 18.FCStd`, converted with `ddev mesh-convert`. Its 600 × 700 × 600 mm matches the spec exactly — a third confirmation after the panel geometry and lsv-achenbach.de's published panel sizes |
 | `eighteensound-2way-15` | **yes** — octagonal horn cut-out, Ø353 driver hole, 2× Ø100 ports | `Eighteensound 2 Way Point Source 15.FCStd`, converted with `ddev mesh-convert`. **Its outer box is the authority, not the drawings** — see below |
 | `skram` | **yes** — Josh Ricci's own CAD | The [SKRAM DIY Package](https://www.jwsound.live/designs/riccis-skram-subwoofer) contains `STEP Files/SKRAM 3D.step` (full assembly, 52 solids) plus individual panel STEPs, 29 DXFs, Fusion `.f3d`, SolidWorks parts and a cut sheet. Converted with `ddev mesh-convert`; measures 619.6 × 812.8 × 924.4 mm — height exactly 32″, width and depth each 10 mm over the published 24″/36″ |

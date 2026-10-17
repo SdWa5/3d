@@ -6,6 +6,7 @@ namespace App\Tests\Published;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * The committed spec builds under `published/`, read straight from their .glb.
@@ -62,10 +63,37 @@ final class PublishedModelsTest extends TestCase
         self::assertEmpty(self::gltf($id)['images'] ?? [], "$id carries an image, which may be a third-party photograph");
     }
 
+    #[DataProvider('models')]
+    public function testAMeshOverrideLiesInsideItsPackage(string $id): void
+    {
+        $spec = Yaml::parseFile(glob(\dirname(self::root())."/specs/*/*/$id.yaml")[0]);
+        if (!isset($spec['mesh_override']['path'])) {
+            self::markTestSkipped("$id is built without a mesh_override");
+        }
+        $path = $spec['mesh_override']['path'];
+        self::assertStringStartsWith("published/$id/", $path, 'a published model must build from a committed mesh');
+        self::assertFileExists(\dirname(self::root())."/$path");
+    }
+
     public function testTheFlexyPlansTheQrCodesPointAtExist(): void
     {
-        foreach (['build-plan-rev-c-en.pdf', 'bauplan-rev-c-de.pdf'] as $file) {
+        foreach (['build-plan-rev-d-en.pdf', 'bauplan-rev-d-de.pdf'] as $file) {
             self::assertStringStartsWith('%PDF-', (string) file_get_contents(self::root()."/flexy-folded-horn-hybrid/$file", length: 5));
+        }
+    }
+
+    public function testTheFlexyPlansCreditMrFlexySmpsVideo(): void
+    {
+        foreach (['build-plan-rev-d-en.pdf', 'bauplan-rev-d-de.pdf'] as $file) {
+            self::assertStringContainsString('tzwWSL8TyKI', (string) file_get_contents(self::root()."/flexy-folded-horn-hybrid/$file"), $file);
+        }
+    }
+
+    public function testTheFlexyCadShipsWithThePlans(): void
+    {
+        foreach (['subwoofer-v28.obj', 'subwoofer-v28.x', 'subwoofer-v28-both-side-walls.obj', 'flexy-1to10.stl', 'horn-extension.FCStd', 'horn-extension.xlsx'] as $file) {
+            self::assertFileExists(self::root()."/flexy-folded-horn-hybrid/cad/$file");
+            self::assertStringContainsString("`$file`", (string) file_get_contents(self::root().'/README.md'), "the README's cad/ table lacks $file");
         }
     }
 

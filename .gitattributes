@@ -1,0 +1,17 @@
+# Binary assets: no text diffs, no merges, no line-ending conversion. The OBJ and .x exports are text but are kept
+# byte for byte as delivered (CRLF included), so the copies stay checksum-identical to their sources.
+*.glb   binary
+*.blend binary
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.stl   binary
+*.obj   binary
+*.x     binary
+*.FCStd binary
+*.xlsx  binary
+
+# The sweep's output is committed so it can be read on the web, but it is generated: collapsed in diffs and left out
+# of the language statistics.
+scenes/generated/** linguist-generated=true
