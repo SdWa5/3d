@@ -639,8 +639,8 @@ Only relevant for `mesh_override`, and only ever for models we did **not** gener
 | `published/flexy-folded-horn-hybrid/cad/subwoofer-v28.obj` and `subwoofer-v28.x` | Oliver Ripper's CAD, same purchase as the row above. The OBJ is also in his public repository [Oletarier/bassw-rfel-folded-horn](https://github.com/Oletarier/bassw-rfel-folded-horn). | 17.10.2026 |
 | `published/flexy-folded-horn-hybrid/cad/subwoofer-v28-both-side-walls.obj` | A FreeCAD re-export by SdWa5 of the row above, with the second side wall added. Same rights. | 17.10.2026 |
 | `published/flexy-folded-horn-hybrid/cad/horn-extension.FCStd` and `horn-extension.xlsx` | SdWa5's own design of 2023, published under CC BY-SA 4.0 as confirmed by the owner. | 17.10.2026 |
-| `published/achenbach-18/cad/achenbach-18.FCStd` and `achenbach-18.stl` | SdWa5's own drawing of the Achenbach 18, published under CC BY-SA 4.0 as confirmed by the owner. The design is Achenbach's. | 17.10.2026 |
-| `published/eighteensound-2way-15/cad/eighteensound-2way-15.FCStd` and `eighteensound-2way-15.stl` | SdWa5's own drawing of Eighteen Sound's 15″ 2 Ways Kit, published under CC BY-SA 4.0 as confirmed by the owner. The design is Eighteen Sound's. | 17.10.2026 |
+| `published/achenbach-18/cad/achenbach-18.FCStd` and `achenbach-18.stl` | SdWa5's own drawing of the Achenbach 18, published under CC BY-SA 4.0 as confirmed by the owner. The design is Achenbach's. The Drive copies in `Achenbach 18/` were replaced by a pointer file on 17.10.2026. | 17.10.2026 |
+| `published/eighteensound-2way-15/cad/eighteensound-2way-15.FCStd` and `eighteensound-2way-15.stl` | SdWa5's own drawing of Eighteen Sound's 15″ 2 Ways Kit, published under CC BY-SA 4.0 as confirmed by the owner. The design is Eighteen Sound's. The Drive copy in `18sound/` was replaced by a pointer file on 17.10.2026. | 17.10.2026 |
 | `tools/flexy-plan/original.pdf` (Flexy build plan as bought, the base of revisions B to D) | Same purchase as the first row. Its Drive copy `pdf24_zusammengefügt.pdf` was replaced by a pointer file on 17.10.2026. | 17.10.2026 |
 
 ## 3D geometry, per device
@@ -700,7 +700,8 @@ repository to invent, so each layout carries its own `provenance` separate from 
 The SKRAM has no layout. Its drivers sit deep inside a folded horn path and are not visible from outside, so
 there is nothing to model.
 
-The photographs stay local in `meshes/`, which is gitignored like every reference image.
+The photographs are kept in the SdWa5 Shared Drive and fetched into the gitignored `meshes/` as
+[`meshes/README.md`](../meshes/README.md#fetching-from-the-sdwa5-shared-drive) describes.
 
 ## Original datasheets
 

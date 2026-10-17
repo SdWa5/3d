@@ -48,8 +48,9 @@ appearance:
 
 # PSL's print file "Krampus Gesamt.png", 2172 x 550 px. Mapped at 2.715 px/cm it is 8.000 x 2.026 m, which is the
 # panel, so the default tolerance holds. Its alpha cuts the panel, see `cutout`. The cut edges along the outline have
-# no wall of their own, which shows at a grazing angle only. Kept under the gitignored meshes/ like every front image,
-# see docs/sources.md. A checkout without it builds the panel as a plain rectangle.
+# no wall of their own, which shows at a grazing angle only. Kept under the gitignored meshes/ like every front image
+# and fetched from the SdWa5 Shared Drive, see meshes/README.md. A checkout without it builds the panel as a plain
+# rectangle.
 front_image:
   path: meshes/psl/deco-panel-front.png
   px_per_cm: 2.715
