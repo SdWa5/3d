@@ -6,8 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.156.0] - 2026-10-17
+
 ### Added
 
+- `tools/flexy-plan/` writes the Flexy build plan from the original `original.pdf`, with `parts.json` as the one
+  source of the parts data and `parts.py` for the cut list. `.github/tests/test_flexy_plan.py` tests the parts data
+  and the CSV.
+- Flexy build plan revision C. It states 18 mm multiplex on the cover and every sheet, and sheet 26 holds the parts
+  list, the cut list and the recommended stock sizes with a minimum sheet count.
+- `published/flexy-folded-horn-hybrid/flexy-cutlist.csv` for import into cutlistoptimizer.com.
+- `TODO.md`: SPEC-21, the cutlistoptimizer import check and the Drive upload of revision C.
 - `TODO.md`: SPEC-20, the author names in the metadata of the published Flexy build plans.
 - `published/` for committed spec builds that printed plans link to, with the Flexy Folded Horn Hybrid `.glb`,
   a preview and its build plan revision B in English and German, plus `PublishedModelsTest`.
@@ -17,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Revision C replaces revision B in `published/flexy-folded-horn-hybrid/`, and `PublishedModelsTest` checks the
+  revision C files and the CSV.
 - The Flexy build plan's cover URLs and QR codes are clickable links.
 - Sheet 19 of the Flexy build plan opens in landscape like the other sheets.
 - GitHub Actions pins checkout v5 and PHP setup v2 to upstream commits and does not persist checkout credentials.
@@ -24,6 +35,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Ruff includes the CI installer tests, and README and pipeline documentation describe dependency maintenance.
 - `.gitignore` keeps local working material out of git: `.handoff/`, `reference-files/`, root-level images and
   `scenes/generated/scratch-*/`. README and `docs/scenes.md` name the `scratch-` convention.
+
+### Removed
+
+- `TODO.md`: SPEC-20 is closed. The full names stay in the PDF `Author` field as attribution.
 
 ## [0.155.1] - 2026-10-15
 
