@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.158.2] - 2026-10-17
+
+### Changed
+
+- SPEC-16 points at its four XT1464 reference images in the Drive folder `18sound/`, where they now live.
+
 ## [0.158.1] - 2026-10-17
 
 ### Changed
