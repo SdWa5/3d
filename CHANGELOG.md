@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.156.1] - 2026-10-17
+
+### Removed
+
+- `TODO.md`: SPEC-21 is closed. `flexy-cutlist.csv` imports into cutlistoptimizer.com with all 21 rows, material and
+  label, and the four optional blanks disabled.
+
 ## [0.156.0] - 2026-10-17
 
 ### Added
