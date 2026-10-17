@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `TODO.md`: SPEC-20, the author names in the metadata of the published Flexy build plans.
 - `published/` for committed spec builds that printed plans link to, with the Flexy Folded Horn Hybrid `.glb`,
   a preview and its build plan revision B in English and German, plus `PublishedModelsTest`.
 - `docs/sources.md` records the rights to the Flexy mesh `flexy-1to10.stl`.
