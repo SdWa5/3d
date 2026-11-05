@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.158.5] - 2026-11-05
+
+### Added
+
+- TOOL-29: update `pypdf` and `symfony/yaml` for the 68 open Dependabot alerts.
+
 ## [0.158.4] - 2026-11-05
 
 ### Changed
