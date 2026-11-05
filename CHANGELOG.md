@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.158.3] - 2026-11-05
+
+### Added
+
+- SPEC-22: simulate every speaker type before it is measured, as the unbiased reference for the sdwa5-dsp measurements.
+
 ## [0.158.2] - 2026-10-17
 
 ### Changed
