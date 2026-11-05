@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.158.4] - 2026-11-05
+
+### Changed
+
+- SPEC-22 asks for the tolerances of the Thiele/Small parameters, so each simulated prediction gets an interval.
+
 ## [0.158.3] - 2026-11-05
 
 ### Added
