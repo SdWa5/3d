@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - TODO: SCN-15, an isometric camera on `scene:render`, and SCN-16, a 2D preview without Blender.
+- TODO: TOOL-29 re-measured, still 68 open alerts and both pins unchanged.
 
 ### Changed
 
