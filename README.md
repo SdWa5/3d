@@ -297,6 +297,7 @@ counts on every run, so the gap between "we have models" and "we have accurate m
 - [Pipeline](docs/pipeline.md) — how a spec becomes a model, and the failure modes
 - [Blender](docs/blender.md) — version pinning, asset library, building setups
 - [Measuring](docs/measuring.md) — checklist for turning a real cabinet into a spec
+- [Room scanning](docs/room-scanning.md) — single-phone capture and a 3 cm validation protocol
 - [Inventory](docs/inventory.md) — the gear list, and Drive access via rclone
 - [Scenes](docs/scenes.md) — writing a PA setup as a file, stacking and repetition
 - [Sources](docs/sources.md) — where each device's numbers come from, and licensing
